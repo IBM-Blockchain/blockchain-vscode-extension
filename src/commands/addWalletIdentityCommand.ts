@@ -32,6 +32,7 @@ import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
+import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 
 export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWallet, mspid: string): Promise<string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -194,10 +195,11 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
             const certificateAuthority: IFabricCertificateAuthority = FabricCertificateAuthorityFactory.createCertificateAuthority();
 
             // Read connection profile
-            const connectionProfileFile: string = await fs.readFile(gatewayRegistryEntry.connectionProfilePath, 'utf8');
+            const connectionProfilePath: string = await FabricGatewayHelper.getConnectionProfilePath(gatewayRegistryEntry.name);
+            const connectionProfileFile: string = await fs.readFile(connectionProfilePath, 'utf8');
             let connectionProfile: any;
 
-            if (gatewayRegistryEntry.connectionProfilePath.endsWith('.json')) {
+            if (connectionProfilePath.endsWith('.json')) {
                 connectionProfile = JSON.parse(connectionProfileFile);
             } else {
                 // Assume its a yml/yaml file type

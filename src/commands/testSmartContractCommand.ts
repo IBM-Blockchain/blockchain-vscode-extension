@@ -31,6 +31,7 @@ import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 import { ContractTreeItem } from '../explorer/model/ContractTreeItem';
 import { FABRIC_CLIENT_VERSION, FABRIC_NETWORK_VERSION } from '../util/ExtensionUtil';
+import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 
 export async function testSmartContract(allContracts: boolean, chaincode?: InstantiatedTreeItem | ContractTreeItem): Promise<void> {
 
@@ -163,24 +164,11 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
 
     for (const [contractName, transactionArray] of transactions) {
         const homedir: string = os.homedir();
-        let connectionProfileHome: boolean;
-        let connectionProfilePathString: string;
         let walletPathString: string;
         let walletHome: boolean;
         let pathWithoutHomeDir: string;
 
-        if (fabricGatewayRegistryEntry.connectionProfilePath.includes(homedir)) {
-            connectionProfilePathString = 'path.join(homedir';
-            pathWithoutHomeDir = fabricGatewayRegistryEntry.connectionProfilePath.slice(homedir.length + 1);
-            pathWithoutHomeDir.split('/').forEach((item: string) => {
-                connectionProfilePathString += `, '${item}'`;
-            });
-            connectionProfilePathString += ')';
-            connectionProfileHome = true;
-        } else {
-            connectionProfilePathString = fabricGatewayRegistryEntry.connectionProfilePath;
-            connectionProfileHome = false;
-        }
+        const connectionProfilePath: string = await FabricGatewayHelper.getConnectionProfilePath(fabricGatewayRegistryEntry.name);
 
         if (fabricWalletRegistryEntry.walletPath.includes(homedir)) {
             walletPathString = 'path.join(homedir';
@@ -201,8 +189,7 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
             contractName: contractName,
             chaincodeLabel: chaincodeLabel,
             transactions: transactionArray,
-            connectionProfileHome: connectionProfileHome,
-            connectionProfilePath: connectionProfilePathString,
+            connectionProfileHome: connectionProfilePath,
             walletPath: walletPathString,
             walletHome: walletHome,
             chaincodeName: chaincodeName,
@@ -212,8 +199,7 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
         };
 
         const utilTemplateData: any = {
-            connectionProfileHome: connectionProfileHome,
-            connectionProfilePath: connectionProfilePathString,
+            connectionProfilePath: connectionProfilePath,
             chaincodeName: chaincodeName,
             channelName: channelName,
             walletHome: walletHome

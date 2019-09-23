@@ -179,7 +179,7 @@ export class ExtensionUtil {
             }
         }
 
-        // Migrate Fabric gateways
+        // Migrate Fabric wallets
         const oldWallets: any = vscode.workspace.getConfiguration().get('fabric.wallets');
         if (oldWallets !== undefined) {
             const newWallets: any = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);

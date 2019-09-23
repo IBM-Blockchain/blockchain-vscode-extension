@@ -45,7 +45,7 @@ export async function teardownFabricRuntime(_treeItem?: RuntimeTreeItem, force: 
     }, async (progress: vscode.Progress<{ message: string }>) => {
         progress.report({ message: `Tearing down Fabric runtime ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}` });
         const connectedGatewayRegistry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
-        if (connectedGatewayRegistry && connectedGatewayRegistry.managedRuntime) {
+        if (connectedGatewayRegistry && connectedGatewayRegistry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
             await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
         }
 

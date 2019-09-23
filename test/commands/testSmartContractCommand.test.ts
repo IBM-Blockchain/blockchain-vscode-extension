@@ -38,6 +38,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { ContractTreeItem } from '../../src/explorer/model/ContractTreeItem';
 import { FABRIC_CLIENT_VERSION, FABRIC_NETWORK_VERSION, ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { InstantiatedUnknownTreeItem } from '../../src/explorer/model/InstantiatedUnknownTreeItem';
+import { FabricGatewayHelper } from '../../src/fabric/FabricGatewayHelper';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -236,10 +237,11 @@ describe('testSmartContractCommand', () => {
 
             gatewayRegistryEntry = new FabricGatewayRegistryEntry();
             gatewayRegistryEntry.name = 'myGateway';
-            gatewayRegistryEntry.connectionProfilePath = 'myPath';
-            gatewayRegistryEntry.managedRuntime = false;
             getGatewayRegistryStub = mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry');
             getGatewayRegistryStub.returns(gatewayRegistryEntry);
+
+            mySandBox.stub(FabricGatewayHelper, 'getConnectionProfilePath').resolves(path.join('myPath', 'connection.json'));
+
             fabricClientConnectionMock.getAllPeerNames.returns(['peerOne']);
             fabricClientConnectionMock.getAllChannelsForPeer.withArgs('peerOne').resolves(['myEnglishChannel']);
             fabricClientConnectionMock.getInstantiatedChaincode.resolves([
@@ -424,16 +426,6 @@ describe('testSmartContractCommand', () => {
             const templateData: string = mockEditBuilderReplaceSpy.args[1][1];
 
             templateData.includes(`path.join(homedir, 'walletPath')`).should.be.true;
-        });
-
-        it('should provide a path.join if the connection profile path contains the home directory', async () => {
-            mySandBox.stub(os, 'homedir').returns('homedir');
-            gatewayRegistryEntry.connectionProfilePath = 'homedir/myPath';
-
-            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract as InstantiatedUnknownTreeItem);
-            const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
-
-            templateData.includes(`path.join(homedir, 'myPath')`).should.be.true;
         });
 
         it('should ask the user for an instantiated smart contract to test if none selected', async () => {

@@ -22,7 +22,22 @@ import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricNode } from './FabricNode';
 
 export class FabricGatewayHelper {
-    // Wanted to type with FabricGatewayRegistryEntry but it failed
+
+    public static async getConnectionProfilePath(gatewayName: string): Promise<string> {
+
+        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+        const profileDirPath: string = path.join(homeExtDir, 'gateways', gatewayName);
+
+        let files: string[] = await fs.readdir(profileDirPath);
+        files = files.filter((fileName: string) => !fileName.startsWith('.'));
+
+        if (files.length === 0) {
+            throw new Error(`Failed to find a connection profile file in folder ${profileDirPath}`);
+        }
+
+        return path.join(profileDirPath, files[0]);
+    }
 
     public static async generateConnectionProfile(gatewayName: string, peerNode: FabricNode, caNode: FabricNode): Promise<string> {
         const connectionProfile: any = {
@@ -90,7 +105,7 @@ export class FabricGatewayHelper {
         const homeExtDir: string = UserInputUtil.getDirPath(extDir);
         const profileDirPath: string = path.join(homeExtDir, 'gateways', gatewayName);
         await fs.ensureDir(profileDirPath);
-        const profileFilePath: string = path.join(profileDirPath, 'connection.json');
+        const profileFilePath: string = path.join(profileDirPath, `${this.profileName}.json`);
 
         const connectionProfileString: string = JSON.stringify(connectionProfile, null, 4);
         await fs.writeFile(profileFilePath, connectionProfileString);
@@ -116,15 +131,14 @@ export class FabricGatewayHelper {
 
             if (connectionProfilePath.endsWith('.json')) {
                 connectionProfile = JSON.parse(connectionProfileFile);
-                profilePath = path.join(profileDirPath, 'connection.json');
+                profilePath = path.join(profileDirPath, `${this.profileName}.json`);
             } else {
                 // Assume its a yml/yaml file type
                 connectionProfile = yaml.safeLoad(connectionProfileFile);
-                profilePath = path.join(profileDirPath, 'connection.yml');
+                profilePath = path.join(profileDirPath, `${this.profileName}.yml`);
             }
 
             // Read the given connection profile
-
             const properties: string[] = ['peers', 'orderers', 'certificateAuthorities'];
 
             // Rewrite any TLS paths and create an inline pem instead
@@ -174,7 +188,7 @@ export class FabricGatewayHelper {
             // Ensure all the gateways are stored under the gateways subdirectory
             const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
             const gatewaysExtDir: string = path.join(extDir, 'gateways');
-            if (gateway.connectionProfilePath.includes(extDir) && !gateway.connectionProfilePath.includes(gatewaysExtDir)) {
+            if (gateway.connectionProfilePath && gateway.connectionProfilePath.includes(extDir) && !gateway.connectionProfilePath.includes(gatewaysExtDir)) {
                 const newGatewayDir: string = path.join(gatewaysExtDir, gateway.name);
                 try {
                     await fs.copy(gateway.connectionProfilePath, newGatewayDir);
@@ -186,9 +200,13 @@ export class FabricGatewayHelper {
                 gateway.connectionProfilePath = path.join(newGatewayDir, path.basename(gateway.connectionProfilePath));
 
             }
+
+            delete gateway.connectionProfilePath;
         }
         // Rewrite the updated gateways to the user settings
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, gateways, vscode.ConfigurationTarget.Global);
     }
+
+    private static profileName: string = 'connection';
 
 }

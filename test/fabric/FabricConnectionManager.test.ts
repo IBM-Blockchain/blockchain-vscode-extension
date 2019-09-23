@@ -36,8 +36,6 @@ describe('FabricConnectionManager', () => {
 
         registryEntry = new FabricGatewayRegistryEntry();
         registryEntry.name = 'myConnection';
-        registryEntry.connectionProfilePath = 'myPath';
-        registryEntry.managedRuntime = false;
     });
 
     afterEach(async () => {

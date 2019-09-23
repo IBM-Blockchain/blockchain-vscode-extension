@@ -63,8 +63,6 @@ describe('LocalGatewayTreeItem', () => {
 
         gateway = new FabricGatewayRegistryEntry();
         gateway.name = FabricRuntimeUtil.LOCAL_FABRIC;
-        gateway.managedRuntime = true;
-        gateway.connectionProfilePath = 'myPath';
         gateway.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
         provider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
@@ -251,8 +249,6 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
             mockRuntime.isRunning.resolves(false);
             const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, new FabricGatewayRegistryEntry({
                 name: FabricRuntimeUtil.LOCAL_FABRIC,
-                managedRuntime: true,
-                connectionProfilePath: 'myPath',
                 associatedWallet: FabricWalletUtil.LOCAL_WALLET
             }), vscode.TreeItemCollapsibleState.None);
             sandbox.stub(treeItem, 'refresh').throws(new Error('such error'));
