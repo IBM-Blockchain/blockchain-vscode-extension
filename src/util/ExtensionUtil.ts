@@ -112,6 +112,7 @@ let blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider;
 
 export const FABRIC_CLIENT_VERSION: string = '1.4.4';
 export const FABRIC_NETWORK_VERSION: string = '1.4.4';
+export const EXTENSION_ID: string = 'IBMBlockchain.ibm-blockchain-platform';
 
 // tslint:disable-next-line: max-classes-per-file
 export class ExtensionUtil {
@@ -508,6 +509,6 @@ export class ExtensionUtil {
     }
 
     private static getExtension(): vscode.Extension<any> {
-        return vscode.extensions.getExtension('IBMBlockchain.ibm-blockchain-platform');
+        return vscode.extensions.getExtension(EXTENSION_ID);
     }
 }

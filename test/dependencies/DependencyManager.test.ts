@@ -110,10 +110,9 @@ describe('DependencyManager Tests', () => {
         let utimesFileStub: sinon.SinonStub;
         let basePath: string;
         let logSpy: sinon.SinonSpy;
+        let extensionKindStub: sinon.SinonStub;
 
         beforeEach(async () => {
-            // await ExtensionUtil.activateExtension();
-
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
             mySandBox.stub(TemporaryCommandRegistry.instance(), 'createTempCommands');
@@ -144,6 +143,12 @@ describe('DependencyManager Tests', () => {
             };
             axiosStub.withArgs('https://raw.githubusercontent.com/electron/releases/master/lite.json').resolves(info);
 
+            extensionKindStub = mySandBox.stub(vscode.extensions, 'getExtension').callThrough();
+            // needed as the older version we need to run against doesn't have this api
+            (vscode as any).ExtensionKind = {Workspace: 2};
+
+            extensionKindStub.onThirdCall().returns({extensionKind: 1});
+            mySandBox.stub(process.versions, 'node').value('10.16.0');
         });
 
         afterEach(() => {
@@ -163,7 +168,7 @@ describe('DependencyManager Tests', () => {
             dependencyManager['dependencies'].length.should.equal(1);
             dependencyManager['dependencies'][0].should.equal('grpc');
 
-            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=4.1.5', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary', '--fallback-to-build', `--target_arch=x64`], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter));
+            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=4.1.5', '--runtime=electron', '--update-binary', '--fallback-to-build', `--target_arch=x64`, '--dist-url=https://atom.io/download/electron'], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter));
 
             const origPath: string = path.join(basePath, `node-v69-linux-x64-glibc`);
             const newPath: string = path.join(basePath, `electron-v4.1-linux-x64-glibc`);
@@ -171,6 +176,28 @@ describe('DependencyManager Tests', () => {
             removeStub.should.have.been.calledWith(origPath);
             renameStub.should.have.been.calledWith(newPath, origPath);
             existsStub.should.have.been.called;
+
+            writeFileStub.should.have.been.called;
+            utimesFileStub.should.have.been.called;
+        });
+
+        it('should install the dependencies using npm command on Linux remote', async () => {
+            extensionKindStub.onThirdCall().returns({extensionKind: 2});
+            mySandBox.stub(process, 'platform').value('linux');
+
+            const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
+            const dependencyManager: DependencyManager = DependencyManager.instance();
+
+            mySandBox.stub(process, 'arch').value('x64');
+
+            await dependencyManager.installNativeDependencies();
+
+            dependencyManager['dependencies'].length.should.equal(1);
+            dependencyManager['dependencies'][0].should.equal('grpc');
+
+            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=10.16.0', '--runtime=node', '--update-binary', '--fallback-to-build', `--target_arch=x64`], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter));
+
+            existsStub.should.not.have.been.called;
 
             writeFileStub.should.have.been.called;
             utimesFileStub.should.have.been.called;
@@ -189,7 +216,7 @@ describe('DependencyManager Tests', () => {
             dependencyManager['dependencies'].length.should.equal(1);
             dependencyManager['dependencies'][0].should.equal('grpc');
 
-            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=4.1.5', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary', '--fallback-to-build', `--target_arch=x64`], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter));
+            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=4.1.5', '--runtime=electron', '--update-binary', '--fallback-to-build', `--target_arch=x64`, '--dist-url=https://atom.io/download/electron'], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter));
 
             const origPath: string = path.join(basePath, `node-v69-darwin-x64-unknown`);
             const newPath: string = path.join(basePath, `electron-v4.1-darwin-x64-unknown`);
@@ -197,6 +224,28 @@ describe('DependencyManager Tests', () => {
             removeStub.should.have.been.calledWith(origPath);
             renameStub.should.have.been.calledWith(newPath, origPath);
             existsStub.should.have.been.called;
+
+            writeFileStub.should.have.been.called;
+            utimesFileStub.should.have.been.called;
+        });
+
+        it('should install the dependencies using npm command on Mac remote', async () => {
+            extensionKindStub.onThirdCall().returns({extensionKind: 2});
+            mySandBox.stub(process, 'platform').value('darwin');
+
+            const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
+            const dependencyManager: DependencyManager = DependencyManager.instance();
+
+            mySandBox.stub(process, 'arch').value('x64');
+
+            await dependencyManager.installNativeDependencies();
+
+            dependencyManager['dependencies'].length.should.equal(1);
+            dependencyManager['dependencies'][0].should.equal('grpc');
+
+            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=10.16.0', '--runtime=node', '--update-binary', '--fallback-to-build', `--target_arch=x64`], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter));
+
+            existsStub.should.not.have.been.called;
 
             writeFileStub.should.have.been.called;
             utimesFileStub.should.have.been.called;
@@ -214,13 +263,34 @@ describe('DependencyManager Tests', () => {
             dependencyManager['dependencies'].length.should.equal(1);
             dependencyManager['dependencies'][0].should.equal('grpc');
 
-            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=4.1.5', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary', '--fallback-to-build', `--target_arch=x64`], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter), sinon.match.truthy);
+            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=4.1.5', '--runtime=electron', '--update-binary', '--fallback-to-build', `--target_arch=x64`, '--dist-url=https://atom.io/download/electron'], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter), sinon.match.truthy);
 
             const origPath: string = path.join(basePath, `node-v69-win32-x64-unknown`);
             const newPath: string = path.join(basePath, `electron-v4.1-win32-x64-unknown`);
 
             removeStub.should.have.been.calledWith(origPath);
             renameStub.should.have.been.calledWith(newPath, origPath);
+
+            writeFileStub.should.have.been.called;
+            utimesFileStub.should.have.been.called;
+        });
+
+        it('should install the dependencies using npm.cmd script on Windows remote', async () => {
+            extensionKindStub.onThirdCall().returns({extensionKind: 2});
+            mySandBox.stub(process, 'platform').value('win32');
+            mySandBox.stub(process, 'arch').value('x64');
+
+            const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
+            const dependencyManager: DependencyManager = DependencyManager.instance();
+
+            await dependencyManager.installNativeDependencies();
+
+            dependencyManager['dependencies'].length.should.equal(1);
+            dependencyManager['dependencies'][0].should.equal('grpc');
+
+            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=10.16.0', '--runtime=node', '--update-binary', '--fallback-to-build', `--target_arch=x64`], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter), sinon.match.truthy);
+
+            existsStub.should.not.have.been.called;
 
             writeFileStub.should.have.been.called;
             utimesFileStub.should.have.been.called;
@@ -238,7 +308,7 @@ describe('DependencyManager Tests', () => {
             dependencyManager['dependencies'].length.should.equal(1);
             dependencyManager['dependencies'][0].should.equal('grpc');
 
-            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=4.1.5', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary', '--fallback-to-build', `--target_arch=x64`], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter));
+            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=4.1.5', '--runtime=electron', '--update-binary', '--fallback-to-build', `--target_arch=x64`, '--dist-url=https://atom.io/download/electron'], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter));
 
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Could not rebuild native dependencies some error. Please ensure that you have node and npm installed');
         });
@@ -257,7 +327,7 @@ describe('DependencyManager Tests', () => {
             dependencyManager['dependencies'].length.should.equal(1);
             dependencyManager['dependencies'][0].should.equal('grpc');
 
-            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=4.1.5', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary', '--fallback-to-build', `--target_arch=x64`], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter), sinon.match.truthy);
+            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=4.1.5', '--runtime=electron', '--update-binary', '--fallback-to-build', `--target_arch=x64`, '--dist-url=https://atom.io/download/electron'], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter), sinon.match.truthy);
 
             const origPath: string = path.join(basePath, `node-v69-win32-x64-unknown`);
             const newPath: string = path.join(basePath, `electron-v4.1-win32-x64-unknown`);
@@ -284,7 +354,7 @@ describe('DependencyManager Tests', () => {
             dependencyManager['dependencies'].length.should.equal(1);
             dependencyManager['dependencies'][0].should.equal('grpc');
 
-            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=4.2.5', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary', '--fallback-to-build', `--target_arch=x64`], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter), sinon.match.truthy);
+            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=4.2.5', '--runtime=electron', '--update-binary', '--fallback-to-build', `--target_arch=x64`, '--dist-url=https://atom.io/download/electron'], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter), sinon.match.truthy);
 
             const origPath: string = path.join(basePath, `node-v69-win32-x64-unknown`);
             const newPath: string = path.join(basePath, `electron-v4.2-win32-x64-unknown`);

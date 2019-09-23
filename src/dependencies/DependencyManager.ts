@@ -13,7 +13,7 @@
 */
 'use strict';
 
-import { ExtensionUtil } from '../util/ExtensionUtil';
+import { ExtensionUtil, EXTENSION_ID } from '../util/ExtensionUtil';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
@@ -193,7 +193,7 @@ export class DependencyManager {
             const nodeResult: string = await CommandUtil.sendCommand('node -v'); // Format: vX.Y.Z
             if (this.isCommandFound(nodeResult)) {
                 const nodeVersion: string = nodeResult.substr(1);
-                const nodeValid: string =  semver.valid(nodeVersion); // Returns version
+                const nodeValid: string = semver.valid(nodeVersion); // Returns version
                 if (nodeValid) {
                     dependencies.node.version = nodeVersion;
                 }
@@ -206,7 +206,7 @@ export class DependencyManager {
         try {
             const npmResult: string = await CommandUtil.sendCommand('npm -v'); // Format: X.Y.Z
             if (this.isCommandFound(npmResult)) {
-                const npmVersion: string =  semver.valid(npmResult); // Returns version
+                const npmVersion: string = semver.valid(npmResult); // Returns version
                 if (npmVersion) {
                     dependencies.npm.version = npmVersion;
                 }
@@ -219,7 +219,7 @@ export class DependencyManager {
         try {
             const dockerResult: string = await CommandUtil.sendCommand('docker -v'); // Format: Docker version X.Y.Z-ce, build e68fc7a
             if (this.isCommandFound(dockerResult)) {
-                const dockerMatchedVersion: string =  dockerResult.match(/version (.*),/)[1]; // Format: X.Y.Z-ce "version 18.06.1-ce,"
+                const dockerMatchedVersion: string = dockerResult.match(/version (.*),/)[1]; // Format: X.Y.Z-ce "version 18.06.1-ce,"
                 const dockerCleaned: string = semver.clean(dockerMatchedVersion, { loose: true });
                 const dockerVersionCoerced: semver.SemVer = semver.coerce(dockerCleaned); // Format: X.Y.Z
                 const dockerVersion: string = semver.valid(dockerVersionCoerced); // Returns version
@@ -236,7 +236,7 @@ export class DependencyManager {
         try {
             const composeResult: string = await CommandUtil.sendCommand('docker-compose -v'); // Format: docker-compose version 1.22.0, build f46880f
             if (this.isCommandFound(composeResult)) {
-                const composeMatchedVersion: string =  composeResult.match(/version (.*),/)[1]; // Format: X.Y.Z
+                const composeMatchedVersion: string = composeResult.match(/version (.*),/)[1]; // Format: X.Y.Z
                 const composeCleaned: string = semver.clean(composeMatchedVersion, { loose: true });
                 const composeVersionCoerced: semver.SemVer = semver.coerce(composeCleaned); // Format: X.Y.Z
                 const composeVersion: string = semver.valid(composeVersionCoerced); // Returns version
@@ -293,7 +293,7 @@ export class DependencyManager {
         if (process.platform === 'darwin') {
             // Mac
 
-            dependencies['xcode'] = {name: 'Xcode', required: true, version: undefined, url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined, tooltip: 'Required for installing JavaScript and TypeScript smart contract dependencies.'};
+            dependencies['xcode'] = { name: 'Xcode', required: true, version: undefined, url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined, tooltip: 'Required for installing JavaScript and TypeScript smart contract dependencies.' };
             try {
                 const xcodeInstalled: string = await CommandUtil.sendCommand('xcode-select -p'); // Get path of active developer directory
                 if (this.isCommandFound(xcodeInstalled)) {
@@ -307,7 +307,7 @@ export class DependencyManager {
             }
         }
 
-        dependencies.systemRequirements = {name: 'System Requirements', id: 'systemRequirements', complete: undefined, checkbox: true, required: true, text: 'In order to support the local runtime, please confirm your system has at least 4GB of RAM' };
+        dependencies.systemRequirements = { name: 'System Requirements', id: 'systemRequirements', complete: undefined, checkbox: true, required: true, text: 'In order to support the local runtime, please confirm your system has at least 4GB of RAM' };
 
         if (!extensionData.systemRequirements) {
             dependencies.systemRequirements.complete = false;
@@ -322,7 +322,7 @@ export class DependencyManager {
         try {
             const goResult: string = await CommandUtil.sendCommand('go version'); // Format: go version go1.12.5 darwin/amd64
             if (this.isCommandFound(goResult)) {
-                const goMatchedVersion: string =  goResult.match(/go version go(.*) /)[1]; // Format: X.Y.Z or X.Y
+                const goMatchedVersion: string = goResult.match(/go version go(.*) /)[1]; // Format: X.Y.Z or X.Y
                 const goVersionCoerced: semver.SemVer = semver.coerce(goMatchedVersion); // Format: X.Y.Z
                 const goVersion: string = semver.valid(goVersionCoerced); // Returns version
                 if (goVersion) {
@@ -334,7 +334,7 @@ export class DependencyManager {
         }
 
         // Go Extension
-        dependencies.goExtension = {name: 'Go Extension', required: false, version: undefined, url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '', tooltip: 'Provides language support for Go.' };
+        dependencies.goExtension = { name: 'Go Extension', required: false, version: undefined, url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '', tooltip: 'Provides language support for Go.' };
         try {
             const goExtensionResult: vscode.Extension<any> = vscode.extensions.getExtension('ms-vscode.Go');
             if (goExtensionResult) {
@@ -351,7 +351,7 @@ export class DependencyManager {
             // For some reason, the response is going to stderr, so we have to redirect it to stdout.
             const javaResult: string = await CommandUtil.sendCommand('java -version 2>&1'); // Format: openjdk|java version "1.8.0_212"
             if (this.isCommandFound(javaResult)) {
-                const javaMatchedVersion: string =  javaResult.match(/(openjdk|java) version "(.*)"/)[2]; // Format: X.Y.Z_A
+                const javaMatchedVersion: string = javaResult.match(/(openjdk|java) version "(.*)"/)[2]; // Format: X.Y.Z_A
                 const javaVersionCoerced: semver.SemVer = semver.coerce(javaMatchedVersion); // Format: X.Y.Z
                 const javaVersion: string = semver.valid(javaVersionCoerced); // Returns version
                 if (javaVersion) {
@@ -363,7 +363,7 @@ export class DependencyManager {
         }
 
         // Java Language Support Extension
-        dependencies.javaLanguageExtension = {name: 'Java Language Support Extension', required: false, version: undefined, url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '', tooltip: 'Provides language support for Java.' };
+        dependencies.javaLanguageExtension = { name: 'Java Language Support Extension', required: false, version: undefined, url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '', tooltip: 'Provides language support for Java.' };
         try {
             const javaLanguageExtensionResult: vscode.Extension<any> = vscode.extensions.getExtension('redhat.java');
             if (javaLanguageExtensionResult) {
@@ -375,7 +375,7 @@ export class DependencyManager {
         }
 
         // Java Debugger Extension
-        dependencies.javaDebuggerExtension = {name: 'Java Debugger Extension', required: false, version: undefined, url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '', tooltip: 'Used for debugging Java smart contracts.' };
+        dependencies.javaDebuggerExtension = { name: 'Java Debugger Extension', required: false, version: undefined, url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '', tooltip: 'Used for debugging Java smart contracts.' };
         try {
             const javaDebuggerExtensionResult: vscode.Extension<any> = vscode.extensions.getExtension('vscjava.vscode-java-debug');
             if (javaDebuggerExtensionResult) {
@@ -449,7 +449,20 @@ export class DependencyManager {
                 thing = 'unknown';
             }
 
-            const info: { modules: string, longVersion: string, shortVersion: string } = await this.getRebuildInfo(os, architecture, thing);
+            let runtime: string = 'electron';
+            let info: { modules?: string, longVersion: string, shortVersion?: string };
+
+            const remote: boolean = vscode.extensions.getExtension(EXTENSION_ID).extensionKind === vscode.ExtensionKind.Workspace;
+
+            if (remote) {
+                runtime = 'node';
+                const nodeVersion: string = process.versions.node;
+                info = {
+                    longVersion: nodeVersion
+                };
+            } else {
+                info = await this.getLocalRebuildInfo(os, architecture, thing);
+            }
 
             outputAdapter.log(LogType.INFO, undefined, 'Updating native node modules');
             progress.report({ message: 'Updating native node modules' });
@@ -462,25 +475,32 @@ export class DependencyManager {
                 const shell: boolean = (process.platform === 'win32') ? true : false;
 
                 try {
-                    await CommandUtil.sendCommandWithOutput('npm', ['rebuild', dependency, `--target=${info.longVersion}`, '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary', '--fallback-to-build', `--target_arch=${architecture}`], extensionPath, null, outputAdapter, shell);
+                    const args: string[] = ['rebuild', dependency, `--target=${info.longVersion}`, `--runtime=${runtime}`, '--update-binary', '--fallback-to-build', `--target_arch=${architecture}`];
+                    if (!remote) {
+                        args.push('--dist-url=https://atom.io/download/electron');
+                    }
+
+                    await CommandUtil.sendCommandWithOutput('npm', args, extensionPath, null, outputAdapter, shell);
 
                 } catch (error) {
                     outputAdapter.log(LogType.ERROR, `Could not rebuild native dependencies ${error.message}. Please ensure that you have node and npm installed`);
                     throw error;
                 }
 
-                progress.report({ message: `Updating ${dependency}` });
-                outputAdapter.log(LogType.INFO, undefined, `Updating ${dependency}`);
-                const basePath: string = path.join(extensionPath, 'node_modules', 'grpc', 'src', 'node', 'extension_binary');
+                if (!remote) {
+                    progress.report({ message: `Updating ${dependency}` });
+                    outputAdapter.log(LogType.INFO, undefined, `Updating ${dependency}`);
+                    const basePath: string = path.join(extensionPath, 'node_modules', 'grpc', 'src', 'node', 'extension_binary');
 
-                const origPath: string = path.join(basePath, `node-v${info.modules}-${os}-${architecture}-${thing}`);
-                const newPath: string = path.join(basePath, `electron-v${info.shortVersion}-${os}-${architecture}-${thing}`);
+                    const origPath: string = path.join(basePath, `node-v${info.modules}-${os}-${architecture}-${thing}`);
+                    const newPath: string = path.join(basePath, `electron-v${info.shortVersion}-${os}-${architecture}-${thing}`);
 
-                const exists: boolean = await fs.pathExists(origPath);
-                if (exists) {
-                    await fs.remove(origPath);
+                    const exists: boolean = await fs.pathExists(origPath);
+                    if (exists) {
+                        await fs.remove(origPath);
+                    }
+                    await fs.rename(newPath, origPath);
                 }
-                await fs.rename(newPath, origPath);
             }
 
             outputAdapter.log(LogType.SUCCESS, undefined, 'Finished updating native node modules');
@@ -488,7 +508,7 @@ export class DependencyManager {
         });
     }
 
-    private async getRebuildInfo(os: string, arch: string, thing: string): Promise<{ modules: string, longVersion: string, shortVersion: string }> {
+    private async getLocalRebuildInfo(os: string, arch: string, thing: string): Promise<{ modules: string, longVersion: string, shortVersion: string }> {
         try {
             const response: any = await Axios.get('https://raw.githubusercontent.com/electron/releases/master/lite.json');
             let info: any[] = response.data;
