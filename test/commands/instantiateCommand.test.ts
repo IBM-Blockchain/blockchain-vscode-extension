@@ -48,6 +48,10 @@ describe('InstantiateCommand', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
+    after(async () => {
+        await TestUtil.restoreAll();
+    });
+
     describe('InstantiateSmartContract', () => {
         let fabricRuntimeMock: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
 

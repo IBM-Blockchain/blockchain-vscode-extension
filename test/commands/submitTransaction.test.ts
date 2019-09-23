@@ -49,6 +49,10 @@ describe('SubmitTransactionCommand', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
+    after(async () => {
+        await TestUtil.restoreAll();
+    });
+
     describe('SubmitTransaction', () => {
         let fabricClientConnectionMock: sinon.SinonStubbedInstance<FabricClientConnection>;
 

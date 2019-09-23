@@ -25,6 +25,7 @@ import { GlobalState, ExtensionData } from '../src/util/GlobalState';
 
 export class TestUtil {
     static async setupTests(sandbox: SinonSandbox): Promise<void> {
+        await this.storeAll();
         await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
 
         if (!ExtensionUtil.isActive()) {
@@ -35,7 +36,44 @@ export class TestUtil {
             const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
             await ExtensionUtil.registerCommands(context);
         }
+
+        console.log('Restoring user connections config to settings:', this.USER_GATEWAYS_CONFIG);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, this.USER_GATEWAYS_CONFIG, vscode.ConfigurationTarget.Global);
+
     }
+
+    static async storeAll(): Promise<void> {
+        await this.storeExtensionDirectoryConfig();
+        await this.storeGatewaysConfig();
+        await this.storeEnvironmentsConfig();
+        await this.storeRuntimesConfig();
+        await this.storeWalletsConfig();
+        await this.storeRepositoriesConfig();
+        await this.storeShowHomeOnStart();
+        await this.storeBypassPreReqs();
+        try {
+            await this.storeGlobalState();
+        } catch (error) {
+            // ignore
+        }
+    }
+
+    static async restoreAll(): Promise<void> {
+        await this.restoreExtensionDirectoryConfig();
+        await this.restoreGatewaysConfig();
+        await this.restoreEnvironmentsConfig();
+        await this.restoreRuntimesConfig();
+        await this.restoreWalletsConfig();
+        await this.restoreRepositoriesConfig();
+        await this.restoreShowHomeOnStart();
+        await this.restoreBypassPreReqs();
+        try {
+            await this.restoreGlobalState();
+        } catch (error) {
+            // ignore
+        }
+    }
+
     static async storeExtensionDirectoryConfig(): Promise<void> {
         this.USER_PACKAGE_DIR_CONFIG = await vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         console.log('Storing user extension directory:', this.USER_PACKAGE_DIR_CONFIG);

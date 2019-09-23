@@ -361,11 +361,11 @@ describe('SampleView', () => {
         let onDidReceiveMessagePromises: any[];
 
         before(async () => {
-            await TestUtil.storeRepositoriesConfig();
+            await TestUtil.storeAll();
         });
 
         after(async () => {
-            await TestUtil.restoreRepositoriesConfig();
+            await TestUtil.restoreAll();
         });
 
         function setUpTest(reclone: boolean): void {
@@ -478,11 +478,11 @@ describe('SampleView', () => {
         let onDidReceiveMessagePromises: any[] = [];
 
         before(async () => {
-            await TestUtil.storeRepositoriesConfig();
+            await TestUtil.storeAll();
         });
 
         after(async () => {
-            await TestUtil.restoreRepositoriesConfig();
+            await TestUtil.restoreAll();
         });
 
         afterEach(() => {

@@ -55,11 +55,10 @@ describe('deleteIdentityCommand', () => {
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-        await TestUtil.storeWalletsConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreWalletsConfig();
+        await TestUtil.restoreAll();
     });
 
     beforeEach(async () => {
