@@ -258,6 +258,17 @@ describe('AddGatewayCommand', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addGatewayCommand');
         });
 
+        it('should handle cancel of choosing gateway name', async () => {
+            showInputBoxStub.onFirstCall().resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
+
+            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            gateways.length.should.equal(0);
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addGateway');
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
         it('should handle cancel of choosing method to add gateway', async () => {
             methodChooserStub.resolves();
 
