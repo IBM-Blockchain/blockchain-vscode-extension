@@ -22,7 +22,7 @@ import * as assert from 'assert';
 import * as fabricNetwork from 'fabric-network';
 import { SmartContractUtil } from './ts-smart-contract-util';
 
-<%_ if (connectionProfileHome || walletHome) {-%>
+<%_ if (walletHome) {-%>
 import * as os from 'os';
 import * as path from 'path';
 <%_ }-%>
@@ -33,10 +33,8 @@ describe('<%=contractName%>-<%=chaincodeLabel%>' , () => {
 describe('<%=chaincodeLabel%>' , () => {
 <%_ } _%>
 
-    <%_ if (connectionProfileHome || walletHome) {-%>
+    <%_ if (walletHome) {-%>
     const homedir: string = os.homedir();
-    <%_ }-%>
-    <%_ if (walletHome) { _%>
     const walletPath: string = <%-walletPath%>;
     <%_ } else { _%>
     const walletPath: string = '<%-walletPath%>';

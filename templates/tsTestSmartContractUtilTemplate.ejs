@@ -8,22 +8,11 @@ import * as fs from 'fs-extra';
 import * as yaml from 'js-yaml';
 import { URL } from 'url';
 
-<%_ if (connectionProfileHome || walletHome) {-%>
-import * as os from 'os';
-import * as path from 'path';
-<%_ }-%>
-
 export class SmartContractUtil {
 
     public static async getConnectionProfile() {
-        <%_ if (connectionProfileHome || walletHome) {-%>
-        const homedir = os.homedir();
-        <%_ }-%>
-        <%_ if (connectionProfileHome) { _%>
-        const connectionProfilePath: string = <%-connectionProfilePath%>;
-        <%_ } else { _%>
         const connectionProfilePath: string = '<%-connectionProfilePath%>';
-        <%_ } _%>
+
         const connectionProfileContents: any = await fs.readFile(connectionProfilePath, 'utf8');
         if (connectionProfilePath.endsWith('.json')) {
             return JSON.parse(connectionProfileContents);

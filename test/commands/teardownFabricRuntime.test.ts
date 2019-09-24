@@ -15,7 +15,6 @@
 import * as vscode from 'vscode';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
@@ -58,7 +57,6 @@ describe('teardownFabricRuntime', () => {
         sandbox.restore();
         showConfirmationWarningMessageStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage');
 
-        await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
         await runtimeManager.initialize();
         mockRuntime = sinon.createStubInstance(FabricRuntime);
@@ -67,9 +65,7 @@ describe('teardownFabricRuntime', () => {
         sandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
 
         gatewayRegistyEntry = new FabricGatewayRegistryEntry();
-        gatewayRegistyEntry.managedRuntime = false;
-        gatewayRegistyEntry.connectionProfilePath = 'myPath';
-        gatewayRegistyEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
+        gatewayRegistyEntry.name = 'myFabric';
 
         getRegistryEntryStub = sandbox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistyEntry);
 
@@ -97,9 +93,11 @@ describe('teardownFabricRuntime', () => {
     });
 
     it('should teardown a Fabric runtime and disconnect', async () => {
-        gatewayRegistyEntry.managedRuntime = true;
+        gatewayRegistyEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
         getRegistryEntryStub.returns(gatewayRegistyEntry);
+
         const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
+
         showConfirmationWarningMessageStub.resolves(true);
 
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined);
@@ -135,7 +133,7 @@ describe('teardownFabricRuntime', () => {
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'teardownFabricRuntime');
-     });
+    });
 
     it('should handle cancel from confirmation message', async () => {
         const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
@@ -181,18 +179,18 @@ describe('teardownFabricRuntime', () => {
     });
 
     it('should be able to not force teardown', async () => {
-            const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
-            showConfirmationWarningMessageStub.resolves(true);
+        const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
+        showConfirmationWarningMessageStub.resolves(true);
 
-            await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, false);
-            showConfirmationWarningMessageStub.should.have.been.calledOnce;
-            mockRuntime.teardown.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-            mockRuntime.deleteWalletsAndIdentities.should.have.been.calledOnce;
-            executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
-            executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-            executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
-            executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
-            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'teardownFabricRuntime');
+        await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, false);
+        showConfirmationWarningMessageStub.should.have.been.calledOnce;
+        mockRuntime.teardown.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+        mockRuntime.deleteWalletsAndIdentities.should.have.been.calledOnce;
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'teardownFabricRuntime');
     });
 
 });

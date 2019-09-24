@@ -43,6 +43,7 @@ import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { FabricGatewayHelper } from '../../src/fabric/FabricGatewayHelper';
 
 chai.use(sinonChai);
 // tslint:disable-next-line no-var-requires
@@ -101,22 +102,16 @@ describe('GatewayConnectCommand', () => {
 
             connectionSingle = new FabricGatewayRegistryEntry({
                 name: 'myGatewayA',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                managedRuntime: false,
                 associatedWallet: undefined
             });
 
             connectionMultiple = new FabricGatewayRegistryEntry({
                 name: 'myGatewayB',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                managedRuntime: false,
                 associatedWallet: undefined
             });
 
             connectionAssociated = new FabricGatewayRegistryEntry({
                 name: 'myGatewayC',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                managedRuntime: false,
                 associatedWallet: 'myGatewayCWallet'
             });
 
@@ -124,6 +119,8 @@ describe('GatewayConnectCommand', () => {
             await FabricGatewayRegistry.instance().add(connectionSingle);
             await FabricGatewayRegistry.instance().add(connectionMultiple);
             await FabricGatewayRegistry.instance().add(connectionAssociated);
+
+            mySandBox.stub(FabricGatewayHelper, 'getConnectionProfilePath').resolves(path.join('myPath'));
 
             connectionSingleWallet = new FabricWalletRegistryEntry({
                 name: 'myGatewayAWallet',
@@ -160,8 +157,6 @@ describe('GatewayConnectCommand', () => {
             mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([
                 new FabricGatewayRegistryEntry({
                     name: FabricRuntimeUtil.LOCAL_FABRIC,
-                    managedRuntime: true,
-                    connectionProfilePath: '/some/path',
                     associatedWallet: FabricWalletUtil.LOCAL_WALLET
                 })
             ]);
@@ -348,9 +343,7 @@ describe('GatewayConnectCommand', () => {
             beforeEach(async () => {
                 connection = new FabricGatewayRegistryEntry();
                 connection.name = FabricRuntimeUtil.LOCAL_FABRIC;
-                connection.managedRuntime = true;
                 connection.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
-                connection.connectionProfilePath = path.join(rootPath, '../../basic-network/connection.json');
                 testFabricWallet = new FabricWallet('some/new/wallet/path');
                 mySandBox.stub(walletGenerator, 'getWallet').returns(testFabricWallet);
 

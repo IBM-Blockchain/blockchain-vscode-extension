@@ -31,6 +31,7 @@ import { version as currentExtensionVersion } from '../package.json';
 import { SettingConfigurations } from '../SettingConfigurations';
 import { UserInputUtil } from './commands/UserInputUtil';
 import { GlobalState, ExtensionData } from './util/GlobalState';
+
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
 
     GlobalState.setExtensionContext(context);

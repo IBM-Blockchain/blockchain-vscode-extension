@@ -37,6 +37,7 @@ import { InstantiatedContractTreeItem } from '../../src/explorer/model/Instantia
 import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
 import { InstantiatedUnknownTreeItem } from '../../src/explorer/model/InstantiatedUnknownTreeItem';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 
 chai.use(sinonChai);
 chai.should();
@@ -127,8 +128,6 @@ describe('SubmitTransactionCommand', () => {
 
             const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             registryEntry.name = 'myConnection';
-            registryEntry.connectionProfilePath = 'myPath';
-            registryEntry.managedRuntime = false;
             registryStub = mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
 
             blockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
@@ -171,10 +170,9 @@ describe('SubmitTransactionCommand', () => {
             reporterStub.should.have.been.calledWith('submit transaction');
         });
 
-        it('should show logs if managed runtime', async () => {
+        it('should show logs if local runtime', async () => {
             const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-            registryEntry.name = 'myGateway';
-            registryEntry.managedRuntime = true;
+            registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             registryStub.returns(registryEntry);
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');

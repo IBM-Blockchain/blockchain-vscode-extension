@@ -15,6 +15,8 @@
 import * as path from 'path';
 
 import { runTests } from 'vscode-test';
+import * as cp from 'child_process';
+import { downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath } from 'vscode-test';
 
 async function main(): Promise<void> {
     try {
@@ -32,6 +34,16 @@ async function main(): Promise<void> {
 
         const workspacePath: string = path.resolve(__dirname, '..', '..', 'cucumber', 'data', 'cucumber.code-workspace');
 
+        const vscodeExecutablePath: string = await downloadAndUnzipVSCode(version);
+
+        const cliPath: string = resolveCliPathFromVSCodeExecutablePath(vscodeExecutablePath);
+
+        // Use cp.spawn / cp.exec for custom setup
+        cp.spawnSync(cliPath, ['--install-extension', 'oshri6688.javascript-test-runner'], {
+            encoding: 'utf-8',
+            stdio: 'inherit'
+        });
+
         // Download VS Code, unzip it and run the integration test
         await runTests({
             extensionDevelopmentPath,
@@ -40,9 +52,11 @@ async function main(): Promise<void> {
             version: version
         });
     } catch (err) {
+        // tslint:disable-next-line: no-console
         console.error('Failed to run tests', err);
         process.exit(1);
     }
 }
 
+// tslint:disable-next-line: no-floating-promises
 main();

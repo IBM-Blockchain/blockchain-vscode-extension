@@ -26,8 +26,6 @@ import { FabricRuntimeUtil } from '../../../src/fabric/FabricRuntimeUtil';
 import { BlockchainEnvironmentExplorerProvider } from '../../../src/explorer/environmentExplorer';
 import { FabricEnvironmentRegistry } from '../../../src/fabric/FabricEnvironmentRegistry';
 import { FabricEnvironmentRegistryEntry } from '../../../src/fabric/FabricEnvironmentRegistryEntry';
-import { FabricGatewayRegistryEntry } from '../../../src/fabric/FabricGatewayRegistryEntry';
-import { FabricWalletUtil } from '../../../src/fabric/FabricWalletUtil';
 
 describe('RuntimeTreeItem', () => {
 
@@ -57,10 +55,9 @@ describe('RuntimeTreeItem', () => {
         await ExtensionUtil.activateExtension();
         await environmentRegistry.clear();
 
-        environmentRegistryEntry = new FabricGatewayRegistryEntry();
+        environmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         environmentRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
         environmentRegistryEntry.managedRuntime = true;
-        environmentRegistryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
         provider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();

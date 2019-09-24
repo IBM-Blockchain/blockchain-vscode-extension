@@ -31,6 +31,7 @@ import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 
 export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistryEntry, identityName?: string): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -47,7 +48,7 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
         gatewayRegistryEntry = chosenEntry.data;
     }
 
-    if (gatewayRegistryEntry.managedRuntime) {
+    if (gatewayRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
         const running: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
         if (!running) {
             outputAdapter.log(LogType.ERROR, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} has not been started, please start it before connecting.`);
@@ -62,7 +63,7 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
     let walletData: FabricWalletRegistryEntry;
 
     // If the user is trying to connect to the local_fabric, we should always use the local_fabric_wallet
-    if (!gatewayRegistryEntry.associatedWallet && !gatewayRegistryEntry.managedRuntime) {
+    if (!gatewayRegistryEntry.associatedWallet && gatewayRegistryEntry.name !== FabricRuntimeUtil.LOCAL_FABRIC) {
         // If there is no wallet associated with the gateway, we should ask for a wallet to connect with
         // First check there is at least one that isn't local_fabric_wallet
         const wallets: Array<FabricWalletRegistryEntry> = FabricWalletRegistry.instance().getAll();
@@ -121,10 +122,9 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
         identityName = identityNames[0];
     }
 
-    const connectionData: { connectionProfilePath: string } = {
-        connectionProfilePath: gatewayRegistryEntry.connectionProfilePath
-    };
-    const connection: IFabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionData);
+    const connectionProfilePath: string = await FabricGatewayHelper.getConnectionProfilePath(gatewayRegistryEntry.name);
+
+    const connection: IFabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionProfilePath);
 
     try {
         const timeout: number = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_CLIENT_TIMEOUT) as number;

@@ -23,7 +23,7 @@
 const assert = require('assert');
 const fabricNetwork = require('fabric-network');
 const SmartContractUtil = require('./js-smart-contract-util');
-<%_ if (connectionProfileHome || walletHome) {-%>
+<%_ if (walletHome) {-%>
 const os = require('os');
 const path = require('path');
 <%_ }-%>
@@ -34,10 +34,8 @@ describe('<%=contractName%>-<%=chaincodeLabel%>' , () => {
 describe('<%=chaincodeLabel%>' , () => {
 <%_ } _%>
 
-    <%_ if (connectionProfileHome || walletHome) {-%>
+    <%_ if (walletHome) {-%>
     const homedir = os.homedir();
-    <%_ }-%>
-    <%_ if (walletHome) { _%>
     const walletPath = <%-walletPath%>;
     <%_ } else { _%>
     const walletPath = '<%-walletPath%>';
