@@ -113,15 +113,10 @@ describe('UserInputUtil', () => {
     before(async () => {
 
         await TestUtil.setupTests(mySandBox);
-        await TestUtil.storeGatewaysConfig();
-        await TestUtil.storeRuntimesConfig();
-        await TestUtil.storeWalletsConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreGatewaysConfig();
-        await TestUtil.restoreRuntimesConfig();
-        await TestUtil.restoreWalletsConfig();
+        await TestUtil.restoreAll();
     });
 
     beforeEach(async () => {

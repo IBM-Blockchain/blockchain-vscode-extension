@@ -40,12 +40,11 @@ describe('DeleteSmartContractPackageCommand', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-        await TestUtil.storeExtensionDirectoryConfig();
         await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_EXTENSION_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
 
     after(async () => {
-        await TestUtil.restoreExtensionDirectoryConfig();
+        await TestUtil.restoreAll();
     });
 
     describe('deleteSmartContractPackage', () => {

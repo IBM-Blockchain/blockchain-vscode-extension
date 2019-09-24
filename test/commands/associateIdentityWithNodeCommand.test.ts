@@ -45,15 +45,10 @@ describe('AssociateIdentityWithNodeCommand', () => {
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-        await TestUtil.storeGatewaysConfig();
-        await TestUtil.storeWalletsConfig();
-        await TestUtil.storeEnvironmentsConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreGatewaysConfig();
-        await TestUtil.restoreWalletsConfig();
-        await TestUtil.restoreEnvironmentsConfig();
+        await TestUtil.restoreAll();
     });
 
     describe('associateWallet', () => {

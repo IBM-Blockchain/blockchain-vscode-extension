@@ -45,12 +45,11 @@ describe('exportSmartContractPackageCommand', () => {
 
     before(async () => {
         await TestUtil.setupTests(sandbox);
-        await TestUtil.storeExtensionDirectoryConfig();
         await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
 
     after(async () => {
-        await TestUtil.restoreExtensionDirectoryConfig();
+        await TestUtil.restoreAll();
     });
 
     let showSaveDialogStub: sinon.SinonStub;

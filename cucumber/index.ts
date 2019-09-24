@@ -142,13 +142,7 @@ export async function run(testsRoot: string, clb: (error: any, failures?: number
         const result: any = await runCucumberTest();
 
         // clean up after test run
-        await TestUtil.restoreGatewaysConfig();
-        await TestUtil.restoreRuntimesConfig();
-        await TestUtil.restoreExtensionDirectoryConfig();
-        await TestUtil.restoreRepositoriesConfig();
-        await TestUtil.restoreWalletsConfig();
-        await TestUtil.restoreEnvironmentsConfig();
-        await TestUtil.restoreBypassPreReqs();
+        await TestUtil.restoreAll();
 
         await fs.remove(path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'contracts'));
 

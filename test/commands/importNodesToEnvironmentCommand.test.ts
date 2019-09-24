@@ -45,11 +45,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-        await TestUtil.storeGatewaysConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreGatewaysConfig();
+        await TestUtil.restoreAll();
     });
 
     describe('importNodeaToEnvironment', () => {

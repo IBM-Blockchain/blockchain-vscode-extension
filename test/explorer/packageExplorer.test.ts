@@ -39,15 +39,10 @@ describe('packageExplorer', () => {
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-        await TestUtil.storeExtensionDirectoryConfig();
-        await TestUtil.storeGatewaysConfig();
-        await TestUtil.storeRuntimesConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreExtensionDirectoryConfig();
-        await TestUtil.restoreGatewaysConfig();
-        await TestUtil.restoreRuntimesConfig();
+        await TestUtil.restoreAll();
 
     });
 

@@ -31,11 +31,10 @@ describe('GlobalState', () => {
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-        await TestUtil.storeGlobalState();
     });
 
     after(async () => {
-        await TestUtil.restoreGlobalState();
+        await TestUtil.restoreAll();
     });
 
     beforeEach(async () => {

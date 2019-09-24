@@ -58,14 +58,11 @@ const should: Chai.Should = chai.should();
 describe('environmentExplorer', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     before(async () => {
-        await TestUtil.storeGatewaysConfig();
-        await TestUtil.storeRuntimesConfig();
         await TestUtil.setupTests(mySandBox);
     });
 
     after(async () => {
-        await TestUtil.restoreGatewaysConfig();
-        await TestUtil.restoreRuntimesConfig();
+        await TestUtil.restoreAll();
     });
 
     describe('getChildren', () => {

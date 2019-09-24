@@ -208,7 +208,10 @@ export class FabricRuntimeManager {
         if (exists) {
             try {
                 const newPath: string = path.join(extDir, 'environments', FabricRuntimeUtil.LOCAL_FABRIC);
-                await fs.move(runtimesExtDir, newPath);
+                const newPathExists: boolean = await fs.pathExists(newPath);
+                if (!newPathExists) {
+                    await fs.move(runtimesExtDir, newPath);
+                }
             } catch (error) {
                 throw new Error(`Issue migrating runtime folder ${error.message}`);
             }
