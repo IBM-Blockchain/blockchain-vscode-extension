@@ -491,7 +491,7 @@ describe('FabricRuntimeManager', () => {
             let extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
             extDir = UserInputUtil.getDirPath(extDir);
 
-            sandbox.stub(fs, 'pathExists').resolves(true);
+            sandbox.stub(fs, 'pathExists').onFirstCall().resolves(true).onSecondCall().resolves(false);
             const moveStub: sinon.SinonStub = sandbox.stub(fs, 'move').resolves();
 
             await runtimeManager.migrate(version);
@@ -509,12 +509,23 @@ describe('FabricRuntimeManager', () => {
             moveStub.should.not.have.been.called;
         });
 
+        it ('should not move if environment folder already exists', async () => {
+            let extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            extDir = UserInputUtil.getDirPath(extDir);
+
+            sandbox.stub(fs, 'pathExists').resolves(true);
+            const moveStub: sinon.SinonStub = sandbox.stub(fs, 'move').resolves();
+
+            await runtimeManager.migrate(version);
+            moveStub.should.not.have.been.called;
+        });
+
         it('should handle error moving', async () => {
             const error: Error = new Error('some error');
             let extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
             extDir = UserInputUtil.getDirPath(extDir);
 
-            sandbox.stub(fs, 'pathExists').resolves(true);
+            sandbox.stub(fs, 'pathExists').onFirstCall().resolves(true).onSecondCall().resolves(false);
             const moveStub: sinon.SinonStub = sandbox.stub(fs, 'move').throws(error);
 
             await runtimeManager.migrate(version).should.eventually.be.rejectedWith(`Issue migrating runtime folder ${error.message}`);
