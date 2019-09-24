@@ -44,7 +44,12 @@ You can check your installed versions by running the following commands from a t
 
 To open the Prerequisites page again, run the following in the command palette: `View Prerequisites`
 
-Please note: the extension doesn't currently work with the VSCode Remote Development feature, we plan to make this work in the future, follow progress [here](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1357). 
+## Remote Development
+### SSH
+The extension supports remote development using SSH. Any vscode settings are shared between local and remote. If you update the setting `ibm-blockchain-platform.ext.directory` then please be aware that you will get an error if the path isn't valid for the environment you are using the extension in. 
+
+### Containers and WSL
+Currently this extension won't work with remote development using containers or WSL. This is something we hope to add in the future.
 
 ## Smart Contract Development Lifecycle
 _Please note that all commands contributed by this extension are accessible via the VS Code Command Palette. The commands outlined below are available from burger menus located on the panel headers, or by right-clicking tree items, in the extension's side bar view._
