@@ -44,11 +44,11 @@ describe('FabricRegistry', () => {
 
     }
     before(async () => {
-        await TestUtil.storeGatewaysConfig();
+        await TestUtil.storeAll();
     });
 
     after(async () => {
-        await TestUtil.restoreGatewaysConfig();
+        await TestUtil.restoreAll();
     });
 
     let registry: TestFabricRegistry;

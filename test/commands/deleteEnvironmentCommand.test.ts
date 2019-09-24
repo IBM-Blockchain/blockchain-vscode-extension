@@ -37,11 +37,10 @@ describe('DeleteEnvironmentCommand', () => {
     let showConfirmationWarningMessage: sinon.SinonStub;
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-        await TestUtil.storeEnvironmentsConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreEnvironmentsConfig();
+        await TestUtil.restoreAll();
     });
 
     describe('deleteEnvironment', () => {

@@ -108,6 +108,10 @@ describe('testSmartContractCommand', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
+    after(async () => {
+        await TestUtil.restoreAll();
+    });
+
     afterEach(async () => {
         mySandBox.restore();
         await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);

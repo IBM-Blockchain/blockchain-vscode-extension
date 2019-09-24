@@ -50,6 +50,10 @@ describe('CreateSmartContractProjectCommand', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
+    after(async () => {
+        await TestUtil.restoreAll();
+    });
+
     beforeEach(async () => {
         mySandBox.stub(CommandUtil, 'sendCommandWithOutputAndProgress');
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');

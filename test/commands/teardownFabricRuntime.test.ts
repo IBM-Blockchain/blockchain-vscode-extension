@@ -44,13 +44,10 @@ describe('teardownFabricRuntime', () => {
 
     before(async () => {
         await TestUtil.setupTests(sandbox);
-        await TestUtil.storeGatewaysConfig();
-        await TestUtil.storeRuntimesConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreGatewaysConfig();
-        await TestUtil.restoreRuntimesConfig();
+        await TestUtil.restoreAll();
     });
 
     beforeEach(async () => {

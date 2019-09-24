@@ -133,12 +133,11 @@ describe('packageSmartContract', () => {
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-        await TestUtil.storeExtensionDirectoryConfig();
         await fs.mkdirp(fileDest);
     });
 
     after(async () => {
-        await TestUtil.restoreExtensionDirectoryConfig();
+        await TestUtil.restoreAll();
     });
 
     let logSpy: sinon.SinonSpy;

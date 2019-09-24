@@ -42,13 +42,10 @@ describe('exportWalletCommand', () => {
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-        await TestUtil.storeWalletsConfig();
-        await TestUtil.storeRuntimesConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreWalletsConfig();
-        await TestUtil.restoreRuntimesConfig();
+        await TestUtil.restoreAll();
     });
 
     beforeEach(async () => {

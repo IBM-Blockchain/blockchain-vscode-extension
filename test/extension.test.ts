@@ -55,24 +55,13 @@ describe('Extension Tests', () => {
 
     before(async () => {
         // We need this else TestUtil.setupTests() will fail when it tries to activate
-        await TestUtil.storeBypassPreReqs();
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
-
-        await TestUtil.storeShowHomeOnStart();
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
-
         await TestUtil.setupTests(mySandBox);
-        await TestUtil.storeGatewaysConfig();
-        await TestUtil.storeRuntimesConfig();
-        await TestUtil.storeShowHomeOnStart();
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
     });
 
     after(async () => {
-        await TestUtil.restoreShowHomeOnStart();
-        await TestUtil.restoreGatewaysConfig();
-        await TestUtil.restoreRuntimesConfig();
-        await TestUtil.restoreShowHomeOnStart();
-        await TestUtil.restoreBypassPreReqs();
+        await TestUtil.restoreAll();
     });
 
     beforeEach(async () => {

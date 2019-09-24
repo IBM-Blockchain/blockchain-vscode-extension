@@ -54,13 +54,11 @@ describe('FabricRuntimeManager', () => {
     let findFreePortStub: sinon.SinonStub;
 
     before(async () => {
-        await TestUtil.storeGatewaysConfig();
-        await TestUtil.storeRuntimesConfig();
+        await TestUtil.storeAll();
     });
 
     after(async () => {
-        await TestUtil.restoreGatewaysConfig();
-        await TestUtil.restoreRuntimesConfig();
+        await TestUtil.restoreAll();
     });
 
     beforeEach(async () => {

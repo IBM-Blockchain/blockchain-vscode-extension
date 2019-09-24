@@ -59,6 +59,9 @@ describe('createNewIdentityCommand', () => {
     before(async () => {
         await TestUtil.setupTests(mySandBox);
     });
+    after(async () => {
+        await TestUtil.restoreAll();
+    });
 
     beforeEach(async () => {
         inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
