@@ -29,7 +29,7 @@ export async function openNewTerminal(nodeItem: NodeTreeItem): Promise<void> {
         const chosenNode: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick(
             'Select a Fabric runtime node to open a new terminal for', FabricRuntimeUtil.LOCAL_FABRIC,
             [FabricNodeType.PEER, FabricNodeType.CERTIFICATE_AUTHORITY, FabricNodeType.ORDERER]
-        );
+        ) as IBlockchainQuickPickItem<FabricNode>;
 
         // If no node at this point, most likely the user cancelled the quick pick.
         if (!chosenNode) {

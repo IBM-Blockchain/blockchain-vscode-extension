@@ -33,6 +33,7 @@ import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistry
 import { FabricNode } from '../../src/fabric/FabricNode';
 import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { FabricEnvironment } from '../../src/fabric/FabricEnvironment';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -70,6 +71,23 @@ export class EnvironmentHelper {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
         }
+    }
+
+    public async deleteNode(nodeName: string, environmentName: string): Promise<void> {
+        this.userInputUtilHelper.showConfirmationWarningMessageStub.resolves('yes');
+        const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentRegistry.instance().get(environmentName);
+        this.userInputUtilHelper.showEnvironmentQuickPickStub.resolves({ label: environmentName, data: fabricEnvironmentRegistryEntry });
+
+        const environment: FabricEnvironment = new FabricEnvironment(environmentName);
+        const nodes: FabricNode[] = await environment.getNodes();
+
+        const node: FabricNode = nodes.find((_node: FabricNode) => {
+            return _node.name === nodeName;
+        });
+
+        this.userInputUtilHelper.showFabricNodeQuickPickStub.resolves([{ label: nodeName, data: node }]);
+
+        await vscode.commands.executeCommand(ExtensionCommands.DELETE_NODE);
     }
 
     public async deleteEnvironment(environmentName: string): Promise<void> {

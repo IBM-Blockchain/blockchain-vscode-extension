@@ -88,6 +88,10 @@ module.exports = function(): any {
         await this.fabricEnvironmentHelper.connectToEnvironment(environment);
     });
 
+    this.When("I delete node '{string}'", this.timeout, async (nodeName: string) => {
+        await this.fabricEnvironmentHelper.deleteNode(nodeName, this.environmentName);
+    });
+
     this.When("I delete an environment '{string}'", this.timeout, async (environmentName: string) => {
         await this.fabricEnvironmentHelper.deleteEnvironment(environmentName);
     });

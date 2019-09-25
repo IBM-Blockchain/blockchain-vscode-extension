@@ -125,46 +125,57 @@ Feature: Fabric Environments
         | Organizations               | OrdererMSP                         | OrdererMSP                                                                   |
         | Organizations               | Org1MSP                            | Org1MSP                                                                      |
 
-     @otherFabric
-     Scenario Outline: It should instantiate a smart contract
-         Given an environment 'myFabric' exists
-         And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
-         And the environment is setup
-         And the 'myFabric' environment is connected
-         And a <language> smart contract for <assetType> assets with the name <name> and version <version>
-         And the contract has been created
-         And the contract has been packaged
-         And the package has been installed
-         When I instantiate the installed package with the transaction '' and args '', not using private data
-         Then there should be a instantiated smart contract tree item with a label '<instantiatedName>' in the 'Fabric Environments' panel
-         And the tree item should have a tooltip equal to 'Instantiated on: mychannel'
-         Examples:
-         | language   | assetType | name               | instantiatedName         | version |
-         | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1 | 0.0.1   |
+    @otherFabric
+    Scenario Outline: It should instantiate a smart contract
+        Given an environment 'myFabric' exists
+        And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
+        And the environment is setup
+        And the 'myFabric' environment is connected
+        And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+        And the contract has been created
+        And the contract has been packaged
+        And the package has been installed
+        When I instantiate the installed package with the transaction '' and args '', not using private data
+        Then there should be a instantiated smart contract tree item with a label '<instantiatedName>' in the 'Fabric Environments' panel
+        And the tree item should have a tooltip equal to 'Instantiated on: mychannel'
+        Examples:
+        | language   | assetType | name               | instantiatedName         | version |
+        | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1 | 0.0.1   |
 
-     @otherFabric
-     Scenario Outline: It should upgrade a smart contract
-         Given an environment 'myFabric' exists
-         And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
-         And the environment is setup
-         And the 'myFabric' environment is connected
-         And a <language> smart contract for <assetType> assets with the name <name> and version <version>
-         And the contract has been created
-         And the contract has been packaged
-         And the package has been installed
-         And the contract has been instantiated with the transaction '' and args '', not using private data
-         And the contract version has been updated to '0.0.2'
-         And the contract has been packaged
-         And the package has been installed
-         When I upgrade the installed package with the transaction '' and args '', not using private data
-         Then there should be a instantiated smart contract tree item with a label '<upgradedName>' in the 'Fabric Environments' panel
-         And the tree item should have a tooltip equal to 'Instantiated on: mychannel'
-         Examples:
-         | language   | assetType | name               | upgradedName              | version |
-         | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.2  | 0.0.1   |
+    @otherFabric
+    Scenario Outline: It should upgrade a smart contract
+        Given an environment 'myFabric' exists
+        And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
+        And the environment is setup
+        And the 'myFabric' environment is connected
+        And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+        And the contract has been created
+        And the contract has been packaged
+        And the package has been installed
+        And the contract has been instantiated with the transaction '' and args '', not using private data
+        And the contract version has been updated to '0.0.2'
+        And the contract has been packaged
+        And the package has been installed
+        When I upgrade the installed package with the transaction '' and args '', not using private data
+        Then there should be a instantiated smart contract tree item with a label '<upgradedName>' in the 'Fabric Environments' panel
+        And the tree item should have a tooltip equal to 'Instantiated on: mychannel'
+        Examples:
+        | language   | assetType | name               | upgradedName              | version |
+        | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.2  | 0.0.1   |
 
-     @otherFabric
-     Scenario: It should delete an environment
-         Given an environment 'myFabric2' exists
-         When I delete an environment 'myFabric2'
-         Then there shouldn't be a tree item with a label 'myFabric2' in the 'Fabric Environments' panel
+
+    @otherFabric
+    Scenario: It should delete a node
+        Given an environment 'myFabric2' exists
+        And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
+        And the environment is setup
+        And the 'myFabric2' environment is connected
+        When I delete node 'ca.example.com'
+        Then there shouldn't be a Node tree item with a label 'ca.example.com' in the 'Fabric Environments' panel
+        And there should be a Node tree item with a label 'peer0.org1.example.com' in the 'Fabric Environments' panel
+
+    @otherFabric
+    Scenario: It should delete an environment
+        Given an environment 'myFabric2' exists
+        When I delete an environment 'myFabric2'
+        Then there shouldn't be a tree item with a label 'myFabric2' in the 'Fabric Environments' panel
