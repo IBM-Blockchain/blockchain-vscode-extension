@@ -106,6 +106,7 @@ stages:
 
           - bash: |
               set -ev
+              npm install
               node ./node_modules/vsce/out/vsce publish -p ${VSCETOKEN}
             displayName: Publish extension
             condition: succeeded()
