@@ -71,6 +71,7 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
 
         const walletRegistryEntries: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
 
+        const localWallets: LocalWalletTreeItem[] = [];
         // Populate the tree with the name of each wallet
         for (const walletRegistryEntry of walletRegistryEntries) {
 
@@ -90,12 +91,14 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
                 }
 
                 if (walletRegistryEntry.managedWallet) {
-                    tree.push(new LocalWalletTreeItem(this, walletName, identityNames, treeState, walletRegistryEntry));
+                    localWallets.push(new LocalWalletTreeItem(this, walletName, identityNames, treeState, walletRegistryEntry));
                 } else {
                     tree.push(new WalletTreeItem(this, walletName, identityNames, treeState, walletRegistryEntry));
                 }
             }
         }
+
+        tree.unshift(...localWallets);
 
         return tree;
     }
@@ -107,6 +110,8 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
         const wallet: IFabricWallet = await fabricWalletGenerator.getWallet(walletTreeItem.registryEntry.name);
         const identities: any[] = await wallet.getIdentities();
+
+        const adminIdentities: AdminIdentityTreeItem[] = [];
 
         for (const identity of identities) {
             let isAdminIdentity: boolean = false;
@@ -123,12 +128,15 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
 
             if (isAdminIdentity) {
                 // User can't delete this!
-                tree.push(new AdminIdentityTreeItem(this, identity.name, walletTreeItem.name, attributes));
+                adminIdentities.push(new AdminIdentityTreeItem(this, identity.name, walletTreeItem.name, attributes));
             } else {
 
                 tree.push(new IdentityTreeItem(this, identity.name, walletTreeItem.name, attributes));
             }
         }
+
+        tree.unshift(...adminIdentities);
+
         return tree;
     }
 }

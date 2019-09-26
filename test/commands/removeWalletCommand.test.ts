@@ -208,7 +208,6 @@ describe('removeWalletCommand', () => {
         wallets[0].name.should.equal(blueWallet.name);
         wallets[1].name.should.equal(createdWallet.name);
         wallets[2].name.should.equal(purpleWallet.name);
-
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `removeWallet`);
     });
 
@@ -245,7 +244,6 @@ describe('removeWalletCommand', () => {
         const wallets: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
 
         wallets.length.should.equal(2);
-
         wallets[0].name.should.equal(createdWallet.name);
         wallets[1].name.should.equal(purpleWallet.name);
 

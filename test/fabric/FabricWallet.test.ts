@@ -13,7 +13,6 @@
 */
 
 import * as fs from 'fs-extra';
-import * as path from 'path';
 import { FabricWallet } from '../../extension/fabric/FabricWallet';
 import * as sinon from 'sinon';
 import * as chai from 'chai';
@@ -89,21 +88,10 @@ describe('FabricWallet', () => {
         it('should return any identities', async () => {
             const wallet: IFabricWallet = new FabricWallet('/some/path');
             mySandBox.stub(FabricWallet.prototype, 'getWalletPath').returns('/some/path');
-            const readdirStub: sinon.SinonStub = mySandBox.stub(fs, 'readdir').resolves(['/dir/identity_a', '/dir/identity_b', '/dir/identity_c']);
-            const basenameSpy: sinon.SinonSpy = mySandBox.spy(path, 'basename');
-            const resolveSpy: sinon.SinonSpy = mySandBox.spy(path, 'resolve');
+            const readdirStub: sinon.SinonStub = mySandBox.stub(fs, 'readdir').resolves(['/dir/identity_b', '/dir/identity_c', '/dir/identity_a', '/dir/identity_A']);
             const readJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'readJson');
 
             const identityOne: FabricIdentity = {
-                affiliation: '',
-                enrollment: {},
-                enrollmentSecret: '',
-                mspid: 'Org1MSP',
-                name: 'identity_a',
-                roles: null
-            } as unknown as FabricIdentity;
-
-            const identityTwo: FabricIdentity = {
                 affiliation: '',
                 enrollment: {},
                 enrollmentSecret: '',
@@ -112,7 +100,7 @@ describe('FabricWallet', () => {
                 roles: null
             } as unknown as FabricIdentity;
 
-            const identityThree: FabricIdentity = {
+            const identityTwo: FabricIdentity = {
                 affiliation: '',
                 enrollment: {},
                 enrollmentSecret: '',
@@ -121,27 +109,39 @@ describe('FabricWallet', () => {
                 roles: null
             } as unknown as FabricIdentity;
 
-            readJsonStub.onCall(0).resolves(identityOne);
-            readJsonStub.onCall(1).resolves(identityTwo);
-            readJsonStub.onCall(2).resolves(identityThree);
+            const identityThree: FabricIdentity = {
+                affiliation: '',
+                enrollment: {},
+                enrollmentSecret: '',
+                mspid: 'Org1MSP',
+                name: 'identity_a',
+                roles: null
+            } as unknown as FabricIdentity;
+
+            const identityFour: FabricIdentity = {
+                affiliation: '',
+                enrollment: {},
+                enrollmentSecret: '',
+                mspid: 'Org1MSP',
+                name: 'identity_A',
+                roles: null
+            } as unknown as FabricIdentity;
+
+            readJsonStub.withArgs('/dir/identity_b/identity_b').resolves(identityOne);
+            readJsonStub.withArgs('/dir/identity_c/identity_c').resolves(identityTwo);
+            readJsonStub.withArgs('/dir/identity_a/identity_a').resolves(identityThree);
+            readJsonStub.withArgs('/dir/identity_A/identity_A').resolves(identityFour);
 
             const identities: FabricIdentity[] = await wallet.getIdentities();
 
-            basenameSpy.getCall(0).returnValue.should.equal('identity_a');
-            basenameSpy.getCall(1).returnValue.should.equal('identity_b');
-            basenameSpy.getCall(2).returnValue.should.equal('identity_c');
-
-            resolveSpy.getCall(0).should.have.been.calledWithExactly('/some/path', '/dir/identity_a', 'identity_a');
-            resolveSpy.getCall(1).should.have.been.calledWithExactly('/some/path', '/dir/identity_b', 'identity_b');
-            resolveSpy.getCall(2).should.have.been.calledWithExactly('/some/path', '/dir/identity_c', 'identity_c');
-
-            readJsonStub.getCall(0).should.have.been.calledWithExactly('/dir/identity_a/identity_a');
-            readJsonStub.getCall(1).should.have.been.calledWithExactly('/dir/identity_b/identity_b');
-            readJsonStub.getCall(2).should.have.been.calledWithExactly('/dir/identity_c/identity_c');
+            readJsonStub.getCall(0).should.have.been.calledWithExactly('/dir/identity_A/identity_A');
+            readJsonStub.getCall(1).should.have.been.calledWithExactly('/dir/identity_a/identity_a');
+            readJsonStub.getCall(2).should.have.been.calledWithExactly('/dir/identity_b/identity_b');
+            readJsonStub.getCall(3).should.have.been.calledWithExactly('/dir/identity_c/identity_c');
 
             readdirStub.should.have.been.calledOnceWithExactly('/some/path');
 
-            identities.should.deep.equal([identityOne, identityTwo, identityThree]);
+            identities.should.deep.equal([identityFour, identityThree, identityOne, identityTwo]);
 
         });
     });

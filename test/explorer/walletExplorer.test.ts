@@ -49,9 +49,13 @@ describe('walletExplorer', () => {
     let logSpy: sinon.SinonSpy;
     let blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider;
     let blueWalletEntry: FabricWalletRegistryEntry;
+    let aNewWalletEntry: FabricWalletRegistryEntry;
+    let anotherNewWalletEntry: FabricWalletRegistryEntry;
+    let anotherNewWalletEntry2: FabricWalletRegistryEntry;
     let greenWalletEntry: FabricWalletRegistryEntry;
     let getIdentityNamesStub: sinon.SinonStub;
     let getIdentitiesStub: sinon.SinonStub;
+    let getNewWalletStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
@@ -78,10 +82,10 @@ describe('walletExplorer', () => {
         await FabricWalletRegistry.instance().add(greenWalletEntry);
 
         const greenWallet: IFabricWallet = new FabricWallet('some/path');
-        const blueWallet: IFabricWallet = new FabricWallet('/some/other/path');
+        const blueWallet: IFabricWallet = new FabricWallet('some/other/path');
         getIdentityNamesStub = mySandBox.stub(FabricWallet.prototype, 'getIdentityNames');
         getIdentitiesStub = mySandBox.stub(FabricWallet.prototype, 'getIdentities');
-        const getNewWalletStub: sinon.SinonStub = mySandBox.stub(FabricWalletGeneratorFactory.createFabricWalletGenerator(), 'getWallet');
+        getNewWalletStub = mySandBox.stub(FabricWalletGeneratorFactory.createFabricWalletGenerator(), 'getWallet');
         getNewWalletStub.withArgs(greenWalletEntry.name).returns(greenWallet);
         getNewWalletStub.withArgs(blueWalletEntry.name).returns(blueWallet);
         getNewWalletStub.withArgs(FabricWalletUtil.LOCAL_WALLET).returns(new FabricWallet('some/local/path'));
@@ -91,10 +95,41 @@ describe('walletExplorer', () => {
         mySandBox.restore();
     });
 
-    it('should show wallets and identities in the BlockchainWalletExplorer view', async () => {
+    it('should show wallets and identities in the BlockchainWalletExplorer view in alphabetical order', async () => {
+
+        aNewWalletEntry = new FabricWalletRegistryEntry({
+            name: 'aNewWalletEntry',
+            walletPath: '/some/new/path'
+        });
+
+        anotherNewWalletEntry = new FabricWalletRegistryEntry({
+            name: 'AnotherNewWalletEntry',
+            walletPath: '/another/new/path'
+        });
+
+        anotherNewWalletEntry2 = new FabricWalletRegistryEntry({
+            name: 'aNOTHERNEWWALLETEntry',
+            walletPath: '/a/new/path'
+        });
+
+        await FabricWalletRegistry.instance().add(aNewWalletEntry);
+        await FabricWalletRegistry.instance().add(anotherNewWalletEntry);
+        await FabricWalletRegistry.instance().add(anotherNewWalletEntry2);
+
+        const aNewWallet: IFabricWallet = new FabricWallet('some/new/path');
+        const anotherNewWallet: IFabricWallet = new FabricWallet('another/new/path');
+        const anotherNewWallet2: IFabricWallet = new FabricWallet('a/new/path');
+
+        getNewWalletStub.withArgs(aNewWalletEntry.name).returns(aNewWallet);
+        getNewWalletStub.withArgs(anotherNewWalletEntry.name).returns(anotherNewWallet);
+        getNewWalletStub.withArgs(anotherNewWalletEntry2.name).returns(anotherNewWallet2);
+
         getIdentityNamesStub.onCall(0).resolves([FabricRuntimeUtil.ADMIN_USER, 'yellowConga', 'orangeConga']);
         getIdentityNamesStub.onCall(1).resolves(['violetConga', 'purpleConga']);
         getIdentityNamesStub.onCall(2).resolves([]);
+        getIdentityNamesStub.onCall(3).resolves(['oldWallet', 'AnewWallet']);
+        getIdentityNamesStub.onCall(4).resolves([]);
+        getIdentityNamesStub.onCall(5).resolves(['anotherNew', 'previousNew', 'PREVIOUSNEW']);
 
         const certObjOne: any = { extensions: [] };
         const certObjTwo: any = {
@@ -107,6 +142,9 @@ describe('walletExplorer', () => {
                 }
             ]
         };
+        const certObjThree: any = { extensions: [] };
+        const certObjFour: any = { extensions: [] };
+        const certObjFive: any = { extensions: [] };
 
         const certOne: string = `-----BEGIN CERTIFICATE-----
         certOne
@@ -118,42 +156,75 @@ describe('walletExplorer', () => {
         -----END CERTIFICATE-----
         `;
 
+        const certThree: string = `-----BEGIN CERTIFICATE-----
+        certThree
+        -----END CERTIFICATE-----
+        `;
+
+        const certFour: string = `-----BEGIN CERTIFICATE-----
+        certFour
+        -----END CERTIFICATE-----
+        `;
+
+        const certFive: string = `-----BEGIN CERTIFICATE-----
+        certFive
+        -----END CERTIFICATE-----
+        `;
+
         const fromPEMStub: sinon.SinonStub = mySandBox.stub(Certificate, 'fromPEM');
         fromPEMStub.withArgs(certOne).returns(certObjOne);
         fromPEMStub.withArgs(certTwo).returns(certObjTwo);
+        fromPEMStub.withArgs(certThree).returns(certObjThree);
+        fromPEMStub.withArgs(certFour).returns(certObjFour);
+        fromPEMStub.withArgs(certFive).returns(certObjFive);
 
-        getIdentitiesStub.onCall(1).resolves([
+        getIdentitiesStub.onCall(0).resolves([
             { name: FabricRuntimeUtil.ADMIN_USER, enrollment: { identity: { certificate: certOne } } },
             { name: 'yellowConga', enrollment: { identity: { certificate: certOne } } },
             { name: 'orangeConga', enrollment: { identity: { certificate: certOne } } }
         ]);
 
-        const getAttributesStub: sinon.SinonStub = mySandBox.stub(FabricCertificate.prototype, 'getAttributes');
-        getAttributesStub.callThrough();
-        getAttributesStub.onCall(0).returns({ attr1: 'hello', attr2: 'world' });
-        getAttributesStub.onCall(1).returns({ attr3: 'good', attr4: 'day!' });
-
-        getIdentitiesStub.onCall(0).resolves([
-            { name: 'violetConga', enrollment: { identity: { certificate: certTwo } } },
-            { name: 'purpleConga', enrollment: { identity: { certificate: certTwo } } }
+        getIdentitiesStub.onCall(1).resolves([
+            { name: 'oldWallet', enrollment: { identity: { certificate: certThree } } },
+            { name: 'AnewWallet', enrollment: { identity: { certificate: certThree } } }
         ]);
 
         getIdentitiesStub.onCall(2).resolves([]);
 
-        const wallets: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<BlockchainTreeItem>;
-        wallets.length.should.equal(3);
-        wallets[0].label.should.equal(FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME);
-        wallets[1].label.should.equal(blueWalletEntry.name);
-        wallets[2].label.should.equal(greenWalletEntry.name);
+        getIdentitiesStub.onCall(3).resolves([
+            { name: 'anotherNew', enrollment: { identity: { certificate: certFive } } },
+            { name: 'previousNew', enrollment: { identity: { certificate: certFive } } },
+            { name: 'PREVIOUSNEW', enrollment: { identity: { certificate: certFive } } }
+        ]);
 
-        const blueWalletIdentities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[1]) as Array<IdentityTreeItem>;
-        blueWalletIdentities.length.should.equal(2);
-        blueWalletIdentities[0].label.should.equal('violetConga');
-        blueWalletIdentities[0].walletName.should.equal(blueWalletEntry.name);
-        blueWalletIdentities[0].tooltip.should.deep.equal(`Attributes:\n\nattr1:hello\nattr2:world`);
-        blueWalletIdentities[1].label.should.equal('purpleConga');
-        blueWalletIdentities[1].walletName.should.equal(blueWalletEntry.name);
-        blueWalletIdentities[1].tooltip.should.deep.equal(`Attributes:\n\nattr3:good\nattr4:day!`);
+        getIdentitiesStub.onCall(4).resolves([
+            { name: 'violetConga', enrollment: { identity: { certificate: certTwo } } },
+            { name: 'purpleConga', enrollment: { identity: { certificate: certTwo } } }
+        ]);
+
+        getIdentitiesStub.onCall(5).resolves([]);
+
+        const getAttributesStub: sinon.SinonStub = mySandBox.stub(FabricCertificate.prototype, 'getAttributes');
+        getAttributesStub.callThrough();
+        getAttributesStub.onCall(0).returns({Attributes: 'None'});
+        getAttributesStub.onCall(1).returns({Attributes: 'None'});
+        getAttributesStub.onCall(2).returns({Attributes: 'None'});
+        getAttributesStub.onCall(3).returns({Attributes: 'None'});
+        getAttributesStub.onCall(4).returns({Attributes: 'None'});
+        getAttributesStub.onCall(5).returns({Attributes: 'None'});
+        getAttributesStub.onCall(6).returns({Attributes: 'None'});
+        getAttributesStub.onCall(7).returns({Attributes: 'None'});
+        getAttributesStub.onCall(8).returns({ attr1: 'hello', attr2: 'world' });
+        getAttributesStub.onCall(9).returns({ attr3: 'good', attr4: 'day!' });
+
+        const wallets: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<BlockchainTreeItem>;
+        wallets.length.should.equal(6);
+        wallets[0].label.should.equal(FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME);
+        wallets[1].label.should.equal(aNewWalletEntry.name);
+        wallets[2].label.should.equal(anotherNewWalletEntry.name);
+        wallets[3].label.should.equal(anotherNewWalletEntry2.name);
+        wallets[4].label.should.equal(blueWalletEntry.name);
+        wallets[5].label.should.equal(greenWalletEntry.name);
 
         const localWalletIdentities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[0]) as Array<IdentityTreeItem>;
         localWalletIdentities.length.should.equal(3);
@@ -167,8 +238,36 @@ describe('walletExplorer', () => {
         localWalletIdentities[2].should.be.an.instanceOf(IdentityTreeItem);
         localWalletIdentities[2].walletName.should.equal(FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME);
 
-        const emptyWalletIdentites: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[2]) as Array<WalletTreeItem>;
-        emptyWalletIdentites.should.deep.equal([]);
+        const aNewWalletIdentities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[1]) as Array<IdentityTreeItem>;
+        aNewWalletIdentities.length.should.equal(2);
+        aNewWalletIdentities[0].label.should.equal('oldWallet');
+        aNewWalletIdentities[0].walletName.should.equal(aNewWalletEntry.name);
+        aNewWalletIdentities[1].label.should.equal('AnewWallet');
+        aNewWalletIdentities[1].walletName.should.equal(aNewWalletEntry.name);
+
+        const anotherNewWalletIdentities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[2]) as Array<IdentityTreeItem>;
+        anotherNewWalletIdentities.length.should.equal(0);
+
+        const anotherNewWalletEntry2Identities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[3]) as Array<IdentityTreeItem>;
+        anotherNewWalletEntry2Identities.length.should.equal(3);
+        anotherNewWalletEntry2Identities[0].label.should.equal('anotherNew');
+        anotherNewWalletEntry2Identities[0].walletName.should.equal(anotherNewWalletEntry2.name);
+        anotherNewWalletEntry2Identities[1].label.should.equal('previousNew');
+        anotherNewWalletEntry2Identities[1].walletName.should.equal(anotherNewWalletEntry2.name);
+        anotherNewWalletEntry2Identities[2].label.should.equal('PREVIOUSNEW');
+        anotherNewWalletEntry2Identities[2].walletName.should.equal(anotherNewWalletEntry2.name);
+
+        const blueWalletIdentities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[4]) as Array<IdentityTreeItem>;
+        blueWalletIdentities.length.should.equal(2);
+        blueWalletIdentities[0].label.should.equal('violetConga');
+        blueWalletIdentities[0].walletName.should.equal(blueWalletEntry.name);
+        blueWalletIdentities[0].tooltip.should.deep.equal(`Attributes:\n\nattr1:hello\nattr2:world`);
+        blueWalletIdentities[1].label.should.equal('purpleConga');
+        blueWalletIdentities[1].walletName.should.equal(blueWalletEntry.name);
+        blueWalletIdentities[1].tooltip.should.deep.equal(`Attributes:\n\nattr3:good\nattr4:day!`);
+
+        const purpleWalletIdentites: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[5]) as Array<WalletTreeItem>;
+        purpleWalletIdentites.length.should.equal(0);
 
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
     });

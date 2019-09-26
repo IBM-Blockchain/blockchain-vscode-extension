@@ -82,18 +82,28 @@ describe('environmentExplorer', () => {
                 mySandBox.restore();
             });
 
-            it('should display all environments', async () => {
+            it('should display all environments in alphabetical order', async () => {
                 const registryEntryOne: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
-                registryEntryOne.name = 'myFabric';
+                registryEntryOne.name = 'myFabric1';
                 registryEntryOne.managedRuntime = false;
 
                 const registryEntryTwo: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
-                registryEntryTwo.name = 'myFabric2';
+                registryEntryTwo.name = 'myFabric';
                 registryEntryTwo.managedRuntime = false;
+
+                const registryEntryThree: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                registryEntryThree.name = 'myFabric2';
+                registryEntryThree.managedRuntime = false;
+
+                const registryEntryFour: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                registryEntryFour.name = 'MYFABRIC';
+                registryEntryFour.managedRuntime = false;
 
                 await FabricEnvironmentRegistry.instance().clear();
                 await FabricEnvironmentRegistry.instance().add(registryEntryOne);
                 await FabricEnvironmentRegistry.instance().add(registryEntryTwo);
+                await FabricEnvironmentRegistry.instance().add(registryEntryThree);
+                await FabricEnvironmentRegistry.instance().add(registryEntryFour);
 
                 const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = mySandBox.createStubInstance(FabricRuntime);
                 mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
@@ -102,13 +112,17 @@ describe('environmentExplorer', () => {
                 const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
 
-                allChildren.length.should.equal(3);
+                allChildren.length.should.equal(5);
                 allChildren[0].label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ○ (click to start)`);
                 allChildren[0].tooltip.should.equal('Creates a local development runtime using Hyperledger Fabric Docker images');
                 allChildren[1].label.should.equal('myFabric');
                 allChildren[1].tooltip.should.equal('myFabric');
-                allChildren[2].label.should.equal('myFabric2');
-                allChildren[2].tooltip.should.equal('myFabric2');
+                allChildren[2].label.should.equal('MYFABRIC');
+                allChildren[2].tooltip.should.equal('MYFABRIC');
+                allChildren[3].label.should.equal('myFabric1');
+                allChildren[3].tooltip.should.equal('myFabric1');
+                allChildren[4].label.should.equal('myFabric2');
+                allChildren[4].tooltip.should.equal('myFabric2');
 
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-environment-connected', false);

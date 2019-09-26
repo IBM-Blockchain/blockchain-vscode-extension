@@ -17,7 +17,6 @@
 import * as vscode from 'vscode';
 import { ChannelTreeItem } from './model/ChannelTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
-import { GatewayTreeItem } from './model/GatewayTreeItem';
 import { GatewayAssociatedTreeItem } from './model/GatewayAssociatedTreeItem';
 import { GatewayDissociatedTreeItem } from './model/GatewayDissociatedTreeItem';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
@@ -170,30 +169,6 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
 
         const allGateways: FabricGatewayRegistryEntry[] = await this.fabricGatewayRegistry.getAll();
 
-        try {
-            const runtimeGateways: FabricGatewayRegistryEntry[] = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
-            for (const runtimeGateway of runtimeGateways) {
-                const command: vscode.Command = {
-                    command: ExtensionCommands.CONNECT_TO_GATEWAY,
-                    title: '',
-                    arguments: [runtimeGateway]
-                };
-
-                const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(
-                    this,
-                    FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME,
-                    runtimeGateway,
-                    vscode.TreeItemCollapsibleState.None,
-                    command
-                );
-
-                tree.push(treeItem);
-            }
-
-        } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Error populating Blockchain Explorer View: ${error.message}`, `Error populating Blockchain Explorer View: ${error.toString()}`);
-        }
-
         for (const gateway of allGateways) {
 
             const command: vscode.Command = {
@@ -220,15 +195,29 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
 
         }
 
-        tree.sort((connectionA: GatewayTreeItem, connectionB: GatewayTreeItem) => {
-            if (connectionA.label > connectionB.label) {
-                return 1;
-            } else if (connectionA.label < connectionB.label) {
-                return -1;
-            } else {
-                return 0;
+        try {
+            const runtimeGateways: FabricGatewayRegistryEntry[] = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
+            for (const runtimeGateway of runtimeGateways) {
+                const command: vscode.Command = {
+                    command: ExtensionCommands.CONNECT_TO_GATEWAY,
+                    title: '',
+                    arguments: [runtimeGateway]
+                };
+
+                const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(
+                    this,
+                    FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME,
+                    runtimeGateway,
+                    vscode.TreeItemCollapsibleState.None,
+                    command
+                );
+
+                tree.unshift(treeItem);
             }
-        });
+
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Error populating Blockchain Explorer View: ${error.message}`, `Error populating Blockchain Explorer View: ${error.toString()}`);
+        }
 
         return tree;
     }

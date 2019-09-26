@@ -23,7 +23,19 @@ export abstract class SettingsRegistry<T extends RegistryEntry> implements IRegi
     }
 
     public async getAll(): Promise<T[]> {
-        return this.getEntries();
+        const allEntries: T[] = this.getEntries();
+        allEntries.sort((entryA: T, entryB: T) => {
+            const entryALowerCase: string = entryA.name.toLowerCase();
+            const entryBLowerCase: string = entryB.name.toLowerCase();
+            if (entryALowerCase > entryBLowerCase) {
+                return 1;
+            } else if (entryALowerCase < entryBLowerCase) {
+                return -1;
+            } else {
+                return 0;
+            }
+        });
+        return allEntries;
     }
 
     public async get(name: string): Promise<T> {

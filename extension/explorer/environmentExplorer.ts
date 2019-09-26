@@ -190,18 +190,6 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
         const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
 
         try {
-            const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricRuntimeManager.instance().getEnvironmentRegistryEntry();
-
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
-                runtime.getName(),
-                fabricEnvironmentRegistryEntry,
-                {
-                    command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
-                    title: '',
-                    arguments: [fabricEnvironmentRegistryEntry]
-                }
-            );
-            tree.push(treeItem);
 
             const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
             for (const environmentEntry of environmentEntries) {
@@ -217,6 +205,20 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
                 tree.push(environmentTreeItem);
             }
+
+            const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricRuntimeManager.instance().getEnvironmentRegistryEntry();
+
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
+                runtime.getName(),
+                fabricEnvironmentRegistryEntry,
+                {
+                    command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                    title: '',
+                    arguments: [fabricEnvironmentRegistryEntry]
+                }
+            );
+            tree.unshift(treeItem);
+
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error populating Fabric Environment Panel: ${error.message}`, `Error populating Fabric Environment Panel: ${error.toString()}`);
         }

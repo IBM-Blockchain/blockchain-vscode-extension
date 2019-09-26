@@ -172,7 +172,19 @@ describe('gatewayExplorer', () => {
                 });
 
                 gateways.push({
-                    name: 'myGatewayA',
+                    name: 'aSA',
+                    connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                    associatedWallet: 'some_other_wallet'
+                });
+
+                gateways.push({
+                    name: 'AGateway',
+                    connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                    associatedWallet: 'some_other_wallet'
+                });
+
+                gateways.push({
+                    name: 'aGateway',
                     connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
                     associatedWallet: 'some_other_wallet'
                 });
@@ -182,19 +194,27 @@ describe('gatewayExplorer', () => {
                 const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
 
-                allChildren.length.should.equal(5);
-                allChildren[1].label.should.equal('myGatewayA ⧉');
+                allChildren.length.should.equal(7);
+                allChildren[0].label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ●`);
+                allChildren[0].tooltip.should.equal('Local Fabric is running\nⓘ Associated wallet:\nLocal Fabric Wallet');
+                allChildren[1].label.should.equal('AGateway ⧉');
                 allChildren[1].tooltip.should.equal('ⓘ Associated wallet:\n    some_other_wallet');
                 allChildren[1].should.be.an.instanceOf(GatewayAssociatedTreeItem);
-                allChildren[2].label.should.equal('myGatewayA ⧉');
+                allChildren[2].label.should.equal('aGateway ⧉');
                 allChildren[2].tooltip.should.equal('ⓘ Associated wallet:\n    some_other_wallet');
                 allChildren[2].should.be.an.instanceOf(GatewayAssociatedTreeItem);
-                allChildren[3].label.should.equal('myGatewayB');
-                allChildren[3].tooltip.should.equal('No associated wallet');
-                allChildren[3].should.be.an.instanceOf(GatewayDissociatedTreeItem);
-                allChildren[4].label.should.equal('myGatewayC ⧉');
-                allChildren[4].tooltip.should.equal('ⓘ Associated wallet:\n    some_wallet');
+                allChildren[3].label.should.equal('aSA ⧉');
+                allChildren[3].tooltip.should.equal('ⓘ Associated wallet:\n    some_other_wallet');
+                allChildren[3].should.be.an.instanceOf(GatewayAssociatedTreeItem);
+                allChildren[4].label.should.equal('myGatewayA ⧉');
+                allChildren[4].tooltip.should.equal('ⓘ Associated wallet:\n    some_other_wallet');
                 allChildren[4].should.be.an.instanceOf(GatewayAssociatedTreeItem);
+                allChildren[5].label.should.equal('myGatewayB');
+                allChildren[5].tooltip.should.equal('No associated wallet');
+                allChildren[5].should.be.an.instanceOf(GatewayDissociatedTreeItem);
+                allChildren[6].label.should.equal('myGatewayC ⧉');
+                allChildren[6].tooltip.should.equal('ⓘ Associated wallet:\n    some_wallet');
+                allChildren[6].should.be.an.instanceOf(GatewayAssociatedTreeItem);
             });
 
             it('should handle error with tree', async () => {
