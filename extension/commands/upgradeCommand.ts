@@ -52,8 +52,19 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
         // Called on instantiated chaincode tree item
         contractName = treeItem.name;
         contractVersion = treeItem.version;
-        channelName = treeItem.channel.label;
-        peerNames = treeItem.channel.peers;
+
+        const channelMap: Map<string, Array<string>> = new Map<string, Array<string>>();
+        treeItem.channels.map((channelTreeItem: ChannelTreeItem) => {
+            channelMap.set(channelTreeItem.label, channelTreeItem.peers);
+        });
+
+        const chosenChannel: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to upgrade the smart contract on', channelMap);
+        if (!chosenChannel) {
+            return;
+        }
+
+        channelName = chosenChannel.label;
+        peerNames = chosenChannel.data;
 
     } else if ((treeItem instanceof ChannelTreeItem)) {
         // Called on a channel

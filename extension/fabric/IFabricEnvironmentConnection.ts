@@ -17,6 +17,7 @@ import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { IFabricWallet } from './IFabricWallet';
 import { FabricNode } from './FabricNode';
 import { Attribute } from './FabricCertificate';
+import { FabricChaincode } from './FabricChaincode';
 
 export interface IFabricEnvironmentConnection {
 
@@ -28,7 +29,7 @@ export interface IFabricEnvironmentConnection {
 
     createChannelMap(): Promise<Map<string, Array<string>>>;
 
-    getInstantiatedChaincode(peerNames: Array<string>, channelName: string): Promise<Array<{name: string, version: string}>>;
+    getInstantiatedChaincode(peerNames: Array<string>, channelName: string): Promise<Array<FabricChaincode>>;
 
     getAllInstantiatedChaincodes(): Promise<Array<{name: string, version: string}>>;
 

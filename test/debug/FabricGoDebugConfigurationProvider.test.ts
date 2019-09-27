@@ -32,6 +32,7 @@ import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironme
 import { FabricEnvironmentRegistryEntry } from '../../extension/fabric/FabricEnvironmentRegistryEntry';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { GlobalState } from '../../extension/util/GlobalState';
+import { FabricChaincode } from '../../extension/fabric/FabricChaincode';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -123,7 +124,7 @@ describe('FabricGoDebugConfigurationProvider', () => {
             mockRuntimeConnection.connect.resolves();
             mockRuntimeConnection.getAllPeerNames.resolves('peerOne');
 
-            const instantiatedChaincodes: { name: string, version: string }[] = [{ name: 'myOtherContract', version: 'vscode-debug-13232112018' }, { name: 'cake-network', version: 'vscode-debug-174758735087' }];
+            const instantiatedChaincodes: FabricChaincode[] = [{ name: 'myOtherContract', version: 'vscode-debug-13232112018' }, { name: 'cake-network', version: 'vscode-debug-174758735087' }];
             mockRuntimeConnection.getAllInstantiatedChaincodes.resolves(instantiatedChaincodes);
 
             mySandbox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns(mockRuntimeConnection);
