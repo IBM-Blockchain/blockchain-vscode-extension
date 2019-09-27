@@ -49,6 +49,7 @@ import { FabricEnvironmentTreeItem } from './runtimeOps/disconnectedTree/FabricE
 import { SetupTreeItem } from './runtimeOps/identitySetupTree/SetupTreeItem';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { EnvironmentConnectedTreeItem } from './runtimeOps/connectedTree/EnvironmentConnectedTreeItem';
+import { FabricChaincode } from '../fabric/FabricChaincode';
 
 export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorerProvider {
 
@@ -344,6 +345,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
     private async createInstantiatedTree(): Promise<Array<BlockchainTreeItem>> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         const tree: Array<BlockchainTreeItem> = [];
+        const tempTree: InstantiatedChaincodeTreeItem[] = [];
 
         const command: vscode.Command = {
             command: ExtensionCommands.INSTANTIATE_SMART_CONTRACT,
@@ -355,18 +357,32 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
             const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
             for (const [channelName, peerNames] of channelMap) {
-                const chaincodes: any[] = await connection.getInstantiatedChaincode(peerNames, channelName);
+                const chaincodes: FabricChaincode[] = await connection.getInstantiatedChaincode(peerNames, channelName);
                 const channelTreeItem: ChannelTreeItem = new ChannelTreeItem(this, channelName, peerNames, chaincodes, vscode.TreeItemCollapsibleState.None);
                 for (const chaincode of chaincodes) {
                     // Doesn't matter if this is a chaincode or a contract as this is the ops view, and
                     // we shouldn't be exposing contracts or transaction functions in the ops view.
-                    tree.push(new InstantiatedChaincodeTreeItem(this, chaincode.name, channelTreeItem, chaincode.version, vscode.TreeItemCollapsibleState.None, null, false));
+                    const foundTreeItemNum: number = tempTree.findIndex((treeItem: InstantiatedChaincodeTreeItem) => {
+                        return treeItem.name === chaincode.name && treeItem.version === chaincode.version;
+                    });
+
+                    if (foundTreeItemNum > -1) {
+                        const tempTreeItem: InstantiatedChaincodeTreeItem = tempTree[foundTreeItemNum];
+                        const channels: ChannelTreeItem[] = tempTreeItem.channels;
+                        channels.push(channelTreeItem);
+                        tempTree.splice(foundTreeItemNum, 1);
+
+                        tempTree.push(new InstantiatedChaincodeTreeItem(this, chaincode.name, channels, chaincode.version, vscode.TreeItemCollapsibleState.None, null, false));
+                    } else {
+                        tempTree.push(new InstantiatedChaincodeTreeItem(this, chaincode.name, [channelTreeItem], chaincode.version, vscode.TreeItemCollapsibleState.None, null, false));
+                    }
                 }
             }
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error populating instantiated smart contracts view: ${error.message}`, `Error populating instantiated smart contracts view: ${error.message}`);
 
         } finally {
+            tree.push(...tempTree);
             tree.push(new InstantiateCommandTreeItem(this, command));
         }
         return tree;
@@ -375,6 +391,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
     private async createInstalledTree(installedTreeItem: InstalledTreeItem): Promise<Array<BlockchainTreeItem>> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         const tree: Array<BlockchainTreeItem> = [];
+        const tempTree: InstalledChainCodeOpsTreeItem[] = [];
         let command: vscode.Command;
         try {
             const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
@@ -382,8 +399,22 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             for (const peer of allPeerNames) {
                 const chaincodes: Map<string, Array<string>> = await connection.getInstalledChaincode(peer);
                 chaincodes.forEach((versions: Array<string>, name: string) => {
+
                     for (const version of versions) {
-                        tree.push(new InstalledChainCodeOpsTreeItem(this, name, version, peer));
+                        const foundTreeItemNum: number = tempTree.findIndex((treeItem: InstalledChainCodeOpsTreeItem) => {
+                            return treeItem.name === name && treeItem.version === version;
+                        });
+
+                        if (foundTreeItemNum > -1) {
+                            const tempTreeItem: InstalledChainCodeOpsTreeItem = tempTree[foundTreeItemNum];
+                            const peerNames: string[] = tempTreeItem.peerNames;
+                            peerNames.push(peer);
+                            tempTree.splice(foundTreeItemNum, 1);
+
+                            tempTree.push(new InstalledChainCodeOpsTreeItem(this, name, version, peerNames));
+                        } else {
+                            tempTree.push(new InstalledChainCodeOpsTreeItem(this, name, version, [peer]));
+                        }
                     }
                 });
             }
@@ -397,6 +428,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error populating installed smart contracts view: ${error.message}`, `Error populating installed smart contracts view: ${error.message}`);
         } finally {
+            tree.push(...tempTree);
             tree.push(new InstallCommandTreeItem(this, command));
         }
         return tree;

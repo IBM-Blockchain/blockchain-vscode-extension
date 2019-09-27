@@ -55,7 +55,7 @@ chai.use(sinonChai);
 const should: Chai.Should = chai.should();
 
 // tslint:disable no-unused-expression
-describe('environmentExplorer', () => {
+describe.only('environmentExplorer', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     before(async () => {
         await TestUtil.setupTests(mySandBox);
@@ -356,19 +356,24 @@ describe('environmentExplorer', () => {
 
                 const installedChaincodeMapTwo: Map<string, Array<string>> = new Map<string, Array<string>>();
                 installedChaincodeMapTwo.set('biscuit-network', ['0.7']);
+                installedChaincodeMapTwo.set('sample-food-network', ['0.6']);
                 fabricConnection.getInstalledChaincode.withArgs('peerTwo').returns(installedChaincodeMapTwo);
 
                 fabricConnection.getInstantiatedChaincode.withArgs(['peerOne'], 'channelOne').resolves([{
                     name: 'biscuit-network',
                     version: '0.7'
                 }]);
-                fabricConnection.getInstantiatedChaincode.withArgs(['peerOne', 'peerTwo'], 'channelTwo').resolves([{
-                    name: 'cake-network',
-                    version: '0.10'
-                }, {
-                    name: 'legacy-network',
-                    version: '2.34'
-                }]);
+                fabricConnection.getInstantiatedChaincode.withArgs(['peerOne', 'peerTwo'], 'channelTwo').resolves([
+                    {
+                        name: 'biscuit-network',
+                        version: '0.7'
+                    }, {
+                        name: 'cake-network',
+                        version: '0.10'
+                    }, {
+                        name: 'legacy-network',
+                        version: '2.34'
+                    }]);
 
                 fabricConnection.getAllOrganizationNames.returns(['Org1', 'Org2']);
 
@@ -723,7 +728,7 @@ describe('environmentExplorer', () => {
 
             });
 
-            it('should create the installed chaincode tree correctly', async () => {
+            it.only('should create the installed chaincode tree correctly', async () => {
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
 
@@ -746,7 +751,7 @@ describe('environmentExplorer', () => {
                 installedContractThree.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 installedContractThree.contextValue.should.equal('blockchain-runtime-installed-chaincode-item');
                 installedContractThree.label.should.equal('sample-food-network@0.6');
-                installedContractThree.tooltip.should.equal('Installed on: peerOne');
+                installedContractThree.tooltip.should.equal('Installed on: peerOne, peerTwo');
                 const installedContractFour: InstantiateCommandTreeItem = installedContractsTree[3] as InstantiateCommandTreeItem;
                 installedContractFour.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 installedContractFour.contextValue.should.equal('blockchain-runtime-installed-chaincode-item');
@@ -772,7 +777,7 @@ describe('environmentExplorer', () => {
 
                 const contractTreeItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
                 const installedContractsTree: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
-                installedContractsTree.length.should.equal(2);
+                installedContractsTree.length.should.equal(3);
 
                 const installedContractOne: InstantiateCommandTreeItem = installedContractsTree[0] as InstantiateCommandTreeItem;
                 installedContractOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
@@ -828,7 +833,7 @@ describe('environmentExplorer', () => {
                 instantiatedChaincodeOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 instantiatedChaincodeOne.contextValue.should.equal('blockchain-instantiated-chaincode-item');
                 instantiatedChaincodeOne.label.should.equal('biscuit-network@0.7');
-                instantiatedChaincodeOne.tooltip.should.equal('Instantiated on: channelOne');
+                instantiatedChaincodeOne.tooltip.should.equal('Instantiated on: channelOne, channelTwo');
                 const instantiatedChaincodeTwo: InstantiatedChaincodeTreeItem = instantiatedChaincodes[1] as InstantiatedChaincodeTreeItem;
                 instantiatedChaincodeTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 instantiatedChaincodeTwo.contextValue.should.equal('blockchain-instantiated-chaincode-item');

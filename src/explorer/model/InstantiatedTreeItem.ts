@@ -27,10 +27,17 @@ export abstract class InstantiatedTreeItem extends BlockchainTreeItem {
         dark: path.join(__filename, '..', '..', '..', '..', '..', 'resources', 'dark', 'smart-contract.svg')
     };
 
-    constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly channel: ChannelTreeItem, public readonly version: string, public readonly collapsibleState: vscode.TreeItemCollapsibleState, public readonly contracts?: string[], public readonly showIcon?: boolean) {
+    constructor(provider: BlockchainExplorerProvider, public readonly name: string, public channels: ChannelTreeItem[], public readonly version: string, public readonly collapsibleState: vscode.TreeItemCollapsibleState, public readonly contracts?: string[], public readonly showIcon?: boolean) {
         super(provider, `${name}@${version}`, collapsibleState);
 
-        this.tooltip = `Instantiated on: ${channel.label}`;
+        this.tooltip = `Instantiated on:`;
+        for (let i: number = 0; i < channels.length; i++) {
+            if (i === channels.length - 1) {
+                this.tooltip += ` ${channels[i].label}`;
+            } else {
+                this.tooltip += ` ${channels[i].label},`;
+            }
+        }
 
         if (!showIcon) {
             this.iconPath = null;

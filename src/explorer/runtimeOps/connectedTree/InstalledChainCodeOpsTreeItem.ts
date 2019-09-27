@@ -19,9 +19,16 @@ import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
 export class InstalledChainCodeOpsTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-runtime-installed-chaincode-item';
 
-    constructor(provider: BlockchainExplorerProvider, name: string, public readonly version: string, peerName: string) {
+    constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly version: string, public peerNames: string[]) {
         super(provider, `${name}@${version}`, vscode.TreeItemCollapsibleState.None);
 
-        this.tooltip = `Installed on: ${peerName}`;
+        this.tooltip = `Installed on:`;
+        for (let i: number = 0; i < peerNames.length; i++) {
+            if (i === peerNames.length - 1) {
+                this.tooltip += ` ${peerNames[i]}`;
+            } else {
+                this.tooltip += ` ${peerNames[i]},`;
+            }
+        }
     }
 }

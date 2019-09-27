@@ -24,7 +24,7 @@ describe('InstalledChainCodeOpsTreeItem', () => {
 
     class TestInstalledChainCodeOpsTreeItem extends InstalledChainCodeOpsTreeItem {
         constructor(name: string, version: string, peerName: string) {
-            super(ExtensionUtil.getBlockchainGatewayExplorerProvider(), name, version, peerName);
+            super(ExtensionUtil.getBlockchainGatewayExplorerProvider(), name, version, [peerName]);
         }
     }
 

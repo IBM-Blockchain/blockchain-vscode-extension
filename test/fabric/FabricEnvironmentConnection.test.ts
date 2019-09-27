@@ -38,6 +38,7 @@ import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactor
 import { IFabricEnvironmentConnection } from '../../src/fabric/IFabricEnvironmentConnection';
 import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
+import { FabricChaincode } from '../../src/fabric/FabricChaincode';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -424,7 +425,7 @@ describe('FabricEnvironmentConnection', () => {
         });
 
         it('should return the list of instantiated chaincodes', async () => {
-            const chaincodes: Array<{ name: string, version: string }> = await connection.getInstantiatedChaincode(['peer0.org1.example.com'], 'mychannel');
+            const chaincodes: Array<FabricChaincode> = await connection.getInstantiatedChaincode(['peer0.org1.example.com'], 'mychannel');
             chaincodes.should.deep.equal([
                 {
                     name: 'myChaincode',
@@ -505,7 +506,7 @@ describe('FabricEnvironmentConnection', () => {
         });
 
         it('should return the list of instantiated chaincodes on all channels', async () => {
-            const chaincodes: Array<{ name: string, version: string }> = await connection.getAllInstantiatedChaincodes();
+            const chaincodes: Array<FabricChaincode> = await connection.getAllInstantiatedChaincodes();
             chaincodes.should.deep.equal([
                 {
                     name: 'kittyChaincode',

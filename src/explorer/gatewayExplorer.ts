@@ -40,6 +40,7 @@ import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 import { InstantiatedMultiContractTreeItem } from './model/InstantiatedMultiContractTreeItem';
 import { InstantiatedUnknownTreeItem } from './model/InstantiatedUnknownTreeItem';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricChaincode } from '../fabric/FabricChaincode';
 
 export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProvider {
 
@@ -127,7 +128,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
                     // Populate the tree with correct instantiated tree items
                     await this.populateInstantiatedTreeItems(element);
                     // Calls getChildren on channelTreeItem
-                    await this.refresh(element.channel);
+                    await this.refresh(element.channels[0]);
                     return;
                 }
 
@@ -246,7 +247,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
             } else {
                 // Chaincode isn't stored
                 // Populate tree with generic instantiatedUnknownTreeItem and type them properly when vscode calls getTreeItem on each one
-                tree.push(new InstantiatedUnknownTreeItem(this, chaincode.name, channelTreeElement, chaincode.version, vscode.TreeItemCollapsibleState.Collapsed, undefined, true));
+                tree.push(new InstantiatedUnknownTreeItem(this, chaincode.name, [channelTreeElement], chaincode.version, vscode.TreeItemCollapsibleState.Collapsed, undefined, true));
             }
         }
         return tree;
@@ -255,16 +256,16 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
     private async populateInstantiatedTreeItems(unknownTreItem: InstantiatedUnknownTreeItem): Promise<void> {
         // Determine contracts for each instantiated chaincode and properly assign element
         const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
-        const contracts: Array<string> = await MetadataUtil.getContractNames(connection, unknownTreItem.name, unknownTreItem.channel.label);
+        const contracts: Array<string> = await MetadataUtil.getContractNames(connection, unknownTreItem.name, unknownTreItem.channels[0].label);
         let newElement: BlockchainTreeItem;
         if (!contracts) {
-            newElement = new InstantiatedChaincodeTreeItem(this, unknownTreItem.name, unknownTreItem.channel, unknownTreItem.version, vscode.TreeItemCollapsibleState.None, contracts, true);
+            newElement = new InstantiatedChaincodeTreeItem(this, unknownTreItem.name, unknownTreItem.channels, unknownTreItem.version, vscode.TreeItemCollapsibleState.None, contracts, true);
         } else if (contracts.length === 0) {
-            newElement = new InstantiatedContractTreeItem(this, unknownTreItem.name, unknownTreItem.channel, unknownTreItem.version, vscode.TreeItemCollapsibleState.None, contracts, true);
+            newElement = new InstantiatedContractTreeItem(this, unknownTreItem.name, unknownTreItem.channels, unknownTreItem.version, vscode.TreeItemCollapsibleState.None, contracts, true);
         } else if (contracts.length === 1) {
-            newElement = new InstantiatedContractTreeItem(this, unknownTreItem.name, unknownTreItem.channel, unknownTreItem.version, vscode.TreeItemCollapsibleState.Collapsed, contracts, true);
+            newElement = new InstantiatedContractTreeItem(this, unknownTreItem.name, unknownTreItem.channels, unknownTreItem.version, vscode.TreeItemCollapsibleState.Collapsed, contracts, true);
         } else {
-            newElement = new InstantiatedMultiContractTreeItem(this, unknownTreItem.name, unknownTreItem.channel, unknownTreItem.version, vscode.TreeItemCollapsibleState.Collapsed, contracts, true);
+            newElement = new InstantiatedMultiContractTreeItem(this, unknownTreItem.name, unknownTreItem.channels, unknownTreItem.version, vscode.TreeItemCollapsibleState.Collapsed, contracts, true);
         }
 
         // Populate and store instantiatedChaincodeTreeItems with correct tree items
@@ -275,11 +276,11 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         const tree: Array<any> = [];
         for (const contract of chainCodeElement.contracts) {
             const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
-            const transactionNamesMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, chainCodeElement.name, chainCodeElement.channel.label);
+            const transactionNamesMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, chainCodeElement.name, chainCodeElement.channels[0].label);
             const transactionNames: string[] = transactionNamesMap.get(contract);
             if (contract === '' || chainCodeElement.contracts.length === 1) {
                 for (const transaction of transactionNames) {
-                    tree.push(new TransactionTreeItem(this, transaction, chainCodeElement.name, chainCodeElement.channel.label, contract));
+                    tree.push(new TransactionTreeItem(this, transaction, chainCodeElement.name, chainCodeElement.channels[0].label, contract));
                 }
             } else {
                 tree.push(new ContractTreeItem(this, contract, vscode.TreeItemCollapsibleState.Collapsed, chainCodeElement, transactionNames));
@@ -291,7 +292,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
     private async createTransactionsChaincodeTree(contractTreeElement: ContractTreeItem): Promise<Array<TransactionTreeItem>> {
         const tree: Array<TransactionTreeItem> = [];
         contractTreeElement.transactions.forEach((transaction: string) => {
-            tree.push(new TransactionTreeItem(this, transaction, contractTreeElement.instantiatedChaincode.name, contractTreeElement.instantiatedChaincode.channel.label, contractTreeElement.name));
+            tree.push(new TransactionTreeItem(this, transaction, contractTreeElement.instantiatedChaincode.name, contractTreeElement.instantiatedChaincode.channels[0].label, contractTreeElement.name));
         });
 
         return tree;
@@ -330,7 +331,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
             const tree: Array<ChannelTreeItem> = [];
 
             for (const channel of channels) {
-                let chaincodes: Array<{ name: string, version: string }>;
+                let chaincodes: Array<FabricChaincode>;
                 const peers: Array<string> = channelMap.get(channel);
                 try {
                     chaincodes = await connection.getInstantiatedChaincode(channel);
