@@ -391,6 +391,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
     private async createInstalledTree(installedTreeItem: InstalledTreeItem): Promise<Array<BlockchainTreeItem>> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         const tree: Array<BlockchainTreeItem> = [];
+        const tempTree: InstalledChainCodeOpsTreeItem[] = [];
         let command: vscode.Command;
         try {
             const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
@@ -398,8 +399,22 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             for (const peer of allPeerNames) {
                 const chaincodes: Map<string, Array<string>> = await connection.getInstalledChaincode(peer);
                 chaincodes.forEach((versions: Array<string>, name: string) => {
+
                     for (const version of versions) {
-                        tree.push(new InstalledChainCodeOpsTreeItem(this, name, version, peer));
+                        const foundTreeItemNum: number = tempTree.findIndex((treeItem: InstalledChainCodeOpsTreeItem) => {
+                            return treeItem.name === name && treeItem.version === version;
+                        });
+
+                        if (foundTreeItemNum > -1) {
+                            const tempTreeItem: InstalledChainCodeOpsTreeItem = tempTree[foundTreeItemNum];
+                            const peerNames: string[] = tempTreeItem.peerNames;
+                            peerNames.push(peer);
+                            tempTree.splice(foundTreeItemNum, 1);
+
+                            tempTree.push(new InstalledChainCodeOpsTreeItem(this, name, version, peerNames));
+                        } else {
+                            tempTree.push(new InstalledChainCodeOpsTreeItem(this, name, version, [peer]));
+                        }
                     }
                 });
             }
@@ -413,6 +428,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error populating installed smart contracts view: ${error.message}`, `Error populating installed smart contracts view: ${error.message}`);
         } finally {
+            tree.push(...tempTree);
             tree.push(new InstallCommandTreeItem(this, command));
         }
         return tree;

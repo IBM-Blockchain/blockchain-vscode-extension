@@ -1298,7 +1298,7 @@
         "vscode:prepublish": "npm run compile && npm run localize",
         "package": "node ./node_modules/vsce/out/vsce package",
         "compile": "rimraf build && npm run build",
-        "watch": "rimraf build && tsc -watch -p ./tsconfig.extension.json && tsc -watch -p ./tsconfig.json",
+        "watch": "rimraf build && tsc -watch -p ./tsconfig.extension.json",
         "pretest": "npm run compile && npm run lint && npm run licchk && npm run updatePackageJSON",
         "test": "node ./build/test/runTests.js",
         "posttest": "remap-istanbul -i ./coverage/coverage.json -o ./coverage/coverage-remap.json && istanbul check-coverage ./coverage/coverage-remap.json",
