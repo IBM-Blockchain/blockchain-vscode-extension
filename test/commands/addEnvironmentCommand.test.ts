@@ -191,5 +191,18 @@ describe('AddEnvironmentCommand', () => {
             logSpy.should.have.been.calledWith(LogType.WARNING, 'Added a new environment, but some nodes could not be added');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
         });
+
+        it('should cancel environment creation if no nodes have been added', async () => {
+            showInputBoxStub.onFirstCall().resolves('myEnvironment');
+
+            executeCommandStub.withArgs(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT).resolves(undefined);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+            environments.length.should.equal(0);
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Add environment');
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
     });
 });
