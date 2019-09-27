@@ -34,11 +34,11 @@ describe('FabricEnvironment', () => {
     let sandbox: sinon.SinonSandbox;
 
     before(async () => {
-        await TestUtil.storeRuntimesConfig();
+        await TestUtil.storeAll();
     });
 
     after(async () => {
-        await TestUtil.restoreRuntimesConfig();
+        await TestUtil.restoreAll();
     });
 
     beforeEach(async () => {
@@ -203,6 +203,20 @@ describe('FabricEnvironment', () => {
             writeStub.should.have.been.calledTwice;
             writeStub.firstCall.should.have.been.calledWith(otherNodePath, updatedOtherNode);
             writeStub.secondCall.should.have.been.calledWith(nodePath, node);
+        });
+    });
+
+    describe('#deleteNode', () => {
+        it('should delete the node', async () => {
+            const node: FabricNode = FabricNode.newOrderer('order', 'orderer.example.com', 'http://localhost:17056', 'myWallet', 'myIdentity', 'osmsp', 'myCluster');
+
+            const deleteStub: sinon.SinonStub = sandbox.stub(fs, 'remove');
+
+            await environment.deleteNode(node);
+
+            const nodePath: string = path.join(environmentPath, 'nodes', `${node.name}.json`);
+
+            deleteStub.should.have.been.calledWith(nodePath);
         });
     });
 

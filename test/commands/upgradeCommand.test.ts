@@ -48,6 +48,10 @@ describe('UpgradeCommand', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
+    after(async () => {
+        await TestUtil.restoreAll();
+    });
+
     describe('UpgradeSmartContract', () => {
         let fabricRuntimeMock: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
 

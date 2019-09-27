@@ -26,11 +26,11 @@ describe('FabricGatewayRegistry', () => {
     const registry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
 
     before(async () => {
-        await TestUtil.storeGatewaysConfig();
+        await TestUtil.storeAll();
     });
 
     after(async () => {
-        await TestUtil.restoreGatewaysConfig();
+        await TestUtil.restoreAll();
     });
 
     beforeEach(async () => {

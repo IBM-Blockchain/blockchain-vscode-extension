@@ -29,15 +29,11 @@ describe('RepositoryRegistry', () => {
     const testFabricRegistryName: string = SettingConfigurations.EXTENSION_REPOSITORIES;
 
     before(async () => {
-        await TestUtil.storeGatewaysConfig();
-        await TestUtil.storeRuntimesConfig();
-        await TestUtil.storeRepositoriesConfig();
+        await TestUtil.storeAll();
     });
 
     after(async () => {
-        await TestUtil.restoreGatewaysConfig();
-        await TestUtil.restoreRuntimesConfig();
-        await TestUtil.restoreRepositoriesConfig();
+        await TestUtil.restoreAll();
     });
 
     let registry: RepositoryRegistry;

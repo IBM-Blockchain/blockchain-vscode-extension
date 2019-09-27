@@ -133,12 +133,8 @@ describe('FabricJavaDebugConfigurationProvider', () => {
 
             sendTelemetryEventStub = mySandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
-            mySandbox.stub(GlobalState, 'getExtensionContext').returns({
-                globalState: {
-                    get: mySandbox.stub().returns({
-                        generatorVersion: '0.0.36'
-                    })
-                }
+            mySandbox.stub(GlobalState, 'get').returns({
+                generatorVersion: '0.0.36'
             });
         });
 

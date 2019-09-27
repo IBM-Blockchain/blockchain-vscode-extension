@@ -54,13 +54,10 @@ describe('AddWalletIdentityCommand', () => {
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-        await TestUtil.storeGatewaysConfig();
-        await TestUtil.storeWalletsConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreGatewaysConfig();
-        await TestUtil.restoreWalletsConfig();
+        await TestUtil.restoreAll();
     });
 
     describe('addWalletIdentity', () => {

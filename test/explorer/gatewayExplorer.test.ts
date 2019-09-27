@@ -57,13 +57,10 @@ describe('gatewayExplorer', () => {
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-        await TestUtil.storeGatewaysConfig();
-        await TestUtil.storeRuntimesConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreGatewaysConfig();
-        await TestUtil.restoreRuntimesConfig();
+        await TestUtil.restoreAll();
     });
 
     beforeEach(async () => {

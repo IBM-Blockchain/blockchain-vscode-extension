@@ -26,6 +26,7 @@ import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
+import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
@@ -57,14 +58,11 @@ const should: Chai.Should = chai.should();
 describe('environmentExplorer', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     before(async () => {
-        await TestUtil.storeGatewaysConfig();
-        await TestUtil.storeRuntimesConfig();
         await TestUtil.setupTests(mySandBox);
     });
 
     after(async () => {
-        await TestUtil.restoreGatewaysConfig();
-        await TestUtil.restoreRuntimesConfig();
+        await TestUtil.restoreAll();
     });
 
     describe('getChildren', () => {
@@ -98,6 +96,10 @@ describe('environmentExplorer', () => {
                 await FabricEnvironmentRegistry.instance().clear();
                 await FabricEnvironmentRegistry.instance().add(registryEntryOne);
                 await FabricEnvironmentRegistry.instance().add(registryEntryTwo);
+
+                const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+                mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+                mockRuntime.isRunning.resolves(false);
 
                 const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();

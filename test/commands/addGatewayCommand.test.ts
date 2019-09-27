@@ -48,11 +48,10 @@ describe('AddGatewayCommand', () => {
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-        await TestUtil.storeGatewaysConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreGatewaysConfig();
+        await TestUtil.restoreAll();
     });
 
     beforeEach(() => {

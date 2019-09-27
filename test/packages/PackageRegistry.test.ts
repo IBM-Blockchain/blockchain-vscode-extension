@@ -42,11 +42,10 @@ describe('PackageRegistry', () => {
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-        await TestUtil.storeExtensionDirectoryConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreExtensionDirectoryConfig();
+        await TestUtil.restoreAll();
     });
 
     beforeEach(async () => {

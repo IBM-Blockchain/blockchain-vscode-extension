@@ -40,11 +40,10 @@ describe('DeleteGatewayCommand', () => {
     let showConfirmationWarningMessage: sinon.SinonStub;
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-        await TestUtil.storeGatewaysConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreGatewaysConfig();
+        await TestUtil.restoreAll();
     });
 
     describe('deleteGateway', () => {

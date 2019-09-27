@@ -1,5 +1,23 @@
 # IBM Blockchain Platform Extension Change Log
 
+## 1.0.11: September 26th 2019
+
+* Fixed refreshing environments [#1188](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1188)
+* User input boxes don’t close after focus has changed [#1372](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1372)
+* Fixed sample application selection [#1368](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1368)
+* Made logging messages more consistent [#1391](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1391)
+* Fixed cancelling during adding environment behaviour [#1390](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1390)
+* Prevent native dependencies being rebuilt if they can be required [#1389](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1389)
+* Show path of contracts in workspace when packaging [#1399](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1399)
+* Updated README to explain associating an identity and wallet when adding environment nodes [#1350](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1350)
+* Added a suggested gateway name when creating from an environment [#1383](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1383)
+* Fixed OpenSSL prerequisite check [#1406](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1406)
+* Updated Local Fabric runtime to use Fabric 1.4.3 Docker images [#1356](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1356)
+* Fixed runtime folder destination migration check [#1384](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1384)
+* Added deleting nodes from an environment [#1332](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1332)
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-59.jpg)
+
 ## 1.0.10: September 12th 2019
 
 * Prerequisites page [#967](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/967)

@@ -12,7 +12,7 @@
     ],
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
-    "version": "1.0.11",
+    "version": "1.0.12",
     "publisher": "IBMBlockchain",
     "icon": "resources/blockchain_marketplace.png",
     "galleryBanner": {
@@ -70,6 +70,7 @@
             "environmentExplorer.deleteEnvironmentEntry",
             "environmentExplorer.associateIdentityNodeEntry",
             "environmentExplorer.replaceAssociatedIdentityEntry",
+            "environmentExplorer.deleteNodeEntry",
             "environmentExplorer.connectEntry",
             "environmentExplorer.disconnectEntry",
             "environmentExplorer.installSmartContractEntry",
@@ -295,6 +296,11 @@
             {
                 "command": "environmentExplorer.replaceAssociatedIdentityEntry",
                 "title": "Replace Identity Associated with a node",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "environmentExplorer.deleteNodeEntry",
+                "title": "Delete Node",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -656,6 +662,18 @@
                 {
                     "command": "environmentExplorer.teardownFabricRuntime",
                     "when": "view == environmentExplorer && viewItem == blockchain-runtime-item"
+                },
+                {
+                    "command": "environmentExplorer.deleteNodeEntry",
+                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item"
+                },
+                {
+                    "command": "environmentExplorer.deleteNodeEntry",
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item"
+                },
+                {
+                    "command": "environmentExplorer.deleteNodeEntry",
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item"
                 },
                 {
                     "command": "environmentExplorer.installSmartContractEntry",
@@ -1320,7 +1338,7 @@
         "find-free-port": "^2.0.0",
         "fs-extra": "^7.0.1",
         "generator-fabric": "0.0.38",
-        "handlebars": "^4.1.2",
+        "handlebars": "^4.3.1",
         "home-dir": "1.0.0",
         "semver": "^6.3.0",
         "shelljs": "^0.8.3",

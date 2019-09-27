@@ -106,7 +106,8 @@ stages:
 
           - bash: |
               set -ev
-              node ./node_modules/vsce/out/vsce publish -p ${VSCETOKEN}
+              npm install vsce
+              node ./node_modules/vsce/out/vsce publish -p $(VSCETOKEN)
             displayName: Publish extension
             condition: succeeded()
 
@@ -123,8 +124,8 @@ stages:
               .azure/fix_github_https_repo.sh
 
               # Add the version number changes and push them to Git.
-              git config user.name "${GH_USER_NAME}"
-              git config user.email "${GH_USER_EMAIL}"
+              git config user.name "$(GH_USER_NAME)"
+              git config user.email "$(GH_USER_EMAIL)"
               git add .
               git commit -m "Automatic version bump to ${NEW_VERSION}"
               git push origin master

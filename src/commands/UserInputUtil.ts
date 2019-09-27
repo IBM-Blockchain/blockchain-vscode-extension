@@ -222,7 +222,7 @@ export class UserInputUtil {
         const workspaceFolderOptions: vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
 
         const workspaceQuickPickItems: Array<IBlockchainQuickPickItem<vscode.WorkspaceFolder>> = workspaceFolderOptions.map((workspaceFolderOption: vscode.WorkspaceFolder) => {
-            return { label: workspaceFolderOption.name, data: workspaceFolderOption, description: workspaceFolderOption.uri.fsPath};
+            return { label: workspaceFolderOption.name, data: workspaceFolderOption, description: workspaceFolderOption.uri.fsPath };
         });
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
@@ -997,10 +997,13 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
     }
 
-    public static async showFabricNodeQuickPick(prompt: string, environmentName: string, nodeTypefilter: FabricNodeType[], showAsociatedIdentity: boolean = false): Promise<IBlockchainQuickPickItem<FabricNode>> {
+    public static async showFabricNodeQuickPick(prompt: string, environmentName: string, nodeTypefilter: FabricNodeType[], showAsociatedIdentity: boolean = false, canPickMany: boolean = false): Promise<Array<IBlockchainQuickPickItem<FabricNode>> | IBlockchainQuickPickItem<FabricNode>> {
         const environment: FabricEnvironment = new FabricEnvironment(environmentName);
         let nodes: FabricNode[] = await environment.getNodes();
-        nodes = nodes.filter((node: FabricNode) => nodeTypefilter.indexOf(node.type) !== -1);
+
+        if (nodeTypefilter.length > 1) {
+            nodes = nodes.filter((node: FabricNode) => nodeTypefilter.indexOf(node.type) !== -1);
+        }
 
         const quickPickItems: IBlockchainQuickPickItem<FabricNode>[] = [];
         for (const _node of nodes) {
@@ -1026,12 +1029,16 @@ export class UserInputUtil {
 
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
-            canPickMany: false,
+            canPickMany: canPickMany,
             placeHolder: prompt
         };
 
         if (quickPickItems.length === 1) {
-            return quickPickItems[0];
+            if (canPickMany) {
+                return quickPickItems;
+            } else {
+                return quickPickItems[0];
+            }
         } else if (quickPickItems.length === 0) {
             throw new Error('No nodes found to choose from');
         }
