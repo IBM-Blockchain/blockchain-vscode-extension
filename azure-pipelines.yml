@@ -106,7 +106,7 @@ stages:
 
           - bash: |
               set -ev
-              npm install
+              npm install vsce
               node ./node_modules/vsce/out/vsce publish -p $(VSCETOKEN)
             displayName: Publish extension
             condition: succeeded()
@@ -127,7 +127,7 @@ stages:
               git config user.name "$(GH_USER_NAME)"
               git config user.email "$(GH_USER_EMAIL)"
               git add .
-              git commit -m "Automatic version bump to $(NEW_VERSION)"
+              git commit -m "Automatic version bump to ${NEW_VERSION}"
               git push origin master
             displayName: Version bump
             condition: succeeded()
