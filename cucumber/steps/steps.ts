@@ -16,11 +16,11 @@
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { BlockchainWalletExplorerProvider } from '../../src/explorer/walletExplorer';
-import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
-import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
-import { BlockchainPackageExplorerProvider } from '../../src/explorer/packageExplorer';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { BlockchainWalletExplorerProvider } from '../../extension/explorer/walletExplorer';
+import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
+import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
+import { BlockchainPackageExplorerProvider } from '../../extension/explorer/packageExplorer';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 // tslint:disable:no-unused-expression
 

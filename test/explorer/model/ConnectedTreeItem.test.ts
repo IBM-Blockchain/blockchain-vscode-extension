@@ -14,12 +14,12 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { ConnectedTreeItem } from '../../../src/explorer/model/ConnectedTreeItem';
-import { FabricGatewayRegistryEntry } from '../../../src/fabric/FabricGatewayRegistryEntry';
+import { ConnectedTreeItem } from '../../../extension/explorer/model/ConnectedTreeItem';
+import { FabricGatewayRegistryEntry } from '../../../extension/fabric/FabricGatewayRegistryEntry';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { ExtensionUtil } from '../../../src/util/ExtensionUtil';
+import { ExtensionUtil } from '../../../extension/util/ExtensionUtil';
 
 chai.should();
 const should: Chai.Should = chai.should();

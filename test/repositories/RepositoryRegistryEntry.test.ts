@@ -13,10 +13,10 @@
 */
 
 import * as chai from 'chai';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
-import { RepositoryRegistry } from '../../src/repositories/RepositoryRegistry';
-import { RepositoryRegistryEntry } from '../../src/repositories/RepositoryRegistryEntry';
+import { RepositoryRegistry } from '../../extension/repositories/RepositoryRegistry';
+import { RepositoryRegistryEntry } from '../../extension/repositories/RepositoryRegistryEntry';
 
 chai.should();
 

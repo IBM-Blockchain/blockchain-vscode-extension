@@ -17,9 +17,9 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as vscode from 'vscode';
 import { TestUtil } from '../TestUtil';
-import { GlobalState, ExtensionData, DEFAULT_EXTENSION_DATA, EXTENSION_DATA_KEY } from '../../src/util/GlobalState';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../src/logging/OutputAdapter';
+import { GlobalState, ExtensionData, DEFAULT_EXTENSION_DATA, EXTENSION_DATA_KEY } from '../../extension/util/GlobalState';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../../extension/logging/OutputAdapter';
 
 chai.use(sinonChai);
 

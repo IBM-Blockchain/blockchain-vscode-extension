@@ -26,6 +26,10 @@ export class TutorialGalleryView extends View {
         super(context, 'tutorialGallery', 'Tutorial Gallery');
     }
 
+    loadComponent(_panel: vscode.WebviewPanel): void {
+        return;
+    }
+
     async getTutorialGalleryPage(options: any): Promise<any> {
         const templatePath: string = path.join(__dirname, '..', '..', '..', 'templates', 'TutorialGallery.ejs');
         return await new Promise((resolve: any, reject: any): any => {

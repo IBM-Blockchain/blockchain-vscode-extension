@@ -14,13 +14,13 @@
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
-import { FabricEnvironment } from '../../src/fabric/FabricEnvironment';
-import { FabricNode } from '../../src/fabric/FabricNode';
+import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
+import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
+import { FabricNode } from '../../extension/fabric/FabricNode';
 
 chai.should();
 

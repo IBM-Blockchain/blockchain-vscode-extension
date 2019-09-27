@@ -15,7 +15,7 @@
 import * as sinon from 'sinon';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { FabricNode } from '../../src/fabric/FabricNode';
+import { FabricNode } from '../../extension/fabric/FabricNode';
 
 chai.use(chaiAsPromised);
 

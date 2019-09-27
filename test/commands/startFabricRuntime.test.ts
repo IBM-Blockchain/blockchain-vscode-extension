@@ -13,19 +13,19 @@
 */
 
 import * as vscode from 'vscode';
-import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
-import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
-import { FabricRuntime } from '../../src/fabric/FabricRuntime';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
-import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
+import { FabricGatewayRegistry } from '../../extension/fabric/FabricGatewayRegistry';
+import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
+import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
+import { RuntimeTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { TestUtil } from '../TestUtil';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { LogType } from '../../src/logging/OutputAdapter';
+import { LogType } from '../../extension/logging/OutputAdapter';
 
 chai.should();
 

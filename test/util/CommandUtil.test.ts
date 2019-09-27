@@ -20,11 +20,11 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { CommandUtil } from '../../src/util/CommandUtil';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
-import { OutputAdapter, LogType } from '../../src/logging/OutputAdapter';
-import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
+import { CommandUtil } from '../../extension/util/CommandUtil';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { OutputAdapter, LogType } from '../../extension/logging/OutputAdapter';
+import { VSCodeBlockchainDockerOutputAdapter } from '../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
 
 chai.should();
 chai.use(sinonChai);

@@ -16,30 +16,31 @@ import * as os from 'os';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import * as fs from 'fs-extra';
 import * as chaiAsPromised from 'chai-as-promised';
 import { dependencies, version as currentExtensionVersion } from '../../package.json';
 import { SettingConfigurations } from '../../SettingConfigurations';
-import { GlobalState } from '../../src/util/GlobalState';
+import { GlobalState } from '../../extension/util/GlobalState';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { TutorialGalleryView } from '../../src/webview/TutorialGalleryView';
-import { HomeView } from '../../src/webview/HomeView';
-import { SampleView } from '../../src/webview/SampleView';
-import { TutorialView } from '../../src/webview/TutorialView';
-import { Reporter } from '../../src/util/Reporter';
-import { PreReqView } from '../../src/webview/PreReqView';
-import { DependencyManager } from '../../src/dependencies/DependencyManager';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { TemporaryCommandRegistry } from '../../src/dependencies/TemporaryCommandRegistry';
-import { LogType } from '../../src/logging/OutputAdapter';
-import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
-import { FabricGatewayHelper } from '../../src/fabric/FabricGatewayHelper';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
-import { FabricRuntime } from '../../src/fabric/FabricRuntime';
-import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
-import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
-import { FabricDebugConfigurationProvider } from '../../src/debug/FabricDebugConfigurationProvider';
+import { TutorialGalleryView } from '../../extension/webview/TutorialGalleryView';
+import { HomeView } from '../../extension/webview/HomeView';
+import { SampleView } from '../../extension/webview/SampleView';
+import { TutorialView } from '../../extension/webview/TutorialView';
+import { Reporter } from '../../extension/util/Reporter';
+import { PreReqView } from '../../extension/webview/PreReqView';
+import { DependencyManager } from '../../extension/dependencies/DependencyManager';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { TemporaryCommandRegistry } from '../../extension/dependencies/TemporaryCommandRegistry';
+import { LogType } from '../../extension/logging/OutputAdapter';
+import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
+import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
+import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
+import { ReactView } from '../../extension/webview/ReactView';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -480,6 +481,7 @@ describe('ExtensionUtil Tests', () => {
                 `onCommand:${ExtensionCommands.OPEN_HOME_PAGE}`,
                 `onCommand:${ExtensionCommands.OPEN_PRE_REQ_PAGE}`,
                 `onCommand:${ExtensionCommands.OPEN_TUTORIAL_GALLERY}`,
+                `onCommand:${ExtensionCommands.OPEN_REACT_PAGE}`,
                 `onDebug`
             ]);
         });
@@ -524,6 +526,21 @@ describe('ExtensionUtil Tests', () => {
 
             registerOpenPreReqsCommandStub.should.have.been.calledOnce;
             tutorialGalleryViewStub.should.have.been.calledOnce;
+        });
+
+        it('should register and show React Page', async () => {
+            const reactViewStub: sinon.SinonStub = mySandBox.stub(ReactView.prototype, 'openView');
+            reactViewStub.resolves();
+
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const registerOpenPreReqsCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerOpenPreReqsCommand').resolves(ctx);
+
+            await ExtensionUtil.registerCommands(ctx);
+
+            await vscode.commands.executeCommand(ExtensionCommands.OPEN_REACT_PAGE);
+
+            registerOpenPreReqsCommandStub.should.have.been.calledOnce;
+            reactViewStub.should.have.been.calledOnce;
         });
 
         it('should register and show tutorial page', async () => {
@@ -581,7 +598,7 @@ describe('ExtensionUtil Tests', () => {
 
         it('should call instantiate if not instantiated', async () => {
             await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
-
+            mySandBox.stub(vscode.commands, 'registerCommand');
             const executeCommand: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
@@ -597,12 +614,22 @@ describe('ExtensionUtil Tests', () => {
                     }
                 }
             };
-            mySandBox.stub(vscode.debug, 'onDidChangeActiveDebugSession').yields(session as vscode.DebugSession);
+
+            const promises: any[] = [];
+            const onDidChangeActiveDebugSessionStub: sinon.SinonStub = mySandBox.stub(vscode.debug, 'onDidChangeActiveDebugSession');
+
+            promises.push(new Promise((resolve: any): void => {
+                onDidChangeActiveDebugSessionStub.callsFake(async (callback: any) => {
+                    await callback(session as vscode.DebugSession);
+                    resolve();
+                });
+
+            }));
 
             await ExtensionUtil.registerCommands(ctx);
+            await Promise.all(promises);
 
             registerOpenPreReqsCommandStub.should.have.been.calledOnce;
-
             executeCommand.should.have.been.calledThrice;
             executeCommand.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
             executeCommand.should.have.been.calledWithExactly(ExtensionCommands.REFRESH_GATEWAYS);
@@ -622,13 +649,24 @@ describe('ExtensionUtil Tests', () => {
                     }
                 }
             };
-            mySandBox.stub(vscode.debug, 'onDidChangeActiveDebugSession').yields(session as vscode.DebugSession);
             const executeCommand: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
             const registerOpenPreReqsCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerOpenPreReqsCommand').resolves(ctx);
 
+            const promises: any[] = [];
+            const onDidChangeActiveDebugSessionStub: sinon.SinonStub = mySandBox.stub(vscode.debug, 'onDidChangeActiveDebugSession');
+
+            promises.push(new Promise((resolve: any): void => {
+                onDidChangeActiveDebugSessionStub.callsFake(async (callback: any) => {
+                    await callback(session as vscode.DebugSession);
+                    resolve();
+                });
+
+            }));
+
             await ExtensionUtil.registerCommands(ctx);
+            await Promise.all(promises);
 
             registerOpenPreReqsCommandStub.should.have.been.calledOnce;
 

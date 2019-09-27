@@ -12,11 +12,11 @@
  * limitations under the License.
 */
 
-import { ConsoleOutputAdapter } from '../../src/logging/ConsoleOutputAdapter';
+import { ConsoleOutputAdapter } from '../../extension/logging/ConsoleOutputAdapter';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { LogType } from '../../src/logging/OutputAdapter';
+import { LogType } from '../../extension/logging/OutputAdapter';
 
 chai.should();
 // tslint:disable no-unused-expression

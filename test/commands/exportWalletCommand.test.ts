@@ -17,15 +17,15 @@ import * as sinon from 'sinon';
 import { TestUtil } from '../TestUtil';
 import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { WalletTreeItem } from '../../src/explorer/wallets/WalletTreeItem';
-import { BlockchainWalletExplorerProvider } from '../../src/explorer/walletExplorer';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { WalletTreeItem } from '../../extension/explorer/wallets/WalletTreeItem';
+import { BlockchainWalletExplorerProvider } from '../../extension/explorer/walletExplorer';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { Reporter } from '../../src/util/Reporter';
-import { LogType } from '../../src/logging/OutputAdapter';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { Reporter } from '../../extension/util/Reporter';
+import { LogType } from '../../extension/logging/OutputAdapter';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 // tslint:disable no-unused-expression
 describe('exportWalletCommand', () => {

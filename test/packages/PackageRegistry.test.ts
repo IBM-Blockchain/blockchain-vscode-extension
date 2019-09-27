@@ -19,10 +19,10 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { TestUtil } from '../TestUtil';
 import * as fs from 'fs-extra';
-import { PackageRegistry } from '../../src/packages/PackageRegistry';
-import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../src/logging/OutputAdapter';
+import { PackageRegistry } from '../../extension/packages/PackageRegistry';
+import { PackageRegistryEntry } from '../../extension/packages/PackageRegistryEntry';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../../extension/logging/OutputAdapter';
 import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.use(sinonChai);

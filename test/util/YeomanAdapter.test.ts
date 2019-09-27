@@ -15,8 +15,8 @@
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { YeomanAdapter } from '../../src/util/YeomanAdapter';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { YeomanAdapter } from '../../extension/util/YeomanAdapter';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 chai.should();
 chai.use(sinonChai);
 

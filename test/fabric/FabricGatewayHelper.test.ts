@@ -18,11 +18,11 @@ import * as sinon from 'sinon';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
-import { FabricGatewayHelper } from '../../src/fabric/FabricGatewayHelper';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import * as vscode from 'vscode';
 import { SettingConfigurations } from '../../SettingConfigurations';
-import { FabricNode } from '../../src/fabric/FabricNode';
+import { FabricNode } from '../../extension/fabric/FabricNode';
 
 chai.use(chaiAsPromised);
 const should: Chai.Should = chai.should();

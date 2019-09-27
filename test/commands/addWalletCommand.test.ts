@@ -20,15 +20,15 @@ import * as path from 'path';
 import * as tmp from 'tmp';
 import * as fs from 'fs-extra';
 import { TestUtil } from '../TestUtil';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../src/logging/OutputAdapter';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../../extension/logging/OutputAdapter';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
-import { FabricWallet } from '../../src/fabric/FabricWallet';
+import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
+import { FabricWallet } from '../../extension/fabric/FabricWallet';
 import { SettingConfigurations } from '../../SettingConfigurations';
-import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
-import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from '../../extension/fabric/FabricWalletRegistry';
+import { FabricWalletRegistryEntry } from '../../extension/fabric/FabricWalletRegistryEntry';
 
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();

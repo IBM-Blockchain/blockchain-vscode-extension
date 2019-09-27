@@ -19,10 +19,10 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
-import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
-import { IFabricClientConnection } from '../../src/fabric/IFabricClientConnection';
-import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
-import { MetadataUtil } from '../../src/util/MetadataUtil';
+import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { IFabricClientConnection } from '../../extension/fabric/IFabricClientConnection';
+import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
+import { MetadataUtil } from '../../extension/util/MetadataUtil';
 
 // tslint:disable:no-unused-expression
 

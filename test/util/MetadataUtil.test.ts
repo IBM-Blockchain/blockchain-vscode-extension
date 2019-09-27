@@ -15,17 +15,17 @@
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
-import { MetadataUtil } from '../../src/util/MetadataUtil';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../src/logging/OutputAdapter';
-import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
-import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
-import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { FabricClientConnection } from '../../extension/fabric/FabricClientConnection';
+import { MetadataUtil } from '../../extension/util/MetadataUtil';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../../extension/logging/OutputAdapter';
+import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
+import { FabricGatewayRegistryEntry } from '../../extension/fabric/FabricGatewayRegistryEntry';
+import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 
 import * as vscode from 'vscode';
-import { FabricRuntime } from '../../src/fabric/FabricRuntime';
-import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
+import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
+import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);

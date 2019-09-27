@@ -13,18 +13,18 @@
 */
 
 import * as vscode from 'vscode';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { Reporter } from '../../src/util/Reporter';
-import { NodeTreeItem } from '../../src/explorer/runtimeOps/connectedTree/NodeTreeItem';
-import { FabricNode, FabricNodeType } from '../../src/fabric/FabricNode';
-import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
-import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
-import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
+import { Reporter } from '../../extension/util/Reporter';
+import { NodeTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/NodeTreeItem';
+import { FabricNode, FabricNodeType } from '../../extension/fabric/FabricNode';
+import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricEnvironmentRegistryEntry } from '../../extension/fabric/FabricEnvironmentRegistryEntry';
 chai.should();
 
 class TestNodeTreeItem extends NodeTreeItem {

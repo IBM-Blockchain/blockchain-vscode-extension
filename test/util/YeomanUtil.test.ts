@@ -16,7 +16,7 @@ import * as yeoman from 'yeoman-environment';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { YeomanUtil } from '../../src/util/YeomanUtil';
+import { YeomanUtil } from '../../extension/util/YeomanUtil';
 chai.should();
 chai.use(sinonChai);
 

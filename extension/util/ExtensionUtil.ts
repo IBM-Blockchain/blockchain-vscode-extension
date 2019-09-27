@@ -105,6 +105,7 @@ import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 import { importNodesToEnvironment } from '../commands/importNodesToEnvironmentCommand';
 import { deleteNode } from '../commands/deleteNodeCommand';
+import { ReactView } from '../webview/ReactView';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -315,12 +316,17 @@ export class ExtensionUtil {
 
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TUTORIAL_GALLERY, async () => {
             const tutorialGalleryView: TutorialGalleryView = new TutorialGalleryView(context);
-            await tutorialGalleryView.openView(false);
+            await tutorialGalleryView.openView(true);
         }));
 
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TUTORIAL_PAGE, async (repoName: string, tutorialName: string) => {
             const tutorialView: TutorialView = new TutorialView(repoName, tutorialName);
             await tutorialView.openView();
+        }));
+
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_REACT_PAGE, async () => {
+            const reactView: ReactView = new ReactView(context);
+            await reactView.openView(true);
         }));
 
         context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async (e: any) => {

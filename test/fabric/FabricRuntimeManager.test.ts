@@ -12,33 +12,33 @@
  * limitations under the License.
 */
 
-import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
-import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
-import { FabricRuntime } from '../../src/fabric/FabricRuntime';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { FabricGatewayRegistry } from '../../extension/fabric/FabricGatewayRegistry';
+import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
-import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
-import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
+import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
+import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { FabricWallet } from '../../src/fabric/FabricWallet';
-import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
+import { FabricWallet } from '../../extension/fabric/FabricWallet';
+import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
 import * as vscode from 'vscode';
-import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
-import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
-import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
-import { FabricGateway } from '../../src/fabric/FabricGateway';
-import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
-import { FabricWalletGeneratorFactory } from '../../src/fabric/FabricWalletGeneratorFactory';
-import { CommandUtil } from '../../src/util/CommandUtil';
+import { FabricGatewayRegistryEntry } from '../../extension/fabric/FabricGatewayRegistryEntry';
+import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
+import { FabricGateway } from '../../extension/fabric/FabricGateway';
+import { FabricWalletRegistryEntry } from '../../extension/fabric/FabricWalletRegistryEntry';
+import { FabricWalletGeneratorFactory } from '../../extension/fabric/FabricWalletGeneratorFactory';
+import { CommandUtil } from '../../extension/util/CommandUtil';
 import { version } from '../../package.json';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { SettingConfigurations } from '../../SettingConfigurations';
-import { FabricEnvironmentManager, ConnectedState } from '../../src/fabric/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentRegistryEntry } from '../../extension/fabric/FabricEnvironmentRegistryEntry';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 
 chai.should();
 

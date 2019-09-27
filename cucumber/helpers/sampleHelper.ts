@@ -18,10 +18,10 @@ import * as path from 'path';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { UserInputUtilHelper } from './userInputUtilHelper';
 import { SmartContractHelper } from './smartContractHelper';
-import { SampleView } from '../../src/webview/SampleView';
+import { SampleView } from '../../extension/webview/SampleView';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);

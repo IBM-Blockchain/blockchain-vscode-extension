@@ -21,11 +21,11 @@ import * as sinonChai from 'sinon-chai';
 import * as path from 'path';
 import * as ejs from 'ejs';
 import * as fs from 'fs-extra';
-import { TutorialGalleryView } from '../../src/webview/TutorialGalleryView';
-import { View } from '../../src/webview/View';
+import { TutorialGalleryView } from '../../extension/webview/TutorialGalleryView';
+import { View } from '../../extension/webview/View';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { Reporter } from '../../src/util/Reporter';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { Reporter } from '../../extension/util/Reporter';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -111,7 +111,8 @@ describe('TutorialGalleryView', () => {
                 retainContextWhenHidden: true,
                 enableCommandUris: true,
                 localResourceRoots: [
-                    vscode.Uri.file(path.join(context.extensionPath, 'resources'))
+                    vscode.Uri.file(path.join(context.extensionPath, 'resources')),
+                    vscode.Uri.file(path.join(context.extensionPath, 'build'))
                 ]
             }
         );

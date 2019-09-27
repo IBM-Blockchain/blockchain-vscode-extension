@@ -15,8 +15,8 @@
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
-import { Reporter } from '../../src/util/Reporter';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { Reporter } from '../../extension/util/Reporter';
 
 chai.should();
 chai.use(sinonChai);

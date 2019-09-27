@@ -12,14 +12,14 @@
  * limitations under the License.
 */
 
-import { IFabricCertificateAuthority } from '../../src/fabric/IFabricCertificateAuthority';
+import { IFabricCertificateAuthority } from '../../extension/fabric/IFabricCertificateAuthority';
 import * as FabricCAServices from 'fabric-ca-client';
 import * as sinon from 'sinon';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../src/logging/OutputAdapter';
-import { FabricCertificateAuthorityFactory } from '../../src/fabric/FabricCertificateAuthorityFactory';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../../extension/logging/OutputAdapter';
+import { FabricCertificateAuthorityFactory } from '../../extension/fabric/FabricCertificateAuthorityFactory';
 
 chai.use(chaiAsPromised);
 

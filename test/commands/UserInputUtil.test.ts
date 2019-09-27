@@ -15,35 +15,35 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { TestUtil } from '../TestUtil';
-import { UserInputUtil, IBlockchainQuickPickItem, LanguageQuickPickItem, LanguageType } from '../../src/commands/UserInputUtil';
-import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
-import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
-import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
+import { UserInputUtil, IBlockchainQuickPickItem, LanguageQuickPickItem, LanguageType } from '../../extension/commands/UserInputUtil';
+import { FabricGatewayRegistryEntry } from '../../extension/fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistry } from '../../extension/fabric/FabricGatewayRegistry';
+import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
-import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
-import { PackageRegistry } from '../../src/packages/PackageRegistry';
+import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
+import { PackageRegistryEntry } from '../../extension/packages/PackageRegistryEntry';
+import { PackageRegistry } from '../../extension/packages/PackageRegistry';
 import * as fs from 'fs-extra';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../src/logging/OutputAdapter';
-import { FabricCertificate } from '../../src/fabric/FabricCertificate';
-import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
-import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
-import { FabricWallet } from '../../src/fabric/FabricWallet';
-import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../../extension/logging/OutputAdapter';
+import { FabricCertificate } from '../../extension/fabric/FabricCertificate';
+import { FabricWalletRegistryEntry } from '../../extension/fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from '../../extension/fabric/FabricWalletRegistry';
+import { FabricWallet } from '../../extension/fabric/FabricWallet';
+import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
-import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
-import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
-import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
-import { FabricNode, FabricNodeType } from '../../src/fabric/FabricNode';
+import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
+import { FabricClientConnection } from '../../extension/fabric/FabricClientConnection';
+import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
+import { FabricNode, FabricNodeType } from '../../extension/fabric/FabricNode';
 import { SettingConfigurations } from '../../SettingConfigurations';
-import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
-import { FabricEnvironment } from '../../src/fabric/FabricEnvironment';
-import { FabricEnvironmentRegistry } from '../../src/fabric/FabricEnvironmentRegistry';
+import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentRegistryEntry } from '../../extension/fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
+import { FabricEnvironmentRegistry } from '../../extension/fabric/FabricEnvironmentRegistry';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -1273,12 +1273,13 @@ describe('UserInputUtil', () => {
     });
 
     describe('delayWorkaround', () => {
+        let clock: sinon.SinonFakeTimers;
         beforeEach(() => {
-            this.clock = sinon.useFakeTimers({ toFake: ['setTimeout'] });
+            clock = sinon.useFakeTimers({ toFake: ['setTimeout'] });
         });
 
         afterEach(() => {
-            this.clock.restore();
+            clock.restore();
         });
 
         it('should delay for the specified time', async () => {
@@ -1286,7 +1287,7 @@ describe('UserInputUtil', () => {
             const p: Promise<any> = UserInputUtil.delayWorkaround(2000).then(stub);
             sinon.assert.notCalled(stub);
 
-            this.clock.tick(2300);
+            clock.tick(2300);
             await p.should.be.eventually.fulfilled;
             sinon.assert.calledOnce(stub);
         });

@@ -56,7 +56,8 @@ export abstract class View {
                     retainContextWhenHidden: keepContext,
                     enableCommandUris: true,
                     localResourceRoots: [
-                        vscode.Uri.file(path.join(this.context.extensionPath, 'resources'))
+                        vscode.Uri.file(path.join(this.context.extensionPath, 'resources')),
+                        vscode.Uri.file(path.join(this.context.extensionPath, 'build'))
                     ]
                 },
             );
@@ -74,11 +75,13 @@ export abstract class View {
 
             // Set the webview's html
             panel.webview.html = await this.getHTMLString();
+            this.loadComponent(panel);
 
             if (!keepContext) {
                 panel.onDidChangeViewState(async () => {
                     // Whenever the View becomes active, rebuild the UI
                     panel.webview.html = await this.getHTMLString();
+                    this.loadComponent(panel);
                 });
             }
 
@@ -161,4 +164,6 @@ export abstract class View {
     protected async abstract openPanelInner(panel: vscode.WebviewPanel): Promise<void>;
 
     protected async abstract getHTMLString(): Promise<string>;
+
+    protected abstract loadComponent(panel: vscode.WebviewPanel): void;
 }

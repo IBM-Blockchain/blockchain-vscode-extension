@@ -17,7 +17,7 @@ import * as sinon from 'sinon';
 import { TestUtil } from '../TestUtil';
 import * as vscode from 'vscode';
 import { SettingConfigurations } from '../../SettingConfigurations';
-import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import * as fs from 'fs-extra';
 
 chai.use(sinonChai);

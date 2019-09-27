@@ -1,12 +1,15 @@
 {
   "enabled": true,
-  "relativeSourcePath": "../src",
+  "relativeSourcePath": "../extension",
   "relativeCoverageDir": "../../coverage",
   "ignorePatterns": [
       "**/node_modules/**",
       "**/test/**",
-      "**/out/**",
-      "templates/**"
+      "**/build/**",
+      "templates/**",
+      "src/**",
+      "**/ReactView.ts",
+      "**/ReactView.js"
 
   ],
   "includePid": false,

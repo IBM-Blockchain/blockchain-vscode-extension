@@ -12,27 +12,27 @@
  * limitations under the License.
 */
 import * as vscode from 'vscode';
-import * as myExtension from '../src/extension';
+import * as myExtension from '../extension/extension';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as path from 'path';
 import { version as currentExtensionVersion } from '../package.json';
-import { ExtensionUtil } from '../src/util/ExtensionUtil';
-import { DependencyManager } from '../src/dependencies/DependencyManager';
-import { VSCodeBlockchainOutputAdapter } from '../src/logging/VSCodeBlockchainOutputAdapter';
-import { TemporaryCommandRegistry } from '../src/dependencies/TemporaryCommandRegistry';
+import { ExtensionUtil } from '../extension/util/ExtensionUtil';
+import { DependencyManager } from '../extension/dependencies/DependencyManager';
+import { VSCodeBlockchainOutputAdapter } from '../extension/logging/VSCodeBlockchainOutputAdapter';
+import { TemporaryCommandRegistry } from '../extension/dependencies/TemporaryCommandRegistry';
 import { TestUtil } from './TestUtil';
-import { Reporter } from '../src/util/Reporter';
+import { Reporter } from '../extension/util/Reporter';
 import { ExtensionCommands } from '../ExtensionCommands';
-import { LogType } from '../src/logging/OutputAdapter';
-import { FabricRuntimeUtil } from '../src/fabric/FabricRuntimeUtil';
+import { LogType } from '../extension/logging/OutputAdapter';
+import { FabricRuntimeUtil } from '../extension/fabric/FabricRuntimeUtil';
 import { SettingConfigurations } from '../SettingConfigurations';
-import { UserInputUtil } from '../src/commands/UserInputUtil';
+import { UserInputUtil } from '../extension/commands/UserInputUtil';
 import { dependencies } from '../package.json';
-import { GlobalState, DEFAULT_EXTENSION_DATA, ExtensionData } from '../src/util/GlobalState';
-import { BlockchainGatewayExplorerProvider } from '../src/explorer/gatewayExplorer';
+import { GlobalState, DEFAULT_EXTENSION_DATA, ExtensionData } from '../extension/util/GlobalState';
+import { BlockchainGatewayExplorerProvider } from '../extension/explorer/gatewayExplorer';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);

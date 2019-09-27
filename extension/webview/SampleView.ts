@@ -42,6 +42,10 @@ export class SampleView extends View {
         this.sampleName = sampleName;
     }
 
+    loadComponent(_panel: vscode.WebviewPanel): void {
+        return;
+    }
+
     async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
 
         Reporter.instance().sendTelemetryEvent('openedView', {openedView: panel.title}); // Report that a user has opened a new panel

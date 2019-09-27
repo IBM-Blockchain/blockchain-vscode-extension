@@ -54,6 +54,10 @@ export class HomeView extends View {
         });
     }
 
+    loadComponent(_panel: vscode.WebviewPanel): void {
+        return;
+    }
+
     async getHTMLString(): Promise<string> {
         const packageJson: any = await ExtensionUtil.getPackageJSON();
         const extensionVersion: string = packageJson.version;

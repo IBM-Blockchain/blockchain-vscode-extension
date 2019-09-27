@@ -18,11 +18,11 @@ import * as sinon from 'sinon';
 import * as path from 'path';
 import { UserInputUtilHelper } from './userInputUtilHelper';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { CommandUtil } from '../../src/util/CommandUtil';
+import { CommandUtil } from '../../extension/util/CommandUtil';
 import { SmartContractHelper, LanguageType } from './smartContractHelper';
-import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
-import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
-import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { FabricGatewayRegistryEntry } from '../../extension/fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistry } from '../../extension/fabric/FabricGatewayRegistry';
+import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 
 export class GeneratedTestsHelper {
     mySandBox: sinon.SinonSandbox;

@@ -17,12 +17,12 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as fs from 'fs-extra';
-import { FabricWallet } from '../../src/fabric/FabricWallet';
-import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
-import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
-import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
-import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { FabricWallet } from '../../extension/fabric/FabricWallet';
+import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import { FabricWalletRegistryEntry } from '../../extension/fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from '../../extension/fabric/FabricWalletRegistry';
+import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 
 chai.use(sinonChai);
 // tslint:disable no-unused-expression

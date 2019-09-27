@@ -18,8 +18,8 @@ import * as path from 'path';
 import * as sinon from 'sinon';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
-import { FabricCertificate } from '../../src/fabric/FabricCertificate';
-import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { FabricCertificate } from '../../extension/fabric/FabricCertificate';
+import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 
 // tslint:disable no-var-requires
 const {Certificate} = require('@fidm/x509');

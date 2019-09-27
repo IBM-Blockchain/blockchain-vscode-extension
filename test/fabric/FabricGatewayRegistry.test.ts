@@ -12,11 +12,11 @@
  * limitations under the License.
 */
 
-import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
+import { FabricGatewayRegistry } from '../../extension/fabric/FabricGatewayRegistry';
 
 import * as chai from 'chai';
-import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { FabricGatewayRegistryEntry } from '../../extension/fabric/FabricGatewayRegistryEntry';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 
 chai.should();

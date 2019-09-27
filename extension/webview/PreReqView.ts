@@ -149,6 +149,10 @@ export class PreReqView extends View {
         });
     }
 
+    loadComponent(_panel: vscode.WebviewPanel): void {
+        return;
+    }
+
     async getHTMLString(dependencies?: any, isComplete?: boolean): Promise<any> {
         const packageJson: any = await ExtensionUtil.getPackageJSON();
         const extensionPath: string = ExtensionUtil.getExtensionPath();

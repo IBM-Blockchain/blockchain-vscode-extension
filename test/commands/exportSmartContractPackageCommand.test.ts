@@ -15,23 +15,23 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { BlockchainPackageExplorerProvider } from '../../src/explorer/packageExplorer';
+import { BlockchainPackageExplorerProvider } from '../../extension/explorer/packageExplorer';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { PackageRegistry } from '../../src/packages/PackageRegistry';
-import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
+import { PackageRegistry } from '../../extension/packages/PackageRegistry';
+import { PackageRegistryEntry } from '../../extension/packages/PackageRegistryEntry';
 import { TestUtil } from '../TestUtil';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { PackageTreeItem } from '../../src/explorer/model/PackageTreeItem';
-import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../src/logging/OutputAdapter';
+import { PackageTreeItem } from '../../extension/explorer/model/PackageTreeItem';
+import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { Reporter } from '../../src/util/Reporter';
+import { Reporter } from '../../extension/util/Reporter';
 import { SettingConfigurations } from '../../SettingConfigurations';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);

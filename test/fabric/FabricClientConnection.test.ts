@@ -12,8 +12,8 @@
  * limitations under the License.
 */
 
-import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
-import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
+import { FabricClientConnection } from '../../extension/fabric/FabricClientConnection';
+import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
 import * as fabricClient from 'fabric-client';
 import * as path from 'path';
 
@@ -22,11 +22,11 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { Gateway } from 'fabric-network';
-import { FabricWallet } from '../../src/fabric/FabricWallet';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../src/logging/OutputAdapter';
-import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { FabricWallet } from '../../extension/fabric/FabricWallet';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../../extension/logging/OutputAdapter';
+import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
