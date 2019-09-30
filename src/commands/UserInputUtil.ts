@@ -190,7 +190,8 @@ export class UserInputUtil {
         allGateways.push(...gateways);
 
         const gatewaysQuickPickItems: Array<IBlockchainQuickPickItem<FabricGatewayRegistryEntry>> = allGateways.map((gateway: FabricGatewayRegistryEntry) => {
-            return { label: gateway.name, data: gateway };
+            const gatewayDispalyName: string = (gateway.name === FabricRuntimeUtil.LOCAL_FABRIC) ? FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME : gateway.name;
+            return { label: gatewayDispalyName, data: gateway };
         });
 
         return vscode.window.showQuickPick(gatewaysQuickPickItems, quickPickOptions);

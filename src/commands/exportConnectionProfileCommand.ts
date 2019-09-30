@@ -25,13 +25,18 @@ import { LogType } from '../logging/OutputAdapter';
 import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
+import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 
-export async function exportConnectionProfile(gatewayTreeItem: GatewayTreeItem): Promise<void> {
+export async function exportConnectionProfile(gatewayTreeItem: GatewayTreeItem, isConnected?: boolean): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'exportConnectionProfileCommand');
 
     let gatewayEntry: FabricGatewayRegistryEntry;
-    if (!gatewayTreeItem) {
+    if (isConnected) {
+        const connectedGateway: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
+        gatewayEntry = connectedGateway;
+
+    } else if (!gatewayTreeItem) {
         const chosenGateway: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway to export a connection profile from', false, true, true) as IBlockchainQuickPickItem<FabricGatewayRegistryEntry>;
         if (!chosenGateway) {
             return;
