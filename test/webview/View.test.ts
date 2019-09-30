@@ -19,8 +19,8 @@ import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
-import { View } from '../../src/webview/View';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { View } from '../../extension/webview/View';
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
@@ -31,6 +31,10 @@ class TestView extends View {
     }
 
     protected async openPanelInner(): Promise<void> {
+        return;
+    }
+
+    protected loadComponent(): void {
         return;
     }
 }
@@ -105,7 +109,8 @@ describe('View', () => {
                 retainContextWhenHidden: false,
                 enableCommandUris: true,
                 localResourceRoots: [
-                    vscode.Uri.file(path.join(context.extensionPath, 'resources'))
+                    vscode.Uri.file(path.join(context.extensionPath, 'resources')),
+                    vscode.Uri.file(path.join(context.extensionPath, 'build'))
                 ]
             }
         );

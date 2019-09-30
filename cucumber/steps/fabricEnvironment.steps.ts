@@ -17,12 +17,12 @@ import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as vscode from 'vscode';
-import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
-import { FabricRuntime } from '../../src/fabric/FabricRuntime';
+import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { NodeTreeItem } from '../../src/explorer/runtimeOps/connectedTree/NodeTreeItem';
-import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { NodeTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/NodeTreeItem';
+import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 // tslint:disable:no-unused-expression
 

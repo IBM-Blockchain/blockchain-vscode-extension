@@ -18,17 +18,17 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { TestUtil } from '../TestUtil';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
-import { FabricGatewayHelper } from '../../src/fabric/FabricGatewayHelper';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../src/logging/OutputAdapter';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
-import { Reporter } from '../../src/util/Reporter';
+import { FabricGatewayRegistry } from '../../extension/fabric/FabricGatewayRegistry';
+import { Reporter } from '../../extension/util/Reporter';
 import { SettingConfigurations } from '../../SettingConfigurations';
-import { FabricNode } from '../../src/fabric/FabricNode';
-import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
-import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
+import { FabricNode } from '../../extension/fabric/FabricNode';
+import { FabricEnvironmentRegistryEntry } from '../../extension/fabric/FabricEnvironmentRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../../extension/fabric/FabricGatewayRegistryEntry';
 
 // tslint:disable no-unused-expression
 chai.should();

@@ -1,0 +1,46 @@
+
+@import '@carbon/colors/scss/colors';
+@import '@carbon/themes/scss/themes';
+@import '@carbon/type/scss/type';
+@import '@carbon/type/scss/font-face/_mono';
+@import '@carbon/type/scss/font-face/_sans';
+
+@include carbon--type-reset();
+@include carbon--font-face-mono();
+@include carbon--font-face-sans();
+
+html {
+
+
+
+    .vscode-dark{
+        @include carbon--theme($carbon--theme--g90){
+
+            @import 'node_modules/carbon-components/scss/globals/scss/styles.scss';
+
+            // Could we include a generic mixin here (?)
+
+            #root{
+                background-color: $ui-background;
+                // Color will default to #000000 otherwise
+                color: $text-01;
+            }
+
+
+        }
+    }
+
+    .vscode-light{
+        @include carbon--theme($carbon--theme--g10){
+            // This could be horribly inefficient, but it doesn't work otherwise
+            @import 'node_modules/carbon-components/scss/globals/scss/styles.scss';
+
+            #root{
+                background-color: $ui-background;
+                color: $text-01;
+            }
+        }
+    }
+
+}
+

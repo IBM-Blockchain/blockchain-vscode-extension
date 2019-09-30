@@ -16,8 +16,8 @@
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
-import { PackageRegistry } from '../../src/packages/PackageRegistry';
+import { PackageRegistryEntry } from '../../extension/packages/PackageRegistryEntry';
+import { PackageRegistry } from '../../extension/packages/PackageRegistry';
 
 // tslint:disable:no-unused-expression
 

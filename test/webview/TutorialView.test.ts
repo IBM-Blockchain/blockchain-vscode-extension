@@ -19,8 +19,8 @@ import * as sinon from 'sinon';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as path from 'path';
-import { TutorialView } from '../../src/webview/TutorialView';
-import { Reporter } from '../../src/util/Reporter';
+import { TutorialView } from '../../extension/webview/TutorialView';
+import { Reporter } from '../../extension/util/Reporter';
 import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.use(sinonChai);
@@ -63,5 +63,10 @@ describe('TutorialView', () => {
         const tutorialView: TutorialView = new TutorialView('Introduction', 'Local smart contract development');
         const result: string = await tutorialView['getHTMLString']();
         result.should.equal('');
+    });
+
+    it('should load component', async () => {
+        const tutorialView: TutorialView = new TutorialView('Introduction', 'Local smart contract development');
+        tutorialView.loadComponent({} as vscode.WebviewPanel);
     });
 });

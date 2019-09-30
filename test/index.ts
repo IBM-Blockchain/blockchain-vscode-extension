@@ -16,7 +16,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as Mocha from 'mocha';
 import * as glob from 'glob';
-import { VSCodeBlockchainOutputAdapter } from '../src/logging/VSCodeBlockchainOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../extension/logging/VSCodeBlockchainOutputAdapter';
 
 // tslint:disable no-var-requires
 // tslint:disable no-console

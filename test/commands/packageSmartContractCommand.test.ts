@@ -19,12 +19,12 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { TestUtil } from '../TestUtil';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { Package } from 'fabric-client';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../src/logging/OutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { Reporter } from '../../src/util/Reporter';
+import { Reporter } from '../../extension/util/Reporter';
 import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.should();

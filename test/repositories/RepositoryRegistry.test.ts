@@ -15,9 +15,9 @@
 import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { RepositoryRegistry } from '../../src/repositories/RepositoryRegistry';
+import { RepositoryRegistry } from '../../extension/repositories/RepositoryRegistry';
 
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import { SettingConfigurations } from '../../SettingConfigurations';
 

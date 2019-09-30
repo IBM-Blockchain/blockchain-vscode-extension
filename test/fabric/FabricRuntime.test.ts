@@ -13,30 +13,30 @@
 */
 
 import * as child_process from 'child_process';
-import { FabricRuntime, FabricRuntimeState } from '../../src/fabric/FabricRuntime';
+import { FabricRuntime, FabricRuntimeState } from '../../extension/fabric/FabricRuntime';
 import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
-import { OutputAdapter } from '../../src/logging/OutputAdapter';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { OutputAdapter } from '../../extension/logging/OutputAdapter';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { LogType } from '../../src/logging/OutputAdapter';
-import { CommandUtil } from '../../src/util/CommandUtil';
-import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
-import { YeomanUtil } from '../../src/util/YeomanUtil';
-import { IFabricWalletGenerator } from '../../src/fabric/IFabricWalletGenerator';
-import { FabricWalletGeneratorFactory } from '../../src/fabric/FabricWalletGeneratorFactory';
-import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
-import { IFabricWallet } from '../../src/fabric/IFabricWallet';
-import { FabricWallet } from '../../src/fabric/FabricWallet';
-import { FabricIdentity } from '../../src/fabric/FabricIdentity';
-import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { LogType } from '../../extension/logging/OutputAdapter';
+import { CommandUtil } from '../../extension/util/CommandUtil';
+import { VSCodeBlockchainDockerOutputAdapter } from '../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
+import { YeomanUtil } from '../../extension/util/YeomanUtil';
+import { IFabricWalletGenerator } from '../../extension/fabric/IFabricWalletGenerator';
+import { FabricWalletGeneratorFactory } from '../../extension/fabric/FabricWalletGeneratorFactory';
+import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
+import { IFabricWallet } from '../../extension/fabric/IFabricWallet';
+import { FabricWallet } from '../../extension/fabric/FabricWallet';
+import { FabricIdentity } from '../../extension/fabric/FabricIdentity';
+import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { SettingConfigurations } from '../../SettingConfigurations';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
-import { FabricGateway } from '../../src/fabric/FabricGateway';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import { FabricGateway } from '../../extension/fabric/FabricGateway';
 
 chai.should();
 chai.use(chaiAsPromised);

@@ -12,12 +12,12 @@
  * limitations under the License.
 */
 
-import { FabricEnvironmentManager, ConnectedState } from '../../src/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/FabricEnvironmentManager';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
-import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
+import { FabricEnvironmentRegistryEntry } from '../../extension/fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
 
 const should: Chai.Should = chai.should();
 

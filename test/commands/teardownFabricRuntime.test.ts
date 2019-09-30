@@ -13,21 +13,21 @@
 */
 
 import * as vscode from 'vscode';
-import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
-import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
-import { FabricRuntime } from '../../src/fabric/FabricRuntime';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { FabricGatewayRegistry } from '../../extension/fabric/FabricGatewayRegistry';
+import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { TestUtil } from '../TestUtil';
-import { LogType } from '../../src/logging/OutputAdapter';
+import { LogType } from '../../extension/logging/OutputAdapter';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
-import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
-import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
-import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
-import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
+import { FabricGatewayRegistryEntry } from '../../extension/fabric/FabricGatewayRegistryEntry';
+import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
+import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricEnvironmentRegistryEntry } from '../../extension/fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
 chai.should();
 
 // tslint:disable no-unused-expression

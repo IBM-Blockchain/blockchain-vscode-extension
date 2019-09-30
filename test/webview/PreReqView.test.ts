@@ -20,18 +20,18 @@ import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as path from 'path';
 import * as ejs from 'ejs';
-import { PreReqView } from '../../src/webview/PreReqView';
-import { View } from '../../src/webview/View';
+import { PreReqView } from '../../extension/webview/PreReqView';
+import { View } from '../../extension/webview/View';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { Reporter } from '../../src/util/Reporter';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { Reporter } from '../../extension/util/Reporter';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
-import { DependencyManager } from '../../src/dependencies/DependencyManager';
-import { GlobalState, DEFAULT_EXTENSION_DATA, ExtensionData } from '../../src/util/GlobalState';
+import { DependencyManager } from '../../extension/dependencies/DependencyManager';
+import { GlobalState, DEFAULT_EXTENSION_DATA, ExtensionData } from '../../extension/util/GlobalState';
 import { SettingConfigurations } from '../../SettingConfigurations';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../src/logging/OutputAdapter';
-import { Dependencies } from '../../src/dependencies/Dependencies';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../../extension/logging/OutputAdapter';
+import { Dependencies } from '../../extension/dependencies/Dependencies';
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
@@ -299,7 +299,8 @@ describe('PreReqView', () => {
                     retainContextWhenHidden: true,
                     enableCommandUris: true,
                     localResourceRoots: [
-                        vscode.Uri.file(path.join(context.extensionPath, 'resources'))
+                        vscode.Uri.file(path.join(context.extensionPath, 'resources')),
+                        vscode.Uri.file(path.join(context.extensionPath, 'build'))
                     ]
                 }
             );
@@ -357,7 +358,8 @@ describe('PreReqView', () => {
                     retainContextWhenHidden: true,
                     enableCommandUris: true,
                     localResourceRoots: [
-                        vscode.Uri.file(path.join(context.extensionPath, 'resources'))
+                        vscode.Uri.file(path.join(context.extensionPath, 'resources')),
+                        vscode.Uri.file(path.join(context.extensionPath, 'build'))
                     ]
                 }
             );
@@ -413,7 +415,8 @@ describe('PreReqView', () => {
                     retainContextWhenHidden: true,
                     enableCommandUris: true,
                     localResourceRoots: [
-                        vscode.Uri.file(path.join(context.extensionPath, 'resources'))
+                        vscode.Uri.file(path.join(context.extensionPath, 'resources')),
+                        vscode.Uri.file(path.join(context.extensionPath, 'build'))
                     ]
                 }
             );
@@ -471,7 +474,8 @@ describe('PreReqView', () => {
                     retainContextWhenHidden: true,
                     enableCommandUris: true,
                     localResourceRoots: [
-                        vscode.Uri.file(path.join(context.extensionPath, 'resources'))
+                        vscode.Uri.file(path.join(context.extensionPath, 'resources')),
+                        vscode.Uri.file(path.join(context.extensionPath, 'build'))
                     ]
                 }
             );

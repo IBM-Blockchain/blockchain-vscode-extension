@@ -21,11 +21,11 @@ import { TestUtil } from '../TestUtil';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../src/logging/OutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
-import { Reporter } from '../../src/util/Reporter';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import { Reporter } from '../../extension/util/Reporter';
 import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.use(sinonChai);

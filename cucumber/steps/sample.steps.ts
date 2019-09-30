@@ -18,9 +18,9 @@ import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { SampleView } from '../../src/webview/SampleView';
-import { CommandUtil } from '../../src/util/CommandUtil';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
+import { SampleView } from '../../extension/webview/SampleView';
+import { CommandUtil } from '../../extension/util/CommandUtil';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 
 // tslint:disable:no-unused-expression
 

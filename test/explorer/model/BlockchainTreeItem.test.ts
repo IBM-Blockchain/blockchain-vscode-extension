@@ -13,13 +13,13 @@
 */
 
 import * as vscode from 'vscode';
-import { BlockchainTreeItem } from '../../../src/explorer/model/BlockchainTreeItem';
+import { BlockchainTreeItem } from '../../../extension/explorer/model/BlockchainTreeItem';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { BlockchainGatewayExplorerProvider } from '../../../src/explorer/gatewayExplorer';
+import { BlockchainGatewayExplorerProvider } from '../../../extension/explorer/gatewayExplorer';
 import { TestUtil } from '../../TestUtil';
-import { ExtensionUtil } from '../../../src/util/ExtensionUtil';
+import { ExtensionUtil } from '../../../extension/util/ExtensionUtil';
 
 chai.should();
 

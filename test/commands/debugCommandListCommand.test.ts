@@ -18,17 +18,17 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
 import { TestUtil } from '../TestUtil';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
-import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
-import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
-import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
-import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
-import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
-import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
-import { LogType } from '../../src/logging/OutputAdapter';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
+import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
+import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
+import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricGatewayRegistryEntry } from '../../extension/fabric/FabricGatewayRegistryEntry';
+import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
+import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
+import { LogType } from '../../extension/logging/OutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 
 // tslint:disable no-unused-expression
 chai.should();

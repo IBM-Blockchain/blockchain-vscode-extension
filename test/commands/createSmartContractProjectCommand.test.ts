@@ -19,15 +19,15 @@ import * as sinon from 'sinon';
 import * as tmp from 'tmp';
 import * as sinonChai from 'sinon-chai';
 import * as fs_extra from 'fs-extra';
-import { CommandUtil } from '../../src/util/CommandUtil';
-import { UserInputUtil, LanguageType, LanguageQuickPickItem } from '../../src/commands/UserInputUtil';
+import { CommandUtil } from '../../extension/util/CommandUtil';
+import { UserInputUtil, LanguageType, LanguageQuickPickItem } from '../../extension/commands/UserInputUtil';
 import { TestUtil } from '../TestUtil';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { Reporter } from '../../src/util/Reporter';
-import { LogType } from '../../src/logging/OutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { Reporter } from '../../extension/util/Reporter';
+import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { YeomanUtil } from '../../src/util/YeomanUtil';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { YeomanUtil } from '../../extension/util/YeomanUtil';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 chai.use(sinonChai);
 

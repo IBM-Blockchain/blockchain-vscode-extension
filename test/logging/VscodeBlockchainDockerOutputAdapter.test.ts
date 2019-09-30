@@ -12,8 +12,8 @@
  * limitations under the License.
 */
 
-import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
-import { LogType } from '../../src/logging/OutputAdapter';
+import { VSCodeBlockchainDockerOutputAdapter } from '../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
+import { LogType } from '../../extension/logging/OutputAdapter';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';

@@ -14,30 +14,30 @@
 'use strict';
 // tslint:disable no-unused-expression
 import * as vscode from 'vscode';
-import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
-import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
+import { FabricClientConnection } from '../../extension/fabric/FabricClientConnection';
+import { FabricGatewayRegistryEntry } from '../../extension/fabric/FabricGatewayRegistryEntry';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
 import { TestUtil } from '../TestUtil';
-import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
-import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
-import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
-import { TransactionTreeItem } from '../../src/explorer/model/TransactionTreeItem';
-import { Reporter } from '../../src/util/Reporter';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../src/logging/OutputAdapter';
+import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
+import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
+import { ChannelTreeItem } from '../../extension/explorer/model/ChannelTreeItem';
+import { TransactionTreeItem } from '../../extension/explorer/model/TransactionTreeItem';
+import { Reporter } from '../../extension/util/Reporter';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
-import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
-import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
-import { InstantiatedUnknownTreeItem } from '../../src/explorer/model/InstantiatedUnknownTreeItem';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
-import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { VSCodeBlockchainDockerOutputAdapter } from '../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
+import { InstantiatedContractTreeItem } from '../../extension/explorer/model/InstantiatedContractTreeItem';
+import { InstantiatedChaincodeTreeItem } from '../../extension/explorer/model/InstantiatedChaincodeTreeItem';
+import { InstantiatedUnknownTreeItem } from '../../extension/explorer/model/InstantiatedUnknownTreeItem';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 
 chai.use(sinonChai);
 chai.should();

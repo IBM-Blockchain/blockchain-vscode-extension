@@ -14,14 +14,14 @@
 'use strict';
 // tslint:disable: no-console
 
-import { ExtensionUtil } from '../src/util/ExtensionUtil';
+import { ExtensionUtil } from '../extension/util/ExtensionUtil';
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import { SettingConfigurations } from '../SettingConfigurations';
 import { SinonSandbox, SinonStub } from 'sinon';
-import { UserInputUtil } from '../src/commands/UserInputUtil';
-import { FabricRuntimeUtil } from '../src/fabric/FabricRuntimeUtil';
-import { GlobalState, ExtensionData } from '../src/util/GlobalState';
+import { UserInputUtil } from '../extension/commands/UserInputUtil';
+import { FabricRuntimeUtil } from '../extension/fabric/FabricRuntimeUtil';
+import { GlobalState, ExtensionData } from '../extension/util/GlobalState';
 
 export class TestUtil {
     static async setupTests(sandbox: SinonSandbox): Promise<void> {

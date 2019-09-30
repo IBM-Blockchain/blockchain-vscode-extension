@@ -21,17 +21,17 @@ import Axios from 'axios';
 import * as fs from 'fs-extra';
 import * as shell from 'shelljs';
 import * as path from 'path';
-import { SampleView } from '../../src/webview/SampleView';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { CommandUtil } from '../../src/util/CommandUtil';
+import { SampleView } from '../../extension/webview/SampleView';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { CommandUtil } from '../../extension/util/CommandUtil';
 import { TestUtil } from '../TestUtil';
-import { RepositoryRegistry } from '../../src/repositories/RepositoryRegistry';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { RepositoryRegistry } from '../../extension/repositories/RepositoryRegistry';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import * as ejs from 'ejs';
-import { LogType } from '../../src/logging/OutputAdapter';
-import { View } from '../../src/webview/View';
-import { Reporter } from '../../src/util/Reporter';
-import { RepositoryRegistryEntry } from '../../src/repositories/RepositoryRegistryEntry';
+import { LogType } from '../../extension/logging/OutputAdapter';
+import { View } from '../../extension/webview/View';
+import { Reporter } from '../../extension/util/Reporter';
+import { RepositoryRegistryEntry } from '../../extension/repositories/RepositoryRegistryEntry';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -130,7 +130,8 @@ describe('SampleView', () => {
                 retainContextWhenHidden: false,
                 enableCommandUris: true,
                 localResourceRoots: [
-                    vscode.Uri.file(path.join(context.extensionPath, 'resources'))
+                    vscode.Uri.file(path.join(context.extensionPath, 'resources')),
+                    vscode.Uri.file(path.join(context.extensionPath, 'build'))
                 ]
             }
         );
@@ -175,7 +176,8 @@ describe('SampleView', () => {
                 retainContextWhenHidden: false,
                 enableCommandUris: true,
                 localResourceRoots: [
-                    vscode.Uri.file(path.join(context.extensionPath, 'resources'))
+                    vscode.Uri.file(path.join(context.extensionPath, 'resources')),
+                    vscode.Uri.file(path.join(context.extensionPath, 'build'))
                 ]
             }
         );

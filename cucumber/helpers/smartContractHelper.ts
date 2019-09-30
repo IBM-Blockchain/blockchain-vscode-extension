@@ -19,16 +19,16 @@ import * as path from 'path';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { UserInputUtilHelper } from './userInputUtilHelper';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { CommandUtil } from '../../src/util/CommandUtil';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { PackageRegistry } from '../../src/packages/PackageRegistry';
-import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
-import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
+import { CommandUtil } from '../../extension/util/CommandUtil';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { PackageRegistry } from '../../extension/packages/PackageRegistry';
+import { PackageRegistryEntry } from '../../extension/packages/PackageRegistryEntry';
+import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);

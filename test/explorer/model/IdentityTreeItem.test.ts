@@ -12,11 +12,11 @@
  * limitations under the License.
 */
 
-import { IdentityTreeItem } from '../../../src/explorer/model/IdentityTreeItem';
+import { IdentityTreeItem } from '../../../extension/explorer/model/IdentityTreeItem';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { ExtensionUtil } from '../../../src/util/ExtensionUtil';
+import { ExtensionUtil } from '../../../extension/util/ExtensionUtil';
 
 chai.should();
 

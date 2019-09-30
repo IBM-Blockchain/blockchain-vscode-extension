@@ -12,14 +12,14 @@
  * limitations under the License.
 */
 import * as vscode from 'vscode';
-import * as myExtension from '../../src/extension';
+import * as myExtension from '../../extension/extension';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
-import { TemporaryCommandRegistry } from '../../src/dependencies/TemporaryCommandRegistry';
+import { TemporaryCommandRegistry } from '../../extension/dependencies/TemporaryCommandRegistry';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
 chai.should();

@@ -19,10 +19,10 @@ import * as sinon from 'sinon';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as path from 'path';
-import { HomeView } from '../../src/webview/HomeView';
-import { View } from '../../src/webview/View';
+import { HomeView } from '../../extension/webview/HomeView';
+import { View } from '../../extension/webview/View';
 import * as ejs from 'ejs';
-import { Reporter } from '../../src/util/Reporter';
+import { Reporter } from '../../extension/util/Reporter';
 import { SettingConfigurations } from '../../SettingConfigurations';
 
 const should: Chai.Should = chai.should();
@@ -113,7 +113,8 @@ describe('HomeView', () => {
                 retainContextWhenHidden: true,
                 enableCommandUris: true,
                 localResourceRoots: [
-                    vscode.Uri.file(path.join(context.extensionPath, 'resources'))
+                    vscode.Uri.file(path.join(context.extensionPath, 'resources')),
+                    vscode.Uri.file(path.join(context.extensionPath, 'build'))
                 ]
             }
         );

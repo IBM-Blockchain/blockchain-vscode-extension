@@ -28,6 +28,10 @@ export class TutorialView extends View {
         this.tutorialName = tutorialName;
     }
 
+    loadComponent(_panel: vscode.WebviewPanel): void {
+        return;
+    }
+
     public async openView(): Promise<void> {
         const series: any = await this.getSeries(this.seriesName);
         const tutorial: any = await this.getTutorial(series, this.tutorialName);

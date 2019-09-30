@@ -19,12 +19,12 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { TestUtil } from '../TestUtil';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../src/logging/OutputAdapter';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironment } from '../../src/fabric/FabricEnvironment';
-import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
+import { FabricEnvironmentRegistryEntry } from '../../extension/fabric/FabricEnvironmentRegistryEntry';
 
 // tslint:disable no-unused-expression
 chai.should();

@@ -12,16 +12,16 @@
  * limitations under the License.
 */
 
-import { BlockchainGatewayExplorerProvider } from '../../../src/explorer/gatewayExplorer';
-import { ExtensionUtil } from '../../../src/util/ExtensionUtil';
+import { BlockchainGatewayExplorerProvider } from '../../../extension/explorer/gatewayExplorer';
+import { ExtensionUtil } from '../../../extension/util/ExtensionUtil';
 import { TestUtil } from '../../TestUtil';
 
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { FabricNode } from '../../../src/fabric/FabricNode';
-import { NodeTreeItem } from '../../../src/explorer/runtimeOps/connectedTree/NodeTreeItem';
-import { BlockchainExplorerProvider } from '../../../src/explorer/BlockchainExplorerProvider';
-import { FabricEnvironmentRegistryEntry } from '../../../src/fabric/FabricEnvironmentRegistryEntry';
+import { FabricNode } from '../../../extension/fabric/FabricNode';
+import { NodeTreeItem } from '../../../extension/explorer/runtimeOps/connectedTree/NodeTreeItem';
+import { BlockchainExplorerProvider } from '../../../extension/explorer/BlockchainExplorerProvider';
+import { FabricEnvironmentRegistryEntry } from '../../../extension/fabric/FabricEnvironmentRegistryEntry';
 
 class TestTreeItem extends NodeTreeItem {
 

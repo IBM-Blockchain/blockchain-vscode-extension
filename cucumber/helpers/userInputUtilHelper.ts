@@ -15,8 +15,8 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as sinon from 'sinon';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 
 export class UserInputUtilHelper {
 

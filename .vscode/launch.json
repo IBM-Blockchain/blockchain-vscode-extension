@@ -14,7 +14,7 @@
         "--extensionDevelopmentPath=${workspaceFolder}"
       ],
       "outFiles": [
-        "${workspaceFolder}/out/**/*.js"
+        "${workspaceFolder}/build/**/*.js"
       ],
       "preLaunchTask": "npm: watch"
     },
@@ -25,10 +25,10 @@
       "runtimeExecutable": "${execPath}",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/out/test"
+        "--extensionTestsPath=${workspaceFolder}/build/test"
       ],
       "outFiles": [
-        "${workspaceFolder}/out/test/**/*.js"
+        "${workspaceFolder}/build/test/**/*.js"
       ],
       "preLaunchTask": "npm: watch"
     },
@@ -39,10 +39,10 @@
       "runtimeExecutable": "${execPath}",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/out/test"
+        "--extensionTestsPath=${workspaceFolder}/build/test"
       ],
       "outFiles": [
-        "${workspaceFolder}/out/test/**/*.js"
+        "${workspaceFolder}/build/test/**/*.js"
       ],
       "preLaunchTask": "npm: watch",
       "env": {
@@ -57,10 +57,10 @@
       "args": [
         "${workspaceFolder}/cucumber/data/cucumber.code-workspace",
         "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/out/cucumber/"
+        "--extensionTestsPath=${workspaceFolder}/build/cucumber/"
       ],
       "outFiles": [
-        "${workspaceFolder}/out/cucumber/**/*.feature"
+        "${workspaceFolder}/build/cucumber/**/*.feature"
       ],
       "preLaunchTask": "npm: watch"
     },
@@ -72,10 +72,10 @@
       "args": [
         "${workspaceFolder}/cucumber/data/cucumber.code-workspace",
         "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/out/cucumber/"
+        "--extensionTestsPath=${workspaceFolder}/build/cucumber/"
       ],
       "outFiles": [
-        "${workspaceFolder}/out/cucumber/**/*.feature"
+        "${workspaceFolder}/build/cucumber/**/*.feature"
       ],
       "preLaunchTask": "npm: watch",
       "env": {
@@ -90,10 +90,10 @@
       "args": [
         "${workspaceFolder}/cucumber/data/cucumber.code-workspace",
         "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/out/cucumber/"
+        "--extensionTestsPath=${workspaceFolder}/build/cucumber/"
       ],
       "outFiles": [
-        "${workspaceFolder}/out/cucumber/**/*.feature"
+        "${workspaceFolder}/build/cucumber/**/*.feature"
       ],
       "preLaunchTask": "npm: cucumberTests",
       "env": {

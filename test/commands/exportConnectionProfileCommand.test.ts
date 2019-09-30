@@ -16,22 +16,22 @@
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { TestUtil } from '../TestUtil';
-import { LogType } from '../../src/logging/OutputAdapter';
+import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import * as fs from 'fs-extra';
-import { Reporter } from '../../src/util/Reporter';
+import { Reporter } from '../../extension/util/Reporter';
 import * as os from 'os';
-import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
-import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
-import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
-import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
-import { FabricGatewayHelper } from '../../src/fabric/FabricGatewayHelper';
-import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
+import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
+import { FabricGatewayRegistryEntry } from '../../extension/fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistry } from '../../extension/fabric/FabricGatewayRegistry';
+import { GatewayTreeItem } from '../../extension/explorer/model/GatewayTreeItem';
+import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
+import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
 
 // tslint:disable no-unused-expression
 describe('exportConnectionProfileCommand', () => {

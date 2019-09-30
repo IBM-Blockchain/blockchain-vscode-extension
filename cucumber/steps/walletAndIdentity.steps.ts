@@ -16,11 +16,11 @@
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
-import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
-import { BlockchainWalletExplorerProvider } from '../../src/explorer/walletExplorer';
-import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
+import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { BlockchainWalletExplorerProvider } from '../../extension/explorer/walletExplorer';
+import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 // tslint:disable:no-unused-expression
 
