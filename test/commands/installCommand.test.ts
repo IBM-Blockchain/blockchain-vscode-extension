@@ -164,6 +164,21 @@ describe('InstallCommand', () => {
             logOutputSpy.getCall(3).should.have.been.calledWith(LogType.SUCCESS, 'Successfully installed smart contract on all peers');
         });
 
+        it('should install the smart contract through the command with peers set', async () => {
+            const peerSet: Set<string> = new Set<string>();
+            peerSet.add('peerThree');
+            peerSet.add('peerOne');
+            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peerSet) as PackageRegistryEntry;
+            result.name.should.equal('vscode-pkg-1@0.0.1');
+
+            showPeersQuickPickStub.should.have.been.calledWith('Choose which peers to install the smart contract on', ['peerThree', 'peerOne']);
+            fabricRuntimeMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
+
+            dockerLogsOutputSpy.should.have.been.called;
+            logOutputSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'installSmartContract');
+            logOutputSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully installed on peer peerOne');
+        });
+
         it('should install the smart contract with specific package', async () => {
             const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, null, null, packageRegistryEntry) as PackageRegistryEntry;
             result.name.should.equal(packageRegistryEntry.name);

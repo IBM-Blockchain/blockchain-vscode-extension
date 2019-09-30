@@ -99,7 +99,7 @@ describe('InstantiateCommand', () => {
                 data: ['peerOne']
             });
 
-            showChaincodeAndVersionQuickPick = mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick').withArgs(sinon.match.any, ['peerOne']).resolves(
+            showChaincodeAndVersionQuickPick = mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick').withArgs(sinon.match.any, 'myChannel', ['peerOne']).resolves(
                 {
                     label: 'myContract@0.0.1',
                     data: {
@@ -593,6 +593,7 @@ describe('InstantiateCommand', () => {
 
         it('should install if not correct version installed', async () => {
             executeCommandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT).resolves({ name: 'beer', version: 'vscode-debug-123456', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerHi', 'peerHa'], { name: 'beer', version: 'vscode-debug-123456', path: undefined }).resolves({ name: 'beer', version: 'vscode-debug-123456', path: undefined });
 
             const workspaceFolder: any = {
                 name: 'beer',
@@ -619,12 +620,11 @@ describe('InstantiateCommand', () => {
 
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
-            logSpy.getCall(3).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.INSTALL_SMART_CONTRACT);
-            sendTelemetryEventStub.should.have.been.calledTwice;
-            sendTelemetryEventStub.should.have.been.calledWithExactly('installCommand');
+            sendTelemetryEventStub.should.have.been.calledOnce;
             sendTelemetryEventStub.should.have.been.calledWithExactly('instantiateCommand');
         });
 

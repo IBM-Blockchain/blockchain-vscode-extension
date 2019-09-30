@@ -107,7 +107,7 @@ describe('UpgradeCommand', () => {
             map.set('channelOne', ['peerOne']);
             fabricRuntimeMock.createChannelMap.resolves(map);
 
-            showChaincodeAndVersionQuickPick = mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick').withArgs(sinon.match.any, ['peerOne']).resolves(
+            showChaincodeAndVersionQuickPick = mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick').withArgs(sinon.match.any, 'channelOne', ['peerOne']).resolves(
                 {
                     label: 'biscuit-network@0.0.2',
                     description: 'Packaged',
@@ -595,6 +595,7 @@ describe('UpgradeCommand', () => {
 
         it('should install if wrong version installed from debug session', async () => {
             executeCommandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT).resolves({ name: 'beer', version: 'vscode-debug-97365870', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerHi', 'peerHa'], { name: 'beer', version: 'vscode-debug-97365870', path: undefined }).resolves({ name: 'beer', version: 'vscode-debug-97365870', path: undefined });
 
             const workspaceFolder: any = {
                 name: 'beer',

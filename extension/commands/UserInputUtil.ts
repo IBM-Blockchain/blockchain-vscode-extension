@@ -307,14 +307,16 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(listOfCAs, quickPickOptions);
     }
 
-    public static async showPeersQuickPickBox(prompt: string): Promise<string[] | undefined> {
+    public static async showPeersQuickPickBox(prompt: string, peerNames?: string[]): Promise<string[] | undefined> {
         const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
         if (!connection) {
             VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, undefined, 'No connection to a blockchain found');
             return;
         }
 
-        const peerNames: Array<string> = connection.getAllPeerNames();
+        if (!peerNames) {
+            peerNames = connection.getAllPeerNames();
+        }
 
         if (peerNames.length > 1) {
             return vscode.window.showQuickPick(peerNames, {
@@ -327,7 +329,7 @@ export class UserInputUtil {
         }
     }
 
-    public static async showChaincodeAndVersionQuickPick(prompt: string, peers: Array<string>, contractName?: string, contractVersion?: string): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> | undefined> {
+    public static async showChaincodeAndVersionQuickPick(prompt: string, channel: string, peers: Array<string>, contractName?: string, contractVersion?: string): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> | undefined> {
         const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
         if (!connection) {
             VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, undefined, 'No connection to a blockchain found');
@@ -358,16 +360,12 @@ export class UserInputUtil {
         tempQuickPickItems.push(...openProjects);
 
         // We need to find out the instantiated smart contracts so that we can filter them from being shown. This is because they should be shown in the 'Upgrade Smart Contract' instead.
-        // First, we need to create a list of channels
 
-        const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
-
-        // Next, we get all the instantiated smart contracts
+        // we get all the instantiated smart contracts
         const allSmartContracts: any[] = [];
-        for (const [channelName, peerNames] of channelMap) {
-            const instantiatedSmartContracts: Array<FabricChaincode> = await connection.getInstantiatedChaincode(peerNames, channelName);
-            allSmartContracts.push(...instantiatedSmartContracts);
-        }
+
+        const instantiatedSmartContracts: Array<FabricChaincode> = await connection.getInstantiatedChaincode(peers, channel);
+        allSmartContracts.push(...instantiatedSmartContracts);
 
         const quickPickItems: Array<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>> = [];
 

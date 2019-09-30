@@ -69,7 +69,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
 
         if (!vscode.debug.activeDebugSession) {
             // Not called during debugging, ask for smart contract to instantiate
-            chosenChaincode = await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a smart contract and version to instantiate', peerNames);
+            chosenChaincode = await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a smart contract and version to instantiate', channelName, peerNames);
             if (!chosenChaincode) {
                 return;
             }
