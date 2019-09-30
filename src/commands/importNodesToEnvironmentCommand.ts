@@ -61,7 +61,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
 
             if (!nodeUris || nodeUris.length === 0) {
                 if (fromAddEnvironment) {
-                    throw new Error('no node files were provided');
+                    return undefined;
                 } else {
                     return;
                 }

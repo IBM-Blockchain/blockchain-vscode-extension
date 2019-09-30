@@ -43,6 +43,9 @@ export async function addEnvironment(): Promise<void> {
         fabricEnvironmentEntry.name = environmentName;
 
         const addedAllNodes: boolean = await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, fabricEnvironmentEntry, true) as boolean;
+        if (addedAllNodes === undefined) {
+            return;
+        }
 
         await fabricEnvironmentRegistry.add(fabricEnvironmentEntry);
 
