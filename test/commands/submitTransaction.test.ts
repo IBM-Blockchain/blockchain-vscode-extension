@@ -150,6 +150,7 @@ describe('SubmitTransactionCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
             dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.have.been.calledWith('submit transaction');
         });
@@ -158,6 +159,7 @@ describe('SubmitTransactionCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', undefined, true);
             dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `evaluating transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully evaluated transaction');
             reporterStub.should.have.been.calledWith('evaluate transaction');
         });
@@ -170,6 +172,7 @@ describe('SubmitTransactionCommand', () => {
 
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
             dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.have.been.calledWith('submit transaction');
         });
@@ -181,6 +184,7 @@ describe('SubmitTransactionCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
             dockerLogsOutputSpy.should.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.have.been.calledWith('submit transaction');
         });
@@ -222,6 +226,7 @@ describe('SubmitTransactionCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
 
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', undefined, true);
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `evaluating transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Error evaluating transaction: some error');
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Endorsement failed with: another error');
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Endorsement failed with: more error');
@@ -243,6 +248,7 @@ describe('SubmitTransactionCommand', () => {
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
             showInstantiatedSmartContractQuickPickStub.should.not.have.been.called;
             dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.have.been.calledWith('submit transaction');
         });
@@ -267,6 +273,7 @@ describe('SubmitTransactionCommand', () => {
 
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('mySmartContract', 'transaction1', 'channelOne', ['arg1', 'arg2', 'arg3'], 'my-contract');
 
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel channelOne`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.have.been.calledWith('submit transaction');
             dockerLogsOutputSpy.should.not.have.been.called;
@@ -300,6 +307,7 @@ describe('SubmitTransactionCommand', () => {
 
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('mySmartContract', 'transaction1', 'channelOne', ['arg1', 'arg2', 'arg3'], undefined, undefined, true);
 
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `evaluating transaction transaction1 with args arg1,arg2,arg3 on channel channelOne`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully evaluated transaction');
             reporterStub.should.have.been.calledWith('evaluate transaction');
             dockerLogsOutputSpy.should.not.have.been.called;
@@ -331,6 +339,7 @@ describe('SubmitTransactionCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract', undefined);
             showInputBoxStub.should.have.been.calledTwice;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with no args on channel myChannel`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.have.been.calledWith('submit transaction');
             dockerLogsOutputSpy.should.not.have.been.called;
@@ -341,6 +350,7 @@ describe('SubmitTransactionCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract', undefined);
             showInputBoxStub.should.have.been.calledTwice;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with no args on channel myChannel`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.have.been.calledWith('submit transaction');
             dockerLogsOutputSpy.should.not.have.been.called;
@@ -351,6 +361,7 @@ describe('SubmitTransactionCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', { key: Buffer.from('value') });
             showInputBoxStub.should.have.been.calledTwice;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.have.been.calledWith('submit transaction');
             dockerLogsOutputSpy.should.not.have.been.called;
@@ -447,6 +458,7 @@ describe('SubmitTransactionCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract', undefined);
             showInputBoxStub.should.have.been.calledTwice;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with no args on channel myChannel`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction', `Returned value from transaction1: ${result}`);
             reporterStub.should.have.been.calledWith('submit transaction');
             dockerLogsOutputSpy.should.not.have.been.called;
@@ -461,6 +473,7 @@ describe('SubmitTransactionCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract', undefined, true);
             showInputBoxStub.should.have.been.calledTwice;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `evaluating transaction transaction1 with no args on channel myChannel`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully evaluated transaction', `No value returned from transaction1`);
             reporterStub.should.have.been.calledWith('evaluate transaction');
             dockerLogsOutputSpy.should.not.have.been.called;
