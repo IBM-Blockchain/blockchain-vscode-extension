@@ -20,6 +20,7 @@ import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { FabricWallet } from './FabricWallet';
 import { URL } from 'url';
 import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
+import { FabricChaincode } from './FabricChaincode';
 
 export abstract class FabricConnection {
 
@@ -85,7 +86,7 @@ export abstract class FabricConnection {
         }
     }
 
-    public async getInstantiatedChaincode(channelName: string): Promise<Array<{ name: string, version: string }>> {
+    public async getInstantiatedChaincode(channelName: string): Promise<Array<FabricChaincode>> {
         const instantiatedChaincodes: Array<any> = [];
         const channel: Client.Channel = await this.getChannel(channelName);
         const chainCodeResponse: Client.ChaincodeQueryResponse = await channel.queryInstantiatedChaincodes(null);

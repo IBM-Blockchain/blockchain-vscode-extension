@@ -362,13 +362,17 @@ describe('environmentExplorer', () => {
                     name: 'biscuit-network',
                     version: '0.7'
                 }]);
-                fabricConnection.getInstantiatedChaincode.withArgs(['peerOne', 'peerTwo'], 'channelTwo').resolves([{
-                    name: 'cake-network',
-                    version: '0.10'
-                }, {
-                    name: 'legacy-network',
-                    version: '2.34'
-                }]);
+                fabricConnection.getInstantiatedChaincode.withArgs(['peerOne', 'peerTwo'], 'channelTwo').resolves([
+                    {
+                        name: 'biscuit-network',
+                        version: '0.7'
+                    }, {
+                        name: 'cake-network',
+                        version: '0.10'
+                    }, {
+                        name: 'legacy-network',
+                        version: '2.34'
+                    }]);
 
                 fabricConnection.getAllOrganizationNames.returns(['Org1', 'Org2']);
 
@@ -828,7 +832,7 @@ describe('environmentExplorer', () => {
                 instantiatedChaincodeOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 instantiatedChaincodeOne.contextValue.should.equal('blockchain-instantiated-chaincode-item');
                 instantiatedChaincodeOne.label.should.equal('biscuit-network@0.7');
-                instantiatedChaincodeOne.tooltip.should.equal('Instantiated on: channelOne');
+                instantiatedChaincodeOne.tooltip.should.equal('Instantiated on: channelOne, channelTwo');
                 const instantiatedChaincodeTwo: InstantiatedChaincodeTreeItem = instantiatedChaincodes[1] as InstantiatedChaincodeTreeItem;
                 instantiatedChaincodeTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 instantiatedChaincodeTwo.contextValue.should.equal('blockchain-instantiated-chaincode-item');

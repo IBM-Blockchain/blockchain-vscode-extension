@@ -28,6 +28,7 @@ import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { URL } from 'url';
 import { Attribute } from './FabricCertificate';
 import { FabricEnvironment } from './FabricEnvironment';
+import { FabricChaincode } from './FabricChaincode';
 
 export class FabricEnvironmentConnection implements IFabricEnvironmentConnection {
 
@@ -139,7 +140,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         }
     }
 
-    public async getInstantiatedChaincode(peerNames: Array<string>, channelName: string): Promise<Array<{ name: string, version: string }>> {
+    public async getInstantiatedChaincode(peerNames: Array<string>, channelName: string): Promise<Array<FabricChaincode>> {
 
         // Locate all of the requested peer nodes.
         const peers: Array<Client.Peer> = peerNames.map((peerName: string) => this.getPeer(peerName));
@@ -151,26 +152,23 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         await this.setNodeContext(peerNames[0]);
         const instantiatedChaincodes: Client.ChaincodeQueryResponse = await channel.queryInstantiatedChaincodes(peers[0]);
         return instantiatedChaincodes.chaincodes.map((chaincode: Client.ChaincodeInfo) => {
-            return {
-                name: chaincode.name,
-                version: chaincode.version
-            };
+            return new FabricChaincode(chaincode.name, chaincode.version);
         });
 
     }
 
-    public async getAllInstantiatedChaincodes(): Promise<Array<{ name: string, version: string }>> {
+    public async getAllInstantiatedChaincodes(): Promise<Array<FabricChaincode>> {
 
         try {
             const channelMap: Map<string, Array<string>> = await this.createChannelMap();
 
-            const chaincodes: Array<{ name: string, version: string }> = []; // We can change the array type if we need more detailed chaincodes in future
+            const chaincodes: Array<FabricChaincode> = []; // We can change the array type if we need more detailed chaincodes in future
 
             for (const [channelName, peerNames] of channelMap) {
-                const channelChaincodes: Array<{ name: string, version: string }> = await this.getInstantiatedChaincode(peerNames, channelName); // Returns channel chaincodes
+                const channelChaincodes: Array<FabricChaincode> = await this.getInstantiatedChaincode(peerNames, channelName); // Returns channel chaincodes
                 for (const chaincode of channelChaincodes) { // For each channel chaincodes, push it to the 'chaincodes' array if it doesn't exist
 
-                    const alreadyExists: boolean = chaincodes.some((_chaincode: { name: string, version: string }) => {
+                    const alreadyExists: boolean = chaincodes.some((_chaincode: FabricChaincode) => {
                         return _chaincode.name === chaincode.name && _chaincode.version === chaincode.version;
                     });
                     if (!alreadyExists) {
@@ -179,7 +177,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
                 }
             }
 
-            chaincodes.sort((a: { name: string, version: string }, b: { name: string, version: string }): number => {
+            chaincodes.sort((a: FabricChaincode, b: FabricChaincode): number => {
                 if (a.name === b.name) {
                     return a.version.localeCompare(b.version);
                 } else {

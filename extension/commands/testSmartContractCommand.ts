@@ -68,13 +68,13 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
         if (chaincode instanceof ContractTreeItem) {
             chaincodeLabel = chaincode.instantiatedChaincode.label;
             chaincodeName = chaincode.instantiatedChaincode.name;
-            channelName = chaincode.instantiatedChaincode.channel.label;
+            channelName = chaincode.instantiatedChaincode.channels[0].label;
             chaincodeVersion = chaincode.instantiatedChaincode.version;
         } else {
             // Smart Contract selected from the tree item, so assign label and name
             chaincodeLabel = chaincode.label;
             chaincodeName = chaincode.name;
-            channelName = chaincode.channel.label;
+            channelName = chaincode.channels[0].label;
             chaincodeVersion = chaincode.version;
         }
     }
