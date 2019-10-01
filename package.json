@@ -580,12 +580,7 @@
                 },
                 {
                     "command": "environmentExplorer.disconnectEntry",
-                    "when": "view == environmentExplorer && blockchain-environment-connected",
-                    "group": "navigation"
-                },
-                {
-                    "command": "environmentExplorer.disconnectEntry",
-                    "when": "view == environmentExplorer && blockchain-environment-setup",
+                    "when": "view == environmentExplorer && blockchain-environment-connected || blockchain-environment-setup",
                     "group": "navigation"
                 },
                 {
@@ -637,31 +632,15 @@
             "view/item/context": [
                 {
                     "command": "gatewaysExplorer.deleteGatewayEntry",
-                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-associated-item"
-                },
-                {
-                    "command": "gatewaysExplorer.deleteGatewayEntry",
-                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-dissociated-item"
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-associated-item || viewItem == blockchain-gateway-dissociated-item"
                 },
                 {
                     "command": "gatewaysExplorer.exportConnectionProfileEntry",
-                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-associated-item"
-                },
-                {
-                    "command": "gatewaysExplorer.exportConnectionProfileEntry",
-                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-dissociated-item"
-                },
-                {
-                    "command": "gatewaysExplorer.exportConnectionProfileEntry",
-                    "when": "view == gatewaysExplorer && viewItem == blockchain-local-gateway-item"
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-associated-item || viewItem == blockchain-gateway-dissociated-item || viewItem == blockchain-local-gateway-item"
                 },
                 {
                     "command": "walletExplorer.addWalletIdentityEntry",
-                    "when": "view == walletExplorer && viewItem == blockchain-wallet-item"
-                },
-                {
-                    "command": "walletExplorer.addWalletIdentityEntry",
-                    "when": "view == walletExplorer && viewItem == blockchain-local-wallet-item"
+                    "when": "view == walletExplorer && viewItem == blockchain-wallet-item || viewItem == blockchain-local-wallet-item"
                 },
                 {
                     "command": "aPackagesExplorer.deleteSmartContractPackageEntry",
@@ -689,15 +668,15 @@
                 },
                 {
                     "command": "environmentExplorer.deleteNodeEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item"
+                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item && !blockchain-runtime-connected"
                 },
                 {
                     "command": "environmentExplorer.deleteNodeEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item && !blockchain-runtime-connected"
                 },
                 {
                     "command": "environmentExplorer.deleteNodeEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item && !blockchain-runtime-connected"
                 },
                 {
                     "command": "environmentExplorer.installSmartContractEntry",
@@ -721,11 +700,7 @@
                 },
                 {
                     "command": "environmentExplorer.instantiateSmartContractEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-channel-item"
-                },
-                {
-                    "command": "environmentExplorer.instantiateSmartContractEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-instantiated-item"
+                    "when": "view == environmentExplorer && viewItem == blockchain-channel-item || viewItem == blockchain-runtime-instantiated-item"
                 },
                 {
                     "command": "environmentExplorer.upgradeSmartContractEntry",
@@ -737,11 +712,7 @@
                 },
                 {
                     "command": "environmentExplorer.upgradeSmartContractEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-instantiated-contract-item"
-                },
-                {
-                    "command": "environmentExplorer.upgradeSmartContractEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-instantiated-chaincode-item"
+                    "when": "view == environmentExplorer && viewItem == blockchain-instantiated-contract-item || viewItem == blockchain-instantiated-chaincode-item"
                 },
                 {
                     "command": "environmentExplorer.replaceAssociatedIdentityEntry",
@@ -757,27 +728,11 @@
                 },
                 {
                     "command": "gatewaysExplorer.editGatewayEntry",
-                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-associated-item"
-                },
-                {
-                    "command": "gatewaysExplorer.editGatewayEntry",
-                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-dissociated-item"
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-associated-item || viewItem == blockchain-gateway-dissociated-item"
                 },
                 {
                     "command": "gatewaysExplorer.testSmartContractEntry",
-                    "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-multi-contract-item"
-                },
-                {
-                    "command": "gatewaysExplorer.testSmartContractEntry",
-                    "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-contract-item"
-                },
-                {
-                    "command": "gatewaysExplorer.testSmartContractEntry",
-                    "when": "view == gatewaysExplorer && viewItem == blockchain-contract-item"
-                },
-                {
-                    "command": "gatewaysExplorer.testSmartContractEntry",
-                    "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-unknown-item"
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-multi-contract-item || viewItem == blockchain-instantiated-contract-item || viewItem == blockchain-contract-item || viewItem == blockchain-instantiated-unknown-item"
                 },
                 {
                     "command": "gatewaysExplorer.submitTransactionEntry",
@@ -797,7 +752,7 @@
                 },
                 {
                     "command": "environmentExplorer.createNewIdentityEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item && blockchain-runtime-connected"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item"
                 },
                 {
                     "command": "walletExplorer.editWalletEntry",
@@ -821,11 +776,7 @@
                 },
                 {
                     "command": "walletExplorer.exportWalletEntry",
-                    "when": "view == walletExplorer && viewItem == blockchain-wallet-item"
-                },
-                {
-                    "command": "walletExplorer.exportWalletEntry",
-                    "when": "view == walletExplorer && viewItem == blockchain-local-wallet-item"
+                    "when": "view == walletExplorer && viewItem == blockchain-wallet-item || viewItem == blockchain-local-wallet-item"
                 }
             ]
         },
