@@ -1292,7 +1292,9 @@ describe('UserInputUtil', () => {
     });
 
     describe('delayWorkaround', () => {
+
         let clock: sinon.SinonFakeTimers;
+
         beforeEach(() => {
             clock = sinon.useFakeTimers({ toFake: ['setTimeout'] });
         });

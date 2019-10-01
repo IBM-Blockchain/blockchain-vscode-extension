@@ -487,7 +487,7 @@ export class DependencyManager {
                     throw error;
                 }
 
-                if (!remote) {
+                if (!remote && semver.lt(info.longVersion, '6.0.0')) {
                     progress.report({ message: `Updating ${dependency}` });
                     outputAdapter.log(LogType.INFO, undefined, `Updating ${dependency}`);
                     const basePath: string = path.join(extensionPath, 'node_modules', 'grpc', 'src', 'node', 'extension_binary');
@@ -510,44 +510,55 @@ export class DependencyManager {
 
     private async getLocalRebuildInfo(os: string, arch: string, thing: string): Promise<{ modules: string, longVersion: string, shortVersion: string }> {
         try {
-            const response: any = await Axios.get('https://raw.githubusercontent.com/electron/releases/master/lite.json');
-            let info: any[] = response.data;
             const modules: string = process.versions.modules;
-
-            info = info.filter((_info: any) => {
-                return _info && _info.deps && _info.deps.modules === modules;
-            });
-
-            const filteredVersions: any[] = [];
-
-            for (const _info of info) {
-                const tempVersion: string = `${semver.major(_info.version)}.${semver.minor(_info.version)}`;
-                const found: { longVersion: string, shortVersion: string } = filteredVersions.find((_version: { longVersion: string, shortVersion: string }) => _version.shortVersion === tempVersion);
-                if (!found) {
-                    filteredVersions.push({ longVersion: _info.version, shortVersion: tempVersion });
-                }
-            }
-
-            if (filteredVersions.length === 0) {
-                throw new Error(`no matching electron versions for modules ${modules}`);
-            }
+            const electronVersion: string = process.versions['electron'];
 
             let version: { longVersion: string, shortVersion: string };
-            for (const _version of filteredVersions) {
-                try {
-                    const preBuiltBinarypath: string = `https://node-precompiled-binaries.grpc.io/grpc/v1.21.1/electron-v${_version.shortVersion}-${os}-${arch}-${thing}.tar.gz`;
-                    await Axios.get(preBuiltBinarypath);
-                    // found one that exists so use it
-                    version = _version;
-                    break;
-                } catch (error) {
-                    // don't care about the error here as if error then it probably doesn't exist
-                }
-            }
 
-            if (!version) {
-                // didn't find a prebuilt one so just pick the first and use that
-                version = filteredVersions[0];
+            if (!electronVersion) {
+
+                const response: any = await Axios.get('https://raw.githubusercontent.com/electron/releases/master/lite.json');
+                let info: any[] = response.data;
+
+                info = info.filter((_info: any) => {
+                    return _info && _info.deps && _info.deps.modules === modules;
+                });
+
+                const filteredVersions: any[] = [];
+
+                for (const _info of info) {
+                    const tempVersion: string = `${semver.major(_info.version)}.${semver.minor(_info.version)}`;
+                    const found: { longVersion: string, shortVersion: string } = filteredVersions.find((_version: { longVersion: string, shortVersion: string }) => _version.shortVersion === tempVersion);
+                    if (!found) {
+                        filteredVersions.push({ longVersion: _info.version, shortVersion: tempVersion });
+                    }
+                }
+
+                if (filteredVersions.length === 0) {
+                    throw new Error(`no matching electron versions for modules ${modules}`);
+                }
+
+                for (const _version of filteredVersions) {
+                    try {
+                        const preBuiltBinarypath: string = `https://node-precompiled-binaries.grpc.io/grpc/v1.23.3/electron-v${_version.shortVersion}-${os}-${arch}-${thing}.tar.gz`;
+                        await Axios.get(preBuiltBinarypath);
+                        // found one that exists so use it
+                        version = _version;
+                        break;
+                    } catch (error) {
+                        // don't care about the error here as if error then it probably doesn't exist
+                    }
+                }
+
+                if (!version) {
+                    // didn't find a prebuilt one so just pick the first and use that
+                    version = filteredVersions[0];
+                }
+            } else {
+                version = {
+                    shortVersion: `${semver.major(electronVersion)}.${semver.minor(electronVersion)}`,
+                    longVersion: electronVersion,
+                };
             }
 
             return { modules: modules, longVersion: version.longVersion, shortVersion: version.shortVersion };
