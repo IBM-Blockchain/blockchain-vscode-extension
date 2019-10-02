@@ -39,7 +39,7 @@ import { ContractTreeItem } from '../../extension/explorer/model/ContractTreeIte
 import { FABRIC_CLIENT_VERSION, FABRIC_NETWORK_VERSION, ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { InstantiatedUnknownTreeItem } from '../../extension/explorer/model/InstantiatedUnknownTreeItem';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
-
+import { InstantiatedTreeItem } from '../../extension/explorer/model/InstantiatedTreeItem';
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 // tslint:disable no-unused-expression
@@ -58,7 +58,6 @@ describe('testSmartContractCommand', () => {
     let allChildren: Array<BlockchainTreeItem>;
     let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
     let fabricConnectionManager: FabricConnectionManager;
-    let chaincodes: any[];
     let instantiatedSmartContract: InstantiatedContractTreeItem;
     let smartContractName: string;
     let smartContractLabel: string;
@@ -252,8 +251,6 @@ describe('testSmartContractCommand', () => {
                 {
                     name: 'wagonwheel',
                     version: '0.0.1',
-                    label: 'wagonwheel@0.0.1',
-                    channel: 'myEnglishChannel'
                 }
             ]);
             // Wallet stubs
@@ -272,9 +269,9 @@ describe('testSmartContractCommand', () => {
             // Explorer provider stuff
             blockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
             allChildren = await blockchainGatewayExplorerProvider.getChildren();
-            const channelChildren: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
-            chaincodes = channelChildren[0].chaincodes;
-            instantiatedSmartContract = chaincodes[0] as InstantiatedContractTreeItem;
+            const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+            const contracts: Array<InstantiatedTreeItem> =  await blockchainGatewayExplorerProvider.getChildren(channels[0]) as Array<InstantiatedTreeItem>;
+            instantiatedSmartContract = contracts[0];
 
             smartContractLabel = instantiatedSmartContract.label;
             smartContractName = instantiatedSmartContract.name;

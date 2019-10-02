@@ -299,6 +299,18 @@ describe('UpgradeCommand', () => {
             dockerLogSpy.should.have.been.called;
         });
 
+        it('should handle cancel choosing channel on upgrading from the contract on a tree', async () => {
+            showChannelQuickPickStub.resolves();
+
+            instantiatedSmartContractsList.length.should.equal(2);
+
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, instantiatedSmartContractsList[0] as InstalledChainCodeOpsTreeItem);
+
+            fabricRuntimeMock.upgradeChaincode.should.not.have.been.called;
+
+            reporterStub.should.not.have.been.called;
+        });
+
         it('should upgrade smart contract through the tree by right-clicking on a channel in the runtime ops view', async () => {
 
             executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });

@@ -105,6 +105,7 @@ import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 import { importNodesToEnvironment } from '../commands/importNodesToEnvironmentCommand';
 import { deleteNode } from '../commands/deleteNodeCommand';
+import { FabricChaincode } from '../fabric/FabricChaincode';
 import { ReactView } from '../webview/ReactView';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
@@ -137,7 +138,7 @@ export class ExtensionUtil {
         return this.getExtension().extensionPath;
     }
 
-    public static async getContractNameAndVersion(folder: vscode.WorkspaceFolder): Promise<{ name: string, version: string }> {
+    public static async getContractNameAndVersion(folder: vscode.WorkspaceFolder): Promise<FabricChaincode> {
         try {
             const packageJson: any = await this.loadJSON(folder, 'package.json');
             return { name: packageJson.name, version: packageJson.version };
@@ -349,7 +350,7 @@ export class ExtensionUtil {
                 if (e.configuration.env && e.configuration.env.CORE_CHAINCODE_ID_NAME) {
                     const smartContractName: string = e.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[0];
                     const smartContractVersion: string = e.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
-                    const instantiatedSmartContract: { name: string, version: string } = await FabricDebugConfigurationProvider.getInstantiatedChaincode(smartContractName);
+                    const instantiatedSmartContract: FabricChaincode = await FabricDebugConfigurationProvider.getInstantiatedChaincode(smartContractName);
 
                     if (!instantiatedSmartContract) {
                         await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST, ExtensionCommands.INSTANTIATE_SMART_CONTRACT);

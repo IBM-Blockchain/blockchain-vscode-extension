@@ -66,7 +66,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
             channelName = chosenSmartContract.data.channel;
             smartContract = chosenSmartContract.data.name;
         } else if (treeItem instanceof InstantiatedTreeItem) {
-            channelName = treeItem.channel.label;
+            channelName = treeItem.channels[0].label;
             smartContract = treeItem.name;
         }
 

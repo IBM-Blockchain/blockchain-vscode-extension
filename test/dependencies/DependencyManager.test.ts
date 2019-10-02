@@ -111,6 +111,7 @@ describe('DependencyManager Tests', () => {
         let basePath: string;
         let logSpy: sinon.SinonSpy;
         let extensionKindStub: sinon.SinonStub;
+        let electronStub: sinon.SinonStub;
 
         beforeEach(async () => {
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
@@ -149,6 +150,8 @@ describe('DependencyManager Tests', () => {
 
             extensionKindStub.onThirdCall().returns({extensionKind: 1});
             mySandBox.stub(process.versions, 'node').value('10.16.0');
+            process.versions['electron'] = '';
+            electronStub = mySandBox.stub(process.versions, 'electron' as any).value('');
         });
 
         afterEach(() => {
@@ -197,6 +200,31 @@ describe('DependencyManager Tests', () => {
 
             sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=10.16.0', '--runtime=node', '--update-binary', '--fallback-to-build', `--target_arch=x64`], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter));
 
+            existsStub.should.not.have.been.called;
+
+            writeFileStub.should.have.been.called;
+            utimesFileStub.should.have.been.called;
+        });
+
+        it('should install the dependencies using npm command on Linux with known electron version', async () => {
+            mySandBox.stub(process, 'platform').value('linux');
+
+            electronStub.value('6.0.9');
+
+            const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
+            const dependencyManager: DependencyManager = DependencyManager.instance();
+
+            mySandBox.stub(process, 'arch').value('x64');
+
+            await dependencyManager.installNativeDependencies();
+
+            dependencyManager['dependencies'].length.should.equal(1);
+            dependencyManager['dependencies'][0].should.equal('grpc');
+
+            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=6.0.9', '--runtime=electron', '--update-binary', '--fallback-to-build', `--target_arch=x64`, '--dist-url=https://atom.io/download/electron'], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter));
+
+            removeStub.should.not.have.been.called;
+            renameStub.should.not.have.been.called;
             existsStub.should.not.have.been.called;
 
             writeFileStub.should.have.been.called;

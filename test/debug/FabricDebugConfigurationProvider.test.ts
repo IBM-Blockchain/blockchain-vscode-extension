@@ -28,6 +28,7 @@ import { FabricEnvironmentRegistryEntry } from '../../extension/fabric/FabricEnv
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { GlobalState } from '../../extension/util/GlobalState';
+import { FabricChaincode } from '../../extension/fabric/FabricChaincode';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -102,7 +103,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             mockRuntimeConnection = sinon.createStubInstance(FabricEnvironmentConnection);
             mockRuntimeConnection.getAllPeerNames.resolves(['peerOne']);
-            const instantiatedChaincodes: { name: string, version: string }[] = [{ name: 'myOtherContract', version: 'vscode-debug-13232112018' }, { name: 'cake-network', version: 'vscode-debug-174758735087' }];
+            const instantiatedChaincodes: FabricChaincode[] = [{ name: 'myOtherContract', version: 'vscode-debug-13232112018' }, { name: 'cake-network', version: 'vscode-debug-174758735087' }];
             mockRuntimeConnection.getAllInstantiatedChaincodes.resolves(instantiatedChaincodes);
 
             getConnectionStub = mySandbox.stub(FabricEnvironmentManager.instance(), 'getConnection');
@@ -323,7 +324,7 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should restore from a previous debug session and use the last instantiated package of the same name', async () => {
-            const instantiatedChaincodes: { name: string, version: string }[] = [{ name: 'mySmartContract', version: '0.0.1' }, { name: 'cake-network', version: '0.0.2' }];
+            const instantiatedChaincodes: FabricChaincode[] = [{ name: 'mySmartContract', version: '0.0.1' }, { name: 'cake-network', version: '0.0.2' }];
             mockRuntimeConnection.getAllInstantiatedChaincodes.resolves(instantiatedChaincodes);
 
             runtimeStub.isRunning.onFirstCall().resolves(true);
@@ -345,7 +346,7 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should kill the container if there is a container running with the smart contract already', async () => {
-            const instantiatedChaincodes: { name: string, version: string }[] = [{ name: 'mySmartContract', version: '0.0.1' }, { name: 'cake-network', version: '0.0.2' }];
+            const instantiatedChaincodes: FabricChaincode[] = [{ name: 'mySmartContract', version: '0.0.1' }, { name: 'cake-network', version: '0.0.2' }];
             mockRuntimeConnection.getAllInstantiatedChaincodes.resolves(instantiatedChaincodes);
 
             runtimeStub.isRunning.resolves(true);

@@ -206,7 +206,7 @@ describe('UserInputUtil', () => {
 
             result.data.name.should.equal(environmentRegistry.name);
 
-            quickPickStub.should.have.been.calledWith([{ label: environmentRegistry.name, data: environmentRegistry }, {label: environmentRegistry2.name, data: environmentRegistry2}], {
+            quickPickStub.should.have.been.calledWith([{ label: environmentRegistry.name, data: environmentRegistry }, { label: environmentRegistry2.name, data: environmentRegistry2 }], {
                 ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'choose an environment'
@@ -294,12 +294,12 @@ describe('UserInputUtil', () => {
         it('should show multiple connections in the quickpick box', async () => {
             quickPickStub.resolves([
                 {
-                label: gatewayEntryOne.name,
-                data: gatewayEntryOne
-            }, {
-                label: gatewayEntryTwo.name,
-                data: gatewayEntryTwo
-            }]);
+                    label: gatewayEntryOne.name,
+                    data: gatewayEntryOne
+                }, {
+                    label: gatewayEntryTwo.name,
+                    data: gatewayEntryTwo
+                }]);
             const results: IBlockchainQuickPickItem<FabricGatewayRegistryEntry>[] = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', true) as IBlockchainQuickPickItem<FabricGatewayRegistryEntry>[];
 
             results[0].label.should.equal('myGatewayA');
@@ -638,7 +638,26 @@ describe('UserInputUtil', () => {
             const result: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel');
             result.should.deep.equal({ label: 'channelOne', data: ['myPeerOne', 'myPeerTwo'] });
 
-            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+            quickPickStub.should.have.been.calledWith([{ label: 'channelOne', data: ['myPeerOne', 'myPeerTwo'] }, { label: 'channelTwo', data: ['myPeerOne'] }], {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Choose a channel'
+            });
+        });
+
+        it('should use the channel map passed in', async () => {
+            const map: Map<string, Array<string>> = new Map<string, Array<string>>();
+            map.set('channelThree', ['myPeerOne', 'myPeerTwo']);
+            map.set('channelFour', ['myPeerOne']);
+            fabricRuntimeConnectionStub.createChannelMap.resolves(map);
+            quickPickStub.resolves({ label: 'channelThree', data: ['myPeerOne', 'myPeerTwo'] });
+
+            const result: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel', map);
+            result.should.deep.equal({ label: 'channelThree', data: ['myPeerOne', 'myPeerTwo'] });
+
+            fabricRuntimeConnectionStub.createChannelMap.should.not.have.been.called;
+
+            quickPickStub.should.have.been.calledWith([{ label: 'channelThree', data: ['myPeerOne', 'myPeerTwo'] }, { label: 'channelFour', data: ['myPeerOne'] }], {
                 ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'Choose a channel'
@@ -1273,7 +1292,9 @@ describe('UserInputUtil', () => {
     });
 
     describe('delayWorkaround', () => {
+
         let clock: sinon.SinonFakeTimers;
+
         beforeEach(() => {
             clock = sinon.useFakeTimers({ toFake: ['setTimeout'] });
         });
@@ -1343,10 +1364,10 @@ describe('UserInputUtil', () => {
                         version: '0.0.3'
                     }
                 }], {
-                    ignoreFocusOut: true,
-                    canPickMany: false,
-                    placeHolder: 'Please choose instantiated smart contract to test'
-                });
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Please choose instantiated smart contract to test'
+            });
         });
 
         it('should handle no instantiated chaincodes in connection', async () => {
@@ -1407,10 +1428,10 @@ describe('UserInputUtil', () => {
                         version: '0.0.3'
                     }
                 }], {
-                    ignoreFocusOut: true,
-                    canPickMany: false,
-                    placeHolder: 'Please choose instantiated smart contract to test'
-                });
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Please choose instantiated smart contract to test'
+            });
         });
 
         it('should handle no instantiated chaincodes in connection', async () => {
@@ -1782,12 +1803,12 @@ describe('UserInputUtil', () => {
         it('should show multiple wallets to select', async () => {
             quickPickStub.resolves([
                 {
-                label: walletEntryOne.name,
-                data: walletEntryOne
-            }, {
-                label: walletEntryTwo.name,
-                data: walletEntryTwo
-            }]);
+                    label: walletEntryOne.name,
+                    data: walletEntryOne
+                }, {
+                    label: walletEntryTwo.name,
+                    data: walletEntryTwo
+                }]);
             const results: IBlockchainQuickPickItem<FabricWalletRegistryEntry>[] = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet', true, false) as IBlockchainQuickPickItem<FabricWalletRegistryEntry>[];
 
             results[0].label.should.equal(walletEntryOne.name);
@@ -2085,10 +2106,10 @@ describe('UserInputUtil', () => {
                 { label: 'orderer.example.com', data: nodes[2] },
                 { label: 'orderer1.example.com', data: nodes[3] }
             ], {
-                    ignoreFocusOut: true,
-                    canPickMany: false,
-                    placeHolder: 'Gimme a node'
-                });
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Gimme a node'
+            });
         });
 
         it('should allow the user to select a node with associated identity', async () => {
@@ -2100,10 +2121,10 @@ describe('UserInputUtil', () => {
                 { label: 'orderer.example.com', data: nodes[2], description: `Associated with identity: ${nodes[0].identity} in wallet: ${nodes[2].wallet}` },
                 { label: 'orderer1.example.com', data: nodes[3], description: `Associated with identity: ${nodes[0].identity} in wallet: ${nodes[3].wallet}` },
             ], {
-                    ignoreFocusOut: true,
-                    canPickMany: false,
-                    placeHolder: 'Gimme a node'
-                });
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Gimme a node'
+            });
         });
 
         it('should not show quick pick if only one node', async () => {
@@ -2132,10 +2153,10 @@ describe('UserInputUtil', () => {
                 { label: 'orderer.example.com', data: nodes[2] },
                 { label: 'orderer1.example.com', data: nodes[3] }
             ], {
-                    ignoreFocusOut: true,
-                    canPickMany: false,
-                    placeHolder: 'Gimme a node'
-                });
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Gimme a node'
+            });
         });
 
         it('should show cluster name', async () => {
@@ -2148,10 +2169,10 @@ describe('UserInputUtil', () => {
                 { label: 'peer0.org1.example.com', data: nodes[0] },
                 { label: 'myCluster', data: nodes[2] }
             ], {
-                    ignoreFocusOut: true,
-                    canPickMany: false,
-                    placeHolder: 'Gimme a node'
-                });
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Gimme a node'
+            });
         });
 
         it('should show cluster name with associated identity', async () => {
@@ -2164,10 +2185,10 @@ describe('UserInputUtil', () => {
                 { label: 'peer0.org1.example.com', data: nodes[0], description: `Associated with identity: ${nodes[0].identity} in wallet: ${nodes[0].wallet}` },
                 { label: 'myCluster', data: nodes[2], description: `Associated with identity: ${nodes[2].identity} in wallet: ${nodes[2].wallet}` }
             ], {
-                    ignoreFocusOut: true,
-                    canPickMany: false,
-                    placeHolder: 'Gimme a node'
-                });
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Gimme a node'
+            });
         });
 
         it('should handle no nodes found', async () => {
@@ -2269,13 +2290,13 @@ describe('UserInputUtil', () => {
 
             const pathOne: string = path.join('some', 'path');
             const uriOne: vscode.Uri = vscode.Uri.file(pathOne);
-            const folders: Array<any> = [ { name: 'project_1', uri: uriOne } ];
+            const folders: Array<any> = [{ name: 'project_1', uri: uriOne }];
             const showWorkspaceQuickPickBoxStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
-            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns( folders );
-            showWorkspaceQuickPickBoxStub.withArgs( 'Choose a workspace folder to package').resolves( {data: folders[0]} );
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns(folders);
+            showWorkspaceQuickPickBoxStub.withArgs('Choose a workspace folder to package').resolves({ data: folders[0] });
 
-            const result: vscode.WorkspaceFolder = await UserInputUtil.chooseWorkspace( true );
-            result.should.equal( folders[0] );
+            const result: vscode.WorkspaceFolder = await UserInputUtil.chooseWorkspace(true);
+            result.should.equal(folders[0]);
             showWorkspaceQuickPickBoxStub.should.not.have.been.called;
         });
 
@@ -2283,13 +2304,13 @@ describe('UserInputUtil', () => {
 
             const pathOne: string = path.join('some', 'path');
             const uriOne: vscode.Uri = vscode.Uri.file(pathOne);
-            const folders: Array<any> = [ { name: 'project_1', uri: uriOne } ];
-            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns( folders );
+            const folders: Array<any> = [{ name: 'project_1', uri: uriOne }];
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns(folders);
             const showWorkspaceQuickPickBoxStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
-            showWorkspaceQuickPickBoxStub.withArgs( 'Choose a workspace folder to create functional tests for').resolves( {data: folders[0]} );
+            showWorkspaceQuickPickBoxStub.withArgs('Choose a workspace folder to create functional tests for').resolves({ data: folders[0] });
 
-            const result: vscode.WorkspaceFolder = await UserInputUtil.chooseWorkspace( false );
-            result.should.equal( folders[0] );
+            const result: vscode.WorkspaceFolder = await UserInputUtil.chooseWorkspace(false);
+            result.should.equal(folders[0]);
             showWorkspaceQuickPickBoxStub.should.have.been.calledOnce;
         });
 
@@ -2303,17 +2324,17 @@ describe('UserInputUtil', () => {
                 { name: 'project_1', uri: uriOne },
                 { name: 'biscuit-network', uri: uriTwo }
             ];
-            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns( folders );
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns(folders);
             const showWorkspaceQuickPickBoxStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
-            showWorkspaceQuickPickBoxStub.withArgs( 'Choose a workspace folder to package').resolves( {data: folders[0]} );
-            showWorkspaceQuickPickBoxStub.withArgs( 'Choose a workspace folder to create functional tests for').resolves( {data: folders[1]} );
+            showWorkspaceQuickPickBoxStub.withArgs('Choose a workspace folder to package').resolves({ data: folders[0] });
+            showWorkspaceQuickPickBoxStub.withArgs('Choose a workspace folder to create functional tests for').resolves({ data: folders[1] });
 
-            let result: vscode.WorkspaceFolder = await UserInputUtil.chooseWorkspace( true );
-            result.should.equal( folders[0] );
+            let result: vscode.WorkspaceFolder = await UserInputUtil.chooseWorkspace(true);
+            result.should.equal(folders[0]);
             showWorkspaceQuickPickBoxStub.should.have.been.calledOnce;
 
-            result = await UserInputUtil.chooseWorkspace( false );
-            result.should.equal( folders[1] );
+            result = await UserInputUtil.chooseWorkspace(false);
+            result.should.equal(folders[1]);
             showWorkspaceQuickPickBoxStub.should.have.been.calledTwice;
         });
 
@@ -2327,22 +2348,22 @@ describe('UserInputUtil', () => {
                 { name: 'project_1', uri: uriOne },
                 { name: 'biscuit-network', uri: uriTwo }
             ];
-            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns( folders );
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns(folders);
             const showWorkspaceQuickPickBoxStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
             showWorkspaceQuickPickBoxStub.resolves();
 
-            let result: vscode.WorkspaceFolder = await UserInputUtil.chooseWorkspace( true );
+            let result: vscode.WorkspaceFolder = await UserInputUtil.chooseWorkspace(true);
             showWorkspaceQuickPickBoxStub.should.have.been.calledOnce;
             should.equal(result, undefined);
 
-            result = await UserInputUtil.chooseWorkspace( false );
+            result = await UserInputUtil.chooseWorkspace(false);
             showWorkspaceQuickPickBoxStub.should.have.been.calledTwice;
             should.equal(result, undefined);
         });
 
         it('should handle error from get workspace folders', async () => {
 
-            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns( [] );
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([]);
             const showWorkspaceQuickPickBoxStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
             showWorkspaceQuickPickBoxStub.resolves();
 
@@ -2352,7 +2373,7 @@ describe('UserInputUtil', () => {
             let result: vscode.WorkspaceFolder;
             let errorCount: number = 0;
             try {
-                result = await UserInputUtil.chooseWorkspace( true );
+                result = await UserInputUtil.chooseWorkspace(true);
             } catch (err) {
                 should.equal(result, undefined);
                 should.equal(err.message, errorPackage.message);
@@ -2360,7 +2381,7 @@ describe('UserInputUtil', () => {
             }
 
             try {
-                result = await UserInputUtil.chooseWorkspace( false );
+                result = await UserInputUtil.chooseWorkspace(false);
             } catch (err) {
                 should.equal(result, undefined);
                 should.equal(err.message, errorTests.message);

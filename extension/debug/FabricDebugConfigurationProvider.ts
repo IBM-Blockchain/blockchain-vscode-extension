@@ -25,15 +25,16 @@ import { URL } from 'url';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
+import { FabricChaincode } from '../fabric/FabricChaincode';
 
 export abstract class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
-    public static async getInstantiatedChaincode(chaincodeName: string): Promise<{ name: string, version: string }> {
+    public static async getInstantiatedChaincode(chaincodeName: string): Promise<FabricChaincode> {
         // Determine what smart contracts are instantiated already
         // Assume Local Fabric has one peer
         const connection: IFabricEnvironmentConnection = await this.getConnection();
-        const allInstantiatedContracts: { name: string, version: string }[] = await connection.getAllInstantiatedChaincodes();
-        const smartContractVersionName: { name: string, version: string } = allInstantiatedContracts.find((contract: { name: string, version: string }) => {
+        const allInstantiatedContracts: FabricChaincode[] = await connection.getAllInstantiatedChaincodes();
+        const smartContractVersionName: FabricChaincode = allInstantiatedContracts.find((contract: FabricChaincode) => {
             return contract.name === chaincodeName;
         });
 
@@ -99,7 +100,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                 chaincodeName = config.env.CORE_CHAINCODE_ID_NAME.split(':')[0];
                 chaincodeVersion = config.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
             } else {
-                const nameAndVersion: { name: string, version: string } = await this.getChaincodeNameAndVersion(folder);
+                const nameAndVersion: FabricChaincode = await this.getChaincodeNameAndVersion(folder);
 
                 if (!nameAndVersion || !nameAndVersion.name || !nameAndVersion.version) {
                     // User probably cancelled the prompt for the name.
@@ -112,7 +113,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             const replaceRegex: RegExp = /@.*?\//;
             chaincodeName = chaincodeName.replace(replaceRegex, '');
 
-            const smartContract: { name: string, version: string } = await FabricDebugConfigurationProvider.getInstantiatedChaincode(chaincodeName);
+            const smartContract: FabricChaincode = await FabricDebugConfigurationProvider.getInstantiatedChaincode(chaincodeName);
 
             if (smartContract) {
                 const isContainerRunning: boolean = await this.runtime.isRunning([smartContract.name, smartContract.version]);
@@ -149,7 +150,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
         }
     }
 
-    protected abstract async getChaincodeNameAndVersion(folder: vscode.WorkspaceFolder | undefined): Promise<{ name: string, version: string }>;
+    protected abstract async getChaincodeNameAndVersion(folder: vscode.WorkspaceFolder | undefined): Promise<FabricChaincode>;
 
     protected async getChaincodeAddress(): Promise<string> {
         // Need to strip off the protocol (grpc:// or grpcs://).
