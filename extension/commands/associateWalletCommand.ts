@@ -15,11 +15,11 @@
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { GatewayDissociatedTreeItem } from '../explorer/model/GatewayDissociatedTreeItem';
 import { LogType } from '../logging/OutputAdapter';
-import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
-import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
-import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
+import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
+import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
+import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 

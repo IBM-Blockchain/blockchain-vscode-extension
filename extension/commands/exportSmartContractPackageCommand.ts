@@ -17,7 +17,7 @@ import * as vscode from 'vscode';
 import { Reporter } from '../util/Reporter';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { PackageTreeItem } from '../explorer/model/PackageTreeItem';
-import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
+import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';

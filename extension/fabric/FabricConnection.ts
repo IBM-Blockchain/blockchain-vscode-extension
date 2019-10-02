@@ -19,7 +19,7 @@ import { OutputAdapter } from '../logging/OutputAdapter';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { FabricWallet } from './FabricWallet';
 import { URL } from 'url';
-import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
+import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 import { FabricChaincode } from './FabricChaincode';
 
 export abstract class FabricConnection {

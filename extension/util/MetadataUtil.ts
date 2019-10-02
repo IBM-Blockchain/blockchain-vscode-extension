@@ -15,7 +15,7 @@
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
-import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { FabricRuntime } from '../fabric/FabricRuntime';

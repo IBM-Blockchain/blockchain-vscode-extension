@@ -23,7 +23,7 @@ import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnec
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { URL } from 'url';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { FabricChaincode } from '../fabric/FabricChaincode';
 

@@ -25,13 +25,13 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { FabricEnvironmentRegistryEntry } from '../../extension/fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
-import { FabricEnvironmentRegistry } from '../../extension/fabric/FabricEnvironmentRegistry';
-import { FabricWalletRegistryEntry } from '../../extension/fabric/FabricWalletRegistryEntry';
+import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
+import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
 import { FabricNode } from '../../extension/fabric/FabricNode';
-import { FabricWalletRegistry } from '../../extension/fabric/FabricWalletRegistry';
+import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
 

@@ -25,13 +25,13 @@ import { SampleView } from '../../extension/webview/SampleView';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { CommandUtil } from '../../extension/util/CommandUtil';
 import { TestUtil } from '../TestUtil';
-import { RepositoryRegistry } from '../../extension/repositories/RepositoryRegistry';
+import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistry';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import * as ejs from 'ejs';
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { View } from '../../extension/webview/View';
 import { Reporter } from '../../extension/util/Reporter';
-import { RepositoryRegistryEntry } from '../../extension/repositories/RepositoryRegistryEntry';
+import { RepositoryRegistryEntry } from '../../extension/registries/RepositoryRegistryEntry';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);

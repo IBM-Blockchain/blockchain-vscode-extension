@@ -20,7 +20,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { TestUtil } from '../TestUtil';
-import { FabricGatewayRegistry } from '../../extension/fabric/FabricGatewayRegistry';
+import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';

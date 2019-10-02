@@ -16,13 +16,13 @@ import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
-import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { FabricNode } from '../fabric/FabricNode';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { NodeTreeItem } from '../explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironmentRegistry } from '../fabric/FabricEnvironmentRegistry';
+import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function deleteNode(nodeTreeItem: NodeTreeItem): Promise<void> {

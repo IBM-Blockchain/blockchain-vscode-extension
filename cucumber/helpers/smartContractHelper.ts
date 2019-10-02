@@ -24,8 +24,8 @@ import { UserInputUtilHelper } from './userInputUtilHelper';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { CommandUtil } from '../../extension/util/CommandUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { PackageRegistry } from '../../extension/packages/PackageRegistry';
-import { PackageRegistryEntry } from '../../extension/packages/PackageRegistryEntry';
+import { PackageRegistry } from '../../extension/registries/PackageRegistry';
+import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';

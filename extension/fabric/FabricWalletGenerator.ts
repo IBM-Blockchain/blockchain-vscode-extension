@@ -21,8 +21,8 @@ import { UserInputUtil } from '../commands/UserInputUtil';
 import { IFabricWalletGenerator } from './IFabricWalletGenerator';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricWalletUtil } from './FabricWalletUtil';
-import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
-import { FabricWalletRegistry } from './FabricWalletRegistry';
+import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
 
 export class FabricWalletGenerator implements IFabricWalletGenerator {
 

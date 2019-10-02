@@ -18,7 +18,7 @@ import { OutputAdapter, LogType } from '../logging/OutputAdapter';
 import { IFabricEnvironmentConnection } from './IFabricEnvironmentConnection';
 import * as Client from 'fabric-client';
 import * as FabricCAServices from 'fabric-ca-client';
-import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
+import { PackageRegistryEntry } from '../registries//PackageRegistryEntry';
 import * as fs from 'fs-extra';
 import { FabricNode, FabricNodeType } from './FabricNode';
 import { IFabricWalletGenerator } from './IFabricWalletGenerator';

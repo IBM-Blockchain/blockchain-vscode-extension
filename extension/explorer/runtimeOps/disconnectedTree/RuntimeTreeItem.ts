@@ -21,7 +21,7 @@ import { FabricRuntime } from '../../../fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../../../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../../logging/OutputAdapter';
 import { FabricEnvironmentTreeItem } from './FabricEnvironmentTreeItem';
-import { FabricEnvironmentRegistryEntry } from '../../../fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../../../registries/FabricEnvironmentRegistryEntry';
 
 export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
 

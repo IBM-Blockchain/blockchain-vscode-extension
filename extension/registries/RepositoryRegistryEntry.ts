@@ -12,7 +12,7 @@
  * limitations under the License.
 */
 
-import { FabricRegistryEntry } from '../fabric/FabricRegistryEntry';
+import { FabricRegistryEntry } from './FabricRegistryEntry';
 
 export class RepositoryRegistryEntry extends FabricRegistryEntry {
 

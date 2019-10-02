@@ -20,8 +20,8 @@ import { LocalGatewayTreeItem } from '../../../extension/explorer/model/LocalGat
 import { BlockchainGatewayExplorerProvider } from '../../../extension/explorer/gatewayExplorer';
 import { FabricRuntimeManager } from '../../../extension/fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../../extension/fabric/FabricRuntime';
-import { FabricGatewayRegistry } from '../../../extension/fabric/FabricGatewayRegistry';
-import { FabricGatewayRegistryEntry } from '../../../extension/fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistry } from '../../../extension/registries/FabricGatewayRegistry';
+import { FabricGatewayRegistryEntry } from '../../../extension/registries/FabricGatewayRegistryEntry';
 import { ExtensionUtil } from '../../../extension/util/ExtensionUtil';
 import { TestUtil } from '../../TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../../extension/logging/VSCodeBlockchainOutputAdapter';

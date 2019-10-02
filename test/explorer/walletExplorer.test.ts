@@ -25,7 +25,7 @@ import { LogType } from '../../extension/logging/OutputAdapter';
 import { WalletTreeItem } from '../../extension/explorer/wallets/WalletTreeItem';
 import { LocalWalletTreeItem } from '../../extension/explorer/wallets/LocalWalletTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricWalletRegistryEntry } from '../../extension/fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
 import { FabricWallet } from '../../extension/fabric/FabricWallet';
 import { IdentityTreeItem } from '../../extension/explorer/model/IdentityTreeItem';
 import { FabricWalletGeneratorFactory } from '../../extension/fabric/FabricWalletGeneratorFactory';
@@ -39,7 +39,7 @@ import { FabricIdentity } from '../../extension/fabric/FabricIdentity';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricCertificate } from '../../extension/fabric/FabricCertificate';
 import { IFabricWallet } from '../../extension/fabric/IFabricWallet';
-import { FabricWalletRegistry } from '../../extension/fabric/FabricWalletRegistry';
+import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 chai.use(sinonChai);

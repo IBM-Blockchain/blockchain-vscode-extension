@@ -21,7 +21,7 @@ import * as vscode from 'vscode';
 import { FabricNode } from '../../../extension/fabric/FabricNode';
 import { NodeTreeItem } from '../../../extension/explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { BlockchainExplorerProvider } from '../../../extension/explorer/BlockchainExplorerProvider';
-import { FabricEnvironmentRegistryEntry } from '../../../extension/fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../../../extension/registries/FabricEnvironmentRegistryEntry';
 
 class TestTreeItem extends NodeTreeItem {
 

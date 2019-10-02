@@ -13,8 +13,8 @@
 */
 
 import * as vscode from 'vscode';
-import { FabricRegistry } from '../../extension/fabric/FabricRegistry';
-import { FabricRegistryEntry } from '../../extension/fabric/FabricRegistryEntry';
+import { FabricRegistry } from '../../extension/registries/FabricRegistry';
+import { FabricRegistryEntry } from '../../extension/registries/FabricRegistryEntry';
 
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';

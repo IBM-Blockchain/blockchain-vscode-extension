@@ -20,8 +20,8 @@ import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnviro
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
 import { TestUtil } from '../TestUtil';
-import { FabricEnvironmentRegistry } from '../../extension/fabric/FabricEnvironmentRegistry';
-import { FabricEnvironmentRegistryEntry } from '../../extension/fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
+import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
 import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
 import { Reporter } from '../../extension/util/Reporter';

@@ -15,7 +15,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { ConnectedTreeItem } from '../../../extension/explorer/model/ConnectedTreeItem';
-import { FabricGatewayRegistryEntry } from '../../../extension/fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../../../extension/registries/FabricGatewayRegistryEntry';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';

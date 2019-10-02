@@ -16,7 +16,7 @@ import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { FabricEnvironmentRegistryEntry } from '../../extension/fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
 
 const should: Chai.Should = chai.should();

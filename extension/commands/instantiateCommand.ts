@@ -17,15 +17,15 @@ import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
 import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
 import { Reporter } from '../util/Reporter';
-import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
+import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
-import { PackageRegistry } from '../packages/PackageRegistry';
+import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
+import { PackageRegistry } from '../registries/PackageRegistry';
 
 export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, channelName?: string, peerNames?: Array<string>): Promise<void> {
 
