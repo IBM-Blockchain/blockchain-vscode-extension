@@ -15,9 +15,9 @@
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { GatewayAssociatedTreeItem } from '../explorer/model/GatewayAssociatedTreeItem';
 import { LogType } from '../logging/OutputAdapter';
-import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
+import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 

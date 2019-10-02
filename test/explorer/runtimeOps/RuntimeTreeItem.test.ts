@@ -24,8 +24,8 @@ import { VSCodeBlockchainOutputAdapter } from '../../../extension/logging/VSCode
 import { LogType } from '../../../extension/logging/OutputAdapter';
 import { FabricRuntimeUtil } from '../../../extension/fabric/FabricRuntimeUtil';
 import { BlockchainEnvironmentExplorerProvider } from '../../../extension/explorer/environmentExplorer';
-import { FabricEnvironmentRegistry } from '../../../extension/fabric/FabricEnvironmentRegistry';
-import { FabricEnvironmentRegistryEntry } from '../../../extension/fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistry } from '../../../extension/registries/FabricEnvironmentRegistry';
+import { FabricEnvironmentRegistryEntry } from '../../../extension/registries/FabricEnvironmentRegistryEntry';
 
 describe('RuntimeTreeItem', () => {
 

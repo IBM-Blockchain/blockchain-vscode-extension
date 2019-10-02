@@ -16,7 +16,7 @@ import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
-import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { SettingConfigurations } from '../../SettingConfigurations';

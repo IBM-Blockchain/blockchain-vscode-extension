@@ -41,10 +41,10 @@ import { CertificateAuthorityTreeItem } from './runtimeOps/connectedTree/Certifi
 import { OrdererTreeItem } from './runtimeOps/connectedTree/OrdererTreeItem';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { FabricNode, FabricNodeType } from '../fabric/FabricNode';
-import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager, ConnectedState } from '../fabric/FabricEnvironmentManager';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
-import { FabricEnvironmentRegistry } from '../fabric/FabricEnvironmentRegistry';
+import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
 import { FabricEnvironmentTreeItem } from './runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { SetupTreeItem } from './runtimeOps/identitySetupTree/SetupTreeItem';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';

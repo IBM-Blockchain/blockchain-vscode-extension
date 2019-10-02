@@ -12,7 +12,7 @@
  * limitations under the License.
 */
 
-import { FabricGatewayRegistry } from '../../extension/fabric/FabricGatewayRegistry';
+import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
@@ -24,18 +24,18 @@ import * as sinon from 'sinon';
 import { FabricWallet } from '../../extension/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
 import * as vscode from 'vscode';
-import { FabricGatewayRegistryEntry } from '../../extension/fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { FabricGateway } from '../../extension/fabric/FabricGateway';
-import { FabricWalletRegistryEntry } from '../../extension/fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
 import { FabricWalletGeneratorFactory } from '../../extension/fabric/FabricWalletGeneratorFactory';
 import { CommandUtil } from '../../extension/util/CommandUtil';
 import { version } from '../../package.json';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry } from '../../extension/fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';

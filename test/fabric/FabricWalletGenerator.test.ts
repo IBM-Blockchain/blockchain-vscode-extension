@@ -20,8 +20,8 @@ import * as fs from 'fs-extra';
 import { FabricWallet } from '../../extension/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { FabricWalletRegistryEntry } from '../../extension/fabric/FabricWalletRegistryEntry';
-import { FabricWalletRegistry } from '../../extension/fabric/FabricWalletRegistry';
+import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 
 chai.use(sinonChai);

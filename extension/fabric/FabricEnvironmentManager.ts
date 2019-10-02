@@ -14,7 +14,7 @@
 
 import { EventEmitter } from 'events';
 import { IFabricEnvironmentConnection } from './IFabricEnvironmentConnection';
-import { FabricEnvironmentRegistryEntry } from './FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 
 export enum ConnectedState {
     CONNECTED,

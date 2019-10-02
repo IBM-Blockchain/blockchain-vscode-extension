@@ -13,7 +13,7 @@
 */
 'use strict';
 
-import { FabricRegistryEntry } from '../fabric/FabricRegistryEntry';
+import { FabricRegistryEntry } from './FabricRegistryEntry';
 
 export class PackageRegistryEntry extends FabricRegistryEntry {
 

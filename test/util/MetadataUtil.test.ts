@@ -20,7 +20,7 @@ import { MetadataUtil } from '../../extension/util/MetadataUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
-import { FabricGatewayRegistryEntry } from '../../extension/fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 
 import * as vscode from 'vscode';

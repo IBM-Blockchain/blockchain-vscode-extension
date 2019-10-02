@@ -18,10 +18,10 @@ import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { LogType } from '../logging/OutputAdapter';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
-import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 
 export async function restartFabricRuntime(): Promise<void> {

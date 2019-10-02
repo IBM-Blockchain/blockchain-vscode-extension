@@ -14,8 +14,8 @@
 import * as vscode from 'vscode';
 import { PackageTreeItem } from './model/PackageTreeItem';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
-import { PackageRegistry } from '../packages/PackageRegistry';
-import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
+import { PackageRegistry } from '../registries/PackageRegistry';
+import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 
 export class BlockchainPackageExplorerProvider implements BlockchainExplorerProvider {

@@ -19,7 +19,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType } from '../logging/OutputAdapter';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { ExtensionUtil } from '../util/ExtensionUtil';
-import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';

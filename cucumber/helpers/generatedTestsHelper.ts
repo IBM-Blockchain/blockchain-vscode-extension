@@ -20,8 +20,8 @@ import { UserInputUtilHelper } from './userInputUtilHelper';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { CommandUtil } from '../../extension/util/CommandUtil';
 import { SmartContractHelper, LanguageType } from './smartContractHelper';
-import { FabricGatewayRegistryEntry } from '../../extension/fabric/FabricGatewayRegistryEntry';
-import { FabricGatewayRegistry } from '../../extension/fabric/FabricGatewayRegistry';
+import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 
 export class GeneratedTestsHelper {

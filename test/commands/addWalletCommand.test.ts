@@ -27,8 +27,8 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
 import { FabricWallet } from '../../extension/fabric/FabricWallet';
 import { SettingConfigurations } from '../../SettingConfigurations';
-import { FabricWalletRegistry } from '../../extension/fabric/FabricWalletRegistry';
-import { FabricWalletRegistryEntry } from '../../extension/fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
+import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
 
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();

@@ -18,7 +18,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
-import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';

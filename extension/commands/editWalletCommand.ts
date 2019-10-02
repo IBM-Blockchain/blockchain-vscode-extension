@@ -16,8 +16,8 @@ import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
-import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
-import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
+import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
 export async function editWalletCommand(treeItem: WalletTreeItem): Promise<void> {

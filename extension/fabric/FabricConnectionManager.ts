@@ -13,8 +13,8 @@
 */
 
 import { EventEmitter } from 'events';
-import { FabricGatewayRegistryEntry } from './FabricGatewayRegistryEntry';
-import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
+import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 import { IFabricClientConnection } from './IFabricClientConnection';
 
 export class FabricConnectionManager extends EventEmitter {

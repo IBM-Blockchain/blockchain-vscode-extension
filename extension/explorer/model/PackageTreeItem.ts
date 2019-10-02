@@ -15,7 +15,7 @@
 import * as vscode from 'vscode';
 import { BlockchainTreeItem } from './BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
-import { PackageRegistryEntry } from '../../packages/PackageRegistryEntry';
+import { PackageRegistryEntry } from '../../registries/PackageRegistryEntry';
 
 export class PackageTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-package-item';

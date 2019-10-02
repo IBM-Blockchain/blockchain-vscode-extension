@@ -23,7 +23,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { BlockchainWalletExplorerProvider } from '../../extension/explorer/walletExplorer';
 import { WalletTreeItem } from '../../extension/explorer/wallets/WalletTreeItem';
-import { FabricWalletRegistry } from '../../extension/fabric/FabricWalletRegistry';
+import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 

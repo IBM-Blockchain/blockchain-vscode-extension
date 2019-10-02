@@ -16,7 +16,7 @@ import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
 import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import * as path from 'path';
-import { FabricWalletRegistryEntry } from '../../fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistryEntry } from '../../registries/FabricWalletRegistryEntry';
 
 export class WalletTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-wallet-item';

@@ -16,7 +16,7 @@
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
-import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';

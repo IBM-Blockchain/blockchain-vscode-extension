@@ -18,7 +18,7 @@ import * as path from 'path';
 import { UserInputUtil } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
 import {ChaincodeType} from 'fabric-client';
-import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
+import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';

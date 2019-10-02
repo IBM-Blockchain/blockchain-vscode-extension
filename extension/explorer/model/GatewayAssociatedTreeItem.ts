@@ -15,7 +15,7 @@
 import * as vscode from 'vscode';
 // import * as path from 'path';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
-import { FabricGatewayRegistryEntry } from '../../fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../../registries/FabricGatewayRegistryEntry';
 import { GatewayTreeItem } from './GatewayTreeItem';
 
 export class GatewayAssociatedTreeItem extends GatewayTreeItem {

@@ -21,8 +21,8 @@ import { LogType } from '../logging/OutputAdapter';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { FabricEnvironmentTreeItem } from '../explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
-import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
-import { FabricEnvironmentRegistry } from '../fabric/FabricEnvironmentRegistry';
+import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 

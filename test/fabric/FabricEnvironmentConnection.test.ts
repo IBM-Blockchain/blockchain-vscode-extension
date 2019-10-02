@@ -24,7 +24,7 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { PackageRegistryEntry } from '../../extension/packages/PackageRegistryEntry';
+import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { FabricNodeType, FabricNode } from '../../extension/fabric/FabricNode';
 import { FabricWalletGeneratorFactory } from '../../extension/fabric/FabricWalletGeneratorFactory';
@@ -36,8 +36,8 @@ import { ConsoleOutputAdapter } from '../../extension/logging/ConsoleOutputAdapt
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
 import { IFabricEnvironmentConnection } from '../../extension/fabric/IFabricEnvironmentConnection';
-import { FabricWalletRegistryEntry } from '../../extension/fabric/FabricWalletRegistryEntry';
-import { FabricWalletRegistry } from '../../extension/fabric/FabricWalletRegistry';
+import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 import { FabricChaincode } from '../../extension/fabric/FabricChaincode';
 
 const should: Chai.Should = chai.should();

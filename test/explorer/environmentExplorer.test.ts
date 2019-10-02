@@ -43,10 +43,10 @@ import { OrdererTreeItem } from '../../extension/explorer/runtimeOps/connectedTr
 import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
 import { FabricNode } from '../../extension/fabric/FabricNode';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry } from '../../extension/fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
-import { FabricEnvironmentRegistry } from '../../extension/fabric/FabricEnvironmentRegistry';
+import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
 import { EnvironmentConnectedTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/EnvironmentConnectedTreeItem';
 import { ImportNodesTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/ImportNodesTreeItem';
