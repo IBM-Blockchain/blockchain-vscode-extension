@@ -356,7 +356,7 @@ describe('UserInputUtil', () => {
 
         it('should show identity names in the quickpick box', async () => {
             quickPickStub.resolves(FabricRuntimeUtil.ADMIN_USER);
-            const result: string = await UserInputUtil.showIdentitiesQuickPickBox('choose an identity to connect with', identities);
+            const result: string = await UserInputUtil.showIdentitiesQuickPickBox('choose an identity to connect with', false, identities) as string;
 
             result.should.equal(FabricRuntimeUtil.ADMIN_USER);
             quickPickStub.should.have.been.calledWith([FabricRuntimeUtil.ADMIN_USER, 'Test@org1.example.com'], {
@@ -366,9 +366,25 @@ describe('UserInputUtil', () => {
             });
         });
 
+        it('should show multiple identity names in the quickpick box', async () => {
+            identities = [FabricRuntimeUtil.ADMIN_USER, 'bob', 'jack'];
+            quickPickStub.resolves([FabricRuntimeUtil.ADMIN_USER, 'bob', 'jack']);
+            const result: string[] = await UserInputUtil.showIdentitiesQuickPickBox('choose identity', true, identities) as string [];
+
+            result.length.should.equal(3);
+            result[0].should.equal(FabricRuntimeUtil.ADMIN_USER);
+            result[1].should.equal('bob');
+            result[2].should.equal('jack');
+            quickPickStub.should.have.been.calledWith([FabricRuntimeUtil.ADMIN_USER, 'bob', 'jack'], {
+                ignoreFocusOut: true,
+                canPickMany: true,
+                placeHolder: 'choose identity'
+            });
+        });
+
         it('should show identity names and add identity in the quickpick box', async () => {
             quickPickStub.resolves(FabricRuntimeUtil.ADMIN_USER);
-            const result: string = await UserInputUtil.showIdentitiesQuickPickBox('choose an identity to connect with', identities, true);
+            const result: string = await UserInputUtil.showIdentitiesQuickPickBox('choose an identity to connect with', false, identities, true) as string;
 
             result.should.equal(FabricRuntimeUtil.ADMIN_USER);
             quickPickStub.should.have.been.calledWith([FabricRuntimeUtil.ADMIN_USER, 'Test@org1.example.com', UserInputUtil.ADD_IDENTITY], {

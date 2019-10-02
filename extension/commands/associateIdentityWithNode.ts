@@ -133,7 +133,7 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
                 // cas might not have msp id in
                 identityMessage = `Select the admin identity`;
             }
-            let chosenIdentity: string = await UserInputUtil.showIdentitiesQuickPickBox(identityMessage, identitiies, true);
+            let chosenIdentity: string = await UserInputUtil.showIdentitiesQuickPickBox(identityMessage, false, identitiies, true) as string;
 
             if (!chosenIdentity) {
                 return;

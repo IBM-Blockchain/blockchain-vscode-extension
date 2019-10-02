@@ -256,11 +256,11 @@ export class UserInputUtil {
         return dir;
     }
 
-    public static showIdentitiesQuickPickBox(prompt: string, identities: string[], showCreate: boolean = false): Thenable<string> {
+    public static showIdentitiesQuickPickBox(prompt: string, canPickMany: boolean, identities: string[], showCreate: boolean = false): Thenable<string | string[]> {
 
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
-            canPickMany: false,
+            canPickMany: canPickMany,
             placeHolder: prompt
         };
 

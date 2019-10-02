@@ -110,7 +110,7 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
     // Get the identities
     const identityNames: string[] = await wallet.getIdentityNames();
     if (identityNames.length > 1) {
-        identityName = await UserInputUtil.showIdentitiesQuickPickBox('Choose an identity to connect with', identityNames);
+        identityName = await UserInputUtil.showIdentitiesQuickPickBox('Choose an identity to connect with', false, identityNames) as string;
         if (!identityName) {
             // User cancelled selecting an identity
             return;
