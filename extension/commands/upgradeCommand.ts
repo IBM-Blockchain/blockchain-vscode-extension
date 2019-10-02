@@ -99,7 +99,7 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
 
         if (!vscode.debug.activeDebugSession) {
             // If not called from debug session, ask for smart contract to upgrade with
-            chosenChaincode = await UserInputUtil.showChaincodeAndVersionQuickPick('Select the smart contract version to perform an upgrade with', peerNames, contractName, contractVersion);
+            chosenChaincode = await UserInputUtil.showChaincodeAndVersionQuickPick('Select the smart contract version to perform an upgrade with', channelName, peerNames, contractName, contractVersion);
             if (!chosenChaincode) {
                 return;
             }

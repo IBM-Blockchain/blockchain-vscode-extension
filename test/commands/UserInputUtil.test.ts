@@ -512,6 +512,17 @@ describe('UserInputUtil', () => {
             result.should.deep.equal(['myPeerOne']);
         });
 
+        it('should show the peer names passed in', async () => {
+            quickPickStub.resolves(['peerThree']);
+            const result: string[] = await UserInputUtil.showPeersQuickPickBox('Choose a peer', ['peerThree', 'peerFour']);
+            quickPickStub.should.have.been.calledWith(['peerThree', 'peerFour'], {
+                ignoreFocusOut: true,
+                canPickMany: true,
+                placeHolder: 'Choose a peer'
+            });
+            result.should.deep.equal(['peerThree']);
+        });
+
         it('should not show quickPick if only one peer', async () => {
             fabricRuntimeConnectionStub.getAllPeerNames.returns(['myPeerOne']);
 
@@ -682,7 +693,6 @@ describe('UserInputUtil', () => {
     });
 
     describe('showChaincodeAndVersionQuickPick', () => {
-
         it('should show chaincode and version quick pick', async () => {
             const packagedOne: PackageRegistryEntry = new PackageRegistryEntry({
                 name: 'biscuit-network',
@@ -711,7 +721,7 @@ describe('UserInputUtil', () => {
 
             mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([packagedOne, packagedTwo, packagedThree]);
 
-            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', ['myPeerOne']);
+            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', 'channelOne', ['myPeerOne', 'myPeerTwo']);
             quickPickStub.getCall(0).args[0].should.deep.equal([
                 {
                     label: 'jaffa-network@0.0.1',
@@ -781,7 +791,7 @@ describe('UserInputUtil', () => {
             readFileStub.withArgs(path.join(pathTwo, 'package.json'), 'utf8').resolves('{"name": "biscuit-network", "version": "0.0.3"}');
 
             mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([packagedOne, packagedTwo]);
-            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', ['myPeerOne'], 'biscuit-network', '0.0.1');
+            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', 'channelOne', ['myPeerOne', 'myPeerTwo'], 'biscuit-network', '0.0.1');
 
             quickPickStub.getCall(0).args[0].should.deep.equal([
                 {
@@ -819,7 +829,7 @@ describe('UserInputUtil', () => {
             chaincodeMap2.set('biscuit-network', ['0.0.1', '0.0.3']);
             fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerTwo').resolves(chaincodeMap2);
 
-            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', ['myPeerOne', 'myPeerTwo'], 'biscuit-network', '0.0.1');
+            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', 'channelOne', ['myPeerOne', 'myPeerTwo'], 'biscuit-network', '0.0.1');
 
             quickPickStub.getCall(0).args[0].length.should.equal(2);
             quickPickStub.getCall(0).args[0].should.deep.equal([
@@ -839,7 +849,7 @@ describe('UserInputUtil', () => {
         it('should give error if no connection', async () => {
             environmentStub.returns(undefined);
 
-            const result: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', ['myPeerOne']);
+            const result: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', 'myChannel', ['myPeerOne']);
 
             should.not.exist(result);
 

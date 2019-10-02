@@ -45,7 +45,11 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
             // Clicked on peer in runtimes view to install
             peerNames = new Set([treeItem.peerName]);
         } else {
-            const chosenPeerNames: string[] = await UserInputUtil.showPeersQuickPickBox('Choose which peers to install the smart contract on');
+            let peerNameArray: string[];
+            if (peerNames) {
+                peerNameArray = Array.from(peerNames);
+            }
+            const chosenPeerNames: string[] = await UserInputUtil.showPeersQuickPickBox('Choose which peers to install the smart contract on', peerNameArray);
             if (!chosenPeerNames || chosenPeerNames.length === 0) {
                 return;
             }
