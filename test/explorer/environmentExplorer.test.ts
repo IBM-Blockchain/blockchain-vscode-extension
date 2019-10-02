@@ -50,6 +50,8 @@ import { FabricEnvironmentRegistry } from '../../extension/fabric/FabricEnvironm
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
 import { EnvironmentConnectedTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/EnvironmentConnectedTreeItem';
 import { ImportNodesTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/ImportNodesTreeItem';
+import { InstalledChainCodeOpsTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/InstalledChainCodeOpsTreeItem';
+import { InstallCommandTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/InstallCommandTreeItem';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -356,6 +358,7 @@ describe('environmentExplorer', () => {
 
                 const installedChaincodeMapTwo: Map<string, Array<string>> = new Map<string, Array<string>>();
                 installedChaincodeMapTwo.set('biscuit-network', ['0.7']);
+                installedChaincodeMapTwo.set('sample-food-network', ['0.6']);
                 fabricConnection.getInstalledChaincode.withArgs('peerTwo').returns(installedChaincodeMapTwo);
 
                 fabricConnection.getInstantiatedChaincode.withArgs(['peerOne'], 'channelOne').resolves([{
@@ -736,26 +739,27 @@ describe('environmentExplorer', () => {
                 const contractTreeItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
                 const installedContractsTree: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
                 installedContractsTree.length.should.equal(5);
-                const installedContractOne: InstantiateCommandTreeItem = installedContractsTree[0] as InstantiateCommandTreeItem;
+                const installedContractOne: InstalledChainCodeOpsTreeItem = installedContractsTree[0] as InstalledChainCodeOpsTreeItem;
                 installedContractOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 installedContractOne.contextValue.should.equal('blockchain-runtime-installed-chaincode-item');
                 installedContractOne.label.should.equal('sample-car-network@1.0');
                 installedContractOne.tooltip.should.equal('Installed on: peerOne');
-                const installedContractTwo: InstantiateCommandTreeItem = installedContractsTree[1] as InstantiateCommandTreeItem;
+                const installedContractTwo: InstalledChainCodeOpsTreeItem = installedContractsTree[1] as InstalledChainCodeOpsTreeItem;
                 installedContractTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 installedContractTwo.contextValue.should.equal('blockchain-runtime-installed-chaincode-item');
                 installedContractTwo.label.should.equal('sample-car-network@1.2');
                 installedContractTwo.tooltip.should.equal('Installed on: peerOne');
-                const installedContractThree: InstantiateCommandTreeItem = installedContractsTree[2] as InstantiateCommandTreeItem;
+                const installedContractThree: InstalledChainCodeOpsTreeItem = installedContractsTree[2] as InstalledChainCodeOpsTreeItem;
                 installedContractThree.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 installedContractThree.contextValue.should.equal('blockchain-runtime-installed-chaincode-item');
-                installedContractThree.label.should.equal('sample-food-network@0.6');
-                installedContractThree.tooltip.should.equal('Installed on: peerOne');
-                const installedContractFour: InstantiateCommandTreeItem = installedContractsTree[3] as InstantiateCommandTreeItem;
+                installedContractThree.label.should.equal('biscuit-network@0.7');
+                installedContractThree.tooltip.should.equal('Installed on: peerTwo');
+                const installedContractFour: InstalledChainCodeOpsTreeItem = installedContractsTree[3] as InstalledChainCodeOpsTreeItem;
                 installedContractFour.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 installedContractFour.contextValue.should.equal('blockchain-runtime-installed-chaincode-item');
-                installedContractFour.label.should.equal('biscuit-network@0.7');
-                const installCommandTreeItem: InstantiateCommandTreeItem = installedContractsTree[4] as InstantiateCommandTreeItem;
+                installedContractFour.label.should.equal('sample-food-network@0.6');
+                installedContractFour.tooltip.should.equal('Installed on: peerOne, peerTwo');
+                const installCommandTreeItem: InstallCommandTreeItem = installedContractsTree[4] as InstallCommandTreeItem;
                 installCommandTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 installCommandTreeItem.contextValue.should.equal('blockchain-runtime-installed-command-item');
                 installCommandTreeItem.label.should.equal('+ Install');
@@ -776,14 +780,19 @@ describe('environmentExplorer', () => {
 
                 const contractTreeItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
                 const installedContractsTree: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
-                installedContractsTree.length.should.equal(2);
+                installedContractsTree.length.should.equal(3);
 
-                const installedContractOne: InstantiateCommandTreeItem = installedContractsTree[0] as InstantiateCommandTreeItem;
+                const installedContractOne: InstalledChainCodeOpsTreeItem = installedContractsTree[0] as InstalledChainCodeOpsTreeItem;
                 installedContractOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 installedContractOne.contextValue.should.equal('blockchain-runtime-installed-chaincode-item');
                 installedContractOne.label.should.equal('biscuit-network@0.7');
 
-                const installCommandTreeItem: InstantiateCommandTreeItem = installedContractsTree[1] as InstantiateCommandTreeItem;
+                const installedContractTwo: InstalledChainCodeOpsTreeItem = installedContractsTree[1] as InstalledChainCodeOpsTreeItem;
+                installedContractTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                installedContractTwo.contextValue.should.equal('blockchain-runtime-installed-chaincode-item');
+                installedContractTwo.label.should.equal('sample-food-network@0.6');
+
+                const installCommandTreeItem: InstallCommandTreeItem = installedContractsTree[2] as InstallCommandTreeItem;
                 installCommandTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 installCommandTreeItem.contextValue.should.equal('blockchain-runtime-installed-command-item');
                 installCommandTreeItem.label.should.equal('+ Install');
@@ -805,7 +814,7 @@ describe('environmentExplorer', () => {
                 const installedContractsTree: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
                 installedContractsTree.length.should.equal(1);
 
-                const installCommandTreeItem: InstantiateCommandTreeItem = installedContractsTree[0] as InstantiateCommandTreeItem;
+                const installCommandTreeItem: InstallCommandTreeItem = installedContractsTree[0] as InstallCommandTreeItem;
                 installCommandTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 installCommandTreeItem.contextValue.should.equal('blockchain-runtime-installed-command-item');
                 installCommandTreeItem.label.should.equal('+ Install');
