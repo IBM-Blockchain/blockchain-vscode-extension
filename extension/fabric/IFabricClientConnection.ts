@@ -14,7 +14,7 @@
 'use strict';
 
 import { IFabricWallet } from './IFabricWallet';
-import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
+import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 
 export interface IFabricClientConnection {
 

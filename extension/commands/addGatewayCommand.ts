@@ -17,11 +17,11 @@ import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
-import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
-import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
+import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
-import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { FabricNode, FabricNodeType } from '../fabric/FabricNode';
 
 export async function addGateway(): Promise<{} | void> {

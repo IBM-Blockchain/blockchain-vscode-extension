@@ -15,7 +15,7 @@
 // tslint:disable no-unused-expression
 import * as vscode from 'vscode';
 import { FabricClientConnection } from '../../extension/fabric/FabricClientConnection';
-import { FabricGatewayRegistryEntry } from '../../extension/fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';

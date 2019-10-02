@@ -16,7 +16,7 @@ import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
 import { FabricNode } from '../../../fabric/FabricNode';
 import { NodeTreeItem } from './NodeTreeItem';
-import { FabricEnvironmentRegistryEntry } from '../../../fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../../../registries/FabricEnvironmentRegistryEntry';
 
 export class OrdererTreeItem extends NodeTreeItem {
     contextValue: string = 'blockchain-runtime-orderer-item';

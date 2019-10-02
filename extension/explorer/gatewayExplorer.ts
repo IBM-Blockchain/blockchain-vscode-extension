@@ -22,7 +22,7 @@ import { GatewayAssociatedTreeItem } from './model/GatewayAssociatedTreeItem';
 import { GatewayDissociatedTreeItem } from './model/GatewayDissociatedTreeItem';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
-import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { TransactionTreeItem } from './model/TransactionTreeItem';
 import { InstantiatedChaincodeTreeItem } from './model/InstantiatedChaincodeTreeItem';
 import { ConnectedTreeItem } from './model/ConnectedTreeItem';
@@ -32,7 +32,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType } from '../logging/OutputAdapter';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { LocalGatewayTreeItem } from './model/LocalGatewayTreeItem';
-import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
+import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedContractTreeItem } from './model/InstantiatedContractTreeItem';
 import { InstantiatedTreeItem } from './runtimeOps/connectedTree/InstantiatedTreeItem';

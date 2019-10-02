@@ -12,7 +12,7 @@
  * limitations under the License.
 */
 
-import { FabricRegistry } from '../fabric/FabricRegistry';
+import { FabricRegistry } from './FabricRegistry';
 import { RepositoryRegistryEntry } from './RepositoryRegistryEntry';
 import { SettingConfigurations } from '../../SettingConfigurations';
 

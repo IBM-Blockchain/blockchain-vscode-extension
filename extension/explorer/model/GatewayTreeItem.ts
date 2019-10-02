@@ -15,7 +15,7 @@
 import * as vscode from 'vscode';
 import { BlockchainTreeItem } from './BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
-import { FabricGatewayRegistryEntry } from '../../fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../../registries/FabricGatewayRegistryEntry';
 
 export class GatewayTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-gateway-item';

@@ -16,8 +16,8 @@ import { FabricConnectionManager } from '../../extension/fabric/FabricConnection
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { FabricGatewayRegistryEntry } from '../../extension/fabric/FabricGatewayRegistryEntry';
-import { FabricWalletRegistryEntry } from '../../extension/fabric/FabricWalletRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
+import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
 import { FabricClientConnection } from '../../extension/fabric/FabricClientConnection';
 
 const should: Chai.Should = chai.should();

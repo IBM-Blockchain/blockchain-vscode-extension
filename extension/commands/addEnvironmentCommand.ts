@@ -18,8 +18,8 @@ import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
-import { FabricEnvironmentRegistry } from '../fabric/FabricEnvironmentRegistry';
-import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
+import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function addEnvironment(): Promise<void> {

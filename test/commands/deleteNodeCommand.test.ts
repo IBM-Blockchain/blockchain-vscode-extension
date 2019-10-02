@@ -23,12 +23,12 @@ import { LogType } from '../../extension/logging/OutputAdapter';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
-import { FabricEnvironmentRegistryEntry } from '../../extension/fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricNode } from '../../extension/fabric/FabricNode';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
 import { PeerTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/PeerTreeItem';
-import { FabricEnvironmentRegistry } from '../../extension/fabric/FabricEnvironmentRegistry';
+import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 
 chai.should();

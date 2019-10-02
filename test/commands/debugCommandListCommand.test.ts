@@ -24,7 +24,7 @@ import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManage
 import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
 import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
-import { FabricGatewayRegistryEntry } from '../../extension/fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
 import { LogType } from '../../extension/logging/OutputAdapter';

@@ -23,11 +23,11 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { Reporter } from '../util/Reporter';
 import { CommandUtil } from '../util/CommandUtil';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
-import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { MetadataUtil } from '../util/MetadataUtil';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 import { ContractTreeItem } from '../explorer/model/ContractTreeItem';
 import { FABRIC_CLIENT_VERSION, FABRIC_NETWORK_VERSION } from '../util/ExtensionUtil';

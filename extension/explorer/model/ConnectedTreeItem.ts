@@ -15,7 +15,7 @@
 import { BlockchainTreeItem } from './BlockchainTreeItem';
 import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
-import { FabricGatewayRegistryEntry } from '../../fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../../registries/FabricGatewayRegistryEntry';
 import * as path from 'path';
 import { FabricRuntimeUtil } from '../../fabric/FabricRuntimeUtil';
 

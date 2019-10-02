@@ -13,7 +13,7 @@
 */
 
 import * as vscode from 'vscode';
-import { FabricGatewayRegistry } from '../../extension/fabric/FabricGatewayRegistry';
+import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricRuntime } from '../../extension/fabric/FabricRuntime';

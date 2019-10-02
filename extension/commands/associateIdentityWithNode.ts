@@ -15,10 +15,10 @@
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
-import { FabricEnvironmentRegistry } from '../fabric/FabricEnvironmentRegistry';
-import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
+import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { FabricNode, FabricNodeType } from '../fabric/FabricNode';
 import { IFabricWallet } from '../fabric/IFabricWallet';

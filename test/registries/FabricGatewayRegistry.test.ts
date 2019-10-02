@@ -12,17 +12,18 @@
  * limitations under the License.
 */
 
+import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
+
 import * as chai from 'chai';
+import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
-import { RepositoryRegistry } from '../../extension/repositories/RepositoryRegistry';
-import { RepositoryRegistryEntry } from '../../extension/repositories/RepositoryRegistryEntry';
 
 chai.should();
 
-describe('RepositoryRegistryEntry', () => {
+describe('FabricGatewayRegistry', () => {
 
-    const registry: RepositoryRegistry = RepositoryRegistry.instance();
+    const registry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
 
     before(async () => {
         await TestUtil.storeAll();
@@ -41,14 +42,14 @@ describe('RepositoryRegistryEntry', () => {
         await registry.clear();
     });
 
-    it('should manage repository registry', async () => {
-        const entry: RepositoryRegistryEntry = new RepositoryRegistryEntry({
-            name: 'some-repository',
-            path: '/some/path'
+    it('should manage configuration for connections', async () => {
+        const gateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
+            name: 'my-fabric-network',
+            associatedWallet: ''
         });
         registry.getAll().should.deep.equal([]);
-        await registry.add(entry);
-        registry.getAll().should.deep.equal([entry]);
+        await registry.add(gateway);
+        registry.getAll().should.deep.equal([gateway]);
     });
 
 });

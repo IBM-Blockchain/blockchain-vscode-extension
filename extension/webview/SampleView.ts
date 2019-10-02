@@ -22,13 +22,13 @@ import * as fs from 'fs-extra';
 import Axios from 'axios';
 import * as showdown from 'showdown';
 import * as os from 'os';
-import { RepositoryRegistry } from '../repositories/RepositoryRegistry';
+import { RepositoryRegistry } from '../registries/RepositoryRegistry';
 import * as shell from 'shelljs';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import * as ejs from 'ejs';
 import { LogType } from '../logging/OutputAdapter';
 import { View } from './View';
-import { RepositoryRegistryEntry } from '../repositories/RepositoryRegistryEntry';
+import { RepositoryRegistryEntry } from '../registries/RepositoryRegistryEntry';
 
 export class SampleView extends View {
 

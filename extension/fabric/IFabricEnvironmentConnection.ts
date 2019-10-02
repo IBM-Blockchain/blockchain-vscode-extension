@@ -13,7 +13,7 @@
 */
 'use strict';
 
-import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
+import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { IFabricWallet } from './IFabricWallet';
 import { FabricNode } from './FabricNode';
 import { Attribute } from './FabricCertificate';

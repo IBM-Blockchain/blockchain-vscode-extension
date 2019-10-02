@@ -70,12 +70,12 @@ import { PeerTreeItem } from '../explorer/runtimeOps/connectedTree/PeerTreeItem'
 import { BlockchainWalletExplorerProvider } from '../explorer/walletExplorer';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
-import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { IFabricWallet } from '../fabric/IFabricWallet';
 import { LogType } from '../logging/OutputAdapter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
+import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { HomeView } from '../webview/HomeView';
 import { SampleView } from '../webview/SampleView';
 import { TutorialGalleryView } from '../webview/TutorialGalleryView';
@@ -88,7 +88,7 @@ import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/Runtime
 import { addEnvironment } from '../commands/addEnvironmentCommand';
 import { FabricEnvironmentTreeItem } from '../explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { deleteEnvironment } from '../commands/deleteEnvironmentCommand';
-import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { FabricNode } from '../fabric/FabricNode';
 import { associateIdentityWithNode } from '../commands/associateIdentityWithNode';
 import { fabricEnvironmentConnect } from '../commands/environmentConnectCommand';

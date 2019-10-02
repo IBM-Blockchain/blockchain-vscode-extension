@@ -17,7 +17,7 @@
 import { BlockchainTreeItem } from '../../model/BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
 import * as vscode from 'vscode';
-import { FabricEnvironmentRegistryEntry } from '../../../fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../../../registries/FabricEnvironmentRegistryEntry';
 
 export class FabricEnvironmentTreeItem extends BlockchainTreeItem {
 
