@@ -128,7 +128,11 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
 
         try {
             progress.report({ message: `${actioning} transaction ${transactionName}` });
-            outputAdapter.log(LogType.INFO, undefined, `${actioning} transaction ${transactionName} with args ${args}`);
+            if (args.length === 0) {
+                outputAdapter.log(LogType.INFO, undefined, `${actioning} transaction ${transactionName} with no args on channel ${channelName}`);
+            } else {
+                outputAdapter.log(LogType.INFO, undefined, `${actioning} transaction ${transactionName} with args ${args} on channel ${channelName}`);
+            }
 
             const gatewayRegistyrEntry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
             if (gatewayRegistyrEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {

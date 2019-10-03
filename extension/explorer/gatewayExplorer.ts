@@ -35,7 +35,7 @@ import { LocalGatewayTreeItem } from './model/LocalGatewayTreeItem';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedContractTreeItem } from './model/InstantiatedContractTreeItem';
-import { InstantiatedTreeItem } from './runtimeOps/connectedTree/InstantiatedTreeItem';
+import { InstantiatedTreeItem } from './model/InstantiatedTreeItem';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 import { InstantiatedMultiContractTreeItem } from './model/InstantiatedMultiContractTreeItem';
 import { InstantiatedUnknownTreeItem } from './model/InstantiatedUnknownTreeItem';
@@ -238,8 +238,8 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
 
         for (const chaincode of channelTreeElement.chaincodes) {
             // Is the chaincode in the this.instantiatedChaincodeTreeItems store?
-            const index: number = this.instantiatedChaincodeTreeItems.findIndex((treeItem: any) => {
-                return `${chaincode.name}@${chaincode.version}` === treeItem.label;
+            const index: number = this.instantiatedChaincodeTreeItems.findIndex((treeItem: InstantiatedTreeItem) => {
+                return `${chaincode.name}@${chaincode.version}` === treeItem.label && treeItem.channels[0].label === channelTreeElement.label;
             });
             if (index !== -1) {
                 // Push the stored tree item to the tree
