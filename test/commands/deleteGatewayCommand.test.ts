@@ -107,7 +107,7 @@ describe('DeleteGatewayCommand', () => {
 
         it('should test multiple gateways can be deleted from the command', async () => {
 
-            const gatewayA: FabricGatewayRegistryEntry =  await FabricGatewayRegistry.instance().get('myGatewayA');
+            const gatewayA: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayA');
             const gatewayB: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayB');
 
             showGatewayQuickPickBoxStub.resolves([{
