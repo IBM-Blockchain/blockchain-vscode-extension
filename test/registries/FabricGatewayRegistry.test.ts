@@ -16,7 +16,6 @@ import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayR
 
 import * as chai from 'chai';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 
 chai.should();
@@ -26,7 +25,7 @@ describe('FabricGatewayRegistry', () => {
     const registry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
 
     before(async () => {
-        await TestUtil.storeAll();
+        await TestUtil.setupTests();
     });
 
     after(async () => {
@@ -34,7 +33,6 @@ describe('FabricGatewayRegistry', () => {
     });
 
     beforeEach(async () => {
-        await ExtensionUtil.activateExtension();
         await registry.clear();
     });
 
@@ -47,9 +45,8 @@ describe('FabricGatewayRegistry', () => {
             name: 'my-fabric-network',
             associatedWallet: ''
         });
-        registry.getAll().should.deep.equal([]);
+        await registry.getAll().should.eventually.deep.equal([]);
         await registry.add(gateway);
-        registry.getAll().should.deep.equal([gateway]);
+        await registry.getAll().should.eventually.deep.equal([gateway]);
     });
-
 });

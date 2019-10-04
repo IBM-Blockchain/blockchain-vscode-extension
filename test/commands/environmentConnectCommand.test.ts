@@ -105,9 +105,10 @@ describe('EnvironmentConnectCommand', () => {
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
+            const environment: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get('myFabric');
             chooseEnvironmentQuickPick = mySandBox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox').resolves({
                 label: 'myFabric',
-                data: FabricEnvironmentRegistry.instance().get('myFabric')
+                data: environment
             });
 
             sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');

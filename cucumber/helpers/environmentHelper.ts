@@ -75,7 +75,7 @@ export class EnvironmentHelper {
 
     public async deleteNode(nodeName: string, environmentName: string): Promise<void> {
         this.userInputUtilHelper.showConfirmationWarningMessageStub.resolves('yes');
-        const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentRegistry.instance().get(environmentName);
+        const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
         this.userInputUtilHelper.showEnvironmentQuickPickStub.resolves({ label: environmentName, data: fabricEnvironmentRegistryEntry });
 
         const environment: FabricEnvironment = new FabricEnvironment(environmentName);
@@ -92,13 +92,13 @@ export class EnvironmentHelper {
 
     public async deleteEnvironment(environmentName: string): Promise<void> {
         this.userInputUtilHelper.showConfirmationWarningMessageStub.resolves('yes');
-        const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentRegistry.instance().get(environmentName);
+        const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
         this.userInputUtilHelper.showEnvironmentQuickPickStub.resolves({ label: environmentName, data: fabricEnvironmentRegistryEntry });
         await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
     }
 
     public async associateNodeWithIdentitiy(environmentName: string, nodeName: string, identityName: string, walletName: string): Promise<void> {
-        const walletReigstryEntry: FabricWalletRegistryEntry = FabricWalletRegistry.instance().get(walletName);
+        const walletReigstryEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletName);
         this.userInputUtilHelper.showWalletsQuickPickStub.resolves({ label: walletName, data: walletReigstryEntry });
         this.userInputUtilHelper.showIdentitiesQuickPickStub.resolves(identityName);
         this.userInputUtilHelper.showQuickPickStub.resolves('Use ID and secret to enroll a new identity');
@@ -114,7 +114,7 @@ export class EnvironmentHelper {
             return;
         }
 
-        const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentRegistry.instance().get(environmentName);
+        const environmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
 
         await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, environmentRegistryEntry, node);
     }
@@ -127,7 +127,7 @@ export class EnvironmentHelper {
             registryEntry.managedRuntime = true;
             registryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
         } else {
-            registryEntry = FabricEnvironmentRegistry.instance().get(environment);
+            registryEntry = await FabricEnvironmentRegistry.instance().get(environment);
         }
 
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, registryEntry);

@@ -12,11 +12,11 @@
  * limitations under the License.
 */
 'use strict';
-import { FabricRegistry } from './FabricRegistry';
+import { SettingsRegistry } from './SettingsRegistry';
 import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
 import { SettingConfigurations } from '../../SettingConfigurations';
 
-export class FabricWalletRegistry extends FabricRegistry<FabricWalletRegistryEntry> {
+export class FabricWalletRegistry extends SettingsRegistry<FabricWalletRegistryEntry> {
 
     public static instance(): FabricWalletRegistry {
         return FabricWalletRegistry._instance;

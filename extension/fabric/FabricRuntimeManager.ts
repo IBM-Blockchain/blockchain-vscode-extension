@@ -33,7 +33,7 @@ import { FabricRuntimeUtil } from './FabricRuntimeUtil';
 import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager } from './FabricEnvironmentManager';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
-import { UserInputUtil } from '../commands/UserInputUtil';
+import { FileSystemUtil } from '../util/FileSystemUtil';
 
 export class FabricRuntimeManager {
 
@@ -202,7 +202,7 @@ export class FabricRuntimeManager {
     private async migrateRuntimeFolder(): Promise<void> {
         // Move runtime folder under environments
         let extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-        extDir = UserInputUtil.getDirPath(extDir);
+        extDir = FileSystemUtil.getDirPath(extDir);
         const runtimesExtDir: string = path.join(extDir, 'runtime');
         const exists: boolean = await fs.pathExists(runtimesExtDir);
         if (exists) {

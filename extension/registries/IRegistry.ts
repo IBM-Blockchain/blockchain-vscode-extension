@@ -14,12 +14,19 @@
 
 import { RegistryEntry } from './RegistryEntry';
 
-export class FabricEnvironmentRegistryEntry extends RegistryEntry {
+export interface IRegistry<T extends RegistryEntry> {
 
-    public managedRuntime: boolean;
-    public associatedWallet: string;
-    constructor(fields?: FabricEnvironmentRegistryEntry) {
-        super();
-        Object.assign(this, fields);
-    }
+    getAll(): Promise<T[]>;
+
+    get(name: string): Promise<T>;
+
+    exists(name: string): Promise<boolean>;
+
+    add(entry: T): Promise<void>;
+
+    update(newEntry: T): Promise<void>;
+
+    delete(name: string): Promise<void>;
+
+    clear(): Promise<void>;
 }

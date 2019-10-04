@@ -25,6 +25,7 @@ import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentR
 import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { FileSystemUtil } from '../util/FileSystemUtil';
 
 export async function deleteEnvironment(environment: FabricEnvironmentTreeItem | FabricEnvironmentRegistryEntry, force: boolean = false): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -36,7 +37,7 @@ export async function deleteEnvironment(environment: FabricEnvironmentTreeItem |
             // If called from command palette
             // Ask for environment to delete
             // First check there is at least one that isn't local_fabric
-            const environments: Array<FabricEnvironmentRegistryEntry> = FabricEnvironmentRegistry.instance().getAll();
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
             if (environments.length === 0) {
                 outputAdapter.log(LogType.ERROR, `No environments to delete. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be deleted.`);
                 return;
@@ -70,7 +71,7 @@ export async function deleteEnvironment(environment: FabricEnvironmentTreeItem |
         }
 
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+        const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
         const environmentPath: string = path.join(homeExtDir, 'environments', environmentRegistryEntry.name);
         await fs.remove(environmentPath);
 

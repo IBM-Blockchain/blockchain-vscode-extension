@@ -31,10 +31,14 @@ import { version as currentExtensionVersion } from '../package.json';
 import { SettingConfigurations } from '../SettingConfigurations';
 import { UserInputUtil } from './commands/UserInputUtil';
 import { GlobalState, ExtensionData } from './util/GlobalState';
+import { FabricWalletUtil } from './fabric/FabricWalletUtil';
+import { FabricGatewayHelper } from './fabric/FabricGatewayHelper';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
 
     GlobalState.setExtensionContext(context);
+
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
     const originalExtensionData: ExtensionData = GlobalState.get();
     const newExtensionData: ExtensionData = {
@@ -52,6 +56,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     if (originalExtensionData.migrationCheck !== newExtensionData.migrationCheck) {
         // Migrate old user setting configurations to use newer values
         await ExtensionUtil.migrateSettingConfigurations();
+
+        // Remove managedWallet boolean from wallets in user settings
+        // Ensure wallets are stored correctly
+        outputAdapter.log(LogType.INFO, undefined, 'Tidying wallet and gateway settings');
+        await FabricWalletUtil.tidyWalletSettings();
+        // Ensure gateways are stored correctly
+        await FabricGatewayHelper.migrateGateways();
     }
 
     await GlobalState.update(newExtensionData);
@@ -64,7 +75,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         await Reporter.instance().dispose();
     }
 
-    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     // Show the output adapter if the extension has been updated.
     if (extensionUpdated) {
         outputAdapter.show();

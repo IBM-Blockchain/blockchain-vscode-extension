@@ -964,20 +964,6 @@ describe('UserInputUtil', () => {
         });
     });
 
-    describe('getDirPath', () => {
-        it('should replace ~ with the users home directory', () => {
-            const packageDirOriginal: string = '~/smartContractDir';
-            const packageDirNew: string = UserInputUtil.getDirPath(packageDirOriginal);
-            packageDirNew.should.not.contain('~');
-        });
-
-        it('should not replace if not ~', () => {
-            const packageDirOriginal: string = '/banana/smartContractDir';
-            const packageDirNew: string = UserInputUtil.getDirPath(packageDirOriginal);
-            packageDirNew.should.equal(packageDirOriginal);
-        });
-    });
-
     describe('browse', () => {
         it('should finish if user cancels selecting to browse', async () => {
             const placeHolder: string = 'Enter a file path to the connection profile file';

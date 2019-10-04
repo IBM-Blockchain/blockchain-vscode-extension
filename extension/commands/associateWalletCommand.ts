@@ -35,7 +35,7 @@ export async function associateWallet(gatewayTreeItem: GatewayDissociatedTreeIte
         // Ask for gateway
         // Check there is at least one that is not local_fabric
         let gateways: Array<FabricGatewayRegistryEntry> = [];
-        gateways = FabricGatewayRegistry.instance().getAll();
+        gateways = await FabricGatewayRegistry.instance().getAll();
         if (gateways.length === 0) {
             outputAdapter.log(LogType.ERROR, `Add a gateway to associate a wallet. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is associated with ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}.`, `Add a gateway to associate a wallet. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is associated with ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}.`);
             return;
@@ -53,7 +53,7 @@ export async function associateWallet(gatewayTreeItem: GatewayDissociatedTreeIte
     // Get a wallet to associate
     // Check there is at least one that is not local_fabric_wallet
     let wallets: Array<FabricWalletRegistryEntry> = [];
-    wallets = FabricWalletRegistry.instance().getAll();
+    wallets = await FabricWalletRegistry.instance().getAll();
     if (wallets.length === 0) {
         outputAdapter.log(LogType.ERROR, `You must first add a wallet, to then associate with this gateway`);
         return;

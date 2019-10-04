@@ -33,7 +33,7 @@ export async function dissociateWallet(associatedGatewayTreeItem: GatewayAssocia
         // Ask for gateway
         // Check there is at least one that is not local_fabric
         let gateways: Array<FabricGatewayRegistryEntry> = [];
-        gateways = FabricGatewayRegistry.instance().getAll();
+        gateways = await FabricGatewayRegistry.instance().getAll();
         if (gateways.length === 0) {
             outputAdapter.log(LogType.ERROR, `No gateways to dissociate found. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} cannot be dissociated from ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}.`, `No gateways to dissociate found. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} cannot be dissociated from ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}.`);
             return;

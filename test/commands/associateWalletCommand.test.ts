@@ -80,7 +80,8 @@ describe('AssociateWalletCommand', () => {
             await FabricWalletRegistry.instance().add(connectionOneWallet);
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            fabricGatewayRegistryUpdateStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'update').resolves();
+            fabricGatewayRegistryUpdateStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'update');
+            fabricGatewayRegistryUpdateStub.callThrough();
             showWalletsQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox');
             showGatewayQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox');
 
@@ -154,9 +155,10 @@ describe('AssociateWalletCommand', () => {
         });
 
         it('should test a wallet can be associated with a gateway using the command', async () => {
+            const gateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGateway');
             showGatewayQuickPickBoxStub.resolves({
                 label: 'myGateway',
-                data: FabricGatewayRegistry.instance().get('myGateway')
+                data: gateway
             });
 
             showWalletsQuickPickBoxStub.resolves({
@@ -191,14 +193,17 @@ describe('AssociateWalletCommand', () => {
             const error: Error = new Error('cannot write to file');
             fabricGatewayRegistryUpdateStub.throws(error);
 
+            const gateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGateway');
+
             showGatewayQuickPickBoxStub.resolves({
                 label: 'myGateway',
-                data: FabricGatewayRegistry.instance().get('myGateway')
+                data: gateway
             });
 
+            const wallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('blueWallet');
             showWalletsQuickPickBoxStub.resolves({
                 label: 'blueWallet',
-                data: FabricWalletRegistry.instance().get('blueWallet')
+                data: wallet
             });
 
             await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_WALLET).should.have.rejectedWith(`Unable to associate wallet: ${error.message}`);

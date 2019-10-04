@@ -16,10 +16,10 @@ import { PackageRegistryEntry } from './PackageRegistryEntry';
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { UserInputUtil } from '../commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { FileSystemUtil } from '../util/FileSystemUtil';
 
 export class PackageRegistry {
 
@@ -37,6 +37,7 @@ export class PackageRegistry {
         const _package: PackageRegistryEntry = packages.find((pkg: PackageRegistryEntry) => {
             return pkg.name === name && pkg.version === version;
         });
+
         return _package;
     }
 
@@ -49,11 +50,10 @@ export class PackageRegistry {
     }
 
     private async getEntries(): Promise<PackageRegistryEntry[]> {
-
         // Determine the directory that will contain the packages and ensure it exists.
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const pkgDir: string = path.join(extDir, 'packages');
-        const resolvedPkgDir: string = UserInputUtil.getDirPath(pkgDir);
+        const resolvedPkgDir: string = FileSystemUtil.getDirPath(pkgDir);
         await fs.ensureDir(resolvedPkgDir);
 
         // Read the list of files and process them.
@@ -103,7 +103,5 @@ export class PackageRegistry {
 
         // Return the list of package registry entries.
         return pkgRegistryEntries;
-
     }
-
 }

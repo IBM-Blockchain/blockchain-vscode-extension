@@ -97,8 +97,6 @@ import { DependencyManager } from '../dependencies/DependencyManager';
 import { GlobalState, ExtensionData } from './GlobalState';
 import { TemporaryCommandRegistry } from '../dependencies/TemporaryCommandRegistry';
 import { version as currentExtensionVersion, dependencies } from '../../package.json';
-import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
-import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { UserInputUtil } from '../commands/UserInputUtil';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
@@ -437,13 +435,6 @@ export class ExtensionUtil {
             // Open the Home page
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_HOME_PAGE);
         }
-
-        // Remove managedWallet boolean from wallets in user settings
-        // Ensure wallets are stored correctly
-        outputAdapter.log(LogType.INFO, undefined, 'Tidying wallet and gateway settings');
-        await FabricWalletUtil.tidyWalletSettings();
-        // Ensure gateways are stored correctly
-        await FabricGatewayHelper.migrateGateways();
 
         // Check if there is a newer version of the generator available
         // This needs to be done as a seperate call to make sure the dependencies have been installed

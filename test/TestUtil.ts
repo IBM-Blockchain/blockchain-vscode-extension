@@ -17,6 +17,8 @@
 import { ExtensionUtil } from '../extension/util/ExtensionUtil';
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
+import * as sinon from 'sinon';
+import * as path from 'path';
 import { SettingConfigurations } from '../SettingConfigurations';
 import { SinonSandbox, SinonStub } from 'sinon';
 import { UserInputUtil } from '../extension/commands/UserInputUtil';
@@ -24,22 +26,27 @@ import { FabricRuntimeUtil } from '../extension/fabric/FabricRuntimeUtil';
 import { GlobalState, ExtensionData } from '../extension/util/GlobalState';
 
 export class TestUtil {
-    static async setupTests(sandbox: SinonSandbox): Promise<void> {
+
+    public static EXTENSION_TEST_DIR: string = path.join(__dirname, '..', '..', 'test', 'tmp');
+
+    static async setupTests(sandbox?: SinonSandbox): Promise<void> {
         await this.storeAll();
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, this.EXTENSION_TEST_DIR, vscode.ConfigurationTarget.Global);
         await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
 
         if (!ExtensionUtil.isActive()) {
+            if (!sandbox) {
+                sandbox = sinon.createSandbox();
+            }
+
             const showConfirmationWarningMessage: SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage');
             showConfirmationWarningMessage.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} now?`).resolves(false);
+
             await ExtensionUtil.activateExtension();
         } else {
             const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
             await ExtensionUtil.registerCommands(context);
         }
-
-        console.log('Restoring user connections config to settings:', this.USER_GATEWAYS_CONFIG);
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, this.USER_GATEWAYS_CONFIG, vscode.ConfigurationTarget.Global);
-
     }
 
     static async storeAll(): Promise<void> {

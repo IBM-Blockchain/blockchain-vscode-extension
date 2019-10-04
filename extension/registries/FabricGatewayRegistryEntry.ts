@@ -12,9 +12,9 @@
  * limitations under the License.
 */
 
-import { FabricRegistryEntry } from './FabricRegistryEntry';
+import { RegistryEntry } from './RegistryEntry';
 
-export class FabricGatewayRegistryEntry extends FabricRegistryEntry {
+export class FabricGatewayRegistryEntry extends RegistryEntry {
 
     public associatedWallet: string;
     constructor(fields?: FabricGatewayRegistryEntry) {

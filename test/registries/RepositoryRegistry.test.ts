@@ -45,46 +45,41 @@ describe('RepositoryRegistry', () => {
     });
 
     describe('#get', () => {
-
         it('should get an entry if the entry exists in the configuration', async () => {
             const testEntries: {name: string, path: string}[] = [{ name: 'SampleOne', path: 'PathOne' }, { name: 'SampleTwo', path: 'PathTwo' }];
             await vscode.workspace.getConfiguration().update(testFabricRegistryName, testEntries, vscode.ConfigurationTarget.Global);
-            registry.get('SampleTwo').should.deep.equal(testEntries[1]);
+            await registry.get('SampleTwo').should.eventually.deep.equal(testEntries[1]);
         });
 
         it('should throw if an entry does not exist in the configuration', async () => {
             const testEntries: {name: string, path: string}[] = [{ name: 'SampleOne', path: 'PathOne' }, { name: 'SampleTwo', path: 'PathTwo' }];
             await vscode.workspace.getConfiguration().update(testFabricRegistryName, testEntries, vscode.ConfigurationTarget.Global);
 
-            ((): any => {
-                registry.get('SampleZero');
-            }).should.throw(/Entry "SampleZero" in blockchain repositories does not exist/);
+            await registry.get('SampleZero').should.eventually.be.rejectedWith('Entry "SampleZero" in registry "ibm-blockchain-platform.ext.repositories" does not exist');
         });
 
     });
 
     describe('#exists', () => {
-
         it('should return true if the entry exists in the configuration', async () => {
             const testEntries: {name: string, path: string}[] = [{ name: 'SampleOne', path: 'PathOne' }, { name: 'SampleTwo', path: 'PathTwo' }];
             await vscode.workspace.getConfiguration().update(testFabricRegistryName, testEntries, vscode.ConfigurationTarget.Global);
-            registry.exists('SampleTwo').should.be.true;
+            await registry.exists('SampleTwo').should.eventually.be.true;
         });
 
         it('should return false if an entry does not exist in the configuration', async () => {
             const testEntries: {name: string, path: string}[] = [{ name: 'SampleOne', path: 'PathOne' }, { name: 'SampleTwo', path: 'PathTwo' }];
             await vscode.workspace.getConfiguration().update(testFabricRegistryName, testEntries, vscode.ConfigurationTarget.Global);
-            registry.exists('SampleZero').should.be.false;
+            await registry.exists('SampleZero').should.eventually.be.false;
         });
 
     });
 
     describe('#add', () => {
-
         it('should throw if an entry does exist in the configuration', async () => {
             const testEntries: {name: string, path: string}[] = [{ name: 'SampleOne', path: 'PathOne' }, { name: 'SampleTwo', path: 'PathTwo' }];
             await vscode.workspace.getConfiguration().update(testFabricRegistryName, testEntries, vscode.ConfigurationTarget.Global);
-            await registry.add(testEntries[0]).should.be.rejectedWith(/Entry "SampleOne" in blockchain repositories already exists/);
+            await registry.add(testEntries[0]).should.be.rejectedWith('Entry "SampleOne" in registry "ibm-blockchain-platform.ext.repositories" already exists');
         });
 
         it('should add an entry if the entry does not exist in the configuration', async () => {
@@ -98,12 +93,11 @@ describe('RepositoryRegistry', () => {
     });
 
     describe('#update', () => {
-
         it('should throw if an entry does not exist in the configuration', async () => {
             const testEntries: {name: string, path: string}[] = [{ name: 'SampleOne', path: 'PathOne' }, { name: 'SampleTwo', path: 'PathTwo' }];
             await vscode.workspace.getConfiguration().update(testFabricRegistryName, testEntries, vscode.ConfigurationTarget.Global);
             const newEntry: {name: string, path: string} = { name: 'SampleZero', path: 'PathZero' };
-            await registry.update(newEntry).should.be.rejectedWith(/Entry "SampleZero" in blockchain repositories does not exist/);
+            await registry.update(newEntry).should.eventually.be.rejectedWith('Entry "SampleZero" in registry "ibm-blockchain-platform.ext.repositories" does not exist');
         });
 
         it('should update an entry if the entry exists in the configuration', async () => {
@@ -117,11 +111,10 @@ describe('RepositoryRegistry', () => {
     });
 
     describe('#delete', () => {
-
         it('should throw if an entry does not exist in the configuration', async () => {
             const testEntries: {name: string, path: string}[] = [{ name: 'SampleOne', path: 'PathOne' }, { name: 'SampleTwo', path: 'PathTwo' }];
             await vscode.workspace.getConfiguration().update(testFabricRegistryName, testEntries, vscode.ConfigurationTarget.Global);
-            await registry.delete('SampleZero').should.be.rejectedWith(/Entry "SampleZero" in blockchain repositories does not exist/);
+            await registry.delete('SampleZero').should.be.rejectedWith('Entry "SampleZero" in registry "ibm-blockchain-platform.ext.repositories" does not exist');
         });
 
         it('should delete an entry if the entry exists in the configuration', async () => {
@@ -130,6 +123,5 @@ describe('RepositoryRegistry', () => {
             await registry.delete('SampleTwo');
             vscode.workspace.getConfiguration().get(testFabricRegistryName).should.deep.equal([testEntries[0]]);
         });
-
     });
 });
