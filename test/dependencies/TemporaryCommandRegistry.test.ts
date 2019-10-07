@@ -12,7 +12,6 @@
  * limitations under the License.
 */
 import * as vscode from 'vscode';
-import * as myExtension from '../../extension/extension';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -32,12 +31,6 @@ describe('TemporaryCommandRegistry Tests', () => {
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-    });
-
-    beforeEach(async () => {
-        if (ExtensionUtil.isActive()) {
-            await myExtension.deactivate();
-        }
     });
 
     afterEach(() => {
@@ -71,7 +64,6 @@ describe('TemporaryCommandRegistry Tests', () => {
         await tempRegistry.executeStoredCommands();
         executeStub.callCount.should.equal(numberOfCommands - 1);
         tempRegistry['delayedCommandsToExecute'].size.should.equal(0);
-
     });
 
     it('should not delay execution of commands', async () => {

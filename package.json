@@ -87,7 +87,6 @@
             "walletExplorer.refreshEntry",
             "walletExplorer.addWalletEntry",
             "walletExplorer.addWalletIdentityEntry",
-            "walletExplorer.editWalletEntry",
             "walletExplorer.removeWalletEntry",
             "walletExplorer.deleteIdentityEntry",
             "walletExplorer.exportWalletEntry",
@@ -755,10 +754,6 @@
                     "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item"
                 },
                 {
-                    "command": "walletExplorer.editWalletEntry",
-                    "when": "view == walletExplorer && viewItem == blockchain-wallet-item"
-                },
-                {
                     "command": "walletExplorer.removeWalletEntry",
                     "when": "view == walletExplorer && viewItem == blockchain-wallet-item"
                 },
@@ -1256,7 +1251,7 @@
         "cucumber": "npm run compile && node ./build/cucumber/runCucumberTests.js",
         "licchk": "license-check-and-add",
         "tslint": "tslint --project tsconfig.extension.json",
-        "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts'",
+        "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts' 'cucumber/**/*.ts'",
         "updatePackageJSON": "node ./.azure/rewritePackageJson.js",
         "productionFlag": "node ./.azure/rewritePackageJson.js publish",
         "cucumberTests": "./cucumber/hlfv1/start.sh && npm run compile",

@@ -41,7 +41,7 @@ import { FabricWalletRegistry } from '../../extension/registries/FabricWalletReg
 import { LocalGatewayTreeItem } from '../../extension/explorer/model/LocalGatewayTreeItem';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
 
@@ -55,10 +55,6 @@ describe('GatewayConnectCommand', () => {
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-    });
-
-    after(async () => {
-        await TestUtil.restoreAll();
     });
 
     describe('connect', () => {
@@ -87,7 +83,7 @@ describe('GatewayConnectCommand', () => {
 
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_CLIENT_TIMEOUT, timeout, vscode.ConfigurationTarget.Global);
 
-            mockConnection = sinon.createStubInstance(FabricClientConnection);
+            mockConnection = mySandBox.createStubInstance(FabricClientConnection);
             mockConnection.connect.resolves();
             mockConnection.isIBPConnection.returns(false);
 
@@ -143,7 +139,7 @@ describe('GatewayConnectCommand', () => {
             await FabricWalletRegistry.instance().add(connectionAssociatedWallet);
             await FabricWalletRegistry.instance().add(emptyWallet);
 
-            mockRuntime = sinon.createStubInstance(FabricRuntime);
+            mockRuntime = mySandBox.createStubInstance(FabricRuntime);
             mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(true);

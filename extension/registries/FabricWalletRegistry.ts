@@ -12,11 +12,12 @@
  * limitations under the License.
 */
 'use strict';
-import { SettingsRegistry } from './SettingsRegistry';
 import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { FileConfigurations } from '../../configurations';
+import { FileRegistry } from './FileRegistry';
+import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
-export class FabricWalletRegistry extends SettingsRegistry<FabricWalletRegistryEntry> {
+export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry> {
 
     public static instance(): FabricWalletRegistry {
         return FabricWalletRegistry._instance;
@@ -25,6 +26,27 @@ export class FabricWalletRegistry extends SettingsRegistry<FabricWalletRegistryE
     private static _instance: FabricWalletRegistry = new FabricWalletRegistry();
 
     private constructor() {
-        super(SettingConfigurations.FABRIC_WALLETS);
+        super(FileConfigurations.FABRIC_WALLETS);
+    }
+
+    public async getAll(showLocalFabric: boolean = true): Promise<FabricWalletRegistryEntry[]> {
+        let entries: FabricWalletRegistryEntry[] = await super.getAll();
+
+        let local: FabricWalletRegistryEntry;
+
+        entries = entries.filter((entry: FabricWalletRegistryEntry) => {
+            if (entry.name === FabricWalletUtil.LOCAL_WALLET) {
+                local = entry;
+                return false;
+            }
+
+            return true;
+        });
+
+        if (showLocalFabric && local) {
+            entries.unshift(local);
+        }
+
+        return entries;
     }
 }

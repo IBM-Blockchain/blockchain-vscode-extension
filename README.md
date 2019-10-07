@@ -264,7 +264,7 @@ The extension creates a `Local Fabric Wallet` file system wallet when it is inst
 
 The `Add Identity to Wallet` command will ask for a name, MSPID and a method to add an identity. These methods include providing a certificate and private key, a JSON identity file, or a gateway, enrollment id and secret.
 
-For wallets associated with other remote Fabric gateways, the `Add Wallet`,`Edit Wallet` ,`Export Wallet` and `Remove Wallet` commands are available in the `Fabric Wallets` panel for wallet management.
+For wallets associated with other remote Fabric gateways, the `Add Wallet`, `Export Wallet` and `Remove Wallet` commands are available in the `Fabric Wallets` panel for wallet management.
 
 ### Creating an identity with attributes
 Identities can be registered and enrolled with attributes from the `Local Fabric` certificate authority.
@@ -318,7 +318,6 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Disconnect From Environment | Disconnect from the environment you're currently connected to |
 | Disconnect From Gateway | Disconnect from the blockchain gateway you're currently connected to |
 | Edit Gateway | Edit connection profile for connecting to a blockchain gateway |
-| Edit Wallet | Edit wallet containing identities used for connecting to a blockchain gateway |
 | Evaluate Transaction | Evaluate a smart contract transaction |
 | Export Connection Profile | Export connection profile for a blockchain gateway |
 | Export Package | Export a smart contract package to use outside VS Code |

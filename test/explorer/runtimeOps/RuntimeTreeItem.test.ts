@@ -43,11 +43,6 @@ describe('RuntimeTreeItem', () => {
         await TestUtil.setupTests(sandbox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-
-    });
-
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
         await environmentRegistry.clear();
@@ -58,7 +53,7 @@ describe('RuntimeTreeItem', () => {
 
         provider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-        mockRuntime = sinon.createStubInstance(FabricRuntime);
+        mockRuntime = sandbox.createStubInstance(FabricRuntime);
         mockRuntime.on.callsFake((name: string, callback: any) => {
             name.should.equal('busy');
             onBusyCallback = callback;

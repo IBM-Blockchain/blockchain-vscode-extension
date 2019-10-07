@@ -29,8 +29,8 @@ describe('YeomanUtil', () => {
     beforeEach(() => {
         mySandBox = sinon.createSandbox();
         mockEnv = {
-            registerStub: sinon.stub(),
-            run: sinon.stub().yields()
+            registerStub: mySandBox.stub(),
+            run: mySandBox.stub().yields()
         };
         mySandBox.stub(yeoman, 'createEnv').returns(mockEnv);
     });

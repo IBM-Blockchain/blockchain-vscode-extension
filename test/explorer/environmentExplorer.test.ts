@@ -63,10 +63,6 @@ describe('environmentExplorer', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     describe('getChildren', () => {
         describe('unconnected tree', () => {
             let executeCommandSpy: sinon.SinonSpy;
@@ -99,7 +95,7 @@ describe('environmentExplorer', () => {
                 await FabricEnvironmentRegistry.instance().add(registryEntryOne);
                 await FabricEnvironmentRegistry.instance().add(registryEntryTwo);
 
-                const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+                const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = mySandBox.createStubInstance(FabricRuntime);
                 mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
                 mockRuntime.isRunning.resolves(false);
 
@@ -141,7 +137,7 @@ describe('environmentExplorer', () => {
 
             beforeEach(async () => {
                 getConnectionStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection');
-                fabricConnection = sinon.createStubInstance(FabricEnvironmentConnection);
+                fabricConnection = mySandBox.createStubInstance(FabricEnvironmentConnection);
                 getConnectionStub.returns((fabricConnection as any) as FabricEnvironmentConnection);
 
                 const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
@@ -346,7 +342,7 @@ describe('environmentExplorer', () => {
 
                 executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-                fabricConnection = sinon.createStubInstance(FabricEnvironmentConnection);
+                fabricConnection = mySandBox.createStubInstance(FabricEnvironmentConnection);
 
                 fabricConnection.getAllPeerNames.returns(['peerOne', 'peerTwo']);
 
@@ -917,7 +913,7 @@ describe('environmentExplorer', () => {
 
         it('should test the tree is refreshed when the refresh command is run', async () => {
 
-            const mockTreeItem: sinon.SinonStubbedInstance<ChannelTreeItem> = sinon.createStubInstance(ChannelTreeItem);
+            const mockTreeItem: sinon.SinonStubbedInstance<ChannelTreeItem> = mySandBox.createStubInstance(ChannelTreeItem);
 
             const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
 

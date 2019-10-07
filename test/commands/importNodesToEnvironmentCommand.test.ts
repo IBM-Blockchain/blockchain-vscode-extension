@@ -47,10 +47,6 @@ describe('ImportNodesToEnvironmentCommand', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     describe('importNodeaToEnvironment', () => {
 
         beforeEach(async () => {

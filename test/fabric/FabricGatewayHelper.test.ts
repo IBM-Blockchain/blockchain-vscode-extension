@@ -20,7 +20,7 @@ import * as path from 'path';
 import * as yaml from 'js-yaml';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
 import * as vscode from 'vscode';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { FabricNode } from '../../extension/fabric/FabricNode';
 import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
 

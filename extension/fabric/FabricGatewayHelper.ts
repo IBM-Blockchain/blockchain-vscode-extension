@@ -17,7 +17,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as yaml from 'js-yaml';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { FabricNode } from './FabricNode';
 import { FileSystemUtil } from '../util/FileSystemUtil';
 

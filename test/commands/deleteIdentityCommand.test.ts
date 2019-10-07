@@ -30,8 +30,8 @@ import { FabricWalletGeneratorFactory } from '../../extension/fabric/FabricWalle
 import { IdentityTreeItem } from '../../extension/explorer/model/IdentityTreeItem';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
-import { SettingConfigurations } from '../../SettingConfigurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 
 chai.should();
 chai.use(sinonChai);
@@ -57,10 +57,6 @@ describe('deleteIdentityCommand', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     beforeEach(async () => {
         // Set up stubs
         mySandBox.restore();
@@ -72,7 +68,7 @@ describe('deleteIdentityCommand', () => {
         showIdentitiesQuickPickStub = mySandBox.stub(UserInputUtil, 'showIdentitiesQuickPickBox');
 
         // Reset the wallet registry
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [], vscode.ConfigurationTarget.Global);
+        await FabricWalletRegistry.instance().clear();
         // Add wallets to the registry
         purpleWallet = new FabricWalletRegistryEntry({
             name: 'purpleWallet',
@@ -82,7 +78,9 @@ describe('deleteIdentityCommand', () => {
             name: 'blueWallet',
             walletPath: '/some/bluer/path'
         });
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [purpleWallet, blueWalletEntry], vscode.ConfigurationTarget.Global);
+
+        await FabricWalletRegistry.instance().add(purpleWallet);
+        await FabricWalletRegistry.instance().add(blueWalletEntry);
 
         testWallet = new FabricWallet('/some/path');
         walletIdentitiesStub = mySandBox.stub(testWallet, 'getIdentityNames');

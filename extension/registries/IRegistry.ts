@@ -26,7 +26,7 @@ export interface IRegistry<T extends RegistryEntry> {
 
     update(newEntry: T): Promise<void>;
 
-    delete(name: string): Promise<void>;
+    delete(name: string, ignoreNotExists: boolean): Promise<void>;
 
     clear(): Promise<void>;
 }

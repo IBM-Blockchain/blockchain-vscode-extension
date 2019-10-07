@@ -48,10 +48,6 @@ describe('InstantiateCommand', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     describe('InstantiateSmartContract', () => {
         let fabricRuntimeMock: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
 
@@ -78,7 +74,7 @@ describe('InstantiateCommand', () => {
             executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT).resolves();
             executeCommandStub.callThrough();
 
-            fabricRuntimeMock = sinon.createStubInstance(FabricEnvironmentConnection);
+            fabricRuntimeMock = mySandBox.createStubInstance(FabricEnvironmentConnection);
             fabricRuntimeMock.connect.resolves();
             fabricRuntimeMock.instantiateChaincode.resolves();
             fabricRuntimeMock.getInstalledChaincode.resolves(new Map());

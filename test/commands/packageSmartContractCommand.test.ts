@@ -25,7 +25,6 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
-import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.should();
 chai.use(sinonChai);
@@ -33,7 +32,7 @@ chai.use(sinonChai);
 describe('packageSmartContract', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     const rootPath: string = path.dirname(__dirname);
-    const extDir: string = path.join(rootPath, '../../test/data');
+    const extDir: string = TestUtil.EXTENSION_TEST_DIR;
     const fileDest: string = path.join(extDir, 'packages');
     const testWorkspace: string = path.join(rootPath, '..', '..', 'test', 'data', 'testWorkspace');
     const javascriptPath: string = path.join(testWorkspace, 'javascriptProject');
@@ -136,10 +135,6 @@ describe('packageSmartContract', () => {
         await fs.mkdirp(fileDest);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     let logSpy: sinon.SinonSpy;
     let showInputStub: sinon.SinonStub;
     let workspaceFoldersStub: sinon.SinonStub;
@@ -167,7 +162,6 @@ describe('packageSmartContract', () => {
         showWorkspaceQuickPickStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
         workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders');
         sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, extDir, true);
 
         findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([]);
 
@@ -231,7 +225,7 @@ describe('packageSmartContract', () => {
         const onDidEndTaskEvent: vscode.Event<vscode.TaskEndEvent> = onDidEndTaskEventEmitter.event;
         mySandBox.stub(vscode.tasks, 'onDidEndTask').value(onDidEndTaskEvent);
         executeTaskStub = mySandBox.stub(vscode.tasks, 'executeTask').callsFake(async (task: vscode.Task) => {
-            const terminate: sinon.SinonStub = sinon.stub();
+            const terminate: sinon.SinonStub = mySandBox.stub();
             const testExecution: vscode.TaskExecution = { terminate, task: testTasks[0] };
             const buildExecution: vscode.TaskExecution = { terminate, task };
             setTimeout(() => {
@@ -443,7 +437,7 @@ describe('packageSmartContract', () => {
             logSpy.getCall(6).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
             executeTaskStub.should.have.not.been.called;
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
-        }).timeout(10000);
+        });
 
         it('should package the TypeScript project', async () => {
             await createTestFiles('typescriptProject', '0.0.1', 'typescript', true, false);
@@ -1122,7 +1116,7 @@ describe('packageSmartContract', () => {
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
             logSpy.should.have.been.calledTwice;
-        }).timeout(4000);
+        });
 
         it('should handle not choosing folder', async () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
@@ -1234,7 +1228,7 @@ describe('packageSmartContract', () => {
             smartContractExists.should.equal(false);
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'packageSmartContract');
 
-        }).timeout(4000);
+        });
 
         it('should package a smart contract given a project workspace', async () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
@@ -1266,7 +1260,7 @@ describe('packageSmartContract', () => {
             logSpy.callCount.should.equal(5);
             executeTaskStub.should.have.not.been.called;
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
-        }).timeout(10000);
+        });
 
         it('should throw an error if there are errors in project', async () => {
             await createTestFiles('typescriptProject', '0.0.1', 'typescript', true, false);

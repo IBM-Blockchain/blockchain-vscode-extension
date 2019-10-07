@@ -45,10 +45,6 @@ describe('EditGatewayCommand', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     beforeEach(async () => {
         openUserSettingsStub = mySandBox.stub(UserInputUtil, 'openUserSettings');
         showGatewayQuickPickStub = mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox');

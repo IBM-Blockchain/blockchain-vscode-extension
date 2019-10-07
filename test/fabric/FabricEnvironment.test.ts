@@ -34,11 +34,7 @@ describe('FabricEnvironment', () => {
     let sandbox: sinon.SinonSandbox;
 
     before(async () => {
-        await TestUtil.storeAll();
-    });
-
-    after(async () => {
-        await TestUtil.restoreAll();
+        await TestUtil.setupTests(sandbox);
     });
 
     beforeEach(async () => {

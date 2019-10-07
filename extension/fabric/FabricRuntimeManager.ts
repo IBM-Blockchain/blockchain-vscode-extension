@@ -15,20 +15,16 @@
 import * as vscode from 'vscode';
 import { FabricRuntime } from './FabricRuntime';
 import { FabricRuntimePorts } from './FabricRuntimePorts';
-import { IFabricWallet } from './IFabricWallet';
-import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
-import { IFabricWalletGenerator } from './IFabricWalletGenerator';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricWalletUtil } from './FabricWalletUtil';
 import { FabricGateway } from './FabricGateway';
-import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 import * as semver from 'semver';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { LogType } from '../logging/OutputAdapter';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { FabricRuntimeUtil } from './FabricRuntimeUtil';
 import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager } from './FabricEnvironmentManager';
@@ -115,22 +111,6 @@ export class FabricRuntimeManager {
             managedRuntime: true,
             associatedWallet: FabricWalletUtil.LOCAL_WALLET
         });
-    }
-
-    public async getWalletRegistryEntries(): Promise<FabricWalletRegistryEntry[]> {
-        const runtime: FabricRuntime = this.getRuntime();
-        const walletNames: string[] = await runtime.getWalletNames();
-        const entries: FabricWalletRegistryEntry[] = [];
-        const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-        for (const walletName of walletNames) {
-            const wallet: IFabricWallet = await walletGenerator.getWallet(walletName);
-            entries.push(new FabricWalletRegistryEntry({
-                name: walletName,
-                walletPath: wallet.getWalletPath(),
-                managedWallet: true
-            }));
-        }
-        return entries;
     }
 
     public async migrate(oldVersion: string): Promise<void> {

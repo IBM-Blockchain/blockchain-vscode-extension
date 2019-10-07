@@ -33,10 +33,6 @@ describe('GlobalState', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
         context = GlobalState.getExtensionContext();

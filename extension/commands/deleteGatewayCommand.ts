@@ -21,7 +21,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType } from '../logging/OutputAdapter';
 import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { FileSystemUtil } from '../util/FileSystemUtil';
 

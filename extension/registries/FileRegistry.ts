@@ -17,14 +17,18 @@ import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
 import { RegistryEntry } from './RegistryEntry';
 import { IRegistry } from './IRegistry';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { FileSystemUtil } from '../util/FileSystemUtil';
+import { EventEmitter } from 'events';
 
-export abstract class FileRegistry<T extends RegistryEntry> implements IRegistry<RegistryEntry> {
+export abstract class FileRegistry<T extends RegistryEntry> extends EventEmitter implements IRegistry<RegistryEntry> {
+
+    public static EVENT_NAME: string = 'registryUpdated';
 
     protected readonly FILE_NAME: string = '.config.json';
 
     protected constructor(private registryName: string) {
+        super();
     }
 
     public async getAll(): Promise<T[]> {
@@ -65,10 +69,12 @@ export abstract class FileRegistry<T extends RegistryEntry> implements IRegistry
         await this.updateEntries(newEntry);
     }
 
-    public async delete(name: string): Promise<void> {
+    public async delete(name: string, ignoreNotExists: boolean = false): Promise<void> {
         const exists: boolean = await this.exists(name);
-        if (!exists) {
+        if (!exists && !ignoreNotExists) {
             throw new Error(`Entry "${name}" in registry "${this.registryName}" does not exist`);
+        } else if (!exists && ignoreNotExists) {
+            return;
         }
 
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
@@ -76,6 +82,7 @@ export abstract class FileRegistry<T extends RegistryEntry> implements IRegistry
         const entryPath: string = path.join(homeExtDir, this.registryName, name);
 
         await fs.remove(entryPath);
+        this.emit(FileRegistry.EVENT_NAME, this.registryName);
     }
 
     public async clear(): Promise<void> {
@@ -84,12 +91,14 @@ export abstract class FileRegistry<T extends RegistryEntry> implements IRegistry
         const registryPath: string = path.join(homeExtDir, this.registryName);
 
         await fs.emptyDir(registryPath);
+        this.emit(FileRegistry.EVENT_NAME, this.registryName);
     }
 
     private async getEntries(): Promise<T[]> {
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
         const registryPath: string = path.join(homeExtDir, this.registryName);
+
         await fs.ensureDir(registryPath);
 
         const registryEntryNames: string[] = await fs.readdir(registryPath);
@@ -116,5 +125,6 @@ export abstract class FileRegistry<T extends RegistryEntry> implements IRegistry
         await fs.ensureDir(entryDir);
         const entryPath: string = path.join(entryDir, this.FILE_NAME);
         await fs.writeJSON(entryPath, entry);
+        this.emit(FileRegistry.EVENT_NAME, this.registryName);
     }
 }

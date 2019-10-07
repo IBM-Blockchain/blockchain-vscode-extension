@@ -45,10 +45,6 @@ describe('openNewTerminal', () => {
         await TestUtil.setupTests(sandbox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
         const provider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -62,7 +58,7 @@ describe('openNewTerminal', () => {
         const tooltip: string = `Name: ${node.name} \n MSPID: ${node.msp_id} \n Associated Identity: \n ${node.identity}`;
         nodeItem = new TestNodeTreeItem(provider, node.name, tooltip, fabricEnvironmentRegistryEntry, node);
         mockTerminal = {
-            show: sinon.stub()
+            show: sandbox.stub()
         };
         createTerminalStub = sandbox.stub(vscode.window, 'createTerminal').returns(mockTerminal);
         sendTelemetryEventStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');

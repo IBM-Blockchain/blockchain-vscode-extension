@@ -68,11 +68,14 @@ export abstract class SettingsRegistry<T extends RegistryEntry> implements IRegi
         await this.updateEntries(newEntries);
     }
 
-    public async delete(name: string): Promise<void> {
+    public async delete(name: string, ignoreNotExists: boolean = false): Promise<void> {
         const exists: boolean = await this.exists(name);
-        if (!exists) {
+        if (!exists && !ignoreNotExists) {
             throw new Error(`Entry "${name}" in registry "${this.registryName}" does not exist`);
+        } else if (!exists && ignoreNotExists) {
+            return;
         }
+
         const oldEntries: T[] = this.getEntries();
         const newEntries: T[] = oldEntries.filter((oldEntry: T) => oldEntry.name !== name);
         await this.updateEntries(newEntries);

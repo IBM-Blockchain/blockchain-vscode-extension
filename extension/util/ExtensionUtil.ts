@@ -18,7 +18,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { addGateway } from '../commands/addGatewayCommand';
 import { addWallet } from '../commands/addWalletCommand';
 import { addWalletIdentity } from '../commands/addWalletIdentityCommand';
@@ -31,7 +31,6 @@ import { deleteIdentity } from '../commands/deleteIdentityCommand';
 import { deleteSmartContractPackage } from '../commands/deleteSmartContractPackageCommand';
 import { dissociateWallet } from '../commands/dissociateWalletCommand';
 import { editGatewayCommand } from '../commands/editGatewayCommand';
-import { editWalletCommand } from '../commands/editWalletCommand';
 import { exportConnectionProfile } from '../commands/exportConnectionProfileCommand';
 import { exportSmartContractPackage } from '../commands/exportSmartContractPackageCommand';
 import { exportWallet } from '../commands/exportWalletCommand';
@@ -72,7 +71,6 @@ import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
-import { IFabricWallet } from '../fabric/IFabricWallet';
 import { LogType } from '../logging/OutputAdapter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
@@ -105,6 +103,9 @@ import { importNodesToEnvironment } from '../commands/importNodesToEnvironmentCo
 import { deleteNode } from '../commands/deleteNodeCommand';
 import { FabricChaincode } from '../fabric/FabricChaincode';
 import { ReactView } from '../webview/ReactView';
+import { FileRegistry } from '../registries/FileRegistry';
+import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
+import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -184,9 +185,9 @@ export class ExtensionUtil {
         // Migrate Fabric wallets
         const oldWallets: any = vscode.workspace.getConfiguration().get('fabric.wallets');
         if (oldWallets !== undefined) {
-            const newWallets: any = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
+            const newWallets: any = vscode.workspace.getConfiguration().get(SettingConfigurations.OLD_FABRIC_WALLETS);
             if (oldWallets && newWallets.length === 0) {
-                await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, oldWallets, vscode.ConfigurationTarget.Global);
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.OLD_FABRIC_WALLETS, oldWallets, vscode.ConfigurationTarget.Global);
             }
         }
 
@@ -255,7 +256,7 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISCONNECT_GATEWAY, () => FabricConnectionManager.instance().disconnect()));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_GATEWAY, () => addGateway()));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_GATEWAY, (gateway: GatewayTreeItem) => deleteGateway(gateway)));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_WALLET_IDENTITY, (walletItem: WalletTreeItem | IFabricWallet, mspid: string) => addWalletIdentity(walletItem, mspid)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_WALLET_IDENTITY, (walletItem: WalletTreeItem | FabricWalletRegistryEntry, mspid: string) => addWalletIdentity(walletItem, mspid)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT, createSmartContractProject));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, (workspace?: vscode.WorkspaceFolder, overrideName?: string, overrideVersion?: string) => packageSmartContract(workspace, overrideName, overrideVersion)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_PACKAGES, () => blockchainPackageExplorerProvider.refresh()));
@@ -296,7 +297,6 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_WALLETS, (element: BlockchainTreeItem) => blockchainWalletExplorerProvider.refresh(element)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_WALLET, (createIdentity: boolean) => addWallet(createIdentity)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DEBUG_COMMAND_LIST, (commandName?: string) => debugCommandList(commandName)));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EDIT_WALLET, (treeItem: WalletTreeItem) => editWalletCommand(treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REMOVE_WALLET, (treeItem: WalletTreeItem) => removeWallet(treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_IDENTITY, (treeItem: IdentityTreeItem) => deleteIdentity(treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ASSOCIATE_WALLET, (treeItem: GatewayDissociatedTreeItem) => associateWallet(treeItem)));
@@ -330,14 +330,21 @@ export class ExtensionUtil {
 
         context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async (e: any) => {
 
-            if (e.affectsConfiguration(SettingConfigurations.FABRIC_GATEWAYS) || e.affectsConfiguration(SettingConfigurations.FABRIC_RUNTIME) || e.affectsConfiguration(SettingConfigurations.FABRIC_WALLETS) || e.affectsConfiguration(SettingConfigurations.FABRIC_ENVIRONMENTS)) {
+            if (e.affectsConfiguration(SettingConfigurations.FABRIC_GATEWAYS) || e.affectsConfiguration(SettingConfigurations.FABRIC_RUNTIME) || e.affectsConfiguration(SettingConfigurations.FABRIC_ENVIRONMENTS)) {
                 try {
                     await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
                     await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
-                    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
                 } catch (error) {
                     // ignore error this only happens in tests
                 }
+            }
+        }));
+
+        FabricWalletRegistry.instance().on(FileRegistry.EVENT_NAME, (async (): Promise<void> => {
+            try {
+                await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
+            } catch (error) {
+                // ignore error this only happens in tests
             }
         }));
 

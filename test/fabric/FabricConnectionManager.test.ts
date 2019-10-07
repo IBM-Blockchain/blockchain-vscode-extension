@@ -31,7 +31,7 @@ describe('FabricConnectionManager', () => {
 
     beforeEach(async () => {
         sandbox = sinon.createSandbox();
-        mockFabricConnection = sinon.createStubInstance(FabricClientConnection);
+        mockFabricConnection = sandbox.createStubInstance(FabricClientConnection);
         connectionManager['connection'] = null;
 
         registryEntry = new FabricGatewayRegistryEntry();
@@ -62,7 +62,7 @@ describe('FabricConnectionManager', () => {
     describe('#connect', () => {
 
         it('should store the connection and emit an event', () => {
-            const listenerStub: sinon.SinonStub = sinon.stub();
+            const listenerStub: sinon.SinonStub = sandbox.stub();
             connectionManager.once('connected', listenerStub);
             connectionManager.connect((mockFabricConnection as any) as FabricClientConnection, registryEntry);
             connectionManager.getConnection().should.equal(mockFabricConnection);
@@ -75,7 +75,7 @@ describe('FabricConnectionManager', () => {
     describe('#disconnect', () => {
 
         it('should clear the connection and emit an event', () => {
-            const listenerStub: sinon.SinonStub = sinon.stub();
+            const listenerStub: sinon.SinonStub = sandbox.stub();
             connectionManager.once('disconnected', listenerStub);
             connectionManager.disconnect();
             should.equal(connectionManager.getConnection(), null);

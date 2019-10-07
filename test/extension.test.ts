@@ -28,7 +28,7 @@ import { Reporter } from '../extension/util/Reporter';
 import { ExtensionCommands } from '../ExtensionCommands';
 import { LogType } from '../extension/logging/OutputAdapter';
 import { FabricRuntimeUtil } from '../extension/fabric/FabricRuntimeUtil';
-import { SettingConfigurations } from '../SettingConfigurations';
+import { SettingConfigurations } from '../configurations';
 import { UserInputUtil } from '../extension/commands/UserInputUtil';
 import { dependencies } from '../package.json';
 import { GlobalState, DEFAULT_EXTENSION_DATA, ExtensionData } from '../extension/util/GlobalState';
@@ -62,10 +62,6 @@ describe('Extension Tests', () => {
         await TestUtil.setupTests(mySandBox);
         await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
         await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
-    });
-
-    after(async () => {
-        await TestUtil.restoreAll();
     });
 
     beforeEach(async () => {
@@ -187,7 +183,6 @@ describe('Extension Tests', () => {
             executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
 
             completeActivationStub.should.have.been.called;
-
         });
 
         it('should dispose of the reporter instance production flag is false on extension activiation', async () => {
@@ -211,7 +206,7 @@ describe('Extension Tests', () => {
             extensionData.preReqPageShown = true;
             extensionData.dockerForWindows = true;
             extensionData.systemRequirements = true;
-            extensionData.migrationCheck = 1;
+            extensionData.migrationCheck = 2;
             extensionData.version = currentExtensionVersion;
             extensionData.generatorVersion = dependencies['generator-fabric'];
             await GlobalState.update(extensionData);
@@ -261,7 +256,7 @@ describe('Extension Tests', () => {
             extensionData.systemRequirements = true;
             extensionData.version = currentExtensionVersion;
             extensionData.generatorVersion = dependencies['generator-fabric'];
-            extensionData.migrationCheck = 1;
+            extensionData.migrationCheck = 2;
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -308,7 +303,7 @@ describe('Extension Tests', () => {
             extensionData.systemRequirements = true;
             extensionData.version = currentExtensionVersion;
             extensionData.generatorVersion = dependencies['generator-fabric'];
-            extensionData.migrationCheck = 1;
+            extensionData.migrationCheck = 2;
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -347,7 +342,7 @@ describe('Extension Tests', () => {
             extensionData.systemRequirements = true;
             extensionData.version = '1.0.6';
             extensionData.generatorVersion = dependencies['generator-fabric'];
-            extensionData.migrationCheck = 1;
+            extensionData.migrationCheck = 2;
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -390,7 +385,7 @@ describe('Extension Tests', () => {
             extensionData.systemRequirements = true;
             extensionData.version = '1.0.6';
             extensionData.generatorVersion = dependencies['generator-fabric'];
-            extensionData.migrationCheck = 1;
+            extensionData.migrationCheck = 2;
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -432,7 +427,7 @@ describe('Extension Tests', () => {
             extensionData.systemRequirements = true;
             extensionData.version = null;
             extensionData.generatorVersion = null;
-            extensionData.migrationCheck = 1;
+            extensionData.migrationCheck = 2;
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -464,7 +459,7 @@ describe('Extension Tests', () => {
             extensionData.systemRequirements = true;
             extensionData.version = currentExtensionVersion;
             extensionData.generatorVersion = '1.0.6';
-            extensionData.migrationCheck = 1;
+            extensionData.migrationCheck = 2;
             await GlobalState.update(extensionData);
             const error: Error = new Error('some error');
 

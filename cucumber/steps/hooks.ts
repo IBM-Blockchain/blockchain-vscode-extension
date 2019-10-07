@@ -24,7 +24,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../../test/TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { UserInputUtilHelper } from '../helpers/userInputUtilHelper';
 import { SmartContractHelper } from '../helpers/smartContractHelper';
 import { GeneratedTestsHelper } from '../helpers/generatedTestsHelper';
@@ -32,6 +32,7 @@ import { WalletAndIdentityHelper } from '../helpers/walletAndIdentityHelper';
 import { GatewayHelper } from '../helpers/gatewayHelper';
 import { EnvironmentHelper } from '../helpers/environmentHelper';
 import { SampleHelper } from '../helpers/sampleHelper';
+import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 
 // tslint:disable:no-unused-expression
 
@@ -66,7 +67,6 @@ module.exports = function(): any {
                 await TestUtil.storeBypassPreReqs();
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
 
-                await ExtensionUtil.activateExtension();
                 const extDir: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp');
 
                 this.userInputUtilHelper.showConfirmationWarningMessageStub.reset();
@@ -102,14 +102,12 @@ module.exports = function(): any {
                 await TestUtil.storeRuntimesConfig();
                 await TestUtil.storeExtensionDirectoryConfig();
                 await TestUtil.storeRepositoriesConfig();
-                await TestUtil.storeWalletsConfig();
                 await TestUtil.storeEnvironmentsConfig();
 
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, extDir, vscode.ConfigurationTarget.Global);
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_REPOSITORIES, [], vscode.ConfigurationTarget.Global);
-                await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [], vscode.ConfigurationTarget.Global);
-                await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
-                await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_ENVIRONMENTS, [], vscode.ConfigurationTarget.Global);
+
+                await FabricWalletRegistry.instance().clear();
 
                 await ExtensionUtil.activateExtension();
 

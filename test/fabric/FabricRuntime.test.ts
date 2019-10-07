@@ -34,9 +34,11 @@ import { IFabricWallet } from '../../extension/fabric/IFabricWallet';
 import { FabricWallet } from '../../extension/fabric/FabricWallet';
 import { FabricIdentity } from '../../extension/fabric/FabricIdentity';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { FabricGateway } from '../../extension/fabric/FabricGateway';
 import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
+import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
+import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -82,11 +84,7 @@ describe('FabricRuntime', () => {
     }
 
     before(async () => {
-        await TestUtil.storeAll();
-    });
-
-    after(async () => {
-        await TestUtil.restoreAll();
+        await TestUtil.setupTests(sandbox);
     });
 
     beforeEach(async () => {
@@ -179,9 +177,9 @@ describe('FabricRuntime', () => {
 
     describe('#importWalletsAndIdentities', () => {
         it('should create all wallets and import all identities', async () => {
-            const mockFabricWalletGenerator: sinon.SinonStubbedInstance<IFabricWalletGenerator> = sinon.createStubInstance(FabricWalletGenerator);
+            const mockFabricWalletGenerator: sinon.SinonStubbedInstance<IFabricWalletGenerator> = sandbox.createStubInstance(FabricWalletGenerator);
             sandbox.stub(FabricWalletGeneratorFactory, 'createFabricWalletGenerator').returns(mockFabricWalletGenerator);
-            const mockFabricWallet: sinon.SinonStubbedInstance<IFabricWallet> = sinon.createStubInstance(FabricWallet);
+            const mockFabricWallet: sinon.SinonStubbedInstance<IFabricWallet> = sandbox.createStubInstance(FabricWallet);
             mockFabricWalletGenerator.getWallet.returns(mockFabricWallet);
             await runtime.importWalletsAndIdentities();
             mockFabricWalletGenerator.getWallet.should.have.been.calledOnceWithExactly(FabricWalletUtil.LOCAL_WALLET);
@@ -210,14 +208,17 @@ describe('FabricRuntime', () => {
 
     describe('#deleteWalletsAndIdentities', () => {
         it('should delete all known identities that exist', async () => {
-            const mockFabricWalletGenerator: sinon.SinonStubbedInstance<IFabricWalletGenerator> = sinon.createStubInstance(FabricWalletGenerator);
-            sandbox.stub(FabricWalletGeneratorFactory, 'createFabricWalletGenerator').returns(mockFabricWalletGenerator);
-            sandbox.stub(FabricRuntime.prototype, 'getWalletNames').resolves([FabricWalletUtil.LOCAL_WALLET]);
-            mockFabricWalletGenerator.deleteLocalWallet.resolves();
-            await runtime.deleteWalletsAndIdentities();
-            mockFabricWalletGenerator.deleteLocalWallet.should.have.been.calledOnceWithExactly(FabricWalletUtil.LOCAL_WALLET);
-        });
+            await FabricWalletRegistry.instance().clear();
+            await runtime.importWalletsAndIdentities();
 
+            let results: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
+            results.length.should.equal(1);
+            results[0].name.should.equal(FabricWalletUtil.LOCAL_WALLET);
+            await runtime.deleteWalletsAndIdentities();
+
+            results = await FabricWalletRegistry.instance().getAll();
+            results.length.should.equal(0);
+        });
     });
 
     ['generate', 'start', 'stop', 'teardown', 'kill_chaincode'].forEach((verb: string) => {
@@ -332,7 +333,7 @@ describe('FabricRuntime', () => {
                     });
                 }
 
-                const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
+                const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sandbox.createStubInstance(TestFabricOutputAdapter);
 
                 if (verb !== 'kill_chaincode') {
                     await runtime[verb](outputAdapter);
@@ -352,7 +353,7 @@ describe('FabricRuntime', () => {
                 it(`should publish busy events and set state before and after handling success (Linux/MacOS)`, async () => {
 
                     sandbox.stub(process, 'platform').value('linux');
-                    const eventStub: sinon.SinonStub = sinon.stub();
+                    const eventStub: sinon.SinonStub = sandbox.stub();
                     const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
                     spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
                         return mockSuccessCommand();
@@ -388,7 +389,7 @@ describe('FabricRuntime', () => {
                 it(`should publish busy events and set state before and after handling an error (Linux/MacOS)`, async () => {
 
                     sandbox.stub(process, 'platform').value('linux');
-                    const eventStub: sinon.SinonStub = sinon.stub();
+                    const eventStub: sinon.SinonStub = sandbox.stub();
                     const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
                     spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
                         return mockFailureCommand();
@@ -502,7 +503,7 @@ describe('FabricRuntime', () => {
                     });
                 }
 
-                const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
+                const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sandbox.createStubInstance(TestFabricOutputAdapter);
                 if (verb !== 'kill_chaincode') {
                     await runtime[verb](outputAdapter);
                 } else {
@@ -525,7 +526,7 @@ describe('FabricRuntime', () => {
                     }
 
                     sandbox.stub(process, 'platform').value('win32');
-                    const eventStub: sinon.SinonStub = sinon.stub();
+                    const eventStub: sinon.SinonStub = sandbox.stub();
                     const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
                     spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
                         return mockSuccessCommand();
@@ -560,7 +561,7 @@ describe('FabricRuntime', () => {
 
                 it(`should publish busy events and set state before and after handling an error (Windows)`, async () => {
                     sandbox.stub(process, 'platform').value('win32');
-                    const eventStub: sinon.SinonStub = sinon.stub();
+                    const eventStub: sinon.SinonStub = sandbox.stub();
                     const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
                     spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
                         return mockFailureCommand();
@@ -645,7 +646,7 @@ describe('FabricRuntime', () => {
             spawnStub.withArgs('/bin/sh', ['stop.sh'], sinon.match.any).callsFake(() => {
                 return mockSuccessCommand();
             });
-            const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
+            const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sandbox.createStubInstance(TestFabricOutputAdapter);
             await runtime.restart(outputAdapter);
             outputAdapter.log.callCount.should.equal(4);
 
@@ -658,7 +659,7 @@ describe('FabricRuntime', () => {
 
         it('should publish busy events and set state before and after handling success (Linux/MacOS)', async () => {
             sandbox.stub(process, 'platform').value('linux');
-            const eventStub: sinon.SinonStub = sinon.stub();
+            const eventStub: sinon.SinonStub = sandbox.stub();
             const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', ['start.sh'], sinon.match.any).callsFake(() => {
                 return mockSuccessCommand();
@@ -683,7 +684,7 @@ describe('FabricRuntime', () => {
 
         it('should publish busy events and set state before and after handling an error, failure to stop (Linux/MacOS)', async () => {
             sandbox.stub(process, 'platform').value('linux');
-            const eventStub: sinon.SinonStub = sinon.stub();
+            const eventStub: sinon.SinonStub = sandbox.stub();
             const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', ['start.sh'], sinon.match.any).callsFake(() => {
                 return mockSuccessCommand();
@@ -708,7 +709,7 @@ describe('FabricRuntime', () => {
 
         it('should publish busy events and set state before and after handling an error, failure to start (Linux/MacOS)', async () => {
             sandbox.stub(process, 'platform').value('linux');
-            const eventStub: sinon.SinonStub = sinon.stub();
+            const eventStub: sinon.SinonStub = sandbox.stub();
             const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', ['start.sh'], sinon.match.any).callsFake(() => {
                 return mockFailureCommand();
@@ -756,7 +757,7 @@ describe('FabricRuntime', () => {
             spawnStub.withArgs('cmd', ['/c', 'stop.cmd'], sinon.match.any).callsFake(() => {
                 return mockSuccessCommand();
             });
-            const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
+            const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sandbox.createStubInstance(TestFabricOutputAdapter);
             await runtime.restart(outputAdapter);
             outputAdapter.log.callCount.should.equal(4);
             outputAdapter.log.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
@@ -768,7 +769,7 @@ describe('FabricRuntime', () => {
 
         it('should publish busy events and set state before and after handling success (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
-            const eventStub: sinon.SinonStub = sinon.stub();
+            const eventStub: sinon.SinonStub = sandbox.stub();
             const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', ['/c', 'start.cmd'], sinon.match.any).callsFake(() => {
                 return mockSuccessCommand();
@@ -793,7 +794,7 @@ describe('FabricRuntime', () => {
 
         it('should publish busy events and set state before and after handling an error, on stopping (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
-            const eventStub: sinon.SinonStub = sinon.stub();
+            const eventStub: sinon.SinonStub = sandbox.stub();
             const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', ['/c', 'start.cmd'], sinon.match.any).callsFake(() => {
                 return mockSuccessCommand();
@@ -818,7 +819,7 @@ describe('FabricRuntime', () => {
 
         it('should publish busy events and set state before and after handling an error, on starting (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
-            const eventStub: sinon.SinonStub = sinon.stub();
+            const eventStub: sinon.SinonStub = sandbox.stub();
             const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', ['/c', 'start.cmd'], sinon.match.any).callsFake(() => {
                 return mockFailureCommand();

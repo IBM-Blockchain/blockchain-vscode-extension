@@ -51,7 +51,7 @@ export class EnvironmentHelper {
     public async createEnvironment(name: string): Promise<void> {
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         // need to make sure its not showing the setup tree
-        blockchainEnvironmentExplorerProvider['fabricEnvironmentToSetUp'] = undefined;
+
         const treeItems: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
 
         const treeItem: any = treeItems.find((item: any) => {

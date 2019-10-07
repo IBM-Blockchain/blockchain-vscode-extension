@@ -28,7 +28,7 @@ import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 chai.should();
@@ -41,10 +41,6 @@ describe('DeleteSmartContractPackageCommand', () => {
     before(async () => {
         await TestUtil.setupTests(mySandBox);
         await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_EXTENSION_DIRECTORY, vscode.ConfigurationTarget.Global);
-    });
-
-    after(async () => {
-        await TestUtil.restoreAll();
     });
 
     describe('deleteSmartContractPackage', () => {

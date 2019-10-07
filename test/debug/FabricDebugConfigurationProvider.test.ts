@@ -80,7 +80,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             fabricDebugConfig = new TestFabricDebugConfigurationProvider();
 
-            runtimeStub = sinon.createStubInstance(FabricRuntime);
+            runtimeStub = mySandbox.createStubInstance(FabricRuntime);
             runtimeStub.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
             runtimeStub.getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
@@ -101,7 +101,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             commandStub = mySandbox.stub(vscode.commands, 'executeCommand');
 
-            mockRuntimeConnection = sinon.createStubInstance(FabricEnvironmentConnection);
+            mockRuntimeConnection = mySandbox.createStubInstance(FabricEnvironmentConnection);
             mockRuntimeConnection.getAllPeerNames.resolves(['peerOne']);
             const instantiatedChaincodes: FabricChaincode[] = [{ name: 'myOtherContract', version: 'vscode-debug-13232112018' }, { name: 'cake-network', version: 'vscode-debug-174758735087' }];
             mockRuntimeConnection.getAllInstantiatedChaincodes.resolves(instantiatedChaincodes);

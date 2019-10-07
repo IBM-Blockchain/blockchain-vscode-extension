@@ -53,7 +53,7 @@ describe('Metadata Util tests', () => {
 
     beforeEach(() => {
         mySandBox = sinon.createSandbox();
-        fabricClientConnectionMock = sinon.createStubInstance(FabricClientConnection);
+        fabricClientConnectionMock = mySandBox.createStubInstance(FabricClientConnection);
         fakeMetadata = {
             contracts: {
                 'cake': {
