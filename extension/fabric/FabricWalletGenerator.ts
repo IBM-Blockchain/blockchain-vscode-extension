@@ -17,12 +17,12 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { FabricWallet } from './FabricWallet';
-import { UserInputUtil } from '../commands/UserInputUtil';
 import { IFabricWalletGenerator } from './IFabricWalletGenerator';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricWalletUtil } from './FabricWalletUtil';
 import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
+import { FileSystemUtil } from '../util/FileSystemUtil';
 
 export class FabricWalletGenerator implements IFabricWalletGenerator {
 
@@ -34,11 +34,11 @@ export class FabricWalletGenerator implements IFabricWalletGenerator {
 
     public async getWallet(walletName: string): Promise<FabricWallet> {
 
-        const walletExists: boolean = FabricWalletRegistry.instance().exists(walletName);
+        const walletExists: boolean = await FabricWalletRegistry.instance().exists(walletName);
         if (walletName === FabricWalletUtil.LOCAL_WALLET || !walletExists) {
             return await this.createWallet(walletName);
         } else {
-            const walletRegistryEntry: FabricWalletRegistryEntry = FabricWalletRegistry.instance().get(walletName);
+            const walletRegistryEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletName);
             return new FabricWallet(walletRegistryEntry.walletPath);
         }
     }
@@ -46,7 +46,7 @@ export class FabricWalletGenerator implements IFabricWalletGenerator {
     public async deleteLocalWallet(walletName: string): Promise<void> {
 
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+        const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
         const walletPath: string = path.join(homeExtDir, 'wallets', walletName);
         const walletExists: boolean = await fs.pathExists(walletPath);
 
@@ -58,7 +58,7 @@ export class FabricWalletGenerator implements IFabricWalletGenerator {
 
     private async createWallet(walletName: string): Promise<FabricWallet> {
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+        const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
         const walletPath: string = path.join(homeExtDir, 'wallets', walletName);
         const walletExists: boolean = await fs.pathExists(walletPath);
         if (!walletExists) {

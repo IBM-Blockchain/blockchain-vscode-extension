@@ -32,7 +32,7 @@ export async function editWalletCommand(treeItem: WalletTreeItem): Promise<void>
         // Ask for wallet to edit
         // First check there is at least one that isn't local_fabric_wallet
         let wallets: Array<FabricWalletRegistryEntry> = [];
-        wallets = FabricWalletRegistry.instance().getAll();
+        wallets = await FabricWalletRegistry.instance().getAll();
         if (wallets.length === 0) {
             outputAdapter.log(LogType.ERROR, `No wallets to edit found. ${FabricWalletUtil.LOCAL_WALLET} cannot be edited.`, `No wallets to edit found. ${FabricWalletUtil.LOCAL_WALLET} cannot be edited.`);
             return;

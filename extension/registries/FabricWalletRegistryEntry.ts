@@ -13,9 +13,9 @@
 */
 'use strict';
 
-import { FabricRegistryEntry } from './FabricRegistryEntry';
+import { RegistryEntry } from './RegistryEntry';
 
-export class FabricWalletRegistryEntry extends FabricRegistryEntry {
+export class FabricWalletRegistryEntry extends RegistryEntry {
 
     public walletPath: string;
     public managedWallet?: boolean;

@@ -12,11 +12,11 @@
  * limitations under the License.
 */
 
-import { FabricRegistry } from './FabricRegistry';
+import { SettingsRegistry } from './SettingsRegistry';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricEnvironmentRegistryEntry } from './FabricEnvironmentRegistryEntry';
 
-export class FabricEnvironmentRegistry extends FabricRegistry<FabricEnvironmentRegistryEntry> {
+export class FabricEnvironmentRegistry extends SettingsRegistry<FabricEnvironmentRegistryEntry> {
 
     public static instance(): FabricEnvironmentRegistry {
         return FabricEnvironmentRegistry._instance;

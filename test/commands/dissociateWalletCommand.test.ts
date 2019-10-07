@@ -81,7 +81,9 @@ describe('DissociateWalletCommand', () => {
             await FabricWalletRegistry.instance().add(gatewayOneWallet);
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            fabricGatewayRegistryUpdateStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'update').resolves();
+            fabricGatewayRegistryUpdateStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'update');
+            fabricGatewayRegistryUpdateStub.callThrough();
+
             showGatewayQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox');
             mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([]);
         });
@@ -127,9 +129,10 @@ describe('DissociateWalletCommand', () => {
         });
 
         it('should test a wallet can be dissociated from a gateway using the command', async () => {
+            const gateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGateway');
             showGatewayQuickPickBoxStub.resolves({
                 label: 'myGateway',
-                data: FabricGatewayRegistry.instance().get('myGateway')
+                data: gateway
             });
 
             await vscode.commands.executeCommand(ExtensionCommands.DISSOCIATE_WALLET);
@@ -147,9 +150,10 @@ describe('DissociateWalletCommand', () => {
             const error: Error = new Error('cannot write to file');
             fabricGatewayRegistryUpdateStub.throws(error);
 
+            const gateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGateway');
             showGatewayQuickPickBoxStub.resolves({
                 label: 'myGateway',
-                data: FabricGatewayRegistry.instance().get('myGateway')
+                data: gateway
             });
 
             await vscode.commands.executeCommand(ExtensionCommands.DISSOCIATE_WALLET).should.have.been.rejectedWith(`Unable to dissociate wallet: ${error.message}`);

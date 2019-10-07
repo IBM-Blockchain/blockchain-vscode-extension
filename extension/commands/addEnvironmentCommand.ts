@@ -34,7 +34,8 @@ export async function addEnvironment(): Promise<void> {
             return;
         }
 
-        if (fabricEnvironmentRegistry.exists(environmentName) || environmentName === FabricRuntimeUtil.LOCAL_FABRIC) {
+        const exists: boolean = await fabricEnvironmentRegistry.exists(environmentName);
+        if (exists || environmentName === FabricRuntimeUtil.LOCAL_FABRIC) {
             // Environment already exists
             throw new Error('An environment with this name already exists.');
         }

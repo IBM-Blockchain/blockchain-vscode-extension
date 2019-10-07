@@ -13,36 +13,38 @@
 */
 
 import * as vscode from 'vscode';
-import { FabricRegistryEntry } from './FabricRegistryEntry';
+import { RegistryEntry } from './RegistryEntry';
+import { IRegistry } from './IRegistry';
 
-export abstract class FabricRegistry<T extends FabricRegistryEntry> {
+export abstract class SettingsRegistry<T extends RegistryEntry> implements IRegistry<RegistryEntry> {
 
     protected constructor(private registryName: string) {
 
     }
 
-    public getAll(): T[] {
+    public async getAll(): Promise<T[]> {
         return this.getEntries();
     }
 
-    public get(name: string): T {
+    public async get(name: string): Promise<T> {
         const entries: T[] = this.getEntries();
         const entry: T = entries.find((item: T) => item.name === name);
         if (!entry) {
-            throw new Error(`Entry "${name}" in Fabric registry "${this.registryName}" does not exist`);
+            throw new Error(`Entry "${name}" in registry "${this.registryName}" does not exist`);
         }
         return entry;
     }
 
-    public exists(name: string): boolean {
+    public async exists(name: string): Promise<boolean> {
         const entries: T[] = this.getEntries();
         return entries.some((item: T) => item.name === name);
     }
 
     public async add(entry: T): Promise<void> {
         const name: string = entry.name;
-        if (this.exists(name)) {
-            throw new Error(`Entry "${name}" in Fabric registry "${this.registryName}" already exists`);
+        const exists: boolean = await this.exists(name);
+        if (exists) {
+            throw new Error(`Entry "${name}" in registry "${this.registryName}" already exists`);
         }
         const entries: T[] = this.getEntries();
         entries.push(entry);
@@ -51,8 +53,9 @@ export abstract class FabricRegistry<T extends FabricRegistryEntry> {
 
     public async update(newEntry: T): Promise<void> {
         const name: string = newEntry.name;
-        if (!this.exists(name)) {
-            throw new Error(`Entry "${name}" in Fabric registry "${this.registryName}" does not exist`);
+        const exists: boolean = await this.exists(name);
+        if (!exists) {
+            throw new Error(`Entry "${name}" in registry "${this.registryName}" does not exist`);
         }
         const oldEntries: T[] = this.getEntries();
         const newEntries: T[] = oldEntries.map((oldEntry: T) => {
@@ -66,8 +69,9 @@ export abstract class FabricRegistry<T extends FabricRegistryEntry> {
     }
 
     public async delete(name: string): Promise<void> {
-        if (!this.exists(name)) {
-            throw new Error(`Entry "${name}" in Fabric registry "${this.registryName}" does not exist`);
+        const exists: boolean = await this.exists(name);
+        if (!exists) {
+            throw new Error(`Entry "${name}" in registry "${this.registryName}" does not exist`);
         }
         const oldEntries: T[] = this.getEntries();
         const newEntries: T[] = oldEntries.filter((oldEntry: T) => oldEntry.name !== name);

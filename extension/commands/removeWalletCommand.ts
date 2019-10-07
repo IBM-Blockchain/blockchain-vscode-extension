@@ -25,6 +25,7 @@ import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { FileSystemUtil } from '../util/FileSystemUtil';
 
 export async function removeWallet(treeItem: WalletTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -37,7 +38,7 @@ export async function removeWallet(treeItem: WalletTreeItem): Promise<void> {
         // Ask for wallet to remove
         // First check there is at least one that isn't local_fabric_wallet
         let wallets: Array<FabricWalletRegistryEntry> = [];
-        wallets = FabricWalletRegistry.instance().getAll();
+        wallets = await FabricWalletRegistry.instance().getAll();
         if (wallets.length === 0) {
             outputAdapter.log(LogType.ERROR, `No wallets to remove. ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME} cannot be removed.`, `No wallets to remove. ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME} cannot be removed.`);
             return;
@@ -61,7 +62,7 @@ export async function removeWallet(treeItem: WalletTreeItem): Promise<void> {
         return;
     } else if (deleteFsWallet === 'Yes') {
         const extensionDirectory: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-        const directoryPath: string = UserInputUtil.getDirPath(extensionDirectory);
+        const directoryPath: string = FileSystemUtil.getDirPath(extensionDirectory);
 
         for (const _wallet of walletsToDelete) {
 
@@ -75,7 +76,7 @@ export async function removeWallet(treeItem: WalletTreeItem): Promise<void> {
 
             await FabricWalletRegistry.instance().delete(_wallet.name);
 
-            const gateways: FabricGatewayRegistryEntry[] =  FabricGatewayRegistry.instance().getAll();
+            const gateways: FabricGatewayRegistryEntry[] =  await FabricGatewayRegistry.instance().getAll();
             for (const gateway of gateways) {
                 if (gateway.associatedWallet === _wallet.name) {
                     gateway.associatedWallet = ''; // If the gateway uses the newly removed wallet, dissociate it from the gateway

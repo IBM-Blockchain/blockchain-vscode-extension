@@ -78,9 +78,10 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_ENVIRONMENTS, environments, vscode.ConfigurationTarget.Global);
 
+            const environment: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get('myEnvironmentB');
             quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick').resolves({
                 label: 'myEnvironmentB',
-                data: FabricEnvironmentRegistry.instance().get('myEnvironmentB')
+                data: environment
             });
 
             geConnectedRegistryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry');
@@ -124,7 +125,7 @@ describe('DeleteEnvironmentCommand', () => {
         });
 
         it('should test a environment can be deleted from environment registry', async () => {
-            const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentRegistry.instance().get('myenvironmentA');
+            const environmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get('myenvironmentA');
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT, environmentRegistryEntry);
 
             environments = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);

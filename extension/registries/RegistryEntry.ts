@@ -12,14 +12,8 @@
  * limitations under the License.
 */
 
-import { RegistryEntry } from './RegistryEntry';
+export abstract class RegistryEntry {
 
-export class FabricEnvironmentRegistryEntry extends RegistryEntry {
+    public name: string;
 
-    public managedRuntime: boolean;
-    public associatedWallet: string;
-    constructor(fields?: FabricEnvironmentRegistryEntry) {
-        super();
-        Object.assign(this, fields);
-    }
 }

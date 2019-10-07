@@ -17,16 +17,16 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as yaml from 'js-yaml';
-import { UserInputUtil } from '../commands/UserInputUtil';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricNode } from './FabricNode';
+import { FileSystemUtil } from '../util/FileSystemUtil';
 
 export class FabricGatewayHelper {
 
     public static async getConnectionProfilePath(gatewayName: string): Promise<string> {
 
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+        const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
         const profileDirPath: string = path.join(homeExtDir, 'gateways', gatewayName);
 
         let files: string[] = await fs.readdir(profileDirPath);
@@ -102,7 +102,7 @@ export class FabricGatewayHelper {
         }
 
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+        const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
         const profileDirPath: string = path.join(homeExtDir, 'gateways', gatewayName);
         await fs.ensureDir(profileDirPath);
         const profileFilePath: string = path.join(profileDirPath, `${this.profileName}.json`);
@@ -117,7 +117,7 @@ export class FabricGatewayHelper {
         try {
 
             const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+            const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', gatewayName);
             const profileExists: boolean = await fs.pathExists(profileDirPath);
 

@@ -64,7 +64,8 @@ export async function addWallet(createIdentity: boolean = true): Promise<FabricW
             walletName = path.basename(walletPath);
 
             // Check if a wallet with the same name already exists
-            if (fabricWalletRegistry.exists(walletName) || walletName === FabricWalletUtil.LOCAL_WALLET) {
+            const exists: boolean = await fabricWalletRegistry.exists(walletName);
+            if (exists || walletName === FabricWalletUtil.LOCAL_WALLET) {
                 throw new Error('A wallet with this name already exists.');
             }
 
@@ -91,7 +92,8 @@ export async function addWallet(createIdentity: boolean = true): Promise<FabricW
             }
 
             // Check if a wallet with the same name already exists
-            if (fabricWalletRegistry.exists(walletName) || walletName === FabricWalletUtil.LOCAL_WALLET) {
+            const exists: boolean = await fabricWalletRegistry.exists(walletName);
+            if (exists || walletName === FabricWalletUtil.LOCAL_WALLET) {
                 throw new Error('A wallet with this name already exists.');
             }
 

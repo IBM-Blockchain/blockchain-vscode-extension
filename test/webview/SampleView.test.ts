@@ -229,8 +229,6 @@ describe('SampleView', () => {
 
             const AxiosStub: sinon.SinonStub = mySandBox.stub(Axios, 'get').resolves({data: readme});
 
-            mySandBox.stub(ejs, 'renderFile').callThrough();
-
             const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
             const samplePageHtml: string = await sampleView.getHTMLString();
             AxiosStub.should.have.been.calledWith('https://raw.githubusercontent.com/hyperledger/fabric-samples/release-1.4/README.md');

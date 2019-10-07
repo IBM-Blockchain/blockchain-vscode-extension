@@ -23,6 +23,7 @@ import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FileSystemUtil } from '../util/FileSystemUtil';
 
 export async function deleteGateway(gatewayTreeItem: GatewayTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -34,7 +35,7 @@ export async function deleteGateway(gatewayTreeItem: GatewayTreeItem): Promise<v
         // Ask for gateway to delete
         // First check there is at least one that isn't local_fabric
         let gateways: Array<FabricGatewayRegistryEntry> = [];
-        gateways = FabricGatewayRegistry.instance().getAll();
+        gateways = await FabricGatewayRegistry.instance().getAll();
         if (gateways.length === 0) {
             outputAdapter.log(LogType.ERROR, `No gateways to delete. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} cannot be deleted.`, `No gateways to delete. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} cannot be deleted.`);
             return;
@@ -58,7 +59,7 @@ export async function deleteGateway(gatewayTreeItem: GatewayTreeItem): Promise<v
     }
 
     const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-    const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+    const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
 
     for (const _gateway of gatewaysToDelete) {
         const gatewayPath: string = path.join(homeExtDir, 'gateways', _gateway.name);

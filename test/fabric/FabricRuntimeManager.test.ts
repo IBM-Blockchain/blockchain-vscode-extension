@@ -38,7 +38,7 @@ import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
 
 chai.should();
 
@@ -487,7 +487,7 @@ describe('FabricRuntimeManager', () => {
 
         it('should move the runtimes foler if exists', async () => {
             let extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            extDir = UserInputUtil.getDirPath(extDir);
+            extDir = FileSystemUtil.getDirPath(extDir);
 
             sandbox.stub(fs, 'pathExists').onFirstCall().resolves(true).onSecondCall().resolves(false);
             const moveStub: sinon.SinonStub = sandbox.stub(fs, 'move').resolves();
@@ -498,7 +498,7 @@ describe('FabricRuntimeManager', () => {
 
         it('should not move if does not exist', async () => {
             let extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            extDir = UserInputUtil.getDirPath(extDir);
+            extDir = FileSystemUtil.getDirPath(extDir);
 
             sandbox.stub(fs, 'pathExists').resolves(false);
             const moveStub: sinon.SinonStub = sandbox.stub(fs, 'move').resolves();
@@ -509,7 +509,7 @@ describe('FabricRuntimeManager', () => {
 
         it ('should not move if environment folder already exists', async () => {
             let extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            extDir = UserInputUtil.getDirPath(extDir);
+            extDir = FileSystemUtil.getDirPath(extDir);
 
             sandbox.stub(fs, 'pathExists').resolves(true);
             const moveStub: sinon.SinonStub = sandbox.stub(fs, 'move').resolves();
@@ -521,7 +521,7 @@ describe('FabricRuntimeManager', () => {
         it('should handle error moving', async () => {
             const error: Error = new Error('some error');
             let extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            extDir = UserInputUtil.getDirPath(extDir);
+            extDir = FileSystemUtil.getDirPath(extDir);
 
             sandbox.stub(fs, 'pathExists').onFirstCall().resolves(true).onSecondCall().resolves(false);
             const moveStub: sinon.SinonStub = sandbox.stub(fs, 'move').throws(error);

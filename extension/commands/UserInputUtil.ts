@@ -175,7 +175,7 @@ export class UserInputUtil {
             allGateways.push(...runtimeGateways);
         }
 
-        let gateways: Array<FabricGatewayRegistryEntry> = FabricGatewayRegistry.instance().getAll();
+        let gateways: Array<FabricGatewayRegistryEntry> = await FabricGatewayRegistry.instance().getAll();
 
         if (showAssociatedGateways !== undefined) {
             gateways = gateways.filter((gateway: FabricGatewayRegistryEntry) => {
@@ -242,18 +242,6 @@ export class UserInputUtil {
     public static getWorkspaceFolders(): Array<vscode.WorkspaceFolder> {
         const workspace: vscode.WorkspaceFolder[] = vscode.workspace.workspaceFolders || [];
         return workspace;
-    }
-    /**
-     * Method to replace ~ with OS's home directory, of a path
-     * @param {String} dir String containing path
-     * @returns {String} Returns dir.
-     *
-     */
-    public static getDirPath(dir: string): string {
-        if (dir.startsWith('~')) {
-            dir = homeDir(dir.replace('~', ''));
-        }
-        return dir;
     }
 
     public static showIdentitiesQuickPickBox(prompt: string, identities: string[], showCreate: boolean = false): Thenable<string> {
@@ -896,7 +884,7 @@ export class UserInputUtil {
             });
         }
 
-        const wallets: Array<FabricWalletRegistryEntry> = FabricWalletRegistry.instance().getAll();
+        const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll();
         for (const walletRegistryEntry of wallets) {
             walletQuickPickItems.push({
                 label: walletRegistryEntry.name,

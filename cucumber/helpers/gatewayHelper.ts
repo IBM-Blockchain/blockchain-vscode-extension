@@ -67,7 +67,7 @@ export class GatewayHelper {
             } else {
                 this.userInputUtilHelper.showQuickPickStub.resolves(UserInputUtil.ADD_GATEWAY_FROM_ENVIRONMENT);
 
-                const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentRegistry.instance().get(environmentName);
+                const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
                 this.userInputUtilHelper.showEnvironmentQuickPickStub.resolves({ label: environmentName, data: fabricEnvironmentRegistryEntry });
 
                 const environment: FabricEnvironment = new FabricEnvironment(environmentName);
@@ -94,7 +94,7 @@ export class GatewayHelper {
         let gatewayEntry: FabricGatewayRegistryEntry;
 
         try {
-            gatewayEntry = FabricGatewayRegistry.instance().get(name);
+            gatewayEntry = await FabricGatewayRegistry.instance().get(name);
         } catch (error) {
             const gatewayEntries: FabricGatewayRegistryEntry[] = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
             gatewayEntry = gatewayEntries[0];
@@ -104,7 +104,7 @@ export class GatewayHelper {
             let walletEntry: FabricWalletRegistryEntry;
 
             try {
-                walletEntry = FabricWalletRegistry.instance().get(walletName);
+                walletEntry = await FabricWalletRegistry.instance().get(walletName);
             } catch (error) {
                 walletEntry = new FabricWalletRegistryEntry();
                 walletEntry.name = FabricWalletUtil.LOCAL_WALLET;
@@ -128,7 +128,7 @@ export class GatewayHelper {
         let gatewayEntry: FabricGatewayRegistryEntry;
 
         try {
-            gatewayEntry = FabricGatewayRegistry.instance().get(gatewayName);
+            gatewayEntry = await FabricGatewayRegistry.instance().get(gatewayName);
         } catch (error) {
             gatewayEntry = new FabricGatewayRegistryEntry();
             gatewayEntry.name = gatewayName;
@@ -184,7 +184,7 @@ export class GatewayHelper {
             const entry: FabricGatewayRegistryEntry[] = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
             gatewayEntry = entry[0];
         } else {
-            gatewayEntry = FabricGatewayRegistry.instance().get(gatewayName);
+            gatewayEntry = await FabricGatewayRegistry.instance().get(gatewayName);
         }
 
         const profilePath: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'profiles');

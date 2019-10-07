@@ -23,6 +23,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { FileSystemUtil } from '../util/FileSystemUtil';
 
 /**
  * Main function which calls the methods and refreshes the blockchain explorer box each time that it runs successfully.
@@ -41,7 +42,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
         // Determine the directory that will contain the packages and ensure it exists.
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const pkgDir: string = path.join(extDir, 'packages');
-        resolvedPkgDir = UserInputUtil.getDirPath(pkgDir);
+        resolvedPkgDir = FileSystemUtil.getDirPath(pkgDir);
         await fs.ensureDir(resolvedPkgDir);
 
         // Choose the workspace directory.
@@ -326,5 +327,4 @@ async function buildWorkspace(workspaceDir: vscode.WorkspaceFolder): Promise<voi
             });
         });
     }
-
 }

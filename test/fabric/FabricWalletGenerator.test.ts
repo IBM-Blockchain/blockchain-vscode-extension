@@ -19,10 +19,10 @@ import * as sinonChai from 'sinon-chai';
 import * as fs from 'fs-extra';
 import { FabricWallet } from '../../extension/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
-import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
+import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
 
 chai.use(sinonChai);
 // tslint:disable no-unused-expression
@@ -40,7 +40,7 @@ describe('FabricWalletGenerator', () => {
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
 
-            mySandBox.stub(UserInputUtil, 'getDirPath').returns(path.join(rootPath, '../../test/data/walletDir'));
+            mySandBox.stub(FileSystemUtil, 'getDirPath').returns(path.join(rootPath, '../../test/data/walletDir'));
             ensureDirStub = mySandBox.stub(fs, 'ensureDir').resolves();
             pathExistsStub = mySandBox.stub(fs, 'pathExists');
 
@@ -88,7 +88,7 @@ describe('FabricWalletGenerator', () => {
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
 
-            mySandBox.stub(UserInputUtil, 'getDirPath').returns(path.join(rootPath, '../../test/data/wallets/walletDir'));
+            mySandBox.stub(FileSystemUtil, 'getDirPath').returns(path.join(rootPath, '../../test/data/wallets/walletDir'));
             pathExistsStub = mySandBox.stub(fs, 'pathExists');
             removeStub = mySandBox.stub(fs, 'remove').resolves();
         });
