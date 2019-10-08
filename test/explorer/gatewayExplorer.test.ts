@@ -263,7 +263,7 @@ describe('gatewayExplorer', () => {
                 localGatewayTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 localGatewayTreeItem.gateway.should.deep.equal(gateway);
                 localGatewayTreeItem.command.should.deep.equal(myCommand);
-                localGatewayTreeItem.tooltip.should.deep.equal(`Local Fabric is running
+                localGatewayTreeItem.tooltip.should.deep.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is running
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
             });
@@ -509,7 +509,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 allChildren.length.should.equal(3);
 
                 const connectedItem: ConnectedTreeItem = allChildren[0] as ConnectedTreeItem;
-                connectedItem.label.should.equal('Connected via gateway: Local Fabric');
+                connectedItem.label.should.equal(`Connected via gateway: ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`);
                 connectedItem.contextValue.should.equal('blockchain-connected-runtime-item');
                 connectedItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 connectedItem.connection.name.should.equal('local_fabric');

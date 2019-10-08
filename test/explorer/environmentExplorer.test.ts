@@ -107,7 +107,7 @@ describe('environmentExplorer', () => {
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
 
                 allChildren.length.should.equal(3);
-                allChildren[0].label.should.equal('Local Fabric  ○ (click to start)');
+                allChildren[0].label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ○ (click to start)`);
                 allChildren[0].tooltip.should.equal('Creates a local development runtime using Hyperledger Fabric Docker images');
                 allChildren[1].label.should.equal('myFabric');
                 allChildren[1].tooltip.should.equal('myFabric');
@@ -1014,7 +1014,7 @@ describe('environmentExplorer', () => {
 
             const result: RuntimeTreeItem = blockchainRuntimeExplorerProvider.getTreeItem(allChildren[0]) as RuntimeTreeItem;
 
-            result.label.should.equal('Local Fabric  ○ (click to start)');
+            result.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ○ (click to start)`);
         });
     });
 });
