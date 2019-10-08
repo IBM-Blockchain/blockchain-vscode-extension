@@ -37,6 +37,7 @@ import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvi
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
 import { FabricNode, FabricNodeType } from '../../extension/fabric/FabricNode';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -180,7 +181,7 @@ export class GatewayHelper {
 
     public async exportConnectionProfile(gatewayName: string): Promise<void> {
         let gatewayEntry: FabricGatewayRegistryEntry;
-        if (gatewayName === 'Local Fabric') {
+        if (gatewayName === FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME) {
             const entry: FabricGatewayRegistryEntry[] = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
             gatewayEntry = entry[0];
         } else {

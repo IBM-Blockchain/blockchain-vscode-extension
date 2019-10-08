@@ -26,6 +26,7 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { LogType } from '../../extension/logging/OutputAdapter';
+import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 
 chai.should();
 
@@ -120,7 +121,7 @@ describe('startFabricRuntime', () => {
         commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
         blockchainLogsOutputSpy.should.have.been.called;
         logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'startFabricRuntime');
-        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to start Local Fabric: ${error.message}`, `Failed to start Local Fabric: ${error.toString()}`);
+        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to start ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}: ${error.message}`, `Failed to start ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}: ${error.toString()}`);
     });
 
 });

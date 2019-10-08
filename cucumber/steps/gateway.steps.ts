@@ -41,7 +41,7 @@ module.exports = function(): any {
     });
 
     this.Given(/I'm connected to the '(.*?)' gateway( without association)?/, this.timeout, async (gateway: string, withoutAssociation: string) => {
-        if (gateway === 'Local Fabric') {
+        if (gateway === FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME) {
             gateway = FabricRuntimeUtil.LOCAL_FABRIC;
         }
 
@@ -77,7 +77,7 @@ module.exports = function(): any {
     });
 
     this.When(/connecting to the '(.*?)' gateway( without association)?/, this.timeout, async (gateway: string, withoutAssociation: string) => {
-        if (gateway === 'Local Fabric') {
+        if (gateway === FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME) {
             gateway = FabricRuntimeUtil.LOCAL_FABRIC;
         }
 
@@ -159,7 +159,7 @@ module.exports = function(): any {
 
         let name: string = this.gateway;
 
-        if (name === 'Local Fabric') {
+        if (name === FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME) {
             name = FabricRuntimeUtil.LOCAL_FABRIC;
         }
 

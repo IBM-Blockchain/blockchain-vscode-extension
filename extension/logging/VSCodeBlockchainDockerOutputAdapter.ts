@@ -13,6 +13,7 @@
 */
 
 import { VSCodeOutputAdapter } from './VSCodeOutputAdapter';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export class VSCodeBlockchainDockerOutputAdapter extends VSCodeOutputAdapter {
 
@@ -20,7 +21,7 @@ export class VSCodeBlockchainDockerOutputAdapter extends VSCodeOutputAdapter {
         return VSCodeBlockchainDockerOutputAdapter._instance;
     }
 
-    private static _instance: VSCodeBlockchainDockerOutputAdapter = new VSCodeBlockchainDockerOutputAdapter('Local Fabric');
+    private static _instance: VSCodeBlockchainDockerOutputAdapter = new VSCodeBlockchainDockerOutputAdapter(FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME);
 
     private constructor(channelName: string) {
         super(channelName);

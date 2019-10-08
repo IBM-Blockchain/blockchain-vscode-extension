@@ -33,7 +33,7 @@ module.exports = function(): any {
      */
 
     this.Given("the '{string}' wallet", this.timeout, async (wallet: string) => {
-        if (wallet === 'Local Fabric') {
+        if (wallet === FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME) {
             wallet = FabricWalletUtil.LOCAL_WALLET;
         }
         // Might want to detect if 'Local Fabric', then use FabricRuntime/WalletUtil
