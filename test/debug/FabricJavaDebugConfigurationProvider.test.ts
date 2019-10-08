@@ -151,6 +151,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 type: 'java',
                 request: 'myLaunch',
                 cwd: 'myCwd',
+                debugEvent: FabricJavaDebugConfigurationProvider.debugEvent,
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
@@ -169,6 +170,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 type: 'java',
                 request: 'myLaunch',
                 cwd: path.sep + 'myPath',
+                debugEvent: FabricJavaDebugConfigurationProvider.debugEvent,
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
@@ -186,6 +188,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 type: 'java',
                 request: 'myLaunch',
                 cwd: 'myCwd',
+                debugEvent: FabricJavaDebugConfigurationProvider.debugEvent,
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
@@ -203,6 +206,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 type: 'java',
                 request: 'myLaunch',
                 cwd: 'myCwd',
+                debugEvent: FabricJavaDebugConfigurationProvider.debugEvent,
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
@@ -220,6 +224,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 type: 'java',
                 request: 'launch',
                 cwd: 'myCwd',
+                debugEvent: FabricJavaDebugConfigurationProvider.debugEvent,
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
