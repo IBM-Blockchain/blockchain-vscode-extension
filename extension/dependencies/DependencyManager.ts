@@ -24,6 +24,7 @@ import { CommandUtil } from '../util/CommandUtil';
 import { LogType } from '../logging/OutputAdapter';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { Dependencies } from './Dependencies';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export class DependencyManager {
 
@@ -184,8 +185,8 @@ export class DependencyManager {
         const dependencies: any = {
             node: {name: 'Node.js', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NODEJS_REQUIRED, requiredLabel: 'only', tooltip: 'Required for developing JavaScript and TypeScript smart contracts. If installing Node and npm using a manager such as \'nvm\' or \'nodenv\', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.' },
             npm: {name: 'npm', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NPM_REQUIRED, requiredLabel: '', tooltip: 'Required for installing JavaScript and TypeScript smart contract dependencies. If installing Node and npm using a manager such as \'nvm\' or \'nodenv\', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.' },
-            docker: {name: 'Docker', required: true, version: undefined, url: 'https://docs.docker.com/install/#supported-platforms', requiredVersion: Dependencies.DOCKER_REQUIRED, requiredLabel: '', tooltip: 'Used to download Hyperledger Fabric images and manage containers for the Local Fabric.' },
-            dockerCompose: {name: 'Docker Compose', required: true, version: undefined, url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '', tooltip: 'Used for managing and operating the individual Local Fabric components.' }
+            docker: {name: 'Docker', required: true, version: undefined, url: 'https://docs.docker.com/install/#supported-platforms', requiredVersion: Dependencies.DOCKER_REQUIRED, requiredLabel: '', tooltip: `Used to download Hyperledger Fabric images and manage containers for the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}.` },
+            dockerCompose: {name: 'Docker Compose', required: true, version: undefined, url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '', tooltip: `Used for managing and operating the individual ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} components.` }
         };
 
         // Node

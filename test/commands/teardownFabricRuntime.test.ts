@@ -156,7 +156,7 @@ describe('teardownFabricRuntime', () => {
         showConfirmationWarningMessageStub.should.have.been.calledOnce;
 
         logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'teardownFabricRuntime');
-        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to teardown Local Fabric: ${error.message}`, `Failed to teardown Local Fabric: ${error.toString()}`);
+        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to teardown ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}: ${error.message}`, `Failed to teardown ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}: ${error.toString()}`);
     });
 
     it('should force teardown without neededing to answer the warning message', async () => {

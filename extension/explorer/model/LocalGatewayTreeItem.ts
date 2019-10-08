@@ -22,6 +22,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOut
 import { LogType } from '../../logging/OutputAdapter';
 import { FabricWalletUtil } from '../../fabric/FabricWalletUtil';
 import { ExtensionCommands } from '../../../ExtensionCommands';
+import { FabricRuntimeUtil } from '../../fabric/FabricRuntimeUtil';
 
 export class LocalGatewayTreeItem extends BlockchainTreeItem {
 
@@ -68,7 +69,7 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
             const busyStates: string[] = ['◐', '◓', '◑', '◒'];
             const currentBusyState: string = busyStates[this.busyTicks % 4];
             newLabel += currentBusyState;
-            newTooltip = `Local Fabric  ${currentBusyState}
+            newTooltip = `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ${currentBusyState}
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`;
             newCommand = null;
@@ -76,7 +77,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`;
             // Running!
             this.disableBusyTicker();
             newLabel += '●';
-            newTooltip = `Local Fabric is running
+            newTooltip = `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is running
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`;
             newCommand = {
@@ -88,7 +89,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`;
             // Not running!
             this.disableBusyTicker();
             newLabel += '○';
-            newTooltip = `Local Fabric is not running
+            newTooltip = `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is not running
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`;
             newCommand = {
