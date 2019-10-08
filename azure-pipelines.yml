@@ -60,10 +60,68 @@ stages:
           - template: azure-templates/setup-steps.yml
           - template: azure-templates/cucumber-steps.yml
 
+  - stage: jestTest
+    condition: ne(variables['Build.Reason'], 'Schedule')
+    dependsOn: []
+    jobs:
+      - job: jest
+        strategy:
+          matrix:
+            linux:
+              imageName: 'ubuntu-16.04'
+              VERSION: '1.35.1'
+              MODULES: '64'
+              ELECTRON: '3.0'
+              TARGET: '3.0.0'
+            mac:
+              imageName: 'macos-10.14'
+              VERSION: '1.35.1'
+              MODULES: '64'
+              ELECTRON: '3.0'
+              TARGET: '3.0.0'
+        pool:
+          vmImage: $(imageName)
+
+        steps:
+          - template: azure-templates/setup-steps.yml
+          - template: azure-templates/rebuild-steps.yml
+          - template: azure-templates/jest-test-steps.yml
+
+  - stage: cypressTest
+    condition: ne(variables['Build.Reason'], 'Schedule')
+    dependsOn: []
+    jobs:
+      - job: cypress
+        strategy:
+          matrix:
+            linux:
+              imageName: 'ubuntu-16.04'
+              VERSION: '1.35.1'
+              MODULES: '64'
+              ELECTRON: '3.0'
+              TARGET: '3.0.0'
+            mac:
+              imageName: 'macos-10.14'
+              VERSION: '1.35.1'
+              MODULES: '64'
+              ELECTRON: '3.0'
+              TARGET: '3.0.0'
+        pool:
+          vmImage: $(imageName)
+
+        steps:
+          - template: azure-templates/setup-steps.yml
+          - template: azure-templates/rebuild-steps.yml
+          - template: azure-templates/cypress-steps.yml
+
+
+
   - stage: buildPackage
     dependsOn:
       - unitTest
       - cucumberTest
+      - jestTest
+      - cypressTest
     jobs:
       - job: buildPackage
 
@@ -93,6 +151,8 @@ stages:
     dependsOn:
       - unitTest
       - cucumberTest
+      - jestTest
+      - cypressTest
       - buildPackage
     jobs:
       - job:
