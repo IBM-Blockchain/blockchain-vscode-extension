@@ -196,6 +196,25 @@ describe('FabricNodeDebugConfigurationProvider', () => {
             sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
         });
 
+        it('should set program if not set for Windows', async () => {
+            mySandbox.stub(process, 'platform').value('win32');
+            debugConfig.program = null;
+
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.equal(config, undefined);
+            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+                type: 'node',
+                request: 'myLaunch',
+                program: path.join(path.sep, 'myPath', 'node_modules', 'fabric-shim', 'cli'),
+                cwd: 'myCwd',
+                env: {
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
+                },
+                args: ['start', '--peer.address', 'localhost:12345']
+            });
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
+        });
+
         it('should add cwd if not set', async () => {
 
             debugConfig.cwd = null;
