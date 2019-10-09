@@ -34,7 +34,7 @@ export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> 
     outputAdapter.log(LogType.INFO, undefined, `deleteIdentity`);
 
     let walletPath: string;
-    let identityName: string;
+    let identitiesToDelete: string[];
     if (!treeItem) {
         // Called from command palette
         const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose the wallet containing the identity that you want to delete', false, true) as IBlockchainQuickPickItem<FabricWalletRegistryEntry>;
@@ -63,8 +63,8 @@ export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> 
             return;
         }
 
-        identityName = await UserInputUtil.showIdentitiesQuickPickBox('Choose the identity to delete', identityNames);
-        if (!identityName) {
+        identitiesToDelete = await UserInputUtil.showIdentitiesQuickPickBox('Choose the identities to delete', true, identityNames) as string[];
+        if (!identitiesToDelete || identitiesToDelete.length === 0) {
             return;
         }
 
@@ -79,15 +79,30 @@ export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> 
             walletPath = walletRegistryEntry.walletPath;
         }
 
-        identityName = treeItem.label;
+        identitiesToDelete = [treeItem.label];
     }
 
-    const areYouSure: boolean = await UserInputUtil.showConfirmationWarningMessage(`This will delete ${identityName} from your file system. Do you want to continue?`);
+    let areYouSure: boolean;
 
-    if (areYouSure) {
-        await fs.remove(path.join(walletPath, identityName));
+    if (identitiesToDelete.length > 1) {
+        areYouSure = await UserInputUtil.showConfirmationWarningMessage(`This will delete the selected identities from your file system. Do you want to continue?`);
+    } else {
+        areYouSure = await UserInputUtil.showConfirmationWarningMessage(`This will delete ${identitiesToDelete[0]} from your file system. Do you want to continue?`);
+    }
+
+    if (!areYouSure) {
+        return;
+    }
+    for (const _identity of identitiesToDelete) {
+        await fs.remove(path.join(walletPath, _identity));
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
-        outputAdapter.log(LogType.SUCCESS, `Successfully deleted identity: ${identityName}`, `Successfully deleted identity: ${identityName}`);
     }
+
+    if (identitiesToDelete.length > 1) {
+        outputAdapter.log(LogType.SUCCESS, `Successfully deleted selected identities.`);
+    } else {
+        outputAdapter.log(LogType.SUCCESS, `Successfully deleted identity: ${identitiesToDelete[0]}`);
+    }
+
     return;
 }
