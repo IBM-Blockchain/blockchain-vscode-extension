@@ -1,5 +1,16 @@
 # IBM Blockchain Platform Extension Change Log
 
+## 1.0.12: October 10th 2019
+
+* Fixed submitting transactions where there are multiple channels [#1443](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1443)
+* Export connection profile when connected to gateway [#1386](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1386)
+* Cancelling importing nodes during environment creation no longer errrors [#1446](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1446)
+* Fixed ‘cannot launch program’ when starting debug on Windows  [#1077](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1077)
+* Fixed debug toolbar icon appearing when it shouldn’t [#1464](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1464)
+* Added the ability to delete multiple identities at once using the Command Palette [#1447](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1447)
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-60.png)
+
 ## 1.0.11: September 26th 2019
 
 * Fixed refreshing environments [#1188](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1188)
