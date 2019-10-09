@@ -22,8 +22,6 @@ import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
 import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
 import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
-import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricJavaDebugConfigurationProvider } from '../../extension/debug/FabricJavaDebugConfigurationProvider';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
@@ -63,26 +61,20 @@ describe('FabricJavaDebugConfigurationProvider', () => {
         let runtimeStub: sinon.SinonStubbedInstance<FabricRuntime>;
         let packageEntry: PackageRegistryEntry;
         let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
-        let registryEntry: FabricGatewayRegistryEntry;
         let startDebuggingStub: sinon.SinonStub;
         let sendTelemetryEventStub: sinon.SinonStub;
         let showInputBoxStub: sinon.SinonStub;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             mySandbox = sinon.createSandbox();
+
             fabricDebugConfig = new FabricJavaDebugConfigurationProvider();
 
             runtimeStub = mySandbox.createStubInstance(FabricRuntime);
-            runtimeStub.getName.returns('localfabric');
             runtimeStub.getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
-            runtimeStub.getGateways.resolves([{name: 'myGateway', path: 'myPath'}]);
-
-            registryEntry = new FabricGatewayRegistryEntry();
-            registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
 
             mySandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(runtimeStub);
-            mySandbox.stub(FabricGatewayRegistry.instance(), 'get').returns(registryEntry);
 
             const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;

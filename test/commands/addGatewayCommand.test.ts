@@ -25,7 +25,6 @@ import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { Reporter } from '../../extension/util/Reporter';
-import { SettingConfigurations } from '../../configurations';
 import { FabricNode } from '../../extension/fabric/FabricNode';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
@@ -67,7 +66,7 @@ describe('AddGatewayCommand', () => {
 
         beforeEach(async () => {
             // reset the available gateways
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
+            await FabricGatewayRegistry.instance().clear();
 
             browseStub = mySandBox.stub(UserInputUtil, 'browse');
             copyConnectionProfileStub = mySandBox.stub(FabricGatewayHelper, 'copyConnectionProfile');
@@ -85,7 +84,7 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = await FabricGatewayRegistry.instance().getAll();
 
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal({
@@ -113,7 +112,7 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = await FabricGatewayRegistry.instance().getAll();
 
             gateways.length.should.equal(2);
             gateways[0].should.deep.equal({
@@ -141,7 +140,7 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = await FabricGatewayRegistry.instance().getAll();
             gateways.length.should.equal(0);
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addGateway');
             sendTelemetryEventStub.should.not.have.been.called;
@@ -154,25 +153,9 @@ describe('AddGatewayCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
             browseStub.should.have.been.calledOnce;
-            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = await FabricGatewayRegistry.instance().getAll();
             gateways.length.should.equal(0);
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addGateway');
-            sendTelemetryEventStub.should.not.have.been.called;
-        });
-
-        it('should handle errors when adding a gateway', async () => {
-            showInputBoxStub.onFirstCall().resolves('myGateway');
-            browseStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
-            mySandBox.stub(FabricGatewayRegistry.instance(), 'add').rejects({ message: 'already exists' });
-
-            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
-
-            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
-
-            gateways.length.should.equal(0);
-            logSpy.should.have.been.calledTwice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new gateway: already exists`);
             sendTelemetryEventStub.should.not.have.been.called;
         });
 
@@ -186,7 +169,7 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = await FabricGatewayRegistry.instance().getAll();
 
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal({
@@ -216,7 +199,7 @@ describe('AddGatewayCommand', () => {
         beforeEach(async () => {
 
             // reset the available gateways
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
+            await FabricGatewayRegistry.instance().clear();
 
             methodChooserStub.resolves(UserInputUtil.ADD_GATEWAY_FROM_ENVIRONMENT);
 
@@ -239,7 +222,7 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = await FabricGatewayRegistry.instance().getAll();
 
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal({
@@ -258,7 +241,7 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = await FabricGatewayRegistry.instance().getAll();
             gateways.length.should.equal(0);
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addGateway');
             sendTelemetryEventStub.should.not.have.been.called;
@@ -269,7 +252,7 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = await FabricGatewayRegistry.instance().getAll();
 
             gateways.length.should.equal(0);
 
@@ -283,7 +266,7 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = await FabricGatewayRegistry.instance().getAll();
 
             gateways.length.should.equal(0);
 
@@ -297,7 +280,7 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = await FabricGatewayRegistry.instance().getAll();
 
             gateways.length.should.equal(0);
 
@@ -311,7 +294,7 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = await FabricGatewayRegistry.instance().getAll();
 
             gateways.length.should.equal(0);
 
@@ -325,7 +308,7 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = await FabricGatewayRegistry.instance().getAll();
 
             gateways[0].should.deep.equal({
                 name: 'myGateway',

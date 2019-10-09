@@ -28,17 +28,17 @@ orderers:
  "orderer.example.com":
   url: "grpc://localhost:7050"
   tlsCACerts:
-    path: "/some/relative/path"
+    path: "../some/relative/path"
 peers:
  "peer0.org1.example.com":
   url: "grpc://localhost:7051"
   eventUrl: "grpc://localhost:7053"
   tlsCACerts:
-    path: "/some/relative/path"
+    path: "../some/relative/path"
 certificateAuthorities:
  "ca.org1.example.com":
   url: "http://localhost:7054"
   caName: "ca.org1.example.com"
   tlsCACerts:
-    path: "/some/relative/path"
+    path: "../some/relative/path"
 

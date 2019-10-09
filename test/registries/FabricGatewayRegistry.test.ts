@@ -17,6 +17,8 @@ import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayR
 import * as chai from 'chai';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { TestUtil } from '../TestUtil';
+import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 
 chai.should();
 
@@ -36,13 +38,32 @@ describe('FabricGatewayRegistry', () => {
         await registry.clear();
     });
 
-    it('should manage configuration for connections', async () => {
-        const gateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
-            name: 'my-fabric-network',
+    it('should get all the gateways and put local fabric first', async () => {
+        const gatewayOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
+            name: 'gatewayOne',
             associatedWallet: ''
         });
+
         await registry.getAll().should.eventually.deep.equal([]);
-        await registry.add(gateway);
-        await registry.getAll().should.eventually.deep.equal([gateway]);
+
+        await FabricRuntimeManager.instance().getRuntime().importGateways();
+
+        const localFabricEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+
+        await registry.add(gatewayOne);
+        await registry.getAll().should.eventually.deep.equal([localFabricEntry, gatewayOne]);
+    });
+
+    it('should get all gateways but not show local fabric', async () => {
+        const gatewayOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
+            name: 'gatewayOne',
+            associatedWallet: ''
+        });
+
+        await registry.getAll().should.eventually.deep.equal([]);
+
+        await FabricRuntimeManager.instance().getRuntime().importGateways();
+        await registry.add(gatewayOne);
+        await registry.getAll(false).should.eventually.deep.equal([gatewayOne]);
     });
 });

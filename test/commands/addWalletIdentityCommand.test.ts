@@ -44,7 +44,6 @@ import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnviro
 import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
-import { SettingConfigurations } from '../../configurations';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -79,9 +78,6 @@ describe('AddWalletIdentityCommand', () => {
 
         beforeEach(async () => {
 
-            // reset the stored gateways
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
-
             const connectionOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGatewayA',
                 associatedWallet: ''
@@ -108,6 +104,7 @@ describe('AddWalletIdentityCommand', () => {
 
             // add the local fabric one back in
             await FabricRuntimeManager.instance().getRuntime().importWalletsAndIdentities();
+            await FabricRuntimeManager.instance().getRuntime().importGateways();
 
             const connectionOneWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
                 name: 'blueWallet',
@@ -621,7 +618,9 @@ describe('AddWalletIdentityCommand', () => {
                 label: 'externalWallet',
                 data: FabricWalletRegistry.instance().get('externalWallet')
             });
-            mySandBox.stub(FabricGatewayRegistry.instance(), 'getAll').returns([]);
+
+            await FabricGatewayRegistry.instance().clear();
+
             inputBoxStub.onFirstCall().resolves('greenConga');
             inputBoxStub.onSecondCall().resolves('myMSPID');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
@@ -762,12 +761,6 @@ describe('AddWalletIdentityCommand', () => {
                     }
                 }`);
 
-                mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([{
-                    name: FabricRuntimeUtil.LOCAL_FABRIC,
-                    connectionProfilePath: '/some/path/connection.json',
-                    managedRuntime: true,
-                    associatedWallet: FabricWalletUtil.LOCAL_WALLET
-                } as FabricGatewayRegistryEntry]);
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
 
@@ -810,12 +803,6 @@ describe('AddWalletIdentityCommand', () => {
                     }
                 }`);
 
-                mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([{
-                    name: FabricRuntimeUtil.LOCAL_FABRIC,
-                    connectionProfilePath: '/some/path/connection.json',
-                    managedRuntime: true,
-                    associatedWallet: FabricWalletUtil.LOCAL_WALLET
-                } as FabricGatewayRegistryEntry]);
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 inputBoxStub.onSecondCall().resolves('myMSPID');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
@@ -852,12 +839,6 @@ describe('AddWalletIdentityCommand', () => {
             });
 
             it(`should handle ${FabricRuntimeUtil.LOCAL_FABRIC} failing to start`, async () => {
-                mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([{
-                    name: FabricRuntimeUtil.LOCAL_FABRIC,
-                    connectionProfilePath: '/some/path/connection.json',
-                    managedRuntime: true,
-                    associatedWallet: FabricWalletUtil.LOCAL_WALLET
-                } as FabricGatewayRegistryEntry]);
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 inputBoxStub.onSecondCall().resolves('myMSPID');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
@@ -889,7 +870,7 @@ describe('AddWalletIdentityCommand', () => {
 
                 const emptyWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
                 emptyWalletRegistryEntry.name = 'emptyWallet';
-                emptyWalletRegistryEntry.walletPath =  path.join(rootPath, '../../test/data/walletDir/emptyWallet');
+                emptyWalletRegistryEntry.walletPath = path.join(rootPath, '../../test/data/walletDir/emptyWallet');
                 await FabricWalletRegistry.instance().add(emptyWalletRegistryEntry);
 
                 fsReadFile.resolves(`{

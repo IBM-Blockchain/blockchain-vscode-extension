@@ -21,10 +21,8 @@ import { FabricConnectionFactory } from '../../extension/fabric/FabricConnection
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
-import { FabricGateway } from '../../extension/fabric/FabricGateway';
 import { CommandUtil } from '../../extension/util/CommandUtil';
 import { version } from '../../package.json';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
@@ -185,20 +183,6 @@ describe('FabricRuntimeManager', () => {
             FabricEnvironmentManager.instance().disconnect();
 
             mockRuntime.stopLogs.should.have.been.called;
-        });
-    });
-
-    describe('#getGatewayRegistryEntries', () => {
-        it('should return an array of gateway registry entries', async () => {
-            const instance: FabricRuntimeManager = FabricRuntimeManager.instance();
-            mockRuntime.getGateways.resolves([
-                new FabricGateway(FabricRuntimeUtil.LOCAL_FABRIC, 'SOME_PATH', { connection: 'profile' })
-            ]);
-
-            const registryEntries: FabricGatewayRegistryEntry[] = await instance.getGatewayRegistryEntries();
-            registryEntries.should.have.lengthOf(1);
-            registryEntries[0].name.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
-            registryEntries[0].associatedWallet.should.equal(FabricWalletUtil.LOCAL_WALLET);
         });
     });
 

@@ -12,11 +12,12 @@
  * limitations under the License.
 */
 
-import { SettingsRegistry } from './SettingsRegistry';
+import { FileRegistry } from './FileRegistry';
 import { FabricGatewayRegistryEntry } from './FabricGatewayRegistryEntry';
-import { SettingConfigurations } from '../../configurations';
+import { FileConfigurations } from '../../configurations';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
-export class FabricGatewayRegistry extends SettingsRegistry<FabricGatewayRegistryEntry> {
+export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEntry> {
 
     public static instance(): FabricGatewayRegistry {
         return FabricGatewayRegistry._instance;
@@ -25,7 +26,27 @@ export class FabricGatewayRegistry extends SettingsRegistry<FabricGatewayRegistr
     private static _instance: FabricGatewayRegistry = new FabricGatewayRegistry();
 
     private constructor() {
-        super(SettingConfigurations.FABRIC_GATEWAYS);
+        super(FileConfigurations.FABRIC_GATEWAYS);
     }
 
+    public async getAll(showLocalFabric: boolean = true): Promise<FabricGatewayRegistryEntry[]> {
+        let entries: FabricGatewayRegistryEntry[] = await super.getAll();
+
+        let local: FabricGatewayRegistryEntry;
+
+        entries = entries.filter((entry: FabricGatewayRegistryEntry) => {
+            if (entry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+                local = entry;
+                return false;
+            }
+
+            return true;
+        });
+
+        if (showLocalFabric && local) {
+            entries.unshift(local);
+        }
+
+        return entries;
+    }
 }
