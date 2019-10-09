@@ -137,7 +137,8 @@ describe('FabricDebugConfigurationProvider', () => {
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
-                args: ['127.0.0.1:54321']
+                args: ['127.0.0.1:54321'],
+                debugEvent: FabricDebugConfigurationProvider.debugEvent
             });
             commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
         });
@@ -154,7 +155,8 @@ describe('FabricDebugConfigurationProvider', () => {
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
-                args: ['127.0.0.1:54321']
+                args: ['127.0.0.1:54321'],
+                debugEvent: FabricDebugConfigurationProvider.debugEvent
             });
             commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
         });
@@ -175,7 +177,8 @@ describe('FabricDebugConfigurationProvider', () => {
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
-                args: ['127.0.0.1:54321']
+                args: ['127.0.0.1:54321'],
+                debugEvent: FabricDebugConfigurationProvider.debugEvent
             });
             commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
             commandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
@@ -193,7 +196,8 @@ describe('FabricDebugConfigurationProvider', () => {
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
-                args: ['127.0.0.1:54321']
+                args: ['127.0.0.1:54321'],
+                debugEvent: FabricDebugConfigurationProvider.debugEvent
             });
             commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
             commandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistry);
@@ -210,7 +214,8 @@ describe('FabricDebugConfigurationProvider', () => {
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
-                args: ['127.0.0.1:54321']
+                args: ['127.0.0.1:54321'],
+                debugEvent: FabricDebugConfigurationProvider.debugEvent
             });
             commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
         });
@@ -227,7 +232,8 @@ describe('FabricDebugConfigurationProvider', () => {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
                     myProperty: 'myValue'
                 },
-                args: ['127.0.0.1:54321']
+                args: ['127.0.0.1:54321'],
+                debugEvent: FabricDebugConfigurationProvider.debugEvent
             });
             commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
         });
@@ -243,7 +249,8 @@ describe('FabricDebugConfigurationProvider', () => {
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:myVersion`
                 },
-                args: ['127.0.0.1:54321']
+                args: ['127.0.0.1:54321'],
+                debugEvent: FabricDebugConfigurationProvider.debugEvent
             });
             commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
         });
@@ -260,7 +267,8 @@ describe('FabricDebugConfigurationProvider', () => {
                     CORE_CHAINCODE_EXECUTETIMEOUT: '10s',
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
-                args: ['127.0.0.1:54321']
+                args: ['127.0.0.1:54321'],
+                debugEvent: FabricDebugConfigurationProvider.debugEvent
             });
             commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
         });
@@ -337,7 +345,8 @@ describe('FabricDebugConfigurationProvider', () => {
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
-                args: ['127.0.0.1:54321']
+                args: ['127.0.0.1:54321'],
+                debugEvent: FabricDebugConfigurationProvider.debugEvent
             });
 
             runtimeStub.isRunning.should.have.been.calledWith(['mySmartContract', '0.0.1']);
@@ -358,7 +367,8 @@ describe('FabricDebugConfigurationProvider', () => {
                 env: {
                     CORE_CHAINCODE_ID_NAME: 'mySmartContract:0.0.1'
                 },
-                args: ['127.0.0.1:54321']
+                args: ['127.0.0.1:54321'],
+                debugEvent: FabricDebugConfigurationProvider.debugEvent
             });
 
             runtimeStub.killChaincode.should.have.been.called;
