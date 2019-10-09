@@ -70,7 +70,7 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
     private async createWalletTree(): Promise<BlockchainTreeItem[]> {
         const tree: Array<BlockchainTreeItem> = [];
 
-        const walletRegistryEntries: FabricWalletRegistryEntry[] = FabricWalletRegistry.instance().getAll();
+        const walletRegistryEntries: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
         const runtimeWalletRegistryEntries: FabricWalletRegistryEntry[] = await FabricRuntimeManager.instance().getWalletRegistryEntries();
         const allWalletRegistryEntries: FabricWalletRegistryEntry[] = [].concat(runtimeWalletRegistryEntries, walletRegistryEntries);
 

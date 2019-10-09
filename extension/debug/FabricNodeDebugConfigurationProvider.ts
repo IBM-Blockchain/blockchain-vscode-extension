@@ -42,7 +42,13 @@ export class FabricNodeDebugConfigurationProvider extends FabricDebugConfigurati
         }
 
         if (!config.program) {
-            config.program = path.join(folder.uri.fsPath, 'node_modules', '.bin', 'fabric-chaincode-node');
+
+            // Workaround for Windows (Issue #1077)
+            if (process.platform === 'win32') {
+                config.program = path.join(folder.uri.fsPath, 'node_modules', 'fabric-shim', 'cli');
+            } else {
+                config.program = path.join(folder.uri.fsPath, 'node_modules', '.bin', 'fabric-chaincode-node');
+            }
         }
 
         if (!config.cwd) {

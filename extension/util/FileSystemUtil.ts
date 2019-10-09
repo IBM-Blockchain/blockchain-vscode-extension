@@ -11,9 +11,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
+'use strict';
 
-export abstract class FabricRegistryEntry {
+import * as homeDir from 'home-dir';
 
-    public name: string;
+export class FileSystemUtil {
 
+    /**
+     * Method to replace ~ with OS's home directory, of a path
+     * @param {String} dir String containing path
+     * @returns {String} Returns dir.
+     *
+     */
+    public static getDirPath(dir: string): string {
+        if (dir.startsWith('~')) {
+            dir = homeDir(dir.replace('~', ''));
+        }
+        return dir;
+    }
 }

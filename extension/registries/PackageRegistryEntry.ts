@@ -13,9 +13,9 @@
 */
 'use strict';
 
-import { FabricRegistryEntry } from './FabricRegistryEntry';
+import { RegistryEntry } from './RegistryEntry';
 
-export class PackageRegistryEntry extends FabricRegistryEntry {
+export class PackageRegistryEntry extends RegistryEntry {
 
     public name: string;
 

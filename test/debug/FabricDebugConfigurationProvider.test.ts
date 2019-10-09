@@ -285,7 +285,7 @@ describe('FabricDebugConfigurationProvider', () => {
             should.equal(config, undefined);
             startDebuggingStub.should.not.have.been.called;
             commandStub.should.not.have.been.called;
-            logSpy.should.have.been.calledWith(LogType.ERROR, 'To debug a smart contract, you must update the Local Fabric runtime. Teardown and start the Local Fabric runtime, and try again.');
+            logSpy.should.have.been.calledWith(LogType.ERROR, `To debug a smart contract, you must update the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime. Teardown and start the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime, and try again.`);
         });
 
         it('should give an error if generator version is unknown', async () => {
@@ -301,7 +301,7 @@ describe('FabricDebugConfigurationProvider', () => {
             should.equal(config, undefined);
             startDebuggingStub.should.not.have.been.called;
             commandStub.should.not.have.been.called;
-            logSpy.should.have.been.calledWith(LogType.ERROR, 'To debug a smart contract, you must update the Local Fabric runtime. Teardown and start the Local Fabric runtime, and try again.');
+            logSpy.should.have.been.calledWith(LogType.ERROR, `To debug a smart contract, you must update the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime. Teardown and start the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime, and try again.`);
         });
 
         it('should not run if the chaincode name is not provided', async () => {

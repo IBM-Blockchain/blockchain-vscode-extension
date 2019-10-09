@@ -33,7 +33,7 @@ import { FabricRuntimeUtil } from './FabricRuntimeUtil';
 import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager } from './FabricEnvironmentManager';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
-import { UserInputUtil } from '../commands/UserInputUtil';
+import { FileSystemUtil } from '../util/FileSystemUtil';
 
 export class FabricRuntimeManager {
 
@@ -202,7 +202,7 @@ export class FabricRuntimeManager {
     private async migrateRuntimeFolder(): Promise<void> {
         // Move runtime folder under environments
         let extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-        extDir = UserInputUtil.getDirPath(extDir);
+        extDir = FileSystemUtil.getDirPath(extDir);
         const runtimesExtDir: string = path.join(extDir, 'runtime');
         const exists: boolean = await fs.pathExists(runtimesExtDir);
         if (exists) {
@@ -261,14 +261,14 @@ export class FabricRuntimeManager {
         // Execute the teardown scripts.
         const basicNetworkPath: string = path.resolve(__dirname, '..', '..', '..', 'basic-network');
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-        outputAdapter.log(LogType.WARNING, null, 'Attempting to teardown old local Fabric from version <= 0.3.3');
+        outputAdapter.log(LogType.WARNING, null, `Attempting to teardown old ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} from version <= 0.3.3`);
         outputAdapter.log(LogType.WARNING, null, 'Any error messages from this process can be safely ignored (for example, container does not exist');
         if (process.platform === 'win32') {
             await CommandUtil.sendCommandWithOutput('cmd', ['/c', 'teardown.cmd'], basicNetworkPath, null, outputAdapter);
         } else {
             await CommandUtil.sendCommandWithOutput('/bin/sh', ['teardown.sh'], basicNetworkPath, null, outputAdapter);
         }
-        outputAdapter.log(LogType.WARNING, null, 'Finished attempting to teardown old local Fabric from version <= 0.3.3');
+        outputAdapter.log(LogType.WARNING, null, `Finished attempting to teardown old ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} from version <= 0.3.3`);
 
     }
 

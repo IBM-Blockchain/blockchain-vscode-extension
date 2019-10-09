@@ -39,7 +39,7 @@ export class GeneratedTestsHelper {
         let gatewayEntry: FabricGatewayRegistryEntry;
 
         try {
-            gatewayEntry = FabricGatewayRegistry.instance().get(gatewayName);
+            gatewayEntry = await FabricGatewayRegistry.instance().get(gatewayName);
         } catch (error) {
             gatewayEntry = new FabricGatewayRegistryEntry();
             gatewayEntry.name = gatewayName;

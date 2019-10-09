@@ -121,9 +121,9 @@ export class SampleView extends View {
         const repositoryName: string = repository.name;
         const repositoryRegistry: RepositoryRegistry = RepositoryRegistry.instance();
 
-        let repositoryConfig: any;
+        let repositoryConfig: RepositoryRegistryEntry;
         try {
-            repositoryConfig = repositoryRegistry.get(repositoryName);
+            repositoryConfig = await repositoryRegistry.get(repositoryName);
         } catch (error) {
             repositoryConfig = undefined;
         }
@@ -156,9 +156,9 @@ export class SampleView extends View {
 
         if (!validInternetConnection) {
             const repositoryRegistry: RepositoryRegistry = RepositoryRegistry.instance();
-            const repoIsCloned: boolean = repositoryRegistry.exists(options.repositoryName);
+            const repoIsCloned: boolean = await repositoryRegistry.exists(options.repositoryName);
             if (repoIsCloned) {
-                const clonedRepo: RepositoryRegistryEntry = repositoryRegistry.get(options.repositoryName);
+                const clonedRepo: RepositoryRegistryEntry = await repositoryRegistry.get(options.repositoryName);
                 const repoPath: string = clonedRepo.path;
                 const readMeOnJSON: string = options.sample.readme;
                 const splitPath: string[] = readMeOnJSON.split(options.repositoryName);
@@ -339,7 +339,7 @@ export class SampleView extends View {
         const repositoryRegistry: RepositoryRegistry = RepositoryRegistry.instance();
         let repositoryData: RepositoryRegistryEntry;
         try {
-            repositoryData = repositoryRegistry.get(this.repoName);
+            repositoryData = await repositoryRegistry.get(this.repoName);
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `The location of the cloned repository on the disk is unknown. Try re-cloning the sample repository.`);
             return;

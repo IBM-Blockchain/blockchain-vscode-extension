@@ -168,7 +168,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
 
         const tree: BlockchainTreeItem[] = [];
 
-        const allGateways: FabricGatewayRegistryEntry[] = this.fabricGatewayRegistry.getAll();
+        const allGateways: FabricGatewayRegistryEntry[] = await this.fabricGatewayRegistry.getAll();
 
         try {
             const runtimeGateways: FabricGatewayRegistryEntry[] = await FabricRuntimeManager.instance().getGatewayRegistryEntries();

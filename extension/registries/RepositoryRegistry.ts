@@ -12,11 +12,11 @@
  * limitations under the License.
 */
 
-import { FabricRegistry } from './FabricRegistry';
+import { SettingsRegistry } from './SettingsRegistry';
 import { RepositoryRegistryEntry } from './RepositoryRegistryEntry';
 import { SettingConfigurations } from '../../SettingConfigurations';
 
-export class RepositoryRegistry extends FabricRegistry<RepositoryRegistryEntry> {
+export class RepositoryRegistry extends SettingsRegistry<RepositoryRegistryEntry> {
 
     public static instance(): RepositoryRegistry {
         return RepositoryRegistry._instance;
@@ -26,40 +26,5 @@ export class RepositoryRegistry extends FabricRegistry<RepositoryRegistryEntry> 
 
     private constructor() {
         super(SettingConfigurations.EXTENSION_REPOSITORIES);
-    }
-
-    public get(name: string): RepositoryRegistryEntry {
-        try {
-            return super.get(name);
-        } catch (error) {
-            throw new Error(`Entry "${name}" in blockchain repositories does not exist`);
-        }
-
-    }
-
-    public async add(entry: RepositoryRegistryEntry): Promise<void> {
-        try {
-            await super.add(entry);
-        } catch (error) {
-            throw new Error(`Entry "${entry.name}" in blockchain repositories already exists`);
-        }
-    }
-
-    public async update(newEntry: RepositoryRegistryEntry): Promise<void> {
-        try {
-            await super.update(newEntry);
-        } catch (error) {
-            throw new Error(`Entry "${newEntry.name}" in blockchain repositories does not exist`);
-
-        }
-    }
-
-    public async delete(name: string): Promise<void> {
-
-        try {
-            await super.delete(name);
-        } catch (error) {
-            throw new Error(`Entry "${name}" in blockchain repositories does not exist`);
-        }
     }
 }

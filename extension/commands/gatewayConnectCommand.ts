@@ -66,7 +66,7 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
     if (!gatewayRegistryEntry.associatedWallet && gatewayRegistryEntry.name !== FabricRuntimeUtil.LOCAL_FABRIC) {
         // If there is no wallet associated with the gateway, we should ask for a wallet to connect with
         // First check there is at least one that isn't local_fabric_wallet
-        const wallets: Array<FabricWalletRegistryEntry> = FabricWalletRegistry.instance().getAll();
+        const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll();
         if (wallets.length === 0) {
             outputAdapter.log(LogType.ERROR, `You must first add a wallet with identities to connect to this gateway`);
             return;
@@ -96,7 +96,7 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
 
         } else {
             const fabricWalletRegistry: FabricWalletRegistry = FabricWalletRegistry.instance();
-            walletData = fabricWalletRegistry.get(walletName);
+            walletData = await fabricWalletRegistry.get(walletName);
         }
     }
 

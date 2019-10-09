@@ -75,8 +75,8 @@ describe('GatewayConnectCommand', () => {
         let connectionAssociatedWallet: FabricWalletRegistryEntry;
         let emptyWallet: FabricWalletRegistryEntry;
         let choseIdentityQuickPick: sinon.SinonStub;
-        let choseGatewayQuickPick: sinon.SinonStub;
-        let choseWalletQuickPick: sinon.SinonStub;
+        let chosenGatewayQuickPick: sinon.SinonStub;
+        let chosenWalletQuickPick: sinon.SinonStub;
         let identity: IdentityInfo;
         let walletGenerator: FabricWalletGenerator;
         let sendTelemetryEventStub: sinon.SinonStub;
@@ -85,7 +85,7 @@ describe('GatewayConnectCommand', () => {
 
         beforeEach(async () => {
 
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_CLIENT_TIMEOUT, timeout,  vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_CLIENT_TIMEOUT, timeout, vscode.ConfigurationTarget.Global);
 
             mockConnection = sinon.createStubInstance(FabricClientConnection);
             mockConnection.connect.resolves();
@@ -165,14 +165,19 @@ describe('GatewayConnectCommand', () => {
                 mspId: 'Org1MSP'
             };
             choseIdentityQuickPick = mySandBox.stub(UserInputUtil, 'showIdentitiesQuickPickBox').resolves(identity.label);
-            choseGatewayQuickPick = mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox').resolves({
+
+            const gatewayA: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayA');
+            chosenGatewayQuickPick = mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox').resolves({
                 label: 'myGatewayA',
-                data: FabricGatewayRegistry.instance().get('myGatewayA')
+                data: gatewayA
             });
-            choseWalletQuickPick = mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox').resolves({
+
+            const wallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('myGatewayAWallet');
+            chosenWalletQuickPick = mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox').resolves({
                 label: 'myGatewayAWallet',
-                data: FabricWalletRegistry.instance().get('myGatewayAWallet')
+                data: wallet
             });
+
             sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
         });
 
@@ -194,14 +199,16 @@ describe('GatewayConnectCommand', () => {
             });
 
             it('should test that a fabric gateway with multiple identities can be connected to from the quick pick', async () => {
-                choseGatewayQuickPick.resolves({
+                const gatewayB: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayB');
+                chosenGatewayQuickPick.resolves({
                     label: 'myGatewayB',
-                    data: FabricGatewayRegistry.instance().get('myGatewayB')
+                    data: gatewayB
                 });
 
-                choseWalletQuickPick.resolves({
+                const walletB: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('myGatewayBWallet');
+                chosenWalletQuickPick.resolves({
                     label: 'myGatewayBWallet',
-                    data: FabricWalletRegistry.instance().get('myGatewayBWallet')
+                    data: walletB
                 });
 
                 const connectStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil.getBlockchainGatewayExplorerProvider(), 'connect');
@@ -217,13 +224,13 @@ describe('GatewayConnectCommand', () => {
             it('should do nothing if the user cancels choosing a gateway', async () => {
                 const refreshSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-                choseGatewayQuickPick.resolves();
+                chosenGatewayQuickPick.resolves();
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
                 refreshSpy.callCount.should.equal(1);
                 refreshSpy.getCall(0).should.have.been.calledWith(ExtensionCommands.CONNECT_TO_GATEWAY);
-                choseWalletQuickPick.should.not.have.been.called;
+                chosenWalletQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.not.have.been.called;
             });
 
@@ -235,7 +242,7 @@ describe('GatewayConnectCommand', () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
                 refreshSpy.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_GATEWAY);
-                choseWalletQuickPick.should.not.have.been.called;
+                chosenWalletQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.not.have.been.called;
                 logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `You must first add a wallet with identities to connect to this gateway`);
             });
@@ -243,7 +250,7 @@ describe('GatewayConnectCommand', () => {
             it('should do nothing if the user cancels choosing a wallet to connect with', async () => {
                 const refreshSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-                choseWalletQuickPick.resolves();
+                chosenWalletQuickPick.resolves();
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
@@ -254,13 +261,16 @@ describe('GatewayConnectCommand', () => {
             });
 
             it('should do nothing if the user cancels choosing the identity to connect with', async () => {
-                choseGatewayQuickPick.resolves({
+                const gatewayB: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayB');
+                chosenGatewayQuickPick.resolves({
                     label: 'myGatewayB',
-                    data: FabricGatewayRegistry.instance().get('myGatewayB')
+                    data: gatewayB
                 });
-                choseWalletQuickPick.resolves({
+
+                const walletB: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('myGatewayBWallet');
+                chosenWalletQuickPick.resolves({
                     label: 'myGatewayBWallet',
-                    data: FabricWalletRegistry.instance().get('myGatewayBWallet')
+                    data: walletB
                 });
                 choseIdentityQuickPick.resolves();
 
@@ -303,9 +313,10 @@ describe('GatewayConnectCommand', () => {
             it('should handle no identities found in wallet', async () => {
 
                 // Populate the quick pick box with the updated wallet registry entry
-                choseWalletQuickPick.resolves({
+                const wallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(emptyWallet.name);
+                chosenWalletQuickPick.resolves({
                     label: emptyWallet.name,
-                    data: FabricWalletRegistry.instance().get(emptyWallet.name)
+                    data: wallet
                 });
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
@@ -344,12 +355,12 @@ describe('GatewayConnectCommand', () => {
 
                 getIdentitiesStub = mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves([identity.label]);
 
-                choseGatewayQuickPick.resolves({
+                chosenGatewayQuickPick.resolves({
                     label: FabricRuntimeUtil.LOCAL_FABRIC,
                     data: connection
                 });
 
-                choseWalletQuickPick.resolves({
+                chosenWalletQuickPick.resolves({
                     label: FabricWalletUtil.LOCAL_WALLET,
                     data: new FabricWalletRegistryEntry({
                         name: FabricWalletUtil.LOCAL_WALLET,
@@ -423,13 +434,17 @@ describe('GatewayConnectCommand', () => {
             let getIdentitiesStub: sinon.SinonStub;
 
             beforeEach(async () => {
-                choseGatewayQuickPick.resolves({
+
+                const gateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayC');
+                chosenGatewayQuickPick.resolves({
                     label: 'myGatewayC',
-                    data: FabricGatewayRegistry.instance().get('myGatewayC')
+                    data: gateway
                 });
-                choseWalletQuickPick.resolves({
+
+                const wallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('myGatewayCWallet');
+                chosenWalletQuickPick.resolves({
                     label: 'myGatewayCWallet',
-                    data: FabricWalletRegistry.instance().get('myGatewayCWallet')
+                    data: wallet
                 });
 
                 testFabricWallet = new FabricWallet('some/new/wallet/path');

@@ -23,6 +23,7 @@ import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricNode } from '../fabric/FabricNode';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { FileSystemUtil } from '../util/FileSystemUtil';
 
 export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false): Promise<boolean> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -79,7 +80,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
         } while (addMore);
 
         const dirPath: string = await vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY) as string;
-        const homeExtDir: string = UserInputUtil.getDirPath(dirPath);
+        const homeExtDir: string = FileSystemUtil.getDirPath(dirPath);
         const environmentPath: string = path.join(homeExtDir, 'environments', environmentRegistryEntry.name, 'nodes');
 
         const environment: FabricEnvironment = new FabricEnvironment(environmentRegistryEntry.name);

@@ -19,10 +19,10 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
-import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import * as vscode from 'vscode';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricNode } from '../../extension/fabric/FabricNode';
+import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
 
 chai.use(chaiAsPromised);
 const should: Chai.Should = chai.should();
@@ -45,7 +45,7 @@ describe('FabricGatewayHelper', () => {
             mySandBox.stub(fs, 'readdir').resolves(['.', '..', '.bob.json', 'connection.json']);
 
             const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+            const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
 
             const result: string = await FabricGatewayHelper.getConnectionProfilePath('myGateway');
@@ -57,7 +57,7 @@ describe('FabricGatewayHelper', () => {
             mySandBox.stub(fs, 'readdir').resolves(['.', '..', '.bob.json', 'connection.yml']);
 
             const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+            const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
 
             const result: string = await FabricGatewayHelper.getConnectionProfilePath('myGateway');
@@ -69,7 +69,7 @@ describe('FabricGatewayHelper', () => {
             mySandBox.stub(fs, 'readdir').resolves(['.', '..', '.bob.json']);
 
             const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+            const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
 
             await FabricGatewayHelper.getConnectionProfilePath('myGateway').should.eventually.be.rejectedWith(`Failed to find a connection profile file in folder ${profileDirPath}`);
@@ -101,7 +101,7 @@ describe('FabricGatewayHelper', () => {
             const connectionProfilePath: string = await FabricGatewayHelper.generateConnectionProfile('myGateway', peerNode, caNode);
 
             const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+            const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
             const profileFilePath: string = path.join(profileDirPath, 'connection.json');
 
@@ -125,7 +125,7 @@ describe('FabricGatewayHelper', () => {
             const connectionProfilePath: string = await FabricGatewayHelper.generateConnectionProfile('myGateway', securePeerNode, secureCANode);
 
             const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+            const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
             const profileFilePath: string = path.join(profileDirPath, 'connection.json');
 
@@ -154,7 +154,7 @@ describe('FabricGatewayHelper', () => {
             const connectionProfilePath: string = await FabricGatewayHelper.generateConnectionProfile('myGateway', peerNode, undefined);
 
             const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+            const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
             const profileFilePath: string = path.join(profileDirPath, 'connection.json');
 
@@ -210,7 +210,7 @@ describe('FabricGatewayHelper', () => {
             yamlPathData = await fs.readFile(yamlPathLocation, 'utf8');
         });
         beforeEach(async () => {
-            getDirPathStub = mySandBox.stub(UserInputUtil, 'getDirPath');
+            getDirPathStub = mySandBox.stub(FileSystemUtil, 'getDirPath');
             pathExistsStub = mySandBox.stub(fs, 'pathExists');
             ensureDirStub = mySandBox.stub(fs, 'ensureDir');
             readFileStub = mySandBox.stub(fs, 'readFile');

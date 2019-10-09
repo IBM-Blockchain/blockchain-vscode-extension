@@ -171,7 +171,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
                 // select from other gateways
                 // Check there is at least one
                 let gateways: Array<FabricGatewayRegistryEntry> = [];
-                gateways = FabricGatewayRegistry.instance().getAll();
+                gateways = await FabricGatewayRegistry.instance().getAll();
                 if (gateways.length === 0) {
                     outputAdapter.log(LogType.ERROR, `Please add a gateway in order to enroll a new identity`);
                     return;

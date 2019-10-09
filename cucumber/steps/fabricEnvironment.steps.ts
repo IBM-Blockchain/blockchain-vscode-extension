@@ -23,6 +23,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { NodeTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 
 // tslint:disable:no-unused-expression
 
@@ -34,7 +35,7 @@ module.exports = function(): any {
      * Given
      */
 
-    this.Given('the Local Fabric is running', this.timeout, async () => {
+    this.Given(`the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is running`, this.timeout, async () => {
 
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
         const runtime: FabricRuntime = runtimeManager.getRuntime();
@@ -96,7 +97,7 @@ module.exports = function(): any {
         await this.fabricEnvironmentHelper.deleteEnvironment(environmentName);
     });
 
-    this.When('I stop the Local Fabric', this.timeout, async () => {
+    this.When(`I stop the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`, this.timeout, async () => {
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
         const runtime: FabricRuntime = runtimeManager.getRuntime();
 
@@ -105,7 +106,7 @@ module.exports = function(): any {
         isRunning.should.equal(false);
     });
 
-    this.When('I start the Local Fabric', this.timeout, async () => {
+    this.When(`I start the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`, this.timeout, async () => {
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
         const runtime: FabricRuntime = runtimeManager.getRuntime();
 
@@ -114,7 +115,7 @@ module.exports = function(): any {
         isRunning.should.equal(true);
     });
 
-    this.When('I teardown the Local Fabric', this.timeout, async () => {
+    this.When(`I teardown the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`, this.timeout, async () => {
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
         const runtime: FabricRuntime = runtimeManager.getRuntime();
 

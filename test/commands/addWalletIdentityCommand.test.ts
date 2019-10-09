@@ -446,7 +446,7 @@ describe('AddWalletIdentityCommand', () => {
 
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
             should.not.exist(result);
-            inputBoxStub.should.have.been.calledOnce;
+            inputBoxStub.should.have.been.calledTwice;
             addIdentityMethodStub.should.have.been.calledOnce;
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
             sendTelemetryEventStub.should.not.have.been.called;
@@ -527,7 +527,7 @@ describe('AddWalletIdentityCommand', () => {
 
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
             result.should.equal('blueConga');
-            inputBoxStub.should.have.been.calledOnce;
+            inputBoxStub.should.have.been.calledTwice;
             fsReadFile.should.have.been.calledTwice;
             showGatewayQuickPickBoxStub.should.not.have.been.called;
             getCertKeyStub.should.have.been.calledOnce;

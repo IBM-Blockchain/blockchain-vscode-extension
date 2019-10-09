@@ -12,9 +12,9 @@
  * limitations under the License.
 */
 
-import { FabricRegistryEntry } from './FabricRegistryEntry';
+import { RegistryEntry } from './RegistryEntry';
 
-export class RepositoryRegistryEntry extends FabricRegistryEntry {
+export class RepositoryRegistryEntry extends RegistryEntry {
 
     public path: string;
 

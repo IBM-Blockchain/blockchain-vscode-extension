@@ -75,7 +75,8 @@ export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> 
            walletPath = _wallet.getWalletPath();
 
         } else {
-            walletPath = FabricWalletRegistry.instance().get(treeItem.walletName).walletPath;
+            const walletRegistryEntry: FabricWalletRegistryEntry =  await FabricWalletRegistry.instance().get(treeItem.walletName);
+            walletPath = walletRegistryEntry.walletPath;
         }
 
         identitiesToDelete = [treeItem.label];

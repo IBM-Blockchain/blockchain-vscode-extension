@@ -90,7 +90,7 @@ describe('LocalGatewayTreeItem', () => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ○`);
-            treeItem.tooltip.should.equal(`Local Fabric is not running
+            treeItem.tooltip.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is not running
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
             treeItem.command.should.deep.equal({
@@ -109,7 +109,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ◐`);
-            treeItem.tooltip.should.equal(`Local Fabric  ◐
+            treeItem.tooltip.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ◐
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
             should.equal(treeItem.command, null);
@@ -126,7 +126,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
             const states: string[] = ['◐', '◓', '◑', '◒', '◐'];
             for (const state of states) {
                 treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ${state}`);
-                treeItem.tooltip.should.equal(`Local Fabric  ${state}
+                treeItem.tooltip.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ${state}
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 should.equal(treeItem.command, null);
@@ -146,7 +146,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ●`);
-            treeItem.tooltip.should.equal(`Local Fabric is running
+            treeItem.tooltip.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is running
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
             treeItem.command.should.deep.equal({
@@ -165,7 +165,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ○`);
-            treeItem.tooltip.should.equal(`Local Fabric is not running
+            treeItem.tooltip.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is not running
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
             treeItem.command.should.deep.equal({
@@ -179,7 +179,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ◐`);
-            treeItem.tooltip.should.equal(`Local Fabric  ◐
+            treeItem.tooltip.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ◐
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
             should.equal(treeItem.command, null);
@@ -201,7 +201,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
             const states: string[] = ['◐', '◓', '◑', '◒', '◐'];
             for (const state of states) {
                 treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ${state}`);
-                treeItem.tooltip.should.equal(`Local Fabric  ${state}
+                treeItem.tooltip.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ${state}
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 should.equal(treeItem.command, null);
@@ -221,7 +221,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ◐`);
-            treeItem.tooltip.should.equal(`Local Fabric  ◐
+            treeItem.tooltip.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ◐
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
             should.equal(treeItem.command, null);
@@ -231,7 +231,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ○`);
-            treeItem.tooltip.should.equal(`Local Fabric is not running
+            treeItem.tooltip.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is not running
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
             treeItem.command.should.deep.equal({
@@ -256,7 +256,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
             const states: string[] = ['◐', '◓', '◑', '◒', '◐'];
             for (const state of states) {
                 treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ${state}`);
-                treeItem.tooltip.should.equal(`Local Fabric  ${state}
+                treeItem.tooltip.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ${state}
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 should.equal(treeItem.command, null);

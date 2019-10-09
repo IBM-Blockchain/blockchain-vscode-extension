@@ -56,7 +56,7 @@ export class WalletAndIdentityHelper {
             walletEntry.name = FabricWalletUtil.LOCAL_WALLET;
             walletEntry.walletPath = WalletAndIdentityHelper.localWalletPath;
         } else {
-            walletEntry = FabricWalletRegistry.instance().get(walletName);
+            walletEntry = await FabricWalletRegistry.instance().get(walletName);
         }
 
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();

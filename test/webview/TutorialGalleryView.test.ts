@@ -26,6 +26,7 @@ import { View } from '../../extension/webview/View';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -125,7 +126,7 @@ describe('TutorialGalleryView', () => {
 
         html.should.contain('<div class="tutorial-number">Tutorial 1</div>');
         html.should.contain('<h3>Local smart contract development</h3>');
-        html.should.contain('<div class="tutorial-description">Follow the typical workflow from generating a new smart contract project, deploying code to the Local Fabric runtime, and testing your transactions via an application gateway.</div>');
+        html.should.contain(`<div class="tutorial-description">Follow the typical workflow from generating a new smart contract project, deploying code to the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime, and testing your transactions via an application gateway.</div>`);
 
         html.should.contain('<div class="tutorial-number">Tutorial 2</div>');
         html.should.contain('<h3>Create a cloud blockchain deployment</h3>');
@@ -168,7 +169,7 @@ describe('TutorialGalleryView', () => {
 
         result.should.contain('<div class="tutorial-number">Tutorial 1</div>');
         result.should.contain('<h3>Local smart contract development</h3>');
-        result.should.contain('<div class="tutorial-description">Follow the typical workflow from generating a new smart contract project, deploying code to the Local Fabric runtime, and testing your transactions via an application gateway.</div>');
+        result.should.contain(`<div class="tutorial-description">Follow the typical workflow from generating a new smart contract project, deploying code to the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime, and testing your transactions via an application gateway.</div>`);
 
         result.should.contain('<div class="tutorial-number">Tutorial 2</div>');
         result.should.contain('<h3>Create a cloud blockchain deployment</h3>');

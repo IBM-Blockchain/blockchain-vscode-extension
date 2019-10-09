@@ -35,8 +35,8 @@ import { FabricWallet } from '../../extension/fabric/FabricWallet';
 import { FabricIdentity } from '../../extension/fabric/FabricIdentity';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { SettingConfigurations } from '../../SettingConfigurations';
-import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricGateway } from '../../extension/fabric/FabricGateway';
+import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -196,7 +196,7 @@ describe('FabricRuntime', () => {
             const copyStub: sinon.SinonStub = sandbox.stub(fs, 'copy');
 
             const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+            const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'yofn');
 
             await runtime.importGateways();

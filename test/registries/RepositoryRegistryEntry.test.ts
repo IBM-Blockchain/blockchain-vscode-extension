@@ -13,7 +13,6 @@
 */
 
 import * as chai from 'chai';
-import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistry';
 import { RepositoryRegistryEntry } from '../../extension/registries/RepositoryRegistryEntry';
@@ -25,7 +24,7 @@ describe('RepositoryRegistryEntry', () => {
     const registry: RepositoryRegistry = RepositoryRegistry.instance();
 
     before(async () => {
-        await TestUtil.storeAll();
+        await TestUtil.setupTests();
     });
 
     after(async () => {
@@ -33,7 +32,6 @@ describe('RepositoryRegistryEntry', () => {
     });
 
     beforeEach(async () => {
-        await ExtensionUtil.activateExtension();
         await registry.clear();
     });
 
@@ -46,9 +44,8 @@ describe('RepositoryRegistryEntry', () => {
             name: 'some-repository',
             path: '/some/path'
         });
-        registry.getAll().should.deep.equal([]);
+        await registry.getAll().should.eventually.deep.equal([]);
         await registry.add(entry);
-        registry.getAll().should.deep.equal([entry]);
+        await registry.getAll().should.eventually.deep.equal([entry]);
     });
-
 });

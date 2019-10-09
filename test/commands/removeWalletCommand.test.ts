@@ -31,6 +31,7 @@ import { FabricWalletRegistry } from '../../extension/registries/FabricWalletReg
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -77,7 +78,7 @@ describe('removeWalletCommand', () => {
         });
 
         const extensionDirectory: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-        const directoryPath: string = UserInputUtil.getDirPath(extensionDirectory);
+        const directoryPath: string = FileSystemUtil.getDirPath(extensionDirectory);
 
         createdWallet = new FabricWalletRegistryEntry({
             name: 'createdWallet',

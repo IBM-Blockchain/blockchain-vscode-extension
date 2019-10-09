@@ -33,6 +33,8 @@ import { UserInputUtil } from '../extension/commands/UserInputUtil';
 import { dependencies } from '../package.json';
 import { GlobalState, DEFAULT_EXTENSION_DATA, ExtensionData } from '../extension/util/GlobalState';
 import { BlockchainGatewayExplorerProvider } from '../extension/explorer/gatewayExplorer';
+import { FabricWalletUtil } from '../extension/fabric/FabricWalletUtil';
+import { FabricGatewayHelper } from '../extension/fabric/FabricGatewayHelper';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -42,6 +44,8 @@ describe('Extension Tests', () => {
 
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let migrateSettingConfigurations: sinon.SinonStub;
+    let tidyWalletSettingsStub: sinon.SinonStub;
+    let migrateGatewaysStub: sinon.SinonStub;
     let sendTelemetryStub: sinon.SinonStub;
     let getPackageJSONStub: sinon.SinonStub;
     let reporterDisposeStub: sinon.SinonStub;
@@ -82,6 +86,8 @@ describe('Extension Tests', () => {
         reporterDisposeStub = mySandBox.stub(Reporter.instance(), 'dispose');
         getPackageJSONStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
         migrateSettingConfigurations = mySandBox.stub(ExtensionUtil, 'migrateSettingConfigurations').resolves();
+        tidyWalletSettingsStub = mySandBox.stub(FabricWalletUtil, 'tidyWalletSettings').resolves();
+        migrateGatewaysStub = mySandBox.stub(FabricGatewayHelper, 'migrateGateways').resolves();
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         setupCommandsStub = mySandBox.stub(ExtensionUtil, 'setupCommands');
         completeActivationStub = mySandBox.stub(ExtensionUtil, 'completeActivation');
@@ -162,6 +168,9 @@ describe('Extension Tests', () => {
             await myExtension.activate(context);
 
             migrateSettingConfigurations.should.have.been.calledOnce;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Tidying wallet and gateway settings');
+            tidyWalletSettingsStub.should.have.been.calledOnce;
+            migrateGatewaysStub.should.have.been.calledOnce;
 
             logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', true);
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');

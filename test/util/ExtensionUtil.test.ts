@@ -33,8 +33,6 @@ import { DependencyManager } from '../../extension/dependencies/DependencyManage
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { TemporaryCommandRegistry } from '../../extension/dependencies/TemporaryCommandRegistry';
 import { LogType } from '../../extension/logging/OutputAdapter';
-import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
-import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
@@ -903,8 +901,6 @@ describe('ExtensionUtil Tests', () => {
         let logSpy: sinon.SinonSpy;
         let globalStateGetStub: sinon.SinonStub;
         let executeCommandStub: sinon.SinonStub;
-        let tidyWalletSettingsStub: sinon.SinonStub;
-        let migrateGatewaysStub: sinon.SinonStub;
         let showConfirmationWarningMessageStub: sinon.SinonStub;
         let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
         let getRuntimeStub: sinon.SinonStub;
@@ -914,8 +910,6 @@ describe('ExtensionUtil Tests', () => {
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             globalStateGetStub = mySandBox.stub(GlobalState, 'get');
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
-            tidyWalletSettingsStub = mySandBox.stub(FabricWalletUtil, 'tidyWalletSettings').resolves();
-            migrateGatewaysStub = mySandBox.stub(FabricGatewayHelper, 'migrateGateways').resolves();
 
             showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
             mockRuntime = sinon.createStubInstance(FabricRuntime);
@@ -939,9 +933,6 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Tidying wallet and gateway settings');
-            tidyWalletSettingsStub.should.have.been.calledOnce;
-            migrateGatewaysStub.should.have.been.calledOnce;
             getRuntimeStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
         });
@@ -959,9 +950,6 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Tidying wallet and gateway settings');
-            tidyWalletSettingsStub.should.have.been.calledOnce;
-            migrateGatewaysStub.should.have.been.calledOnce;
             getRuntimeStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
         });
@@ -980,9 +968,6 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Tidying wallet and gateway settings');
-            tidyWalletSettingsStub.should.have.been.calledOnce;
-            migrateGatewaysStub.should.have.been.calledOnce;
             getRuntimeStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
         });
@@ -1001,9 +986,6 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Tidying wallet and gateway settings');
-            tidyWalletSettingsStub.should.have.been.calledOnce;
-            migrateGatewaysStub.should.have.been.calledOnce;
             getRuntimeStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
         });
@@ -1022,9 +1004,6 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Tidying wallet and gateway settings');
-            tidyWalletSettingsStub.should.have.been.calledOnce;
-            migrateGatewaysStub.should.have.been.calledOnce;
             getRuntimeStub.should.have.been.calledOnce;
             mockRuntime.isGenerated.should.have.been.calledOnce;
             showConfirmationWarningMessageStub.should.not.have.been.called;
@@ -1051,9 +1030,6 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Tidying wallet and gateway settings');
-            tidyWalletSettingsStub.should.have.been.calledOnce;
-            migrateGatewaysStub.should.have.been.calledOnce;
             getRuntimeStub.should.have.been.calledOnce;
             mockRuntime.isGenerated.should.have.been.calledOnce;
             showConfirmationWarningMessageStub.should.have.been.calledOnce;
@@ -1083,9 +1059,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Tidying wallet and gateway settings');
-            tidyWalletSettingsStub.should.have.been.calledOnce;
-            migrateGatewaysStub.should.have.been.calledOnce;
+
             getRuntimeStub.should.have.been.calledOnce;
             mockRuntime.isGenerated.should.have.been.calledOnce;
             showConfirmationWarningMessageStub.should.have.been.calledOnce;
@@ -1112,9 +1086,6 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Tidying wallet and gateway settings');
-            tidyWalletSettingsStub.should.have.been.calledOnce;
-            migrateGatewaysStub.should.have.been.calledOnce;
             getRuntimeStub.should.have.been.calledOnce;
             mockRuntime.isGenerated.should.have.been.calledOnce;
             showConfirmationWarningMessageStub.should.have.been.calledOnce;

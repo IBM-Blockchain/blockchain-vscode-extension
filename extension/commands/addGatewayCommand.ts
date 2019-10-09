@@ -58,7 +58,8 @@ export async function addGateway(): Promise<{} | void> {
             }
         }
 
-        if (fabricGatewayRegistry.exists(gatewayName) || gatewayName === FabricRuntimeUtil.LOCAL_FABRIC) {
+        const exists: boolean = await fabricGatewayRegistry.exists(gatewayName);
+        if (exists || gatewayName === FabricRuntimeUtil.LOCAL_FABRIC) {
             // Gateway already exists
             throw new Error('A gateway with this name already exists.');
         }

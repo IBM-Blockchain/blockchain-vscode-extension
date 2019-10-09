@@ -30,7 +30,7 @@ import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
 import { IFabricWallet } from './IFabricWallet';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricEnvironment } from './FabricEnvironment';
-import { UserInputUtil } from '../commands/UserInputUtil';
+import { FileSystemUtil } from '../util/FileSystemUtil';
 
 export enum FabricRuntimeState {
     STARTING = 'starting',
@@ -110,7 +110,7 @@ export class FabricRuntime extends FabricEnvironment {
 
     public async importGateways(): Promise<void> {
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+        const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
 
         const fabricGateways: FabricGateway[] = await this.getGateways();
         for (const gateway of fabricGateways) {
