@@ -162,6 +162,7 @@ Feature: Fabric Environments
         Examples:
         | language   | assetType | name               | upgradedName              | version |
         | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.2  | 0.0.1   |
+        | Java       | Conga     | JavaContract       | JavaContract@0.0.2        | 0.0.1   |
 
 
     @otherFabric

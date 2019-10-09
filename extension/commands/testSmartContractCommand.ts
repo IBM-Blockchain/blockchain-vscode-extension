@@ -125,36 +125,44 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
     let functionalTestsDirectory: string;
     let localSmartContractDirectory: string;
     let testFileSuffix: string;
-    if (contractLang === 'golang' || contractLang === 'java') {
+    let workspaceProjectName: string;
+    if (contractLang === 'golang' ) {
         outputAdapter.log(LogType.ERROR, `Automated functional tests for a smart contract project written in ${contractLang} are currently not supported.`);
         return;
     } else {
-        // Node smart contract: package.json must exist, chaincode and project names must match.
-        const packageJsonFile: string = path.join(chosenPackageFolder.uri.fsPath, 'package.json');
-        const packageJSONBuffer: Buffer = await fs.readFile(packageJsonFile);
-        const packageJSONObj: any = JSON.parse(packageJSONBuffer.toString('utf8'));
-        const replaceRegex: RegExp = /@.*?\//;
-        let workspaceProjectName: string = packageJSONObj.name;
-        workspaceProjectName = workspaceProjectName.replace(replaceRegex, '');
-        if (workspaceProjectName === chaincodeName) {
-            // Smart contract is open in workspace
-            functionalTestsDirectory = path.join(chosenPackageFolder.uri.fsPath, 'functionalTests');
-            localSmartContractDirectory = path.join(chosenPackageFolder.uri.fsPath, );
-            const languagesToSuffixes: object = {
-                JavaScript: 'js',
-                 TypeScript: 'ts'
-             };
-            const testLanguageItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick('Choose preferred test language', [], Object.keys(languagesToSuffixes));
-            if (!testLanguageItem) {
+        const languagesToSuffixes: object = {
+            JavaScript: 'js',
+            TypeScript: 'ts',
+        };
+        if (contractLang === 'java') {
+            languagesToSuffixes['Java'] = 'java';
+            testLang = 'Java';
+            functionalTestsDirectory = path.join(chosenPackageFolder.uri.fsPath, 'src', 'test', 'java', 'org', 'example');
+            workspaceProjectName = chaincodeName;
+        } else {
+            // Node smart contract: package.json must exist, chaincode and project names must match.
+            const packageJsonFile: string = path.join(chosenPackageFolder.uri.fsPath, 'package.json');
+            const packageJSONBuffer: Buffer = await fs.readFile(packageJsonFile);
+            const packageJSONObj: any = JSON.parse(packageJSONBuffer.toString('utf8'));
+            const replaceRegex: RegExp = /@.*?\//;
+            workspaceProjectName = packageJSONObj.name;
+            workspaceProjectName = workspaceProjectName.replace(replaceRegex, '');
+            if (workspaceProjectName === chaincodeName) {
+                // Smart contract is open in workspace
+                functionalTestsDirectory = path.join(chosenPackageFolder.uri.fsPath, 'functionalTests');
+                localSmartContractDirectory = chosenPackageFolder.uri.fsPath;
+                const testLanguageItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick('Choose preferred test language', [], Object.keys(languagesToSuffixes));
+                if (!testLanguageItem) {
+                    return;
+                }
+                testLang = testLanguageItem.label;
+            } else {
+                // Unable to identify the correct project in workspace.
+                outputAdapter.log(LogType.ERROR, `Smart contract project ${chaincodeName} does not correspond to the selected open project ${workspaceProjectName}.`);
                 return;
             }
-            testLang = testLanguageItem.label;
-            testFileSuffix = languagesToSuffixes[testLang];
-        } else {
-            // Unable to identify the correct project in workspace.
-            outputAdapter.log(LogType.ERROR, `Smart contract project ${chaincodeName} does not correspond to the selected open project ${workspaceProjectName}.`);
-            return;
         }
+        testFileSuffix = languagesToSuffixes[testLang];
     }
 
     const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
@@ -167,23 +175,39 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
         let walletPathString: string;
         let walletHome: boolean;
         let pathWithoutHomeDir: string;
+        let connectionProfilePath: string;
+        let conProfileHome: boolean;
+        const separator: string = process.platform === 'win32' ? '\\' : '/';
 
-        const connectionProfilePath: string = await FabricGatewayHelper.getConnectionProfilePath(fabricGatewayRegistryEntry.name);
+        const connectionProfilePathTmp: string = await FabricGatewayHelper.getConnectionProfilePath(fabricGatewayRegistryEntry.name);
+        if (connectionProfilePathTmp.includes(homedir)) {
+            connectionProfilePath = 'path.join(homedir';
+
+            pathWithoutHomeDir = connectionProfilePathTmp.slice(homedir.length + 1);
+            pathWithoutHomeDir.split(separator).forEach((item: string) => {
+                connectionProfilePath += `, '${item}'`;
+            });
+            connectionProfilePath += ')';
+            conProfileHome = true;
+        } else {
+            connectionProfilePath = process.platform === 'win32' ? connectionProfilePathTmp.replace(/\\/g, '\\\\') : connectionProfilePathTmp;
+            conProfileHome = false;
+        }
 
         if (fabricWalletRegistryEntry.walletPath.includes(homedir)) {
             walletPathString = 'path.join(homedir';
 
             pathWithoutHomeDir = fabricWalletRegistryEntry.walletPath.slice(homedir.length + 1);
-            pathWithoutHomeDir.split('/').forEach((item: string) => {
+            pathWithoutHomeDir.split(separator).forEach((item: string) => {
                 walletPathString += `, '${item}'`;
             });
-
             walletPathString += ')';
             walletHome = true;
         } else {
-            walletPathString = fabricWalletRegistryEntry.walletPath;
+            walletPathString = process.platform === 'win32' ? fabricWalletRegistryEntry.walletPath.replace(/\\/g, '\\\\') : fabricWalletRegistryEntry.walletPath;
             walletHome = false;
         }
+
         // Populate the template data
         const templateData: any = {
             contractName: contractName,
@@ -195,14 +219,16 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
             chaincodeName: chaincodeName,
             chaincodeVersion: chaincodeVersion,
             channelName: channelName,
-            identityName: connectionIdentityName
+            identityName: connectionIdentityName,
+            conProfileHome: conProfileHome
         };
 
         const utilTemplateData: any = {
             connectionProfilePath: connectionProfilePath,
             chaincodeName: chaincodeName,
             channelName: channelName,
-            walletHome: walletHome
+            walletHome: walletHome,
+            conProfileHome: conProfileHome
         };
 
         // Create data to write to file from template engine
@@ -220,13 +246,28 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
             return;
         }
 
-        // Determine if test file already exists
+        // Determine test file names accounting for differences in node and Java naming convention.
         let testFile: string;
-        if (contractName !== '') {
-            testFile = path.join(functionalTestsDirectory, `${contractName}-${chaincodeLabel}.test.${testFileSuffix}`);
+        let testFunctionFile: string;
+        if (testLang === 'Java') {
+            const capsChaincodeLabelForJava: string = chaincodeLabel[0].toUpperCase() + chaincodeLabel.slice(1).replace(/\./g, '').replace('@', '');
+            if (contractName !== '') {
+                const capsContractName: string = contractName[0].toUpperCase() + contractName.slice(1);
+                testFile = path.join(functionalTestsDirectory, `Fv${capsContractName}${capsChaincodeLabelForJava}Test.${testFileSuffix}`);
+            } else {
+                testFile = path.join(functionalTestsDirectory, `Fv${capsChaincodeLabelForJava}Test.${testFileSuffix}`);
+            }
+            testFunctionFile = path.join(functionalTestsDirectory, `${testLang}SmartContractUtil.${testFileSuffix}`);
         } else {
-            testFile = path.join(functionalTestsDirectory, `${chaincodeLabel}.test.${testFileSuffix}`);
+            if (contractName !== '') {
+                testFile = path.join(functionalTestsDirectory, `${contractName}-${chaincodeLabel}.test.${testFileSuffix}`);
+            } else {
+                testFile = path.join(functionalTestsDirectory, `${chaincodeLabel}.test.${testFileSuffix}`);
+            }
+            testFunctionFile = path.join(functionalTestsDirectory, `${testFileSuffix}-smart-contract-util.${testFileSuffix}`);
         }
+
+        // Determine if test file already exists.
         const testFileExists: boolean = await fs.pathExists(testFile);
         let overwriteTestFile: string;
         if (testFileExists) {
@@ -246,16 +287,24 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
             // Generate copy of test file, indicate a copy has been created in the file name
             let i: number = 1;
             while (await fs.pathExists(testFile)) {
-                if (contractName !== '') {
-                    testFile = path.join(functionalTestsDirectory, `${contractName}-${chaincodeLabel}-copy${i}.test.${testFileSuffix}`);
+                if (testLang === 'Java') {
+                    const capsChaincodeLabelForJava: string = chaincodeLabel[0].toUpperCase() + chaincodeLabel.slice(1).replace(/\./g, '').replace('@', '');
+                    if (contractName !== '') {
+                        const capsContractName: string = contractName[0].toUpperCase() + contractName.slice(1);
+                        testFile = path.join(functionalTestsDirectory, `Fv${capsContractName}${capsChaincodeLabelForJava}Copy${i}Test.${testFileSuffix}`);
+                    } else {
+                        testFile = path.join(functionalTestsDirectory, `Fv${capsChaincodeLabelForJava}Copy${i}Test.${testFileSuffix}`);
+                    }
                 } else {
-                    testFile = path.join(functionalTestsDirectory, `${chaincodeLabel}-copy${i}.test.${testFileSuffix}`);
+                    if (contractName !== '') {
+                        testFile = path.join(functionalTestsDirectory, `${contractName}-${chaincodeLabel}-copy${i}.test.${testFileSuffix}`);
+                    } else {
+                        testFile = path.join(functionalTestsDirectory, `${chaincodeLabel}-copy${i}.test.${testFileSuffix}`);
+                    }
                 }
                 i++;
             }
         }
-
-        const testFunctionFile: string = path.join(functionalTestsDirectory, `${testFileSuffix}-smart-contract-util.${testFileSuffix}`);
 
         // Create the test file
         try {
@@ -317,12 +366,46 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
 
     } // end of for each contract
 
-    // Run npm install in smart contract project
-    try {
-        await installNodeModules(localSmartContractDirectory, testLang);
-    } catch (error) {
-        outputAdapter.log(LogType.ERROR, `Error installing node modules in smart contract project: ${error.message}`, `Error installing node modules in smart contract project: ${error.toString()}`);
-        return;
+    // Run npm install in JS or TS smart contract project, or update build file in Java project
+    let javaBuildFile: string = null;
+    let state: any;
+    if (testLang !== 'Java') {
+        try {
+            await installNodeModules(localSmartContractDirectory, testLang);
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Error installing node modules in smart contract project: ${error.message}`, `Error installing node modules in smart contract project: ${error.toString()}`);
+            return;
+        }
+    } else {
+        state = {
+            tryCopy:    false,
+            doneCopy:   false,
+            needUpdate: false,
+            tryUpdate:  false,
+            doneupdate: false,
+            success:    false,
+        };
+        // create local tmp copy of build file and modify the orignal
+        try {
+            javaBuildFile = await whichBuildFile(chosenPackageFolder);
+            await updateBuildFile(javaBuildFile, state);
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Unable to modify the build file in folder ${chosenPackageFolder.uri.fsPath}: ${error.message}`, `Unable to modify the build file in folder ${chosenPackageFolder.uri.fsPath}: ${error.toString()}`);
+        }
+
+        if (state.doneCopy) {
+            // remove copy if write successful or not attempted, copy tmp back to original if write failed.
+            const writeFailed: boolean = state.needUpdate && state.tryUpdate && !state.doneupdate;
+            try {
+                await mvOrRmBuildFileCopy(chosenPackageFolder, javaBuildFile, writeFailed);
+            } catch (error) {
+                outputAdapter.log(LogType.ERROR, `Unable to cleanup tmp build file: ${error.message}`, `Unable to cleanup tmp build file: ${error.toString()}`);
+                return;
+            }
+        }
+        if (!state.success) {
+            return;
+        }
     }
 
     // If TypeScript, update JavaScript Test Runner user settings and create tsconfig.json
@@ -369,7 +452,11 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
         }
     }
 
-    outputAdapter.log(LogType.SUCCESS, 'Successfully generated tests');
+    let successMessage: string = 'Successfully generated tests';
+    if (testLang === 'Java' && !state.tryCopy && javaBuildFile !== null) {
+        successMessage += ` - didn't overwrite ${javaBuildFile}, see README for dependency details.`;
+    }
+    outputAdapter.log(LogType.SUCCESS, successMessage);
 
     Reporter.instance().sendTelemetryEvent('testSmartContractCommand', {testSmartContractLanguage: testLang});
 
@@ -416,4 +503,174 @@ async function installNodeModules(dir: string, language: string): Promise<void> 
         npmInstallOut = await CommandUtil.sendCommandWithProgress(`npm install && npm install --save-dev fabric-network@${FABRIC_NETWORK_VERSION} fabric-client@${FABRIC_CLIENT_VERSION}`, dir, 'Installing npm and package dependencies in smart contract project');
     }
     outputAdapter.log(LogType.INFO, undefined, npmInstallOut);
+}
+
+async function whichBuildFile(packageFolder: vscode.WorkspaceFolder): Promise<string> {
+    let buildFile: string = null;
+    const gradleFile: string = path.join(packageFolder.uri.fsPath, 'build.gradle');
+    const mavenFile: string = path.join(packageFolder.uri.fsPath, 'pom.xml');
+    const gradleFileExists: boolean = await fs.pathExists(gradleFile);
+    const mavenFileExists: boolean = await fs.pathExists(mavenFile);
+    if (gradleFileExists) {
+        buildFile = gradleFile;
+    } else if (mavenFileExists) {
+        buildFile = mavenFile;
+    } else {
+        throw new Error('Could not locate a build file.');
+    }
+    return buildFile;
+}
+
+async function updateBuildFile(buildFile: string, state: any): Promise<void> {
+    const isGradle: boolean = buildFile.endsWith('build.gradle');
+    const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`This task might overwrite ${buildFile}. Do you wish to continue?`);
+    if (!reallyDoIt) {
+        state.success = true;
+        return;
+    }
+
+    // Create local copy of build file to protect against torn writes
+    state.tryCopy = true;
+    await fs.copy(buildFile, `${buildFile}.tmp`);
+    state.doneCopy = true;
+
+    const additionalRequirements: any = {
+        repositories: {
+            sonatype: {
+                url: 'https://oss.sonatype.org/content/repositories/snapshots',
+                id: 'oss.sonatype.org',
+                present: false,
+            },
+        },
+        dependencies: {
+            'fabric-gateway-java': {
+                groupId: 'org.hyperledger.fabric',
+                artifactId: 'fabric-gateway-java',
+                version: '1.4.1-SNAPSHOT',
+                present: false,
+            },
+            'assertj-core': {
+                groupId: 'org.assertj',
+                artifactId: 'assertj-core',
+                version: '3.14.0',
+                present: false,
+            },
+            'jackson-dataformat': {
+                groupId: 'com.fasterxml.jackson.dataformat',
+                artifactId: 'jackson-dataformat-yaml',
+                version: '2.10.0',
+                present: false,
+            },
+            'jackson-databind': {
+                groupId: 'com.fasterxml.jackson.core',
+                artifactId: 'jackson-databind',
+                version: '2.10.0',
+                present: false,
+            },
+        }
+    };
+
+    const originalContents: string = await fs.readFile(buildFile, 'utf8');
+    state.needUpdate = checkContent(originalContents, additionalRequirements);
+
+    if (state.needUpdate) {
+        const currentRepos: string = getProperty(originalContents, 'repositories', isGradle);
+        const currentDep: string = getProperty(originalContents, 'dependencies', isGradle);
+        const replaceRepos: string = getReplacement(currentRepos, additionalRequirements, 'repositories', isGradle);
+        const replaceDep: string = getReplacement(currentDep, additionalRequirements, 'dependencies', isGradle);
+        const modifiedContents: string = originalContents.replace(currentRepos, replaceRepos).replace(currentDep, replaceDep);
+        state.tryUpdate = true;
+        await fs.writeFile(buildFile, modifiedContents);
+        state.doneupdate = true;
+    }
+    state.success = true;
+}
+
+function checkContent(content: string, requirements: any): boolean {
+    let needUpdate: boolean = false;
+    for (const obj in requirements) {
+        for (const req in requirements[obj]) {
+            const searchItem: string = requirements[obj][req].url ? requirements[obj][req].url : requirements[obj][req].artifactId;
+            if (content.indexOf(searchItem) > -1) {
+                requirements[obj][req].present = true;
+            } else {
+                needUpdate = true;
+            }
+        }
+    }
+    return needUpdate;
+}
+
+function getProperty(data: string, property: string, isGradle: boolean): string {
+    let start: number = -1 ;
+    let end: number = -1;
+    if (isGradle) {
+        // Find the requested property with it's children, ie, property { ... }.
+        // We therefore need to find the first curly bracket after the property,
+        // and the correspoding closing bracket. Then return that substring.
+        start = data.indexOf(property);
+        if (start !== -1) {
+            let count: number = 0;
+            for (let i: number = start + data.slice(start).indexOf('{'); i < data.length; i++) {
+                count += data[i] === '{' ? 1 : data[i] === '}' ? -1 : 0;
+                if (count === 0 && i > start) {
+                    end = i + 1;
+                    break;
+                }
+            }
+        }
+    } else {
+        start = data.indexOf(`<${property}>`);
+        end = data.indexOf(`</${property}>`) + `</${property}>`.length;
+    }
+
+    if (start === -1 || end === -1) {
+        throw new Error(`Could not find property '${property}'.`);
+    }
+    return data.slice(start, end);
+}
+
+function getReplacement(data: string, requirements: any, type: string, isGradle: boolean): string {
+    for (const obj in requirements[type]) {
+        if (!requirements[type][obj].present) {
+            if (requirements[type][obj].url) {
+                if (isGradle) {
+                    data = data.replace(/^repositories\s*{\n*/, `repositories {\n\t// TODO: remove when 'fabric gateway java' version 1.4.1 published in maven central\n\tmaven {\n\t\turl "${requirements[type][obj].url}"\n\t}\n`);
+                } else {
+                    data = data.replace(/<repositories>/, `<repositories>\n\t\t<!-- TODO: remove when 'fabric gateway java' version 1.4.1 published in maven central-->\n\t\t<repository>\n\t\t\t<id>${requirements[type][obj].id}</id>\n\t\t\t<url>${requirements[type][obj].url}</url>\n\t\t</repository>\n`);
+                }
+            } else {
+                const comment: string = 'TODO: replace with version 1.4.1 when published to maven central';
+                let replacement: string;
+                if (isGradle) {
+                    replacement = `\ttestImplementation '${requirements[type][obj].groupId}:${requirements[type][obj].artifactId}:${requirements[type][obj].version}'\n}`;
+                    if (requirements[type][obj].artifactId === 'fabric-gateway-java') {
+                        replacement = `\t//${comment}\n${replacement}`;
+                    }
+                    data = data.replace(/\n*}$/, '\n}').replace(/}$/, replacement);
+                } else {
+                    replacement = `\n\t\t<dependency>\n\t\t\t<groupId>${requirements[type][obj].groupId}</groupId>\n\t\t\t<artifactId>${requirements[type][obj].artifactId}</artifactId>\n\t\t\t<version>${requirements[type][obj].version}</version>\n\t\t</dependency>\n\t</dependencies>`;
+                    if (requirements[type][obj].artifactId === 'fabric-gateway-java') {
+                        replacement = `\n\t\t<!-- ${comment}-->${replacement}`;
+                    }
+                    data = data.replace(/\n*\s*<\/dependencies>/, replacement);
+                }
+            }
+        }
+    }
+    return data;
+}
+
+async function mvOrRmBuildFileCopy(packageFolder: vscode.WorkspaceFolder, buildFile: string, writeFailed: boolean): Promise<void> {
+    const buildFileTmp: string = `${buildFile}.tmp`;
+    const buildFileCopyExists: boolean = await fs.pathExists(buildFileTmp);
+    const buildFileCopy: string = buildFileCopyExists ? buildFileTmp : null;
+
+    if (buildFileCopy === null) {
+        throw new Error(`Could not locate tmp build file in folder ${packageFolder.uri.fsPath}`);
+    } else if (!writeFailed) {
+        await fs.remove(buildFileCopy);
+    } else {
+        await fs.move(buildFileCopy, buildFileCopy.replace(/.tmp$/, ''), { overwrite: true });
+    }
 }

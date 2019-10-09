@@ -95,7 +95,7 @@ export class WalletAndIdentityHelper {
                 data: walletEntry
             });
             this.userInputUtilHelper.showIdentitiesQuickPickStub.withArgs('Choose the identities to delete').resolves([name]);
-            this.userInputUtilHelper.showConfirmationWarningMessageStub.withArgs(`This will delete ${name} from your file system. Do you want to continue?`).resolves(UserInputUtil.YES);
+            this.userInputUtilHelper.showConfirmationWarningMessageStub.withArgs(`This will delete ${name} from your file system. Do you want to continue?`).resolves(true);
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY);
         }

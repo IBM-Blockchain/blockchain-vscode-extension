@@ -84,7 +84,7 @@ Feature: Fabric Gateways
         And the package has been installed
         And the contract has been instantiated with the transaction '' and args '', not using private data
         When I generate a <testLanguage> functional test for a <contractLanguage> contract
-        Then a functional test file with the filename '<assetType>Contract-<contractName>@0.0.1.test.<fileExtension>' should exist and contain the correct contents
+        Then a functional test file with .<fileExtension> extension for the <testLanguage> contract <contractName> version <version> with assets <assetType> should exist and contain the correct contents
         And the tests should be runnable
         Examples:
             | contractName        | assetType | contractLanguage | testLanguage | fileExtension | version |
@@ -92,7 +92,7 @@ Feature: Fabric Gateways
             | JavaScriptContract2 | Conga     | JavaScript       | TypeScript   | ts            | 0.0.1   |
             | TypeScriptContract  | Conga     | TypeScript       | JavaScript   | js            | 0.0.1   |
             | TypeScriptContract2 | Conga     | TypeScript       | TypeScript   | ts            | 0.0.1   |
-
+            | JavaContract        | Conga     | Java             | Java         | java          | 0.0.1   |
 
     @otherFabric
     Scenario Outline: Generating tests for a contract (other fabric)
@@ -108,9 +108,9 @@ Feature: Fabric Gateways
         And the gateway 'myGateway' is created
         And I'm connected to the 'myGateway' gateway without association
         When I generate a <testLanguage> functional test for a <contractLanguage> contract
-        Then a functional test file with the filename '<assetType>Contract-<contractName>@0.0.1.test.<fileExtension>' should exist and contain the correct contents
+        Then a functional test file with .<fileExtension> extension for the <testLanguage> contract <contractName> version <version> with assets <assetType> should exist and contain the correct contents
         And the tests should be runnable
         Examples:
             | contractName       | assetType | contractLanguage | testLanguage | fileExtension | version |
             | TypeScriptContract | Conga     | TypeScript       | JavaScript   | js            | 0.0.1   |
-            | JavaScriptContract | Conga     | JavaScript       | TypeScript   | ts            | 0.0.1   |
+            | JavaContract       | Conga     | Java             | Java         | java          | 0.0.1   |
