@@ -343,7 +343,7 @@ export class ExtensionUtil {
 
         vscode.debug.onDidChangeActiveDebugSession(async (e: vscode.DebugSession) => {
             // Listen for any changes to the debug state.
-            if (e) {
+            if (e && e.configuration && e.configuration.debugEvent === FabricDebugConfigurationProvider.debugEvent) {
                 await vscode.commands.executeCommand('setContext', 'blockchain-debug', true);
                 if (e.configuration.env && e.configuration.env.CORE_CHAINCODE_ID_NAME) {
                     const smartContractName: string = e.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[0];

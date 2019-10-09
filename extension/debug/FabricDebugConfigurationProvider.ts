@@ -29,6 +29,8 @@ import { FabricChaincode } from '../fabric/FabricChaincode';
 
 export abstract class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
+    static readonly debugEvent: string = 'contractDebugging';
+
     public static async getInstantiatedChaincode(chaincodeName: string): Promise<FabricChaincode> {
         // Determine what smart contracts are instantiated already
         // Assume Local Fabric has one peer
@@ -138,6 +140,10 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             // configuration provider, for example a fabric:go configuration with the go debug configuration
             // provider. This results in errors and we need to just force it to use our configuration as-is.
             delete resolvedConfig.name;
+
+            // We need this in order to differentiate between debug events
+            resolvedConfig.debugEvent = FabricDebugConfigurationProvider.debugEvent;
+
             await vscode.commands.executeCommand('setContext', 'blockchain-debug', true);
             vscode.debug.startDebugging(folder, resolvedConfig);
 

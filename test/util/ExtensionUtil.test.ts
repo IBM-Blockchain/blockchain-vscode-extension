@@ -577,7 +577,8 @@ describe('ExtensionUtil Tests', () => {
             const session: any = {
                 some: 'thing',
                 configuration: {
-                    env: {}
+                    env: {},
+                    debugEvent: FabricDebugConfigurationProvider.debugEvent
                 }
             };
             mySandBox.stub(vscode.debug, 'onDidChangeActiveDebugSession').yields(session as vscode.DebugSession);
@@ -609,7 +610,8 @@ describe('ExtensionUtil Tests', () => {
                 configuration: {
                     env: {
                         CORE_CHAINCODE_ID_NAME: 'myContract:0.0.1'
-                    }
+                    },
+                    debugEvent: FabricDebugConfigurationProvider.debugEvent
                 }
             };
 
@@ -644,7 +646,8 @@ describe('ExtensionUtil Tests', () => {
                 configuration: {
                     env: {
                         CORE_CHAINCODE_ID_NAME: 'myContract:0.0.1'
-                    }
+                    },
+                    debugEvent: FabricDebugConfigurationProvider.debugEvent
                 }
             };
 
@@ -685,7 +688,8 @@ describe('ExtensionUtil Tests', () => {
                 configuration: {
                     env: {
                         CORE_CHAINCODE_ID_NAME: 'myContract:0.0.1'
-                    }
+                    },
+                    debugEvent: FabricDebugConfigurationProvider.debugEvent
                 }
             };
             mySandBox.stub(vscode.debug, 'onDidChangeActiveDebugSession').yields(session as vscode.DebugSession);
@@ -708,6 +712,45 @@ describe('ExtensionUtil Tests', () => {
             await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
 
             const session: any = undefined;
+            mySandBox.stub(vscode.debug, 'onDidChangeActiveDebugSession').yields(session as vscode.DebugSession);
+            const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+
+            const registerOpenPreReqsCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerOpenPreReqsCommand').resolves(ctx);
+
+            await ExtensionUtil.registerCommands(ctx);
+
+            registerOpenPreReqsCommandStub.should.have.been.calledOnce;
+
+            executeCommand.should.have.been.calledOnceWith('setContext', 'blockchain-debug', false);
+        });
+
+        it('should set blockchain-debug to false when starting a debug event other than for smart contrcts', async () => {
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
+            const session: any = {
+                some: 'thing'
+            };
+            mySandBox.stub(vscode.debug, 'onDidChangeActiveDebugSession').yields(session as vscode.DebugSession);
+            const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+
+            const registerOpenPreReqsCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerOpenPreReqsCommand').resolves(ctx);
+
+            await ExtensionUtil.registerCommands(ctx);
+
+            registerOpenPreReqsCommandStub.should.have.been.calledOnce;
+
+            executeCommand.should.have.been.calledOnceWith('setContext', 'blockchain-debug', false);
+        });
+
+        it('should set blockchain-debug to false when debugEvent property is missing', async () => {
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
+            const session: any = {
+                some: 'thing',
+                configuration: {
+                    something: 'else'
+                }
+            };
             mySandBox.stub(vscode.debug, 'onDidChangeActiveDebugSession').yields(session as vscode.DebugSession);
             const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();

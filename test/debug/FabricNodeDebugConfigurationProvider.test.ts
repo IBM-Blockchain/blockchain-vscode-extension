@@ -150,6 +150,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'myLaunch',
                 program: 'myProgram',
                 cwd: 'myCwd',
+                debugEvent: FabricNodeDebugConfigurationProvider.debugEvent,
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
@@ -169,6 +170,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'myLaunch',
                 program: 'myProgram',
                 cwd: 'myCwd',
+                debugEvent: FabricNodeDebugConfigurationProvider.debugEvent,
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
@@ -188,6 +190,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'myLaunch',
                 program: path.join(path.sep, 'myPath', 'node_modules', '.bin', 'fabric-chaincode-node'),
                 cwd: 'myCwd',
+                debugEvent: FabricNodeDebugConfigurationProvider.debugEvent,
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
@@ -207,6 +210,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'myLaunch',
                 program: path.join(path.sep, 'myPath', 'node_modules', 'fabric-shim', 'cli'),
                 cwd: 'myCwd',
+                debugEvent: FabricNodeDebugConfigurationProvider.debugEvent,
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
@@ -226,6 +230,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'myLaunch',
                 program: 'myProgram',
                 cwd: path.sep + 'myPath',
+                debugEvent: FabricNodeDebugConfigurationProvider.debugEvent,
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
@@ -244,6 +249,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'myLaunch',
                 program: 'myProgram',
                 cwd: 'myCwd',
+                debugEvent: FabricNodeDebugConfigurationProvider.debugEvent,
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
@@ -262,6 +268,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'myLaunch',
                 program: 'myProgram',
                 cwd: 'myCwd',
+                debugEvent: FabricNodeDebugConfigurationProvider.debugEvent,
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
@@ -280,6 +287,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'launch',
                 program: 'myProgram',
                 cwd: 'myCwd',
+                debugEvent: FabricNodeDebugConfigurationProvider.debugEvent,
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
