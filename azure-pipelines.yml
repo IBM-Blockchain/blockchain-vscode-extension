@@ -113,6 +113,9 @@ stages:
 
           - bash: |
               set -ev
+
+              git checkout master
+
               npm install semver
 
               # Bump the version number.
