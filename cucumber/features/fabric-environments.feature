@@ -19,7 +19,7 @@ Feature: Fabric Environments
         | environment connected       | Connected to environment: Local Fabric | Connected to environment: Local Fabric                                       |
         | installed smart contract    | + Install                              | + Install                                                                    |
         | instantiated smart contract | + Instantiate                          | + Instantiate                                                                |
-        | Channels                    | mychannel                              | mychannel                                                                    |
+        | Channels                    | mychannel                              | Associated peers: peer0.org1.example.com                                                          |
         | Node                        | peer0.org1.example.com                 | Name: peer0.org1.example.com\\nMSPID: Org1MSP\\nAssociated Identity:\\nadmin |
         | Node                        | ca.org1.example.com                    | Name: ca.org1.example.com\\nAssociated Identity:\\nadmin                      |
         | Node                        | orderer.example.com                    | Name: orderer.example.com\\nMSPID: OrdererMSP\\nAssociated Identity:\\nadmin |
@@ -118,7 +118,7 @@ Feature: Fabric Environments
         | environment connected       | Connected to environment: myFabric | Connected to environment: myFabric                                           |
         | installed smart contract    | + Install                          | + Install                                                                    |
         | instantiated smart contract | + Instantiate                      | + Instantiate                                                                |
-        | Channels                    | mychannel                          | mychannel                                                                    |
+        | Channels                    | mychannel                          | Associated peers: peer0.org1.example.com                                                          |
         | Node                        | peer0.org1.example.com             | Name: peer0.org1.example.com\\nMSPID: Org1MSP\\nAssociated Identity:\\nconga |
         | Node                        | ca.example.com                     | Name: ca.example.com\\nAssociated Identity:\\nconga2                         |
         | Node                        | orderer.example.com                | Name: orderer.example.com\\nMSPID: OrdererMSP\\nAssociated Identity:\\nconga |
