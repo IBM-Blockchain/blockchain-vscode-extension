@@ -257,10 +257,14 @@ export class FabricRuntime extends FabricEnvironment {
         let identityPaths: string[] = await fs.readdir(walletPath);
         identityPaths = identityPaths
             .sort()
-            .filter((identityPath: string) => !identityPath.startsWith('.'))
+            .filter((identityPath: string) => !identityPath.startsWith('.') && identityPath.endsWith('.json'))
             .map((identityPath: string) => path.resolve(this.path, 'wallets', walletName, identityPath));
         const identities: FabricIdentity[] = [];
         for (const identityPath of identityPaths) {
+            const stats: fs.Stats = await fs.lstat(identityPath);
+            if (!stats.isFile()) {
+                continue;
+            }
             const identity: FabricIdentity = await fs.readJson(identityPath);
             identities.push(identity);
         }
