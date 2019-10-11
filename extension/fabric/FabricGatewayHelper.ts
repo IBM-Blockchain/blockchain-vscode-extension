@@ -78,7 +78,7 @@ export class FabricGatewayHelper {
 
         if (peerNode.ssl_target_name_override) {
             connectionProfile.peers[peerNode.name].grpcOptions = {
-                ssl_target_name_override: peerNode.ssl_target_name_override
+                'ssl-target-name-override': peerNode.ssl_target_name_override
             };
         }
 
