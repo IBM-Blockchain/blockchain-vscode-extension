@@ -24,7 +24,6 @@ import * as path from 'path';
 import { SampleView } from '../../extension/webview/SampleView';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { CommandUtil } from '../../extension/util/CommandUtil';
-import { TestUtil } from '../TestUtil';
 import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistry';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import * as ejs from 'ejs';
@@ -360,14 +359,6 @@ describe('SampleView', () => {
 
         let onDidReceiveMessagePromises: any[];
 
-        before(async () => {
-            await TestUtil.storeAll();
-        });
-
-        after(async () => {
-            await TestUtil.restoreAll();
-        });
-
         function setUpTest(reclone: boolean): void {
             onDidReceiveMessagePromises = [];
 
@@ -476,14 +467,6 @@ describe('SampleView', () => {
     describe('openFile', () => {
 
         let onDidReceiveMessagePromises: any[] = [];
-
-        before(async () => {
-            await TestUtil.storeAll();
-        });
-
-        after(async () => {
-            await TestUtil.restoreAll();
-        });
 
         afterEach(() => {
             onDidReceiveMessagePromises = [];

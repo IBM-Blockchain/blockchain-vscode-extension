@@ -27,7 +27,6 @@ import { LogType } from '../logging/OutputAdapter';
 import { IdentityTreeItem } from './model/IdentityTreeItem';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { AdminIdentityTreeItem } from './model/AdminIdentityTreeItem';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricCertificate, Attribute } from '../fabric/FabricCertificate';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
@@ -71,11 +70,9 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
         const tree: Array<BlockchainTreeItem> = [];
 
         const walletRegistryEntries: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
-        const runtimeWalletRegistryEntries: FabricWalletRegistryEntry[] = await FabricRuntimeManager.instance().getWalletRegistryEntries();
-        const allWalletRegistryEntries: FabricWalletRegistryEntry[] = [].concat(runtimeWalletRegistryEntries, walletRegistryEntries);
 
         // Populate the tree with the name of each wallet
-        for (const walletRegistryEntry of allWalletRegistryEntries) {
+        for (const walletRegistryEntry of walletRegistryEntries) {
 
             if (walletRegistryEntry.walletPath) {
                 // get identityNames in the wallet

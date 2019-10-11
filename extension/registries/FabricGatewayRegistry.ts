@@ -14,7 +14,7 @@
 
 import { SettingsRegistry } from './SettingsRegistry';
 import { FabricGatewayRegistryEntry } from './FabricGatewayRegistryEntry';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 
 export class FabricGatewayRegistry extends SettingsRegistry<FabricGatewayRegistryEntry> {
 

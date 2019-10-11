@@ -64,7 +64,7 @@ describe('FabricClientConnection', () => {
 
         fabricClientStub.getMspid.returns('myMSPId');
 
-        fabricGatewayStub = sinon.createStubInstance(Gateway);
+        fabricGatewayStub = mySandBox.createStubInstance(Gateway);
         fabricGatewayStub.connect.resolves();
 
         const eventHandlerOptions: any = {

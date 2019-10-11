@@ -26,7 +26,7 @@ import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { Reporter } from '../../extension/util/Reporter';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 
 chai.use(sinonChai);
 
@@ -38,10 +38,6 @@ describe('importSmartContractPackageCommand', () => {
     before(async () => {
         await TestUtil.setupTests(sandbox);
         await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
-    });
-
-    after(async () => {
-        await TestUtil.restoreAll();
     });
 
     let copyStub: sinon.SinonStub;
@@ -64,6 +60,10 @@ describe('importSmartContractPackageCommand', () => {
 
     afterEach(async () => {
         sandbox.restore();
+    });
+
+    after(async () => {
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TestUtil.EXTENSION_TEST_DIR, vscode.ConfigurationTarget.Global);
     });
 
     it('should import a package', async () => {

@@ -39,7 +39,7 @@ describe('DebugCommandListCommand', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let showDebugCommandListStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
-    const runtimeStub: sinon.SinonStubbedInstance<FabricEnvironmentConnection> = sinon.createStubInstance(FabricEnvironmentConnection);
+    let runtimeStub: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
     let connectionManagerGetConnectionStub: sinon.SinonStub;
     let environmentConnectionStub: sinon.SinonStub;
 
@@ -47,11 +47,9 @@ describe('DebugCommandListCommand', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     beforeEach(async () => {
+
+        runtimeStub = mySandBox.createStubInstance(FabricEnvironmentConnection);
 
         showDebugCommandListStub = mySandBox.stub(UserInputUtil, 'showDebugCommandList').resolves({ label: 'Instantiate smart contract', data: ExtensionCommands.SUBMIT_TRANSACTION });
 

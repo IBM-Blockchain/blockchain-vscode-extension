@@ -18,10 +18,11 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as chai from 'chai';
+import * as sinon from 'sinon';
 import * as chaiAsPromised from 'chai-as-promised';
 import { TestUtil } from '../TestUtil';
 import { FileRegistry } from '../../extension/registries/FileRegistry';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
 
 chai.should();
@@ -52,25 +53,34 @@ describe('FileRegistry', () => {
     }
 
     let registry: TestFabricRegistry;
+    let emitSpy: sinon.SinonSpy;
+    let mySandbox: sinon.SinonSandbox;
 
     before(async () => {
-        await TestUtil.setupTests();
+        mySandbox = sinon.createSandbox();
+        await TestUtil.setupTests(mySandbox);
         registry = new TestFabricRegistry();
-    });
-
-    after(async () => {
-        await TestUtil.restoreAll();
     });
 
     beforeEach(async () => {
         await registry.clear();
+        emitSpy = mySandbox.spy(registry, 'emit');
+
+    });
+
+    afterEach(async () => {
+        mySandbox.restore();
     });
 
     describe('#getAll', () => {
         it('should get no entries if the configuration is empty', async () => {
             const testEntries: TestFabricRegistryEntry[] = [];
             await registry.clear();
+
+            emitSpy.resetHistory();
+
             await registry.getAll().should.eventually.deep.equal(testEntries);
+            emitSpy.should.not.have.been.called;
         });
 
         it('should get all entries if the configuration is not empty', async () => {
@@ -81,7 +91,10 @@ describe('FileRegistry', () => {
             await registry.add(testB);
             const testEntries: TestFabricRegistryEntry[] = [testA, testB];
 
+            emitSpy.resetHistory();
+
             await registry.getAll().should.eventually.deep.equal(testEntries);
+            emitSpy.should.not.have.been.called;
         });
 
         it('should get all entries if the configuration is not empty', async () => {
@@ -92,7 +105,10 @@ describe('FileRegistry', () => {
             await registry.add(testB);
             const testEntries: TestFabricRegistryEntry[] = [testA, testB];
 
+            emitSpy.resetHistory();
+
             await registry.getAll().should.eventually.deep.equal(testEntries);
+            emitSpy.should.not.have.been.called;
         });
 
         it('should ignore entries without a config file', async () => {
@@ -108,7 +124,10 @@ describe('FileRegistry', () => {
             await registry.add(testB);
             const testEntries: TestFabricRegistryEntry[] = [testA, testB];
 
+            emitSpy.resetHistory();
+
             await registry.getAll().should.eventually.deep.equal(testEntries);
+            emitSpy.should.not.have.been.called;
         });
     });
 
@@ -121,7 +140,10 @@ describe('FileRegistry', () => {
             await registry.add(testB);
             const testEntries: TestFabricRegistryEntry[] = [testA, testB];
 
+            emitSpy.resetHistory();
+
             await registry.get('foo2').should.eventually.deep.equal(testEntries[1]);
+            emitSpy.should.not.have.been.called;
         });
 
         it('should throw if an entry does not exist in the configuration', async () => {
@@ -131,7 +153,10 @@ describe('FileRegistry', () => {
             await registry.add(testA);
             await registry.add(testB);
 
+            emitSpy.resetHistory();
+
             await registry.get('foo0').should.eventually.be.rejectedWith(`Entry "foo0" in registry "${testFabricRegistryName}" does not exist`);
+            emitSpy.should.not.have.been.called;
         });
     });
 
@@ -143,7 +168,10 @@ describe('FileRegistry', () => {
             await registry.add(testA);
             await registry.add(testB);
 
+            emitSpy.resetHistory();
+
             await registry.exists('foo2').should.eventually.be.true;
+            emitSpy.should.not.have.been.called;
         });
 
         it('should return false if an entry does not exist in the configuration', async () => {
@@ -153,7 +181,10 @@ describe('FileRegistry', () => {
             await registry.add(testA);
             await registry.add(testB);
 
+            emitSpy.resetHistory();
+
             await registry.exists('foo0').should.eventually.be.false;
+            emitSpy.should.not.have.been.called;
         });
     });
 
@@ -165,7 +196,10 @@ describe('FileRegistry', () => {
             await registry.add(testA);
             await registry.add(testB);
 
+            emitSpy.resetHistory();
+
             await registry.add(testA).should.eventually.be.rejectedWith(`Entry "foo1" in registry "${testFabricRegistryName}" already exists`);
+            emitSpy.should.not.have.been.called;
         });
 
         it('should add an entry if the entry does not exist in the configuration', async () => {
@@ -181,8 +215,8 @@ describe('FileRegistry', () => {
             await registry.add(newEntry);
 
             await registry.getAll().should.eventually.deep.equal([newEntry, testA, testB]);
+            emitSpy.should.have.been.calledWith(FileRegistry.EVENT_NAME, testFabricRegistryName);
         });
-
     });
 
     describe('#update', () => {
@@ -194,8 +228,11 @@ describe('FileRegistry', () => {
             await registry.add(testA);
             await registry.add(testB);
 
+            emitSpy.resetHistory();
+
             const newEntry: TestFabricRegistryEntry = { name: 'foo0', myValue: 'value0' };
             await registry.update(newEntry).should.be.rejectedWith(`Entry "foo0" in registry "${testFabricRegistryName}" does not exist`);
+            emitSpy.should.not.have.been.called;
         });
 
         it('should update an entry if the entry exists in the configuration', async () => {
@@ -205,10 +242,13 @@ describe('FileRegistry', () => {
             await registry.add(testA);
             await registry.add(testB);
 
+            emitSpy.resetHistory();
+
             const newEntry: TestFabricRegistryEntry = { name: 'foo2', myValue: 'value2+1' };
             await registry.update(newEntry);
 
             await registry.get('foo2').should.eventually.deep.equal(newEntry);
+            emitSpy.should.have.been.calledWith(FileRegistry.EVENT_NAME, testFabricRegistryName);
         });
     });
 
@@ -221,7 +261,10 @@ describe('FileRegistry', () => {
             await registry.add(testA);
             await registry.add(testB);
 
+            emitSpy.resetHistory();
+
             await registry.delete('foo0').should.be.rejectedWith(`Entry "foo0" in registry "${testFabricRegistryName}" does not exist`);
+            emitSpy.should.not.have.been.called;
         });
 
         it('should delete an entry if the entry exists in the configuration', async () => {
@@ -231,8 +274,24 @@ describe('FileRegistry', () => {
             await registry.add(testA);
             await registry.add(testB);
 
+            emitSpy.resetHistory();
+
             await registry.delete('foo2');
             await registry.getAll().should.eventually.deep.equal([testA]);
+            emitSpy.should.have.been.calledWith(FileRegistry.EVENT_NAME, testFabricRegistryName);
+        });
+
+        it('should not throw if ignoreNotExists is set', async () => {
+            const testA: TestFabricRegistryEntry = new TestFabricRegistryEntry({ name: 'foo1', myValue: 'value1' });
+            const testB: TestFabricRegistryEntry = new TestFabricRegistryEntry({ name: 'foo2', myValue: 'value2' });
+
+            await registry.add(testA);
+            await registry.add(testB);
+
+            emitSpy.resetHistory();
+
+            await registry.delete('foo0', true).should.not.be.rejected;
+            emitSpy.should.not.have.been.called;
         });
     });
 
@@ -245,8 +304,11 @@ describe('FileRegistry', () => {
             await registry.add(testA);
             await registry.add(testB);
 
+            emitSpy.resetHistory();
+
             await registry.clear();
             await registry.getAll().should.eventually.deep.equal([]);
+            emitSpy.should.have.been.calledWith(FileRegistry.EVENT_NAME, testFabricRegistryName);
         });
     });
 });

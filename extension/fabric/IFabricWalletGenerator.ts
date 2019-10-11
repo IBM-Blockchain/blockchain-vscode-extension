@@ -17,6 +17,4 @@ import { IFabricWallet } from './IFabricWallet';
 export interface IFabricWalletGenerator {
 
     getWallet(walletName: string): Promise<IFabricWallet>;
-
-    deleteLocalWallet(walletName: string): Promise<void>;
 }

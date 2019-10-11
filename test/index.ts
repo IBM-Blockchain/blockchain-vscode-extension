@@ -17,6 +17,7 @@ import * as fs from 'fs-extra';
 import * as Mocha from 'mocha';
 import * as glob from 'glob';
 import { VSCodeBlockchainOutputAdapter } from '../extension/logging/VSCodeBlockchainOutputAdapter';
+import { TestUtil } from './TestUtil';
 
 // tslint:disable no-var-requires
 // tslint:disable no-console
@@ -36,6 +37,8 @@ export async function run(testsRoot: string, cb: (error: any, failures?: number)
     }
 
     VSCodeBlockchainOutputAdapter.instance().setConsole(true);
+    // make sure we start with a fresh environment
+    await fs.remove(TestUtil.EXTENSION_TEST_DIR);
 
     const filePath: string = path.join(__dirname, '..', '..', 'unit-tests.xml');
 
@@ -103,6 +106,8 @@ export async function run(testsRoot: string, cb: (error: any, failures?: number)
             await runMocha();
         } catch (err) {
             cb(err);
+        } finally {
+            await TestUtil.restoreAll();
         }
 
         cb(null, failedTests);

@@ -19,7 +19,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as sinon from 'sinon';
 import * as path from 'path';
-import { SettingConfigurations } from '../SettingConfigurations';
+import { SettingConfigurations } from '../configurations';
 import { SinonSandbox, SinonStub } from 'sinon';
 import { UserInputUtil } from '../extension/commands/UserInputUtil';
 import { FabricRuntimeUtil } from '../extension/fabric/FabricRuntimeUtil';
@@ -30,11 +30,11 @@ export class TestUtil {
     public static EXTENSION_TEST_DIR: string = path.join(__dirname, '..', '..', 'test', 'tmp');
 
     static async setupTests(sandbox?: SinonSandbox): Promise<void> {
-        await this.storeAll();
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, this.EXTENSION_TEST_DIR, vscode.ConfigurationTarget.Global);
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
-
         if (!ExtensionUtil.isActive()) {
+            await this.storeAll();
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, this.EXTENSION_TEST_DIR, vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
+
             if (!sandbox) {
                 sandbox = sinon.createSandbox();
             }
@@ -43,9 +43,7 @@ export class TestUtil {
             showConfirmationWarningMessage.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} now?`).resolves(false);
 
             await ExtensionUtil.activateExtension();
-        } else {
-            const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            await ExtensionUtil.registerCommands(context);
+
         }
     }
 
@@ -54,7 +52,6 @@ export class TestUtil {
         await this.storeGatewaysConfig();
         await this.storeEnvironmentsConfig();
         await this.storeRuntimesConfig();
-        await this.storeWalletsConfig();
         await this.storeRepositoriesConfig();
         await this.storeShowHomeOnStart();
         await this.storeBypassPreReqs();
@@ -70,7 +67,6 @@ export class TestUtil {
         await this.restoreGatewaysConfig();
         await this.restoreEnvironmentsConfig();
         await this.restoreRuntimesConfig();
-        await this.restoreWalletsConfig();
         await this.restoreRepositoriesConfig();
         await this.restoreShowHomeOnStart();
         await this.restoreBypassPreReqs();
@@ -112,15 +108,6 @@ export class TestUtil {
     static async restoreRuntimesConfig(): Promise<void> {
         console.log('Restoring user runtimes config to settings:', this.USER_RUNTIMES_CONFIG);
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, this.USER_RUNTIMES_CONFIG, vscode.ConfigurationTarget.Global);
-    }
-
-    static async storeWalletsConfig(): Promise<void> {
-        this.USER_WALLETS_CONFIG = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
-        console.log('Storing user wallets:', this.USER_WALLETS_CONFIG);
-    }
-    static async restoreWalletsConfig(): Promise<void> {
-        console.log('Restoring user wallets config to settings:', this.USER_WALLETS_CONFIG);
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, this.USER_WALLETS_CONFIG, vscode.ConfigurationTarget.Global);
     }
 
     static async storeRepositoriesConfig(): Promise<void> {
@@ -172,7 +159,6 @@ export class TestUtil {
     private static USER_GATEWAYS_CONFIG: any;
     private static USER_ENVIRONMENTS_CONFIG: any;
     private static USER_RUNTIMES_CONFIG: any;
-    private static USER_WALLETS_CONFIG: any;
     private static USER_REPOSITORIES: any;
     private static HOME_STARTUP: any;
     private static BYPASS_PREREQS: any;

@@ -20,7 +20,7 @@ import { UserInputUtil } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { FileSystemUtil } from '../util/FileSystemUtil';
 
 export async function importSmartContractPackageCommand(): Promise<void> {

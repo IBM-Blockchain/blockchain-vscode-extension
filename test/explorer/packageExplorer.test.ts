@@ -23,7 +23,7 @@ import { BlockchainPackageExplorerProvider } from '../../extension/explorer/pack
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../extension/logging/OutputAdapter';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 chai.use(sinonChai);
@@ -41,11 +41,6 @@ describe('packageExplorer', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-
-    });
-
     beforeEach(async () => {
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         blockchainPackageExplorerProvider = ExtensionUtil.getBlockchainPackageExplorerProvider();
@@ -54,6 +49,10 @@ describe('packageExplorer', () => {
 
     afterEach(async () => {
         mySandBox.restore();
+    });
+
+    after(async () => {
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TestUtil.EXTENSION_TEST_DIR, vscode.ConfigurationTarget.Global);
     });
 
     it('should show smart contract packages in the BlockchainPackageExplorer view', async () => {

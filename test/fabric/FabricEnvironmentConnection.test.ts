@@ -56,7 +56,7 @@ describe('FabricEnvironmentConnection', () => {
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
-        mockRuntime = sinon.createStubInstance(FabricRuntime);
+        mockRuntime = mySandBox.createStubInstance(FabricRuntime);
         mockRuntime.getNodes.resolves([
             FabricNode.newPeer(
                 'peer0.org1.example.com',
@@ -156,10 +156,10 @@ describe('FabricEnvironmentConnection', () => {
             )
         ]);
 
-        const mockFabricWalletGenerator: sinon.SinonStubbedInstance<FabricWalletGenerator> = sinon.createStubInstance(FabricWalletGenerator);
+        const mockFabricWalletGenerator: sinon.SinonStubbedInstance<FabricWalletGenerator> = mySandBox.createStubInstance(FabricWalletGenerator);
         mySandBox.stub(FabricWalletGeneratorFactory, 'createFabricWalletGenerator').returns(mockFabricWalletGenerator);
-        mockLocalWallet = sinon.createStubInstance(FabricWallet);
-        mockLocalWallet['setUserContext'] = sinon.stub();
+        mockLocalWallet = mySandBox.createStubInstance(FabricWallet);
+        mockLocalWallet['setUserContext'] = mySandBox.stub();
         mockFabricWalletGenerator.getWallet.rejects(new Error('no such wallet'));
         mockFabricWalletGenerator.getWallet.withArgs(FabricWalletUtil.LOCAL_WALLET).resolves(mockLocalWallet);
 
@@ -763,7 +763,7 @@ describe('FabricEnvironmentConnection', () => {
             sendTransactionStub.resolves({
                 status: 'SUCCESS'
             });
-            mockEventHub = sinon.createStubInstance(Client.ChannelEventHub);
+            mockEventHub = mySandBox.createStubInstance(Client.ChannelEventHub);
             mySandBox.stub(channel, 'newChannelEventHub').returns(mockEventHub);
             mockEventHub.connect.yields(null);
             mockEventHub.registerTxEvent.callsFake((txId: string, callback: any, errorCallback: any): void => {
@@ -1040,7 +1040,7 @@ describe('FabricEnvironmentConnection', () => {
             sendTransactionStub.resolves({
                 status: 'SUCCESS'
             });
-            mockEventHub = sinon.createStubInstance(Client.ChannelEventHub);
+            mockEventHub = mySandBox.createStubInstance(Client.ChannelEventHub);
             mySandBox.stub(channel, 'newChannelEventHub').returns(mockEventHub);
             mockEventHub.connect.yields(null);
             mockEventHub.registerTxEvent.callsFake((txId: string, callback: any, errorCallback: any): void => {

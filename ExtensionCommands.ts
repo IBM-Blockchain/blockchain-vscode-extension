@@ -62,7 +62,6 @@ export class ExtensionCommands {
     static readonly REFRESH_WALLETS: string = 'walletExplorer.refreshEntry';
     static readonly ADD_WALLET: string = 'walletExplorer.addWalletEntry';
     static readonly ADD_WALLET_IDENTITY: string = 'walletExplorer.addWalletIdentityEntry';
-    static readonly EDIT_WALLET: string = 'walletExplorer.editWalletEntry';
     static readonly REMOVE_WALLET: string = 'walletExplorer.removeWalletEntry';
     static readonly DELETE_IDENTITY: string = 'walletExplorer.deleteIdentityEntry';
     static readonly EXPORT_WALLET: string = 'walletExplorer.exportWalletEntry';

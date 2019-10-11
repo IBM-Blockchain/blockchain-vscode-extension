@@ -46,15 +46,11 @@ describe('startFabricRuntime', () => {
         await TestUtil.setupTests(sandbox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
         await runtimeManager.initialize();
-        mockRuntime = sinon.createStubInstance(FabricRuntime);
+        mockRuntime = sandbox.createStubInstance(FabricRuntime);
         mockRuntime.isGenerated.resolves(true);
         mockRuntime.generate.resolves();
         mockRuntime.isCreated.resolves(true);

@@ -25,7 +25,7 @@ import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gate
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
@@ -42,10 +42,6 @@ describe('DeleteGatewayCommand', () => {
     let showConfirmationWarningMessage: sinon.SinonStub;
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-    });
-
-    after(async () => {
-        await TestUtil.restoreAll();
     });
 
     describe('deleteGateway', () => {

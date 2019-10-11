@@ -48,10 +48,6 @@ describe('UpgradeCommand', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     describe('UpgradeSmartContract', () => {
         let fabricRuntimeMock: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
 
@@ -80,7 +76,7 @@ describe('UpgradeCommand', () => {
             executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT).resolves();
             executeCommandStub.callThrough();
 
-            fabricRuntimeMock = sinon.createStubInstance(FabricEnvironmentConnection);
+            fabricRuntimeMock = mySandBox.createStubInstance(FabricEnvironmentConnection);
             fabricRuntimeMock.connect.resolves();
             fabricRuntimeMock.getInstalledChaincode.resolves(new Map());
             fabricRuntimeMock.upgradeChaincode.resolves();

@@ -28,13 +28,10 @@ import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { FabricCertificate } from '../fabric/FabricCertificate';
 import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
-import { IFabricWallet } from '../fabric/IFabricWallet';
-import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
-import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 import { FabricNode, FabricNodeType } from '../fabric/FabricNode';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
@@ -490,7 +487,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(options, quickPickOptions);
     }
 
-    public static async openUserSettings(name: string, searchWallets?: boolean): Promise<void> {
+    public static async openUserSettings(name: string): Promise<void> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         let settingsPath: string;
@@ -516,10 +513,7 @@ export class UserInputUtil {
 
             // Find the user settings line number
             for (let index: number = 0; index < settingsText.length; index++) {
-                let section: string = `"${SettingConfigurations.FABRIC_GATEWAYS}": [`;
-                if (searchWallets) {
-                    section = `"${SettingConfigurations.FABRIC_WALLETS}": [`;
-                }
+                const section: string = `"${SettingConfigurations.FABRIC_GATEWAYS}": [`;
                 if (settingsText[index].includes(section)) {
                     // We've found the section
                     const entry: string = '"name": "' + name;
@@ -869,22 +863,7 @@ export class UserInputUtil {
     public static async showWalletsQuickPickBox(prompt: string, canPickMany: boolean, showLocalWallet?: boolean, showCreateWallet?: boolean): Promise<Array<IBlockchainQuickPickItem<FabricWalletRegistryEntry>> | IBlockchainQuickPickItem<FabricWalletRegistryEntry> | undefined> {
         const walletQuickPickItems: Array<IBlockchainQuickPickItem<FabricWalletRegistryEntry>> = [];
 
-        if (showLocalWallet) {
-            // Push local_fabric wallet
-            const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().getWallet(FabricWalletUtil.LOCAL_WALLET);
-
-            const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
-
-            runtimeWalletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET;
-            runtimeWalletRegistryEntry.walletPath = runtimeWallet.getWalletPath();
-            runtimeWalletRegistryEntry.managedWallet = true;
-            walletQuickPickItems.push({
-                label: runtimeWalletRegistryEntry.name,
-                data: runtimeWalletRegistryEntry
-            });
-        }
-
-        const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll();
+        const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll(showLocalWallet);
         for (const walletRegistryEntry of wallets) {
             walletQuickPickItems.push({
                 label: walletRegistryEntry.name,

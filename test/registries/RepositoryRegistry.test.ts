@@ -16,10 +16,8 @@ import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistry';
-
-import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 
 chai.use(chaiAsPromised);
 
@@ -29,17 +27,12 @@ describe('RepositoryRegistry', () => {
     const testFabricRegistryName: string = SettingConfigurations.EXTENSION_REPOSITORIES;
 
     before(async () => {
-        await TestUtil.storeAll();
-    });
-
-    after(async () => {
-        await TestUtil.restoreAll();
+        await TestUtil.setupTests();
     });
 
     let registry: RepositoryRegistry;
 
     beforeEach(async () => {
-        await ExtensionUtil.activateExtension();
         registry = RepositoryRegistry.instance();
         await vscode.workspace.getConfiguration().update(testFabricRegistryName, [], vscode.ConfigurationTarget.Global);
     });

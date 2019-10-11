@@ -89,7 +89,7 @@ describe('FabricConnection', () => {
                 }
             }
         };
-        mockWallet = sinon.createStubInstance(FileSystemWallet);
+        mockWallet = mySandBox.createStubInstance(FileSystemWallet);
         mockWallet.list.resolves([{ label: 'admin' }]);
 
         fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
@@ -110,7 +110,7 @@ describe('FabricConnection', () => {
         fabricGatewayStub.connect.resolves();
         fabricGatewayStub.getCurrentIdentity.resolves({});
 
-        fabricChannelStub = sinon.createStubInstance(Client.Channel);
+        fabricChannelStub = mySandBox.createStubInstance(Client.Channel);
         fabricChannelStub.sendInstantiateProposal.resolves([{}, {}]);
         fabricChannelStub.sendUpgradeProposal.resolves([{}, {}]);
         fabricChannelStub.sendTransaction.resolves({ status: 'SUCCESS' });
@@ -468,10 +468,10 @@ describe('FabricConnection', () => {
         it('should get the instantiated chaincode from a channel using service discovery (localhost)', async () => {
             fabricConnection['discoveryEnabled'] = true;
             fabricConnection['discoveryAsLocalhost'] = true;
-            const mockChannel: sinon.SinonStubbedInstance<Client.Channel> = sinon.createStubInstance(Client.Channel);
+            const mockChannel: sinon.SinonStubbedInstance<Client.Channel> = mySandBox.createStubInstance(Client.Channel);
             fabricClientStub.newChannel.withArgs('myChannelFromDS').returns(mockChannel);
-            const mockPeer1: sinon.SinonStubbedInstance<Client.Peer> = sinon.createStubInstance(Client.Peer);
-            const mockPeer2: sinon.SinonStubbedInstance<Client.Peer> = sinon.createStubInstance(Client.Peer);
+            const mockPeer1: sinon.SinonStubbedInstance<Client.Peer> = mySandBox.createStubInstance(Client.Peer);
+            const mockPeer2: sinon.SinonStubbedInstance<Client.Peer> = mySandBox.createStubInstance(Client.Peer);
             fabricClientStub.getPeersForOrg.returns([mockPeer1, mockPeer2]);
             mockChannel.initialize.resolves();
             mockChannel.queryInstantiatedChaincodes.resolves({
@@ -488,10 +488,10 @@ describe('FabricConnection', () => {
         it('should get the instantiated chaincode from a channel using service discovery (non-localhost)', async () => {
             fabricConnection['discoveryEnabled'] = true;
             fabricConnection['discoveryAsLocalhost'] = false;
-            const mockChannel: sinon.SinonStubbedInstance<Client.Channel> = sinon.createStubInstance(Client.Channel);
+            const mockChannel: sinon.SinonStubbedInstance<Client.Channel> = mySandBox.createStubInstance(Client.Channel);
             fabricClientStub.newChannel.withArgs('myChannelFromDS').returns(mockChannel);
-            const mockPeer1: sinon.SinonStubbedInstance<Client.Peer> = sinon.createStubInstance(Client.Peer);
-            const mockPeer2: sinon.SinonStubbedInstance<Client.Peer> = sinon.createStubInstance(Client.Peer);
+            const mockPeer1: sinon.SinonStubbedInstance<Client.Peer> = mySandBox.createStubInstance(Client.Peer);
+            const mockPeer2: sinon.SinonStubbedInstance<Client.Peer> = mySandBox.createStubInstance(Client.Peer);
             fabricClientStub.getPeersForOrg.returns([mockPeer1, mockPeer2]);
             mockChannel.initialize.resolves();
             mockChannel.queryInstantiatedChaincodes.resolves({
@@ -508,10 +508,10 @@ describe('FabricConnection', () => {
         it('should get the instantiated chaincode from a channel using service discovery even if first peer fails', async () => {
             fabricConnection['discoveryEnabled'] = true;
             fabricConnection['discoveryAsLocalhost'] = true;
-            const mockChannel: sinon.SinonStubbedInstance<Client.Channel> = sinon.createStubInstance(Client.Channel);
+            const mockChannel: sinon.SinonStubbedInstance<Client.Channel> = mySandBox.createStubInstance(Client.Channel);
             fabricClientStub.newChannel.withArgs('myChannelFromDS').returns(mockChannel);
-            const mockPeer1: sinon.SinonStubbedInstance<Client.Peer> = sinon.createStubInstance(Client.Peer);
-            const mockPeer2: sinon.SinonStubbedInstance<Client.Peer> = sinon.createStubInstance(Client.Peer);
+            const mockPeer1: sinon.SinonStubbedInstance<Client.Peer> = mySandBox.createStubInstance(Client.Peer);
+            const mockPeer2: sinon.SinonStubbedInstance<Client.Peer> = mySandBox.createStubInstance(Client.Peer);
             fabricClientStub.getPeersForOrg.returns([mockPeer1, mockPeer2]);
             mockChannel.initialize.onFirstCall().rejects(new Error('such error'));
             mockChannel.initialize.onSecondCall().resolves();
@@ -531,10 +531,10 @@ describe('FabricConnection', () => {
         it('should throw an error for a channel using service discovery if all peers fail', async () => {
             fabricConnection['discoveryEnabled'] = true;
             fabricConnection['discoveryAsLocalhost'] = true;
-            const mockChannel: sinon.SinonStubbedInstance<Client.Channel> = sinon.createStubInstance(Client.Channel);
+            const mockChannel: sinon.SinonStubbedInstance<Client.Channel> = mySandBox.createStubInstance(Client.Channel);
             fabricClientStub.newChannel.withArgs('myChannelFromDS').returns(mockChannel);
-            const mockPeer1: sinon.SinonStubbedInstance<Client.Peer> = sinon.createStubInstance(Client.Peer);
-            const mockPeer2: sinon.SinonStubbedInstance<Client.Peer> = sinon.createStubInstance(Client.Peer);
+            const mockPeer1: sinon.SinonStubbedInstance<Client.Peer> = mySandBox.createStubInstance(Client.Peer);
+            const mockPeer2: sinon.SinonStubbedInstance<Client.Peer> = mySandBox.createStubInstance(Client.Peer);
             fabricClientStub.getPeersForOrg.returns([mockPeer1, mockPeer2]);
             mockChannel.initialize.rejects(new Error('such error'));
             mockChannel.queryInstantiatedChaincodes.resolves({

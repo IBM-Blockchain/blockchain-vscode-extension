@@ -28,10 +28,6 @@ describe('FabricGatewayRegistry', () => {
         await TestUtil.setupTests();
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     beforeEach(async () => {
         await registry.clear();
     });

@@ -15,25 +15,20 @@
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
-import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
 import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { FabricWallet } from '../../extension/fabric/FabricWallet';
-import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
 import * as vscode from 'vscode';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { FabricGateway } from '../../extension/fabric/FabricGateway';
-import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
-import { FabricWalletGeneratorFactory } from '../../extension/fabric/FabricWalletGeneratorFactory';
 import { CommandUtil } from '../../extension/util/CommandUtil';
 import { version } from '../../package.json';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import * as fs from 'fs-extra';
@@ -52,25 +47,22 @@ describe('FabricRuntimeManager', () => {
 
     let sandbox: sinon.SinonSandbox;
     let findFreePortStub: sinon.SinonStub;
+    let originalRuntime: FabricRuntime;
 
     before(async () => {
-        await TestUtil.storeAll();
-    });
-
-    after(async () => {
-        await TestUtil.restoreAll();
+        await TestUtil.setupTests(sandbox);
+        originalRuntime = runtimeManager.getRuntime();
     });
 
     beforeEach(async () => {
         sandbox = sinon.createSandbox();
-        await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
-        mockRuntime = sinon.createStubInstance(FabricRuntime);
+        mockRuntime = sandbox.createStubInstance(FabricRuntime);
         runtimeManager['connection'] = runtimeManager['connectingPromise'] = undefined;
         runtimeManager['runtime'] = ((mockRuntime as any) as FabricRuntime);
-        mockConnection = sinon.createStubInstance(FabricEnvironmentConnection);
+        mockConnection = sandbox.createStubInstance(FabricEnvironmentConnection);
         sandbox.stub(FabricConnectionFactory, 'createFabricEnvironmentConnection').returns(mockConnection);
-        findFreePortStub = sinon.stub().resolves([17050, 17051, 17052, 17053, 17054, 17055, 17056]);
+        findFreePortStub = sandbox.stub().resolves([17050, 17051, 17052, 17053, 17054, 17055, 17056]);
         sandbox.stub(FabricRuntimeManager, 'findFreePort').value(findFreePortStub);
     });
 
@@ -81,11 +73,19 @@ describe('FabricRuntimeManager', () => {
         await connectionRegistry.clear();
     });
 
+    after(() => {
+        // need to restore the runtime
+        Object.defineProperty(runtimeManager, 'runtime', {
+            configurable: true,
+            enumerable: true,
+            get: (): FabricRuntime => (originalRuntime as any) as FabricRuntime
+        });
+    });
+
     describe('#getRuntime', () => {
         it('should return the runtime', () => {
             runtimeManager.getRuntime().should.equal(mockRuntime);
         });
-
     });
 
     describe('#initialize', () => {
@@ -177,6 +177,7 @@ describe('FabricRuntimeManager', () => {
         });
 
         it('should stop the logs when disconnected', async () => {
+            FabricEnvironmentManager.instance()['connection'] = undefined;
             mockRuntime.isCreated.resolves(false);
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
             await runtimeManager.initialize();
@@ -214,26 +215,6 @@ describe('FabricRuntimeManager', () => {
         });
     });
 
-    describe('#getWalletRegistryEntries', () => {
-
-        it('should return an array of wallet registry entries', async () => {
-            const instance: FabricRuntimeManager = FabricRuntimeManager.instance();
-            mockRuntime.getWalletNames.resolves([FabricWalletUtil.LOCAL_WALLET]);
-            const mockWalletGenerator: sinon.SinonStubbedInstance<FabricWalletGenerator> = sinon.createStubInstance(FabricWalletGenerator);
-            sandbox.stub(FabricWalletGeneratorFactory, 'createFabricWalletGenerator').returns(mockWalletGenerator);
-            const mockWallet: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
-            mockWallet.getWalletPath.returns('SOME_PATH');
-            mockWalletGenerator.getWallet.resolves(mockWallet);
-
-            const registryEntries: FabricWalletRegistryEntry[] = await instance.getWalletRegistryEntries();
-            registryEntries.should.have.lengthOf(1);
-            registryEntries[0].name.should.equal(FabricWalletUtil.LOCAL_WALLET);
-            registryEntries[0].walletPath.should.equal('SOME_PATH');
-            registryEntries[0].managedWallet.should.be.true;
-        });
-
-    });
-
     describe('#migrate', () => {
 
         let getStub: sinon.SinonStub;
@@ -241,7 +222,7 @@ describe('FabricRuntimeManager', () => {
         let sendCommandWithOutputStub: sinon.SinonStub;
 
         beforeEach(() => {
-            getStub = sinon.stub();
+            getStub = sandbox.stub();
             getStub.withArgs(SettingConfigurations.FABRIC_RUNTIME).returns({
                 ports: {
                     certificateAuthority: 17054,
@@ -255,7 +236,7 @@ describe('FabricRuntimeManager', () => {
             });
             getStub.withArgs('fabric.runtime').returns({});
             getStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(path.join('myPath'));
-            updateStub = sinon.stub().resolves();
+            updateStub = sandbox.stub().resolves();
             sandbox.stub(vscode.workspace, 'getConfiguration').returns({ get: getStub, update: updateStub});
             sendCommandWithOutputStub = sandbox.stub(CommandUtil, 'sendCommandWithOutput');
         });
@@ -440,7 +421,7 @@ describe('FabricRuntimeManager', () => {
         });
 
         it('should not migrate an old configuration with any other name when no new configuration', async () => {
-            getStub.withArgs(SettingConfigurations.FABRIC_WALLETS).returns({});
+            getStub.withArgs(SettingConfigurations.OLD_FABRIC_WALLETS).returns({});
             getStub.withArgs('fabric.runtimes').returns([{
                 name: 'some_other_fabric',
                 ports: {

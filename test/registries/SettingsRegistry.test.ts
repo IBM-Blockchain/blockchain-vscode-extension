@@ -19,7 +19,7 @@ import { RegistryEntry } from '../../extension/registries/RegistryEntry';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { TestUtil } from '../TestUtil';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -45,10 +45,6 @@ describe('SettingsRegistry', () => {
     }
     before(async () => {
         await TestUtil.setupTests();
-    });
-
-    after(async () => {
-        await TestUtil.restoreAll();
     });
 
     let registry: TestFabricRegistry;
@@ -151,6 +147,11 @@ describe('SettingsRegistry', () => {
             vscode.workspace.getConfiguration().get(testFabricRegistryName).should.deep.equal([testEntries[0]]);
         });
 
+        it('should not throw an error if ignoreNotExists is set', async () => {
+            const testEntries: TestFabricRegistryEntry[] = [{ name: 'foo1', myValue: 'value1' }, { name: 'foo2', myValue: 'value2' }];
+            await vscode.workspace.getConfiguration().update(testFabricRegistryName, testEntries, vscode.ConfigurationTarget.Global);
+            await registry.delete('foo0', true).should.not.be.rejected;
+        });
     });
 
     describe('#clear', () => {

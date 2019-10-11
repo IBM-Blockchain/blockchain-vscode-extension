@@ -14,7 +14,7 @@
 
 import { SettingsRegistry } from './SettingsRegistry';
 import { RepositoryRegistryEntry } from './RepositoryRegistryEntry';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 
 export class RepositoryRegistry extends SettingsRegistry<RepositoryRegistryEntry> {
 
