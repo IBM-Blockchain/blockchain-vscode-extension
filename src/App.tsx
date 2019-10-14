@@ -2,8 +2,7 @@ import * as React from 'react';
 import './App.scss';
 import { HashRouter as Router, Route, Redirect } from 'react-router-dom';
 
-import OneComponent from './components/OneComponent';
-import TwoComponent from './components/TwoComponent';
+import TransactionViewPage from './components/TransactionViewPage/TransactionViewPage';
 
 class App extends React.Component<any> {
     state: any;
@@ -28,14 +27,13 @@ class App extends React.Component<any> {
         console.log('Rendering app, this.state.redirectPath is', this.state.redirectPath);
         if (this.state.redirectPath === undefined) {
             // Maybe we should display a loading spinner instead?
-            return ( <div>No component asked to be loaded</div> );
+            return <div></div>;
         } else {
             return (
                 <Router>
                     <div>
                     <Route render={() => <Redirect push to={this.state.redirectPath}/>}></Route>
-                    <Route path='/one' component={OneComponent}></Route>
-                    <Route path='/two' component={TwoComponent}></Route>
+                    <Route path='/transaction' render={() => <TransactionViewPage activeSmartContract="penguinContract@0.0.1"/>}></Route>
                     </div>
                 </Router>
             );
@@ -45,7 +43,6 @@ class App extends React.Component<any> {
 
     public redirectComponent(path: string) {
         this.setState({redirectPath: path});
-
     }
 }
 
