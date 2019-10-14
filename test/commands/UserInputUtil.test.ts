@@ -191,13 +191,37 @@ describe('UserInputUtil', () => {
             mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').returns([environmentRegistry, environmentRegistry2]);
             quickPickStub.resolves({ label: environmentRegistry.name, data: environmentRegistry });
 
-            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment');
+            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
 
             result.data.name.should.equal(environmentRegistry.name);
 
             quickPickStub.should.have.been.calledWith([{ label: environmentRegistry.name, data: environmentRegistry }, { label: environmentRegistry2.name, data: environmentRegistry2 }], {
                 ignoreFocusOut: true,
                 canPickMany: false,
+                placeHolder: 'choose an environment'
+            });
+        });
+
+        it('should show multiple environments', async () => {
+            const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            environmentRegistry.name = 'myFabric';
+            environmentRegistry.managedRuntime = false;
+
+            const environmentRegistry2: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            environmentRegistry2.name = 'myFabric';
+            environmentRegistry2.managedRuntime = false;
+
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').returns([environmentRegistry, environmentRegistry2]);
+            quickPickStub.resolves([{ label: environmentRegistry.name, data: environmentRegistry }, { label: environmentRegistry2.name, data: environmentRegistry2 }]);
+
+            const results: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[] = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', true, false) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[];
+
+            results[0].data.name.should.equal(environmentRegistry.name);
+            results[0].data.name.should.equal(environmentRegistry2.name);
+
+            quickPickStub.should.have.been.calledWith([{ label: environmentRegistry.name, data: environmentRegistry }, {label: environmentRegistry2.name, data: environmentRegistry2}], {
+                ignoreFocusOut: true,
+                canPickMany: true,
                 placeHolder: 'choose an environment'
             });
         });
@@ -215,7 +239,7 @@ describe('UserInputUtil', () => {
             mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').returns([environmentRegistry]);
             quickPickStub.resolves({ label: environmentRegistry.name, data: environmentRegistry });
 
-            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', true);
+            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false, false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
 
             result.data.name.should.equal(environmentRegistry.name);
 
@@ -226,6 +250,14 @@ describe('UserInputUtil', () => {
             });
         });
 
+        it('should throw error if no environments', async () => {
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').returns([]);
+
+            await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false, true).should.eventually.rejectedWith('Error when choosing environment, no environments found to choose from.');
+
+            quickPickStub.should.not.have.been.called;
+        });
+
         it('should not show quick pick if only one', async () => {
             const localFabricEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             localFabricEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
@@ -234,8 +266,7 @@ describe('UserInputUtil', () => {
 
             mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').returns([]);
 
-            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', true);
-
+            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false, true, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             result.data.name.should.equal(localFabricEntry.name);
 
             quickPickStub.should.not.have.been.called;
@@ -244,7 +275,7 @@ describe('UserInputUtil', () => {
         it('should throw error if no environments', async () => {
             mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').returns([]);
 
-            await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false).should.eventually.rejectedWith('Error when choosing environment, no environments found to choose from.');
+            await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false, true, false).should.eventually.rejectedWith('Error when choosing environment, no environments found to choose from.');
 
             quickPickStub.should.not.have.been.called;
         });

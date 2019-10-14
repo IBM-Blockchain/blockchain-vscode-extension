@@ -48,7 +48,7 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
                 return;
             }
 
-            const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to use');
+            const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to use', false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             if (!chosenEnvironment) {
                 return;
             }
