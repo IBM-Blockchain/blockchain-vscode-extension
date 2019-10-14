@@ -18,17 +18,15 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as path from 'path';
 import * as tmp from 'tmp';
-import * as fs from 'fs-extra';
 import { TestUtil } from '../TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
 import { FabricWallet } from '../../extension/fabric/FabricWallet';
-import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
+import { FileConfigurations } from '../../configurations';
 
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();
@@ -41,33 +39,23 @@ describe('AddWalletCommand', () => {
     let browseStub: sinon.SinonStub;
     let choseWalletAddMethod: sinon.SinonStub;
     let uri: vscode.Uri;
-    let getWallet: sinon.SinonStub;
-    let testWallet: FabricWallet;
     let getIdentitiesStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
-    let fsRemoveStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     beforeEach(async () => {
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [], vscode.ConfigurationTarget.Global);
+        await FabricWalletRegistry.instance().clear();
+
         showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
         browseStub = mySandBox.stub(UserInputUtil, 'browse');
         choseWalletAddMethod = mySandBox.stub(UserInputUtil, 'showAddWalletOptionsQuickPick');
         uri = vscode.Uri.file(tmp.dirSync().name);
-        testWallet = new FabricWallet(uri.fsPath);
-        getIdentitiesStub = mySandBox.stub(testWallet, 'getIdentityNames');
-        getWallet = mySandBox.stub(FabricWalletGenerator.instance(), 'getWallet');
-        getWallet.returns(testWallet);
-        fsRemoveStub = mySandBox.stub(fs, 'remove').resolves();
+        getIdentitiesStub = mySandBox.stub(FabricWallet.prototype, 'getIdentityNames');
     });
 
     afterEach(async () => {
@@ -96,7 +84,9 @@ describe('AddWalletCommand', () => {
             result.name.should.equal(path.basename(uri.fsPath));
 
             showInputBoxStub.should.not.have.been.called;
-            const wallets: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
+
+            const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll();
+
             wallets.length.should.equal(1);
             wallets[0].should.deep.equal({
                 name: path.basename(uri.fsPath),
@@ -136,7 +126,7 @@ describe('AddWalletCommand', () => {
             should.not.exist(result);
 
             showInputBoxStub.should.not.have.been.called;
-            const wallets: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
+            const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll();
             wallets.length.should.equal(0);
             logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to add a new wallet: ${error.message}`, `Failed to add a new wallet: ${error.message}`);
         });
@@ -150,7 +140,7 @@ describe('AddWalletCommand', () => {
             showInputBoxStub.resolves('someWalletName');
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
             executeCommandStub.callThrough();
-            executeCommandStub.withArgs(ExtensionCommands.ADD_WALLET_IDENTITY, sinon.match.any).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.ADD_WALLET_IDENTITY, sinon.match.instanceOf(FabricWalletRegistryEntry)).resolves();
             getIdentitiesStub.resolves(['someName', 'anotherName']);
 
             const result: FabricWalletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET) as FabricWalletRegistryEntry;
@@ -158,11 +148,11 @@ describe('AddWalletCommand', () => {
 
             browseStub.should.not.have.been.called;
             showInputBoxStub.should.have.been.calledOnce;
-            const wallets: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
+            const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll();
             wallets.length.should.equal(1);
             wallets[0].should.deep.equal({
                 name: 'someWalletName',
-                walletPath: uri.fsPath
+                walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, 'someWalletName')
             });
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new wallet');
         });
@@ -180,11 +170,11 @@ describe('AddWalletCommand', () => {
             browseStub.should.not.have.been.called;
             showInputBoxStub.should.have.been.calledOnce;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.ADD_WALLET_IDENTITY);
-            const wallets: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
+            const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll();
             wallets.length.should.equal(1);
             wallets[0].should.deep.equal({
                 name: 'someWalletName',
-                walletPath: uri.fsPath
+                walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, 'someWalletName')
             });
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new wallet');
         });
@@ -200,6 +190,7 @@ describe('AddWalletCommand', () => {
         });
 
         it('should no nothing if the addWalletIdentity command was cancelled', async () => {
+            const deleteSpy: sinon.SinonSpy = mySandBox.spy(FabricWalletRegistry.instance(), 'delete');
             choseWalletAddMethod.resolves(UserInputUtil.WALLET_NEW_ID);
             showInputBoxStub.resolves('someWalletName');
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
@@ -210,7 +201,7 @@ describe('AddWalletCommand', () => {
             const result: FabricWalletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET) as FabricWalletRegistryEntry;
             should.not.exist(result);
 
-            fsRemoveStub.should.have.been.calledOnceWithExactly(uri.fsPath);
+            deleteSpy.should.have.been.calledWith('someWalletName');
             browseStub.should.not.have.been.called;
             showInputBoxStub.should.have.been.calledOnce;
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS);
@@ -221,12 +212,12 @@ describe('AddWalletCommand', () => {
             showInputBoxStub.resolves('someWalletName');
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
             executeCommandStub.callThrough();
-            executeCommandStub.withArgs(ExtensionCommands.ADD_WALLET_IDENTITY, sinon.match.any).rejects({message: 'some issue importing identity'});
+            executeCommandStub.withArgs(ExtensionCommands.ADD_WALLET_IDENTITY, sinon.match.any).rejects({ message: 'some issue importing identity' });
 
             const result: FabricWalletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET) as FabricWalletRegistryEntry;
             should.not.exist(result);
 
-            const wallets: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
+            const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll();
             wallets.length.should.equal(0);
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Failed to add a new wallet: some issue importing identity', 'Failed to add a new wallet: some issue importing identity');
         });
@@ -242,7 +233,7 @@ describe('AddWalletCommand', () => {
 
             browseStub.should.not.have.been.called;
             showInputBoxStub.should.have.been.calledOnce;
-            const wallets: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
+            const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll();
             wallets.length.should.equal(0);
             logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to add a new wallet: ${error.message}`, `Failed to add a new wallet: ${error.message}`);
         });

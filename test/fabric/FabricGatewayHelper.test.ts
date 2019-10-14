@@ -20,7 +20,7 @@ import * as path from 'path';
 import * as yaml from 'js-yaml';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
 import * as vscode from 'vscode';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { FabricNode } from '../../extension/fabric/FabricNode';
 import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
 
@@ -145,7 +145,7 @@ describe('FabricGatewayHelper', () => {
             connectionProfile.peers[securePeerNode.name].url.should.equal(securePeerNode.api_url);
 
             connectionProfile.peers[securePeerNode.name].tlsCACerts.pem.should.equal(Buffer.from(securePeerNode.pem, 'base64').toString());
-            connectionProfile.peers[securePeerNode.name].grpcOptions.ssl_target_name_override.should.equal(securePeerNode.ssl_target_name_override);
+            connectionProfile.peers[securePeerNode.name].grpcOptions['ssl-target-name-override'].should.equal(securePeerNode.ssl_target_name_override);
 
             connectionProfile.certificateAuthorities[secureCANode.name].tlsCACerts.pem.should.equal(Buffer.from(secureCANode.pem, 'base64').toString());
         });

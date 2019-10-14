@@ -49,10 +49,6 @@ describe('SubmitTransactionCommand', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     describe('SubmitTransaction', () => {
         let fabricClientConnectionMock: sinon.SinonStubbedInstance<FabricClientConnection>;
 
@@ -74,7 +70,7 @@ describe('SubmitTransactionCommand', () => {
             executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_GATEWAY).resolves();
             executeCommandStub.callThrough();
 
-            fabricClientConnectionMock = sinon.createStubInstance(FabricClientConnection);
+            fabricClientConnectionMock = mySandBox.createStubInstance(FabricClientConnection);
             fabricClientConnectionMock.connect.resolves();
             const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
             getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionMock);

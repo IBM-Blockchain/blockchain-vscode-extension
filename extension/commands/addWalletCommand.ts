@@ -14,7 +14,6 @@
 
 'use strict';
 import * as path from 'path';
-import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
@@ -97,34 +96,32 @@ export async function addWallet(createIdentity: boolean = true): Promise<FabricW
                 throw new Error('A wallet with this name already exists.');
             }
 
-            // Create a local file system wallet
-            wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().getWallet(walletName);
-            walletPath = wallet.getWalletPath();
+            // Add the wallet to the registry
+            fabricWalletRegistryEntry.name = walletName;
+            fabricWalletRegistryEntry.walletPath = FabricWalletUtil.getWalletPath(walletName);
+            await fabricWalletRegistry.add(fabricWalletRegistryEntry);
 
             if (createIdentity) {
                 // Add identity to wallet
-                await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, wallet);
+                await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, fabricWalletRegistryEntry);
 
                 // Did it work?
+                const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
+                wallet = await fabricWalletGenerator.getWallet(walletName);
                 identities = await wallet.getIdentityNames();
                 if (identities.length === 0) {
                     // No identity added, so remove the wallet and return
-                    await fs.remove(walletPath);
+                    await FabricWalletRegistry.instance().delete(walletName);
                     return;
                 }
             }
-
-            // Add the wallet to the registry
-            fabricWalletRegistryEntry.name = walletName;
-            fabricWalletRegistryEntry.walletPath = walletPath;
-            await fabricWalletRegistry.add(fabricWalletRegistryEntry);
-
         }
 
         outputAdapter.log(LogType.SUCCESS, 'Successfully added a new wallet');
         return fabricWalletRegistryEntry;
 
     } catch (error) {
+        await FabricWalletRegistry.instance().delete(walletName, true);
         outputAdapter.log(LogType.ERROR, `Failed to add a new wallet: ${error.message}`, `Failed to add a new wallet: ${error.message}`);
     }
 }

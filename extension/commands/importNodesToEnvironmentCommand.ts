@@ -19,7 +19,7 @@ import { LogType } from '../logging/OutputAdapter';
 import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { FabricNode } from '../fabric/FabricNode';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { ExtensionCommands } from '../../ExtensionCommands';

@@ -72,7 +72,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
             mySandbox = sinon.createSandbox();
             fabricDebugConfig = new FabricJavaDebugConfigurationProvider();
 
-            runtimeStub = sinon.createStubInstance(FabricRuntime);
+            runtimeStub = mySandbox.createStubInstance(FabricRuntime);
             runtimeStub.getName.returns('localfabric');
             runtimeStub.getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
@@ -118,7 +118,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
             packageEntry.version = 'vscode-13232112018';
             packageEntry.path = path.join('myPath');
 
-            mockRuntimeConnection = sinon.createStubInstance(FabricEnvironmentConnection);
+            mockRuntimeConnection = mySandbox.createStubInstance(FabricEnvironmentConnection);
             mockRuntimeConnection.connect.resolves();
             mockRuntimeConnection.getAllPeerNames.resolves('peerOne');
 

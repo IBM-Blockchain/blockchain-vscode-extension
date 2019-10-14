@@ -24,7 +24,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../extension/logging/OutputAdapter';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricNode, FabricNodeType } from '../../extension/fabric/FabricNode';
@@ -45,10 +45,6 @@ describe('AssociateIdentityWithNodeCommand', () => {
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-    });
-
-    after(async () => {
-        await TestUtil.restoreAll();
     });
 
     describe('associateWallet', () => {
@@ -79,7 +75,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
 
             // reset the stored environments and wallets
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_ENVIRONMENTS, [], vscode.ConfigurationTarget.Global);
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [], vscode.ConfigurationTarget.Global);
+            await FabricWalletRegistry.instance().clear();
 
             environmentRegistryEntry = new FabricEnvironmentRegistryEntry({
                 name: 'myEnvironment',

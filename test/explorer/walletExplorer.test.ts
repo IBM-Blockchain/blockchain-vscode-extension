@@ -34,9 +34,6 @@ import { AdminIdentityTreeItem } from '../../extension/explorer/model/AdminIdent
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
-import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
-import { FabricIdentity } from '../../extension/fabric/FabricIdentity';
-import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricCertificate } from '../../extension/fabric/FabricCertificate';
 import { IFabricWallet } from '../../extension/fabric/IFabricWallet';
 import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
@@ -46,13 +43,11 @@ chai.use(sinonChai);
 chai.should();
 
 // tslint:disable no-unused-expression
-
 describe('walletExplorer', () => {
 
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let logSpy: sinon.SinonSpy;
     let blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider;
-    let runtimeWalletEntry: FabricWalletRegistryEntry;
     let blueWalletEntry: FabricWalletRegistryEntry;
     let greenWalletEntry: FabricWalletRegistryEntry;
     let getIdentityNamesStub: sinon.SinonStub;
@@ -62,22 +57,10 @@ describe('walletExplorer', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     beforeEach(async () => {
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         blockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
-        runtimeWalletEntry = new FabricWalletRegistryEntry({
-            name: FabricWalletUtil.LOCAL_WALLET,
-            walletPath: '/some/local/path',
-            managedWallet: true
-        });
-        mySandBox.stub(FabricRuntimeManager.instance(), 'getWalletRegistryEntries').resolves([runtimeWalletEntry]);
-        const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
-        mockRuntime.getIdentities.resolves([new FabricIdentity('admin', 'such cert', 'much key', 'Org1MSP')]);
-        mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+
         blueWalletEntry = new FabricWalletRegistryEntry({
             name: 'blueWallet',
             walletPath: '/some/path'
@@ -88,6 +71,9 @@ describe('walletExplorer', () => {
         });
 
         await FabricWalletRegistry.instance().clear();
+
+        // add local fabric back in
+        await FabricRuntimeManager.instance().getRuntime().importWalletsAndIdentities();
         await FabricWalletRegistry.instance().add(blueWalletEntry);
         await FabricWalletRegistry.instance().add(greenWalletEntry);
 
@@ -189,6 +175,7 @@ describe('walletExplorer', () => {
 
     it('should handle no identities in the local wallet', async () => {
         await FabricWalletRegistry.instance().clear();
+        await FabricRuntimeManager.instance().getRuntime().importWalletsAndIdentities();
         getIdentityNamesStub.onCall(0).resolves([]);
         const wallets: Array<LocalWalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<LocalWalletTreeItem>;
 
@@ -208,7 +195,12 @@ describe('walletExplorer', () => {
 
     it('should get a tree item in the BlockchainWalletExplorer view', async () => {
         getIdentityNamesStub.resolves([]);
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [blueWalletEntry, greenWalletEntry], vscode.ConfigurationTarget.Global);
+
+        await FabricWalletRegistry.instance().clear();
+
+        await FabricRuntimeManager.instance().getRuntime().importWalletsAndIdentities();
+        await FabricWalletRegistry.instance().add(blueWalletEntry);
+        await FabricWalletRegistry.instance().add(greenWalletEntry);
 
         const wallets: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
         const blueWallet: WalletTreeItem = blockchainWalletExplorerProvider.getTreeItem(wallets[1]) as WalletTreeItem;
@@ -229,12 +221,17 @@ describe('walletExplorer', () => {
             name: 'purpleWallet',
             walletPath: undefined
         });
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [blueWalletEntry, greenWalletEntry, purpleWallet], vscode.ConfigurationTarget.Global);
+
+        await FabricWalletRegistry.instance().clear();
+
+        await FabricRuntimeManager.instance().getRuntime().importWalletsAndIdentities();
+        await FabricWalletRegistry.instance().add(blueWalletEntry);
+        await FabricWalletRegistry.instance().add(greenWalletEntry);
+        await FabricWalletRegistry.instance().add(purpleWallet);
 
         const wallets: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
         wallets.length.should.equal(3);
         wallets[1].label.should.equal(blueWalletEntry.name);
         wallets[2].label.should.equal(greenWalletEntry.name);
     });
-
 });

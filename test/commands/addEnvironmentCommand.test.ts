@@ -21,7 +21,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 
 // tslint:disable no-unused-expression
@@ -38,10 +38,6 @@ describe('AddEnvironmentCommand', () => {
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-    });
-
-    after(async () => {
-        await TestUtil.restoreAll();
     });
 
     describe('addEnvironment', () => {

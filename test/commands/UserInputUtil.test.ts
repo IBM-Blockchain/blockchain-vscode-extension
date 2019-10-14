@@ -39,7 +39,7 @@ import { FabricClientConnection } from '../../extension/fabric/FabricClientConne
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { FabricNode, FabricNodeType } from '../../extension/fabric/FabricNode';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations, FileConfigurations } from '../../configurations';
 import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
@@ -95,28 +95,13 @@ describe('UserInputUtil', () => {
                     "name": "two",
                     "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json"
                 }
-            ],
-            "${SettingConfigurations.FABRIC_WALLETS}": [
-                {
-                    "name": "walletOne",
-                    "walletPath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/walletDir/wallet"
-                },
-                {
-                    "name": "walletTwo",
-                    "walletPath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/walletDir/wallet"
-                }
             ]
         }`;
         }
     };
 
     before(async () => {
-
         await TestUtil.setupTests(mySandBox);
-    });
-
-    after(async () => {
-        await TestUtil.restoreAll();
     });
 
     beforeEach(async () => {
@@ -146,13 +131,17 @@ describe('UserInputUtil', () => {
         });
 
         await walletRegistry.clear();
+
+        // add the local fabric wallet back in
+        await FabricRuntimeManager.instance().getRuntime().importWalletsAndIdentities();
+
         await walletRegistry.add(walletEntryOne);
         await walletRegistry.add(walletEntryTwo);
 
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
         const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
 
-        fabricRuntimeConnectionStub = sinon.createStubInstance(FabricEnvironmentConnection);
+        fabricRuntimeConnectionStub = mySandBox.createStubInstance(FabricEnvironmentConnection);
         fabricRuntimeConnectionStub.getAllPeerNames.returns(['myPeerOne', 'myPeerTwo']);
 
         const chaincodeMap: Map<string, Array<string>> = new Map<string, Array<string>>();
@@ -169,7 +158,7 @@ describe('UserInputUtil', () => {
 
         fabricRuntimeConnectionStub.getInstantiatedChaincode.withArgs('channelTwo').resolves(chaincodeMapTwo);
 
-        fabricClientConnectionStub = sinon.createStubInstance(FabricClientConnection);
+        fabricClientConnectionStub = mySandBox.createStubInstance(FabricClientConnection);
         fabricClientConnectionStub.createChannelMap.resolves(map);
         fabricClientConnectionStub.getInstantiatedChaincode.withArgs('channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
         getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionStub);
@@ -1298,20 +1287,6 @@ describe('UserInputUtil', () => {
             openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/.config/Code/User/settings.json'));
             showTextDocumentStub.should.have.been.calledOnceWithExactly(mockDocument, { selection: new vscode.Range(new vscode.Position(15, 0), new vscode.Position(17, 0)) });
         });
-
-        it('should open user settings for linux when editing a wallet', async () => {
-            mySandBox.stub(process, 'platform').value('linux');
-            mySandBox.stub(path, 'join').returns('/users/test/.config/Code/User/settings.json');
-            process.env.HOME = '/users/test';
-            const openTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocument);
-
-            const showTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves();
-
-            await UserInputUtil.openUserSettings('walletTwo', true);
-
-            openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/.config/Code/User/settings.json'));
-            showTextDocumentStub.should.have.been.calledOnceWithExactly(mockDocument, { selection: new vscode.Range(new vscode.Position(29, 0), new vscode.Position(31, 0)) });
-        });
     });
 
     describe('showConfirmationWarningMessage', () => {
@@ -1871,7 +1846,7 @@ describe('UserInputUtil', () => {
 
             const localWalletEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
                 name: FabricWalletUtil.LOCAL_WALLET,
-                walletPath: 'some/local/path',
+                walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, FabricWalletUtil.LOCAL_WALLET),
                 managedWallet: true
             });
 
@@ -1879,8 +1854,8 @@ describe('UserInputUtil', () => {
             await UserInputUtil.showWalletsQuickPickBox('Choose a wallet', false, true);
             quickPickStub.should.have.been.calledWith([
                 { label: localWalletEntry.name, data: localWalletEntry },
-                { label: walletEntryOne.name, data: walletEntryOne },
-                { label: walletEntryTwo.name, data: walletEntryTwo }]);
+                { label: walletEntryTwo.name, data: walletEntryTwo },
+                { label: walletEntryOne.name, data: walletEntryOne }]);
         });
 
         it('should show wallets to select and show create wallet', async () => {
@@ -1896,7 +1871,7 @@ describe('UserInputUtil', () => {
             result.label.should.equal(walletEntryOne.name);
             result.data.should.deep.equal(walletEntryOne);
 
-            const items: any = [{ label: walletEntryOne.name, data: walletEntryOne }, { label: walletEntryTwo.name, data: walletEntryTwo }, { label: '+ Add new wallet', data: undefined }];
+            const items: any = [{ label: walletEntryTwo.name, data: walletEntryTwo }, { label: walletEntryOne.name, data: walletEntryOne }, { label: '+ Add new wallet', data: undefined }];
             quickPickStub.should.have.been.calledWith(items, {
                 ignoreFocusOut: true,
                 canPickMany: false,

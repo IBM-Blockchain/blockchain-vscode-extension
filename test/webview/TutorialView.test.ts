@@ -21,7 +21,7 @@ import * as sinonChai from 'sinon-chai';
 import * as path from 'path';
 import { TutorialView } from '../../extension/webview/TutorialView';
 import { Reporter } from '../../extension/util/Reporter';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 
 chai.use(sinonChai);
 

@@ -13,7 +13,7 @@
 */
 
 import { SettingsRegistry } from './SettingsRegistry';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { FabricEnvironmentRegistryEntry } from './FabricEnvironmentRegistryEntry';
 
 export class FabricEnvironmentRegistry extends SettingsRegistry<FabricEnvironmentRegistryEntry> {

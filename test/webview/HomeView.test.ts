@@ -23,7 +23,7 @@ import { HomeView } from '../../extension/webview/HomeView';
 import { View } from '../../extension/webview/View';
 import * as ejs from 'ejs';
 import { Reporter } from '../../extension/util/Reporter';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);

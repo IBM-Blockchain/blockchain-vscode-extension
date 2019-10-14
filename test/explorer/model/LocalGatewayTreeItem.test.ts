@@ -49,11 +49,6 @@ describe('LocalGatewayTreeItem', () => {
         await TestUtil.setupTests(sandbox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-
-    });
-
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
         await gatewayRegistry.clear();
@@ -64,7 +59,7 @@ describe('LocalGatewayTreeItem', () => {
 
         provider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-        mockRuntime = sinon.createStubInstance(FabricRuntime);
+        mockRuntime = sandbox.createStubInstance(FabricRuntime);
         mockRuntime.on.callsFake((name: string, callback: any) => {
             name.should.equal('busy');
             onBusyCallback = callback;

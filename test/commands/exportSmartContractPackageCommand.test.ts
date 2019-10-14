@@ -30,7 +30,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 const should: Chai.Should = chai.should();
@@ -48,10 +48,6 @@ describe('exportSmartContractPackageCommand', () => {
         await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     let showSaveDialogStub: sinon.SinonStub;
     let copyStub: sinon.SinonStub;
     let logSpy: sinon.SinonStub;
@@ -67,6 +63,10 @@ describe('exportSmartContractPackageCommand', () => {
 
     afterEach(async () => {
         sandbox.restore();
+    });
+
+    after(async () => {
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TestUtil.EXTENSION_TEST_DIR, vscode.ConfigurationTarget.Global);
     });
 
     it('should export a package to the file system using the command', async () => {

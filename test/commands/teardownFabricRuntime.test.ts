@@ -46,17 +46,13 @@ describe('teardownFabricRuntime', () => {
         await TestUtil.setupTests(sandbox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     beforeEach(async () => {
         sandbox.restore();
         showConfirmationWarningMessageStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage');
 
         await connectionRegistry.clear();
         await runtimeManager.initialize();
-        mockRuntime = sinon.createStubInstance(FabricRuntime);
+        mockRuntime = sandbox.createStubInstance(FabricRuntime);
         mockRuntime.teardown.resolves();
         mockRuntime.deleteWalletsAndIdentities.resolves();
         sandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);

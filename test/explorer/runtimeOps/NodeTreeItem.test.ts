@@ -42,11 +42,6 @@ describe('NodeTreeItem', () => {
         await TestUtil.setupTests(sandbox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-
-    });
-
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
 

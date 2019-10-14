@@ -107,10 +107,6 @@ describe('testSmartContractCommand', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     afterEach(async () => {
         mySandBox.restore();
         await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
@@ -128,7 +124,7 @@ describe('testSmartContractCommand', () => {
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
             executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_GATEWAY).resolves();
             executeCommandStub.callThrough();
-            fabricClientConnectionMock = sinon.createStubInstance(FabricClientConnection);
+            fabricClientConnectionMock = mySandBox.createStubInstance(FabricClientConnection);
             fabricClientConnectionMock.connect.resolves();
             fakeMetadata = {
                 contracts: {

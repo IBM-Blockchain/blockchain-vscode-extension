@@ -34,7 +34,7 @@ import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnec
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 
-export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWallet, mspid: string): Promise<string> {
+export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalletRegistryEntry, mspid: string): Promise<string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'addWalletIdentity');
 
@@ -45,16 +45,13 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
     if (walletItem) {
         // Command called from the tree by selecting a WalletTreeItem or LocalWalletTreeItem
         if (walletItem instanceof WalletTreeItem) {
-
             walletRegistryEntry = walletItem.registryEntry;
-            wallet = await fabricWalletGenerator.getWallet(walletRegistryEntry.name);
-
         } else {
-            // called from addWallet command - walletItem is IFabricWallet
-            // walletRegistryEntry remains undefined, as we've not created it yet
-            // If this command fails, we don't want to add the non existent wallet to the registry
-            wallet = walletItem;
+            // called from addWallet command - walletItem is FabricWalletRegistryEntry
+            walletRegistryEntry = walletItem;
         }
+
+        wallet = await fabricWalletGenerator.getWallet(walletRegistryEntry.name);
     } else {
         // Called from the command palette
         const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet to add identity to', false, true) as IBlockchainQuickPickItem<FabricWalletRegistryEntry>;

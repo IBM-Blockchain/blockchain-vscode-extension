@@ -50,10 +50,6 @@ describe('CreateSmartContractProjectCommand', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     beforeEach(async () => {
         mySandBox.stub(CommandUtil, 'sendCommandWithOutputAndProgress');
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
@@ -158,7 +154,7 @@ describe('CreateSmartContractProjectCommand', () => {
             executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, true);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
             await checkSmartContract();
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', {contractLanguage: testLanguageItem.label});
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label });
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in current window`, async () => {
@@ -175,7 +171,7 @@ describe('CreateSmartContractProjectCommand', () => {
             executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, false);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
             await checkSmartContract();
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', {contractLanguage: testLanguageItem.label});
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label });
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in current window with unsaved files and save`, async () => {
@@ -189,7 +185,7 @@ describe('CreateSmartContractProjectCommand', () => {
             browseStub.resolves(uri);
             const saveDialogStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'saveAll').resolves(true);
 
-            await vscode.workspace.openTextDocument({language: 'text', content: 'my text file'});
+            await vscode.workspace.openTextDocument({ language: 'text', content: 'my text file' });
 
             await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
             executeCommandStub.should.have.been.calledThrice;
@@ -198,7 +194,7 @@ describe('CreateSmartContractProjectCommand', () => {
             saveDialogStub.should.have.been.calledWith(true);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
             await checkSmartContract();
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', {contractLanguage: testLanguageItem.label});
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label });
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in current window with unsaved files and not save`, async () => {
@@ -212,7 +208,7 @@ describe('CreateSmartContractProjectCommand', () => {
             browseStub.resolves(uri);
             const saveDialogStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'saveAll');
 
-            await vscode.workspace.openTextDocument({language: 'text', content: 'my text file'});
+            await vscode.workspace.openTextDocument({ language: 'text', content: 'my text file' });
 
             await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
             executeCommandStub.should.have.been.calledThrice;
@@ -221,7 +217,7 @@ describe('CreateSmartContractProjectCommand', () => {
             saveDialogStub.should.not.have.been.called;
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
             await checkSmartContract();
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', {contractLanguage: testLanguageItem.label});
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label });
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in a new workspace with no folders`, async () => {
@@ -237,10 +233,10 @@ describe('CreateSmartContractProjectCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
             executeCommandStub.should.have.been.calledTwice;
             executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
-            updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, {uri: uri});
+            updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, { uri: uri });
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
             await checkSmartContract();
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', {contractLanguage: testLanguageItem.label});
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label });
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in a new workspace with folders`, async () => {
@@ -254,10 +250,10 @@ describe('CreateSmartContractProjectCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
             executeCommandStub.should.have.been.calledTwice;
             executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
-            updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, {uri: uri});
+            updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, { uri: uri });
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
             await checkSmartContract();
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', {contractLanguage: testLanguageItem.label});
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label });
         });
 
     }

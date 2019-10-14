@@ -20,7 +20,7 @@ import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import * as fs from 'fs-extra';
 import * as chaiAsPromised from 'chai-as-promised';
 import { dependencies, version as currentExtensionVersion } from '../../package.json';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { GlobalState } from '../../extension/util/GlobalState';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { TutorialGalleryView } from '../../extension/webview/TutorialGalleryView';
@@ -39,6 +39,9 @@ import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManage
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
 import { ReactView } from '../../extension/webview/ReactView';
+import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
+import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
+import { TestUtil } from '../TestUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -51,8 +54,10 @@ describe('ExtensionUtil Tests', () => {
         name: 'myFolder',
         uri: vscode.Uri.file('myPath')
     };
-    beforeEach(() => {
+
+    before(async () => {
         mySandBox = sinon.createSandbox();
+        await TestUtil.setupTests(mySandBox);
     });
 
     afterEach(() => {
@@ -191,7 +196,7 @@ describe('ExtensionUtil Tests', () => {
                 }
             ], vscode.ConfigurationTarget.Global);
 
-            workspaceConfigurationUpdateStub.getCall(1).should.have.been.calledWithExactly(SettingConfigurations.FABRIC_WALLETS, [
+            workspaceConfigurationUpdateStub.getCall(1).should.have.been.calledWithExactly(SettingConfigurations.OLD_FABRIC_WALLETS, [
                 {
                     managedWallet: false,
                     name: 'myWallet',
@@ -411,7 +416,6 @@ describe('ExtensionUtil Tests', () => {
                 ExtensionCommands.CREATE_NEW_IDENTITY,
                 ExtensionCommands.REFRESH_WALLETS,
                 ExtensionCommands.ADD_WALLET,
-                ExtensionCommands.EDIT_WALLET,
                 ExtensionCommands.REMOVE_WALLET,
                 ExtensionCommands.DELETE_IDENTITY,
                 ExtensionCommands.ASSOCIATE_WALLET,
@@ -472,7 +476,6 @@ describe('ExtensionUtil Tests', () => {
                 `onCommand:${ExtensionCommands.REFRESH_WALLETS}`,
                 `onCommand:${ExtensionCommands.ADD_WALLET}`,
                 `onCommand:${ExtensionCommands.ADD_WALLET_IDENTITY}`,
-                `onCommand:${ExtensionCommands.EDIT_WALLET}`,
                 `onCommand:${ExtensionCommands.REMOVE_WALLET}`,
                 `onCommand:${ExtensionCommands.DELETE_IDENTITY}`,
                 `onCommand:${ExtensionCommands.EXPORT_WALLET}`,
@@ -797,6 +800,18 @@ describe('ExtensionUtil Tests', () => {
 
             reporterStub.should.not.have.been.called;
         });
+
+        it('should refresh wallets if they update', async () => {
+            const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+
+            const walletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
+            walletRegistryEntry.name = 'bobsWallet';
+            walletRegistryEntry.walletPath = 'myPath';
+
+            await FabricWalletRegistry.instance().add(walletRegistryEntry);
+
+            executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+        });
     });
 
     describe('registerOpenPreReqsCommand', () => {
@@ -955,7 +970,7 @@ describe('ExtensionUtil Tests', () => {
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
 
             showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
-            mockRuntime = sinon.createStubInstance(FabricRuntime);
+            mockRuntime = mySandBox.createStubInstance(FabricRuntime);
 
             // mockRuntime.isRunning.resolves(true);
             // mockRuntime.isGenerated.resolves(true)

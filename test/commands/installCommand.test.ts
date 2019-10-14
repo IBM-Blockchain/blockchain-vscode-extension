@@ -36,6 +36,7 @@ import { FabricEnvironmentRegistryEntry } from '../../extension/registries/Fabri
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { SettingConfigurations } from '../../configurations';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -52,7 +53,7 @@ describe('InstallCommand', () => {
     });
 
     after(async () => {
-        await TestUtil.restoreAll();
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TestUtil.EXTENSION_TEST_DIR, vscode.ConfigurationTarget.Global);
     });
 
     describe('InstallSmartContract', () => {
@@ -78,7 +79,7 @@ describe('InstallCommand', () => {
             executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT).resolves();
             executeCommandStub.callThrough();
 
-            fabricRuntimeMock = sinon.createStubInstance(FabricEnvironmentConnection);
+            fabricRuntimeMock = mySandBox.createStubInstance(FabricEnvironmentConnection);
             fabricRuntimeMock.connect.resolves();
             fabricRuntimeMock.installChaincode.resolves();
             fabricRuntimeMock.getInstalledChaincode.resolves(new Map<string, Array<string>>());

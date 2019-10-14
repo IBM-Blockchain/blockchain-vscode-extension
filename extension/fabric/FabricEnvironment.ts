@@ -17,7 +17,7 @@ import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
 import { EventEmitter } from 'events';
 import { FabricNode, FabricNodeType } from './FabricNode';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { FileSystemUtil } from '../util/FileSystemUtil';
 
 export class FabricEnvironment extends EventEmitter {

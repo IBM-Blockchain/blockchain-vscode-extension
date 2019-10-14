@@ -28,7 +28,7 @@ import { TemporaryCommandRegistry } from './dependencies/TemporaryCommandRegistr
 import { LogType } from './logging/OutputAdapter';
 import { ExtensionCommands } from '../ExtensionCommands';
 import { version as currentExtensionVersion } from '../package.json';
-import { SettingConfigurations } from '../SettingConfigurations';
+import { SettingConfigurations } from '../configurations';
 import { UserInputUtil } from './commands/UserInputUtil';
 import { GlobalState, ExtensionData } from './util/GlobalState';
 import { FabricWalletUtil } from './fabric/FabricWalletUtil';
@@ -44,7 +44,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const newExtensionData: ExtensionData = {
         activationCount: originalExtensionData.activationCount + 1,
         version: currentExtensionVersion,
-        migrationCheck: 1, // Every time we change the setting configurations we need to change this to any other value
+        migrationCheck: 2, // Every time we change the setting configurations we need to change this to any other value
         generatorVersion: originalExtensionData.generatorVersion,
         preReqPageShown: originalExtensionData.preReqPageShown,
         dockerForWindows: originalExtensionData.dockerForWindows,

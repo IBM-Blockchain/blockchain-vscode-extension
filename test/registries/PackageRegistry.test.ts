@@ -23,7 +23,7 @@ import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../extension/logging/OutputAdapter';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 
 chai.use(sinonChai);
 
@@ -44,16 +44,16 @@ describe('PackageRegistry', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     beforeEach(async () => {
         await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_GOOD_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
 
     afterEach(() => {
         mySandBox.restore();
+    });
+
+    after(async () => {
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TestUtil.EXTENSION_TEST_DIR, vscode.ConfigurationTarget.Global);
     });
 
     describe('#getAll', () => {

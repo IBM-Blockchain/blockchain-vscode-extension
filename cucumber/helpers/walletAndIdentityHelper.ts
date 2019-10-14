@@ -29,6 +29,7 @@ import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWall
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 import { IFabricWalletGenerator } from '../../extension/fabric/IFabricWalletGenerator';
+import { FabricIdentity } from '../../extension/fabric/FabricIdentity';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -101,16 +102,30 @@ export class WalletAndIdentityHelper {
     }
 
     public async createWallet(name: string, identityName: string, mspid: string, method: string): Promise<void> {
-        this.userInputUtilHelper.showAddWalletOptionsQuickPickStub.resolves(UserInputUtil.WALLET_NEW_ID);
-        this.userInputUtilHelper.inputBoxStub.withArgs('Enter a name for the wallet').resolves(name);
+        const exists: boolean = await FabricWalletRegistry.instance().exists(name);
 
-        this.setIdentityStubs(method, identityName, mspid);
-        await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
+        if (!exists) {
+            this.userInputUtilHelper.showAddWalletOptionsQuickPickStub.resolves(UserInputUtil.WALLET_NEW_ID);
+            this.userInputUtilHelper.inputBoxStub.withArgs('Enter a name for the wallet').resolves(name);
+
+            this.setIdentityStubs(method, identityName, mspid);
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
+        } else {
+            const wallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().getWallet(name);
+            const identities: FabricIdentity[] = await wallet.getIdentities();
+            const identity: FabricIdentity = identities.find((_identity: FabricIdentity) => {
+                return _identity.name === identityName;
+            });
+
+            if (!identity) {
+                await this.createIdentity(name, identityName, mspid, method);
+            }
+        }
     }
 
     public async createIdentity(walletName: string, identityName: string, mspid: string, method: string): Promise<void> {
         this.setIdentityStubs(method, identityName, mspid);
-        const wallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().getWallet(walletName);
+        const wallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletName);
         await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, wallet);
     }
 
@@ -121,7 +136,7 @@ export class WalletAndIdentityHelper {
         if (method === 'certs') {
             this.userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
             this.userInputUtilHelper.showGetCertKeyStub.resolves({ certificatePath: WalletAndIdentityHelper.certPath, privateKeyPath: WalletAndIdentityHelper.keyPath });
-        } else if (method === 'json file') {
+        } else if (method === 'JSON file') {
             this.userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_JSON_ID_OPTION);
             this.userInputUtilHelper.browseStub.resolves(vscode.Uri.file(WalletAndIdentityHelper.jsonFilePath));
         } else {

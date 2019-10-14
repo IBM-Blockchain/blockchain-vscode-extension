@@ -59,9 +59,6 @@ describe('createNewIdentityCommand', () => {
     before(async () => {
         await TestUtil.setupTests(mySandBox);
     });
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
 
     beforeEach(async () => {
         inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
@@ -72,7 +69,7 @@ describe('createNewIdentityCommand', () => {
         walletExistsStub = mySandBox.stub(testFabricWallet, 'exists').resolves(false);
         importIdentityStub = mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
 
-        mockFabricRuntimeConnection = sinon.createStubInstance(FabricEnvironmentConnection);
+        mockFabricRuntimeConnection = mySandBox.createStubInstance(FabricEnvironmentConnection);
         mockFabricRuntimeConnection.getAllCertificateAuthorityNames.returns(['ca.name']);
         mockFabricRuntimeConnection.getAllOrdererNames.returns([]);
         mockFabricRuntimeConnection.getAllPeerNames.returns([]);

@@ -50,10 +50,6 @@ describe('EnvironmentConnectCommand', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     describe('connect', () => {
 
         let mockConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
@@ -74,7 +70,7 @@ describe('EnvironmentConnectCommand', () => {
             connectExplorerStub = mySandBox.stub(ExtensionUtil.getBlockchainEnvironmentExplorerProvider(), 'connect');
             connectManagerSpy = mySandBox.spy(FabricEnvironmentManager.instance(), 'connect');
 
-            mockConnection = sinon.createStubInstance(FabricEnvironmentConnection);
+            mockConnection = mySandBox.createStubInstance(FabricEnvironmentConnection);
             mockConnection.connect.resolves();
             mockConnection.createChannelMap.resolves();
 
@@ -93,7 +89,7 @@ describe('EnvironmentConnectCommand', () => {
                 associatedWallet: FabricWalletUtil.LOCAL_WALLET
             });
 
-            mockRuntime = sinon.createStubInstance(FabricRuntime);
+            mockRuntime = mySandBox.createStubInstance(FabricRuntime);
             mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(true);

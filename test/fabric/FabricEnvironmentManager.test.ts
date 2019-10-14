@@ -31,7 +31,7 @@ describe('FabricEnvironmentManager', () => {
 
     beforeEach(async () => {
         sandbox = sinon.createSandbox();
-        mockEnvironmentConnection = sinon.createStubInstance(FabricEnvironmentConnection);
+        mockEnvironmentConnection = sandbox.createStubInstance(FabricEnvironmentConnection);
         environmentManager['connection'] = null;
 
         registryEntry = new FabricEnvironmentRegistryEntry();
@@ -60,7 +60,7 @@ describe('FabricEnvironmentManager', () => {
 
     describe('#connect', () => {
         it('should store the connection and emit an event', () => {
-            const listenerStub: sinon.SinonStub = sinon.stub();
+            const listenerStub: sinon.SinonStub = sandbox.stub();
             environmentManager.once('connected', listenerStub);
             environmentManager.connect((mockEnvironmentConnection as any) as FabricEnvironmentConnection, registryEntry, ConnectedState.CONNECTED);
             environmentManager.getConnection().should.equal(mockEnvironmentConnection);
@@ -72,7 +72,7 @@ describe('FabricEnvironmentManager', () => {
 
     describe('#disconnect', () => {
         it('should clear the connection and emit an event', () => {
-            const listenerStub: sinon.SinonStub = sinon.stub();
+            const listenerStub: sinon.SinonStub = sandbox.stub();
             environmentManager['connection'] = mockEnvironmentConnection;
             environmentManager['environmentRegistryEntry'] = registryEntry;
             environmentManager['state'] = ConnectedState.CONNECTED;
@@ -86,7 +86,7 @@ describe('FabricEnvironmentManager', () => {
         });
 
         it('should handle no connectionn and emit an event', () => {
-            const listenerStub: sinon.SinonStub = sinon.stub();
+            const listenerStub: sinon.SinonStub = sandbox.stub();
             environmentManager.once('disconnected', listenerStub);
             environmentManager.disconnect();
             should.equal(environmentManager.getConnection(), null);

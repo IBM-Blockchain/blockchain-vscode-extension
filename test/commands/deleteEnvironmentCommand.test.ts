@@ -21,7 +21,7 @@ import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTre
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
@@ -40,10 +40,6 @@ describe('DeleteEnvironmentCommand', () => {
     let showConfirmationWarningMessage: sinon.SinonStub;
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-    });
-
-    after(async () => {
-        await TestUtil.restoreAll();
     });
 
     describe('deleteEnvironment', () => {

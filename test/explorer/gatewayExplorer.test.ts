@@ -42,7 +42,7 @@ import { GatewayDissociatedTreeItem } from '../../extension/explorer/model/Gatew
 import { GatewayAssociatedTreeItem } from '../../extension/explorer/model/GatewayAssociatedTreeItem';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations } from '../../configurations';
 import { InstantiatedUnknownTreeItem } from '../../extension/explorer/model/InstantiatedUnknownTreeItem';
 
 chai.use(sinonChai);
@@ -59,14 +59,10 @@ describe('gatewayExplorer', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
-    after(async () => {
-        await TestUtil.restoreAll();
-    });
-
     beforeEach(async () => {
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
 
-        const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+        const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = mySandBox.createStubInstance(FabricRuntime);
         mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
         mockRuntime.isBusy.returns(false);
         mockRuntime.isRunning.resolves(true);
@@ -95,7 +91,7 @@ describe('gatewayExplorer', () => {
             const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
             mySandBox.stub(blockchainGatewayExplorerProvider, 'connect').resolves();
             mySandBox.stub(blockchainGatewayExplorerProvider, 'disconnect').resolves();
-            const mockConnection: sinon.SinonStubbedInstance<FabricClientConnection> = sinon.createStubInstance(FabricClientConnection);
+            const mockConnection: sinon.SinonStubbedInstance<FabricClientConnection> = mySandBox.createStubInstance(FabricClientConnection);
             const connectionManager: FabricConnectionManager = FabricConnectionManager.instance();
             connectionManager.emit('connected', mockConnection);
             blockchainGatewayExplorerProvider.connect.should.have.been.calledOnce;
@@ -105,7 +101,7 @@ describe('gatewayExplorer', () => {
             const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
             mySandBox.stub(blockchainGatewayExplorerProvider, 'connect').rejects(new Error('wow such error'));
             mySandBox.stub(blockchainGatewayExplorerProvider, 'disconnect').resolves();
-            const mockConnection: sinon.SinonStubbedInstance<FabricClientConnection> = sinon.createStubInstance(FabricClientConnection);
+            const mockConnection: sinon.SinonStubbedInstance<FabricClientConnection> = mySandBox.createStubInstance(FabricClientConnection);
             const connectionManager: FabricConnectionManager = FabricConnectionManager.instance();
             connectionManager.emit('connected', mockConnection);
             // Need to ensure the event handler gets a chance to run.
@@ -269,7 +265,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
             });
 
             it('should handle errors thrown when connection fails', async () => {
-                const fabricConnection: sinon.SinonStubbedInstance<FabricClientConnection> = sinon.createStubInstance(FabricClientConnection);
+                const fabricConnection: sinon.SinonStubbedInstance<FabricClientConnection> = mySandBox.createStubInstance(FabricClientConnection);
 
                 const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
 
@@ -286,7 +282,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
 
             it('should error if createChannelMap fails', async () => {
 
-                const fabricConnection: sinon.SinonStubbedInstance<FabricClientConnection> = sinon.createStubInstance(FabricClientConnection);
+                const fabricConnection: sinon.SinonStubbedInstance<FabricClientConnection> = mySandBox.createStubInstance(FabricClientConnection);
                 getConnectionStub.returns(fabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.createChannelMap.callThrough();
@@ -310,7 +306,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
 
             it('should error if gRPC cant connect to Fabric', async () => {
 
-                const fabricConnection: sinon.SinonStubbedInstance<FabricClientConnection> = sinon.createStubInstance(FabricClientConnection);
+                const fabricConnection: sinon.SinonStubbedInstance<FabricClientConnection> = mySandBox.createStubInstance(FabricClientConnection);
                 getConnectionStub.returns(fabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.createChannelMap.callThrough();
@@ -348,7 +344,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
 
                 await ExtensionUtil.activateExtension();
 
-                fabricConnection = sinon.createStubInstance(FabricClientConnection);
+                fabricConnection = mySandBox.createStubInstance(FabricClientConnection);
 
                 fabricConnection.getAllPeerNames.returns(['peerOne', 'peerTwo']);
 
@@ -996,7 +992,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
 
         it('should test the tree is refreshed when the refresh command is run', async () => {
 
-            const mockTreeItem: sinon.SinonStubbedInstance<GatewayTreeItem> = sinon.createStubInstance(GatewayTreeItem);
+            const mockTreeItem: sinon.SinonStubbedInstance<GatewayTreeItem> = mySandBox.createStubInstance(GatewayTreeItem);
 
             const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
 

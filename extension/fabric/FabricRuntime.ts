@@ -28,9 +28,11 @@ import { YeomanUtil } from '../util/YeomanUtil';
 import { IFabricWalletGenerator } from './IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
 import { IFabricWallet } from './IFabricWallet';
-import { SettingConfigurations } from '../../SettingConfigurations';
+import { SettingConfigurations, FileConfigurations } from '../../configurations';
 import { FabricEnvironment } from './FabricEnvironment';
 import { FileSystemUtil } from '../util/FileSystemUtil';
+import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
 
 export enum FabricRuntimeState {
     STARTING = 'starting',
@@ -95,6 +97,17 @@ export class FabricRuntime extends FabricEnvironment {
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
         const walletNames: string[] = await this.getWalletNames();
         for (const walletName of walletNames) {
+            const exists: boolean = await FabricWalletRegistry.instance().exists(walletName);
+            if (!exists) {
+                const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+                const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
+                const walletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
+                walletRegistryEntry.name = walletName;
+                walletRegistryEntry.walletPath = path.join(homeExtDir, FileConfigurations.FABRIC_WALLETS, walletName);
+                walletRegistryEntry.managedWallet = true;
+                await FabricWalletRegistry.instance().add(walletRegistryEntry);
+            }
+
             const localWallet: IFabricWallet = await fabricWalletGenerator.getWallet(walletName);
             const identities: FabricIdentity[] = await this.getIdentities(walletName);
             for (const identity of identities) {
@@ -122,12 +135,10 @@ export class FabricRuntime extends FabricEnvironment {
     }
 
     public async deleteWalletsAndIdentities(): Promise<void> {
-
         // Ensure that all known identities in all known wallets are deleted.
-        const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
         const walletNames: string[] = await this.getWalletNames();
         for (const walletName of walletNames) {
-            await fabricWalletGenerator.deleteLocalWallet(walletName);
+            await FabricWalletRegistry.instance().delete(walletName);
         }
     }
 
@@ -257,10 +268,14 @@ export class FabricRuntime extends FabricEnvironment {
         let identityPaths: string[] = await fs.readdir(walletPath);
         identityPaths = identityPaths
             .sort()
-            .filter((identityPath: string) => !identityPath.startsWith('.'))
+            .filter((identityPath: string) => !identityPath.startsWith('.') && identityPath.endsWith('.json'))
             .map((identityPath: string) => path.resolve(this.path, 'wallets', walletName, identityPath));
         const identities: FabricIdentity[] = [];
         for (const identityPath of identityPaths) {
+            const stats: fs.Stats = await fs.lstat(identityPath);
+            if (!stats.isFile()) {
+                continue;
+            }
             const identity: FabricIdentity = await fs.readJson(identityPath);
             identities.push(identity);
         }
