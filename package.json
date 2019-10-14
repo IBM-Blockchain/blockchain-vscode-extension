@@ -93,7 +93,7 @@
             "extensionHome.open",
             "preReq.open",
             "tutorialGallery.open",
-            "reactPage.open"
+            "transactionPage.open"
         ]
     },
     "main": "./build/extension/extension",
@@ -224,8 +224,8 @@
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "reactPage.open",
-                "title": "Open React Page",
+                "command": "transactionPage.open",
+                "title": "Open Transaction Page",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -732,6 +732,14 @@
                 {
                     "command": "gatewaysExplorer.testSmartContractEntry",
                     "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-multi-contract-item || viewItem == blockchain-instantiated-contract-item || viewItem == blockchain-contract-item || viewItem == blockchain-instantiated-unknown-item"
+                },
+                {
+                    "command": "transactionPage.open",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-unknown-item && false"
+                },
+                {
+                    "command": "transactionPage.open",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-contract-item && false"
                 },
                 {
                     "command": "gatewaysExplorer.submitTransactionEntry",
@@ -1259,7 +1267,8 @@
         "build": "cp ./ExtensionCommands.ts ./src/ExtensionCommands.ts && ./scripts/build-non-split.js && tsc -p tsconfig.extension.json && tsc -p tsconfig.json",
         "cypress": "cypress open",
         "cypressCli": "cypress run",
-        "jestTest": "./node_modules/.bin/jest"
+        "jestTest": "./node_modules/.bin/jest",
+        "start": "react-scripts start"
     },
     "devDependencies": {
         "@bahmutov/add-typescript-to-cypress": "^2.1.2",
@@ -1275,6 +1284,7 @@
         "@types/node": "10.14.5",
         "@types/react": "^16.3.14",
         "@types/react-dom": "^16.0.5",
+        "@types/react-test-renderer": "^16.9.0",
         "@types/rimraf": "^2.0.2",
         "@types/semver": "^6.0.0",
         "@types/sinon": "5.0.1",
@@ -1317,6 +1327,7 @@
         "vscode-test": "1.2.0"
     },
     "dependencies": {
+        "@carbon/grid": "^10.6.0",
         "@carbon/themes": "^10.6.0",
         "@carbon/type": "^10.5.0",
         "@fidm/x509": "1.1.3",
@@ -1458,6 +1469,7 @@
             ".+\\.(css|styl|less|sass|scss)$": "jest-transform-css"
         },
         "moduleNameMapper": {
+            "^.+\\.(css|less|scss)$": "babel-jest",
             "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/enzyme/__mocks__/fileMock.js"
         },
         "testMatch": [
@@ -1465,6 +1477,15 @@
         ],
         "setupFilesAfterEnv": [
             "<rootDir>/enzyme/setupTests.ts"
-        ]
+        ],
+        "collectCoverage": true,
+        "coverageThreshold": {
+            "global": {
+                "branches": 100,
+                "functions": 100,
+                "lines": 100,
+                "statements": -1
+            }
+        }
     }
 }

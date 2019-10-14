@@ -482,7 +482,7 @@ describe('ExtensionUtil Tests', () => {
                 `onCommand:${ExtensionCommands.OPEN_HOME_PAGE}`,
                 `onCommand:${ExtensionCommands.OPEN_PRE_REQ_PAGE}`,
                 `onCommand:${ExtensionCommands.OPEN_TUTORIAL_GALLERY}`,
-                `onCommand:${ExtensionCommands.OPEN_REACT_PAGE}`,
+                `onCommand:${ExtensionCommands.OPEN_TRANSACTION_PAGE}`,
                 `onDebug`
             ]);
         });
@@ -538,7 +538,7 @@ describe('ExtensionUtil Tests', () => {
 
             await ExtensionUtil.registerCommands(ctx);
 
-            await vscode.commands.executeCommand(ExtensionCommands.OPEN_REACT_PAGE);
+            await vscode.commands.executeCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE);
 
             registerOpenPreReqsCommandStub.should.have.been.calledOnce;
             reactViewStub.should.have.been.calledOnce;

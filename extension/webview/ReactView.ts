@@ -39,7 +39,7 @@ export class ReactView extends View {
 
     loadComponent(panel: vscode.WebviewPanel): void {
         // Tell the React app to open up the component where the route is '/one'
-        panel.webview.postMessage('/one');
+        panel.webview.postMessage('/transaction');
     }
 
     async getHTMLString(): Promise<string> {
