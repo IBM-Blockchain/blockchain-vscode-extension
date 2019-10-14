@@ -4,6 +4,7 @@
 @import '@carbon/type/scss/type';
 @import '@carbon/type/scss/font-face/_mono';
 @import '@carbon/type/scss/font-face/_sans';
+@import './mixins.scss';
 
 @include carbon--type-reset();
 @include carbon--font-face-mono();
@@ -11,36 +12,45 @@
 
 html {
 
-
-
-    .vscode-dark{
-        @include carbon--theme($carbon--theme--g90){
-
-            @import 'node_modules/carbon-components/scss/globals/scss/styles.scss';
-
+    .vscode-dark {
+        @include carbon--theme($carbon--theme--g90) {
+            
             // Could we include a generic mixin here (?)
 
-            #root{
-                background-color: $ui-background;
+            #root {
                 // Color will default to #000000 otherwise
-                color: $text-01;
+                @include borders-dark;
+                color: $text-01;        
             }
 
+            // Accordion Components (Getting Started section)
+            #contents-right {
+                @include accordion-dark;
+            }
 
+            // Button Components (create and import buttons in sidebar)
+            #create-button, #import-button {
+                @include button-dark;
+            }
+
+            // borders for sidebar
+            #sidebar-container, #sidebar-container > div {
+                @include borders-dark;
+            }
         }
     }
 
-    .vscode-light{
-        @include carbon--theme($carbon--theme--g10){
-            // This could be horribly inefficient, but it doesn't work otherwise
-            @import 'node_modules/carbon-components/scss/globals/scss/styles.scss';
-
-            #root{
-                background-color: $ui-background;
+    .vscode-light {
+        @include carbon--theme($carbon--theme--g10) {
+            
+            #root {
                 color: $text-01;
+            }
+
+            // Button Components (create and import buttons in sidebar)
+            #create-button, #import-button {
+                @include button-light;
             }
         }
     }
-
 }
-
