@@ -18,28 +18,14 @@ import * as path from 'path';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { View } from './View';
 
-export class ReactView extends View {
+export abstract class ReactView extends View {
+    protected panelTitle: string;
+    protected panelID: string;
     private readonly _extensionPath: string;
 
-    constructor(context: vscode.ExtensionContext) {
-        super(context, 'reactWebview', 'React Webview');
+    constructor(context: vscode.ExtensionContext, panelID: string, panelTitle: string) {
+        super(context, panelID,  panelTitle);
         this._extensionPath = ExtensionUtil.getExtensionPath();
-    }
-
-    async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
-
-        // panel.webview.onDidReceiveMessage(async (message: any) => {
-        //     if (message.command === 'getComponent') {
-        //         this.loadComponent(panel);
-        //     }
-        // });
-
-        this.loadComponent(panel);
-    }
-
-    loadComponent(panel: vscode.WebviewPanel): void {
-        // Tell the React app to open up the component where the route is '/one'
-        panel.webview.postMessage('/transaction');
     }
 
     async getHTMLString(): Promise<string> {
@@ -85,4 +71,7 @@ export class ReactView extends View {
                   </html>`;
     }
 
+    protected async abstract openPanelInner(panel: vscode.WebviewPanel): Promise<void>;
+
+    protected abstract loadComponent(panel: vscode.WebviewPanel): void;
 }

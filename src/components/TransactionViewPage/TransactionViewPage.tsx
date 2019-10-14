@@ -1,14 +1,15 @@
 import React, { Component } from 'react';
 import './TransactionViewPage.scss';
 import Sidebar from '../TransactionViewSidebar/TransactionViewSidebar';
-import { Accordion, AccordionItem, Link } from 'carbon-components-react';
+import { Accordion, AccordionItem } from 'carbon-components-react';
 
-type PageProps = {
-    activeSmartContract: string
-};
+interface PageProps {
+    messageData: {smartContracts: Array<string>, activeSmartContract: string};
+}
 
-type PageState = { 
-    activeSmartContract: string
+interface PageState {
+    smartContracts: string[];
+    activeSmartContract: string;
 }
 
 class TransactionViewPage extends Component<PageProps, PageState> {
@@ -16,44 +17,49 @@ class TransactionViewPage extends Component<PageProps, PageState> {
     constructor(props: Readonly<PageProps>) {
         super(props);
         this.state = {
-            activeSmartContract: this.props.activeSmartContract
-        }
+            smartContracts: this.props.messageData.smartContracts,
+            activeSmartContract: this.props.messageData.activeSmartContract
+        };
     }
 
-    public render() {
+    public switchSmartContract(selectedSmartContract: string): void {
+        this.setState({
+            activeSmartContract: selectedSmartContract
+        });
+    }
+
+    public render(): any {
         return (
-            <div className="page-container bx--grid">
-                <div className="inner-container bx--row">
+            <div className='page-container bx--grid' data-test-id='txn-page'>
+                <div className='inner-container bx--row'>
                     <Sidebar/>
-                    <div className="page-contents bx--col">
-                        <div className="titles-container">
-                            <Link>{this.state.activeSmartContract}</Link>
+                    <div className='page-contents bx--col'>
+                        <div className='titles-container'>
+                            <span>{this.state.activeSmartContract}</span>
                             <h1>Transactions</h1>
                         </div>
-                        <div className="contents-container bx--row">
-                            <div className="contents-left bx--col">
-                                <p>Welcome to your transaction web view for <Link>{this.props.activeSmartContract}</Link>; use this to submit and evaluate new and existing transactions.</p>
+                        <div className='contents-container bx--row'>
+                            <div className='contents-left bx--col'>
+                                <p>Welcome to your transaction web view for <span className='disabled-smart-contract'>{this.state.activeSmartContract}</span>; use this to submit and evaluate new and existing transactions.</p>
                                 <p>Unsure of where to start? Follow our introductory Getting Started section opposite.</p>
                                 <br/>
                                 <h5>Smart Contracts</h5>
                                 <p>To switch to the web view for a different smart contract, select the smart contract below</p>
-                                <Link>{this.state.activeSmartContract}</Link>
-                                <br/>
-                                <Link>congaContract@0.0.1</Link>
+                                {this.getSmartContractItems(this.state.smartContracts)}
                             </div>
-                            <div className="contents-right bx--col" id="contents-right">
+                            <div className='contents-right bx--col' id='contents-right'>
                                 <h5>Getting Started</h5>
                                 <Accordion>
-                                    <AccordionItem title="Create a new transaction"></AccordionItem>
+                                    <AccordionItem title={'Create a new transaction'}></AccordionItem>
                                 </Accordion>
                                 <Accordion>
-                                    <AccordionItem title="Edit existing transactions"></AccordionItem>
+                                    <AccordionItem title={'Edit existing transactions'}></AccordionItem>
                                 </Accordion>
                                 <Accordion>
-                                    <AccordionItem title="Favouriting & deleting transactions"></AccordionItem>
+                                    <AccordionItem title={'Favouriting & deleting transactions'}></AccordionItem>
                                 </Accordion>
                                 <Accordion>
-                                    <AccordionItem title="Submitting and evaluating: what's the difference?"></AccordionItem>
+                                    <AccordionItem title={'Submitting and evaluating: what\'s the difference?'}></AccordionItem>
                                 </Accordion>
                             </div>
                         </div>
@@ -61,6 +67,20 @@ class TransactionViewPage extends Component<PageProps, PageState> {
                 </div>
             </div>
         );
+    }
+
+    private getSmartContractItems(smartContracts: string[]): any {
+        const smartContractItems: any = [];
+
+        for (const contract of smartContracts) {
+            if (contract === this.state.activeSmartContract) {
+                smartContractItems.push(<li className='smart-contract-item disabled-smart-contract' key={contract}>{contract}</li>);
+            } else {
+                smartContractItems.push(<li className='smart-contract-item clickable-smart-contract' key={contract}  onClick={(): void => this.switchSmartContract(contract)}>{contract}</li>);
+            }
+        }
+
+        return <ul>{smartContractItems}</ul>;
     }
 }
 

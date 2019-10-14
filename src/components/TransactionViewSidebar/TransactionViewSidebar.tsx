@@ -5,7 +5,7 @@ import SidebarPanel from '../TransactionViewSidebarPanel/TransactionViewSidebarP
 function TransactionViewSidebar(): any {
 
         return (
-            <div className="sidebar-container" id="sidebar-container">
+            <div className='sidebar-container' id='sidebar-container'>
                 <SidebarPanel panelType={'buttons'}/>
                 <SidebarPanel panelType={'filters'}/>
                 <SidebarPanel panelType={'log'}/>

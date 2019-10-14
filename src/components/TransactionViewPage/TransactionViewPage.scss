@@ -1,5 +1,6 @@
 @import '@carbon/layout/scss/_spacing';
 @import '@carbon/grid/scss/grid';
+@import '@carbon/colors/scss/colors';
 
 body {
     font-size: 14px;
@@ -13,6 +14,7 @@ body {
 .page-container {
     margin: 0;
     padding: 0;
+
     h5 {
         padding-bottom: $spacing-06;
     }
@@ -20,6 +22,7 @@ body {
 
 .inner-container {
     height: 100vh;
+    max-width: 100%;
 }
 
 .page-contents {
@@ -36,7 +39,6 @@ body {
 
 .contents-container {
     margin: $spacing-02;
-    padding: 0px $spacing-04;
 }
 
 .contents-left {
@@ -44,4 +46,24 @@ body {
     h5 {
         padding-top: $spacing-09;
     }
+}
+
+.smart-contract-item {
+    padding-top: $spacing-02;
+
+    &:first-of-type {
+        padding-top: $spacing-01;
+    }
+}
+
+.clickable-smart-contract {
+    color: $carbon--blue-50;
+
+    &:hover {
+        cursor: pointer;
+    }
+}
+
+.disabled-smart-contract {
+    color: $carbon--gray-50;
 }

@@ -1,4 +1,5 @@
-import React  from 'react';
+// tslint:disable no-unused-expression
+import React from 'react';
 import renderer from 'react-test-renderer';
 import { mount } from 'enzyme';
 import SidebarPanel from '../../src/components/TransactionViewSidebarPanel/TransactionViewSidebarPanel';
@@ -22,36 +23,36 @@ describe('SidebarPanel component', () => {
 
     it('should render the expected snapshot when panelType = \`buttons\`', async () => {
         const component: any = renderer
-            .create(<SidebarPanel panelType={'buttons'}></SidebarPanel>)
+            .create(<SidebarPanel panelType={'buttons'}/>)
             .toJSON();
         expect(component).toMatchSnapshot();
     });
 
     it('should render the expected snapshot when panelType = \`filters\`', async () => {
         const component: any = renderer
-            .create(<SidebarPanel panelType={'filters'}></SidebarPanel>)
+            .create(<SidebarPanel panelType={'filters'}/>)
             .toJSON();
         expect(component).toMatchSnapshot();
     });
 
     it('should render the expected snapshot when panelType = \`log\`', async () => {
         const component: any = renderer
-            .create(<SidebarPanel panelType={'log'}></SidebarPanel>)
+            .create(<SidebarPanel panelType={'log'}/>)
             .toJSON();
         expect(component).toMatchSnapshot();
     });
 
-    it('will one day allow a user to create a new transaction', async() => {
+    it('will one day allow a user to create a new transaction', async () => {
         const createTxnSpy: sinon.SinonSpy = sinon.spy(SidebarPanel.prototype, 'createTxn');
-        const component: any = mount(<SidebarPanel panelType='buttons'></SidebarPanel>);
-        component.find('button[id=\'create-button\']').simulate('click');
+        const component: any = mount(<SidebarPanel panelType='buttons'/>);
+        component.find('#create-button').at(1).simulate('click');
         createTxnSpy.should.have.been.called;
     });
-    
-    it('will one day allow a user to create a new transaction', async() => {
+
+    it('will one day allow a user to create a new transaction', async () => {
         const importTxnSpy: sinon.SinonSpy = sinon.spy(SidebarPanel.prototype, 'importTxn');
-        const component: any = mount(<SidebarPanel panelType='buttons'></SidebarPanel>);
-        component.find('button[id=\'import-button\']').simulate('click');
+        const component: any = mount(<SidebarPanel panelType='buttons'/>);
+        component.find('#import-button').at(1).simulate('click');
         importTxnSpy.should.have.been.called;
     });
 
