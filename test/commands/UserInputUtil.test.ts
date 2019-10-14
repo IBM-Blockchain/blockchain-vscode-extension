@@ -1853,7 +1853,7 @@ describe('UserInputUtil', () => {
             quickPickStub.resolves();
             await UserInputUtil.showWalletsQuickPickBox('Choose a wallet', false, true);
             quickPickStub.should.have.been.calledWith([
-                { label: localWalletEntry.name, data: localWalletEntry },
+                { label: FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME, data: localWalletEntry },
                 { label: walletEntryTwo.name, data: walletEntryTwo },
                 { label: walletEntryOne.name, data: walletEntryOne }]);
         });

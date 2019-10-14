@@ -48,14 +48,14 @@ export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> 
         walletPath = wallet.getWalletPath();
         let identityNames: string[] = await wallet.getIdentityNames();
 
-        if (chosenWallet.label === FabricWalletUtil.LOCAL_WALLET) {
+        if (chosenWallet.label === FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME) {
             // If the local wallet was selected, we should filter out the admin identity
             identityNames = identityNames.filter((identity: string) => {
                 return identity !== FabricRuntimeUtil.ADMIN_USER;
             });
         }
 
-        if (chosenWallet.label === FabricWalletUtil.LOCAL_WALLET && identityNames.length === 0) {
+        if (chosenWallet.label === FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME && identityNames.length === 0) {
             outputAdapter.log(LogType.ERROR, `No identities to delete in wallet: ${chosenWallet.label}. The ${FabricRuntimeUtil.ADMIN_USER} identity cannot be deleted.`, `No identities to delete in wallet: ${chosenWallet.label}. The ${FabricRuntimeUtil.ADMIN_USER} identity cannot be deleted.`);
             return;
         } else if (identityNames.length === 0) {

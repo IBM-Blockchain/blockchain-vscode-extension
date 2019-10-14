@@ -189,12 +189,12 @@ describe('deleteIdentityCommand', () => {
 
         const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
 
-        runtimeWalletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET;
+        runtimeWalletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME;
         runtimeWalletRegistryEntry.walletPath = 'wallet_path';
         runtimeWalletRegistryEntry.managedWallet = true;
 
         showWalletsQuickPickStub.resolves({
-            label: FabricWalletUtil.LOCAL_WALLET,
+            label: runtimeWalletRegistryEntry.name,
             data: runtimeWalletRegistryEntry
         });
         walletIdentitiesStub.resolves([]);
@@ -255,7 +255,7 @@ describe('deleteIdentityCommand', () => {
         runtimeWalletRegistryEntry.managedWallet = true;
 
         showWalletsQuickPickStub.resolves({
-            label: FabricWalletUtil.LOCAL_WALLET,
+            label: FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME,
             data: runtimeWalletRegistryEntry
         });
         walletIdentitiesStub.resolves([FabricRuntimeUtil.ADMIN_USER, identityName]);
