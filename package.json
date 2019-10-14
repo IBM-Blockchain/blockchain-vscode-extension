@@ -543,7 +543,7 @@
                     "when": "false"
                 },
                 {
-                    "command": "reactPage.open",
+                    "command": "transactionPage.open",
                     "when": "false"
                 }
             ],
