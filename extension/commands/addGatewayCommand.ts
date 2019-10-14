@@ -43,7 +43,7 @@ export async function addGateway(): Promise<{} | void> {
         let gatewayName: string;
 
         if (gatewayMethod === UserInputUtil.ADD_GATEWAY_FROM_ENVIRONMENT) {
-            chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to create a gateway from', false);
+            chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to create a gateway from', false, true, false) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             if (!chosenEnvironment) {
                 return;
             }
