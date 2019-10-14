@@ -641,6 +641,8 @@ describe('testSmartContractCommand', () => {
 
             allChildren = await blockchainGatewayExplorerProvider.getChildren();
             const channelChildren: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+            channelChildren[0].tooltip.should.equal('Associated peers: peerOne');
+
             const instantiatedUnknownChainCodes: Array<InstantiatedUnknownTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedUnknownTreeItem>;
             await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);
 

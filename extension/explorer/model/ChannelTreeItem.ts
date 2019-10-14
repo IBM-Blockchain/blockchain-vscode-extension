@@ -21,5 +21,15 @@ export class ChannelTreeItem extends BlockchainTreeItem {
 
     constructor(provider: BlockchainExplorerProvider, channelName: string, public readonly peers: Array<string>, public readonly chaincodes: Array<any>, public readonly collapsibleState: vscode.TreeItemCollapsibleState) {
         super(provider, channelName, collapsibleState);
+
+        this.tooltip = `Associated peers:`;
+        for (let i: number = 0; i < peers.length; i++) {
+            if (i === peers.length - 1) {
+                this.tooltip += ` ${peers[i]}`;
+            } else {
+                this.tooltip += ` ${peers[i]},`;
+            }
+        }
+
     }
 }
