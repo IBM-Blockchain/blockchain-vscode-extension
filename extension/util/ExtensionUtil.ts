@@ -323,7 +323,7 @@ export class ExtensionUtil {
             await tutorialView.openView();
         }));
 
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_REACT_PAGE, async () => {
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE, async () => {
             const reactView: ReactView = new ReactView(context);
             await reactView.openView(true);
         }));

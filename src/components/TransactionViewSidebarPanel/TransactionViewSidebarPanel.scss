@@ -1,0 +1,19 @@
+@import '@carbon/layout/scss/_spacing';
+@import '@carbon/colors/scss/colors';
+
+.panel-container {
+    display: flex;
+    flex-direction: column;
+    margin-left: $spacing-04;
+    padding: $spacing-06 $spacing-08;
+    border-bottom: 1px solid $carbon--gray-20;
+
+    &:first-of-type {
+        border: none;
+        padding: $spacing-08 $spacing-08 $spacing-06 $spacing-08;
+    }
+
+    #create-button, #import-button {
+        margin: $spacing-03 0px;
+    }
+}
