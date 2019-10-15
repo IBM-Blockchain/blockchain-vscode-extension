@@ -24,6 +24,7 @@ import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchain
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 
 export async function submitTransaction(evaluate: boolean, treeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -120,6 +121,27 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
         return;
     }
 
+    const selectPeers: string = await UserInputUtil.showQuickPick('Select a peer-targeting policy for this transaction', [UserInputUtil.DEFAULT, UserInputUtil.CUSTOM]) as string;
+
+    let peerTargetNames: string[] = [];
+    let peerTargetMessage: string = '';
+
+    const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
+
+    if (!selectPeers) {
+        return;
+    } else if (selectPeers === UserInputUtil.CUSTOM) {
+        const channelPeerNames: string[] = await connection.getChannelPeerNames(channelName);
+
+        peerTargetNames = await UserInputUtil.showQuickPick('Select the peers to send the transaction to', channelPeerNames, true) as string[];
+
+        if (!peerTargetNames || peerTargetNames.length === 0) {
+            return;
+        } else {
+            peerTargetMessage = ` to peers ${peerTargetNames}`;
+        }
+    }
+
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         title: 'IBM Blockchain Platform Extension',
@@ -129,9 +151,9 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
         try {
             progress.report({ message: `${actioning} transaction ${transactionName}` });
             if (args.length === 0) {
-                outputAdapter.log(LogType.INFO, undefined, `${actioning} transaction ${transactionName} with no args on channel ${channelName}`);
+                outputAdapter.log(LogType.INFO, undefined, `${actioning} transaction ${transactionName} with no args on channel ${channelName}${peerTargetMessage}`);
             } else {
-                outputAdapter.log(LogType.INFO, undefined, `${actioning} transaction ${transactionName} with args ${args} on channel ${channelName}`);
+                outputAdapter.log(LogType.INFO, undefined, `${actioning} transaction ${transactionName} with args ${args} on channel ${channelName}${peerTargetMessage}`);
             }
 
             const gatewayRegistyrEntry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
@@ -141,10 +163,10 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
 
             let result: string | undefined;
             if (evaluate) {
-                result = await FabricConnectionManager.instance().getConnection().submitTransaction(smartContract, transactionName, channelName, args, namespace, transientData, true);
+                result = await connection.submitTransaction(smartContract, transactionName, channelName, args, namespace, transientData, true, peerTargetNames);
 
             } else {
-                result = await FabricConnectionManager.instance().getConnection().submitTransaction(smartContract, transactionName, channelName, args, namespace, transientData);
+                result = await connection.submitTransaction(smartContract, transactionName, channelName, args, namespace, transientData, false, peerTargetNames);
             }
 
             Reporter.instance().sendTelemetryEvent(`${action} transaction`);

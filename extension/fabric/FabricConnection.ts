@@ -14,7 +14,7 @@
 'use strict';
 
 import * as Client from 'fabric-client';
-import { Gateway, GatewayOptions, FileSystemWallet } from 'fabric-network';
+import { Gateway, GatewayOptions, FileSystemWallet, Network } from 'fabric-network';
 import { OutputAdapter } from '../logging/OutputAdapter';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { FabricWallet } from './FabricWallet';
@@ -136,6 +136,26 @@ export abstract class FabricConnection {
         }
     }
 
+    public async getChannelPeerNames(channelName: string): Promise<string[]> {
+        try {
+            const network: Network = await this.gateway.getNetwork(channelName);
+            const channel: Client.Channel = network.getChannel();
+            const channelPeers: Client.ChannelPeer[] = channel.getChannelPeers();
+
+            const peerNames: string[] = [];
+
+            for (const peer of channelPeers) {
+                const name: string = peer.getName();
+                peerNames.push(name);
+            }
+
+            return peerNames;
+
+        } catch (error) {
+            throw new Error(`Unable to get channel peer names: ${error.message}`);
+        }
+    }
+
     protected async connectInner(connectionProfile: object, wallet: FileSystemWallet, identityName: string, timeout: number): Promise<void> {
 
         this.discoveryAsLocalhost = this.hasLocalhostURLs(connectionProfile);
@@ -173,6 +193,24 @@ export abstract class FabricConnection {
             }
         }
         throw lastError;
+    }
+
+    protected async getChannelPeers(channelName: string, peerNames: string[]): Promise<Client.ChannelPeer[]> {
+        try {
+            const network: Network = await this.gateway.getNetwork(channelName);
+            const channel: Client.Channel = network.getChannel();
+
+            const channelPeers: Client.ChannelPeer[] = [];
+
+            for (const name of peerNames) {
+                const peer: Client.ChannelPeer = channel.getChannelPeer(name);
+                channelPeers.push(peer);
+            }
+
+            return channelPeers;
+        } catch (error) {
+            throw new Error(`Unable to get channel peers: ${error.message}`);
+        }
     }
 
     private isLocalhostURL(url: string): boolean {
