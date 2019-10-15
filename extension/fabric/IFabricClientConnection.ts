@@ -32,12 +32,14 @@ export interface IFabricClientConnection {
 
     getAllChannelsForPeer(peerName: string): Promise<Array<string>>;
 
+    getChannelPeerNames(channelName: string): Promise<string[]>;
+
     getInstantiatedChaincode(channelName: string): Promise<Array<{name: string, version: string}>>;
 
     isIBPConnection(): boolean;
 
     getMetadata(instantiatedChaincodeName: string, channel: string): Promise<any>;
 
-    submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string, transientData: {[key: string]: Buffer}, evaluate?: boolean): Promise<string | undefined>;
+    submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string, transientData: {[key: string]: Buffer}, evaluate?: boolean, peerTargetNames?: string[]): Promise<string | undefined>;
 
 }

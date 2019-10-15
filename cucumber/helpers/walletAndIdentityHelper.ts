@@ -91,7 +91,7 @@ export class WalletAndIdentityHelper {
 
         if (identityExists) {
             this.userInputUtilHelper.showWalletsQuickPickStub.withArgs('Choose the wallet containing the identity that you want to delete').resolves({
-                label: FabricWalletUtil.LOCAL_WALLET,
+                label: FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME,
                 data: walletEntry
             });
             this.userInputUtilHelper.showIdentitiesQuickPickStub.withArgs('Choose the identities to delete').resolves([name]);

@@ -42,22 +42,8 @@ export class FabricEnvironment extends EventEmitter {
     }
 
     public async getNodes(withoutIdentitiies: boolean = false): Promise<FabricNode[]> {
-        const nodesPath: string = path.resolve(this.path, 'nodes');
-        const nodesExist: boolean = await fs.pathExists(nodesPath);
-        if (!nodesExist) {
-            return [];
-        }
-        let nodePaths: string[] = await fs.readdir(nodesPath);
-        nodePaths = nodePaths
-            .sort()
-            .filter((nodePath: string) => !nodePath.startsWith('.'))
-            .map((nodePath: string) => path.resolve(this.path, 'nodes', nodePath));
-        const nodes: FabricNode[] = [];
-        for (const nodePath of nodePaths) {
-            const node: FabricNode = await fs.readJson(nodePath);
-            nodes.push(node);
-        }
-
+        const rootNodesPath: string = path.resolve(this.path, 'nodes');
+        const nodes: FabricNode[] = await this.loadNodes(rootNodesPath);
         if (withoutIdentitiies) {
             return nodes.filter((node: FabricNode) => (!node.wallet || !node.identity));
         } else {
@@ -105,5 +91,29 @@ export class FabricEnvironment extends EventEmitter {
         const filteredNodes: FabricNode[] = await this.getNodes(true);
 
         return filteredNodes.length > 0;
+    }
+
+    private async loadNodes(nodesPath: string): Promise<FabricNode[]> {
+        const nodesExist: boolean = await fs.pathExists(nodesPath);
+        if (!nodesExist) {
+            return [];
+        }
+        let nodePaths: string[] = await fs.readdir(nodesPath);
+        nodePaths = nodePaths
+            .sort()
+            .filter((nodePath: string) => !nodePath.startsWith('.'))
+            .map((nodePath: string) => path.resolve(nodesPath, nodePath));
+        const nodes: FabricNode[] = [];
+        for (const nodePath of nodePaths) {
+            const stats: fs.Stats = await fs.lstat(nodePath);
+            if (stats.isDirectory()) {
+                const subNodes: FabricNode[] = await this.loadNodes(nodePath);
+                nodes.push(...subNodes);
+            } else if (stats.isFile() && nodePath.endsWith('.json')) {
+                const node: FabricNode = await fs.readJson(nodePath);
+                nodes.push(node);
+            }
+        }
+        return nodes;
     }
 }

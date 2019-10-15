@@ -474,11 +474,13 @@ describe('environmentExplorer', () => {
                 channelsArray.length.should.equal(2);
 
                 const channelOne: ChannelTreeItem = channelsArray[0] as ChannelTreeItem;
+                channelOne.tooltip.should.equal('Associated peers: peerOne');
                 channelOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 channelOne.contextValue.should.equal('blockchain-channel-item');
                 channelOne.label.should.equal('channelOne');
 
                 const channelTwo: ChannelTreeItem = channelsArray[1] as ChannelTreeItem;
+                channelTwo.tooltip.should.equal('Associated peers: peerOne, peerTwo');
                 channelTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 channelTwo.contextValue.should.equal('blockchain-channel-item');
                 channelTwo.label.should.equal('channelTwo');
