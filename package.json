@@ -579,7 +579,7 @@
                 },
                 {
                     "command": "environmentExplorer.disconnectEntry",
-                    "when": "view == environmentExplorer && blockchain-environment-connected || blockchain-environment-setup",
+                    "when": "view == environmentExplorer && blockchain-environment-connected || view == environmentExplorer && blockchain-environment-setup",
                     "group": "navigation"
                 },
                 {
