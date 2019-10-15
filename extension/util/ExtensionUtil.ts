@@ -106,6 +106,7 @@ import { FileRegistry } from '../registries/FileRegistry';
 import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
 import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
+import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -205,7 +206,24 @@ export class ExtensionUtil {
         if (oldDirectory !== undefined) {
             await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, oldDirectory, vscode.ConfigurationTarget.Global);
         }
+    }
 
+    public static async migrateEnvironments(): Promise<void> {
+        const oldEnvironments: FabricEnvironmentRegistryEntry[] = vscode.workspace.getConfiguration().get(SettingConfigurations.OLD_ENVIRONMENTS);
+
+        for (const environment of oldEnvironments) {
+            const entry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
+                name: environment.name
+            });
+
+            const exists: boolean = await FabricEnvironmentRegistry.instance().exists(environment.name);
+
+            if (!exists) {
+                await FabricEnvironmentRegistry.instance().add(entry);
+            }
+        }
+
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.OLD_ENVIRONMENTS, [], vscode.ConfigurationTarget.Global);
     }
 
     public static skipNpmInstall(): boolean {
@@ -327,17 +345,6 @@ export class ExtensionUtil {
             await reactView.openView(true);
         }));
 
-        context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async (e: any) => {
-
-            if (e.affectsConfiguration(SettingConfigurations.FABRIC_RUNTIME) || e.affectsConfiguration(SettingConfigurations.FABRIC_ENVIRONMENTS)) {
-                try {
-                    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
-                } catch (error) {
-                    // ignore error this only happens in tests
-                }
-            }
-        }));
-
         FabricWalletRegistry.instance().on(FileRegistry.EVENT_NAME, (async (): Promise<void> => {
             try {
                 await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
@@ -349,6 +356,14 @@ export class ExtensionUtil {
         FabricGatewayRegistry.instance().on(FileRegistry.EVENT_NAME, (async (): Promise<void> => {
             try {
                 await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+            } catch (error) {
+                // ignore error this only happens in tests
+            }
+        }));
+
+        FabricEnvironmentRegistry.instance().on(FileRegistry.EVENT_NAME, (async (): Promise<void> => {
+            try {
+                await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
             } catch (error) {
                 // ignore error this only happens in tests
             }

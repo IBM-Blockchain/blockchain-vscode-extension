@@ -32,7 +32,6 @@ import { FabricNode } from '../../extension/fabric/FabricNode';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
-import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { IFabricWallet } from '../../extension/fabric/IFabricWallet';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
@@ -42,7 +41,7 @@ chai.use(sinonChai);
 
 describe('createNewIdentityCommand', () => {
 
-    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
+    let mySandBox: sinon.SinonSandbox;
     let certificateAuthorityTreeItem: CertificateAuthorityTreeItem;
     let inputBoxStub: sinon.SinonStub;
     let showQuickPickYesNoStub: sinon.SinonStub;
@@ -57,6 +56,7 @@ describe('createNewIdentityCommand', () => {
     let connectionStub: sinon.SinonStub;
 
     before(async () => {
+        mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
     });
 
@@ -86,7 +86,6 @@ describe('createNewIdentityCommand', () => {
         const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         environmentRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
         environmentRegistryEntry.managedRuntime = true;
-        environmentRegistryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
         mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistryEntry);
         mySandBox.stub(FabricEnvironmentManager.instance(), 'getState').returns(ConnectedState.CONNECTED);

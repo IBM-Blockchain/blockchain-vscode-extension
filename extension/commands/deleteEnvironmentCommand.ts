@@ -13,19 +13,15 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs-extra';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
-import { SettingConfigurations } from '../../configurations';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { FabricEnvironmentTreeItem } from '../explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FileSystemUtil } from '../util/FileSystemUtil';
 
 export async function deleteEnvironment(environment: FabricEnvironmentTreeItem | FabricEnvironmentRegistryEntry, force: boolean = false): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -37,7 +33,7 @@ export async function deleteEnvironment(environment: FabricEnvironmentTreeItem |
             // If called from command palette
             // Ask for environment to delete
             // First check there is at least one that isn't local_fabric
-            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll(false);
             if (environments.length === 0) {
                 outputAdapter.log(LogType.ERROR, `No environments to delete. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be deleted.`);
                 return;
@@ -67,16 +63,11 @@ export async function deleteEnvironment(environment: FabricEnvironmentTreeItem |
             }
         }
 
-        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-        const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
-
         const connectedRegistry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
         for (const _environment of environmentsToDelete) {
             if (connectedRegistry && connectedRegistry.name === _environment.name) {
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             }
-            const environmentPath: string = path.join(homeExtDir, 'environments', _environment.name);
-            await fs.remove(environmentPath);
 
             await FabricEnvironmentRegistry.instance().delete(_environment.name);
         }

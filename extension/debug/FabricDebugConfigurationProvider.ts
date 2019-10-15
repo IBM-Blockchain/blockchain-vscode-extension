@@ -26,6 +26,7 @@ import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { FabricChaincode } from '../fabric/FabricChaincode';
+import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
 
 export abstract class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
@@ -49,13 +50,13 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             let environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
             if (!environmentRegistryEntry.managedRuntime) {
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
-                environmentRegistryEntry = FabricRuntimeManager.instance().getEnvironmentRegistryEntry();
+                environmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
                 connection = await FabricEnvironmentManager.instance().getConnection();
 
             }
         } else {
-            const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricRuntimeManager.instance().getEnvironmentRegistryEntry();
+            const environmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
             connection = await FabricEnvironmentManager.instance().getConnection();
         }

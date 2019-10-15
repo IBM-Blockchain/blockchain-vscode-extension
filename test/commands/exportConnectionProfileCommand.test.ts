@@ -36,7 +36,7 @@ import { FabricConnectionManager } from '../../extension/fabric/FabricConnection
 // tslint:disable no-unused-expression
 describe('exportConnectionProfileCommand', () => {
 
-    const sandbox: sinon.SinonSandbox = sinon.createSandbox();
+    let sandbox: sinon.SinonSandbox;
     const fakeTargetPath: string = path.join('/', 'a', 'fake', 'path');
     let workspaceFolderStub: sinon.SinonStub;
     let workspaceFolder: any;
@@ -53,6 +53,7 @@ describe('exportConnectionProfileCommand', () => {
     const connectionProfilePath: string = path.join('tmp', 'doggo.json');
 
     before(async () => {
+        sandbox = sinon.createSandbox();
         await TestUtil.setupTests(sandbox);
     });
 
