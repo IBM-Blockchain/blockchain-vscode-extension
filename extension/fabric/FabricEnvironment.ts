@@ -52,10 +52,10 @@ export class FabricEnvironment extends EventEmitter {
         return Array.from(mspIDs).sort();
     }
 
-    public async getNodes(withoutIdentitiies: boolean = false): Promise<FabricNode[]> {
+    public async getNodes(withoutIdentities: boolean = false): Promise<FabricNode[]> {
         const rootNodesPath: string = path.resolve(this.path, 'nodes');
         const nodes: FabricNode[] = await this.loadNodes(rootNodesPath);
-        if (withoutIdentitiies) {
+        if (withoutIdentities) {
             return nodes.filter((node: FabricNode) => (!node.wallet || !node.identity));
         } else {
             return nodes;
