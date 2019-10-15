@@ -15,7 +15,6 @@
 import * as vscode from 'vscode';
 import { FabricRuntime } from './FabricRuntime';
 import { FabricRuntimePorts } from './FabricRuntimePorts';
-import { FabricWalletUtil } from './FabricWalletUtil';
 import * as semver from 'semver';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
@@ -68,7 +67,6 @@ export class FabricRuntimeManager {
         // Check to see if the runtime has been created.
         const created: boolean = await this.runtime.isCreated();
         if (!created) {
-
             // Nope - create it now.
             await this.runtime.create();
 
@@ -90,15 +88,6 @@ export class FabricRuntimeManager {
 
         FabricEnvironmentManager.instance().on('disconnected', async () => {
             await this.runtime.stopLogs();
-        });
-    }
-
-    public getEnvironmentRegistryEntry(): FabricEnvironmentRegistryEntry {
-        const runtime: FabricRuntime = this.getRuntime();
-        return new FabricEnvironmentRegistryEntry({
-            name: runtime.getName(),
-            managedRuntime: true,
-            associatedWallet: FabricWalletUtil.LOCAL_WALLET
         });
     }
 

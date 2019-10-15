@@ -187,35 +187,35 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
         const tree: BlockchainTreeItem[] = [];
 
-        const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
-
         try {
-            const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricRuntimeManager.instance().getEnvironmentRegistryEntry();
-
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
-                runtime.getName(),
-                fabricEnvironmentRegistryEntry,
-                {
-                    command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
-                    title: '',
-                    arguments: [fabricEnvironmentRegistryEntry]
-                }
-            );
-            tree.push(treeItem);
-
             const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
             for (const environmentEntry of environmentEntries) {
-                const environmentTreeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(this,
-                    environmentEntry.name,
-                    environmentEntry,
-                    {
-                        command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
-                        title: '',
-                        arguments: [environmentEntry]
-                    }
-                );
+                if (environmentEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+                    const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+                    const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
+                        runtime.getName(),
+                        environmentEntry,
+                        {
+                            command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                            title: '',
+                            arguments: [environmentEntry]
+                        }
+                    );
+                    tree.push(treeItem);
 
-                tree.push(environmentTreeItem);
+                } else {
+                    const environmentTreeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(this,
+                        environmentEntry.name,
+                        environmentEntry,
+                        {
+                            command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                            title: '',
+                            arguments: [environmentEntry]
+                        }
+                    );
+
+                    tree.push(environmentTreeItem);
+                }
             }
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error populating Fabric Environment Panel: ${error.message}`, `Error populating Fabric Environment Panel: ${error.toString()}`);

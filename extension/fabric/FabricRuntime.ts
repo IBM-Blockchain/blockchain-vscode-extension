@@ -36,6 +36,8 @@ import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricWalletUtil } from './FabricWalletUtil';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
+import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
+import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 
 export enum FabricRuntimeState {
     STARTING = 'starting',
@@ -76,8 +78,14 @@ export class FabricRuntime extends FabricEnvironment {
     public async create(): Promise<void> {
 
         // Delete any existing runtime directory, and then recreate it.
-        await fs.remove(this.path);
-        await fs.ensureDir(this.path);
+        await FabricEnvironmentRegistry.instance().delete(this.name, true);
+
+        const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
+            name: this.name,
+            managedRuntime: true
+        });
+
+        await FabricEnvironmentRegistry.instance().add(registryEntry);
 
         // Use Yeoman to generate a new network configuration.
         await YeomanUtil.run('fabric:network', {
@@ -91,7 +99,6 @@ export class FabricRuntime extends FabricEnvironment {
             couchDB: this.ports.couchDB,
             logspout: this.ports.logs
         });
-
     }
 
     public async importWalletsAndIdentities(): Promise<void> {
@@ -292,7 +299,7 @@ export class FabricRuntime extends FabricEnvironment {
     }
 
     public async isCreated(): Promise<boolean> {
-        return await fs.pathExists(this.path);
+        return FabricEnvironmentRegistry.instance().exists(this.name);
     }
 
     public async isGenerated(): Promise<boolean> {

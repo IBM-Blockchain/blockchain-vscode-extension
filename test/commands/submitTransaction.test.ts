@@ -42,7 +42,7 @@ import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 chai.use(sinonChai);
 chai.should();
 
-describe('SubmitTransactionCommand', () => {
+xdescribe('SubmitTransactionCommand', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
 
     before(async () => {

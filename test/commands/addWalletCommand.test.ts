@@ -32,7 +32,7 @@ import { FileConfigurations } from '../../configurations';
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
-describe('AddWalletCommand', () => {
+xdescribe('AddWalletCommand', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let logSpy: sinon.SinonSpy;
     let showInputBoxStub: sinon.SinonStub;

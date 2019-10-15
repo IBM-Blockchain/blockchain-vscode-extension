@@ -24,6 +24,8 @@ import { SinonSandbox, SinonStub } from 'sinon';
 import { UserInputUtil } from '../extension/commands/UserInputUtil';
 import { FabricRuntimeUtil } from '../extension/fabric/FabricRuntimeUtil';
 import { GlobalState, ExtensionData } from '../extension/util/GlobalState';
+import { FabricRuntimeManager } from '../extension/fabric/FabricRuntimeManager';
+import { FabricEnvironmentRegistry } from '../extension/registries/FabricEnvironmentRegistry';
 
 export class TestUtil {
 
@@ -43,13 +45,14 @@ export class TestUtil {
             showConfirmationWarningMessage.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} now?`).resolves(false);
 
             await ExtensionUtil.activateExtension();
-
+        } else {
+            await FabricEnvironmentRegistry.instance().clear();
+            await FabricRuntimeManager.instance().initialize();
         }
     }
 
     static async storeAll(): Promise<void> {
         await this.storeExtensionDirectoryConfig();
-        await this.storeEnvironmentsConfig();
         await this.storeRuntimesConfig();
         await this.storeRepositoriesConfig();
         await this.storeShowHomeOnStart();
@@ -63,7 +66,6 @@ export class TestUtil {
 
     static async restoreAll(): Promise<void> {
         await this.restoreExtensionDirectoryConfig();
-        await this.restoreEnvironmentsConfig();
         await this.restoreRuntimesConfig();
         await this.restoreRepositoriesConfig();
         await this.restoreShowHomeOnStart();
@@ -82,14 +84,6 @@ export class TestUtil {
     static async restoreExtensionDirectoryConfig(): Promise<void> {
         console.log('Restoring user extension directory to settings:', this.USER_PACKAGE_DIR_CONFIG);
         await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, this.USER_PACKAGE_DIR_CONFIG, vscode.ConfigurationTarget.Global);
-    }
-    static async storeEnvironmentsConfig(): Promise<void> {
-        this.USER_ENVIRONMENTS_CONFIG = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
-        console.log('Storing user environments config:', this.USER_ENVIRONMENTS_CONFIG);
-    }
-    static async restoreEnvironmentsConfig(): Promise<void> {
-        console.log('Restoring user environments config to settings:', this.USER_ENVIRONMENTS_CONFIG);
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_ENVIRONMENTS, this.USER_ENVIRONMENTS_CONFIG, vscode.ConfigurationTarget.Global);
     }
     static async storeRuntimesConfig(): Promise<void> {
         this.USER_RUNTIMES_CONFIG = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME);
@@ -146,7 +140,6 @@ export class TestUtil {
     }
 
     private static USER_PACKAGE_DIR_CONFIG: any;
-    private static USER_ENVIRONMENTS_CONFIG: any;
     private static USER_RUNTIMES_CONFIG: any;
     private static USER_REPOSITORIES: any;
     private static HOME_STARTUP: any;

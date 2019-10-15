@@ -33,7 +33,7 @@ import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGat
 chai.should();
 chai.use(sinonChai);
 
-describe('AddGatewayCommand', () => {
+xdescribe('AddGatewayCommand', () => {
     const rootPath: string = path.dirname(__dirname);
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
 

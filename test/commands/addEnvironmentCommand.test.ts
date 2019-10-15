@@ -21,8 +21,8 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
-import { SettingConfigurations } from '../../configurations';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -43,8 +43,7 @@ describe('AddEnvironmentCommand', () => {
     describe('addEnvironment', () => {
 
         beforeEach(async () => {
-            // reset the available gateways
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_ENVIRONMENTS, [], vscode.ConfigurationTarget.Global);
+            await FabricEnvironmentRegistry.instance().clear();
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
@@ -64,7 +63,7 @@ describe('AddEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
-            const environments: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
 
             environments.length.should.equal(1);
             environments[0].should.deep.equal({
@@ -89,7 +88,7 @@ describe('AddEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
-            const environments: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
 
             environments.length.should.equal(2);
             environments[0].should.deep.equal({
@@ -116,7 +115,7 @@ describe('AddEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
-            const environments: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(0);
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Add environment');
             sendTelemetryEventStub.should.not.have.been.called;
@@ -131,7 +130,7 @@ describe('AddEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
-            const environments: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
 
             environments.length.should.equal(0);
             logSpy.should.have.been.calledTwice;
@@ -149,7 +148,7 @@ describe('AddEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
-            const environments: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
 
             environments.length.should.equal(1);
             environments[0].should.deep.equal({
@@ -173,7 +172,7 @@ describe('AddEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
-            const environments: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
 
             environments.length.should.equal(1);
             environments[0].should.deep.equal({
@@ -195,7 +194,7 @@ describe('AddEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
-            const environments: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(0);
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Add environment');
             sendTelemetryEventStub.should.not.have.been.called;

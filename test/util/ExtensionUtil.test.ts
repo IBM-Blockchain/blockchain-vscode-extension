@@ -42,6 +42,8 @@ import { ReactView } from '../../extension/webview/ReactView';
 import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
 import { TestUtil } from '../TestUtil';
+import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -274,7 +276,74 @@ describe('ExtensionUtil Tests', () => {
             workspaceConfigurationUpdateStub.callCount.should.equal(0);
 
         });
+    });
 
+    describe('migrateEnvironments', () => {
+        it('should migrate the environments', async () => {
+            const workspaceConfigurationGetStub: sinon.SinonStub = mySandBox.stub();
+            const workspaceConfigurationUpdateStub: sinon.SinonStub = mySandBox.stub();
+
+            const getConfigurationStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
+
+            getConfigurationStub.returns({
+                get: workspaceConfigurationGetStub,
+                update: workspaceConfigurationUpdateStub
+            });
+
+            workspaceConfigurationGetStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(TestUtil.EXTENSION_TEST_DIR);
+
+            workspaceConfigurationGetStub.withArgs(SettingConfigurations.OLD_ENVIRONMENTS).returns([
+                {
+                    name: 'myEnvOne'
+                },
+                {
+                    name: 'myEnvTwo'
+                }
+            ]);
+
+            await ExtensionUtil.migrateEnvironments();
+
+            const results: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(false);
+
+            results.length.should.equal(2);
+
+            results[0].name.should.equal('myEnvOne');
+            results[1].name.should.equal('myEnvTwo');
+        });
+
+        it('should not add registry if exists', async () => {
+            const workspaceConfigurationGetStub: sinon.SinonStub = mySandBox.stub();
+            const workspaceConfigurationUpdateStub: sinon.SinonStub = mySandBox.stub();
+
+            const getConfigurationStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
+
+            getConfigurationStub.returns({
+                get: workspaceConfigurationGetStub,
+                update: workspaceConfigurationUpdateStub
+            });
+
+            workspaceConfigurationGetStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(TestUtil.EXTENSION_TEST_DIR);
+
+            workspaceConfigurationGetStub.withArgs(SettingConfigurations.OLD_ENVIRONMENTS).returns([
+                {
+                    name: 'myEnvOne'
+                },
+                {
+                    name: 'myEnvTwo'
+                }
+            ]);
+
+            await FabricEnvironmentRegistry.instance().add({name: 'myEnvOne'});
+
+            await ExtensionUtil.migrateEnvironments();
+
+            const results: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(false);
+
+            results.length.should.equal(2);
+
+            results[0].name.should.equal('myEnvOne');
+            results[1].name.should.equal('myEnvTwo');
+        });
     });
 
     describe('skipNpmInstall', () => {

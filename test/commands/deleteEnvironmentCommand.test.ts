@@ -21,7 +21,6 @@ import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTre
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { SettingConfigurations } from '../../configurations';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
@@ -45,9 +44,9 @@ describe('DeleteEnvironmentCommand', () => {
     describe('deleteEnvironment', () => {
 
         let showFabricEnvironmentQuickPickBoxStub: sinon.SinonStub;
-        let environments: Array<any>;
-        let myEnvironmentA: any;
-        let myEnvironmentB: any;
+        let environments: Array<FabricEnvironmentRegistryEntry>;
+        let myEnvironmentA: FabricEnvironmentRegistryEntry;
+        let myEnvironmentB: FabricEnvironmentRegistryEntry;
         let logSpy: sinon.SinonSpy;
         let commandSpy: sinon.SinonSpy;
         let geConnectedRegistryStub: sinon.SinonStub;
@@ -58,25 +57,25 @@ describe('DeleteEnvironmentCommand', () => {
             logSpy = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
             // reset the available environments
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_ENVIRONMENTS, [], vscode.ConfigurationTarget.Global);
+            await FabricEnvironmentRegistry.instance().clear();
 
             environments = [];
 
-            myEnvironmentA = {
-                name: 'myenvironmentA',
-            };
-            environments.push(myEnvironmentA);
+            myEnvironmentA = new FabricEnvironmentRegistryEntry({
+                name: 'myenvironmentA'
+            });
 
-            myEnvironmentB = {
+            await FabricEnvironmentRegistry.instance().add(myEnvironmentA);
+
+            myEnvironmentB = new FabricEnvironmentRegistryEntry({
                 name: 'myEnvironmentB'
-            };
-            environments.push(myEnvironmentB);
+            });
 
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_ENVIRONMENTS, environments, vscode.ConfigurationTarget.Global);
+            await FabricEnvironmentRegistry.instance().add(myEnvironmentB);
 
             showFabricEnvironmentQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox').resolves([{
                 label: 'myEnvironmentB',
-                data: await FabricEnvironmentRegistry.instance().get('myEnvironmentB')
+                data: myEnvironmentB
             }]);
 
             geConnectedRegistryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry');
@@ -91,7 +90,7 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
-            environments = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+            environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(1);
             environments[0].should.deep.equal(myEnvironmentA);
 
@@ -112,7 +111,7 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
-            environments = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+            environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(0);
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
@@ -127,7 +126,7 @@ describe('DeleteEnvironmentCommand', () => {
             const environmentToDelete: BlockchainTreeItem = allChildren[1];
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT, environmentToDelete);
 
-            environments = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+            environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(1);
             environments[0].should.deep.equal(myEnvironmentB);
 
@@ -141,7 +140,7 @@ describe('DeleteEnvironmentCommand', () => {
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get('myenvironmentA');
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT, environmentRegistryEntry);
 
-            environments = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+            environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(1);
             environments[0].should.deep.equal(myEnvironmentB);
 
@@ -158,7 +157,7 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
-            environments = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+            environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(1);
             environments[0].should.deep.equal(myEnvironmentA);
 
@@ -172,7 +171,7 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT, undefined, true);
 
-            environments = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+            environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(1);
             environments[0].should.deep.equal(myEnvironmentA);
 
@@ -189,7 +188,7 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
-            environments = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+            environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(2);
 
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `delete environment`);
@@ -198,7 +197,7 @@ describe('DeleteEnvironmentCommand', () => {
         it('should handle the user not selecting an environment to delete', async () => {
             showFabricEnvironmentQuickPickBoxStub.resolves([]);
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
-            environments = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+            environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(2);
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `delete environment`);
         });
@@ -218,7 +217,7 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
-            environments = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+            environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(2);
             environments[0].should.deep.equal(myEnvironmentA);
             environments[1].should.deep.equal(myEnvironmentB);
@@ -233,13 +232,13 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
-            environments = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+            environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(2);
 
             commandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
-            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR,  `Error deleting environment: ${error.message}`, `Error deleting environment: ${error.toString()}`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Error deleting environment: ${error.message}`, `Error deleting environment: ${error.toString()}`);
         });
     });
 });

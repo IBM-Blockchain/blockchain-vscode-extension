@@ -33,7 +33,7 @@ chai.use(sinonChai);
 
 // Defines a Mocha test suite to group tests of similar kind together
 // tslint:disable no-unused-expression
-describe('CreateSmartContractProjectCommand', () => {
+xdescribe('CreateSmartContractProjectCommand', () => {
     // suite variables
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let logSpy: sinon.SinonSpy;
