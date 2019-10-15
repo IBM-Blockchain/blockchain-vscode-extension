@@ -38,6 +38,7 @@ import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { FabricChaincode } from '../fabric/FabricChaincode';
+import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -872,7 +873,7 @@ export class UserInputUtil {
         const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll(showLocalWallet);
         for (const walletRegistryEntry of wallets) {
             walletQuickPickItems.push({
-                label: walletRegistryEntry.name,
+                label: walletRegistryEntry.name !== FabricWalletUtil.LOCAL_WALLET ? walletRegistryEntry.name : FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME,
                 data: walletRegistryEntry
             });
         }
