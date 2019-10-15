@@ -86,7 +86,7 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
         if (node.type === FabricNodeType.CERTIFICATE_AUTHORITY && node.enroll_id && node.enroll_secret) {
             const enrollNew: string = 'Use ID and secret to enroll a new identity';
             const chooseExisting: string = 'Choose an existing identity';
-            const chosenMethod: string = await UserInputUtil.showQuickPick('The JSON for this certificate authority includes an enrollment ID and secret...', [enrollNew, chooseExisting]);
+            const chosenMethod: string = await UserInputUtil.showQuickPick('The JSON for this certificate authority includes an enrollment ID and secret...', [enrollNew, chooseExisting]) as string;
             if (!chosenMethod) {
                 return;
             }
@@ -173,7 +173,7 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
             });
 
             items.push('No');
-            const nodeName: string = await UserInputUtil.showQuickPick('Do you want to associate the same identity with another node?', items);
+            const nodeName: string = await UserInputUtil.showQuickPick('Do you want to associate the same identity with another node?', items) as string;
 
             if (!nodeName || nodeName === 'No') {
                 askAgain = false;
