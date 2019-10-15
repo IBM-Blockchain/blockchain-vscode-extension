@@ -1361,8 +1361,8 @@
     },
     "optionalDependencies": {
         "fabric-ca-client": "1.4.5-snapshot.69",
-        "fabric-client": "1.4.5-snapshot.65",
-        "fabric-network": "1.4.5-snapshot.64"
+        "fabric-client": "1.4.5-snapshot.68",
+        "fabric-network": "1.4.5-snapshot.72"
     },
     "nativeDependencies": [
         "grpc"

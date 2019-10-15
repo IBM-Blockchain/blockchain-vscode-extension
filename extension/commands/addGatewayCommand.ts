@@ -33,7 +33,7 @@ export async function addGateway(): Promise<{} | void> {
 
         const items: string[] = [UserInputUtil.ADD_GATEWAY_FROM_CCP, UserInputUtil.ADD_GATEWAY_FROM_ENVIRONMENT];
 
-        const gatewayMethod: string = await UserInputUtil.showQuickPick('Choose a method to add a gateway', items);
+        const gatewayMethod: string = await UserInputUtil.showQuickPick('Choose a method to add a gateway', items) as string;
 
         if (!gatewayMethod) {
             return;

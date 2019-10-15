@@ -60,6 +60,9 @@ export class UserInputUtil {
     static readonly OPEN_IN_NEW_WINDOW: string = 'Open in new window';
     static readonly YES: string = 'Yes';
     static readonly NO: string = 'No';
+    static readonly DEFAULT: string = 'Default';
+    static readonly CUSTOM: string = 'Custom';
+
     static readonly OVERWRITE_FILE: string = 'Overwrite file';
     static readonly SKIP_FILE: string = 'Skip file';
     static readonly FORCE_FILES: string = 'Force all files to overwrite';
@@ -84,10 +87,10 @@ export class UserInputUtil {
     static readonly ADD_ENVIRONMENT_FROM_NODES: string = 'Add an environment from node definition files';
     static readonly ADD_ENVIRONMENT_FROM_OPS_TOOLS: string = 'Add an environment from connecting to an ops tools instance';
 
-    public static async showQuickPick(prompt: string, items: string[]): Promise<string> {
+    public static async showQuickPick(prompt: string, items: string[], canPickMany: boolean = false): Promise<string | string[]> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
-            canPickMany: false,
+            canPickMany: canPickMany,
             placeHolder: prompt
         };
 

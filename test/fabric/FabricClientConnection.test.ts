@@ -27,6 +27,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import Client = require('fabric-client');
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -45,6 +46,7 @@ describe('FabricClientConnection', () => {
     let logSpy: sinon.SinonSpy;
     let wallet: FabricWallet;
     let readConnectionProfileStub: sinon.SinonStub;
+    let getChannelPeerStub: sinon.SinonStub;
 
     let mySandBox: sinon.SinonSandbox;
 
@@ -94,6 +96,7 @@ describe('FabricClientConnection', () => {
             setTransient: mySandBox.stub(),
             evaluate: mySandBox.stub(),
             submit: mySandBox.stub(),
+            setEndorsingPeers: mySandBox.stub()
         };
 
         fabricContractStub = {
@@ -102,8 +105,13 @@ describe('FabricClientConnection', () => {
             evaluateTransaction: mySandBox.stub()
         };
 
+        getChannelPeerStub = mySandBox.stub().returns({} as fabricClient.ChannelPeer);
+
         const fabricNetworkStub: any = {
-            getContract: mySandBox.stub().returns(fabricContractStub)
+            getContract: mySandBox.stub().returns(fabricContractStub),
+            getChannel: mySandBox.stub().returns({
+                getChannelPeer: getChannelPeerStub
+            })
         };
 
         fabricGatewayStub.getNetwork.returns(fabricNetworkStub);
@@ -353,6 +361,65 @@ describe('FabricClientConnection', () => {
             fabricTransactionStub.setTransient.should.not.have.been.called;
             fabricTransactionStub.evaluate.should.have.been.calledWith('arg1', 'arg2');
             should.equal(result, undefined);
+        });
+
+        it('should handle if peer target names are undefined', async () => {
+            const buffer: Buffer = Buffer.from([]);
+            fabricTransactionStub.submit.resolves(buffer);
+
+            const result: string | undefined = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract', undefined, undefined, undefined);
+            fabricContractStub.createTransaction.should.have.been.calledWith('transaction1');
+            fabricTransactionStub.setEndorsingPeers.should.not.have.been.called;
+            fabricTransactionStub.setTransient.should.not.have.been.called;
+            fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
+            should.equal(result, undefined);
+        });
+
+        it('should handle if peer target names is an empty array', async () => {
+            const buffer: Buffer = Buffer.from([]);
+            fabricTransactionStub.submit.resolves(buffer);
+
+            const result: string | undefined = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract', undefined, undefined, []);
+            fabricContractStub.createTransaction.should.have.been.calledWith('transaction1');
+            fabricTransactionStub.setEndorsingPeers.should.not.have.been.called;
+            fabricTransactionStub.setTransient.should.not.have.been.called;
+            fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
+            should.equal(result, undefined);
+        });
+
+        it('should handle if peer target names are passed', async () => {
+            const buffer: Buffer = Buffer.from([]);
+            fabricTransactionStub.submit.resolves(buffer);
+
+            const peerTargetNames: string[] = ['peerOne', 'peerTwo'];
+            const channelPeers: Client.ChannelPeer[] = [{} as Client.ChannelPeer, {} as Client.ChannelPeer];
+
+            const result: string | undefined = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract', undefined, undefined, peerTargetNames);
+            fabricContractStub.createTransaction.should.have.been.calledWith('transaction1');
+            getChannelPeerStub.should.have.been.calledTwice;
+            getChannelPeerStub.getCall(0).should.have.been.calledWith(peerTargetNames[0]);
+            getChannelPeerStub.getCall(1).should.have.been.calledWith(peerTargetNames[1]);
+            fabricTransactionStub.setEndorsingPeers.should.have.been.calledOnceWith(channelPeers);
+            fabricTransactionStub.setTransient.should.not.have.been.called;
+            fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
+            should.equal(result, undefined);
+        });
+
+        it('should handle if getting channel peers throws an error', async () => {
+            const buffer: Buffer = Buffer.from([]);
+            fabricTransactionStub.submit.resolves(buffer);
+
+            const peerTargetNames: string[] = ['peerOne', 'peerTwo'];
+
+            const error: Error = new Error('Could not get channel peer');
+            getChannelPeerStub.throws(error);
+
+            await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract', undefined, undefined, peerTargetNames).should.be.rejectedWith(`Unable to get channel peers: ${error.message}`);
+            fabricContractStub.createTransaction.should.have.been.calledWith('transaction1');
+            getChannelPeerStub.should.have.been.calledOnceWith(peerTargetNames[0]);
+            fabricTransactionStub.setEndorsingPeers.should.not.have.been.called;
+            fabricTransactionStub.setTransient.should.not.have.been.called;
+            fabricTransactionStub.submit.should.not.have.been.called;
         });
     });
 });
