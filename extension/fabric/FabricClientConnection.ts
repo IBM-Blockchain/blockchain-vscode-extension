@@ -18,6 +18,7 @@ import { FabricWallet } from './FabricWallet';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { IFabricClientConnection } from './IFabricClientConnection';
 import { Network, Contract, Transaction } from 'fabric-network';
+import * as Client from 'fabric-client';
 
 export class FabricClientConnection extends FabricConnection implements IFabricClientConnection {
 
@@ -66,14 +67,19 @@ export class FabricClientConnection extends FabricConnection implements IFabricC
         }
     }
 
-    public async submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string, transientData: { [key: string]: Buffer }, evaluate?: boolean): Promise<string | undefined> {
+    public async submitTransaction(chaincodeName: string, transactionName: string, channelName: string, args: Array<string>, namespace: string, transientData: { [key: string]: Buffer }, evaluate?: boolean, peerTargetNames: string[] = []): Promise<string | undefined> {
 
-        const network: Network = await this.gateway.getNetwork(channel);
+        const network: Network = await this.gateway.getNetwork(channelName);
         const smartContract: Contract = network.getContract(chaincodeName, namespace);
 
         const transaction: Transaction = smartContract.createTransaction(transactionName);
         if (transientData) {
             transaction.setTransient(transientData);
+        }
+
+        if (peerTargetNames && peerTargetNames.length > 0) {
+            const peerTargets: Client.ChannelPeer[] = await this.getChannelPeers(channelName, peerTargetNames);
+            transaction.setEndorsingPeers(peerTargets);
         }
 
         let response: Buffer;

@@ -60,6 +60,9 @@ export class UserInputUtil {
     static readonly OPEN_IN_NEW_WINDOW: string = 'Open in new window';
     static readonly YES: string = 'Yes';
     static readonly NO: string = 'No';
+    static readonly DEFAULT: string = 'Default';
+    static readonly CUSTOM: string = 'Custom';
+
     static readonly OVERWRITE_FILE: string = 'Overwrite file';
     static readonly SKIP_FILE: string = 'Skip file';
     static readonly FORCE_FILES: string = 'Force all files to overwrite';
@@ -82,10 +85,10 @@ export class UserInputUtil {
     static readonly ADD_GATEWAY_FROM_ENVIRONMENT: string = 'Create a gateway from a Fabric environment';
     static readonly ADD_GATEWAY_FROM_CCP: string = 'Create a gateway from a connection profile';
 
-    public static async showQuickPick(prompt: string, items: string[]): Promise<string> {
+    public static async showQuickPick(prompt: string, items: string[], canPickMany: boolean = false): Promise<string | string[]> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
-            canPickMany: false,
+            canPickMany: canPickMany,
             placeHolder: prompt
         };
 

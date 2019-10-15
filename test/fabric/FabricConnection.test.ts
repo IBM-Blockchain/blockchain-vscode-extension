@@ -603,4 +603,33 @@ describe('FabricConnection', () => {
             await fabricConnection.createChannelMap().should.be.rejectedWith(`Error querying channel list: ${error.message}`);
         });
     });
+
+    describe('getChannelPeerNames', () => {
+
+        it('should get the channel peer names', async () => {
+            const channelName: string = 'theChannelName';
+            const peerNames: string[] = ['peerName1', 'peerName2'];
+
+            const getNameStub: sinon.SinonStub = mySandBox.stub();
+            getNameStub.onCall(0).returns(peerNames[0]);
+            getNameStub.onCall(1).returns(peerNames[1]);
+            fabricChannelStub.getChannelPeers.returns([{getName: getNameStub}, {getName: getNameStub}]);
+
+            const channelPeerNames: string[] = await fabricConnection.getChannelPeerNames(channelName);
+            fabricChannelStub.getChannelPeers.should.have.been.calledOnce;
+            getNameStub.should.have.been.calledTwice;
+            channelPeerNames.length.should.equal(2);
+            channelPeerNames.should.deep.equal(peerNames);
+        });
+
+        it('should handle any errors', async () => {
+            const channelName: string = 'theChannelName';
+
+            const error: Error = new Error('Could not get channel');
+            fabricChannelStub.getChannelPeers.throws(error);
+
+            await fabricConnection.getChannelPeerNames(channelName).should.be.rejectedWith(`Unable to get channel peer names: ${error.message}`);
+
+        });
+    });
 });

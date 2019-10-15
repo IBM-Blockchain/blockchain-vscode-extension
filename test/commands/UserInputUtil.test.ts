@@ -2291,14 +2291,28 @@ describe('UserInputUtil', () => {
     });
 
     describe('showQuickPick', () => {
-        it('should show the items passed in', async () => {
+        it('should be able to pick an item', async () => {
             const items: string[] = ['itemOne', 'itemTwo'];
             quickPickStub.resolves('itemOne');
 
-            const result: string = await UserInputUtil.showQuickPick('choose an item', items);
+            const prompt: string = 'choose an item';
+
+            const result: string = await UserInputUtil.showQuickPick(prompt, items) as string;
             result.should.equal('itemOne');
 
-            quickPickStub.should.have.been.calledWith(items, sinon.match.any);
+            quickPickStub.should.have.been.calledWith(items, {ignoreFocusOut: true, canPickMany: false, placeHolder: prompt});
+        });
+
+        it('should be able to pick multiple items', async () => {
+            const items: string[] = ['itemOne', 'itemTwo'];
+            quickPickStub.resolves(items);
+
+            const prompt: string = 'choose an item';
+
+            const result: string[] = await UserInputUtil.showQuickPick(prompt, items, true) as string[];
+            result.should.deep.equal(items);
+
+            quickPickStub.should.have.been.calledWith(items, {ignoreFocusOut: true, canPickMany: true, placeHolder: prompt});
         });
     });
 
