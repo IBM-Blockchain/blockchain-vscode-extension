@@ -1360,9 +1360,9 @@
         "yeoman-environment": "^2.3.3"
     },
     "optionalDependencies": {
-        "fabric-ca-client": "1.4.5-snapshot.69",
-        "fabric-client": "1.4.5-snapshot.68",
-        "fabric-network": "1.4.5-snapshot.72"
+        "fabric-ca-client": "1.4.5-snapshot.73",
+        "fabric-client": "1.4.5-snapshot.69",
+        "fabric-network": "1.4.5-snapshot.76"
     },
     "nativeDependencies": [
         "grpc"
