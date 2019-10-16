@@ -227,7 +227,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 showIdentityQuickPickStub.resolves(UserInputUtil.ADD_IDENTITY);
                 await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, ...[environmentRegistryEntry, peerNode]);
 
-                commandsStub.should.have.been.calledWith(ExtensionCommands.ADD_WALLET_IDENTITY, sinon.match.any, peerNode.msp_id);
+                commandsStub.should.have.been.calledWith(ExtensionCommands.ADD_WALLET_IDENTITY, sinon.match.instanceOf(FabricWalletRegistryEntry), peerNode.msp_id);
 
                 peerNode.identity = 'identityOne';
                 peerNode.wallet = 'blueWallet';
@@ -306,7 +306,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 commandsStub.withArgs(ExtensionCommands.ADD_WALLET_IDENTITY).resolves();
                 await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, ...[environmentRegistryEntry, peerNode]);
 
-                commandsStub.should.have.been.calledWith(ExtensionCommands.ADD_WALLET_IDENTITY);
+                commandsStub.should.have.been.calledWith(ExtensionCommands.ADD_WALLET_IDENTITY, sinon.match.instanceOf(FabricWalletRegistryEntry));
 
                 logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
                 logSpy.should.not.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated identity ${peerNode.identity} from wallet ${peerNode.wallet} with node ${peerNode.name}`);
