@@ -78,6 +78,32 @@ export class FabricNode {
         }
     }
 
+    public static pruneNode(data: any): FabricNode {
+        const node: FabricNode = new FabricNode({short_name: data.shoty_name, name: data.name, type: data.type, api_url: data.api_url});
+
+        if (data.msp_id) {
+            node.msp_id = data.msp_id;
+        }
+
+        if (data.ca_name) {
+            node.ca_name = data.ca_name;
+        }
+
+        if (data.pem) {
+            node.pem = data.pem;
+        }
+
+        if (data.ssl_target_name_override) {
+            node.ssl_target_name_override = data.ssl_target_name_override;
+        }
+
+        if (data.cluster_name) {
+            node.cluster_name = data.cluster_name;
+        }
+
+        return node;
+    }
+
     public short_name: string;
     public name: string;
     public type: FabricNodeType;
