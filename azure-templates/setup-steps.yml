@@ -28,7 +28,20 @@ steps:
       echo ">>> Compile vscode-test"
       npm install --no-optional
       npm install --ignore-scripts
-      npm audit
+      n=0; rc=256;
+      function runNpmAudit() {
+        while [ "$n" -ne  10 ] && [ "$rc" -ne 0 ]; do
+          echo ">>> run npm audit - Attempt $n"
+          out=$((npm audit) 2>&1)
+          rc=$?
+          echo $out
+          if [[ $rc -ne 0 ]] && [[ $out != *"code ENOAUDIT"* ]]; then
+            break
+          fi
+          n=$(( n + 1 ))
+        done
+        return $rc;}
+      runNpmAudit
       npm run compile
       echo ">>> Compiled vscode-test"
     displayName: Install stuff
