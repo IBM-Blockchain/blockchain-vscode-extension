@@ -17,7 +17,6 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import * as path from 'path';
 import { version as currentExtensionVersion } from '../package.json';
 import { ExtensionUtil } from '../extension/util/ExtensionUtil';
 import { DependencyManager } from '../extension/dependencies/DependencyManager';
@@ -27,7 +26,6 @@ import { TestUtil } from './TestUtil';
 import { Reporter } from '../extension/util/Reporter';
 import { ExtensionCommands } from '../ExtensionCommands';
 import { LogType } from '../extension/logging/OutputAdapter';
-import { FabricRuntimeUtil } from '../extension/fabric/FabricRuntimeUtil';
 import { SettingConfigurations } from '../configurations';
 import { UserInputUtil } from '../extension/commands/UserInputUtil';
 import { dependencies } from '../package.json';
@@ -35,6 +33,8 @@ import { GlobalState, DEFAULT_EXTENSION_DATA, ExtensionData } from '../extension
 import { BlockchainGatewayExplorerProvider } from '../extension/explorer/gatewayExplorer';
 import { FabricWalletUtil } from '../extension/fabric/FabricWalletUtil';
 import { FabricGatewayHelper } from '../extension/fabric/FabricGatewayHelper';
+import { FabricGatewayRegistry } from '../extension/registries/FabricGatewayRegistry';
+import { FabricGatewayRegistryEntry } from '../extension/registries/FabricGatewayRegistryEntry';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -72,7 +72,6 @@ describe('Extension Tests', () => {
 
         await GlobalState.update(extensionData);
 
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
 
         sendTelemetryStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent').resolves();
@@ -101,41 +100,18 @@ describe('Extension Tests', () => {
     describe('activate', () => {
 
         it('should refresh the tree when a connection is added', async () => {
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
+            await FabricGatewayRegistry.instance().clear();
 
             const treeDataProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
 
             const treeSpy: sinon.SinonSpy = mySandBox.spy(treeDataProvider['_onDidChangeTreeData'], 'fire');
 
-            const rootPath: string = path.dirname(__dirname);
+            const gateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
+                name: 'myGateway',
+                associatedWallet: ''
+            });
 
-            const myConnection: any = {
-                name: 'myConnection',
-                connectionProfilePath: path.join(rootPath, '../test/data/connectionTwo/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../test/data/connectionTwo/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../test/data/connectionTwo/credentials/privateKey')
-                }]
-            };
-
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [myConnection], vscode.ConfigurationTarget.Global);
-
-            treeSpy.should.have.been.called;
-        });
-
-        it('should refresh the tree when a runtime is added', async () => {
-
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
-
-            const treeDataProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
-
-            const treeSpy: sinon.SinonSpy = mySandBox.spy(treeDataProvider['_onDidChangeTreeData'], 'fire');
-
-            const myRuntime: any = {
-                name: FabricRuntimeUtil.LOCAL_FABRIC
-            };
-
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, myRuntime, vscode.ConfigurationTarget.Global);
+            await FabricGatewayRegistry.instance().add(gateway);
 
             treeSpy.should.have.been.called;
         });

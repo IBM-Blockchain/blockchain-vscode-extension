@@ -96,6 +96,19 @@ describe('FabricWalletUtil', () => {
             await FabricWalletRegistry.instance().getAll().should.eventually.deep.equal([{ name: walletA.name, walletPath: walletA.walletPath }, { name: walletB.name, walletPath: walletB.walletPath }]);
         });
 
+        it('should not create registyr if already exists', async () => {
+            walletA.walletPath = path.join(TestUtil.EXTENSION_TEST_DIR, 'anotherWallet', 'walletA');
+
+            await FabricWalletRegistry.instance().add(walletA);
+            await FabricWalletUtil.tidyWalletSettings();
+
+            const dest: string = path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, walletA.name);
+            fsCopyStub.should.have.been.calledOnceWithExactly(walletA.walletPath, dest);
+            fsRemoveStub.should.have.been.calledOnceWithExactly(walletA.walletPath);
+
+            await FabricWalletRegistry.instance().getAll().should.eventually.deep.equal([{ name: walletA.name, walletPath: walletA.walletPath }, { name: walletB.name, walletPath: walletB.walletPath }]);
+        });
+
         it(`should not migrate a wallet if there is an issue migrating it`, async () => {
             walletA.walletPath = path.join(TestUtil.EXTENSION_TEST_DIR, 'anotherWallet', 'walletA');
             const error: Error = new Error('a problem');

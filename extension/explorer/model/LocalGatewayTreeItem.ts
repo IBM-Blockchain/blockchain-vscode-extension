@@ -34,7 +34,7 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
 
     contextValue: string = 'blockchain-local-gateway-item';
 
-    private name: string;
+    public readonly name: string;
     private runtime: FabricRuntime;
     private busyTicker: NodeJS.Timer;
     private busyTicks: number = 0;

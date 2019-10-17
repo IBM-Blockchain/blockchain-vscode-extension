@@ -31,6 +31,7 @@ import { SettingConfigurations } from '../../configurations';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
+import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 
 chai.should();
 chai.use(sinonChai);
@@ -45,8 +46,6 @@ describe('removeWalletCommand', () => {
     let purpleWallet: FabricWalletRegistryEntry;
     let blueWallet: FabricWalletRegistryEntry;
     let createdWallet: FabricWalletRegistryEntry;
-    let getAllFabricGatewayRegisty: sinon.SinonStub;
-    let updateFabricGatewayRegisty: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
@@ -83,8 +82,10 @@ describe('removeWalletCommand', () => {
         await FabricWalletRegistry.instance().add(blueWallet);
         await FabricWalletRegistry.instance().add(createdWallet);
 
-        getAllFabricGatewayRegisty = mySandBox.stub(FabricGatewayRegistry.instance(), 'getAll').returns([]);
-        updateFabricGatewayRegisty = mySandBox.stub(FabricGatewayRegistry.instance(), 'update');
+        await FabricGatewayRegistry.instance().clear();
+        await FabricGatewayRegistry.instance().add({ name: 'gatewayA', associatedWallet: 'blueWallet' });
+        await FabricGatewayRegistry.instance().add({ name: 'gatewayB', associatedWallet: 'blueWallet' });
+        await FabricGatewayRegistry.instance().add({ name: 'gatewayC', associatedWallet: 'greenWallet' });
     });
 
     afterEach(() => {
@@ -237,8 +238,6 @@ describe('removeWalletCommand', () => {
             data: blueWallet
         }]);
         warningStub.resolves('Yes');
-        getAllFabricGatewayRegisty.returns([{ name: 'gatewayA', associatedWallet: 'blueWallet' }, { name: 'gatewayB', associatedWallet: 'blueWallet' }, { name: 'gatewayC', associatedWallet: 'greenWallet' }]);
-        updateFabricGatewayRegisty.resolves();
 
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
@@ -249,9 +248,11 @@ describe('removeWalletCommand', () => {
         wallets[0].name.should.equal(createdWallet.name);
         wallets[1].name.should.equal(purpleWallet.name);
 
-        updateFabricGatewayRegisty.callCount.should.equal(2);
-        updateFabricGatewayRegisty.getCall(0).should.have.been.calledWithExactly({ name: 'gatewayA', associatedWallet: '' });
-        updateFabricGatewayRegisty.getCall(1).should.have.been.calledWithExactly({ name: 'gatewayB', associatedWallet: '' });
+        let result: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('gatewayA');
+        result.associatedWallet.should.equal('');
+
+        result = await FabricGatewayRegistry.instance().get('gatewayB');
+        result.associatedWallet.should.equal('');
 
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `removeWallet`);
@@ -268,8 +269,6 @@ describe('removeWalletCommand', () => {
             data: purpleWallet
         }]);
         warningStub.resolves('Yes');
-        getAllFabricGatewayRegisty.returns([{ name: 'gatewayA', associatedWallet: 'blueWallet' }, { name: 'gatewayB', associatedWallet: 'blueWallet' }, { name: 'gatewayC', associatedWallet: 'purpleWallet' }, { name: 'gatewayD', associatedWallet: 'greenWallet' }]);
-        updateFabricGatewayRegisty.resolves();
 
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
@@ -278,10 +277,14 @@ describe('removeWalletCommand', () => {
         wallets.length.should.equal(1);
         wallets[0].name.should.equal(createdWallet.name);
 
-        updateFabricGatewayRegisty.callCount.should.equal(3);
-        updateFabricGatewayRegisty.getCall(0).should.have.been.calledWithExactly({ name: 'gatewayA', associatedWallet: '' });
-        updateFabricGatewayRegisty.getCall(1).should.have.been.calledWithExactly({ name: 'gatewayB', associatedWallet: '' });
-        updateFabricGatewayRegisty.getCall(2).should.have.been.calledWithExactly({ name: 'gatewayC', associatedWallet: '' });
+        let result: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('gatewayA');
+        result.associatedWallet.should.equal('');
+
+        result = await FabricGatewayRegistry.instance().get('gatewayB');
+        result.associatedWallet.should.equal('');
+
+        result = await FabricGatewayRegistry.instance().get('gatewayC');
+        result.associatedWallet.should.equal('greenWallet');
 
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `removeWallet`);

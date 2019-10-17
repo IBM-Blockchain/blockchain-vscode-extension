@@ -83,7 +83,7 @@ describe('DeleteNodeCommand', () => {
             executeCommandStub.withArgs(ExtensionCommands.DELETE_ENVIRONMENT).resolves();
 
             showEnvironmentStub = mySandBox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox').resolves({ label: environmentRegistryEntry.name, data: environmentRegistryEntry });
-            getAllEnvironmentsStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').returns([environmentRegistryEntry]);
+            getAllEnvironmentsStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([environmentRegistryEntry]);
             showNodeStub = mySandBox.stub(UserInputUtil, 'showNodesInEnvironmentQuickPick').resolves([{ label: peerNode.name, data: peerNode }]);
             showConfirmationWarningMessage = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
             showConfirmationWarningMessage.withArgs(`This will remove the node(s). Do you want to continue?`).resolves(true);

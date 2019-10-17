@@ -19,13 +19,13 @@ export class SettingConfigurations {
 
     // FABRIC CONFIGURATIONS
     static readonly FABRIC_RUNTIME: string = 'ibm-blockchain-platform.fabric.runtime';
-    static readonly FABRIC_GATEWAYS: string = 'ibm-blockchain-platform.fabric.gateways';
     static readonly FABRIC_CLIENT_TIMEOUT: string = 'ibm-blockchain-platform.fabric.client.timeout';
     static readonly FABRIC_CHAINCODE_TIMEOUT: string = 'ibm-blockchain-platform.fabric.chaincode.timeout';
     static readonly FABRIC_ENVIRONMENTS: string = 'ibm-blockchain-platform.fabric.environments';
 
     // Needed for migration
     static readonly OLD_FABRIC_WALLETS: string = 'ibm-blockchain-platform.fabric.wallets';
+    static readonly OLD_FABRIC_GATEWAYS: string = 'ibm-blockchain-platform.fabric.gateways';
 
     // EXTENSION CONFIGURATIONS
     static readonly EXTENSION_DIRECTORY: string = 'ibm-blockchain-platform.ext.directory';
@@ -39,4 +39,5 @@ export class SettingConfigurations {
 
 export class FileConfigurations {
     static readonly FABRIC_WALLETS: string = 'wallets';
+    static readonly FABRIC_GATEWAYS: string = 'gateways';
 }

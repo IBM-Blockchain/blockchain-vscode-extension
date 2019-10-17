@@ -33,6 +33,9 @@ import { FabricEnvironment } from './FabricEnvironment';
 import { FileSystemUtil } from '../util/FileSystemUtil';
 import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
+import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
+import { FabricWalletUtil } from './FabricWalletUtil';
+import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 
 export enum FabricRuntimeState {
     STARTING = 'starting',
@@ -127,10 +130,16 @@ export class FabricRuntime extends FabricEnvironment {
 
         const fabricGateways: FabricGateway[] = await this.getGateways();
         for (const gateway of fabricGateways) {
-            const profileDirPath: string = path.join(homeExtDir, 'gateways', gateway.name);
+            await FabricGatewayRegistry.instance().delete(gateway.name, true);
+
+            const profileDirPath: string = path.join(homeExtDir, FileConfigurations.FABRIC_GATEWAYS, gateway.name);
             const profilePath: string = path.join(profileDirPath, path.basename(gateway.path));
             await fs.ensureDir(profileDirPath);
             await fs.copy(gateway.path, profilePath);
+            const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gatewayRegistryEntry.name = gateway.name;
+            gatewayRegistryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+            await FabricGatewayRegistry.instance().add(gatewayRegistryEntry);
         }
     }
 
@@ -228,7 +237,7 @@ export class FabricRuntime extends FabricEnvironment {
     }
 
     public async getGateways(): Promise<FabricGateway[]> {
-        const gatewaysPath: string = path.resolve(this.path, 'gateways');
+        const gatewaysPath: string = path.resolve(this.path, FileConfigurations.FABRIC_GATEWAYS);
         const gatewaysExist: boolean = await fs.pathExists(gatewaysPath);
         if (!gatewaysExist) {
             return [];
@@ -237,7 +246,7 @@ export class FabricRuntime extends FabricEnvironment {
         gatewayPaths = gatewayPaths
             .sort()
             .filter((gatewayPath: string) => !gatewayPath.startsWith('.'))
-            .map((gatewayPath: string) => path.resolve(this.path, 'gateways', gatewayPath));
+            .map((gatewayPath: string) => path.resolve(this.path, FileConfigurations.FABRIC_GATEWAYS, gatewayPath));
         const gateways: FabricGateway[] = [];
         for (const gatewayPath of gatewayPaths) {
             const connectionProfile: any = await fs.readJson(gatewayPath);

@@ -190,7 +190,6 @@ describe('FabricRuntime', () => {
 
     describe('#importGateways', () => {
         it('should create all gateways', async () => {
-            const ensureStub: sinon.SinonStub = sandbox.stub(fs, 'ensureDir').resolves();
             const copyStub: sinon.SinonStub = sandbox.stub(fs, 'copy');
 
             const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
@@ -198,7 +197,6 @@ describe('FabricRuntime', () => {
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'yofn');
 
             await runtime.importGateways();
-            ensureStub.should.have.been.calledWith(profileDirPath);
 
             const gateways: FabricGateway[] = await runtime.getGateways();
             const profilePath: string = path.join(profileDirPath, path.basename(gateways[0].path));

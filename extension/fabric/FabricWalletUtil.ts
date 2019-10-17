@@ -41,7 +41,11 @@ export class FabricWalletUtil {
             walletRegistryEntry.name = wallet.name;
             walletRegistryEntry.walletPath = wallet.walletPath;
 
-            await FabricWalletRegistry.instance().add(walletRegistryEntry);
+            const exists: boolean = await FabricWalletRegistry.instance().exists(wallet.name);
+
+            if (!exists) {
+                await FabricWalletRegistry.instance().add(walletRegistryEntry);
+            }
 
             // Ensure all wallets are stored under wallets subdirectory
             if (wallet.walletPath && wallet.walletPath.includes(extDir) && !wallet.walletPath.includes(walletsExtDir)) {

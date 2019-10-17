@@ -188,7 +188,7 @@ describe('ExtensionUtil Tests', () => {
             await ExtensionUtil.migrateSettingConfigurations();
             workspaceConfigurationGetStub.callCount.should.equal(7);
             workspaceConfigurationUpdateStub.callCount.should.equal(4);
-            workspaceConfigurationUpdateStub.getCall(0).should.have.been.calledWithExactly(SettingConfigurations.FABRIC_GATEWAYS, [
+            workspaceConfigurationUpdateStub.getCall(0).should.have.been.calledWithExactly(SettingConfigurations.OLD_FABRIC_GATEWAYS, [
                 {
                     name: 'myGateway',
                     connectionProfilePath: 'blockchain/extension/directory/gatewayOne/connection.json',
@@ -407,7 +407,6 @@ describe('ExtensionUtil Tests', () => {
                 ExtensionCommands.DISCONNECT_ENVIRONMENT,
                 ExtensionCommands.INSTALL_SMART_CONTRACT,
                 ExtensionCommands.INSTANTIATE_SMART_CONTRACT,
-                ExtensionCommands.EDIT_GATEWAY,
                 ExtensionCommands.TEST_ALL_SMART_CONTRACT,
                 ExtensionCommands.TEST_SMART_CONTRACT,
                 ExtensionCommands.SUBMIT_TRANSACTION,
@@ -440,7 +439,6 @@ describe('ExtensionUtil Tests', () => {
                 `onCommand:${ExtensionCommands.CONNECT_TO_GATEWAY}`,
                 `onCommand:${ExtensionCommands.DISCONNECT_GATEWAY}`,
                 `onCommand:${ExtensionCommands.REFRESH_GATEWAYS}`,
-                `onCommand:${ExtensionCommands.EDIT_GATEWAY}`,
                 `onCommand:${ExtensionCommands.TEST_SMART_CONTRACT}`,
                 `onCommand:${ExtensionCommands.TEST_ALL_SMART_CONTRACT}`,
                 `onCommand:${ExtensionCommands.SUBMIT_TRANSACTION}`,

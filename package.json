@@ -51,7 +51,6 @@
             "gatewaysExplorer.connectEntry",
             "gatewaysExplorer.disconnectEntry",
             "gatewaysExplorer.refreshEntry",
-            "gatewaysExplorer.editGatewayEntry",
             "gatewaysExplorer.testSmartContractEntry",
             "gatewaysExplorer.testAllSmartContractEntry",
             "gatewaysExplorer.submitTransactionEntry",
@@ -401,11 +400,6 @@
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "gatewaysExplorer.editGatewayEntry",
-                "title": "Edit Gateway",
-                "category": "IBM Blockchain Platform"
-            },
-            {
                 "command": "gatewaysExplorer.testAllSmartContractEntry",
                 "title": "Generate Tests For All Smart Contracts",
                 "category": "IBM Blockchain Platform"
@@ -461,11 +455,6 @@
                     "light": "resources/light/add_light.svg",
                     "dark": "resources/dark/add.svg"
                 },
-                "category": "IBM Blockchain Platform"
-            },
-            {
-                "command": "walletExplorer.editWalletEntry",
-                "title": "Edit Wallet",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -724,10 +713,6 @@
                 {
                     "command": "environmentExplorer.replaceAssociatedIdentityEntry",
                     "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-environment-connected && !blockchain-runtime-connected"
-                },
-                {
-                    "command": "gatewaysExplorer.editGatewayEntry",
-                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-associated-item || viewItem == blockchain-gateway-dissociated-item"
                 },
                 {
                     "command": "gatewaysExplorer.testSmartContractEntry",

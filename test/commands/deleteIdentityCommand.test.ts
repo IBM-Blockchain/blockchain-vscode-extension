@@ -84,7 +84,7 @@ describe('deleteIdentityCommand', () => {
 
         testWallet = new FabricWallet('/some/path');
         walletIdentitiesStub = mySandBox.stub(testWallet, 'getIdentityNames');
-        getWalletStub = mySandBox.stub(FabricWalletGeneratorFactory.createFabricWalletGenerator(), 'getWallet').returns(testWallet);
+        getWalletStub = mySandBox.stub(FabricWalletGeneratorFactory.createFabricWalletGenerator(), 'getWallet').resolves(testWallet);
 
         executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
     });

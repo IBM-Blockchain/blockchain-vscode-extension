@@ -28,7 +28,7 @@ chai.use(chaiAsPromised);
 describe('SettingsRegistry', () => {
 
     // can't use one that doesn't exist
-    const testFabricRegistryName: string = SettingConfigurations.FABRIC_GATEWAYS;
+    const testFabricRegistryName: string = SettingConfigurations.OLD_FABRIC_GATEWAYS;
 
     // tslint:disable max-classes-per-file
     class TestFabricRegistryEntry extends RegistryEntry {

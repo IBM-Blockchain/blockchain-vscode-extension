@@ -34,7 +34,7 @@ export async function removeWallet(treeItem: WalletTreeItem): Promise<void> {
         // Ask for wallet to remove
         // First check there is at least one that isn't local_fabric_wallet
         let wallets: Array<FabricWalletRegistryEntry> = [];
-        wallets = await FabricWalletRegistry.instance().getAll();
+        wallets = await FabricWalletRegistry.instance().getAll(false);
         if (wallets.length === 0) {
             outputAdapter.log(LogType.ERROR, `No wallets to remove. ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME} cannot be removed.`, `No wallets to remove. ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME} cannot be removed.`);
             return;
@@ -61,7 +61,7 @@ export async function removeWallet(treeItem: WalletTreeItem): Promise<void> {
 
             await FabricWalletRegistry.instance().delete(_wallet.name);
 
-            const gateways: FabricGatewayRegistryEntry[] =  await FabricGatewayRegistry.instance().getAll();
+            const gateways: FabricGatewayRegistryEntry[] =  await FabricGatewayRegistry.instance().getAll(false);
             for (const gateway of gateways) {
                 if (gateway.associatedWallet === _wallet.name) {
                     gateway.associatedWallet = ''; // If the gateway uses the newly removed wallet, dissociate it from the gateway

@@ -17,9 +17,11 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as yaml from 'js-yaml';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations, FileConfigurations } from '../../configurations';
 import { FabricNode } from './FabricNode';
 import { FileSystemUtil } from '../util/FileSystemUtil';
+import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 
 export class FabricGatewayHelper {
 
@@ -103,7 +105,7 @@ export class FabricGatewayHelper {
 
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
-        const profileDirPath: string = path.join(homeExtDir, 'gateways', gatewayName);
+        const profileDirPath: string = path.join(homeExtDir, FileConfigurations.FABRIC_GATEWAYS, gatewayName);
         await fs.ensureDir(profileDirPath);
         const profileFilePath: string = path.join(profileDirPath, `${this.profileName}.json`);
 
@@ -118,12 +120,9 @@ export class FabricGatewayHelper {
 
             const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
             const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
-            const profileDirPath: string = path.join(homeExtDir, 'gateways', gatewayName);
-            const profileExists: boolean = await fs.pathExists(profileDirPath);
+            const profileDirPath: string = path.join(homeExtDir, FileConfigurations.FABRIC_GATEWAYS, gatewayName);
 
-            if (!profileExists) {
-                await fs.ensureDir(profileDirPath);
-            }
+            await fs.ensureDir(profileDirPath);
 
             const connectionProfileFile: string = await fs.readFile(connectionProfilePath, 'utf8');
             let connectionProfile: any;
@@ -183,13 +182,27 @@ export class FabricGatewayHelper {
 
     public static async migrateGateways(): Promise<void> {
         // Get gateways from user settings
-        const gateways: any = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+        const gateways: any = vscode.workspace.getConfiguration().get(SettingConfigurations.OLD_FABRIC_GATEWAYS);
+
         for (const gateway of gateways) {
             // Ensure all the gateways are stored under the gateways subdirectory
             const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const gatewaysExtDir: string = path.join(extDir, 'gateways');
+            const resolvedExtDir: string = FileSystemUtil.getDirPath(extDir);
+            const gatewaysExtDir: string = path.join(resolvedExtDir, FileConfigurations.FABRIC_GATEWAYS);
+
+            // create the new registry entry
+            const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gatewayRegistryEntry.name = gateway.name;
+            gatewayRegistryEntry.associatedWallet = gateway.associatedWallet;
+
+            const exists: boolean = await FabricGatewayRegistry.instance().exists(gateway.name);
+
+            if (!exists) {
+                await FabricGatewayRegistry.instance().add(gatewayRegistryEntry);
+            }
+
             if (gateway.connectionProfilePath && gateway.connectionProfilePath.includes(extDir) && !gateway.connectionProfilePath.includes(gatewaysExtDir)) {
-                const newGatewayDir: string = path.join(gatewaysExtDir, gateway.name);
+                const newGatewayDir: string = path.join(gatewaysExtDir, gatewayRegistryEntry.name);
                 try {
                     await fs.copy(gateway.connectionProfilePath, newGatewayDir);
                 } catch (error) {
@@ -204,7 +217,7 @@ export class FabricGatewayHelper {
             delete gateway.connectionProfilePath;
         }
         // Rewrite the updated gateways to the user settings
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, gateways, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.OLD_FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
     }
 
     private static profileName: string = 'connection';

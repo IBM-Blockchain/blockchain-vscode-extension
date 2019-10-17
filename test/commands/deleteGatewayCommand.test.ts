@@ -13,8 +13,6 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs-extra';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -24,13 +22,10 @@ import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayR
 import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
-import { SettingConfigurations } from '../../configurations';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 
 chai.should();
@@ -47,10 +42,9 @@ describe('DeleteGatewayCommand', () => {
     describe('deleteGateway', () => {
 
         let showGatewayQuickPickBoxStub: sinon.SinonStub;
-        let gateways: Array<any>;
+        let gateways: Array<FabricGatewayRegistryEntry>;
         let myGatewayA: any;
         let myGatewayB: any;
-        const rootPath: string = path.dirname(__dirname);
         let logSpy: sinon.SinonSpy;
 
         beforeEach(async () => {
@@ -59,30 +53,23 @@ describe('DeleteGatewayCommand', () => {
             logSpy = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
             // reset the available gateways
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
+            await FabricGatewayRegistry.instance().clear();
 
-            gateways = [];
+            myGatewayA = new FabricGatewayRegistryEntry();
+            myGatewayA.name = 'myGatewayA';
 
-            myGatewayA = {
-                name: 'myGatewayA'
-            };
-            gateways.push(myGatewayA);
+            await FabricGatewayRegistry.instance().add(myGatewayA);
 
-            myGatewayB = {
-                name: 'myGatewayB'
-            };
-            gateways.push(myGatewayB);
+            myGatewayB = new FabricGatewayRegistryEntry();
+            myGatewayB.name = 'myGatewayB';
 
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, gateways, vscode.ConfigurationTarget.Global);
+            await FabricGatewayRegistry.instance().add(myGatewayB);
 
             const gateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayB');
-
             showGatewayQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox').resolves([{
                 label: 'myGatewayB',
                 data: gateway
             }]);
-
-            mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([]);
         });
 
         afterEach(() => {
@@ -93,7 +80,7 @@ describe('DeleteGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
 
-            gateways = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            gateways = await FabricGatewayRegistry.instance().getAll();
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal(myGatewayA);
 
@@ -116,7 +103,7 @@ describe('DeleteGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
 
-            gateways = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            gateways = await FabricGatewayRegistry.instance().getAll();
             gateways.length.should.equal(0);
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteGateway`);
@@ -131,7 +118,7 @@ describe('DeleteGatewayCommand', () => {
             const gatewayToDelete: BlockchainTreeItem = allChildren[0];
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY, gatewayToDelete);
 
-            gateways = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            gateways = await FabricGatewayRegistry.instance().getAll();
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal(myGatewayB);
 
@@ -144,7 +131,7 @@ describe('DeleteGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
 
-            gateways = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            gateways = await FabricGatewayRegistry.instance().getAll();
             gateways.length.should.equal(2);
 
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `deleteGateway`);
@@ -155,7 +142,7 @@ describe('DeleteGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
 
-            gateways = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            gateways = await FabricGatewayRegistry.instance().getAll();
             gateways.length.should.equal(2);
 
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `deleteGateway`);
@@ -176,7 +163,7 @@ describe('DeleteGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
 
-            gateways = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            gateways = await FabricGatewayRegistry.instance().getAll();
             gateways.length.should.equal(2);
             gateways[0].should.deep.equal(myGatewayA);
             gateways[1].should.deep.equal(myGatewayB);
@@ -185,71 +172,49 @@ describe('DeleteGatewayCommand', () => {
         });
 
         it('should delete the local gateway directory if the extension owns it', async () => {
-            const myGatewayC: FabricGatewayRegistryEntry = {
-                name: 'myGatewayC',
-                associatedWallet: ''
-            };
-            gateways.push(myGatewayC);
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, gateways, vscode.ConfigurationTarget.Global);
+            const myGatewayC: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            myGatewayC.name = 'myGatewayC';
 
-            const gatewayC: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayC');
+            await FabricGatewayRegistry.instance().add(myGatewayC);
+
             showGatewayQuickPickBoxStub.resolves([{
                 label: 'myGatewayC',
-                data: gatewayC
+                data: myGatewayC
             }]);
 
-            const getDirPathStub: sinon.SinonStub = mySandBox.stub(FileSystemUtil, 'getDirPath').returns('fabric-vscode');
-            const fsRemoveStub: sinon.SinonStub = mySandBox.stub(fs, 'remove').resolves();
-
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
-            gateways = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            gateways = await FabricGatewayRegistry.instance().getAll();
             gateways.length.should.equal(2);
             gateways[0].should.deep.equal(myGatewayA);
             gateways[1].should.deep.equal(myGatewayB);
-
-            getDirPathStub.should.have.been.calledOnce;
-            fsRemoveStub.should.have.been.calledOnceWith(path.join('fabric-vscode', 'gateways', 'myGatewayC'));
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteGateway`);
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ${myGatewayC.name} gateway`);
         });
 
         it('should delete multiple local gateway directories if the extension owns it', async () => {
-            const myGatewayC: any = {
-                name: 'myGatewayC',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json')
-            };
+            const myGatewayC: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            myGatewayC.name = 'myGatewayC';
 
-            const myGatewayD: any = {
-                name: 'myGatewayD',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionThree/connection.json')
-            };
-            gateways.push(myGatewayC);
-            gateways.push(myGatewayD);
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, gateways, vscode.ConfigurationTarget.Global);
+            const myGatewayD: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            myGatewayD.name = 'myGatewayD';
 
-            const gatewayOne: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayC');
-            const gatewayTwo: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayD');
+            await FabricGatewayRegistry.instance().add(myGatewayC);
+            await FabricGatewayRegistry.instance().add(myGatewayD);
 
             showGatewayQuickPickBoxStub.resolves([{
                 label: 'myGatewayC',
-                data: gatewayOne
+                data: myGatewayC
             }, {
                 label: 'myGatewayD',
-                data: gatewayTwo
+                data: myGatewayD
             }]);
 
-            const getDirPathStub: sinon.SinonStub = mySandBox.stub(FileSystemUtil, 'getDirPath').returns('fabric-vscode');
-            const fsRemoveStub: sinon.SinonStub = mySandBox.stub(fs, 'remove').resolves();
-
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
-            gateways = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            gateways = await FabricGatewayRegistry.instance().getAll();
             gateways.length.should.equal(2);
             gateways[0].should.deep.equal(myGatewayA);
             gateways[1].should.deep.equal(myGatewayB);
-
-            getDirPathStub.should.have.been.calledOnce;
-            fsRemoveStub.should.have.been.calledTwice;
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteGateway`);
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted gateways`);

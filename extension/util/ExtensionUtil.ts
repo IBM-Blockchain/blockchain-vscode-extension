@@ -30,7 +30,6 @@ import { deleteGateway } from '../commands/deleteGatewayCommand';
 import { deleteIdentity } from '../commands/deleteIdentityCommand';
 import { deleteSmartContractPackage } from '../commands/deleteSmartContractPackageCommand';
 import { dissociateWallet } from '../commands/dissociateWalletCommand';
-import { editGatewayCommand } from '../commands/editGatewayCommand';
 import { exportConnectionProfile } from '../commands/exportConnectionProfileCommand';
 import { exportSmartContractPackage } from '../commands/exportSmartContractPackageCommand';
 import { exportWallet } from '../commands/exportWalletCommand';
@@ -106,6 +105,7 @@ import { ReactView } from '../webview/ReactView';
 import { FileRegistry } from '../registries/FileRegistry';
 import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
 import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
+import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -176,9 +176,9 @@ export class ExtensionUtil {
         // Migrate Fabric gateways
         const oldGateways: any = vscode.workspace.getConfiguration().get('fabric.gateways');
         if (oldGateways !== undefined) {
-            const newGateways: any = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const newGateways: any = vscode.workspace.getConfiguration().get(SettingConfigurations.OLD_FABRIC_GATEWAYS);
             if (oldGateways && newGateways.length === 0) {
-                await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, oldGateways, vscode.ConfigurationTarget.Global);
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.OLD_FABRIC_GATEWAYS, oldGateways, vscode.ConfigurationTarget.Global);
             }
         }
 
@@ -287,7 +287,6 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT, () => FabricEnvironmentManager.instance().disconnect()));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, (peerTreeItem?: PeerTreeItem, peerNames?: Set<string>, chosenPackge?: PackageRegistryEntry) => installSmartContract(peerTreeItem, peerNames, chosenPackge)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, (channelTreeItem?: ChannelTreeItem, channelName?: string, peerNames?: Array<string>) => instantiateSmartContract(channelTreeItem, channelName, peerNames)));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EDIT_GATEWAY, (treeItem: GatewayTreeItem) => editGatewayCommand(treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEST_ALL_SMART_CONTRACT, (chaincode: InstantiatedContractTreeItem) => testSmartContract(true, chaincode)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEST_SMART_CONTRACT, (treeItem: ContractTreeItem | InstantiatedTreeItem) => testSmartContract(false, treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.SUBMIT_TRANSACTION, (transactionTreeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string) => submitTransaction(false, transactionTreeItem, channelName, smartContract)));
@@ -330,9 +329,8 @@ export class ExtensionUtil {
 
         context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async (e: any) => {
 
-            if (e.affectsConfiguration(SettingConfigurations.FABRIC_GATEWAYS) || e.affectsConfiguration(SettingConfigurations.FABRIC_RUNTIME) || e.affectsConfiguration(SettingConfigurations.FABRIC_ENVIRONMENTS)) {
+            if (e.affectsConfiguration(SettingConfigurations.FABRIC_RUNTIME) || e.affectsConfiguration(SettingConfigurations.FABRIC_ENVIRONMENTS)) {
                 try {
-                    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
                     await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 } catch (error) {
                     // ignore error this only happens in tests
@@ -343,6 +341,14 @@ export class ExtensionUtil {
         FabricWalletRegistry.instance().on(FileRegistry.EVENT_NAME, (async (): Promise<void> => {
             try {
                 await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
+            } catch (error) {
+                // ignore error this only happens in tests
+            }
+        }));
+
+        FabricGatewayRegistry.instance().on(FileRegistry.EVENT_NAME, (async (): Promise<void> => {
+            try {
+                await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
             } catch (error) {
                 // ignore error this only happens in tests
             }
