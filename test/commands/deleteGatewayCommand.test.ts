@@ -33,9 +33,10 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 
 describe('DeleteGatewayCommand', () => {
-    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
+    let mySandBox: sinon.SinonSandbox;
     let showConfirmationWarningMessage: sinon.SinonStub;
     before(async () => {
+        mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
     });
 

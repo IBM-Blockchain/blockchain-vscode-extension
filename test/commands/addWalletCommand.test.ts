@@ -33,7 +33,7 @@ const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
 describe('AddWalletCommand', () => {
-    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
+    let mySandBox: sinon.SinonSandbox;
     let logSpy: sinon.SinonSpy;
     let showInputBoxStub: sinon.SinonStub;
     let browseStub: sinon.SinonStub;
@@ -43,6 +43,7 @@ describe('AddWalletCommand', () => {
     let executeCommandStub: sinon.SinonStub;
 
     before(async () => {
+        mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
     });
 

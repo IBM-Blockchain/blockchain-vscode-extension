@@ -27,6 +27,7 @@ import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
 
 chai.should();
 
@@ -47,8 +48,8 @@ describe('startFabricRuntime', () => {
     });
 
     beforeEach(async () => {
-        await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
+        await FabricEnvironmentRegistry.instance().clear();
         await runtimeManager.initialize();
         mockRuntime = sandbox.createStubInstance(FabricRuntime);
         mockRuntime.isGenerated.resolves(true);

@@ -25,10 +25,10 @@ import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDe
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
-import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { GlobalState } from '../../extension/util/GlobalState';
 import { FabricChaincode } from '../../extension/fabric/FabricChaincode';
+import { TestUtil } from '../TestUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -59,9 +59,15 @@ class TestFabricDebugConfigurationProvider extends FabricDebugConfigurationProvi
 // tslint:disable no-unused-expression
 describe('FabricDebugConfigurationProvider', () => {
 
-    describe('resolveDebugConfiguration', () => {
+    let mySandbox: sinon.SinonSandbox;
 
-        let mySandbox: sinon.SinonSandbox;
+    before(async () => {
+        mySandbox = sinon.createSandbox();
+        await TestUtil.setupTests(mySandbox);
+        await FabricRuntimeManager.instance().getRuntime().create();
+    });
+
+    describe('resolveDebugConfiguration', () => {
         let fabricDebugConfig: TestFabricDebugConfigurationProvider;
         let workspaceFolder: any;
         let debugConfig: any;
@@ -76,8 +82,6 @@ describe('FabricDebugConfigurationProvider', () => {
         let environmentRegistry: FabricEnvironmentRegistryEntry;
 
         beforeEach(() => {
-            mySandbox = sinon.createSandbox();
-
             fabricDebugConfig = new TestFabricDebugConfigurationProvider();
 
             runtimeStub = mySandbox.createStubInstance(FabricRuntime);
@@ -112,7 +116,6 @@ describe('FabricDebugConfigurationProvider', () => {
             environmentRegistry = new FabricEnvironmentRegistryEntry();
             environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             environmentRegistry.managedRuntime = true;
-            environmentRegistry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
             getEnvironmentRegistryStub = mySandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
 

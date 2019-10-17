@@ -39,7 +39,7 @@ chai.use(sinonChai);
 
 describe('deleteIdentityCommand', () => {
 
-    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
+    let mySandBox: sinon.SinonSandbox;
     let logSpy: sinon.SinonSpy;
     let showConfirmationWarningMessage: sinon.SinonStub;
     let fsRemoveStub: sinon.SinonStub;
@@ -54,6 +54,7 @@ describe('deleteIdentityCommand', () => {
     let getWalletStub: sinon.SinonStub;
 
     before(async () => {
+        mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
     });
 

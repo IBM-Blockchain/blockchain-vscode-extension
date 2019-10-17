@@ -27,6 +27,7 @@ describe('FabricWalletRegistry', () => {
 
     before(async () => {
         await TestUtil.setupTests();
+        await FabricRuntimeManager.instance().getRuntime().create();
     });
 
     beforeEach(async () => {
