@@ -22,7 +22,6 @@ import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryE
 import { MetadataUtil } from '../util/MetadataUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { FabricCertificate } from '../fabric/FabricCertificate';
 import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
@@ -133,17 +132,9 @@ export class UserInputUtil {
             placeHolder: prompt
         };
 
-        const allEnvironments: Array<FabricEnvironmentRegistryEntry> = [];
+        const environments: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(showLocalFabric);
 
-        if (showLocalFabric) {
-            const runtimeEnvironment: FabricEnvironmentRegistryEntry = await FabricRuntimeManager.instance().getEnvironmentRegistryEntry();
-            allEnvironments.push(runtimeEnvironment);
-        }
-
-        const environments: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
-        allEnvironments.push(...environments);
-
-        const environmentsQuickPickItems: Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> = allEnvironments.map((environment: FabricEnvironmentRegistryEntry) => {
+        const environmentsQuickPickItems: Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> = environments.map((environment: FabricEnvironmentRegistryEntry) => {
             let label: string = environment.name;
             if (environment.name === FabricRuntimeUtil.LOCAL_FABRIC) {
                 label = FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;

@@ -45,7 +45,6 @@ import { FabricNode } from '../../extension/fabric/FabricNode';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
-import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
 import { EnvironmentConnectedTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/EnvironmentConnectedTreeItem';
@@ -58,9 +57,14 @@ const should: Chai.Should = chai.should();
 
 // tslint:disable no-unused-expression
 describe('environmentExplorer', () => {
-    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
+    let mySandBox: sinon.SinonSandbox;
     before(async () => {
+        mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
+    });
+
+    after(() => {
+        mySandBox.restore();
     });
 
     describe('getChildren', () => {
@@ -72,8 +76,6 @@ describe('environmentExplorer', () => {
                 mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns(undefined);
 
                 logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-
-                await ExtensionUtil.activateExtension();
 
                 executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
             });
@@ -94,6 +96,8 @@ describe('environmentExplorer', () => {
                 await FabricEnvironmentRegistry.instance().clear();
                 await FabricEnvironmentRegistry.instance().add(registryEntryOne);
                 await FabricEnvironmentRegistry.instance().add(registryEntryTwo);
+
+                await FabricRuntimeManager.instance().getRuntime().create();
 
                 const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = mySandBox.createStubInstance(FabricRuntime);
                 mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
@@ -143,7 +147,6 @@ describe('environmentExplorer', () => {
                 const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
                 environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
                 environmentRegistry.managedRuntime = true;
-                environmentRegistry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
                 environmentRegistryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry');
                 environmentRegistryStub.returns(environmentRegistry);
@@ -385,7 +388,6 @@ describe('environmentExplorer', () => {
                 const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
                 environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
                 environmentRegistry.managedRuntime = true;
-                environmentRegistry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
                 environmentStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
 
@@ -531,7 +533,6 @@ describe('environmentExplorer', () => {
             it('should show peers, certificate authorities, and orderer nodes correctly with none local fabric', async () => {
                 const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
                 environmentRegistry.name = 'myEnvironment';
-                environmentRegistry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
                 environmentStub.returns(environmentRegistry);
 
@@ -894,7 +895,6 @@ describe('environmentExplorer', () => {
             registryEntry = new FabricEnvironmentRegistryEntry();
             registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             registryEntry.managedRuntime = true;
-            registryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
             mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(registryEntry);
         });
 
@@ -997,15 +997,10 @@ describe('environmentExplorer', () => {
 
     describe('getTreeItem', () => {
 
-        beforeEach(async () => {
-            await ExtensionUtil.activateExtension();
-        });
-
-        afterEach(() => {
-            mySandBox.restore();
-        });
-
         it('should get a tree item', async () => {
+
+            await FabricRuntimeManager.instance().getRuntime().create();
+
             mySandBox.stub(FabricRuntimeManager.instance().getRuntime(), 'isRunning').resolves(false);
             const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren();

@@ -38,9 +38,10 @@ const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
 describe('AssociateWalletCommand', () => {
-    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
+    let mySandBox: sinon.SinonSandbox;
 
     before(async () => {
+        mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
     });
 

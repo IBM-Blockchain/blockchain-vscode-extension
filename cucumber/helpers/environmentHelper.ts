@@ -27,7 +27,6 @@ import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
-import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
 import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
 import { FabricNode } from '../../extension/fabric/FabricNode';
@@ -126,7 +125,6 @@ export class EnvironmentHelper {
             registryEntry = new FabricEnvironmentRegistryEntry();
             registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             registryEntry.managedRuntime = true;
-            registryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
         } else {
             registryEntry = await FabricEnvironmentRegistry.instance().get(environment);
         }

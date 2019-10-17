@@ -35,7 +35,6 @@ import { Reporter } from '../../extension/util/Reporter';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
-import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
@@ -84,7 +83,6 @@ describe('InstantiateCommand', () => {
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             environmentRegistryEntry.managedRuntime = true;
-            environmentRegistryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
             environmentRegistryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistryEntry);
 

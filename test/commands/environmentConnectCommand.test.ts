@@ -31,7 +31,6 @@ import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
-import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { FabricEnvironmentTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { RuntimeTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
@@ -44,9 +43,10 @@ chai.use(require('chai-as-promised'));
 
 // tslint:disable no-unused-expression
 describe('EnvironmentConnectCommand', () => {
-    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
+    let mySandBox: sinon.SinonSandbox;
 
     before(async () => {
+        mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
     });
 
@@ -55,7 +55,7 @@ describe('EnvironmentConnectCommand', () => {
         let mockConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
         let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
         let logSpy: sinon.SinonSpy;
-        let otherRegistryEntry: FabricEnvironmentRegistryEntry;
+        let environmentRegistryEntry: FabricEnvironmentRegistryEntry;
         let localFabricRegistryEntry: FabricEnvironmentRegistryEntry;
 
         let chooseEnvironmentQuickPick: sinon.SinonStub;
@@ -76,18 +76,16 @@ describe('EnvironmentConnectCommand', () => {
 
             mySandBox.stub(FabricConnectionFactory, 'createFabricEnvironmentConnection').returns(mockConnection);
 
-            otherRegistryEntry = new FabricEnvironmentRegistryEntry();
-            otherRegistryEntry.name = 'myFabric';
-            otherRegistryEntry.managedRuntime = false;
+            environmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            environmentRegistryEntry.name = 'myFabric';
+            environmentRegistryEntry.managedRuntime = false;
 
             await FabricEnvironmentRegistry.instance().clear();
-            await FabricEnvironmentRegistry.instance().add(otherRegistryEntry);
+            await FabricEnvironmentRegistry.instance().add(environmentRegistryEntry);
 
-            localFabricRegistryEntry = new FabricEnvironmentRegistryEntry({
-                name: FabricRuntimeUtil.LOCAL_FABRIC,
-                managedRuntime: true,
-                associatedWallet: FabricWalletUtil.LOCAL_WALLET
-            });
+            await FabricRuntimeManager.instance().getRuntime().create();
+
+            localFabricRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
 
             mockRuntime = mySandBox.createStubInstance(FabricRuntime);
             mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
@@ -95,7 +93,6 @@ describe('EnvironmentConnectCommand', () => {
             mockRuntime.isRunning.resolves(true);
             mockRuntime.start.resolves();
             mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
-            mySandBox.stub(FabricRuntimeManager.instance(), 'getEnvironmentRegistryEntry').returns(localFabricRegistryEntry);
 
             requireSetupStub = mySandBox.stub(FabricEnvironment.prototype, 'requireSetup').resolves(false);
 
@@ -117,17 +114,6 @@ describe('EnvironmentConnectCommand', () => {
         });
 
         describe('non-local fabric', () => {
-
-            let environmentRegistryEntry: FabricEnvironmentRegistryEntry;
-
-            beforeEach(async () => {
-                environmentRegistryEntry = new FabricEnvironmentRegistryEntry();
-                environmentRegistryEntry.name = 'myFabric';
-                environmentRegistryEntry.managedRuntime = false;
-
-                await FabricEnvironmentRegistry.instance().clear();
-                await FabricEnvironmentRegistry.instance().add(environmentRegistryEntry);
-            });
 
             it('should test a fabric environment can be connected to from the command', async () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);

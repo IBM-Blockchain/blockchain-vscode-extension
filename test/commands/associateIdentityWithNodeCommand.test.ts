@@ -24,7 +24,6 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../extension/logging/OutputAdapter';
-import { SettingConfigurations } from '../../configurations';
 import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricNode, FabricNodeType } from '../../extension/fabric/FabricNode';
@@ -41,9 +40,10 @@ import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric
 chai.use(sinonChai);
 
 describe('AssociateIdentityWithNodeCommand', () => {
-    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
+    let mySandBox: sinon.SinonSandbox;
 
     before(async () => {
+        mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
     });
 
@@ -73,14 +73,12 @@ describe('AssociateIdentityWithNodeCommand', () => {
 
         beforeEach(async () => {
 
-            // reset the stored environments and wallets
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_ENVIRONMENTS, [], vscode.ConfigurationTarget.Global);
+            await FabricEnvironmentRegistry.instance().clear();
             await FabricWalletRegistry.instance().clear();
 
             environmentRegistryEntry = new FabricEnvironmentRegistryEntry({
                 name: 'myEnvironment',
-                managedRuntime: false,
-                associatedWallet: undefined
+                managedRuntime: false
             });
 
             await FabricEnvironmentRegistry.instance().clear();

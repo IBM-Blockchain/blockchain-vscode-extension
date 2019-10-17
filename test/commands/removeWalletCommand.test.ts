@@ -83,6 +83,7 @@ describe('removeWalletCommand', () => {
         await FabricWalletRegistry.instance().add(createdWallet);
 
         await FabricGatewayRegistry.instance().clear();
+
         await FabricGatewayRegistry.instance().add({ name: 'gatewayA', associatedWallet: 'blueWallet' });
         await FabricGatewayRegistry.instance().add({ name: 'gatewayB', associatedWallet: 'blueWallet' });
         await FabricGatewayRegistry.instance().add({ name: 'gatewayC', associatedWallet: 'greenWallet' });

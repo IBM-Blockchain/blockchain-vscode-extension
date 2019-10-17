@@ -49,10 +49,12 @@ import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper'
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
 describe('AddWalletIdentityCommand', () => {
-    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
+    let mySandBox: sinon.SinonSandbox;
 
     before(async () => {
+        mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
+        await FabricRuntimeManager.instance().getRuntime().create();
     });
 
     describe('addWalletIdentity', () => {

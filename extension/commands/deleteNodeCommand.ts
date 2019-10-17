@@ -38,7 +38,7 @@ export async function deleteNode(nodeTreeItem: NodeTreeItem): Promise<void> {
             // If called from command palette
             // Ask for environment to delete
             // First check there is at least one that isn't local_fabric
-            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll(false);
             if (environments.length === 0) {
                 outputAdapter.log(LogType.ERROR, `No environments to choose from. Nodes from ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be deleted.`);
                 return;

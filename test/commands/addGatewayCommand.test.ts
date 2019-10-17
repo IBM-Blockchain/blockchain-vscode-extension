@@ -35,7 +35,7 @@ chai.use(sinonChai);
 
 describe('AddGatewayCommand', () => {
     const rootPath: string = path.dirname(__dirname);
-    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
+    let mySandBox: sinon.SinonSandbox;
 
     let showInputBoxStub: sinon.SinonStub;
     let methodChooserStub: sinon.SinonStub;
@@ -46,6 +46,7 @@ describe('AddGatewayCommand', () => {
     let logSpy: sinon.SinonSpy;
 
     before(async () => {
+        mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
     });
 

@@ -17,7 +17,7 @@ import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
 import { EventEmitter } from 'events';
 import { FabricNode, FabricNodeType } from './FabricNode';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations, FileConfigurations } from '../../configurations';
 import { FileSystemUtil } from '../util/FileSystemUtil';
 
 export class FabricEnvironment extends EventEmitter {
@@ -30,7 +30,7 @@ export class FabricEnvironment extends EventEmitter {
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const resolvedExtDir: string = FileSystemUtil.getDirPath(extDir);
         this.name = name;
-        this.path = path.join(resolvedExtDir, 'environments', name);
+        this.path = path.join(resolvedExtDir, FileConfigurations.FABRIC_ENVIRONMENTS, name);
     }
 
     public getName(): string {
