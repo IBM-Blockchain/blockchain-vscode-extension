@@ -12,11 +12,11 @@
  * limitations under the License.
 */
 
-import { SettingsRegistry } from './SettingsRegistry';
+import { FileRegistry } from './FileRegistry';
 import { RepositoryRegistryEntry } from './RepositoryRegistryEntry';
-import { SettingConfigurations } from '../../configurations';
+import { FileConfigurations } from '../../configurations';
 
-export class RepositoryRegistry extends SettingsRegistry<RepositoryRegistryEntry> {
+export class RepositoryRegistry extends FileRegistry<RepositoryRegistryEntry> {
 
     public static instance(): RepositoryRegistry {
         return RepositoryRegistry._instance;
@@ -25,6 +25,7 @@ export class RepositoryRegistry extends SettingsRegistry<RepositoryRegistryEntry
     private static _instance: RepositoryRegistry = new RepositoryRegistry();
 
     private constructor() {
-        super(SettingConfigurations.EXTENSION_REPOSITORIES);
+        super(FileConfigurations.REPOSITORIES);
     }
+
 }
