@@ -33,7 +33,9 @@ To enable VS Code to connect to a node an admin identity needs be provided. Thes
 
 1. Navigate to the `Wallet` panel, then click on an identity for the `Org1`, and click export. If you followed the tutorial the there should be an identity called `Org1 Admin`.
 
-2. Click on the identity for the `Orderer`. If you followed the tutorial the there should be an identity called `Orderer Admin`.
+2. Click on the identity for the `Orderer`, and click export. If you followed the tutorial there should be an identity called `Orderer Admin`.
+
+3. Click on the identity for the `Certificate Authority`, and click export. If you followed the tutorial there should be an identity called `Org1 CA Admin`.
 </details>
 
 --- 
@@ -52,7 +54,7 @@ The identities that were exported need to be imported into VS Code. First we wil
 
 5. You will then be asked for the method for adding an identity chose `Provide JSON identity file from IBM Blockchain Platform`.
 
-6. Browse to the location of the admin file you exported previously and select the JSON file.
+6. Browse to the location of the previously exported `Org1 Admin` file and select it.
 
 You will now have a new wallet called `ibp-wallet` containing the `Org1 Admin` identity. Now we need to add the identity for the orderer.
 
@@ -64,9 +66,20 @@ You will now have a new wallet called `ibp-wallet` containing the `Org1 Admin` i
 
 4. You will then be asked for the method for adding an identity chose `Provide JSON identity file from IBM Blockchain Plaform`.
 
-6. Browse to the location of the admin file you exported previously and select the JSON file.
- 
-You may be wondering why we don't have an identity file for the certificate authority. This is because the JSON for the certificate authority contains `enroll id` and `enroll secret` properties. These can be used to connect to the certificate authority node.
+6. Browse to the location of the previously exported `Orderer Admin` file and select it.
+
+Finally you now need to add the identity for the certificate authority
+
+1. On the `Wallets` panel right click on `ibp-wallet` and choose `Add identity to wallet`.
+
+2. You will then be asked to provide a name for the identity. Enter `Org1 CA Admin` here.
+
+3. You will then be asked to provide an MSPID. Use `org1msp` here.
+
+4. You will then be asked for the method for adding an identity, select `Provide JSON identity file from IBM Blockchain Plaform`.
+
+6. Browse to the location of the previously exported `Org1 CA Admin` file and select it.
+
 </details>
 
 ---
@@ -116,13 +129,11 @@ The final node to setup is the certificate authority.
 
 1. Click on `Org1 CA`.
 
-2. You will then be told that the node includes an enrollment id and secret. Select `Use ID and secret to enroll a new identity`.
+2. You will then be asked which wallet to add the identity to, select `ibp-wallet`.
 
-3. You will then be asked which wallet to add the identity to, select `ibp-wallet`.
+3. You will then be asked to provide a name for the identity, use `Org1 CA Admin`.
 
-4. You will then be asked to provide a name for the identity, use `Org1 CA Admin`.
-
-5. You will then be asked for an MSPID, use `org1msp`.
+4. You will then be asked if you want to associate the identity with other nodes, select `No`.
 
 Now all the nodes will have been successfully associated with an identity. VS Code will now connect to the environment and you will see the installed and instantiated smart contracts.
 
