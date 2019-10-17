@@ -51,6 +51,15 @@ describe('VSCodeBlockchainOutputAdapter', () => {
             outputAdapter.log(LogType.ERROR, 'hello world');
             outputSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, 'hello world', undefined);
         });
+
+        it('should log to the output channel with stack trace', () => {
+            const error: Error = new Error('some error');
+            const outputSpy: sinon.SinonSpy = sandbox.spy(outputAdapter, 'appendLine');
+            outputAdapter.log(LogType.ERROR, 'hello world', undefined, error.stack);
+            outputSpy.should.have.been.calledTwice;
+            outputSpy.firstCall.should.have.been.calledWithExactly(LogType.ERROR, 'hello world', undefined);
+            outputSpy.secondCall.should.have.been.calledWith(LogType.ERROR, error.stack);
+        });
     });
 
     describe('#show', () => {

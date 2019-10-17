@@ -23,13 +23,27 @@ export enum LogType {
 
 // tslint:disable no-console
 export abstract class OutputAdapter {
-    public log(type: LogType, popupMessage: string, outputMessage?: string): void {
+    public log(type: LogType, popupMessage: string, outputMessage?: string, stackTrace?: string): void {
         if (type === LogType.ERROR) {
-            console.error(popupMessage);
-            console.error(outputMessage);
+            if (popupMessage) {
+                console.error(popupMessage);
+            }
+
+            if (outputMessage) {
+                console.error(outputMessage);
+            }
+
+            if (stackTrace) {
+                console.error(stackTrace);
+            }
         } else {
-            console.log(popupMessage);
-            console.log(outputMessage);
+            if (popupMessage) {
+                console.log(popupMessage);
+            }
+
+            if (outputMessage) {
+                console.log(outputMessage);
+            }
         }
     }
 }
