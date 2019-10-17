@@ -22,13 +22,13 @@ stages:
             linux:
               imageName: 'ubuntu-16.04'
               VERSION: '1.35.1'
-              MODULES: '64'
+              MODULES: 64
               ELECTRON: '3.0'
               TARGET: '3.0.0'
             mac:
               imageName: 'macos-10.14'
               VERSION: '1.35.1'
-              MODULES: '64'
+              MODULES: 64
               ELECTRON: '3.0'
               TARGET: '3.0.0'
         pool:
@@ -70,13 +70,13 @@ stages:
             linux:
               imageName: 'ubuntu-16.04'
               VERSION: '1.35.1'
-              MODULES: '64'
+              MODULES: 64
               ELECTRON: '3.0'
               TARGET: '3.0.0'
             mac:
               imageName: 'macos-10.14'
               VERSION: '1.35.1'
-              MODULES: '64'
+              MODULES: 64
               ELECTRON: '3.0'
               TARGET: '3.0.0'
         pool:
@@ -97,13 +97,13 @@ stages:
             linux:
               imageName: 'ubuntu-16.04'
               VERSION: '1.35.1'
-              MODULES: '64'
+              MODULES: 64
               ELECTRON: '3.0'
               TARGET: '3.0.0'
             mac:
               imageName: 'macos-10.14'
               VERSION: '1.35.1'
-              MODULES: '64'
+              MODULES: 64
               ELECTRON: '3.0'
               TARGET: '3.0.0'
         pool:
@@ -205,15 +205,15 @@ stages:
             insiders_linux:
               imageName: 'ubuntu-16.04'
               VERSION: 'insiders'
-              MODULES: '69'
-              ELECTRON: '4.1'
-              TARGET: '4.1.5'
+              MODULES: 73
+              ELECTRON: '6.0'
+              TARGET: '6.0.12'
             insiders_mac:
               imageName: 'macos-10.14'
               VERSION: 'insiders'
-              MODULES: '69'
-              ELECTRON: '4.1'
-              TARGET: '4.1.5'
+              MODULES: 73
+              ELECTRON: '6.0'
+              TARGET: '6.0.12'
         pool:
           vmImage: $(imageName)
 
