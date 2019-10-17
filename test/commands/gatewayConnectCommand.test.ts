@@ -81,7 +81,7 @@ describe('GatewayConnectCommand', () => {
 
         beforeEach(async () => {
 
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_CLIENT_TIMEOUT, timeout, vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_CLIENT_TIMEOUT, timeout,  vscode.ConfigurationTarget.Global);
 
             mockConnection = mySandBox.createStubInstance(FabricClientConnection);
             mockConnection.connect.resolves();
@@ -110,6 +110,8 @@ describe('GatewayConnectCommand', () => {
             await FabricGatewayRegistry.instance().add(connectionSingle);
             await FabricGatewayRegistry.instance().add(connectionMultiple);
             await FabricGatewayRegistry.instance().add(connectionAssociated);
+
+            await FabricRuntimeManager.instance().getRuntime().importGateways();
 
             mySandBox.stub(FabricGatewayHelper, 'getConnectionProfilePath').resolves(path.join('myPath'));
 
@@ -145,12 +147,6 @@ describe('GatewayConnectCommand', () => {
             mockRuntime.isRunning.resolves(true);
             mockRuntime.start.resolves();
             mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
-            mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([
-                new FabricGatewayRegistryEntry({
-                    name: FabricRuntimeUtil.LOCAL_FABRIC,
-                    associatedWallet: FabricWalletUtil.LOCAL_WALLET
-                })
-            ]);
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             walletGenerator = await FabricWalletGenerator.instance();
@@ -162,16 +158,14 @@ describe('GatewayConnectCommand', () => {
             };
             choseIdentityQuickPick = mySandBox.stub(UserInputUtil, 'showIdentitiesQuickPickBox').resolves(identity.label);
 
-            const gatewayA: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayA');
             chosenGatewayQuickPick = mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox').resolves({
                 label: 'myGatewayA',
-                data: gatewayA
+                data: connectionSingle
             });
 
-            const wallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('myGatewayAWallet');
             chosenWalletQuickPick = mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox').resolves({
                 label: 'myGatewayAWallet',
-                data: wallet
+                data: connectionSingleWallet
             });
 
             sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
@@ -293,6 +287,8 @@ describe('GatewayConnectCommand', () => {
             it('should test that a fabric gateway with multiple identities can be connected to from the tree', async () => {
                 const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
+                chosenWalletQuickPick.resolves({label: connectionMultipleWallet.name, data: connectionMultipleWallet});
+                choseIdentityQuickPick.resolves(FabricRuntimeUtil.ADMIN_USER);
 
                 const myConnectionItem: GatewayDissociatedTreeItem = allChildren[2] as GatewayDissociatedTreeItem;
 
@@ -301,7 +297,7 @@ describe('GatewayConnectCommand', () => {
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
                 connectStub.should.have.been.calledOnce;
-                choseIdentityQuickPick.should.not.have.been.called;
+                choseIdentityQuickPick.should.have.been.called;
                 mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), FabricRuntimeUtil.ADMIN_USER, timeout);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
             });

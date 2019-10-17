@@ -35,6 +35,10 @@ module.exports = function(): any {
      */
 
     this.Given("the gateway '{string}' is created", this.timeout, async (gateway: string) => {
+        if (gateway === FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME) {
+            gateway = FabricRuntimeUtil.LOCAL_FABRIC;
+        }
+
         this.gateway = gateway;
 
         await this.gatewayHelper.createGateway(gateway);

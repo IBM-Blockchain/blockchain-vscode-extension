@@ -29,8 +29,6 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../extension/logging/OutputAdapter';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
-import { SettingConfigurations } from '../../configurations';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
@@ -52,11 +50,8 @@ describe('AssociateWalletCommand', () => {
         let logSpy: sinon.SinonSpy;
         let showWalletsQuickPickBoxStub: sinon.SinonStub;
         let showGatewayQuickPickBoxStub: sinon.SinonStub;
-        let fabricGatewayRegistryUpdateStub: sinon.SinonStub;
-        beforeEach(async () => {
 
-            // reset the stored gateways and wallets
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
+        beforeEach(async () => {
 
             await FabricWalletRegistry.instance().clear();
 
@@ -77,12 +72,9 @@ describe('AssociateWalletCommand', () => {
             await FabricWalletRegistry.instance().add(connectionOneWallet);
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            fabricGatewayRegistryUpdateStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'update');
-            fabricGatewayRegistryUpdateStub.callThrough();
+
             showWalletsQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox');
             showGatewayQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox');
-
-            mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([]);
         });
 
         afterEach(async () => {
@@ -101,10 +93,8 @@ describe('AssociateWalletCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_WALLET, gatewayTreeItem);
 
-            fabricGatewayRegistryUpdateStub.should.have.been.calledOnceWithExactly({
-                name: 'myGateway',
-                associatedWallet: 'blueWallet'
-            });
+            const result: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGateway');
+            result.associatedWallet.should.equal('blueWallet');
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateWallet');
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated "blueWallet" wallet with "myGateway" gateway`);
@@ -145,7 +135,8 @@ describe('AssociateWalletCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_WALLET, gatewayTreeItem);
 
-            fabricGatewayRegistryUpdateStub.should.not.have.been.called;
+            const result: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGateway');
+            result.associatedWallet.should.equal('');
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateWallet');
             should.not.exist(logSpy.getCall(1));
@@ -165,10 +156,8 @@ describe('AssociateWalletCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_WALLET);
 
-            fabricGatewayRegistryUpdateStub.should.have.been.calledOnceWithExactly({
-                name: 'myGateway',
-                associatedWallet: 'blueWallet'
-            });
+            const result: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGateway');
+            result.associatedWallet.should.equal('blueWallet');
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateWallet');
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated "blueWallet" wallet with "myGateway" gateway`);
@@ -179,7 +168,8 @@ describe('AssociateWalletCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_WALLET);
 
-            fabricGatewayRegistryUpdateStub.should.not.have.been.called;
+            const result: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGateway');
+            result.associatedWallet.should.equal('');
             showWalletsQuickPickBoxStub.should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateWallet');
@@ -188,7 +178,8 @@ describe('AssociateWalletCommand', () => {
 
         it('should throw an error if unable to update a gateway with the associated wallet', async () => {
             const error: Error = new Error('cannot write to file');
-            fabricGatewayRegistryUpdateStub.throws(error);
+
+            mySandBox.stub(FabricGatewayRegistry.instance(), 'update').rejects(error);
 
             const gateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGateway');
 
@@ -203,12 +194,7 @@ describe('AssociateWalletCommand', () => {
                 data: wallet
             });
 
-            await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_WALLET).should.have.rejectedWith(`Unable to associate wallet: ${error.message}`);
-
-            fabricGatewayRegistryUpdateStub.should.have.been.calledOnceWithExactly({
-                name: 'myGateway',
-                associatedWallet: 'blueWallet'
-            });
+            await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_WALLET);
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateWallet');
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Unable to associate wallet: ${error.message}`, `Unable to associate wallet: ${error.toString()}`);

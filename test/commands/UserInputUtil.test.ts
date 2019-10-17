@@ -39,7 +39,7 @@ import { FabricClientConnection } from '../../extension/fabric/FabricClientConne
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { FabricNode, FabricNodeType } from '../../extension/fabric/FabricNode';
-import { SettingConfigurations, FileConfigurations } from '../../configurations';
+import { FileConfigurations } from '../../configurations';
 import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
@@ -71,35 +71,6 @@ describe('UserInputUtil', () => {
 
     const env: NodeJS.ProcessEnv = Object.assign({}, process.env);
 
-    const mockDocument: any = {
-        getText: (): any => {
-            return `{
-            "fabric.connections": [
-                {
-                    "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json",
-                    "name": "one",
-                    "walletPath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/walletDir/wallet"
-                },
-                {
-                    "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json",
-                    "name": "two",
-                    "walletPath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/walletDir/wallet"
-                }
-            ],
-            "${SettingConfigurations.FABRIC_GATEWAYS}": [
-                {
-                    "name": "one",
-                    "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json"
-                },
-                {
-                    "name": "two",
-                    "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json"
-                }
-            ]
-        }`;
-        }
-    };
-
     before(async () => {
         await TestUtil.setupTests(mySandBox);
     });
@@ -120,6 +91,9 @@ describe('UserInputUtil', () => {
         await gatewayRegistry.add(gatewayEntryOne);
         await gatewayRegistry.add(gatewayEntryTwo);
 
+        // add the local gateway back in
+        await FabricRuntimeManager.instance().getRuntime().importGateways();
+
         walletEntryOne = new FabricWalletRegistryEntry({
             name: 'purpleWallet',
             walletPath: '/some/path'
@@ -139,7 +113,6 @@ describe('UserInputUtil', () => {
         await walletRegistry.add(walletEntryTwo);
 
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
-        const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
 
         fabricRuntimeConnectionStub = mySandBox.createStubInstance(FabricEnvironmentConnection);
         fabricRuntimeConnectionStub.getAllPeerNames.returns(['myPeerOne', 'myPeerTwo']);
@@ -163,12 +136,6 @@ describe('UserInputUtil', () => {
         fabricClientConnectionStub.getInstantiatedChaincode.withArgs('channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
         getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionStub);
         environmentStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns(fabricRuntimeConnectionStub);
-        mySandBox.stub(fabricRuntimeManager, 'getGatewayRegistryEntries').resolves([
-            new FabricGatewayRegistryEntry({
-                name: FabricRuntimeUtil.LOCAL_FABRIC,
-                associatedWallet: FabricWalletUtil.LOCAL_WALLET
-            })
-        ]);
 
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
     });
@@ -334,15 +301,13 @@ describe('UserInputUtil', () => {
         });
 
         it('should show managed runtime if argument passed', async () => {
-            mySandBox.stub(gatewayRegistry, 'getAll').returns([gatewayEntryOne]);
-
             const managedRuntime: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             managedRuntime.name = FabricRuntimeUtil.LOCAL_FABRIC;
             managedRuntime.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
             quickPickStub.resolves();
             await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', false, true);
-            quickPickStub.should.have.been.calledWith([{ label: FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, data: managedRuntime }, { label: gatewayEntryOne.name, data: gatewayEntryOne }]);
+            quickPickStub.should.have.been.calledWith([{ label: FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, data: managedRuntime }, { label: gatewayEntryOne.name, data: gatewayEntryOne }, {label: gatewayEntryTwo.name, data: gatewayEntryTwo }]);
         });
 
         it('should show any gateways with an associated wallet (associated gateway)', async () => {
@@ -1219,73 +1184,6 @@ describe('UserInputUtil', () => {
             const result: string = await UserInputUtil.showCertificateAuthorityQuickPickBox('Please choose a CA');
             should.not.exist(result);
             logSpy.should.have.been.calledWith(LogType.ERROR, undefined, 'No connection to a blockchain found');
-        });
-    });
-
-    describe('openUserSettings', () => {
-        it('should catch any errors when opening settings', async () => {
-            mySandBox.stub(process, 'platform').value('freebsd');
-            mySandBox.stub(vscode.workspace, 'openTextDocument').rejects({ message: 'error opening file' });
-
-            await UserInputUtil.openUserSettings('one');
-
-            logSpy.should.have.been.calledWith(LogType.ERROR, 'error opening file');
-        });
-
-        it('should throw an error if gateway cannot be found in user settings', async () => {
-
-            mySandBox.stub(process, 'platform').value('linux');
-            mySandBox.stub(path, 'join').returns('/users/test/.config/Code/User/settings.json');
-            const openTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocument);
-            process.env.HOME = '/users/test';
-            const showTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves();
-
-            await UserInputUtil.openUserSettings('three');
-
-            openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/.config/Code/User/settings.json'));
-            showTextDocumentStub.should.have.been.calledOnceWithExactly(mockDocument);
-
-        });
-
-        it('should open user settings for windows', async () => {
-            mySandBox.stub(process, 'platform').value('win32');
-            mySandBox.stub(path, 'join').returns('\\c\\users\\test\\appdata\\Code\\User\\settings.json');
-            const openTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocument);
-
-            const showTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves();
-
-            await UserInputUtil.openUserSettings('one');
-
-            openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('\\c\\users\\test\\appdata\\Code\\User\\settings.json'));
-            showTextDocumentStub.should.have.been.calledOnceWithExactly(mockDocument, { selection: new vscode.Range(new vscode.Position(15, 0), new vscode.Position(17, 0)) });
-        });
-
-        it('should open user settings for mac', async () => {
-            mySandBox.stub(process, 'platform').value('darwin');
-            mySandBox.stub(path, 'join').returns('/users/test/Library/Application Support/Code/User/settings.json');
-            process.env.HOME = '/users/test';
-            const openTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocument);
-
-            const showTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves();
-
-            await UserInputUtil.openUserSettings('one');
-
-            openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/Library/Application Support/Code/User/settings.json'));
-            showTextDocumentStub.should.have.been.calledOnceWithExactly(mockDocument, { selection: new vscode.Range(new vscode.Position(15, 0), new vscode.Position(17, 0)) });
-        });
-
-        it('should open user settings for linux', async () => {
-            mySandBox.stub(process, 'platform').value('linux');
-            mySandBox.stub(path, 'join').returns('/users/test/.config/Code/User/settings.json');
-            process.env.HOME = '/users/test';
-            const openTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocument);
-
-            const showTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves();
-
-            await UserInputUtil.openUserSettings('one');
-
-            openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/.config/Code/User/settings.json'));
-            showTextDocumentStub.should.have.been.calledOnceWithExactly(mockDocument, { selection: new vscode.Range(new vscode.Position(15, 0), new vscode.Position(17, 0)) });
         });
     });
 

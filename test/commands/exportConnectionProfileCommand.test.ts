@@ -57,8 +57,6 @@ describe('exportConnectionProfileCommand', () => {
     });
 
     beforeEach(async () => {
-        await ExtensionUtil.activateExtension();
-
         gatewayRegistryEntry = new FabricGatewayRegistryEntry();
         gatewayRegistryEntry.name = 'myGateway';
 
@@ -71,7 +69,7 @@ describe('exportConnectionProfileCommand', () => {
         const provider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
         const allChildren: BlockchainTreeItem[] = await provider.getChildren();
 
-        gatewayTreeItem = allChildren[1] as GatewayTreeItem;
+        gatewayTreeItem = allChildren[0] as GatewayTreeItem;
 
         workspaceFolder = {
             name: 'myFolder',

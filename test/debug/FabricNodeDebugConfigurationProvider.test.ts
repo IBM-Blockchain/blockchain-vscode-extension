@@ -23,8 +23,6 @@ import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
 import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
 import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
-import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 import { Reporter } from '../../extension/util/Reporter';
 
@@ -63,26 +61,19 @@ describe('FabricNodeDebugConfigurationProvider', () => {
         let runtimeStub: sinon.SinonStubbedInstance<FabricRuntime>;
         let packageEntry: PackageRegistryEntry;
         let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
-        let registryEntry: FabricGatewayRegistryEntry;
         let startDebuggingStub: sinon.SinonStub;
         let sendTelemetryEventStub: sinon.SinonStub;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             mySandbox = sinon.createSandbox();
 
             fabricDebugConfig = new FabricNodeDebugConfigurationProvider();
 
             runtimeStub = mySandbox.createStubInstance(FabricRuntime);
-            runtimeStub.getName.returns('localfabric');
             runtimeStub.getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
-            runtimeStub.getGateways.resolves([{name: 'myGateway', path: 'myPath'}]);
-
-            registryEntry = new FabricGatewayRegistryEntry();
-            registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
 
             mySandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(runtimeStub);
-            mySandbox.stub(FabricGatewayRegistry.instance(), 'get').returns(registryEntry);
 
             const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
@@ -156,7 +147,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
-            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Node' });
         });
 
         it('should add start arg if not in there', async () => {
@@ -176,7 +167,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 },
                 args: ['--peer.address', 'localhost:12345', 'start']
             });
-            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Node' });
         });
 
         it('should set program if not set', async () => {
@@ -196,7 +187,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
-            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Node' });
         });
 
         it('should set program if not set for Windows', async () => {
@@ -216,7 +207,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
-            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Node' });
         });
 
         it('should add cwd if not set', async () => {
@@ -236,7 +227,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
-            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Node' });
         });
 
         it('should add args if not defined', async () => {
@@ -255,7 +246,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 },
                 args: ['start', '--peer.address', '127.0.0.1:54321']
             });
-            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Node' });
         });
 
         it('should add more args if some args exist', async () => {
@@ -274,7 +265,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 },
                 args: ['--myArgs', 'myValue', 'start', '--peer.address', '127.0.0.1:54321']
             });
-            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Node' });
         });
 
         it('should add in request if not defined', async () => {
@@ -293,7 +284,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
-            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Node' });
         });
     });
 });

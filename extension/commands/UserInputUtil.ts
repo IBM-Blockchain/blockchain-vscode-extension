@@ -13,7 +13,6 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import * as homeDir from 'home-dir';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
@@ -31,7 +30,6 @@ import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 import { FabricNode, FabricNodeType } from '../fabric/FabricNode';
-import { SettingConfigurations } from '../../configurations';
 import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
@@ -174,13 +172,7 @@ export class UserInputUtil {
 
         const allGateways: Array<FabricGatewayRegistryEntry> = [];
 
-        if (showManagedRuntime) {
-            // Allow users to choose local_fabric
-            const runtimeGateways: Array<FabricGatewayRegistryEntry> = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
-            allGateways.push(...runtimeGateways);
-        }
-
-        let gateways: Array<FabricGatewayRegistryEntry> = await FabricGatewayRegistry.instance().getAll();
+        let gateways: Array<FabricGatewayRegistryEntry> = await FabricGatewayRegistry.instance().getAll(showManagedRuntime);
 
         if (showAssociatedGateways !== undefined) {
             gateways = gateways.filter((gateway: FabricGatewayRegistryEntry) => {
@@ -493,71 +485,6 @@ export class UserInputUtil {
         };
 
         return vscode.window.showQuickPick(options, quickPickOptions);
-    }
-
-    public static async openUserSettings(name: string): Promise<void> {
-        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-
-        let settingsPath: string;
-
-        try {
-            // Get the 'user settings' file path
-            if (process.platform === 'win32') {
-                // Windows
-                settingsPath = path.join(process.env.APPDATA, 'Code', 'User', 'settings.json');
-            } else if (process.platform === 'darwin') {
-                // Mac
-                settingsPath = path.join(homeDir(), 'Library', 'Application Support', 'Code', 'User', 'settings.json');
-            } else {
-                // Linux
-                settingsPath = path.join(homeDir(), '.config', 'Code', 'User', 'settings.json');
-            }
-
-            // Open the user settings (but don't display yet)
-            const document: vscode.TextDocument = await vscode.workspace.openTextDocument(vscode.Uri.file(settingsPath));
-            const settingsText: string[] = document.getText().split('\n');
-
-            let highlightStart: number;
-
-            // Find the user settings line number
-            for (let index: number = 0; index < settingsText.length; index++) {
-                const section: string = `"${SettingConfigurations.FABRIC_GATEWAYS}": [`;
-                if (settingsText[index].includes(section)) {
-                    // We've found the section
-                    const entry: string = '"name": "' + name;
-
-                    for (let searchIndex: number = index; searchIndex < settingsText.length; searchIndex++) {
-                        // Search for the specific name and set the line number if found
-                        if (settingsText[searchIndex].includes(entry)) {
-                            highlightStart = searchIndex;
-                            break;
-                        }
-                    }
-
-                    if (highlightStart) {
-                        // If the starting highlighting position is found, we can break from the loop
-                        break;
-                    }
-                }
-            }
-
-            if (!highlightStart) {
-                outputAdapter.log(LogType.ERROR, `Could not find ${name} entry in user settings`);
-                await vscode.window.showTextDocument(document);
-                return;
-            }
-
-            // Define the section to highlight
-            const startLine: number = highlightStart;
-            const endLine: number = highlightStart + 2;
-
-            // Show the user settings and highlight the connection
-            await vscode.window.showTextDocument(document, {
-                selection: new vscode.Range(new vscode.Position(startLine, 0), new vscode.Position(endLine, 0))
-            });
-        } catch (error) {
-            outputAdapter.log(LogType.ERROR, error.message, error.toString());
-        }
     }
 
     public static async showConfirmationWarningMessage(prompt: string): Promise<boolean> {

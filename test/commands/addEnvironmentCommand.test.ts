@@ -101,7 +101,7 @@ describe('AddEnvironmentCommand', () => {
             });
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
