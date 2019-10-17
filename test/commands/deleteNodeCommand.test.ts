@@ -36,15 +36,11 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 
 describe('DeleteNodeCommand', () => {
-    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
+    let mySandBox: sinon.SinonSandbox;
 
     before(async () => {
+        mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
-        await TestUtil.storeEnvironmentsConfig();
-    });
-
-    after(async () => {
-        await TestUtil.restoreEnvironmentsConfig();
     });
 
     describe('deleteNode', () => {
@@ -60,7 +56,6 @@ describe('DeleteNodeCommand', () => {
         let showConfirmationWarningMessage: sinon.SinonStub;
         let logSpy: sinon.SinonSpy;
         let getNodesStub: sinon.SinonStub;
-        let getAllEnvironmentsStub: sinon.SinonStub;
 
         beforeEach(async () => {
             mySandBox.restore();
@@ -73,6 +68,9 @@ describe('DeleteNodeCommand', () => {
             environmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistryEntry.name = 'myEnvironment';
 
+            await FabricEnvironmentRegistry.instance().clear();
+            await FabricEnvironmentRegistry.instance().add(environmentRegistryEntry);
+
             deleteNodeStub = mySandBox.stub(FabricEnvironment.prototype, 'deleteNode').resolves();
             getNodesStub = mySandBox.stub(FabricEnvironment.prototype, 'getNodes').resolves([peerNode, anotherPeerNode, morePeerNode]);
             mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistryEntry);
@@ -83,7 +81,6 @@ describe('DeleteNodeCommand', () => {
             executeCommandStub.withArgs(ExtensionCommands.DELETE_ENVIRONMENT).resolves();
 
             showEnvironmentStub = mySandBox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox').resolves({ label: environmentRegistryEntry.name, data: environmentRegistryEntry });
-            getAllEnvironmentsStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([environmentRegistryEntry]);
             showNodeStub = mySandBox.stub(UserInputUtil, 'showFabricNodeQuickPick').resolves([{ label: peerNode.name, data: peerNode }]);
             showConfirmationWarningMessage = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
             showConfirmationWarningMessage.withArgs(`This will remove the node(s). Do you want to continue?`).resolves(true);
@@ -225,7 +222,7 @@ describe('DeleteNodeCommand', () => {
         });
 
         it('should test get error if no environments', async () => {
-            getAllEnvironmentsStub.returns([]);
+            await FabricEnvironmentRegistry.instance().clear();
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_NODE);
 

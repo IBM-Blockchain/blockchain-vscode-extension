@@ -19,7 +19,6 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import { OutputAdapter } from '../../extension/logging/OutputAdapter';
-import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import * as fs from 'fs-extra';
 import * as path from 'path';
@@ -39,6 +38,7 @@ import { FabricGateway } from '../../extension/fabric/FabricGateway';
 import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
 import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
+import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -88,7 +88,6 @@ describe('FabricRuntime', () => {
     });
 
     beforeEach(async () => {
-        await ExtensionUtil.activateExtension();
         runtime = new FabricRuntime();
         runtime.ports = {
             orderer: 12347,
@@ -99,9 +98,11 @@ describe('FabricRuntime', () => {
             couchDB: 12349,
             logs: 12387
         };
+
+        await runtime.create();
+
         runtime['path'] = runtimePath;
         sandbox = sinon.createSandbox();
-
     });
 
     afterEach(async () => {
@@ -154,12 +155,9 @@ describe('FabricRuntime', () => {
 
     describe('#create', () => {
         it('should create a new network', async () => {
-            const removeStub: sinon.SinonStub = sandbox.stub(fs, 'remove');
-            const ensureDirStub: sinon.SinonStub = sandbox.stub(fs, 'ensureDir');
             const runStub: sinon.SinonStub = sandbox.stub(YeomanUtil, 'run');
             await runtime.create();
-            removeStub.should.have.been.calledOnceWithExactly(runtime.getPath());
-            ensureDirStub.should.have.been.calledOnceWithExactly(runtime.getPath());
+
             runStub.should.have.been.calledOnceWithExactly('fabric:network', {
                 certificateAuthority: 12348,
                 couchDB: 12349,
@@ -190,8 +188,6 @@ describe('FabricRuntime', () => {
 
     describe('#importGateways', () => {
         it('should create all gateways', async () => {
-            const copyStub: sinon.SinonStub = sandbox.stub(fs, 'copy');
-
             const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
             const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'yofn');
@@ -200,7 +196,8 @@ describe('FabricRuntime', () => {
 
             const gateways: FabricGateway[] = await runtime.getGateways();
             const profilePath: string = path.join(profileDirPath, path.basename(gateways[0].path));
-            copyStub.should.have.been.calledWith(gateways[0].path, profilePath);
+
+            await fs.pathExists(profilePath).should.eventually.be.true;
         });
     });
 
@@ -848,7 +845,7 @@ describe('FabricRuntime', () => {
         });
 
         it('should return false if the runtime directory does not exist', async () => {
-            runtime['path'] = 'blahblahblah';
+            await FabricEnvironmentRegistry.instance().clear();
             await runtime.isCreated().should.eventually.be.false;
         });
 

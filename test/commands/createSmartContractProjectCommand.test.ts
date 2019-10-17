@@ -35,7 +35,7 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 describe('CreateSmartContractProjectCommand', () => {
     // suite variables
-    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
+    let mySandBox: sinon.SinonSandbox;
     let logSpy: sinon.SinonSpy;
     let quickPickStub: sinon.SinonStub;
     let showInputBoxStub: sinon.SinonStub;
@@ -47,6 +47,7 @@ describe('CreateSmartContractProjectCommand', () => {
     let sendTelemetryEventStub: sinon.SinonStub;
 
     before(async () => {
+        mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
     });
 
