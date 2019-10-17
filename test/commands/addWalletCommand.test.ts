@@ -119,7 +119,7 @@ describe('AddWalletCommand', () => {
         it('should error if an imported wallet with the same name already exists', async () => {
             choseWalletAddMethod.resolves(UserInputUtil.IMPORT_WALLET);
             browseStub.resolves(uri);
-            mySandBox.stub(FabricWalletRegistry.instance(), 'exists').returns(true);
+            mySandBox.stub(FabricWalletRegistry.instance(), 'exists').resolves(true);
             const error: Error = new Error('A wallet with this name already exists.');
 
             const result: FabricWalletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET) as FabricWalletRegistryEntry;
@@ -225,7 +225,7 @@ describe('AddWalletCommand', () => {
         it('should error if a new wallet with the same name already exists', async () => {
             choseWalletAddMethod.resolves(UserInputUtil.WALLET_NEW_ID);
             showInputBoxStub.resolves('someWalletName');
-            mySandBox.stub(FabricWalletRegistry.instance(), 'exists').returns(true);
+            mySandBox.stub(FabricWalletRegistry.instance(), 'exists').resolves(true);
             const error: Error = new Error('A wallet with this name already exists.');
 
             const result: FabricWalletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET) as FabricWalletRegistryEntry;

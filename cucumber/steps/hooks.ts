@@ -33,6 +33,7 @@ import { GatewayHelper } from '../helpers/gatewayHelper';
 import { EnvironmentHelper } from '../helpers/environmentHelper';
 import { SampleHelper } from '../helpers/sampleHelper';
 import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
+import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 
 // tslint:disable:no-unused-expression
 
@@ -98,7 +99,6 @@ module.exports = function(): any {
                 }
                 await fs.mkdir(tmpRepo);
 
-                await TestUtil.storeGatewaysConfig();
                 await TestUtil.storeRuntimesConfig();
                 await TestUtil.storeExtensionDirectoryConfig();
                 await TestUtil.storeRepositoriesConfig();
@@ -108,6 +108,7 @@ module.exports = function(): any {
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_REPOSITORIES, [], vscode.ConfigurationTarget.Global);
 
                 await FabricWalletRegistry.instance().clear();
+                await FabricGatewayRegistry.instance().clear();
 
                 await ExtensionUtil.activateExtension();
 

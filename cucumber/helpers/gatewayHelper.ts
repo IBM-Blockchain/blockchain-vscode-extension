@@ -24,11 +24,9 @@ import { UserInputUtilHelper } from './userInputUtilHelper';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
 import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
-import { WalletAndIdentityHelper } from './walletAndIdentityHelper';
 import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
@@ -37,7 +35,6 @@ import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvi
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
 import { FabricNode, FabricNodeType } from '../../extension/fabric/FabricNode';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -94,24 +91,10 @@ export class GatewayHelper {
     public async connectToFabric(name: string, walletName: string, identityName: string = 'greenConga', expectAssociated: boolean = true): Promise<void> {
         let gatewayEntry: FabricGatewayRegistryEntry;
 
-        try {
-            gatewayEntry = await FabricGatewayRegistry.instance().get(name);
-        } catch (error) {
-            const gatewayEntries: FabricGatewayRegistryEntry[] = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
-            gatewayEntry = gatewayEntries[0];
-        }
+        gatewayEntry = await FabricGatewayRegistry.instance().get(name);
 
         if (!expectAssociated) {
-            let walletEntry: FabricWalletRegistryEntry;
-
-            try {
-                walletEntry = await FabricWalletRegistry.instance().get(walletName);
-            } catch (error) {
-                walletEntry = new FabricWalletRegistryEntry();
-                walletEntry.name = FabricWalletUtil.LOCAL_WALLET;
-                walletEntry.walletPath = WalletAndIdentityHelper.localWalletPath;
-                walletEntry.managedWallet = true;
-            }
+            const walletEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletName);
 
             this.userInputUtilHelper.showWalletsQuickPickStub.resolves({
                 name: walletEntry.name,
@@ -182,13 +165,7 @@ export class GatewayHelper {
     }
 
     public async exportConnectionProfile(gatewayName: string): Promise<void> {
-        let gatewayEntry: FabricGatewayRegistryEntry;
-        if (gatewayName === FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME) {
-            const entry: FabricGatewayRegistryEntry[] = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
-            gatewayEntry = entry[0];
-        } else {
-            gatewayEntry = await FabricGatewayRegistry.instance().get(gatewayName);
-        }
+        const gatewayEntry: FabricGatewayRegistryEntry =  await FabricGatewayRegistry.instance().get(gatewayName);
 
         const profilePath: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'profiles');
         await fs.ensureDir(profilePath);

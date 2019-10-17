@@ -15,9 +15,7 @@
 import * as vscode from 'vscode';
 import { FabricRuntime } from './FabricRuntime';
 import { FabricRuntimePorts } from './FabricRuntimePorts';
-import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricWalletUtil } from './FabricWalletUtil';
-import { FabricGateway } from './FabricGateway';
 import * as semver from 'semver';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
@@ -93,15 +91,6 @@ export class FabricRuntimeManager {
         FabricEnvironmentManager.instance().on('disconnected', async () => {
             await this.runtime.stopLogs();
         });
-    }
-
-    public async getGatewayRegistryEntries(): Promise<FabricGatewayRegistryEntry[]> {
-        const runtime: FabricRuntime = this.getRuntime();
-        const gateways: FabricGateway[] = await runtime.getGateways();
-        return gateways.map((gateway: FabricGateway) => new FabricGatewayRegistryEntry({
-            name: gateway.name,
-            associatedWallet: FabricWalletUtil.LOCAL_WALLET
-        }));
     }
 
     public getEnvironmentRegistryEntry(): FabricEnvironmentRegistryEntry {

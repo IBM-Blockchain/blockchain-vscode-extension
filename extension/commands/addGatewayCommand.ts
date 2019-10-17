@@ -110,10 +110,12 @@ async function createGatewayFromEnvironment(gatewayName: string, environmentName
     const fabricGatewayEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
     fabricGatewayEntry.name = gatewayName;
     fabricGatewayEntry.associatedWallet = peerNode.wallet;
-    await FabricGatewayHelper.generateConnectionProfile(gatewayName, peerNode, caNode);
 
     const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     await fabricGatewayRegistry.add(fabricGatewayEntry);
+
+    await FabricGatewayHelper.generateConnectionProfile(gatewayName, peerNode, caNode);
+
     return fabricGatewayEntry;
 }
 
@@ -136,13 +138,13 @@ async function createGatewayFromCCP(gatewayName: string): Promise<FabricGatewayR
     }
 
     const fabricGatewayEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-    // Copy the user given connection profile to the gateway directory (in the blockchain extension directory)
-    await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionProfilePath);
-
     fabricGatewayEntry.name = gatewayName;
     fabricGatewayEntry.associatedWallet = '';
 
     const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     await fabricGatewayRegistry.add(fabricGatewayEntry);
+    // Copy the user given connection profile to the gateway directory (in the blockchain extension directory)
+    await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionProfilePath);
+
     return fabricGatewayEntry;
 }

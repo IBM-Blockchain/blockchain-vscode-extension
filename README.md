@@ -317,7 +317,6 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Disassociate A Wallet | Remove the association between a wallet and a gateway |
 | Disconnect From Environment | Disconnect from the environment you're currently connected to |
 | Disconnect From Gateway | Disconnect from the blockchain gateway you're currently connected to |
-| Edit Gateway | Edit connection profile for connecting to a blockchain gateway |
 | Evaluate Transaction | Evaluate a smart contract transaction |
 | Export Connection Profile | Export connection profile for a blockchain gateway |
 | Export Package | Export a smart contract package to use outside VS Code |

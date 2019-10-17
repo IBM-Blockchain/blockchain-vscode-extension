@@ -20,7 +20,6 @@ import * as sinonChai from 'sinon-chai';
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
 import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
 import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
@@ -29,6 +28,8 @@ import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -48,6 +49,9 @@ describe('DebugCommandListCommand', () => {
     });
 
     beforeEach(async () => {
+
+        await FabricGatewayRegistry.instance().clear();
+        await FabricRuntimeManager.instance().getRuntime().importGateways();
 
         runtimeStub = mySandBox.createStubInstance(FabricEnvironmentConnection);
 
@@ -130,7 +134,6 @@ describe('DebugCommandListCommand', () => {
         registryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
         connectionManagerGetConnectionStub.onCall(0).returns(undefined);
         connectionManagerGetConnectionStub.onCall(1).returns(runtimeStub);
-        mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([registryEntry]);
         showDebugCommandListStub.resolves({ label: 'Evaluate transaction', data: ExtensionCommands.EVALUATE_TRANSACTION});
 
         await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);
@@ -142,7 +145,6 @@ describe('DebugCommandListCommand', () => {
     it('should handle connect failing', async () => {
         showDebugCommandListStub.resolves({ label: 'Evaluate transaction', data: ExtensionCommands.EVALUATE_TRANSACTION});
         connectionManagerGetConnectionStub.returns(undefined);
-        mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([]);
 
         await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);
 

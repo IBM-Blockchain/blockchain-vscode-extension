@@ -33,6 +33,7 @@ import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalletRegistryEntry, mspid: string): Promise<string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -150,8 +151,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
             if (isLocalWallet) {
                 // wallet is managed so use local_fabric as the gateway
                 // assume there is only one
-                const runtimeGateways: Array<FabricGatewayRegistryEntry> = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
-                gatewayRegistryEntry = runtimeGateways[0];
+                gatewayRegistryEntry = await FabricGatewayRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
 
                 // make sure local_fabric is started
                 const isRunning: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
@@ -168,7 +168,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
                 // select from other gateways
                 // Check there is at least one
                 let gateways: Array<FabricGatewayRegistryEntry> = [];
-                gateways = await FabricGatewayRegistry.instance().getAll();
+                gateways = await FabricGatewayRegistry.instance().getAll(false);
                 if (gateways.length === 0) {
                     outputAdapter.log(LogType.ERROR, `Please add a gateway in order to enroll a new identity`);
                     return;
