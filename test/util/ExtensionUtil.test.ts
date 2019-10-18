@@ -1172,4 +1172,18 @@ describe('ExtensionUtil Tests', () => {
             initializeStub.should.have.been.calledOnce;
         });
     });
+
+    describe('getModuleAsar', () => {
+        it('should test that the keytar module can be imported via .asar', async () => {
+            const dependency: any = await ExtensionUtil.getModuleAsar('keytar');
+            should.exist(dependency);
+        });
+    });
+
+    describe('getModuleAsar', () => {
+        it('should test that the keytar module can be imported without .asar', async () => {
+            const dependency: any = await ExtensionUtil.getModule('keytar');
+            should.exist(dependency);
+        });
+    });
 });
