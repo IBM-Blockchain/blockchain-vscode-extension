@@ -36,7 +36,7 @@ export async function importSmartContractPackageCommand(): Promise<void> {
         filters: { Packages: ['cds'] }
     };
 
-    const packagePath: string = await UserInputUtil.browse('Browse for a package to import', quickPickItems, openDialogOptions) as string;
+    const packagePath: vscode.Uri = await UserInputUtil.browse('Browse for a package to import', quickPickItems, openDialogOptions) as vscode.Uri;
 
     if (!packagePath) {
         return;
@@ -48,10 +48,11 @@ export async function importSmartContractPackageCommand(): Promise<void> {
         let resolvedPkgDir: string = FileSystemUtil.getDirPath(pkgDir);
         await fs.ensureDir(resolvedPkgDir);
 
-        const packageName: string = path.basename(packagePath);
+        const packageName: string = path.basename(packagePath.fsPath);
 
         resolvedPkgDir = path.join(resolvedPkgDir, packageName);
-        await fs.copy(packagePath, resolvedPkgDir);
+        const resolvedPkgDirUri: vscode.Uri = vscode.Uri.file(resolvedPkgDir);
+        await vscode.workspace.fs.copy(packagePath, resolvedPkgDirUri);
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_PACKAGES);
 
         VSCodeBlockchainOutputAdapter.instance().log(LogType.SUCCESS, 'Successfully imported smart contract package', `Successfully imported smart contract package ${packageName}`);

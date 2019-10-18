@@ -25,6 +25,7 @@ import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
+import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -38,7 +39,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
     let executeCommandStub: sinon.SinonStub;
     let addMoreStub: sinon.SinonStub;
     let updateNodeStub: sinon.SinonStub;
-    let readJsonStub: sinon.SinonStub;
+    let readFileStub: sinon.SinonStub;
     let getNodesStub: sinon.SinonStub;
     let environmentRegistryEntry: FabricEnvironmentRegistryEntry;
     let showEnvironmentQuickPickStub: sinon.SinonStub;
@@ -72,7 +73,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
             }]);
 
-            readJsonStub = mySandBox.stub(fs, 'readJson').resolves({
+            readFileStub = mySandBox.stub(FileSystemUtil, 'readJSONFile').resolves({
                 short_name: 'peer0.org1.example.com',
                 name: 'peer0.org1.example.com',
                 api_url: 'grpc://localhost:17051',
@@ -143,7 +144,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         });
 
         it('should nodes can be imported when node contains multiple definitions', async () => {
-            readJsonStub.resolves([{
+            readFileStub.resolves([{
                 short_name: 'peer0.org1.example.com',
                 name: 'peer0.org1.example.com',
                 api_url: 'grpc://localhost:17051',
@@ -183,7 +184,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         });
 
         it('should handle when first node contains error', async () => {
-            readJsonStub.resolves([{
+            readFileStub.resolves([{
                 short_name: 'peer0.org1.example.com',
                 api_url: 'grpc://localhost:17051',
                 chaincode_url: 'grpc://localhost:17052',
@@ -315,7 +316,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             addMoreStub.resolves(UserInputUtil.DONE_ADDING_NODES);
 
             const error: Error = new Error('some error');
-            readJsonStub.rejects(error);
+            readFileStub.rejects(error);
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
 
@@ -404,7 +405,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         });
 
         it('should import nodes but warn if nodes are not valid', async () => {
-            readJsonStub.resolves([{
+            readFileStub.resolves([{
                 short_name: 'peer0.org1.example.com',
                 name: 'peer0.org1.example.com',
                 api_url: 'grpc://localhost:17051',

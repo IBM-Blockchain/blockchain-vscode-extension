@@ -57,7 +57,7 @@
 	},
 	"optionalDependencies": {
 		"fabric-ca-client": "1.4.5-snapshot.73",
-		"fabric-client": "1.4.5-snapshot.69",
+		"fabric-client": "1.4.5-snapshot.71",
 		"fabric-network": "1.4.5-snapshot.76"
 	},
 	"license-check-and-add-config": {

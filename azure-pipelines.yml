@@ -21,16 +21,16 @@ stages:
           matrix:
             linux:
               imageName: 'ubuntu-16.04'
-              VERSION: '1.35.1'
-              MODULES: 64
-              ELECTRON: '3.0'
-              TARGET: '3.0.0'
+              VERSION: '1.40.2'
+              MODULES: 73
+              ELECTRON: '6.1'
+              TARGET: '6.1.2'
             mac:
               imageName: 'macos-10.14'
-              VERSION: '1.35.1'
-              MODULES: 64
-              ELECTRON: '3.0'
-              TARGET: '3.0.0'
+              VERSION: '1.40.2'
+              MODULES: 73
+              ELECTRON: '6.1'
+              TARGET: '6.1.2'
         pool:
           vmImage: $(imageName)
 

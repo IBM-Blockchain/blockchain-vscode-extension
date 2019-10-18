@@ -34,6 +34,7 @@ import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
+import { FileSystemUtil } from '../util/FileSystemUtil';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -745,7 +746,7 @@ export class UserInputUtil {
 
     }
 
-    public static async browse(placeHolder: string, quickPickItems: string[] | { label: string, description: string }[], openDialogOptions: vscode.OpenDialogOptions, returnUri?: boolean): Promise<string | vscode.Uri | vscode.Uri[]> {
+    public static async browse(placeHolder: string, quickPickItems: string[] | { label: string, description: string }[], openDialogOptions: vscode.OpenDialogOptions): Promise<vscode.Uri | vscode.Uri[]> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         try {
@@ -764,16 +765,11 @@ export class UserInputUtil {
                     return;
                 }
 
-                if (returnUri) {
-                    if (openDialogOptions.canSelectMany) {
-                        return fileBrowser;
-                    } else {
-                        return fileBrowser[0];
-                    }
+                if (openDialogOptions.canSelectMany) {
+                    return fileBrowser;
                 } else {
-                    return fileBrowser[0].fsPath;
+                    return fileBrowser[0];
                 }
-
             }
         } catch (error) {
             outputAdapter.log(LogType.ERROR, error.message, error.toString());
@@ -845,7 +841,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(options, quickPickOptions);
     }
 
-    public static async getCertKey(): Promise<{ certificatePath: string, privateKeyPath: string }> {
+    public static async getCertKey(): Promise<{ certificate: string, privateKey: string }> {
         const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
         const openDialogOptions: vscode.OpenDialogOptions = {
             canSelectFiles: true,
@@ -856,24 +852,24 @@ export class UserInputUtil {
         };
 
         // Get the certificate file path
-        const certificatePath: string = await UserInputUtil.browse('Browse for a certificate file', quickPickItems, openDialogOptions) as string;
+        const certificatePath: vscode.Uri = await UserInputUtil.browse('Browse for a certificate file', quickPickItems, openDialogOptions) as vscode.Uri;
         if (!certificatePath) {
             return;
         }
 
-        const certificate: string = FabricCertificate.loadFileFromDisk(certificatePath);
+        const certificate: string = await FileSystemUtil.readFile(certificatePath);
         FabricCertificate.validateCertificate(certificate);
 
         // Get the private key file path
-        const privateKeyPath: string = await UserInputUtil.browse('Browse for a private key file', quickPickItems, openDialogOptions) as string;
+        const privateKeyPath: vscode.Uri = await UserInputUtil.browse('Browse for a private key file', quickPickItems, openDialogOptions) as vscode.Uri;
         if (!privateKeyPath) {
             return;
         }
 
-        const privateKey: string = FabricCertificate.loadFileFromDisk(privateKeyPath);
+        const privateKey: string = await FileSystemUtil.readFile(privateKeyPath);
         FabricCertificate.validatePrivateKey(privateKey);
 
-        return { certificatePath, privateKeyPath };
+        return { certificate, privateKey };
     }
 
     public static async getEnrollIdSecret(): Promise<{ enrollmentID: string, enrollmentSecret: string }> {
@@ -1035,12 +1031,12 @@ export class UserInputUtil {
 
     }
 
-    public static async showChannelPeersQuickPick(channelPeers: Array<{name: string, mspID: string}>): Promise<Array<IBlockchainQuickPickItem<string>>> {
+    public static async showChannelPeersQuickPick(channelPeers: Array<{ name: string, mspID: string }>): Promise<Array<IBlockchainQuickPickItem<string>>> {
 
         const quickPickItems: Array<IBlockchainQuickPickItem<string>> = [];
         for (const peer of channelPeers) {
             quickPickItems.push(
-                { label: peer.name, description: peer.mspID, data: peer.name}
+                { label: peer.name, description: peer.mspID, data: peer.name }
             );
         }
 

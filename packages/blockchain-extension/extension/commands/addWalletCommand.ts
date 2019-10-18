@@ -54,10 +54,14 @@ export async function addWallet(createIdentity: boolean = true): Promise<FabricW
                 canSelectMany: false,
                 openLabel: 'Select',
             };
-            walletUri = await UserInputUtil.browse('Enter a file path to a wallet directory', quickPickItems, openDialogOptions, true) as vscode.Uri;
+            walletUri = await UserInputUtil.browse('Enter a file path to a wallet directory', quickPickItems, openDialogOptions) as vscode.Uri;
             if (!walletUri) {
                 // User cancelled dialog box
                 return;
+            }
+
+            if(walletUri.scheme === 'vscode-local') {
+                throw new Error('The wallet must be located locally to where the extension is running');
             }
             walletPath = walletUri.fsPath;
             walletName = path.basename(walletPath);

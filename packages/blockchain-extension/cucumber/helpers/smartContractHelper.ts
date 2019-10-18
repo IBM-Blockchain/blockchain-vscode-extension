@@ -76,7 +76,7 @@ export class SmartContractHelper {
             canSelectMany: false,
             openLabel: 'Save',
             filters: undefined
-        }, true).resolves(uri);
+        }).resolves(uri);
 
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
 
@@ -190,7 +190,7 @@ export class SmartContractHelper {
             if (privateData) {
                 this.userInputUtilHelper.showYesNoQuickPick.resolves(UserInputUtil.YES);
                 const collectionPath: string = path.join(__dirname, '../../integrationTest/data/collection.json');
-                this.userInputUtilHelper.browseStub.resolves(collectionPath);
+                this.userInputUtilHelper.browseStub.resolves(vscode.Uri.file(collectionPath));
             }
 
             this.userInputUtilHelper.showQuickPickStub.withArgs('Choose a smart contract endorsement policy', [UserInputUtil.DEFAULT_SC_EP, UserInputUtil.CUSTOM]).resolves(UserInputUtil.DEFAULT_SC_EP);
@@ -232,7 +232,7 @@ export class SmartContractHelper {
         if (privateData) {
             this.userInputUtilHelper.showYesNoQuickPick.resolves(UserInputUtil.YES);
             const collectionPath: string = path.join(__dirname, '../../integrationTest/data/collection.json');
-            this.userInputUtilHelper.browseStub.resolves(collectionPath);
+            this.userInputUtilHelper.browseStub.resolves(vscode.Uri.file(collectionPath));
         }
 
         this.userInputUtilHelper.showQuickPickStub.withArgs('Choose a smart contract endorsement policy', [UserInputUtil.DEFAULT_SC_EP, UserInputUtil.CUSTOM]).resolves(UserInputUtil.DEFAULT_SC_EP);

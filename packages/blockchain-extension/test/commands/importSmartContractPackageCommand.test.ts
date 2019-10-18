@@ -15,7 +15,6 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import * as fs from 'fs-extra';
 import * as path from 'path';
 import { TestUtil } from '../TestUtil';
 import * as chai from 'chai';
@@ -46,12 +45,12 @@ describe('importSmartContractPackageCommand', () => {
     let commandSpy: sinon.SinonSpy;
     let sendTelemetryEventStub: sinon.SinonStub;
 
-    const srcPackage: string = path.join('myPath', 'test.cds');
+    const srcPackage: vscode.Uri = vscode.Uri.file(path.join('myPath', 'test.cds'));
 
     beforeEach(async () => {
 
         browseStub = sandbox.stub(UserInputUtil, 'browse').resolves(srcPackage);
-        copyStub = sandbox.stub(fs, 'copy').resolves();
+        copyStub = sandbox.stub(vscode.workspace.fs, 'copy').resolves();
         logSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         commandSpy = sandbox.spy(vscode.commands, 'executeCommand');
         sendTelemetryEventStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
@@ -69,7 +68,7 @@ describe('importSmartContractPackageCommand', () => {
     it('should import a package', async () => {
         await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
 
-        const endPackage: string = path.join(TEST_PACKAGE_DIRECTORY, 'packages', 'test.cds');
+        const endPackage: vscode.Uri = vscode.Uri.file(path.join(TEST_PACKAGE_DIRECTORY, 'packages', 'test.cds'));
         copyStub.should.have.been.calledWith(srcPackage, endPackage);
         logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
         logSpy.secondCall.should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported smart contract package', 'Successfully imported smart contract package test.cds');
@@ -92,7 +91,7 @@ describe('importSmartContractPackageCommand', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
 
-        const endPackage: string = path.join(TEST_PACKAGE_DIRECTORY, 'packages', 'test.cds');
+        const endPackage: vscode.Uri = vscode.Uri.file(path.join(TEST_PACKAGE_DIRECTORY, 'packages', 'test.cds'));
         copyStub.should.have.been.calledWith(srcPackage, endPackage);
         logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
         logSpy.secondCall.should.have.been.calledWith(LogType.ERROR, `Failed to import smart contract package: ${error.message}`, `Failed to import smart contract package: ${error.toString()}`);

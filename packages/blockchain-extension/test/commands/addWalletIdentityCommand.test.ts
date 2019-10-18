@@ -41,6 +41,7 @@ import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { Reporter } from '../../extension/util/Reporter';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
+import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -59,6 +60,7 @@ describe('AddWalletIdentityCommand', () => {
         const rootPath: string = path.dirname(__dirname);
         const walletPath: string = path.join(rootPath, '../../test/data/walletDir/wallet');
         let fsReadFile: sinon.SinonStub;
+        let vscodeReadFile: sinon.SinonStub;
         let logSpy: sinon.SinonSpy;
         let addIdentityMethodStub: sinon.SinonStub;
         let getCertKeyStub: sinon.SinonStub;
@@ -119,6 +121,9 @@ describe('AddWalletIdentityCommand', () => {
 
             inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
             fsReadFile = mySandBox.stub(fs, 'readFile');
+
+            vscodeReadFile = mySandBox.stub(FileSystemUtil, 'readJSONFile');
+
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             addIdentityMethodStub = mySandBox.stub(UserInputUtil, 'addIdentityMethod');
             getCertKeyStub = mySandBox.stub(UserInputUtil, 'getCertKey');
@@ -525,16 +530,13 @@ describe('AddWalletIdentityCommand', () => {
             inputBoxStub.onSecondCall().resolves('myMSPID');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
             getCertKeyStub.resolves({
-                certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-                privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
+                certificate: '---CERT---',
+                privateKey: '---KEY---'
             });
-            fsReadFile.onFirstCall().resolves('---CERT---');
-            fsReadFile.onSecondCall().resolves('---KEY---');
 
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
             result.should.equal('blueConga');
             inputBoxStub.should.have.been.calledTwice;
-            fsReadFile.should.have.been.calledTwice;
             showGatewayQuickPickBoxStub.should.not.have.been.called;
             getCertKeyStub.should.have.been.calledOnce;
             importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'blueConga', 'myMSPID');
@@ -671,13 +673,13 @@ describe('AddWalletIdentityCommand', () => {
             inputBoxStub.onSecondCall().resolves('myMSPID');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_JSON_ID_OPTION);
             browseStub.resolves('myTestPath');
-            fsReadFile.resolves('{"name": "purpleConga","cert": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0", "private_key": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0"}');
+            vscodeReadFile.resolves({ name: 'purpleConga', cert: 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0', private_key: 'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0' });
 
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
             result.should.equal('purpleConga');
             inputBoxStub.should.have.been.calledTwice;
             browseStub.should.have.been.calledOnce;
-            fsReadFile.should.have.been.calledOnce;
+            vscodeReadFile.should.have.been.calledOnce;
             showGatewayQuickPickBoxStub.should.not.have.been.called;
             importIdentityStub.should.have.been.calledWith('-----BEGIN CERTIFICATE----', '-----BEGIN PRIVATE KEY----', 'purpleConga', 'myMSPID');
             logSpy.should.have.been.calledTwice;
@@ -702,7 +704,7 @@ describe('AddWalletIdentityCommand', () => {
             should.not.exist(result);
             inputBoxStub.should.have.been.calledTwice;
             browseStub.should.have.been.calledOnce;
-            fsReadFile.should.not.have.been.called;
+            vscodeReadFile.should.not.have.been.called;
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
             sendTelemetryEventStub.should.not.have.been.called;
         });
@@ -718,13 +720,13 @@ describe('AddWalletIdentityCommand', () => {
             inputBoxStub.onSecondCall().resolves('myMSPID');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_JSON_ID_OPTION);
             browseStub.resolves('myTestPath');
-            fsReadFile.resolves('{"name": "purpleConga","certificate": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0", "privateKEy": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0"}');
+            vscodeReadFile.resolves(Buffer.from('{"name": "purpleConga","certificate": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0", "privateKEy": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0"}'));
 
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
             should.not.exist(result);
             inputBoxStub.should.have.been.calledTwice;
             browseStub.should.have.been.calledOnce;
-            fsReadFile.should.have.been.calledOnce;
+            vscodeReadFile.should.have.been.calledOnce;
             showGatewayQuickPickBoxStub.should.not.have.been.called;
             importIdentityStub.should.not.have.been.called;
             logSpy.should.have.been.calledTwice;

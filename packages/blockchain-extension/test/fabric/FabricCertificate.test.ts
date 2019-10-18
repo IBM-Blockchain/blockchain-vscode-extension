@@ -18,8 +18,10 @@ import * as path from 'path';
 import * as sinon from 'sinon';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
+import * as vscode from 'vscode';
 import { FabricCertificate } from '../../extension/fabric/FabricCertificate';
 import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
 
 // tslint:disable no-var-requires
 const {Certificate} = require('@fidm/x509');
@@ -42,8 +44,8 @@ describe('FabricCertificate', () => {
         it('should create a certificate', async () => {
             const rootPath: string = path.dirname(__dirname);
 
-            const certPath: string = path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate');
-            const cert: string = FabricCertificate.loadFileFromDisk(certPath);
+            const certPath: vscode.Uri = vscode.Uri.file(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
+            const cert: string = await FileSystemUtil.readFile(certPath);
             const certificate: FabricCertificate = new FabricCertificate(cert);
 
             certificate.should.be.instanceof(FabricCertificate);
@@ -54,8 +56,8 @@ describe('FabricCertificate', () => {
         it('should get the common name from the cert', async () => {
             const rootPath: string = path.dirname(__dirname);
 
-            const certPath: string = path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate');
-            const cert: string = FabricCertificate.loadFileFromDisk(certPath);
+            const certPath: vscode.Uri = vscode.Uri.file(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
+            const cert: string = await FileSystemUtil.readFile(certPath);
             const certificate: FabricCertificate = new FabricCertificate(cert);
 
             certificate.getCommonName().should.equal(FabricRuntimeUtil.ADMIN_USER);

@@ -13,6 +13,8 @@
 */
 'use strict';
 import * as chai from 'chai';
+import * as path from 'path';
+import * as vscode from 'vscode';
 import * as sinonChai from 'sinon-chai';
 import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
 
@@ -31,6 +33,24 @@ describe('FileSystemUtil', () => {
             const packageDirOriginal: string = '/banana/smartContractDir';
             const packageDirNew: string = FileSystemUtil.getDirPath(packageDirOriginal);
             packageDirNew.should.equal(packageDirOriginal);
+        });
+    });
+
+    describe('readFile', () => {
+        it('should read file using vscode file system', async () => {
+            const filePath: vscode.Uri = vscode.Uri.file(path.join(__dirname, '../../../test/data/other/textFile.txt'));
+
+            const result: string = await FileSystemUtil.readFile(filePath);
+            result.should.equal('Hello');
+        });
+    });
+
+    describe('readJSONFile', () => {
+        it('should read a json file using vscode file system', async () => {
+            const filePath: vscode.Uri = vscode.Uri.file(path.join(__dirname, '../../../test/data/other/jsonFile.json'));
+
+            const result: any = await FileSystemUtil.readJSONFile(filePath);
+            result.name.should.deep.equal('bob');
         });
     });
 });

@@ -207,17 +207,19 @@ describe('FabricGatewayHelper', () => {
         });
 
         beforeEach(async () => {
-            readFileStub = mySandBox.stub(fs, 'readFile');
+            readFileStub = mySandBox.stub(FileSystemUtil, 'readFile');
+
             writeFileStub = mySandBox.stub(fs, 'writeFile');
             writeFileStub.callThrough();
         });
 
         it('should copy a connection profile and do nothing if TLS certs are inline', async () => {
             readFileStub.callThrough();
-            const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, tlsPemLocation);
+            const connectionPath: vscode.Uri = vscode.Uri.file(tlsPemLocation);
+            const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionPath);
 
             writeFileStub.should.have.been.calledOnceWith(path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'), tlsPemStringified);
-            readFileStub.getCall(0).should.have.been.calledWithExactly(tlsPemLocation, 'utf8');
+            readFileStub.getCall(0).should.have.been.calledWithExactly(connectionPath);
             result.should.equal(path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'));
         });
 
@@ -225,13 +227,17 @@ describe('FabricGatewayHelper', () => {
             readFileStub.reset();
 
             readFileStub.callThrough();
-            readFileStub.withArgs(sinon.match(/(.*)PATH_HERE/)).resolves('CERT_HERE');
 
-            const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, tlsPathLocation);
+            readFileStub.onSecondCall().resolves('CERT_HERE');
+            readFileStub.onThirdCall().resolves('CERT_HERE');
+            readFileStub.onCall(3).resolves('CERT_HERE');
+
+            const connectionPath: vscode.Uri = vscode.Uri.file(tlsPathLocation);
+            const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionPath);
 
             writeFileStub.should.have.been.calledOnceWithExactly(path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'), tlsPemStringified);
 
-            readFileStub.getCall(0).should.have.been.calledWithExactly(tlsPathLocation, 'utf8');
+            readFileStub.getCall(0).should.have.been.calledWithExactly(connectionPath);
             result.should.equal(path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'));
         });
 
@@ -257,7 +263,8 @@ describe('FabricGatewayHelper', () => {
             readFileStub.resolves('CERT_HERE');
             readFileStub.onFirstCall().resolves(stringifiedObject);
 
-            const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, 'connection.json');
+            const connectionPath: vscode.Uri = vscode.Uri.file('connection.json');
+            const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionPath);
 
             connectionProfileObject.peers['peer0']['tlsCACerts'].path = undefined;
             connectionProfileObject.peers['peer0']['tlsCACerts'].pem = 'CERT_HERE';
@@ -268,7 +275,7 @@ describe('FabricGatewayHelper', () => {
             const newStringifiedObject: any = JSON.stringify(connectionProfileObject, null, 4);
             writeFileStub.should.have.been.calledOnceWithExactly(path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'), newStringifiedObject);
 
-            readFileStub.getCall(0).should.have.been.calledWithExactly('connection.json', 'utf8');
+            readFileStub.getCall(0).should.have.been.calledWithExactly(connectionPath);
             readFileStub.should.have.been.calledThrice;
             result.should.equal(path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'));
         });
@@ -279,25 +286,29 @@ describe('FabricGatewayHelper', () => {
             const error: Error = new Error('Errored for some reason');
             writeFileStub.throws(error);
 
-            await FabricGatewayHelper.copyConnectionProfile(gatewayName, tlsPathLocation).should.be.rejectedWith(error);
+            const connectionPath: vscode.Uri = vscode.Uri.file(tlsPemLocation);
+            await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionPath).should.be.rejectedWith(error);
 
-            readFileStub.getCall(0).should.have.been.calledWithExactly(tlsPathLocation, 'utf8');
+            readFileStub.getCall(0).should.have.been.calledWithExactly(connectionPath);
             readFileStub.getCalls().length.should.equal(4);
             writeFileStub.should.have.been.calledOnceWithExactly(path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'), tlsPemStringified);
         });
 
         it('should copy a connection profile and change relative paths for a YAML file', async () => {
             readFileStub.callThrough();
-            readFileStub.withArgs(sinon.match(/(.*)\/some\/relative\/path/)).resolves('CERT_HERE');
+            readFileStub.onSecondCall().resolves('CERT_HERE');
+            readFileStub.onThirdCall().resolves('CERT_HERE');
+            readFileStub.onCall(3).resolves('CERT_HERE');
 
             const yamlDumpStub: sinon.SinonStub = mySandBox.stub(yaml, 'dump').returns('hello_world');
 
-            const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, yamlPathLocation);
+            const connectionPath: vscode.Uri = vscode.Uri.file(yamlPathLocation);
+            const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionPath);
 
             yamlDumpStub.should.have.been.calledOnce;
             writeFileStub.should.have.been.calledOnceWith(path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.yml'), 'hello_world');
 
-            readFileStub.getCall(0).should.have.been.calledWithExactly(yamlPathLocation, 'utf8');
+            readFileStub.getCall(0).should.have.been.calledWithExactly(connectionPath);
             readFileStub.getCalls().length.should.equal(4);
             result.should.equal(path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.yml'));
         });

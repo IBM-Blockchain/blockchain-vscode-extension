@@ -115,7 +115,7 @@ export class FabricGatewayHelper {
         return profileFilePath;
     }
 
-    public static async copyConnectionProfile(gatewayName: string, connectionProfilePath: string): Promise<string> {
+    public static async copyConnectionProfile(gatewayName: string, connectionProfilePath: vscode.Uri): Promise<string> {
         try {
 
             const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
@@ -124,16 +124,17 @@ export class FabricGatewayHelper {
 
             await fs.ensureDir(profileDirPath);
 
-            const connectionProfileFile: string = await fs.readFile(connectionProfilePath, 'utf8');
             let connectionProfile: any;
             let profilePath: string;
 
-            if (connectionProfilePath.endsWith('.json')) {
-                connectionProfile = JSON.parse(connectionProfileFile);
+            const connectionProfileString: string = await FileSystemUtil.readFile(connectionProfilePath);
+
+            if (connectionProfilePath.fsPath.endsWith('.json')) {
+                connectionProfile = JSON.parse(connectionProfileString);
                 profilePath = path.join(profileDirPath, `${this.profileName}.json`);
             } else {
                 // Assume its a yml/yaml file type
-                connectionProfile = yaml.safeLoad(connectionProfileFile);
+                connectionProfile = yaml.safeLoad(connectionProfileString);
                 profilePath = path.join(profileDirPath, `${this.profileName}.yml`);
             }
 
@@ -149,10 +150,12 @@ export class FabricGatewayHelper {
                             if (path.isAbsolute(connectionProfile[property][item].tlsCACerts.path)) {
                                 tlsPath = connectionProfile[property][item].tlsCACerts.path;
                             } else {
-                                tlsPath = path.resolve(path.dirname(connectionProfilePath), connectionProfile[property][item].tlsCACerts.path);
+                                tlsPath = path.resolve(path.dirname(connectionProfilePath.fsPath), connectionProfile[property][item].tlsCACerts.path);
                             }
-                            const tlsCertData: string = await fs.readFile(tlsPath, 'utf8');
-                            connectionProfile[property][item].tlsCACerts.pem = tlsCertData;
+
+                            const tlsPathURI: vscode.Uri = vscode.Uri.parse(`${connectionProfilePath.scheme}:${tlsPath}`);
+                            const tlsCertString: string = await FileSystemUtil.readFile(tlsPathURI);
+                            connectionProfile[property][item].tlsCACerts.pem = tlsCertString;
 
                             // Delete the key
                             delete connectionProfile[property][item].tlsCACerts.path;
@@ -163,7 +166,7 @@ export class FabricGatewayHelper {
 
             let connectionProfileData: any;
 
-            if (connectionProfilePath.endsWith('.json')) {
+            if (connectionProfilePath.fsPath.endsWith('.json')) {
                 connectionProfileData = JSON.stringify(connectionProfile, null, 4);
             } else {
                 // Assume its a yml/yaml file type

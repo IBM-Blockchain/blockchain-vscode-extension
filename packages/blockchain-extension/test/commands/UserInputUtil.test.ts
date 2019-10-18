@@ -43,6 +43,7 @@ import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironme
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
 import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
+import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -982,7 +983,7 @@ describe('UserInputUtil', () => {
                 openLabel: 'Select',
                 filters: undefined
             };
-            const result: string = await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions) as string;
+            const result: vscode.Uri = await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions) as vscode.Uri;
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL], { placeHolder });
 
@@ -991,7 +992,7 @@ describe('UserInputUtil', () => {
 
         it('should allow folders to be chosen when selected, and not files', async () => {
             quickPickStub.resolves(UserInputUtil.BROWSE_LABEL);
-            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([{ fsPath: '/some/path' }]);
+            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([vscode.Uri.file('/some/path' )]);
             const placeHolder: string = 'Enter a file path to the wallet';
             const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
@@ -1001,7 +1002,7 @@ describe('UserInputUtil', () => {
                 openLabel: 'Select',
                 filters: undefined
             };
-            const result: string = await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions) as string;
+            const result: vscode.Uri = await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions) as vscode.Uri;
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL], { placeHolder });
             showOpenDialogStub.should.have.been.calledWith({
@@ -1012,12 +1013,12 @@ describe('UserInputUtil', () => {
                 filters: undefined
             });
 
-            result.should.equal('/some/path');
+            result.fsPath.should.equal('/some/path');
         });
 
         it('should return file path from browse', async () => {
             quickPickStub.resolves(UserInputUtil.BROWSE_LABEL);
-            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([{ fsPath: '/some/path' }]);
+            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([vscode.Uri.file('/some/path')]);
             const placeHolder: string = 'Enter a file path to the connection profile file';
             const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
@@ -1029,7 +1030,7 @@ describe('UserInputUtil', () => {
                     'Connection Profiles': ['json', 'yaml', 'yml']
                 }
             };
-            const result: string = await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions) as string;
+            const result: vscode.Uri = await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions) as vscode.Uri;
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL], { placeHolder });
             showOpenDialogStub.should.have.been.calledWith({
@@ -1042,7 +1043,7 @@ describe('UserInputUtil', () => {
                 }
             });
 
-            result.should.equal('/some/path');
+            result.fsPath.should.equal('/some/path');
 
         });
 
@@ -1059,7 +1060,7 @@ describe('UserInputUtil', () => {
                 filters: undefined
             };
 
-            await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions) as string;
+            await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions) as vscode.Uri;
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL], { placeHolder });
 
@@ -1078,7 +1079,7 @@ describe('UserInputUtil', () => {
                 openLabel: 'Select',
                 filters: undefined
             };
-            const result: string = await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions) as string;
+            const result: vscode.Uri = await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions) as vscode.Uri;
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL], { placeHolder });
 
@@ -1087,7 +1088,7 @@ describe('UserInputUtil', () => {
 
         it('should only present browse options', async () => {
             quickPickStub.resolves(UserInputUtil.BROWSE_LABEL);
-            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([{ fsPath: '/some/path' }]);
+            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([vscode.Uri.file('/some/path')]);
             const placeHolder: string = 'Enter a file path to the connection profile file';
             const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
@@ -1097,7 +1098,7 @@ describe('UserInputUtil', () => {
                 openLabel: 'Save',
                 filters: undefined
             };
-            const result: string = await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions) as string;
+            const result: vscode.Uri = await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions) as vscode.Uri;
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL], { placeHolder });
             showOpenDialogStub.should.have.been.calledWith({
@@ -1108,38 +1109,12 @@ describe('UserInputUtil', () => {
                 filters: undefined
             });
 
-            result.should.equal('/some/path');
-        });
-
-        it('should return a uri', async () => {
-            quickPickStub.resolves(UserInputUtil.BROWSE_LABEL);
-            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([{ fsPath: '/some/path' }]);
-            const placeHolder: string = 'Enter a file path to the connection profile file';
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
-            const openDialogOptions: vscode.OpenDialogOptions = {
-                canSelectFiles: true,
-                canSelectFolders: false,
-                canSelectMany: false,
-                openLabel: 'Save',
-                filters: undefined
-            };
-            const result: string = await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions, true) as string;
-
-            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL], { placeHolder });
-            showOpenDialogStub.should.have.been.calledWith({
-                canSelectFiles: true,
-                canSelectFolders: false,
-                canSelectMany: false,
-                openLabel: 'Save',
-                filters: undefined
-            });
-
-            result.should.deep.equal({ fsPath: '/some/path' });
+            result.fsPath.should.equal('/some/path');
         });
 
         it('should return a uri and all selected if select many is set', async () => {
             quickPickStub.resolves(UserInputUtil.BROWSE_LABEL);
-            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([{ fsPath: '/some/path' }, { fsPath: '/some/otherPath' }]);
+            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([vscode.Uri.file('/some/path'), vscode.Uri.file('/some/otherPath')]);
             const placeHolder: string = 'Select all files to import';
             const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
@@ -1149,7 +1124,7 @@ describe('UserInputUtil', () => {
                 openLabel: 'Select',
                 filters: undefined
             };
-            const result: string = await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions, true) as string;
+            const result: vscode.Uri[] = await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions) as vscode.Uri[];
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL], { placeHolder });
             showOpenDialogStub.should.have.been.calledWith({
@@ -1160,7 +1135,9 @@ describe('UserInputUtil', () => {
                 filters: undefined
             });
 
-            result.should.deep.equal([{ fsPath: '/some/path' }, { fsPath: '/some/otherPath' }]);
+            result.length.should.equal(2);
+            result[0].fsPath.should.equal('/some/path');
+            result[1].fsPath.should.equal('/some/otherPath');
         });
     });
 
@@ -1824,7 +1801,7 @@ describe('UserInputUtil', () => {
             };
             const browseStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browse');
             browseStub.onCall(0).resolves();
-            const result: { certificatePath: string, privateKeyPath: string } = await UserInputUtil.getCertKey();
+            const result: { certificate: string, privateKey: string } = await UserInputUtil.getCertKey();
 
             should.equal(result, undefined);
             browseStub.should.have.been.calledOnceWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
@@ -1841,16 +1818,16 @@ describe('UserInputUtil', () => {
                 filters: undefined
             };
             const browseStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browse');
-            browseStub.onCall(0).resolves('/some/path');
+            browseStub.onCall(0).resolves(vscode.Uri.file('/some/path'));
 
-            const loadFileFromDiskStub: sinon.SinonStub = mySandBox.stub(FabricCertificate, 'loadFileFromDisk').returns('someCert');
+            const loadFileFromDiskStub: sinon.SinonStub = mySandBox.stub(FileSystemUtil, 'readFile').resolves('someCert');
             const error: Error = new Error('Invalid certificate: invalid body');
             const validateCertificateStub: sinon.SinonStub = mySandBox.stub(FabricCertificate, 'validateCertificate').throws(error);
 
             await UserInputUtil.getCertKey().should.be.rejectedWith(error);
 
             browseStub.should.have.been.calledOnceWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
-            loadFileFromDiskStub.should.have.been.calledOnceWithExactly('/some/path');
+            loadFileFromDiskStub.should.have.been.calledOnceWithExactly(vscode.Uri.file('/some/path'));
             validateCertificateStub.should.have.been.calledOnceWithExactly('someCert');
         });
 
@@ -1864,18 +1841,18 @@ describe('UserInputUtil', () => {
                 filters: undefined
             };
             const browseStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browse');
-            browseStub.onCall(0).resolves('/some/path');
+            browseStub.onCall(0).resolves(vscode.Uri.file('/some/path'));
             browseStub.onCall(1).resolves();
 
-            const loadFileFromDiskStub: sinon.SinonStub = mySandBox.stub(FabricCertificate, 'loadFileFromDisk').returns('someCert');
+            const readFileStub: sinon.SinonStub = mySandBox.stub(FileSystemUtil, 'readFile').resolves('someCert');
             const validateCertificateStub: sinon.SinonStub = mySandBox.stub(FabricCertificate, 'validateCertificate').returns(undefined);
 
-            const result: { certificatePath: string, privateKeyPath: string } = await UserInputUtil.getCertKey();
+            const result: { certificate: string, privateKey: string } = await UserInputUtil.getCertKey();
 
             should.equal(result, undefined);
             browseStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
             browseStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions);
-            loadFileFromDiskStub.should.have.been.calledOnceWithExactly('/some/path');
+            readFileStub.should.have.been.calledOnceWithExactly(vscode.Uri.file('/some/path'));
             validateCertificateStub.should.have.been.calledOnceWithExactly('someCert');
         });
 
@@ -1889,12 +1866,12 @@ describe('UserInputUtil', () => {
                 filters: undefined
             };
             const browseStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browse');
-            browseStub.onCall(0).resolves('/some/cert');
-            browseStub.onCall(1).resolves('/some/key');
+            browseStub.onCall(0).resolves(vscode.Uri.file('/some/cert'));
+            browseStub.onCall(1).resolves(vscode.Uri.file('/some/key'));
 
-            const loadFileFromDiskStub: sinon.SinonStub = mySandBox.stub(FabricCertificate, 'loadFileFromDisk');
-            loadFileFromDiskStub.onCall(0).returns('someCert');
-            loadFileFromDiskStub.onCall(1).returns('someKey');
+            const readFileStub: sinon.SinonStub = mySandBox.stub(FileSystemUtil, 'readFile');
+            readFileStub.onCall(0).returns('someCert');
+            readFileStub.onCall(1).returns('someKey');
             const validateCertificateStub: sinon.SinonStub = mySandBox.stub(FabricCertificate, 'validateCertificate').returns(undefined);
             const error: Error = new Error('Invalid private key');
             const validatePrivateKeyStub: sinon.SinonStub = mySandBox.stub(FabricCertificate, 'validatePrivateKey').throws(error);
@@ -1903,7 +1880,7 @@ describe('UserInputUtil', () => {
 
             browseStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
             browseStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions);
-            loadFileFromDiskStub.should.have.been.calledTwice;
+            readFileStub.should.have.been.calledTwice;
             validateCertificateStub.should.have.been.calledOnceWithExactly('someCert');
             validatePrivateKeyStub.should.have.been.calledOnceWithExactly('someKey');
 
@@ -1919,22 +1896,22 @@ describe('UserInputUtil', () => {
                 filters: undefined
             };
             const browseStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browse');
-            browseStub.onCall(0).resolves('/some/cert');
-            browseStub.onCall(1).resolves('/some/key');
+            browseStub.onCall(0).resolves(vscode.Uri.file('/some/cert'));
+            browseStub.onCall(1).resolves(vscode.Uri.file('/some/key'));
 
-            const loadFileFromDiskStub: sinon.SinonStub = mySandBox.stub(FabricCertificate, 'loadFileFromDisk');
-            loadFileFromDiskStub.onCall(0).returns('someCert');
-            loadFileFromDiskStub.onCall(1).returns('someKey');
+            const readFileStub: sinon.SinonStub = mySandBox.stub(FileSystemUtil, 'readFile');
+            readFileStub.onCall(0).returns('someCert');
+            readFileStub.onCall(1).returns('someKey');
             const validateCertificateStub: sinon.SinonStub = mySandBox.stub(FabricCertificate, 'validateCertificate').returns(undefined);
             const validatePrivateKeyStub: sinon.SinonStub = mySandBox.stub(FabricCertificate, 'validatePrivateKey').returns(undefined);
 
-            const { certificatePath, privateKeyPath } = await UserInputUtil.getCertKey();
-            certificatePath.should.equal('/some/cert');
-            privateKeyPath.should.equal('/some/key');
+            const { certificate, privateKey } = await UserInputUtil.getCertKey();
+            certificate.should.equal('someCert');
+            privateKey.should.equal('someKey');
 
             browseStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
             browseStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions);
-            loadFileFromDiskStub.should.have.been.calledTwice;
+            readFileStub.should.have.been.calledTwice;
             validateCertificateStub.should.have.been.calledOnceWithExactly('someCert');
             validatePrivateKeyStub.should.have.been.calledOnceWithExactly('someKey');
         });

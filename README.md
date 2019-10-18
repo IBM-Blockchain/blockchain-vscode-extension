@@ -21,6 +21,17 @@ Each of these operating systems have their own additional requirements.
 
 For the full list of requirements that the extension will check for, please refer to the ['Dependency Installation'](#dependency-installation) section at the end of the README.
 
+## Remote Development
+### SSH
+The extension supports remote development using SSH. Any VS Code settings are shared between local and remote. If you update the setting `ibm-blockchain-platform.ext.directory` then please be aware that you will get an error if the path isn't valid for the environment you are using the extension in. 
+
+Things to note: 
+
+- When you create a smart contract you must create it on the remote machine.
+- If you want to import an existing wallet, the wallet must be located on the remote machine.
+
+### Containers and WSL
+Currently this extension won't work with remote development using containers or WSL. This is something we hope to add in the future.
 
 ## Smart Contract Development Lifecycle
 _Please note that all commands contributed by this extension are accessible via the VS Code Command Palette. The commands outlined below are available from burger menus located on the panel headers, or by right-clicking tree items, in the extension's side bar view._
@@ -374,7 +385,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 <summary>Click to view installation instructions</summary>
 
 The following dependencies are required on all operating systems: 
-- [VS Code version 1.38.0 or greater](https://code.visualstudio.com)
+- [VS Code version 1.40.0 or greater](https://code.visualstudio.com)
 > VS Code version can be found by running: `code --version`
 
 - [Node v8.x or v10.x and npm v6.x or greater](https://nodejs.org/en/download/)

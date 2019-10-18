@@ -134,7 +134,8 @@ export class WalletAndIdentityHelper {
 
         if (method === 'certs') {
             this.userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
-            this.userInputUtilHelper.showGetCertKeyStub.resolves({ certificatePath: WalletAndIdentityHelper.certPath, privateKeyPath: WalletAndIdentityHelper.keyPath });
+            this.userInputUtilHelper.browseStub.withArgs('Browse for a certificate file').resolves(vscode.Uri.file(WalletAndIdentityHelper.certPath));
+            this.userInputUtilHelper.browseStub.withArgs('Browse for a private key file').resolves(vscode.Uri.file(WalletAndIdentityHelper.keyPath));
         } else if (method === 'JSON file') {
             this.userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_JSON_ID_OPTION);
             this.userInputUtilHelper.browseStub.resolves(vscode.Uri.file(WalletAndIdentityHelper.jsonFilePath));

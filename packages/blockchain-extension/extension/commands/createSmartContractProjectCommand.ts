@@ -29,69 +29,73 @@ export async function createSmartContractProject(): Promise<void> {
     // Create and show output channel
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
-    const chaincodeLanguageOptions: string[] = getChaincodeLanguageOptions();
-    const smartContractLanguageOptions: string[] = getSmartContractLanguageOptions();
-
-    const smartContractLanguagePrompt: string = localize('smartContractLanguage.prompt', 'Choose smart contract language (Esc to cancel)');
-    const smartContractLanguageItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick(smartContractLanguagePrompt, chaincodeLanguageOptions, smartContractLanguageOptions);
-    if (!smartContractLanguageItem) {
-        // User has cancelled the QuickPick box
-        return;
-    }
-
-    const generator: string = `fabric:${smartContractLanguageItem.type.toLowerCase()}`;
-    const smartContractLanguage: string = smartContractLanguageItem.label.toLowerCase();
-
-    let assetType: string;
-    if (smartContractLanguageItem.type === LanguageType.CONTRACT) {
-        assetType = await UserInputUtil.showInputBox('Name the type of asset managed by this smart contract', 'MyAsset');
-        const regexForAssetType: RegExp = /^[A-Z]+$/i;
-        const validAssetType: boolean = regexForAssetType.test(assetType);
-        if (!assetType) {
-            // User has cancelled the input box
-            return;
-        }
-        if (!validAssetType) {
-            outputAdapter.log(LogType.ERROR, `Invalid asset name, it should only contain lowercase and uppercase letters.`);
-            return;
-        }
-    }
-
-    const quickPickItems: {label: string, description: string}[] = [{label: UserInputUtil.BROWSE_LABEL, description: UserInputUtil.VALID_FOLDER_NAME}];
-    const openDialogOptions: vscode.OpenDialogOptions = {
-        canSelectFiles: false,
-        canSelectFolders: true,
-        canSelectMany: false,
-        openLabel: 'Save',
-        filters: undefined
-    };
-
-    const folderUri: vscode.Uri = await UserInputUtil.browse('Choose the location to save the smart contract.', quickPickItems, openDialogOptions, true) as vscode.Uri;
-    if (!folderUri) {
-        return;
-    }
-    const folderPath: string = folderUri.fsPath;
-    const folderName: string = path.basename(folderPath);
-
-    const regex: RegExp = /^[a-zA-Z0-9-_]+$/;
-    const validPackageName: boolean = regex.test(folderName); // Check contract meets Fabric naming requirement
-    if (!validPackageName) {
-        outputAdapter.log(LogType.ERROR, `Please choose a folder which only includes alphanumeric, "_" and "-" characters.`);
-        return;
-    }
-
-    const openMethod: string = await UserInputUtil.showFolderOptions('Choose how to open your new project');
-
-    if (!openMethod) {
-        return;
-    }
-
     try {
+
+        const chaincodeLanguageOptions: string[] = getChaincodeLanguageOptions();
+        const smartContractLanguageOptions: string[] = getSmartContractLanguageOptions();
+
+        const smartContractLanguagePrompt: string = localize('smartContractLanguage.prompt', 'Choose smart contract language (Esc to cancel)');
+        const smartContractLanguageItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick(smartContractLanguagePrompt, chaincodeLanguageOptions, smartContractLanguageOptions);
+        if (!smartContractLanguageItem) {
+            // User has cancelled the QuickPick box
+            return;
+        }
+
+        const generator: string = `fabric:${smartContractLanguageItem.type.toLowerCase()}`;
+        const smartContractLanguage: string = smartContractLanguageItem.label.toLowerCase();
+
+        let assetType: string;
+        if (smartContractLanguageItem.type === LanguageType.CONTRACT) {
+            assetType = await UserInputUtil.showInputBox('Name the type of asset managed by this smart contract', 'MyAsset');
+            const regexForAssetType: RegExp = /^[A-Z]+$/i;
+            const validAssetType: boolean = regexForAssetType.test(assetType);
+            if (!assetType) {
+                // User has cancelled the input box
+                return;
+            }
+            if (!validAssetType) {
+                outputAdapter.log(LogType.ERROR, `Invalid asset name, it should only contain lowercase and uppercase letters.`);
+                return;
+            }
+        }
+
+        const quickPickItems: { label: string, description: string }[] = [{ label: UserInputUtil.BROWSE_LABEL, description: UserInputUtil.VALID_FOLDER_NAME }];
+        const openDialogOptions: vscode.OpenDialogOptions = {
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            openLabel: 'Save',
+            filters: undefined
+        };
+
+        const folderUri: vscode.Uri = await UserInputUtil.browse('Choose the location to save the smart contract.', quickPickItems, openDialogOptions) as vscode.Uri;
+        if (!folderUri) {
+            return;
+        }
+
+        if (folderUri.scheme === 'vscode-local') {
+            throw new Error('You must create the smart contract locally to where the extension is running');
+        }
+
+        const folderName: string = path.basename(folderUri.fsPath);
+
+        const regex: RegExp = /^[a-zA-Z0-9-_]+$/;
+        const validPackageName: boolean = regex.test(folderName); // Check contract meets Fabric naming requirement
+        if (!validPackageName) {
+            outputAdapter.log(LogType.ERROR, `Please choose a folder which only includes alphanumeric, "_" and "-" characters.`);
+            return;
+        }
+
+        const openMethod: string = await UserInputUtil.showFolderOptions('Choose how to open your new project');
+
+        if (!openMethod) {
+            return;
+        }
 
         const skipInstall: boolean = ExtensionUtil.skipNpmInstall();
 
         const runOptions: any = {
-            'destination': folderPath,
+            'destination': folderUri.fsPath,
             'language': smartContractLanguage,
             'name': folderName,
             'version': '0.0.1',
@@ -106,14 +110,14 @@ export async function createSmartContractProject(): Promise<void> {
             location: vscode.ProgressLocation.Notification,
             title: 'IBM Blockchain Platform Extension',
             cancellable: false
-        }, async (progress: vscode.Progress<{message: string}>): Promise<void> => {
-            progress.report({message: 'Generating smart contract project'});
+        }, async (progress: vscode.Progress<{ message: string }>): Promise<void> => {
+            progress.report({ message: 'Generating smart contract project' });
             await YeomanUtil.run(generator, runOptions);
         });
 
         outputAdapter.log(LogType.SUCCESS, 'Successfully generated smart contract project');
 
-        Reporter.instance().sendTelemetryEvent('createSmartContractProject', {contractLanguage: smartContractLanguage});
+        Reporter.instance().sendTelemetryEvent('createSmartContractProject', { contractLanguage: smartContractLanguage });
         // Open the returned folder in explorer, in a new window
         await UserInputUtil.openNewProject(openMethod, folderUri);
         await vscode.commands.executeCommand('workbench.files.action.focusFilesExplorer');
@@ -130,5 +134,5 @@ function getChaincodeLanguageOptions(): string[] {
 }
 
 function getSmartContractLanguageOptions(): string[] {
-     return GeneratorFabricPackageJSON.contractLanguages;
+    return GeneratorFabricPackageJSON.contractLanguages;
 }

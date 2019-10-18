@@ -14,6 +14,7 @@
 'use strict';
 
 import * as homeDir from 'home-dir';
+import * as vscode from 'vscode';
 
 export class FileSystemUtil {
 
@@ -28,5 +29,15 @@ export class FileSystemUtil {
             dir = homeDir(dir.replace('~', ''));
         }
         return dir;
+    }
+
+    public static async readFile(path: vscode.Uri): Promise<string> {
+        const contents: Uint8Array = await vscode.workspace.fs.readFile(path);
+        return contents.toString();
+    }
+
+    public static async readJSONFile(path: vscode.Uri): Promise<any> {
+        const contentString: string = await FileSystemUtil.readFile(path);
+        return JSON.parse(contentString);
     }
 }

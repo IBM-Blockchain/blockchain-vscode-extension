@@ -21,7 +21,7 @@
     },
     "production": false,
     "engines": {
-        "vscode": "^1.38.0"
+        "vscode": "^1.40.0"
     },
     "repository": {
         "type": "git",
@@ -1280,7 +1280,7 @@
         "@types/sinon-chai": "3.2.0",
         "@types/strip-ansi": "^3.0.0",
         "@types/tmp": "0.0.33",
-        "@types/vscode": "1.38.0",
+        "@types/vscode": "1.40.0",
         "angular-tslint-rules": "1.5.0",
         "chai": "4.1.2",
         "chai-as-promised": "7.1.1",
@@ -1335,7 +1335,7 @@
     },
     "optionalDependencies": {
         "fabric-ca-client": "1.4.5-snapshot.73",
-        "fabric-client": "1.4.5-snapshot.69"
+        "fabric-client": "1.4.5-snapshot.71"
     },
     "nativeDependencies": [
         "grpc"

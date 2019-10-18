@@ -44,7 +44,6 @@ export class UserInputUtilHelper {
     showRuntimeInstantiatedSmartContractsStub: sinon.SinonStub;
     showTransactionStub: sinon.SinonStub;
     showAddIdentityMethodStub: sinon.SinonStub;
-    showGetCertKeyStub: sinon.SinonStub;
     showAddWalletOptionsQuickPickStub: sinon.SinonStub;
     getEnrollIdSecretStub: sinon.SinonStub;
     showQuickPickStub: sinon.SinonStub;
@@ -83,7 +82,6 @@ export class UserInputUtilHelper {
         this.showRuntimeInstantiatedSmartContractsStub = this.mySandBox.stub(UserInputUtil, 'showRuntimeInstantiatedSmartContractsQuickPick').callThrough();
         this.showTransactionStub = this.mySandBox.stub(UserInputUtil, 'showTransactionQuickPick').callThrough();
         this.showAddIdentityMethodStub = this.mySandBox.stub(UserInputUtil, 'addIdentityMethod').callThrough();
-        this.showGetCertKeyStub = this.mySandBox.stub(UserInputUtil, 'getCertKey').callThrough();
         this.showAddWalletOptionsQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showAddWalletOptionsQuickPick').callThrough();
         this.getEnrollIdSecretStub = this.mySandBox.stub(UserInputUtil, 'getEnrollIdSecret').callThrough();
         this.showQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showQuickPick').callThrough();

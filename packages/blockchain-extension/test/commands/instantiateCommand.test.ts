@@ -18,7 +18,6 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as path from 'path';
-import * as fs from 'fs-extra';
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
@@ -38,6 +37,7 @@ import { FabricEnvironmentRegistryEntry } from '../../extension/registries/Fabri
 import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
 
 chai.use(sinonChai);
 
@@ -201,10 +201,12 @@ describe('InstantiateCommand', () => {
             showYesNo.resolves(UserInputUtil.YES);
             mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([]);
             browseStub.resolves(path.join('myPath'));
+
+            mySandBox.stub(FileSystemUtil, 'readJSONFile').resolves([{ name: 'myCollection' }]);
             executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
-            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3'], 'myPath', undefined);
+            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3'], [{ name: 'myCollection' }], undefined);
 
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
@@ -223,6 +225,9 @@ describe('InstantiateCommand', () => {
 
             mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([workspaceFolder]);
             browseStub.resolves(path.join('myPath'));
+
+            mySandBox.stub(FileSystemUtil, 'readJSONFile').resolves([{ name: 'myCollection' }]);
+
             executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
@@ -235,7 +240,7 @@ describe('InstantiateCommand', () => {
                 defaultUri: vscode.Uri.file(path.join('myPath'))
             });
 
-            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3'], 'myPath', undefined);
+            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3'], [{ name: 'myCollection' }], undefined);
 
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
@@ -280,7 +285,7 @@ describe('InstantiateCommand', () => {
             showYesNo.onFirstCall().resolves(UserInputUtil.NO);
             showQuickPick.resolves(UserInputUtil.CUSTOM);
 
-            browseStub.withArgs('Browse for the JSON file containing the smart contract endorsement policy', [UserInputUtil.BROWSE_LABEL], openDialogOptions, true).resolves(undefined);
+            browseStub.withArgs('Browse for the JSON file containing the smart contract endorsement policy', [UserInputUtil.BROWSE_LABEL], openDialogOptions).resolves(undefined);
             executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
@@ -297,8 +302,9 @@ describe('InstantiateCommand', () => {
         it(`should be able to pass a chaincode EP`, async () => {
             showYesNo.resolves(UserInputUtil.NO);
             showQuickPick.resolves(UserInputUtil.CUSTOM);
-            browseStub.withArgs('Browse for the JSON file containing the smart contract endorsement policy', [UserInputUtil.BROWSE_LABEL], openDialogOptions, true).resolves(vscode.Uri.file('myPath'));
-            const readFileStub: sinon.SinonStub = mySandBox.stub(fs, 'readFile').resolves(policyString);
+            browseStub.withArgs('Browse for the JSON file containing the smart contract endorsement policy', [UserInputUtil.BROWSE_LABEL], openDialogOptions).resolves(vscode.Uri.file('myPath'));
+
+            const readFileStub: sinon.SinonStub = mySandBox.stub(FileSystemUtil, 'readJSONFile').resolves(policyObject);
             executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
@@ -316,8 +322,9 @@ describe('InstantiateCommand', () => {
         it(`should handle any errors parsing the chaincode EP`, async () => {
             showYesNo.resolves(UserInputUtil.NO);
             showQuickPick.resolves(UserInputUtil.CUSTOM);
-            browseStub.withArgs('Browse for the JSON file containing the smart contract endorsement policy', [UserInputUtil.BROWSE_LABEL], openDialogOptions, true).resolves(vscode.Uri.file('myPath'));
-            const readFileStub: sinon.SinonStub = mySandBox.stub(fs, 'readFile').resolves(`{invalidJSON}`);
+            browseStub.withArgs('Browse for the JSON file containing the smart contract endorsement policy', [UserInputUtil.BROWSE_LABEL], openDialogOptions).resolves(vscode.Uri.file('myPath'));
+
+            const readFileStub: sinon.SinonStub = mySandBox.stub(FileSystemUtil, 'readJSONFile').rejects(new Error('Unexpected token i in JSON at position 1'));
             executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);

@@ -31,10 +31,8 @@ import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 chai.use(sinonChai);
 
-// Defines a Mocha test suite to group tests of similar kind together
 // tslint:disable no-unused-expression
 describe('CreateSmartContractProjectCommand', () => {
-    // suite variables
     let mySandBox: sinon.SinonSandbox;
     let logSpy: sinon.SinonSpy;
     let quickPickStub: sinon.SinonStub;
@@ -280,6 +278,20 @@ describe('CreateSmartContractProjectCommand', () => {
         browseStub.should.have.been.calledOnce;
         executeCommandStub.should.have.been.calledOnce;
         executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
+    });
+
+    it('should throw an error if choosing a local dir when doing remote development', async () => {
+        quickPickStub.onCall(0).resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
+        showInputBoxStub.onFirstCall().resolves('Conga');
+
+        const error: Error = new Error('You must create the smart contract locally to where the extension is running');
+
+        uri = vscode.Uri.parse(`vscode-local:${tmp.dirSync().name}`);
+
+        browseStub.resolves(uri);
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
+        logSpy.should.have.been.calledWith(LogType.ERROR, `Issue creating smart contract project: ${error.message}`, `Issue creating smart contract project: ${error.toString()}`);
+        sendTelemetryEventStub.should.not.have.been.called;
     });
 
     it('should throw an error if the chosen folder has an invalid name', async () => {

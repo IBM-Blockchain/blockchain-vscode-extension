@@ -61,7 +61,7 @@ export class GatewayHelper {
             this.userInputUtilHelper.inputBoxStub.withArgs('Enter a name for the gateway').resolves(name);
             if (!fromEnvironment) {
                 this.userInputUtilHelper.showQuickPickStub.resolves(UserInputUtil.ADD_GATEWAY_FROM_CCP);
-                this.userInputUtilHelper.browseStub.withArgs('Enter a file path to a connection profile file').resolves(path.join(__dirname, '../../../cucumber/hlfv1/connection.json'));
+                this.userInputUtilHelper.browseStub.withArgs('Enter a file path to a connection profile file').resolves(vscode.Uri.file(path.join(__dirname, '../../../cucumber/hlfv1/connection.json')));
             } else {
                 this.userInputUtilHelper.showQuickPickStub.resolves(UserInputUtil.ADD_GATEWAY_FROM_ENVIRONMENT);
 

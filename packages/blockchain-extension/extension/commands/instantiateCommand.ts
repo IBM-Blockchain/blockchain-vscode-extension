@@ -13,7 +13,6 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import * as fs from 'fs-extra';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
 import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
@@ -27,6 +26,7 @@ import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnec
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { PackageRegistry } from '../registries/PackageRegistry';
+import { FileSystemUtil } from '../util/FileSystemUtil';
 
 export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, channelName?: string, peerNames?: Array<string>): Promise<void> {
 
@@ -160,7 +160,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
             }
         }
 
-        let collectionPath: string;
+        let collectionConfig: any; // the actual parsed collection data
         const wantCollection: string = await UserInputUtil.showQuickPickYesNo('Do you want to provide a private data collection configuration file?');
 
         if (!wantCollection) {
@@ -181,10 +181,12 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
                 defaultUri: defaultUri
             };
 
-            collectionPath = await UserInputUtil.browse('Enter a file path to the collection configuration', quickPickItems, openDialogOptions) as string;
+            const collectionPath: vscode.Uri = await UserInputUtil.browse('Enter a file path to the collection configuration', quickPickItems, openDialogOptions) as vscode.Uri;
             if (collectionPath === undefined) {
                 return;
             }
+
+            collectionConfig = await FileSystemUtil.readJSONFile(collectionPath);
         }
 
         let contractEP: any;
@@ -204,19 +206,17 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
                 }
             };
 
-            const jsonEpPath: vscode.Uri = await UserInputUtil.browse('Browse for the JSON file containing the smart contract endorsement policy', [UserInputUtil.BROWSE_LABEL], openDialogOptions, true) as vscode.Uri;
+            const jsonEpPath: vscode.Uri = await UserInputUtil.browse('Browse for the JSON file containing the smart contract endorsement policy', [UserInputUtil.BROWSE_LABEL], openDialogOptions) as vscode.Uri;
             if (!jsonEpPath) {
                 return;
             }
 
-            const jsonEpContents: string = await fs.readFile(jsonEpPath.fsPath, 'utf8');
             try {
-                contractEP = JSON.parse(jsonEpContents);
+                contractEP = await FileSystemUtil.readJSONFile(jsonEpPath);
             } catch (error) {
                 outputAdapter.log(LogType.ERROR, `Unable to read smart contract endorsement policy: ${error.message}`);
                 return;
             }
-
         }
 
         await vscode.window.withProgress({
@@ -232,7 +232,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
                 VSCodeBlockchainDockerOutputAdapter.instance().show();
             }
 
-            await connection.instantiateChaincode(smartContractName, smartContractVersion, peerNames, channelName, fcn, args, collectionPath, contractEP);
+            await connection.instantiateChaincode(smartContractName, smartContractVersion, peerNames, channelName, fcn, args, collectionConfig, contractEP);
 
             Reporter.instance().sendTelemetryEvent('instantiateCommand');
 

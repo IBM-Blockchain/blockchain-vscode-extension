@@ -96,6 +96,18 @@ describe('AddWalletCommand', () => {
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new wallet');
         });
 
+        it('should not allow a local wallet when doing remote development', async () => {
+            choseWalletAddMethod.resolves(UserInputUtil.IMPORT_WALLET);
+            uri = vscode.Uri.parse(`vscode-local:${tmp.dirSync().name}`);
+            browseStub.resolves(uri);
+
+            const error: Error = new Error('The wallet must be located locally to where the extension is running');
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET) as FabricWalletRegistryEntry;
+
+            logSpy.should.have.been.calledWith(LogType.ERROR,  `Failed to add a new wallet: ${error.message}`, `Failed to add a new wallet: ${error.message}`);
+        });
+
         it('should handle the user cancelling providing a wallet path', async () => {
             choseWalletAddMethod.resolves(UserInputUtil.IMPORT_WALLET);
             browseStub.resolves();

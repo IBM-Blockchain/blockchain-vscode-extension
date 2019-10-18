@@ -32,6 +32,7 @@ import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FileSystemUtil } from '../util/FileSystemUtil';
 
 export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalletRegistryEntry, mspid: string): Promise<string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -89,8 +90,6 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
 
     let certificate: string;
     let privateKey: string;
-    let certificatePath: string;
-    let privateKeyPath: string;
 
     // User selects if they want to add an identity using either a cert/key or an id/secret
     const addIdentityMethod: string = await UserInputUtil.addIdentityMethod(isLocalWallet);
@@ -102,12 +101,12 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
 
         if (addIdentityMethod === UserInputUtil.ADD_CERT_KEY_OPTION) {
             // User wants to add an identity by providing a certificate and private key
-            const certKey: { certificatePath: string, privateKeyPath: string } = await UserInputUtil.getCertKey();
+            const certKey: { certificate: string, privateKey: string } = await UserInputUtil.getCertKey();
             if (!certKey) {
                 return;
             }
-            certificatePath = certKey.certificatePath;
-            privateKeyPath = certKey.privateKeyPath;
+            certificate = certKey.certificate;
+            privateKey = certKey.privateKey;
 
         } else if (addIdentityMethod === UserInputUtil.ADD_JSON_ID_OPTION) {
             // User to provide path to json file
@@ -121,14 +120,13 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
                 }
             };
             // Get the json identity file path
-            const jsonIdentityPath: vscode.Uri = await UserInputUtil.browse('Browse for a JSON identity file', [UserInputUtil.BROWSE_LABEL], openDialogOptions, true) as vscode.Uri;
+            const jsonIdentityPath: vscode.Uri = await UserInputUtil.browse('Browse for a JSON identity file', [UserInputUtil.BROWSE_LABEL], openDialogOptions) as vscode.Uri;
             if (!jsonIdentityPath) {
                 return;
             }
             const certProperty: string = 'cert';
             const privateKeyProperty: string = 'private_key';
-            const jsonIdentityContents: string = await fs.readFile(jsonIdentityPath.fsPath, 'utf8');
-            const jsonIdentity: any = JSON.parse(jsonIdentityContents);
+            const jsonIdentity: any = await FileSystemUtil.readJSONFile(jsonIdentityPath);
 
             if (jsonIdentity[certProperty] && jsonIdentity[privateKeyProperty]) {
                 certificate = Buffer.from(jsonIdentity[certProperty], 'base64').toString();
@@ -136,7 +134,6 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
             } else {
                 throw new Error(`JSON file missing properties \"${certProperty}\" or \"${privateKeyProperty}\"`);
             }
-
         } else {
             // User wants to add an identity by providing a enrollment id and secret
 
@@ -223,13 +220,6 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
             certificate = enrollment.certificate;
             privateKey = enrollment.privateKey;
         }
-
-        if (certificatePath && privateKeyPath) {
-            certificate = await fs.readFile(certificatePath, 'utf8');
-            privateKey = await fs.readFile(privateKeyPath, 'utf8');
-        }
-        // Else certificate and privateKey have already been read in FabricCertificateAuthority.enroll
-        // Or certificate and privateKey has been read from json file
 
         await wallet.importIdentity(certificate, privateKey, identityName, mspid);
 
