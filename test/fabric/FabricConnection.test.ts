@@ -604,22 +604,28 @@ describe('FabricConnection', () => {
         });
     });
 
-    describe('getChannelPeerNames', () => {
+    describe('getChannelPeersInfo', () => {
 
         it('should get the channel peer names', async () => {
             const channelName: string = 'theChannelName';
             const peerNames: string[] = ['peerName1', 'peerName2'];
+            const mspIds: string[] = ['Org1MSP', 'Org2MSP'];
 
             const getNameStub: sinon.SinonStub = mySandBox.stub();
             getNameStub.onCall(0).returns(peerNames[0]);
             getNameStub.onCall(1).returns(peerNames[1]);
-            fabricChannelStub.getChannelPeers.returns([{getName: getNameStub}, {getName: getNameStub}]);
 
-            const channelPeerNames: string[] = await fabricConnection.getChannelPeerNames(channelName);
+            const getMspidStub: sinon.SinonStub = mySandBox.stub();
+            getMspidStub.onCall(0).returns(mspIds[0]);
+            getMspidStub.onCall(1).returns(mspIds[1]);
+
+            fabricChannelStub.getChannelPeers.returns([{getName: getNameStub, getMspid: getMspidStub}, {getName: getNameStub, getMspid: getMspidStub}]);
+
+            const channelPeersInfo: {name: string, mspID: string}[] = await fabricConnection.getChannelPeersInfo(channelName);
             fabricChannelStub.getChannelPeers.should.have.been.calledOnce;
             getNameStub.should.have.been.calledTwice;
-            channelPeerNames.length.should.equal(2);
-            channelPeerNames.should.deep.equal(peerNames);
+            channelPeersInfo.length.should.equal(2);
+            channelPeersInfo.should.deep.equal([{name: peerNames[0], mspID: mspIds[0]}, {name: peerNames[1], mspID: mspIds[1]}]);
         });
 
         it('should handle any errors', async () => {
@@ -628,7 +634,7 @@ describe('FabricConnection', () => {
             const error: Error = new Error('Could not get channel');
             fabricChannelStub.getChannelPeers.throws(error);
 
-            await fabricConnection.getChannelPeerNames(channelName).should.be.rejectedWith(`Unable to get channel peer names: ${error.message}`);
+            await fabricConnection.getChannelPeersInfo(channelName).should.be.rejectedWith(`Unable to get channel peers info: ${error.message}`);
 
         });
     });

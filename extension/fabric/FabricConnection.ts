@@ -136,23 +136,24 @@ export abstract class FabricConnection {
         }
     }
 
-    public async getChannelPeerNames(channelName: string): Promise<string[]> {
+    public async getChannelPeersInfo(channelName: string): Promise<{name: string, mspID: string}[]> {
         try {
             const network: Network = await this.gateway.getNetwork(channelName);
             const channel: Client.Channel = network.getChannel();
             const channelPeers: Client.ChannelPeer[] = channel.getChannelPeers();
 
-            const peerNames: string[] = [];
+            const peerInfo: {name: string, mspID: string}[] = [];
 
             for (const peer of channelPeers) {
                 const name: string = peer.getName();
-                peerNames.push(name);
+                const mspID: string = peer.getMspid();
+                peerInfo.push({name, mspID});
             }
 
-            return peerNames;
+            return peerInfo;
 
         } catch (error) {
-            throw new Error(`Unable to get channel peer names: ${error.message}`);
+            throw new Error(`Unable to get channel peers info: ${error.message}`);
         }
     }
 
