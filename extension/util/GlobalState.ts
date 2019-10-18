@@ -26,6 +26,7 @@ export class ExtensionData {
     public preReqPageShown: boolean;
     public dockerForWindows: boolean;
     public systemRequirements: boolean;
+    public url: {url: string, envName: string}[];
 }
 
 export const EXTENSION_DATA_KEY: string = 'ibm-blockchain-platform-extension-data';
@@ -37,7 +38,8 @@ export const DEFAULT_EXTENSION_DATA: ExtensionData = {
     generatorVersion: null, // Used to check if the generator needs updating
     preReqPageShown: false, // The very first time the extension is installed, the prereq page should be shown,
     dockerForWindows: false, // Has the user agreed to configure Windows containers to use Linux (default)
-    systemRequirements: false // Has the user confirmed that they've met the system requirements?
+    systemRequirements: false, // Has the user confirmed that they've met the system requirements?
+    url: []
 };
 
 // tslint:disable-next-line: max-classes-per-file
@@ -55,6 +57,9 @@ export class GlobalState {
     public static get(): ExtensionData {
         try {
             const extensionData: ExtensionData = GlobalState.context.globalState.get<ExtensionData>(EXTENSION_DATA_KEY, DEFAULT_EXTENSION_DATA);
+            if (!extensionData.url) {
+                extensionData.url = DEFAULT_EXTENSION_DATA.url;
+            }
             return extensionData;
         } catch (error) {
             const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();

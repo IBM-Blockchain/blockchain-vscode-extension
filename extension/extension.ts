@@ -48,7 +48,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         generatorVersion: originalExtensionData.generatorVersion,
         preReqPageShown: originalExtensionData.preReqPageShown,
         dockerForWindows: originalExtensionData.dockerForWindows,
-        systemRequirements: originalExtensionData.systemRequirements
+        systemRequirements: originalExtensionData.systemRequirements,
+        url: originalExtensionData.url
     };
 
     const isIBMer: boolean = ExtensionUtil.checkIfIBMer();
