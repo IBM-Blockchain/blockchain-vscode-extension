@@ -88,7 +88,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
 
     // At the moment, the 'Open Log File' doesn't display extension log files to open. https://github.com/Microsoft/vscode/issues/43064
-    outputAdapter.log(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', true); // Let users know how to get the log file
+    outputAdapter.log(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true); // Let users know how to get the log file
 
     outputAdapter.log(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
 
@@ -139,7 +139,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         }
 
     } catch (error) {
-        outputAdapter.log(LogType.ERROR, undefined, `Failed to activate extension: ${error.toString()}`);
+        outputAdapter.log(LogType.ERROR, undefined, `Failed to activate extension: ${error.toString()}`, error.stack);
         await UserInputUtil.failedActivationWindow(error.message);
     }
 }

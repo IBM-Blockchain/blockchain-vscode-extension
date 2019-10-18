@@ -31,10 +31,11 @@ export abstract class VSCodeOutputAdapter extends OutputAdapter {
      * @param type {LogType} The type of log message
      * @param popupMessage {String} The message to be displayed to a vscode.window showInformationMessage/showErrorMessage. Leave as undefined to just log the outputMessage to the console.
      * @param outputMessage {String} The message to be displayed to the users output log. If not provided, the outputMessage will be the same as the popupMessage.
+     * @param stackTrace {String} The stack trace of the error.
      * @param skipNextLine {Boolean} Provide a gap between the next console message
      * @returns {void}
      */
-    log(type: LogType, popupMessage: string, outputMessage?: string, skipNextLine?: boolean): void {
+    log(type: LogType, popupMessage: string, outputMessage?: string, stackTrace?: string, skipNextLine?: boolean): void {
         if (!popupMessage && !outputMessage) {
             return;
         }
@@ -45,7 +46,7 @@ export abstract class VSCodeOutputAdapter extends OutputAdapter {
         }
 
         if (this.console) {
-            super.log(type, popupMessage, outputMessage);
+            super.log(type, popupMessage, outputMessage, stackTrace);
         }
 
         this.appendLine(type, outputMessage, skipNextLine);
@@ -57,6 +58,10 @@ export abstract class VSCodeOutputAdapter extends OutputAdapter {
             } else {
                 vscode.window.showInformationMessage(popupMessage);
             }
+        }
+
+        if (stackTrace) {
+            this.appendLine(type, stackTrace);
         }
 
     }

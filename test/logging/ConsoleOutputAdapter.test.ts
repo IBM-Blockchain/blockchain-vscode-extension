@@ -40,7 +40,19 @@ describe('ConsoleOutputAdapter', () => {
             outputAdapter.log(LogType.INFO, 'hello', 'hello world');
             consoleLogStub.should.have.been.calledTwice;
             consoleLogStub.firstCall.should.have.been.calledWithExactly('hello');
-            consoleLogStub.should.have.been.calledWithExactly('hello world');
+            consoleLogStub.secondCall.should.have.been.calledWithExactly('hello world');
+        });
+
+        it('should log to the console with no popup', () => {
+            const consoleLogStub: sinon.SinonStub = sandbox.stub(console, 'log');
+            outputAdapter.log(LogType.INFO, undefined, 'hello');
+            consoleLogStub.should.have.been.calledOnceWithExactly('hello');
+        });
+
+        it('should log to the console with no output', () => {
+            const consoleLogStub: sinon.SinonStub = sandbox.stub(console, 'log');
+            outputAdapter.log(LogType.INFO, 'hello');
+            consoleLogStub.should.have.been.calledOnceWithExactly('hello');
         });
 
         it('should log to the error console', () => {
@@ -51,5 +63,25 @@ describe('ConsoleOutputAdapter', () => {
             consoleLogStub.should.have.been.calledWithExactly('hello world');
         });
 
+        it('should log to the error console with no popup', () => {
+            const consoleLogStub: sinon.SinonStub = sandbox.stub(console, 'error');
+            outputAdapter.log(LogType.ERROR, undefined, 'hello');
+            consoleLogStub.should.have.been.calledOnceWithExactly('hello');
+        });
+
+        it('should log to the error console with no output', () => {
+            const consoleLogStub: sinon.SinonStub = sandbox.stub(console, 'error');
+            outputAdapter.log(LogType.ERROR, 'hello');
+            consoleLogStub.should.have.been.calledOnce;
+            consoleLogStub.firstCall.should.have.been.calledWithExactly('hello');
+        });
+
+        it('should log to the error console with stack trace', () => {
+            const consoleLogStub: sinon.SinonStub = sandbox.stub(console, 'error');
+            outputAdapter.log(LogType.ERROR, 'hello', undefined, 'error');
+            consoleLogStub.should.have.been.calledTwice;
+            consoleLogStub.firstCall.should.have.been.calledWithExactly('hello');
+            consoleLogStub.secondCall.should.have.been.calledWithExactly('error');
+        });
     });
 });
