@@ -59,6 +59,7 @@ export class EnvironmentHelper {
 
         if (!treeItem) {
             this.userInputUtilHelper.inputBoxStub.withArgs('Enter a name for the environment').resolves(name);
+            this.userInputUtilHelper.showQuickPickStub.withArgs('Choose a method to import nodes to an environment').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
 
             const caUri: vscode.Uri = vscode.Uri.file(path.join(__dirname, '../../../cucumber/hlfv1/nodes/ca.example.com.json'));
             const ordererUri: vscode.Uri = vscode.Uri.file(path.join(__dirname, '../../../cucumber/hlfv1/nodes/orderer.example.com.json'));

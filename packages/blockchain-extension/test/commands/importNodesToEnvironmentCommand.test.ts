@@ -18,6 +18,7 @@ import * as fs from 'fs-extra';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import Axios from 'axios';
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
@@ -35,6 +36,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
     let logSpy: sinon.SinonSpy;
     let browseStub: sinon.SinonStub;
     let ensureDirStub: sinon.SinonStub;
+    let removeDirStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
     let addMoreStub: sinon.SinonStub;
     let updateNodeStub: sinon.SinonStub;
@@ -42,6 +44,13 @@ describe('ImportNodesToEnvironmentCommand', () => {
     let getNodesStub: sinon.SinonStub;
     let environmentRegistryEntry: FabricEnvironmentRegistryEntry;
     let showEnvironmentQuickPickStub: sinon.SinonStub;
+    let addMethodChooserStub: sinon.SinonStub;
+    let showInputBoxStub: sinon.SinonStub;
+    let axiosGetStub: sinon.SinonStub;
+    let localFabricNodes: any;
+    let opsToolNodes: any;
+    let url: string;
+    let key: string;
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
@@ -50,27 +59,32 @@ describe('ImportNodesToEnvironmentCommand', () => {
     describe('importNodeaToEnvironment', () => {
 
         beforeEach(async () => {
-
+            addMethodChooserStub = mySandBox.stub(UserInputUtil, 'showQuickPick').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             browseStub = mySandBox.stub(UserInputUtil, 'browse');
             addMoreStub = mySandBox.stub(UserInputUtil, 'addMoreNodes').resolves(UserInputUtil.DONE_ADDING_NODES);
             ensureDirStub = mySandBox.stub(fs, 'ensureDir').resolves();
-
+            removeDirStub = mySandBox.stub(fs, 'remove').resolves();
+            showInputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
+            axiosGetStub = mySandBox.stub(Axios, 'get');
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand').callThrough();
             executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT).resolves();
             updateNodeStub = mySandBox.stub(FabricEnvironment.prototype, 'updateNode').resolves();
             getNodesStub = mySandBox.stub(FabricEnvironment.prototype, 'getNodes').onFirstCall().resolves([]);
-            getNodesStub.onSecondCall().resolves([{
-                short_name: 'peer0.org1.example.com',
-                name: 'peer0.org1.example.com',
-                api_url: 'grpc://localhost:17051',
-                chaincode_url: 'grpc://localhost:17052',
-                type: 'fabric-peer',
-                wallet: 'local_fabric_wallet',
-                identity: 'admin',
-                msp_id: 'Org1MSP',
-                container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
-            }]);
+            localFabricNodes = [
+                {
+                    short_name: 'peer0.org1.example.com',
+                    name: 'peer0.org1.example.com',
+                    api_url: 'grpc://localhost:17051',
+                    chaincode_url: 'grpc://localhost:17052',
+                    type: 'fabric-peer',
+                    wallet: 'local_fabric_wallet',
+                    identity: 'admin',
+                    msp_id: 'Org1MSP',
+                    container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
+                }
+            ];
+            getNodesStub.onSecondCall().resolves(localFabricNodes);
 
             readJsonStub = mySandBox.stub(fs, 'readJson').resolves({
                 short_name: 'peer0.org1.example.com',
@@ -88,6 +102,42 @@ describe('ImportNodesToEnvironmentCommand', () => {
             environmentRegistryEntry.name = 'myEnvironment';
             environmentRegistryEntry.managedRuntime = false;
             showEnvironmentQuickPickStub = mySandBox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox').resolves({ label: environmentRegistryEntry.name, data: environmentRegistryEntry });
+
+            // Stubs required for OpsTool
+            opsToolNodes = [
+                {
+                    short_name: 'peer0.org1.example.com',
+                    name: 'peer0.org1.example.com',
+                    display_name: 'Peer0 Org1',
+                    api_url: 'grpcs://someHost:somePort1',
+                    type: 'fabric-peer',
+                    wallet: 'fabric_wallet',
+                    identity: 'admin',
+                    msp_id: 'Org1MSP',
+                    pem: 'someCertPeer',
+                    location: 'some_saas',
+                    id: 'peer0rg1',
+                    cluster_name: 'someClusterName',
+                },
+                {
+                    short_name: 'ca.org1.example.com',
+                    name: 'ca.org1.example.com',
+                    display_name: 'CA Org1',
+                    api_url: 'grpcs://someHost:somePort2',
+                    type: 'fabric-ca',
+                    wallet: 'fabric_wallet',
+                    identity: 'admin',
+                    tls_cert: 'someCertCa',
+                    location: 'some_saas',
+                    ca_name: 'ca.org1.example.com',
+                    ssl_target_name_override: 'sslTgtNameOverride'
+                }
+            ];
+            url = 'my/OpsTool/url';
+            key = 'myOpsToolKey';
+            showInputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves(url);
+            showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').resolves(key);
+            axiosGetStub.withArgs(`${url}/ak/api/v1/components`, { headers: { Authorization: `Bearer ${key}` }}).resolves({ data: opsToolNodes });
         });
 
         afterEach(async () => {
@@ -107,7 +157,75 @@ describe('ImportNodesToEnvironmentCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all node files');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+        });
+
+        it('should test nodes can be added from URL and key', async () => {
+            const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
+            browseStub.onFirstCall().resolves([uri]);
+
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            getNodesStub.onSecondCall().resolves(opsToolNodes);
+
+            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
+
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.been.calledTwice;
+            getNodesStub.should.have.been.calledTwice;
+
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+        });
+
+        it('should test nodes can be added from URL and key (non TLS network)', async () => {
+            const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
+            browseStub.onFirstCall().resolves([uri]);
+
+            axiosGetStub.withArgs(`${url}/ak/api/v1/components`, { headers: { Authorization: `Bearer ${key}` }}).resolves(
+                {
+                    data:
+                    [
+                        {
+                            short_name: 'peer0.org1.example.com',
+                            name: 'peer0.org1.example.com',
+                            display_name: 'Peer0 Org1',
+                            api_url: 'grpc://someHost:somePort1',
+                            type: 'fabric-peer',
+                            wallet: 'fabric_wallet',
+                            identity: 'admin',
+                            msp_id: 'Org1MSP',
+                            location: 'some_saas',
+                            id: 'peer0rg1',
+                            cluster_name: 'someClusterName',
+                        },
+                        {
+                            short_name: 'ca.org1.example.com',
+                            name: 'ca.org1.example.com',
+                            display_name: 'CA Org1',
+                            api_url: 'grpc://someHost:somePort2',
+                            type: 'fabric-ca',
+                            wallet: 'fabric_wallet',
+                            identity: 'admin',
+                            location: 'some_saas',
+                            ca_name: 'ca.org1.example.com',
+                        }
+                ]
+            });
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            getNodesStub.onSecondCall().resolves(opsToolNodes);
+
+            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
+
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.been.calledTwice;
+            getNodesStub.should.have.been.calledTwice;
+
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
         });
 
         it('should test nodes can be added with environment chosen', async () => {
@@ -123,7 +241,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all node files');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
         });
 
         it('should test nodes can be added from adding an environment', async () => {
@@ -139,7 +257,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all node files');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
         });
 
         it('should nodes can be imported when node contains multiple definitions', async () => {
@@ -179,7 +297,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all node files');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
         });
 
         it('should handle when first node contains error', async () => {
@@ -220,7 +338,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             const error: Error = new Error('A node should have a name property');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error importing node from file ${uri.fsPath}: ${error.message}`, `Error importing node from file ${uri.fsPath}: ${error.toString()}`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error importing node: ${error.message}`, `Error importing node: ${error.toString()}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.WARNING, 'Finished importing nodes but some nodes could not be added');
         });
 
@@ -245,8 +363,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all node files');
-
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
         });
 
         it('should test importing nodes can be cancelled when choosing environment', async () => {
@@ -305,7 +422,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             logSpy.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error importing node files: ${error.message}`, `Error importing node files: ${error.toString()}`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error importing nodes: ${error.message}`, `Error importing nodes: ${error.toString()}`);
         });
 
         it('should handle errors when reading json file nodes', async () => {
@@ -325,6 +442,44 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.getCall(2).should.have.been.calledWith(LogType.WARNING, 'Finished importing nodes but some nodes could not be added');
         });
 
+        it('should handle error connecting to Ops Tool URL when adding nodes to existing environment', async () => {
+            const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
+            browseStub.onFirstCall().resolves([uri]);
+            getNodesStub.onSecondCall().resolves([]);
+
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            const connectionError: Error = new Error('some error');
+            const executionError: Error = new Error('no nodes were added');
+            axiosGetStub.withArgs(`${url}/ak/api/v1/components`, { headers: { Authorization: `Bearer ${key}` }}).rejects(connectionError);
+
+            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, undefined, false);
+
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.not.have.been.called;
+            getNodesStub.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to connect to ${url}, with error ${connectionError.message}`, `Failed to connect to ${url}, with error ${connectionError.toString()}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error importing nodes: ${executionError.message}`, `Error importing nodes: ${executionError.toString()}`);
+        });
+
+        it('should handle error connecting to Ops Tool URL when adding nodes via add environment', async () => {
+            const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
+            browseStub.onFirstCall().resolves([uri]);
+
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            const error: Error = new Error('some error');
+            axiosGetStub.withArgs(`${url}/ak/api/v1/components`, { headers: { Authorization: `Bearer ${key}` }}).rejects(error);
+
+            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, undefined, true).should.eventually.be.rejectedWith(error);
+
+            ensureDirStub.should.not.have.been.called;
+            updateNodeStub.should.not.have.been.called;
+            getNodesStub.should.not.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to connect to ${url}, with error ${error.message}`, `Failed to connect to ${url}, with error ${error.toString()}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error importing nodes: ${error.message}`, `Error importing nodes: ${error.toString()}`);
+        });
+
         it('should handle errors when copying node files', async () => {
             const uriOne: vscode.Uri = vscode.Uri.file(path.join('myPathOne'));
             const uriTwo: vscode.Uri = vscode.Uri.file(path.join('myPathTwo'));
@@ -337,7 +492,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             logSpy.should.have.been.calledThrice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error importing node peer0.org1.example.com from file ${uriOne.fsPath}: ${error.message}`, `Error importing node peer0.org1.example.com from file ${uriOne.fsPath}: ${error.toString()}`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error importing node peer0.org1.example.com: ${error.message}`, `Error importing node peer0.org1.example.com: ${error.toString()}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.WARNING, 'Finished importing nodes but some nodes could not be added');
         });
 
@@ -368,8 +523,8 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.have.been.calledTwice;
 
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error importing node peer0.org1.example.com from file ${uri.fsPath}: ${error.message}`, `Error importing node peer0.org1.example.com from file ${uri.fsPath}: ${error.toString()}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error importing node files: ${error1.message}`, `Error importing node files: ${error1.toString()}`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error importing node peer0.org1.example.com: ${error.message}`, `Error importing node peer0.org1.example.com: ${error.toString()}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error importing nodes: ${error1.message}`, `Error importing nodes: ${error1.toString()}`);
         });
 
         it('should error if a node with the same name already exists when adding environment', async () => {
@@ -399,8 +554,33 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.have.been.calledTwice;
 
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error importing node peer0.org1.example.com from file ${uri.fsPath}: ${error.message}`, `Error importing node peer0.org1.example.com from file ${uri.fsPath}: ${error.toString()}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error importing node files: ${error1.message}`, `Error importing node files: ${error1.toString()}`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error importing node peer0.org1.example.com: ${error.message}`, `Error importing node peer0.org1.example.com: ${error.toString()}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error importing nodes: ${error1.message}`, `Error importing nodes: ${error1.toString()}`);
+        });
+
+        it('should error if no nodes exist in environment', async () => {
+            getNodesStub.resetBehavior();
+            getNodesStub.resolves([]);
+
+            const error: Error = new Error(`some error`);
+            const error1: Error = new Error('no nodes were added');
+
+            const uri: vscode.Uri = vscode.Uri.file(path.join('myPathOne'));
+            browseStub.resolves([uri]);
+
+            addMoreStub.resolves(UserInputUtil.DONE_ADDING_NODES);
+
+            updateNodeStub.rejects(error);
+
+            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, undefined, false);
+
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.been.calledOnce;
+            getNodesStub.should.have.been.calledTwice;
+            removeDirStub.should.have.been.called;
+
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error importing node peer0.org1.example.com: ${error.message}`, `Error importing node peer0.org1.example.com: ${error.toString()}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error importing nodes: ${error1.message}`, `Error importing nodes: ${error1.toString()}`);
         });
 
         it('should import nodes but warn if nodes are not valid', async () => {
@@ -436,7 +616,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.should.have.been.calledWith(LogType.ERROR, `Error importing node from file ${uri.fsPath}: A node should have a name property`, `Error importing node from file ${uri.fsPath}: Error: A node should have a name property`);
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Error importing node: A node should have a name property`, `Error importing node: Error: A node should have a name property`);
             logSpy.should.have.been.calledWith(LogType.WARNING, 'Finished importing nodes but some nodes could not be added');
         });
     });

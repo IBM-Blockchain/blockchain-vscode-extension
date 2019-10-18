@@ -79,6 +79,8 @@ export class UserInputUtil {
     static readonly ADD_IDENTITY: string = '+ Add identity';
     static readonly ADD_GATEWAY_FROM_ENVIRONMENT: string = 'Create a gateway from a Fabric environment';
     static readonly ADD_GATEWAY_FROM_CCP: string = 'Create a gateway from a connection profile';
+    static readonly ADD_ENVIRONMENT_FROM_NODES: string = 'Add an environment from node definition files';
+    static readonly ADD_ENVIRONMENT_FROM_OPS_TOOLS: string = 'Add an environment from connecting to an ops tools instance';
 
     public static async showQuickPick(prompt: string, items: string[], canPickMany: boolean = false): Promise<string | string[]> {
         const quickPickOptions: vscode.QuickPickOptions = {
