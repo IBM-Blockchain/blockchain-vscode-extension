@@ -40,9 +40,10 @@ chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
 describe('DissociateWalletCommand', () => {
-    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
+    let mySandBox: sinon.SinonSandbox;
 
     before(async () => {
+        mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
     });
 

@@ -55,6 +55,7 @@ describe('walletExplorer', () => {
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
+        await FabricRuntimeManager.instance().getRuntime().create();
     });
 
     beforeEach(async () => {

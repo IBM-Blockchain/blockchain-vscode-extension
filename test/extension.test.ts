@@ -140,7 +140,7 @@ describe('Extension Tests', () => {
             await myExtension.activate(context);
 
             migrateSettingConfigurations.should.have.been.calledOnce;
-            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Tidying wallet and gateway settings');
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Tidying wallet, gateway and environment settings');
             tidyWalletSettingsStub.should.have.been.calledOnce;
             migrateGatewaysStub.should.have.been.calledOnce;
 

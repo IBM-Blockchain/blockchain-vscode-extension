@@ -55,8 +55,8 @@ export async function dissociateWallet(associatedGatewayTreeItem: GatewayAssocia
         const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
         gateway.associatedWallet = '';
         await fabricGatewayRegistry.update(gateway);
-        outputAdapter.log(LogType.SUCCESS, `Successfully dissociated wallet from "${gateway.name}" gateway`);
 
+        outputAdapter.log(LogType.SUCCESS, `Successfully dissociated wallet from "${gateway.name}" gateway`);
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Unable to dissociate wallet: ${error.message}`, `Unable to dissociate wallet: ${error.toString()}`);
     }

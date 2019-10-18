@@ -37,7 +37,7 @@ chai.use(sinonChai);
 
 describe('DebugCommandListCommand', () => {
 
-    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
+    let mySandBox: sinon.SinonSandbox;
     let showDebugCommandListStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
     let runtimeStub: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
@@ -45,7 +45,9 @@ describe('DebugCommandListCommand', () => {
     let environmentConnectionStub: sinon.SinonStub;
 
     before(async () => {
+        mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
+        await FabricRuntimeManager.instance().getRuntime().create();
     });
 
     beforeEach(async () => {

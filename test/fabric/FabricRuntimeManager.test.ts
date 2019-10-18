@@ -22,7 +22,6 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
-import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { CommandUtil } from '../../extension/util/CommandUtil';
 import { version } from '../../package.json';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
@@ -168,7 +167,6 @@ describe('FabricRuntimeManager', () => {
             const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             registryEntry.name = 'myFabric';
             registryEntry.managedRuntime = true;
-            registryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
             FabricEnvironmentManager.instance().connect(mockConnection, registryEntry, ConnectedState.CONNECTED);
 
             mockRuntime.startLogs.should.not.have.been.called;
@@ -183,19 +181,6 @@ describe('FabricRuntimeManager', () => {
             FabricEnvironmentManager.instance().disconnect();
 
             mockRuntime.stopLogs.should.have.been.called;
-        });
-    });
-
-    describe('#getEnvironmentRegistryEntry', () => {
-        it('should return environment registry entry', async () => {
-            const instance: FabricRuntimeManager = FabricRuntimeManager.instance();
-            mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
-
-            const registryEntry: FabricEnvironmentRegistryEntry = await instance.getEnvironmentRegistryEntry();
-
-            registryEntry.name.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
-            registryEntry.managedRuntime.should.equal(true);
-            registryEntry.associatedWallet.should.equal(FabricWalletUtil.LOCAL_WALLET);
         });
     });
 

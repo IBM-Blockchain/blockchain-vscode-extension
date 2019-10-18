@@ -37,8 +37,9 @@ chai.use(sinonChai);
 describe('DeleteSmartContractPackageCommand', () => {
     let showConfirmationWarningMessageStub: sinon.SinonStub;
     const TEST_EXTENSION_DIRECTORY: string = path.join(path.dirname(__dirname), '../../test/data');
-    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
+    let mySandBox: sinon.SinonSandbox;
     before(async () => {
+        mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
         await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_EXTENSION_DIRECTORY, vscode.ConfigurationTarget.Global);
     });

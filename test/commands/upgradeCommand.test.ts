@@ -34,7 +34,6 @@ import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnviro
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
-import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
@@ -126,7 +125,6 @@ describe('UpgradeCommand', () => {
             const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             environmentRegistry.managedRuntime = true;
-            environmentRegistry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
             registryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
             mySandBox.stub(FabricEnvironmentManager.instance(), 'getState').returns(ConnectedState.CONNECTED);
