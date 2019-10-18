@@ -16,6 +16,7 @@
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
+import * as yaml from 'js-yaml';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
@@ -42,15 +43,16 @@ describe('exportConnectionProfileCommand', () => {
     let workspaceFolder: any;
     let gatewayTreeItem: GatewayTreeItem;
     let logSpy: sinon.SinonSpy;
-    let copyStub: sinon.SinonStub;
+    let readProfileStub: sinon.SinonStub;
+    let connectionProfile: any;
+    let writeFileStub: sinon.SinonStub;
     let showSaveDialogStub: sinon.SinonStub;
     let homeDirStub: sinon.SinonStub;
     let sendTelemetryEventStub: sinon.SinonStub;
+    let getConnectionProfilePathStub: sinon.SinonStub;
 
     let gatewayRegistryEntry: FabricGatewayRegistryEntry;
     let showGatewayQuickPickStub: sinon.SinonStub;
-
-    const connectionProfilePath: string = path.join('tmp', 'doggo.json');
 
     before(async () => {
         sandbox = sinon.createSandbox();
@@ -65,8 +67,6 @@ describe('exportConnectionProfileCommand', () => {
         await gatewayRegistry.clear();
         await gatewayRegistry.add(gatewayRegistryEntry);
 
-        sandbox.stub(FabricGatewayHelper, 'getConnectionProfilePath').resolves(connectionProfilePath);
-
         const provider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
         const allChildren: BlockchainTreeItem[] = await provider.getChildren();
 
@@ -79,10 +79,17 @@ describe('exportConnectionProfileCommand', () => {
         workspaceFolderStub = sandbox.stub(UserInputUtil, 'getWorkspaceFolders').returns([workspaceFolder]);
         logSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
-        copyStub = sandbox.stub(fs, 'copy').resolves();
+        writeFileStub = sandbox.stub(fs, 'writeFile');
+
         showSaveDialogStub = sandbox.stub(vscode.window, 'showSaveDialog').resolves(vscode.Uri.file(fakeTargetPath));
         homeDirStub = sandbox.stub(os, 'homedir');
         homeDirStub.returns('homedir');
+        readProfileStub = sandbox.stub(ExtensionUtil, 'readConnectionProfile');
+
+        getConnectionProfilePathStub = sandbox.stub(FabricGatewayHelper, 'getConnectionProfilePath');
+        getConnectionProfilePathStub.resolves(path.join('myPath', 'connection.json'));
+        connectionProfile = { name: 'myProfile', wallet: 'myWallet' };
+        readProfileStub.resolves(connectionProfile);
         sendTelemetryEventStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
         showGatewayQuickPickStub = sandbox.stub(UserInputUtil, 'showGatewayQuickPickBox').resolves({ label: 'myGateway', data: gatewayRegistryEntry });
@@ -94,14 +101,25 @@ describe('exportConnectionProfileCommand', () => {
 
     it('should export the connection profile by right clicking on a peer in the runtime ops tree', async () => {
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, gatewayTreeItem);
-        copyStub.should.have.been.called.calledOnceWithExactly(connectionProfilePath, fakeTargetPath);
+        delete connectionProfile.wallet;
+        writeFileStub.should.have.been.called.calledOnceWithExactly(fakeTargetPath, JSON.stringify(connectionProfile, null, 4));
         logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported connection profile to ${fakeTargetPath}`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportConnectionProfileCommand');
     });
 
     it('should export the connection profile when called from the command palette', async () => {
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
-        copyStub.should.have.been.called.calledOnceWithExactly(connectionProfilePath, fakeTargetPath);
+        delete connectionProfile.wallet;
+        writeFileStub.should.have.been.called.calledOnceWithExactly(fakeTargetPath, JSON.stringify(connectionProfile, null, 4));
+        logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported connection profile to ${fakeTargetPath}`);
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportConnectionProfileCommand');
+    });
+
+    it('should handle yaml file', async () => {
+        getConnectionProfilePathStub.resolves(path.join('myPath', 'connection.yml'));
+        await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, gatewayTreeItem);
+        delete connectionProfile.wallet;
+        writeFileStub.should.have.been.called.calledOnceWithExactly(fakeTargetPath, yaml.dump(connectionProfile));
         logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported connection profile to ${fakeTargetPath}`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportConnectionProfileCommand');
     });
@@ -109,26 +127,27 @@ describe('exportConnectionProfileCommand', () => {
     it('should handle no open workspace folders', async () => {
         workspaceFolderStub.returns([]);
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
-        copyStub.should.have.been.called.calledOnceWithExactly(connectionProfilePath, fakeTargetPath);
+        delete connectionProfile.wallet;
+        writeFileStub.should.have.been.called.calledOnceWithExactly(fakeTargetPath, JSON.stringify(connectionProfile, null, 4));
         logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported connection profile to ${fakeTargetPath}`);
     });
 
     it('should handle cancel choosing gateway', async () => {
         showGatewayQuickPickStub.resolves();
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
-        copyStub.should.not.have.been.called;
+        writeFileStub.should.not.have.been.called;
     });
 
     it('should handle cancel choosing location to export the connection profile to', async () => {
         showSaveDialogStub.resolves();
 
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
-        copyStub.should.not.have.been.called;
+        writeFileStub.should.not.have.been.called;
     });
 
     it('should not print the successSpy if there was an error copying the connection profile', async () => {
         const error: Error = new Error('such error');
-        copyStub.rejects(error);
+        writeFileStub.rejects(error);
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
 
         logSpy.callCount.should.equal(2);
@@ -140,9 +159,9 @@ describe('exportConnectionProfileCommand', () => {
     it('should handle exporting the connection profile of a connected gateway', async () => {
         sandbox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistryEntry);
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE_CONNECTED);
-        copyStub.should.have.been.calledOnceWithExactly(connectionProfilePath, fakeTargetPath);
+        delete connectionProfile.wallet;
+        writeFileStub.should.have.been.called.calledOnceWithExactly(fakeTargetPath, JSON.stringify(connectionProfile, null, 4));
         logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported connection profile to ${fakeTargetPath}`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportConnectionProfileCommand');
     });
-
 });
