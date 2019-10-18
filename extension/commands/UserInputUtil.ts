@@ -1022,6 +1022,22 @@ export class UserInputUtil {
 
     }
 
+    public static async showChannelPeersQuickPick(channelPeers: Array<{name: string, mspID: string}>): Promise<Array<IBlockchainQuickPickItem<string>>> {
+
+        const quickPickItems: Array<IBlockchainQuickPickItem<string>> = [];
+        for (const peer of channelPeers) {
+            quickPickItems.push(
+                { label: peer.name, description: peer.mspID, data: peer.name}
+            );
+        }
+
+        return vscode.window.showQuickPick(quickPickItems, {
+            ignoreFocusOut: true,
+            canPickMany: true,
+            placeHolder: `Select the peers to send the transaction to`
+        });
+    }
+
     public static async showNodesQuickPickBox(prompt: string, nodes: FabricNode[], canPickMany: boolean): Promise<Array<IBlockchainQuickPickItem<FabricNode>> | IBlockchainQuickPickItem<FabricNode> | undefined> {
         if (nodes.length === 0) {
             throw new Error('Error when importing nodes, no nodes found to choose from.');

@@ -2309,6 +2309,50 @@ describe('UserInputUtil', () => {
         });
     });
 
+    describe('showChannelPeersQuickPick', () => {
+
+        it('should be able to pick a channel peer', async () => {
+            const channelPeers: {name: string, mspID: string}[] = [{name: 'peerOne', mspID: 'Org1MSP'}, {name: 'peerTwo', mspID: 'Org2MSP'}];
+            quickPickStub.resolves([{label: channelPeers[0].name, description: channelPeers[0].mspID, data: channelPeers[0].name}]);
+
+            const result: IBlockchainQuickPickItem<string>[] = await UserInputUtil.showChannelPeersQuickPick(channelPeers) as IBlockchainQuickPickItem<string>[];
+            result.should.deep.equal([{label: channelPeers[0].name, description: channelPeers[0].mspID, data: channelPeers[0].name}]);
+
+            quickPickStub.should.have.been.calledWith([
+                {label: channelPeers[0].name, description: channelPeers[0].mspID, data: channelPeers[0].name},
+                {label: channelPeers[1].name, description: channelPeers[1].mspID, data: channelPeers[1].name}
+            ], {
+                ignoreFocusOut: true,
+                canPickMany: true,
+                placeHolder: `Select the peers to send the transaction to`
+            });
+        });
+
+        it('should be able to pick multiple channel peers', async () => {
+            const channelPeers: {name: string, mspID: string}[] = [{name: 'peerOne', mspID: 'Org1MSP'}, {name: 'peerTwo', mspID: 'Org2MSP'}];
+            quickPickStub.resolves([
+                {label: channelPeers[0].name, description: channelPeers[0].mspID, data: channelPeers[0].name},
+                {label: channelPeers[1].name, description: channelPeers[1].mspID, data: channelPeers[1].name}
+            ]);
+
+            const result: IBlockchainQuickPickItem<string>[] = await UserInputUtil.showChannelPeersQuickPick(channelPeers) as IBlockchainQuickPickItem<string>[];
+            result.should.deep.equal([
+                {label: channelPeers[0].name, description: channelPeers[0].mspID, data: channelPeers[0].name},
+                {label: channelPeers[1].name, description: channelPeers[1].mspID, data: channelPeers[1].name}
+            ]);
+
+            quickPickStub.should.have.been.calledWith([
+                {label: channelPeers[0].name, description: channelPeers[0].mspID, data: channelPeers[0].name},
+                {label: channelPeers[1].name, description: channelPeers[1].mspID, data: channelPeers[1].name}
+            ], {
+                ignoreFocusOut: true,
+                canPickMany: true,
+                placeHolder: `Select the peers to send the transaction to`
+            });
+        });
+
+    });
+
     describe('showNodesQuickPickBox', () => {
         let peerNode: FabricNode;
         let peerNode1: FabricNode;

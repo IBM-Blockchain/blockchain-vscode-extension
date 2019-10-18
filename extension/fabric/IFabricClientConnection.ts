@@ -32,7 +32,7 @@ export interface IFabricClientConnection {
 
     getAllChannelsForPeer(peerName: string): Promise<Array<string>>;
 
-    getChannelPeerNames(channelName: string): Promise<string[]>;
+    getChannelPeersInfo(channelName: string): Promise<{name: string, mspID: string}[]>;
 
     getInstantiatedChaincode(channelName: string): Promise<Array<{name: string, version: string}>>;
 
