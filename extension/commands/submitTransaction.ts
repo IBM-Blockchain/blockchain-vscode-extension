@@ -121,23 +121,36 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
         return;
     }
 
-    const selectPeers: string = await UserInputUtil.showQuickPick('Select a peer-targeting policy for this transaction', [UserInputUtil.DEFAULT, UserInputUtil.CUSTOM]) as string;
+    const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
+    const channelPeerInfo: {name: string, mspID: string}[] = await connection.getChannelPeersInfo(channelName);
+
+    let selectPeers: string;
+
+    if (channelPeerInfo.length === 0) {
+        outputAdapter.log(LogType.ERROR, `No channel peers available to target`);
+        return;
+    } else if (channelPeerInfo.length === 1) {
+        selectPeers = UserInputUtil.DEFAULT;
+    } else {
+        selectPeers = await UserInputUtil.showQuickPick('Select a peer-targeting policy for this transaction', [UserInputUtil.DEFAULT, UserInputUtil.CUSTOM]) as string;
+    }
 
     let peerTargetNames: string[] = [];
     let peerTargetMessage: string = '';
 
-    const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
-
     if (!selectPeers) {
         return;
     } else if (selectPeers === UserInputUtil.CUSTOM) {
-        const channelPeerNames: string[] = await connection.getChannelPeerNames(channelName);
 
-        peerTargetNames = await UserInputUtil.showQuickPick('Select the peers to send the transaction to', channelPeerNames, true) as string[];
+        const peerTargets: Array<IBlockchainQuickPickItem<string>> = await UserInputUtil.showChannelPeersQuickPick(channelPeerInfo) as Array<IBlockchainQuickPickItem<string>>;
 
-        if (!peerTargetNames || peerTargetNames.length === 0) {
+        if (!peerTargets || peerTargets.length === 0) {
             return;
         } else {
+            peerTargetNames = peerTargets.map((peer: IBlockchainQuickPickItem<string>) => {
+                return peer.data;
+            });
+
             peerTargetMessage = ` to peers ${peerTargetNames}`;
         }
     }

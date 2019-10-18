@@ -23,7 +23,7 @@ import * as sinonChai from 'sinon-chai';
 
 import { TestUtil } from '../TestUtil';
 import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
-import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import { UserInputUtil, IBlockchainQuickPickItem } from '../../extension/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
 import { ChannelTreeItem } from '../../extension/explorer/model/ChannelTreeItem';
@@ -60,11 +60,14 @@ describe('SubmitTransactionCommand', () => {
         let showTransactionQuickPickStub: sinon.SinonStub;
         let showInputBoxStub: sinon.SinonStub;
         let showQuickPickStub: sinon.SinonStub;
+        let showChannelPeersQuickPickStub: sinon.SinonStub;
         let reporterStub: sinon.SinonStub;
 
         let allChildren: Array<BlockchainTreeItem>;
         let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
         let registryStub: sinon.SinonStub;
+        let peerNames: string[];
+        let mspIDs: string[];
 
         beforeEach(async () => {
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
@@ -92,6 +95,8 @@ describe('SubmitTransactionCommand', () => {
 
             showQuickPickStub = mySandBox.stub(UserInputUtil, 'showQuickPick');
             showQuickPickStub.onFirstCall().resolves(UserInputUtil.DEFAULT);
+
+            showChannelPeersQuickPickStub = mySandBox.stub(UserInputUtil, 'showChannelPeersQuickPick');
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             dockerLogsOutputSpy = mySandBox.spy(VSCodeBlockchainDockerOutputAdapter.instance(), 'show');
@@ -125,6 +130,10 @@ describe('SubmitTransactionCommand', () => {
                     }
                 }
             );
+
+            peerNames = ['peerOne', 'peerTwo', 'peerThree'];
+            mspIDs = ['Org1MSP', 'Org2MSP', 'Org3MSP'];
+            fabricClientConnectionMock.getChannelPeersInfo.resolves([{name: peerNames[0], mspID: mspIDs[0]}]);
 
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
             map.set('channelOne', ['peerOne']);
@@ -454,6 +463,10 @@ describe('SubmitTransactionCommand', () => {
         });
 
         it('should return when cancelling at the targeting policy prompt', async () => {
+            fabricClientConnectionMock.getChannelPeersInfo.resolves([
+                {name: peerNames[0], mspID: mspIDs[0]},
+                {name: peerNames[1], mspID: mspIDs[1]}
+            ]);
             showQuickPickStub.onFirstCall().resolves();
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
@@ -463,9 +476,24 @@ describe('SubmitTransactionCommand', () => {
             reporterStub.should.not.have.been.calledWith('submit transaction');
         });
 
+        it('should return if there are no channel peers to target', async () => {
+            fabricClientConnectionMock.getChannelPeersInfo.resolves([]);
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+            fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.ERROR, `No channel peers available to target`);
+            logSpy.should.not.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.not.have.been.calledWith('submit transaction');
+        });
+
         it('should return when cancelling at the custom peer target prompt', async () => {
             showQuickPickStub.onFirstCall().resolves(UserInputUtil.CUSTOM);
-            showQuickPickStub.onSecondCall().resolves();
+            fabricClientConnectionMock.getChannelPeersInfo.resolves([
+                {name: peerNames[0], mspID: mspIDs[0]},
+                {name: peerNames[1], mspID: mspIDs[1]}
+            ]);
+            showChannelPeersQuickPickStub.resolves();
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
             dockerLogsOutputSpy.should.not.have.been.called;
@@ -476,7 +504,11 @@ describe('SubmitTransactionCommand', () => {
 
         it('should return if no custom peer targets are selected', async () => {
             showQuickPickStub.onFirstCall().resolves(UserInputUtil.CUSTOM);
-            showQuickPickStub.onSecondCall().resolves([]);
+            fabricClientConnectionMock.getChannelPeersInfo.resolves([
+                {name: peerNames[0], mspID: mspIDs[0]},
+                {name: peerNames[1], mspID: mspIDs[1]}
+            ]);
+            showChannelPeersQuickPickStub.resolves([]);
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
             dockerLogsOutputSpy.should.not.have.been.called;
@@ -486,25 +518,62 @@ describe('SubmitTransactionCommand', () => {
         });
 
         it('should pass one custom peer target', async () => {
+            const targets: IBlockchainQuickPickItem<string>[] = [{label: peerNames[0], description: mspIDs[0], data: peerNames[0]}];
+            fabricClientConnectionMock.getChannelPeersInfo.resolves([
+                {name: peerNames[0], mspID: mspIDs[0]},
+                {name: peerNames[1], mspID: mspIDs[1]}
+            ]);
             showQuickPickStub.onFirstCall().resolves(UserInputUtil.CUSTOM);
-            const targets: string[] = ['customTargetOne'];
-            showQuickPickStub.onSecondCall().resolves(targets);
+            showChannelPeersQuickPickStub.resolves(targets);
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
-            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', undefined, false, targets);
+            showChannelPeersQuickPickStub.should.have.been.calledWith([
+                {name: peerNames[0], mspID: mspIDs[0]},
+                {name: peerNames[1], mspID: mspIDs[1]}
+            ]);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', undefined, false, [peerNames[0]]);
             dockerLogsOutputSpy.should.not.have.been.called;
-            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel to peers ${targets}`);
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel to peers ${peerNames[0]}`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.have.been.calledWith('submit transaction');
         });
 
         it('should pass multiple custom peer targets', async () => {
+            const targets: IBlockchainQuickPickItem<string>[] = [
+                {label: peerNames[0], description: mspIDs[0], data: peerNames[0]},
+                {label: peerNames[1], description: mspIDs[1], data: peerNames[1]},
+                {label: peerNames[2], description: mspIDs[2], data: peerNames[2]}
+            ];
+
+            fabricClientConnectionMock.getChannelPeersInfo.resolves([
+                {name: peerNames[0], mspID: mspIDs[0]},
+                {name: peerNames[1], mspID: mspIDs[1]},
+                {name: peerNames[2], mspID: mspIDs[2]}
+            ]);
             showQuickPickStub.onFirstCall().resolves(UserInputUtil.CUSTOM);
-            const targets: string[] = ['customTargetOne', 'customTargetTwo', 'customTargetThree'];
-            showQuickPickStub.onSecondCall().resolves(targets);
+            showChannelPeersQuickPickStub.resolves(targets);
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
-            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', undefined, false, targets);
+            showChannelPeersQuickPickStub.should.have.been.calledWith([{name: peerNames[0], mspID: mspIDs[0]}, {name: peerNames[1], mspID: mspIDs[1]}, {name: peerNames[2], mspID: mspIDs[2]}]);
+
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', undefined, false, peerNames);
             dockerLogsOutputSpy.should.not.have.been.called;
-            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel to peers ${targets}`);
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel to peers ${peerNames}`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
+        });
+
+        it('should be able to use the default when there are multiple peers', async () => {
+            fabricClientConnectionMock.getChannelPeersInfo.resolves([
+                {name: peerNames[0], mspID: mspIDs[0]},
+                {name: peerNames[1], mspID: mspIDs[1]},
+                {name: peerNames[2], mspID: mspIDs[2]}
+            ]);
+            showQuickPickStub.onFirstCall().resolves(UserInputUtil.DEFAULT);
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+            showChannelPeersQuickPickStub.should.not.have.been.called;
+
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', undefined, false, []);
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.have.been.calledWith('submit transaction');
         });
