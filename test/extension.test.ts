@@ -144,7 +144,7 @@ describe('Extension Tests', () => {
             tidyWalletSettingsStub.should.have.been.calledOnce;
             migrateGatewaysStub.should.have.been.calledOnce;
 
-            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', true);
+            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
 
             setExtensionContextStub.should.have.been.calledTwice;
@@ -189,7 +189,7 @@ describe('Extension Tests', () => {
 
             await myExtension.activate(context);
 
-            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', true);
+            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
 
             setExtensionContextStub.should.have.been.calledTwice;
@@ -237,7 +237,7 @@ describe('Extension Tests', () => {
 
             await myExtension.activate(context);
 
-            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', true);
+            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
 
             setExtensionContextStub.should.have.been.calledTwice;
@@ -284,7 +284,7 @@ describe('Extension Tests', () => {
 
             await myExtension.activate(context);
 
-            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', true);
+            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
 
             setExtensionContextStub.should.have.been.calledTwice;
@@ -325,7 +325,7 @@ describe('Extension Tests', () => {
 
             sendTelemetryStub.should.have.been.calledWith('updatedInstall', {IBM: sinon.match.string});
 
-            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', true);
+            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
 
             setExtensionContextStub.should.have.been.calledTwice;
@@ -368,7 +368,7 @@ describe('Extension Tests', () => {
 
             sendTelemetryStub.should.have.been.calledWith('updatedInstall', {IBM: sinon.match.string});
 
-            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', true);
+            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
 
             setExtensionContextStub.should.have.been.calledTwice;
@@ -410,7 +410,7 @@ describe('Extension Tests', () => {
 
             sendTelemetryStub.should.have.been.calledWith('newInstall', {IBM: sinon.match.string});
 
-            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', true);
+            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
 
             setExtensionContextStub.should.have.been.calledTwice;
@@ -448,7 +448,7 @@ describe('Extension Tests', () => {
 
             hasPreReqsInstalledStub.should.have.been.called;
             failedActivationWindowStub.should.have.been.calledOnceWithExactly('some error');
-            logSpy.should.have.been.calledWith(LogType.ERROR, undefined, `Failed to activate extension: ${error.toString()}`);
+            logSpy.should.have.been.calledWith(LogType.ERROR, undefined, `Failed to activate extension: ${error.toString()}`, error.stack);
         });
 
         it('should migrate setting configurations, if not done already', async () => {
@@ -477,7 +477,7 @@ describe('Extension Tests', () => {
 
             await myExtension.activate(context);
 
-            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', true);
+            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
 
             setExtensionContextStub.should.have.been.calledTwice;
