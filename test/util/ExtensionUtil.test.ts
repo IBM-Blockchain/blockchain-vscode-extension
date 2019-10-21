@@ -44,6 +44,8 @@ import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWall
 import { TestUtil } from '../TestUtil';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
+import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistry';
+import { RepositoryRegistryEntry } from '../../extension/registries/RepositoryRegistryEntry';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -206,7 +208,7 @@ describe('ExtensionUtil Tests', () => {
                 }
             ], vscode.ConfigurationTarget.Global);
 
-            workspaceConfigurationUpdateStub.getCall(2).should.have.been.calledWithExactly(SettingConfigurations.EXTENSION_REPOSITORIES, [
+            workspaceConfigurationUpdateStub.getCall(2).should.have.been.calledWithExactly(SettingConfigurations.OLD_EXTENSION_REPOSITORIES, [
                 {
                     name: 'hyperledger/fabric-samples',
                     path: '/sample/path/fabric-samples'
@@ -348,6 +350,86 @@ describe('ExtensionUtil Tests', () => {
 
             results[0].name.should.equal('myEnvOne');
             results[1].name.should.equal('myEnvTwo');
+        });
+    });
+
+    describe('migrateRepositories', () => {
+        beforeEach(async () => {
+            await RepositoryRegistry.instance().clear();
+        });
+
+        it('should migrate the repositories', async () => {
+            const workspaceConfigurationGetStub: sinon.SinonStub = mySandBox.stub();
+            const workspaceConfigurationUpdateStub: sinon.SinonStub = mySandBox.stub();
+
+            const getConfigurationStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
+
+            getConfigurationStub.returns({
+                get: workspaceConfigurationGetStub,
+                update: workspaceConfigurationUpdateStub
+            });
+
+            workspaceConfigurationGetStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(TestUtil.EXTENSION_TEST_DIR);
+
+            workspaceConfigurationGetStub.withArgs(SettingConfigurations.OLD_EXTENSION_REPOSITORIES).returns([
+                {
+                    name: 'myRepo/One',
+                    path: 'myPath'
+                },
+                {
+                    name: 'myRepo/Two',
+                    path: 'myPathTwo'
+                }
+            ]);
+
+            await ExtensionUtil.migrateRepositories();
+
+            const results: RepositoryRegistryEntry[] = await RepositoryRegistry.instance().getAll();
+
+            results.length.should.equal(2);
+
+            results[0].name.should.equal('One');
+            results[0].path.should.equal('myPath');
+            results[1].name.should.equal('Two');
+            results[1].path.should.equal('myPathTwo');
+        });
+
+        it('should not add registry if exists', async () => {
+            const workspaceConfigurationGetStub: sinon.SinonStub = mySandBox.stub();
+            const workspaceConfigurationUpdateStub: sinon.SinonStub = mySandBox.stub();
+
+            const getConfigurationStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
+
+            getConfigurationStub.returns({
+                get: workspaceConfigurationGetStub,
+                update: workspaceConfigurationUpdateStub
+            });
+
+            workspaceConfigurationGetStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(TestUtil.EXTENSION_TEST_DIR);
+
+            workspaceConfigurationGetStub.withArgs(SettingConfigurations.OLD_EXTENSION_REPOSITORIES).returns([
+                {
+                    name: 'myRepo/One',
+                    path: 'myPath'
+                },
+                {
+                    name: 'myRepo/Two',
+                    path: 'myPathTwo'
+                }
+            ]);
+
+            await RepositoryRegistry.instance().add({name: 'One', path: 'myPath'});
+
+            await ExtensionUtil.migrateRepositories();
+
+            const results: RepositoryRegistryEntry[] = await RepositoryRegistry.instance().getAll();
+
+            results.length.should.equal(2);
+
+            results[0].name.should.equal('One');
+            results[0].path.should.equal('myPath');
+            results[1].name.should.equal('Two');
+            results[1].path.should.equal('myPathTwo');
         });
     });
 

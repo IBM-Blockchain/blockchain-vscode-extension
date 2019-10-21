@@ -49,7 +49,6 @@ export class TestUtil {
     static async storeAll(): Promise<void> {
         await this.storeExtensionDirectoryConfig();
         await this.storeRuntimesConfig();
-        await this.storeRepositoriesConfig();
         await this.storeShowHomeOnStart();
         await this.storeBypassPreReqs();
         try {
@@ -62,7 +61,6 @@ export class TestUtil {
     static async restoreAll(): Promise<void> {
         await this.restoreExtensionDirectoryConfig();
         await this.restoreRuntimesConfig();
-        await this.restoreRepositoriesConfig();
         await this.restoreShowHomeOnStart();
         await this.restoreBypassPreReqs();
         try {
@@ -87,15 +85,6 @@ export class TestUtil {
     static async restoreRuntimesConfig(): Promise<void> {
         console.log('Restoring user runtimes config to settings:', this.USER_RUNTIMES_CONFIG);
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, this.USER_RUNTIMES_CONFIG, vscode.ConfigurationTarget.Global);
-    }
-
-    static async storeRepositoriesConfig(): Promise<void> {
-        this.USER_REPOSITORIES = await vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_REPOSITORIES);
-        console.log('Storing repositories:', this.USER_REPOSITORIES);
-    }
-    static async restoreRepositoriesConfig(): Promise<void> {
-        console.log('Restoring repositories config to settings:', this.USER_REPOSITORIES);
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_REPOSITORIES, this.USER_REPOSITORIES, vscode.ConfigurationTarget.Global);
     }
 
     static async storeShowHomeOnStart(): Promise<void> {
@@ -136,7 +125,6 @@ export class TestUtil {
 
     private static USER_PACKAGE_DIR_CONFIG: any;
     private static USER_RUNTIMES_CONFIG: any;
-    private static USER_REPOSITORIES: any;
     private static HOME_STARTUP: any;
     private static BYPASS_PREREQS: any;
     private static GLOBAL_STATE: ExtensionData;

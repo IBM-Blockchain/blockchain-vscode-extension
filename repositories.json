@@ -1,7 +1,8 @@
 {
     "repositories":[
         {
-            "name": "hyperledger/fabric-samples",
+            "name": "fabric-samples",
+            "orgName": "hyperledger",
             "remote": "https://github.com/hyperledger/fabric-samples.git",
             "tutorials": [],
             "samples":[

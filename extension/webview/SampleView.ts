@@ -130,6 +130,7 @@ export class SampleView extends View {
 
         const options: any = {
             repositoryName: repositoryName,
+            repositoryOrgName: repository.orgName,
             sample: sample,
             repositoryConfig: repositoryConfig,
             images: images
@@ -161,10 +162,10 @@ export class SampleView extends View {
                 const clonedRepo: RepositoryRegistryEntry = await repositoryRegistry.get(options.repositoryName);
                 const repoPath: string = clonedRepo.path;
                 const readMeOnJSON: string = options.sample.readme;
-                const splitPath: string[] = readMeOnJSON.split(options.repositoryName);
+                const splitPath: string[] = readMeOnJSON.split(options.repositoryOrgName);
 
                 const branchedPath: string = splitPath[1];
-                const endOfBranchName: number = branchedPath.indexOf('/', 1);
+                const endOfBranchName: number = branchedPath.lastIndexOf('/');
                 const slicedPath: string = branchedPath.slice(endOfBranchName + 1, branchedPath.length);
 
                 const readMe: string = await fs.readFile(path.join(repoPath, slicedPath), 'utf8');

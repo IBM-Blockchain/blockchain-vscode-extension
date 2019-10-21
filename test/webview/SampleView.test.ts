@@ -85,11 +85,11 @@ describe('SampleView', () => {
 
     it('should register and show sample page', async () => {
 
-        const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+        const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
         await sampleView.openView(false);
         createWebviewPanelStub.should.have.been.called;
 
-        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('openedView', {openedView: 'FabCar'});
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('openedView', { openedView: 'FabCar' });
     });
 
     it('should do nothing if command not recognised', async () => {
@@ -101,7 +101,7 @@ describe('SampleView', () => {
             createWebviewPanelStub.onCall(0).returns({
                 webview: {
                     onDidReceiveMessage: async (callback: any): Promise<void> => {
-                        await callback({command: 'unknown-command'});
+                        await callback({ command: 'unknown-command' });
                         resolve();
                     },
                     postMessage: postMessageStub
@@ -115,7 +115,7 @@ describe('SampleView', () => {
             });
         }));
 
-        const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+        const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
         const htmlSpy: sinon.SinonSpy = mySandBox.spy(sampleView, 'getHTMLString');
         await sampleView.openView(false);
         await Promise.all(onDidReceiveMessagePromises);
@@ -149,7 +149,7 @@ describe('SampleView', () => {
                 title: 'FabCar Sample',
                 webview: {
                     onDidReceiveMessage: async (callback: any): Promise<void> => {
-                        await callback({command: 'unknown-command'});
+                        await callback({ command: 'unknown-command' });
                         resolve();
                     },
                     postMessage: mySandBox.stub().resolves()
@@ -163,7 +163,7 @@ describe('SampleView', () => {
             });
         }));
 
-        const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+        const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
         await sampleView.openView(false);
         await Promise.all(onDidReceiveMessagePromises);
         createWebviewPanelStub.getCall(0).should.have.been.calledWith(
@@ -208,7 +208,7 @@ describe('SampleView', () => {
             });
         }));
 
-        const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+        const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
         await sampleView.openView(false);
         await sampleView.openView(false);
 
@@ -226,9 +226,9 @@ describe('SampleView', () => {
 
             await RepositoryRegistry.instance().clear();
 
-            const AxiosStub: sinon.SinonStub = mySandBox.stub(Axios, 'get').resolves({data: readme});
+            const AxiosStub: sinon.SinonStub = mySandBox.stub(Axios, 'get').resolves({ data: readme });
 
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
             const samplePageHtml: string = await sampleView.getHTMLString();
             AxiosStub.should.have.been.calledWith('https://raw.githubusercontent.com/hyperledger/fabric-samples/release-1.4/README.md');
 
@@ -250,7 +250,7 @@ describe('SampleView', () => {
             mySandBox.stub(Axios, 'get').rejects(error);
             mySandBox.stub(ejs, 'renderFile').callThrough();
 
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
 
             const samplePageHtml: string = await sampleView.getHTMLString();
             samplePageHtml.should.contain(`<div id='readme' class="showMore showMore-theme">No internet connection - unable to retrieve the README.</div>`);
@@ -262,12 +262,12 @@ describe('SampleView', () => {
 
             This is the readme`;
 
-            mySandBox.stub(Axios, 'get').resolves({data: readme});
+            mySandBox.stub(Axios, 'get').resolves({ data: readme });
 
             const error: Error = new Error('error happened');
             mySandBox.stub(ejs, 'renderFile').yields(error);
 
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
             await sampleView.getHTMLString().should.be.rejectedWith(error);
         });
 
@@ -276,9 +276,11 @@ describe('SampleView', () => {
 
             This is the readme`;
 
-            const AxiosStub: sinon.SinonStub = mySandBox.stub(Axios, 'get').resolves({data: readme});
+            await RepositoryRegistry.instance().add({ name: 'fabric-samples', path: '/some/path' });
 
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const AxiosStub: sinon.SinonStub = mySandBox.stub(Axios, 'get').resolves({ data: readme });
+
+            const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
             const samplePageHtml: string = await sampleView.getHTMLString();
 
             AxiosStub.should.have.been.calledWith('https://raw.githubusercontent.com/hyperledger/fabric-samples/release-1.4/README.md');
@@ -299,9 +301,11 @@ describe('SampleView', () => {
             mySandBox.stub(Axios, 'get').rejects(error);
             mySandBox.stub(ejs, 'renderFile').callThrough();
 
+            await RepositoryRegistry.instance().add({ name: 'fabric-samples', path: '/some/path' });
+
             const readFileStub: sinon.SinonStub = mySandBox.stub(fs, 'readFile').resolves('README read here');
 
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
             const samplePageHtml: string = await sampleView.getHTMLString();
             readFileStub.should.have.been.calledOnce;
 
@@ -346,12 +350,12 @@ describe('SampleView', () => {
                 });
             }));
 
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
             await sampleView.openView(false);
 
             await Promise.all(onDidReceiveMessagePromises);
 
-            postMessageStub.should.have.been.calledWith({version: '1.0.0'});
+            postMessageStub.should.have.been.calledWith({ version: '1.0.0' });
         });
     });
 
@@ -384,34 +388,35 @@ describe('SampleView', () => {
         }
 
         it('should clone a repository and save to disk', async () => {
+            await RepositoryRegistry.instance().clear();
             setUpTest(false);
             const outputAdapterSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            const repositoryRegistryStub: sinon.SinonStub = mySandBox.stub(RepositoryRegistry.prototype, 'add').resolves();
 
-            mySandBox.stub(vscode.window, 'showSaveDialog').resolves({fsPath: '/some/path'});
+            mySandBox.stub(vscode.window, 'showSaveDialog').resolves({ fsPath: '/some/path' });
             mySandBox.stub(CommandUtil, 'sendCommandWithProgress').resolves();
 
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
 
             await sampleView.openView(false);
 
             await Promise.all(onDidReceiveMessagePromises);
 
             outputAdapterSpy.should.have.been.calledTwice;
-            repositoryRegistryStub.should.have.been.calledOnceWithExactly({name: repositoryName, path: '/some/path'});
             outputAdapterSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, 'Successfully cloned repository!');
-            sendTelemetryEventStub.should.have.been.calledWithExactly('Sample Cloned', {sample: 'FabCar'});
+            sendTelemetryEventStub.should.have.been.calledWithExactly('Sample Cloned', { sample: 'FabCar' });
+            const result: RepositoryRegistryEntry[] = await RepositoryRegistry.instance().getAll();
+            result.should.deep.equal([{ name: 'fabric-samples', path: '/some/path' }]);
         });
 
         it('should stop if user cancels dialog', async () => {
             setUpTest(false);
+            await RepositoryRegistry.instance().clear();
             const outputAdapterSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            const repositoryRegistryStub: sinon.SinonStub = mySandBox.stub(RepositoryRegistry.prototype, 'add');
 
             mySandBox.stub(vscode.window, 'showSaveDialog').resolves();
             const sendCommandWithProgressStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithProgress').resolves();
 
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
 
             await sampleView.openView(false);
 
@@ -419,19 +424,19 @@ describe('SampleView', () => {
 
             outputAdapterSpy.should.not.have.been.called;
             sendCommandWithProgressStub.should.not.have.been.called;
-            repositoryRegistryStub.should.not.have.been.called;
+            await RepositoryRegistry.instance().getAll().should.eventually.deep.equal([]);
         });
 
         it('should throw an error if repository cannot be cloned', async () => {
             setUpTest(false);
             const outputAdapterSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
-            mySandBox.stub(vscode.window, 'showSaveDialog').resolves({fsPath: '/some/path'});
+            mySandBox.stub(vscode.window, 'showSaveDialog').resolves({ fsPath: '/some/path' });
 
             const error: Error = new Error('problem cloning');
             mySandBox.stub(CommandUtil, 'sendCommandWithProgress').throws(error);
 
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
 
             await sampleView.openView(false);
 
@@ -442,25 +447,25 @@ describe('SampleView', () => {
 
         it('should reclone a repository and update the repository registry', async () => {
             setUpTest(true);
+            await RepositoryRegistry.instance().clear();
+            await RepositoryRegistry.instance().add({ name: 'fabric-samples', path: 'another/path' });
             const outputAdapterSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            const repositoryRegistryStub: sinon.SinonStub = mySandBox.stub(RepositoryRegistry.instance(), 'update').resolves();
 
-            mySandBox.stub(vscode.window, 'showSaveDialog').resolves({fsPath: '/some/path'});
+            mySandBox.stub(vscode.window, 'showSaveDialog').resolves({ fsPath: '/some/path' });
             mySandBox.stub(CommandUtil, 'sendCommandWithProgress').resolves();
 
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
 
             await sampleView.openView(false);
 
             await Promise.all(onDidReceiveMessagePromises);
 
             outputAdapterSpy.should.have.been.calledTwice;
-            repositoryRegistryStub.should.have.been.calledOnceWithExactly({
-                name: 'hyperledger/fabric-samples',
-                path: '/some/path'
-            });
+
             outputAdapterSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, 'Successfully cloned repository!');
-            sendTelemetryEventStub.should.have.been.calledWithExactly('Sample Cloned', {sample: 'FabCar'});
+            sendTelemetryEventStub.should.have.been.calledWithExactly('Sample Cloned', { sample: 'FabCar' });
+
+            await RepositoryRegistry.instance().getAll().should.eventually.deep.equal([{ name: 'fabric-samples', path: '/some/path' }]);
         });
     });
 
@@ -502,6 +507,9 @@ describe('SampleView', () => {
 
         it('should open contract', async () => {
             await setupTest('contracts', 'FabCar Contract', 'Go');
+            await RepositoryRegistry.instance().clear();
+            await RepositoryRegistry.instance().add({ name: 'fabric-samples', path: '/some/path' });
+
             const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').resolves(true);
             const shellCdStub: sinon.SinonStub = mySandBox.stub(shell, 'cd').returns(undefined);
             const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
@@ -509,19 +517,19 @@ describe('SampleView', () => {
             mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
             const openNewProjectStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'openNewProject').resolves();
 
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
 
             await sampleView.openView(false);
 
             await Promise.all(onDidReceiveMessagePromises);
 
-            pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
+            pathExistsStub.should.have.been.calledWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b release-1.4 origin/release-1.4');
             openNewProjectStub.should.have.been.calledOnce;
             sendCommandWithOutputAndProgress.should.not.have.been.called;
             sendCommandWithOutputAndProgress.should.not.have.been.called;
-            sendTelemetryEventStub.should.have.been.calledWithExactly('Sample Opened', {sample: 'FabCar', name: 'FabCar Contract', type: 'contracts', language: 'Go'});
+            sendTelemetryEventStub.should.have.been.calledWithExactly('Sample Opened', { sample: 'FabCar', name: 'FabCar Contract', type: 'contracts', language: 'Go' });
         });
 
         it(`should show error if the repository isn't in the user settings`, async () => {
@@ -532,7 +540,7 @@ describe('SampleView', () => {
             mySandBox.stub(UserInputUtil, 'delayWorkaround').resolves();
             mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
 
             await sampleView.openView(false);
 
@@ -543,21 +551,24 @@ describe('SampleView', () => {
 
         it('should delete the repository from the user settings if the directory cannot be found on disk', async () => {
             await setupTest('contracts', 'FabCar Contract', 'Go');
-            const repositoryRegistryDeleteStub: sinon.SinonStub = mySandBox.stub(RepositoryRegistry.instance(), 'delete').resolves();
+            await RepositoryRegistry.instance().clear();
+            await RepositoryRegistry.instance().add({name: 'fabric-samples', path: '/some/path'});
             const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
 
             await sampleView.openView(false);
 
             await Promise.all(onDidReceiveMessagePromises);
             sendCommandWithOutputAndProgress.should.not.have.been.called;
-            repositoryRegistryDeleteStub.should.have.been.calledOnceWithExactly(repositoryName);
             logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `The location of the file(s) you're trying to open is unknown. The sample repository has either been deleted or moved. Try re-cloning the sample repository.`);
+            await RepositoryRegistry.instance().getAll().should.eventually.deep.equal([]);
         });
 
         it('should return if user doesnt select how to open files', async () => {
             await setupTest('contracts', 'FabCar Contract', 'Go');
+            await RepositoryRegistry.instance().clear();
+            await RepositoryRegistry.instance().add({name: 'fabric-samples', path: '/some/path'});
             const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').resolves(true);
             const shellCdStub: sinon.SinonStub = mySandBox.stub(shell, 'cd').returns(undefined);
             const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
@@ -565,14 +576,14 @@ describe('SampleView', () => {
             mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves();
             const openNewProjectStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'openNewProject').resolves();
 
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
 
             await sampleView.openView(false);
 
             await Promise.all(onDidReceiveMessagePromises);
 
             sendCommandWithOutputAndProgress.should.not.have.been.called;
-            pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
+            pathExistsStub.should.have.been.calledWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b release-1.4 origin/release-1.4');
             openNewProjectStub.should.have.not.have.been.called;
@@ -580,6 +591,8 @@ describe('SampleView', () => {
 
         it('should handle if the local branch already exists', async () => {
             await setupTest('contracts', 'FabCar Contract', 'Go');
+            await RepositoryRegistry.instance().clear();
+            await RepositoryRegistry.instance().add({name: 'fabric-samples', path: '/some/path'});
             const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').resolves(true);
             const shellCdStub: sinon.SinonStub = mySandBox.stub(shell, 'cd').returns(undefined);
             const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommand');
@@ -592,22 +605,24 @@ describe('SampleView', () => {
             mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
             const openNewProjectStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'openNewProject').resolves();
 
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
 
             await sampleView.openView(false);
 
             await Promise.all(onDidReceiveMessagePromises);
 
             sendCommandWithOutputAndProgress.should.not.have.been.called;
-            pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
+            pathExistsStub.should.have.been.calledWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             sendCommandStub.getCall(1).should.have.been.calledWithExactly('git checkout release-1.4');
             openNewProjectStub.should.have.been.calledOnce;
-            sendTelemetryEventStub.should.have.been.calledWithExactly('Sample Opened', {sample: 'FabCar', name: 'FabCar Contract', type: 'contracts', language: 'Go'});
+            sendTelemetryEventStub.should.have.been.calledWithExactly('Sample Opened', { sample: 'FabCar', name: 'FabCar Contract', type: 'contracts', language: 'Go' });
         });
 
         it('should handle other errors', async () => {
             await setupTest('contracts', 'FabCar Contract', 'Go');
+            await RepositoryRegistry.instance().clear();
+            await RepositoryRegistry.instance().add({name: 'fabric-samples', path: '/some/path'});
             const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').resolves(true);
             const shellCdStub: sinon.SinonStub = mySandBox.stub(shell, 'cd').returns(undefined);
             const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommand');
@@ -618,20 +633,22 @@ describe('SampleView', () => {
 
             const openNewProjectStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'openNewProject').resolves();
 
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
 
             await sampleView.openView(false);
 
             await Promise.all(onDidReceiveMessagePromises).should.be.rejectedWith('Could not retrieve file(s) from repository: some other error');
 
             sendCommandWithOutputAndProgress.should.not.have.been.called;
-            pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
+            pathExistsStub.should.have.been.calledWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             openNewProjectStub.should.have.not.have.been.called;
         });
 
         it('should throw an error if a second error is thrown and repository cant be checked out automatically', async () => {
             await setupTest('contracts', 'FabCar Contract', 'Go');
+            await RepositoryRegistry.instance().clear();
+            await RepositoryRegistry.instance().add({name: 'fabric-samples', path: '/some/path'});
             const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').resolves(true);
             const shellCdStub: sinon.SinonStub = mySandBox.stub(shell, 'cd').returns(undefined);
             const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommand');
@@ -645,14 +662,14 @@ describe('SampleView', () => {
             mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
             const openNewProjectStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'openNewProject').resolves();
 
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
 
             await sampleView.openView(false);
 
             await Promise.all(onDidReceiveMessagePromises).should.be.rejectedWith(/Couldn't automatically checkout 'release-1.4' branch. Please checkout branch manually. Error: couldnt checkout for some reason/);
 
             sendCommandWithOutputAndProgress.should.not.have.been.called;
-            pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
+            pathExistsStub.should.have.been.calledWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             sendCommandStub.getCall(1).should.have.been.calledWithExactly('git checkout release-1.4');
             openNewProjectStub.should.not.have.been.called;
@@ -660,7 +677,8 @@ describe('SampleView', () => {
 
         it('should open application and run script', async () => {
             const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-
+            await RepositoryRegistry.instance().clear();
+            await RepositoryRegistry.instance().add({name: 'fabric-samples', path: '/some/path'});
             await setupTest('applications', 'JavaScript Application', 'JavaScript');
             const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').resolves(true);
             const shellCdStub: sinon.SinonStub = mySandBox.stub(shell, 'cd').returns(undefined);
@@ -669,27 +687,29 @@ describe('SampleView', () => {
             mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
             const openNewProjectStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'openNewProject').resolves();
 
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
 
             await sampleView.openView(false);
 
             await Promise.all(onDidReceiveMessagePromises);
 
-            pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
+            pathExistsStub.should.have.been.calledWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b release-1.4 origin/release-1.4');
             openNewProjectStub.should.have.been.calledOnce;
             logSpy.should.have.been.calledWith(LogType.INFO, null, `Starting command "npm" with arguments "install" for sample "FabCar"`);
             logSpy.should.have.been.calledWith(LogType.INFO, null, `Finished command "npm" with arguments "install" for sample "FabCar"`);
             sendCommandWithOutputAndProgress.should.have.been.calledOnceWithExactly('npm', ['install'], 'Installing Node.js dependencies ...', path.join('/', 'some', 'path', 'fabcar', 'javascript'), null, sinon.match.any);
-            sendTelemetryEventStub.should.have.been.calledWithExactly('Sample Opened', {sample: 'FabCar', name: 'JavaScript Application', type: 'applications', language: 'JavaScript'});
+            sendTelemetryEventStub.should.have.been.calledWithExactly('Sample Opened', { sample: 'FabCar', name: 'JavaScript Application', type: 'applications', language: 'JavaScript' });
         });
 
         it('should throw an error if fileType not recognised', async () => {
             await setupTest('bob', 'bob file', 'Go');
+            await RepositoryRegistry.instance().clear();
+            await RepositoryRegistry.instance().add({name: 'fabric-samples', path: '/some/path'});
             const openNewProjectStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'openNewProject');
 
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
 
             await sampleView.openView(false);
 
@@ -701,9 +721,11 @@ describe('SampleView', () => {
 
         it('should throw an error if language not recognised', async () => {
             await setupTest('contracts', 'FabCar Contract', 'myLanguage');
+            await RepositoryRegistry.instance().clear();
+            await RepositoryRegistry.instance().add({name: 'fabric-samples', path: '/some/path'});
             const openNewProjectStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'openNewProject');
 
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
 
             await sampleView.openView(false);
 
