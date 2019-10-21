@@ -17,6 +17,7 @@ import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { PackageRegistry } from '../registries/PackageRegistry';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
+import { TextTreeItem } from './model/TextTreeItem';
 
 export class BlockchainPackageExplorerProvider implements BlockchainExplorerProvider {
     public tree: Array<BlockchainTreeItem> = [];
@@ -42,11 +43,16 @@ export class BlockchainPackageExplorerProvider implements BlockchainExplorerProv
     private async createPackageTree(packageRegistryEntries: Array<PackageRegistryEntry>): Promise<BlockchainTreeItem[]> {
         const tree: Array<BlockchainTreeItem> = [];
         // Populate the tree with the name of each package registry entry
-        for (const packageRegistryEntry of packageRegistryEntries) {
 
-            const nameAndVersion: string = packageRegistryEntry.name + '@' + packageRegistryEntry.version;
+        if (packageRegistryEntries.length === 0) {
+            tree.push(new TextTreeItem(this, 'No packages found'));
+        } else {
+            for (const packageRegistryEntry of packageRegistryEntries) {
 
-            tree.push(new PackageTreeItem(this, nameAndVersion, packageRegistryEntry));
+                const nameAndVersion: string = packageRegistryEntry.name + '@' + packageRegistryEntry.version;
+
+                tree.push(new PackageTreeItem(this, nameAndVersion, packageRegistryEntry));
+            }
         }
 
         return tree;

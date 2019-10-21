@@ -118,7 +118,22 @@ describe('environmentExplorer', () => {
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-environment-connected', false);
             });
 
+            it('should say that there are no environments', async () => {
+                await FabricEnvironmentRegistry.instance().clear();
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+                const environments: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+                environments.length.should.equal(1);
+                environments[0].label.should.equal(`No environments found`);
+            });
+
             it('should handle errors populating the tree with runtimeTreeItems', async () => {
+                const registryEntryOne: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                registryEntryOne.name = 'myFabric';
+                registryEntryOne.managedRuntime = false;
+
+                await FabricEnvironmentRegistry.instance().clear();
+                await FabricRuntimeManager.instance().getRuntime().create();
+
                 const error: Error = new Error('some error');
                 mySandBox.stub(RuntimeTreeItem, 'newRuntimeTreeItem').rejects(error);
 

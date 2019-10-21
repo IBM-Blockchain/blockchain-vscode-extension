@@ -166,6 +166,14 @@ describe('gatewayExplorer', () => {
                 allChildren[3].should.be.an.instanceOf(GatewayAssociatedTreeItem);
             });
 
+            it('should say that there are no gateways', async () => {
+                await FabricGatewayRegistry.instance().clear();
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
+                const gateways: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
+                gateways.length.should.equal(1);
+                gateways[0].label.should.equal(`No gateways found`);
+            });
+
             it('should handle error with tree', async () => {
                 const gateways: Array<any> = [];
 
