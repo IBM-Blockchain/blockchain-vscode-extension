@@ -1020,6 +1020,22 @@ export class UserInputUtil {
 
     }
 
+    public static async showChannelPeersQuickPick(channelPeers: Array<{name: string, mspID: string}>): Promise<Array<IBlockchainQuickPickItem<string>>> {
+
+        const quickPickItems: Array<IBlockchainQuickPickItem<string>> = [];
+        for (const peer of channelPeers) {
+            quickPickItems.push(
+                { label: peer.name, description: peer.mspID, data: peer.name}
+            );
+        }
+
+        return vscode.window.showQuickPick(quickPickItems, {
+            ignoreFocusOut: true,
+            canPickMany: true,
+            placeHolder: `Select the peers to send the transaction to`
+        });
+    }
+
     private static async checkForUnsavedFiles(): Promise<void> {
         const unsavedFiles: vscode.TextDocument = vscode.workspace.textDocuments.find((document: vscode.TextDocument) => {
             return document.isDirty;
