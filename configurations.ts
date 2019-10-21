@@ -26,19 +26,19 @@ export class SettingConfigurations {
     static readonly OLD_FABRIC_WALLETS: string = 'ibm-blockchain-platform.fabric.wallets';
     static readonly OLD_FABRIC_GATEWAYS: string = 'ibm-blockchain-platform.fabric.gateways';
     static readonly OLD_ENVIRONMENTS: string = 'ibm-blockchain-platform.fabric.environments';
+    static readonly OLD_EXTENSION_REPOSITORIES: string = 'ibm-blockchain-platform.ext.repositories';
 
     // EXTENSION CONFIGURATIONS
     static readonly EXTENSION_DIRECTORY: string = 'ibm-blockchain-platform.ext.directory';
-    static readonly EXTENSION_REPOSITORIES: string = 'ibm-blockchain-platform.ext.repositories';
     static readonly EXTENSION_BYPASS_PREREQS: string = 'ibm-blockchain-platform.ext.bypassPreReqs';
 
     // HOME CONFIGURATIONS
     static readonly HOME_SHOW_ON_STARTUP: string = 'ibm-blockchain-platform.home.showOnStartup';
-
 }
 
 export class FileConfigurations {
     static readonly FABRIC_WALLETS: string = 'wallets';
     static readonly FABRIC_GATEWAYS: string = 'gateways';
     static readonly FABRIC_ENVIRONMENTS: string = 'environments';
+    static readonly REPOSITORIES: string = 'repositories';
 }

@@ -107,6 +107,8 @@ import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
 import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
+import { RepositoryRegistryEntry } from '../registries/RepositoryRegistryEntry';
+import { RepositoryRegistry } from '../registries/RepositoryRegistry';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -195,9 +197,9 @@ export class ExtensionUtil {
         // Migrate extension repositories
         const oldRepositories: any = vscode.workspace.getConfiguration().get('blockchain.repositories');
         if (oldRepositories !== undefined) {
-            const newRepositories: any = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_REPOSITORIES);
+            const newRepositories: any = vscode.workspace.getConfiguration().get(SettingConfigurations.OLD_EXTENSION_REPOSITORIES);
             if (oldRepositories && newRepositories.length === 0) {
-                await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_REPOSITORIES, oldRepositories, vscode.ConfigurationTarget.Global);
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.OLD_EXTENSION_REPOSITORIES, oldRepositories, vscode.ConfigurationTarget.Global);
             }
         }
 
@@ -224,6 +226,28 @@ export class ExtensionUtil {
         }
 
         await vscode.workspace.getConfiguration().update(SettingConfigurations.OLD_ENVIRONMENTS, [], vscode.ConfigurationTarget.Global);
+    }
+
+    public static async migrateRepositories(): Promise<void> {
+        const oldRepositories: RepositoryRegistryEntry[] = vscode.workspace.getConfiguration().get(SettingConfigurations.OLD_EXTENSION_REPOSITORIES);
+
+        for (const repository of oldRepositories) {
+            // need to do this otherwise it creates the wrong dir structure
+            const info: string[] = repository.name.split('/');
+
+            const entry: RepositoryRegistryEntry = new RepositoryRegistryEntry({
+                name: info[1],
+                path: repository.path
+            });
+
+            const exists: boolean = await RepositoryRegistry.instance().exists(entry.name);
+
+            if (!exists) {
+                await RepositoryRegistry.instance().add(entry);
+            }
+        }
+
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.OLD_EXTENSION_REPOSITORIES, [], vscode.ConfigurationTarget.Global);
     }
 
     public static skipNpmInstall(): boolean {

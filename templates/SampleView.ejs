@@ -358,14 +358,14 @@
         <p><%= sample.description %></p><br>
         <% if (repositoryConfig) { %>
         <div id="repository-config">
-            <div class="repository-config-item">Repository: <a href="https://github.com/<%=repositoryName%>">https://github.com/<%=repositoryName%></a></div>
+            <div class="repository-config-item">Repository: <a href="https://github.com/<%=repositoryOrgName%>/<%=repositoryName%>">https://github.com/<%=repositoryOrgName%>/<%=repositoryName%></a></div>
             <div class="repository-config-item">Cloned to: <%= repositoryConfig.path %></div>
             <div class="repository-config-item"><a href="#" onclick="cloneRepository(true)">Clone again</a></div>
         </div>
 
         <% } else { %>
         <div id="repository-url-container">
-            <div id="repository-url">Repository: <a href="https://github.com/<%=repositoryName%>">https://github.com/<%=repositoryName%></a></div>
+            <div id="repository-url">Repository: <a href="https://github.com/<%=repositoryOrgName%>/<%=repositoryName%>">https://github.com/<%=repositoryOrgName%>/<%=repositoryName%></a></div>
         </div>
         <br>
         <button class="clone-button" onclick="cloneRepository()">Clone</button>

@@ -34,8 +34,7 @@ module.exports = function(): any {
 
     this.Given(/I have cloned the repository '(.*?)' and I have opened the '(.*?)' '(.*?)' (contract|application) called '(.*?)' with namespace '(.*?)'/, this.timeout, async (repositoryName: string, language: string, sampleName: string, _contractApplication: string, contractName: string, namespace: string) => {
         const tmpRepo: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'repositories');
-        const shortRepoName: string = repositoryName.split('/')[1];
-        const pathToCheck: string = path.join(tmpRepo, shortRepoName);
+        const pathToCheck: string = path.join(tmpRepo, repositoryName);
         const exists: boolean = await fs.pathExists(pathToCheck);
         let webview: SampleView;
         if (!exists) {
