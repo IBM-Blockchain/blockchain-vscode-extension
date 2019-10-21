@@ -21,11 +21,13 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs-extra';
+import * as yaml from 'js-yaml';
 import { LogType } from '../logging/OutputAdapter';
 import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
+import { ExtensionUtil } from '../util/ExtensionUtil';
 
 export async function exportConnectionProfile(gatewayTreeItem: GatewayTreeItem, isConnected?: boolean): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -68,10 +70,21 @@ export async function exportConnectionProfile(gatewayTreeItem: GatewayTreeItem, 
         return;
     }
 
-    // Copy the connection profile to the chosen location
     try {
         const connectionProfilePath: string = await FabricGatewayHelper.getConnectionProfilePath(gatewayEntry.name);
-        await fs.copy(connectionProfilePath, chosenPathUri.fsPath);
+
+        const connectionProfile: any = await ExtensionUtil.readConnectionProfile(connectionProfilePath);
+        delete connectionProfile.wallet;
+
+        let connectionProfileData: any;
+        if (connectionProfilePath.endsWith('.json')) {
+            connectionProfileData = JSON.stringify(connectionProfile, null, 4);
+        } else {
+            // Assume its a yml/yaml file type
+            connectionProfileData = yaml.dump(connectionProfile);
+        }
+
+        await fs.writeFile(chosenPathUri.fsPath, connectionProfileData);
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Issue exporting connection profile: ${error.message}`, `Issue exporting connection profile: ${error.toString()}`);
         return;
