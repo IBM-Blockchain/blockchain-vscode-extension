@@ -49,7 +49,8 @@ describe('TutorialView', () => {
         const filePath: string = path.join(__dirname, '..', '..', '..', 'tutorials', 'ibm-blockchain-platform-vscode-smart-contract/local-dev.md');
         const uri: vscode.Uri = vscode.Uri.file(filePath);
 
-        commandSpy.should.have.been.calledWith('markdown.showPreviewToSide', uri);
+        commandSpy.getCall(0).args[0].should.equal('markdown.showPreviewToSide');
+        commandSpy.getCall(0).args[1].fsPath.should.equal(uri.fsPath);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('Tutorial Viewed', {series: 'Introduction', tutorial: 'Local smart contract development'});
     });
 
