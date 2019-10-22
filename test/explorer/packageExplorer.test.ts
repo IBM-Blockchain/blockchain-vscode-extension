@@ -18,13 +18,14 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as fs from 'fs-extra';
-import { PackageTreeItem } from '../../extension/explorer/model/PackageTreeItem';
+import { PackageTreeItem } from '../../extension/explorer/packageModel/PackageTreeItem';
 import { TestUtil } from '../TestUtil';
 import { BlockchainPackageExplorerProvider } from '../../extension/explorer/packageExplorer';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { PackageFabricVersionTreeItem } from '../../extension/explorer/packageModel/PackageFabricVersionTreeItem';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 
 chai.use(sinonChai);
@@ -53,21 +54,36 @@ describe('packageExplorer', () => {
         mySandBox.restore();
     });
 
+    it('should show the package fabric versions', async () => {
+        await PackageRegistry.instance().clear();
+        const packageFabricVersions: PackageFabricVersionTreeItem[] = await blockchainPackageExplorerProvider.getChildren() as Array<PackageFabricVersionTreeItem>;
+        packageFabricVersions.length.should.equal(2);
+        packageFabricVersions[0].label.should.equal('Fabric 1.4 packages');
+        packageFabricVersions[1].label.should.equal('Fabric 2.0 packages');
+
+        let packages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren(packageFabricVersions[0]) as Array<PackageTreeItem>;
+        packages.length.should.equal(1);
+        packages[0].label.should.equal(`No packages found`);
+
+        packages = await blockchainPackageExplorerProvider.getChildren(packageFabricVersions[1]) as Array<PackageTreeItem>;
+        packages.length.should.equal(1);
+        packages[0].label.should.equal(`No packages found`);
+    });
+
     it('should show smart contract packages in the BlockchainPackageExplorer view', async () => {
-        const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren() as Array<PackageTreeItem>;
+        const packageFabricVersions: PackageFabricVersionTreeItem[] = await blockchainPackageExplorerProvider.getChildren() as Array<PackageFabricVersionTreeItem>;
+        let testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren(packageFabricVersions[0]) as Array<PackageTreeItem>;
         testPackages.length.should.equal(3);
         testPackages[0].label.should.equal('vscode-pkg-1@0.0.1');
         testPackages[1].label.should.equal('vscode-pkg-2@0.0.2');
         testPackages[2].label.should.equal('vscode-pkg-3@1.2.3');
+
+        testPackages = await blockchainPackageExplorerProvider.getChildren(packageFabricVersions[1]) as Array<PackageTreeItem>;
+        testPackages.length.should.equal(3);
+        testPackages[0].label.should.equal('vscode-pkg-4@1.4.3');
+        testPackages[1].label.should.equal('vscode-pkg-5@0.0.2');
+        testPackages[2].label.should.equal('vscode-pkg-6@1.2.3');
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
-    });
-
-    it('should say that there are no packages', async () => {
-
-        await PackageRegistry.instance().clear();
-        const packages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren() as Array<PackageTreeItem>;
-        packages.length.should.equal(1);
-        packages[0].label.should.equal(`No packages found`);
     });
 
     it('should refresh the smart contract packages view when refresh is called', async () => {
@@ -79,7 +95,8 @@ describe('packageExplorer', () => {
     });
 
     it('should get a tree item in BlockchainPackageExplorer', async () => {
-        const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren() as Array<PackageTreeItem>;
+        const packageFabricVersions: PackageFabricVersionTreeItem[] = await blockchainPackageExplorerProvider.getChildren() as Array<PackageFabricVersionTreeItem>;
+        const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren(packageFabricVersions[0]) as Array<PackageTreeItem>;
 
         const firstTestPackage: PackageTreeItem = blockchainPackageExplorerProvider.getTreeItem(testPackages[0]) as PackageTreeItem;
         firstTestPackage.label.should.equal('vscode-pkg-1@0.0.1');

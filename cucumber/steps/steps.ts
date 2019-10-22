@@ -21,6 +21,7 @@ import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gate
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { BlockchainPackageExplorerProvider } from '../../extension/explorer/packageExplorer';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 
 // tslint:disable:no-unused-expression
 
@@ -36,34 +37,38 @@ export enum LanguageType {
 module.exports = function(): any {
 
     this.Then(/^there (should|shouldn't) be an? (environment connected |installed smart contract |instantiated smart contract |Channels |Node |Organizations |identity )?tree item with a label '(.*?)' in the '(Smart Contracts|Fabric Environments|Fabric Gateways|Fabric Wallets)' panel( for item)?( .*)?$/, this.timeout, async (shouldOrshouldnt: string, child: string, label: string, panel: string, thing2: string, thing: string) => {
-        let treeItems: any[];
+        let treeItems: BlockchainTreeItem[];
         if (panel === 'Smart Contracts') {
             const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = ExtensionUtil.getBlockchainPackageExplorerProvider();
-            treeItems = await blockchainPackageExplorerProvider.getChildren();
+            const packageFabricVersionTreeItems: BlockchainTreeItem[] = await blockchainPackageExplorerProvider.getChildren();
+            const fabric14packages: BlockchainTreeItem[] = await blockchainPackageExplorerProvider.getChildren(packageFabricVersionTreeItems[0]);
+            treeItems.push(...fabric14packages);
+            const fabric20packages: BlockchainTreeItem[] = await blockchainPackageExplorerProvider.getChildren(packageFabricVersionTreeItems[1]);
+            treeItems.push(...fabric20packages);
         } else if (panel === 'Fabric Environments') {
             const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
             if (!child) {
                 treeItems = await blockchainRuntimeExplorerProvider.getChildren();
             } else if (child.includes('environment connected')) {
-                const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
-                const smartContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[0]);
+                const allTreeItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+                const smartContracts: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[0]);
                 treeItems = await blockchainRuntimeExplorerProvider.getChildren(smartContracts[0]); // Connected to
             } else if (child.includes('installed smart contract')) {
-                const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
-                const smartContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[1]);
+                const allTreeItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+                const smartContracts: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[1]);
                 treeItems = await blockchainRuntimeExplorerProvider.getChildren(smartContracts[0]); // Installed smart contracts
             } else if (child.includes('instantiated smart contract')) {
-                const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
-                const smartContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[1]);
+                const allTreeItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+                const smartContracts: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[1]);
                 treeItems = await blockchainRuntimeExplorerProvider.getChildren(smartContracts[1]); // Instantiated smart contracts
             } else if (child.includes('Channels')) {
-                const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
+                const allTreeItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
                 treeItems = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[2]); // Channels
             } else if (child.includes('Node')) {
-                const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
+                const allTreeItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
                 treeItems = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[3]); // Nodes
             } else if (child.includes('Organizations')) {
-                const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
+                const allTreeItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
                 treeItems = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[4]); // Organizations
             } else {
                 treeItems = await blockchainRuntimeExplorerProvider.getChildren();

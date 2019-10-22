@@ -86,22 +86,34 @@ export class PackageRegistry {
             // Catch all errors (can't read file, file is not a valid package, etc) and log
             // them instead of having them break the listing of valid packages.
             try {
+                if ( path.extname(pkgFileName) === '.cds') {
+                    // Load the package file.
+                    const pkgBuffer: Buffer = await fs.readFile(pkgPath);
+                    // Parse the package. Need to dynamically load the package class
+                    // from the Fabric SDK to avoid early native module loading.
+                    const { Package } = await import('fabric-client');
+                    const pkg: any = await Package.fromBuffer(pkgBuffer);
 
-                // Load the package file.
-                const pkgBuffer: Buffer = await fs.readFile(pkgPath);
+                    // Create the package registry entry.
+                    pkgRegistryEntries.push(new PackageRegistryEntry({
+                        name: pkg.getName(),
+                        version: pkg.getVersion(),
+                        path: pkgPath,
+                        fabricVersion: '1.4'
+                    }));
+                } else {
+                    const pkgDetails: Array<string> = pkgFileName.split('@');
 
-                // Parse the package. Need to dynamically load the package class
-                // from the Fabric SDK to avoid early native module loading.
-                const { Package } = await import('fabric-client');
-                const pkg: any = await Package.fromBuffer(pkgBuffer);
+                    const packageVersion: string = pkgDetails[1].substring(0, pkgDetails[1].length - 4);
 
-                // Create the package registry entry.
-                pkgRegistryEntries.push(new PackageRegistryEntry({
-                    name: pkg.getName(),
-                    version: pkg.getVersion(),
-                    path: pkgPath
-                }));
-
+                    // Create the package registry entry.
+                    pkgRegistryEntries.push(new PackageRegistryEntry({
+                        name: pkgDetails[0],
+                        version: packageVersion,
+                        path: pkgPath,
+                        fabricVersion: '2.0'
+                    }));
+                }
             } catch (error) {
                 VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, null, `Failed to parse package ${pkgFileName}: ${error.message}`);
             }

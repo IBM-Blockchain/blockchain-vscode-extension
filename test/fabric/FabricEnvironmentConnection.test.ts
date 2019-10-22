@@ -610,7 +610,8 @@ describe('FabricEnvironmentConnection', () => {
         const packageEntry: PackageRegistryEntry = new PackageRegistryEntry({
             name: 'vscode-pkg-1',
             version: '0.0.1',
-            path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-1@0.0.1.cds')
+            path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-1@0.0.1.cds'),
+            fabricVersion: '1.4'
         });
 
         let mockPeer: sinon.SinonStubbedInstance<Client.Peer>;
@@ -688,7 +689,8 @@ describe('FabricEnvironmentConnection', () => {
             const invalidPackageEntry: PackageRegistryEntry = new PackageRegistryEntry({
                 name: 'vscode-pkg-1',
                 version: '0.0.1',
-                path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-doesnotexist@0.0.1.cds')
+                path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-doesnotexist@0.0.1.cds'),
+                fabricVersion: '1.4'
             });
 
             await connection.installChaincode(invalidPackageEntry, 'peer0.org1.example.com')

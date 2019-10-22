@@ -12,12 +12,13 @@
  * limitations under the License.
 */
 import * as vscode from 'vscode';
-import { PackageTreeItem } from './model/PackageTreeItem';
+import { PackageTreeItem } from './packageModel/PackageTreeItem';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { PackageRegistry } from '../registries/PackageRegistry';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { TextTreeItem } from './model/TextTreeItem';
+import { PackageFabricVersionTreeItem } from './packageModel/PackageFabricVersionTreeItem';
 
 export class BlockchainPackageExplorerProvider implements BlockchainExplorerProvider {
     public tree: Array<BlockchainTreeItem> = [];
@@ -29,10 +30,13 @@ export class BlockchainPackageExplorerProvider implements BlockchainExplorerProv
         return element;
     }
 
-    async getChildren(): Promise<BlockchainTreeItem[]> {
-        // Get the packages from the registry manager and create a package tree
-        const packageArray: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
-        this.tree = await this.createPackageTree(packageArray);
+    async getChildren(element?: BlockchainTreeItem): Promise<BlockchainTreeItem[]> {
+
+        if (!element) {
+            this.tree = await this.createPackageFabricVersionTree();
+        } else {
+            this.tree = await this.createPackageTree(element as PackageFabricVersionTreeItem);
+        }
         return this.tree;
     }
 
@@ -40,15 +44,37 @@ export class BlockchainPackageExplorerProvider implements BlockchainExplorerProv
         this._onDidChangeTreeData.fire();
     }
 
-    private async createPackageTree(packageRegistryEntries: Array<PackageRegistryEntry>): Promise<BlockchainTreeItem[]> {
+    private async createPackageFabricVersionTree(): Promise<BlockchainTreeItem[]> {
+        // Get the packages from the registry manager and create a package tree
+        const packageRegistryEntries: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
         const tree: Array<BlockchainTreeItem> = [];
-        // Populate the tree with the name of each package registry entry
+        const fabric14Packages: PackageRegistryEntry[] = [];
+        const fabric20Packages: PackageRegistryEntry[] = [];
+
+        for (const packageRegistryEntry of packageRegistryEntries) {
+            if (packageRegistryEntry.fabricVersion === '1.4') {
+                fabric14Packages.push(packageRegistryEntry);
+            } else {
+                fabric20Packages.push(packageRegistryEntry);
+            }
+        }
+
+        tree.push(new PackageFabricVersionTreeItem(this, 'Fabric 1.4 packages', fabric14Packages));
+
+        tree.push((new PackageFabricVersionTreeItem(this, 'Fabric 2.0 packages', fabric20Packages)));
+
+        return tree;
+    }
+
+    private async createPackageTree(element: PackageFabricVersionTreeItem): Promise<BlockchainTreeItem[]> {
+        const tree: BlockchainTreeItem[] = [];
+
+        const packageRegistryEntries: PackageRegistryEntry[] = await element.packageEntries;
 
         if (packageRegistryEntries.length === 0) {
             tree.push(new TextTreeItem(this, 'No packages found'));
         } else {
             for (const packageRegistryEntry of packageRegistryEntries) {
-
                 const nameAndVersion: string = packageRegistryEntry.name + '@' + packageRegistryEntry.version;
 
                 tree.push(new PackageTreeItem(this, nameAndVersion, packageRegistryEntry));

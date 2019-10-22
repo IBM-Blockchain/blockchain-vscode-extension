@@ -61,17 +61,38 @@ describe('PackageRegistry', () => {
                 {
                     name: 'vscode-pkg-1',
                     version: '0.0.1',
-                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-1@0.0.1.cds')
+                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-1@0.0.1.cds'),
+                    fabricVersion: '1.4'
                 },
                 {
                     name: 'vscode-pkg-2',
                     version: '0.0.2',
-                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-2@0.0.2.cds')
+                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-2@0.0.2.cds'),
+                    fabricVersion: '1.4'
                 },
                 {
                     name: 'vscode-pkg-3',
                     version: '1.2.3',
-                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-3@1.2.3.cds')
+                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-3@1.2.3.cds'),
+                    fabricVersion: '1.4'
+                },
+                {
+                    name: 'vscode-pkg-4',
+                    version: '1.4.3',
+                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-4@1.4.3.tar'),
+                    fabricVersion: '2.0'
+                },
+                {
+                    name: 'vscode-pkg-5',
+                    version: '0.0.2',
+                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-5@0.0.2.tar'),
+                    fabricVersion: '2.0'
+                },
+                {
+                    name: 'vscode-pkg-6',
+                    version: '1.2.3',
+                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-6@1.2.3.tar'),
+                    fabricVersion: '2.0'
                 }
             ]);
         });
@@ -83,17 +104,26 @@ describe('PackageRegistry', () => {
                 {
                     name: 'vscode-pkg-1',
                     version: '0.0.1',
-                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-1@0.0.1.cds')
+                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-1@0.0.1.cds'),
+                    fabricVersion: '1.4'
                 },
                 {
                     name: 'vscode-pkg-2',
                     version: '0.0.2',
-                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-2@0.0.2.cds')
+                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-2@0.0.2.cds'),
+                    fabricVersion: '1.4'
                 },
                 {
                     name: 'vscode-pkg-3',
                     version: '1.2.3',
-                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-3@1.2.3.cds')
+                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-3@1.2.3.cds'),
+                    fabricVersion: '1.4'
+                },
+                {
+                    name: 'vscode-pkg-4',
+                    version: '1.4.3',
+                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-4@1.4.3.tar'),
+                    fabricVersion: '2.0'
                 }
             ]);
         });

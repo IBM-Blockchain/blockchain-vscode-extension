@@ -14,7 +14,7 @@
 'use strict';
 import * as vscode from 'vscode';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { PackageTreeItem } from '../explorer/model/PackageTreeItem';
+import { PackageTreeItem } from '../explorer/packageModel/PackageTreeItem';
 import { PackageRegistry } from '../registries/PackageRegistry';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';

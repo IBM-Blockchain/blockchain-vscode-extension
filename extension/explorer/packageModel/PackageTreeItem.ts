@@ -13,7 +13,7 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import { BlockchainTreeItem } from './BlockchainTreeItem';
+import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { PackageRegistryEntry } from '../../registries/PackageRegistryEntry';
 

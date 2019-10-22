@@ -24,7 +24,7 @@ import { TestUtil } from '../TestUtil';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { PackageTreeItem } from '../../extension/explorer/model/PackageTreeItem';
+import { PackageTreeItem } from '../../extension/explorer/packageModel/PackageTreeItem';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../extension/logging/OutputAdapter';
@@ -86,7 +86,8 @@ describe('exportSmartContractPackageCommand', () => {
 
     it('should export a package to the file system using the tree menu item', async () => {
         const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = ExtensionUtil.getBlockchainPackageExplorerProvider();
-        const _packages: BlockchainTreeItem[] = await blockchainPackageExplorerProvider.getChildren();
+        const packageFabricVersion: BlockchainTreeItem[] = await blockchainPackageExplorerProvider.getChildren();
+        const _packages: BlockchainTreeItem[] = await blockchainPackageExplorerProvider.getChildren(packageFabricVersion[0]);
         const _package: PackageTreeItem = _packages[0] as PackageTreeItem;
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_SMART_CONTRACT, _package);
         showSaveDialogStub.should.have.been.calledOnce;

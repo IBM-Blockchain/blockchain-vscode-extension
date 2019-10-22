@@ -59,7 +59,7 @@ import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { IdentityTreeItem } from '../explorer/model/IdentityTreeItem';
 import { InstantiatedContractTreeItem } from '../explorer/model/InstantiatedContractTreeItem';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
-import { PackageTreeItem } from '../explorer/model/PackageTreeItem';
+import { PackageTreeItem } from '../explorer/packageModel/PackageTreeItem';
 import { TransactionTreeItem } from '../explorer/model/TransactionTreeItem';
 import { BlockchainPackageExplorerProvider } from '../explorer/packageExplorer';
 import { CertificateAuthorityTreeItem } from '../explorer/runtimeOps/connectedTree/CertificateAuthorityTreeItem';
