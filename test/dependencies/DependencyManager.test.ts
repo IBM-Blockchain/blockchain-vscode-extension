@@ -18,7 +18,7 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { version as currentExtensionVersion, dependencies as extDeps} from '../../package.json';
+import { version as currentExtensionVersion, dependencies as extDeps } from '../../package.json';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { DependencyManager } from '../../extension/dependencies/DependencyManager';
 import { CommandUtil } from '../../extension/util/CommandUtil';
@@ -146,11 +146,15 @@ describe('DependencyManager Tests', () => {
 
             extensionKindStub = mySandBox.stub(vscode.extensions, 'getExtension').callThrough();
             // needed as the older version we need to run against doesn't have this api
-            (vscode as any).ExtensionKind = {Workspace: 2};
+            (vscode as any).ExtensionKind = { Workspace: 2 };
 
-            extensionKindStub.onThirdCall().returns({extensionKind: 1});
+            extensionKindStub.onThirdCall().returns({ extensionKind: 1 });
             mySandBox.stub(process.versions, 'node').value('10.16.0');
-            process.versions['electron'] = '';
+
+            if (!process.versions['electron']) {
+                process.versions['electron'] = '';
+            }
+
             electronStub = mySandBox.stub(process.versions, 'electron' as any).value('');
         });
 
@@ -185,7 +189,7 @@ describe('DependencyManager Tests', () => {
         });
 
         it('should install the dependencies using npm command on Linux remote', async () => {
-            extensionKindStub.onThirdCall().returns({extensionKind: 2});
+            extensionKindStub.onThirdCall().returns({ extensionKind: 2 });
             mySandBox.stub(process, 'platform').value('linux');
 
             const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
@@ -258,7 +262,7 @@ describe('DependencyManager Tests', () => {
         });
 
         it('should install the dependencies using npm command on Mac remote', async () => {
-            extensionKindStub.onThirdCall().returns({extensionKind: 2});
+            extensionKindStub.onThirdCall().returns({ extensionKind: 2 });
             mySandBox.stub(process, 'platform').value('darwin');
 
             const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
@@ -304,7 +308,7 @@ describe('DependencyManager Tests', () => {
         });
 
         it('should install the dependencies using npm.cmd script on Windows remote', async () => {
-            extensionKindStub.onThirdCall().returns({extensionKind: 2});
+            extensionKindStub.onThirdCall().returns({ extensionKind: 2 });
             mySandBox.stub(process, 'platform').value('win32');
             mySandBox.stub(process, 'arch').value('x64');
 
