@@ -133,6 +133,11 @@ stages:
 
           - bash: |
               set -ev
+              npm run productionFlag
+            condition: startsWith(variables['Build.SourceBranch'], 'refs/tags')
+
+          - bash: |
+              set -ev
               npm run package
 
           - task: CopyFiles@2
