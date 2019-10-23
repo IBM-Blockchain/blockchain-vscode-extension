@@ -30,8 +30,6 @@ import { FabricCertificateAuthorityFactory } from '../fabric/FabricCertificateAu
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
-import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
-import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
@@ -78,8 +76,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
 
     if (isLocalWallet) {
         // using local_fabric_wallet
-        const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
-        const orgsArray: Array<string> = connection.getAllOrganizationNames();
+        const orgsArray: Array<string> = await FabricRuntimeManager.instance().getRuntime().getAllOrganizationNames();
         // only one mspID currently, if multiple we'll need to add a dropdown
         mspid = orgsArray[0];
     } else if (!mspid) {
@@ -154,11 +151,12 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
                 gatewayRegistryEntry = await FabricGatewayRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
 
                 // make sure local_fabric is started
-                const isRunning: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
+                let isRunning: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
                 if (!isRunning) {
                     // Start local_fabric to enroll identity
                     await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
-                    if (!(await FabricRuntimeManager.instance().getRuntime().isRunning())) {
+                    isRunning = await FabricRuntimeManager.instance().getRuntime().isRunning()
+                    if (!isRunning) {
                         // Start local_fabric failed so return
                         return;
                     }
