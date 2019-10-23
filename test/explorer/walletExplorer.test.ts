@@ -174,6 +174,13 @@ describe('walletExplorer', () => {
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
     });
 
+    it('should say that there are no wallets', async () => {
+        await FabricWalletRegistry.instance().clear();
+        const wallets: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<BlockchainTreeItem>;
+        wallets.length.should.equal(1);
+        wallets[0].label.should.equal(`No wallets found`);
+    });
+
     it('should handle no identities in the local wallet', async () => {
         await FabricWalletRegistry.instance().clear();
         await FabricRuntimeManager.instance().getRuntime().importWalletsAndIdentities();

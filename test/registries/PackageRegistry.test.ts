@@ -32,27 +32,24 @@ describe('PackageRegistry', () => {
 
     const packageRegistry: PackageRegistry = PackageRegistry.instance();
 
-    // This directory only contains valid package files.
-    const TEST_GOOD_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '..', '..', 'test', 'data', 'packageDir');
-
     // This directory contains dot files, old style package directories, and corrupt package files.
     const TEST_BAD_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '..', '..', 'test', 'data', 'badPackageDir');
 
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
+    const rootPath: string = path.dirname(__dirname);
+    const testDir: string = path.join(rootPath, '../../test/data/packageDir/packages');
+    const packageDir: string = path.join(TestUtil.EXTENSION_TEST_DIR, 'packages');
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
     });
 
     beforeEach(async () => {
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_GOOD_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
+        await fs.copy(testDir, packageDir);
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         mySandBox.restore();
-    });
-
-    after(async () => {
         await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TestUtil.EXTENSION_TEST_DIR, vscode.ConfigurationTarget.Global);
     });
 
@@ -64,17 +61,17 @@ describe('PackageRegistry', () => {
                 {
                     name: 'vscode-pkg-1',
                     version: '0.0.1',
-                    path: path.join(TEST_GOOD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-1@0.0.1.cds')
+                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-1@0.0.1.cds')
                 },
                 {
                     name: 'vscode-pkg-2',
                     version: '0.0.2',
-                    path: path.join(TEST_GOOD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-2@0.0.2.cds')
+                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-2@0.0.2.cds')
                 },
                 {
                     name: 'vscode-pkg-3',
                     version: '1.2.3',
-                    path: path.join(TEST_GOOD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-3@1.2.3.cds')
+                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-3@1.2.3.cds')
                 }
             ]);
         });
@@ -131,17 +128,17 @@ describe('PackageRegistry', () => {
                     {
                         name: 'vscode-pkg-1',
                         version: '0.0.1',
-                        path: path.join(TEST_GOOD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-1@0.0.1.cds')
+                        path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-1@0.0.1.cds')
                     },
                     {
                         name: 'vscode-pkg-2',
                         version: '0.0.2',
-                        path: path.join(TEST_GOOD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-2@0.0.2.cds')
+                        path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-2@0.0.2.cds')
                     },
                     {
                         name: 'vscode-pkg-3',
                         version: '1.2.3',
-                        path: path.join(TEST_GOOD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-3@1.2.3.cds')
+                        path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-3@1.2.3.cds')
                     }
                 ]
             );
@@ -150,10 +147,20 @@ describe('PackageRegistry', () => {
             _package.should.deep.equal({
                 name: 'vscode-pkg-2',
                 version: '0.0.2',
-                path: path.join(TEST_GOOD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-2@0.0.2.cds')
+                path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-2@0.0.2.cds')
             });
         });
 
     });
 
+    describe('#clear', () => {
+        it('should clear all packages', async () => {
+            const newPackageRegistry: PackageRegistry = PackageRegistry.instance();
+
+            await newPackageRegistry.clear();
+
+            const packages: PackageRegistryEntry[] = await newPackageRegistry.getAll();
+            packages.should.deep.equal([]);
+        });
+    });
 });

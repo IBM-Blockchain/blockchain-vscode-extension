@@ -17,14 +17,15 @@ import * as path from 'path';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import * as fs from 'fs-extra';
 import { PackageTreeItem } from '../../extension/explorer/model/PackageTreeItem';
 import { TestUtil } from '../TestUtil';
 import { BlockchainPackageExplorerProvider } from '../../extension/explorer/packageExplorer';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../extension/logging/OutputAdapter';
-import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 
 chai.use(sinonChai);
 chai.should();
@@ -35,7 +36,8 @@ describe('packageExplorer', () => {
     let logSpy: sinon.SinonSpy;
     let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
     const rootPath: string = path.dirname(__dirname);
-    const testDir: string = path.join(rootPath, '../../test/data/packageDir');
+    const testDir: string = path.join(rootPath, '../../test/data/packageDir/packages');
+    const packageDir: string = path.join(TestUtil.EXTENSION_TEST_DIR, 'packages');
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
@@ -44,15 +46,11 @@ describe('packageExplorer', () => {
     beforeEach(async () => {
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         blockchainPackageExplorerProvider = ExtensionUtil.getBlockchainPackageExplorerProvider();
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, testDir, true);
+        await fs.copy(testDir, packageDir);
     });
 
     afterEach(async () => {
         mySandBox.restore();
-    });
-
-    after(async () => {
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TestUtil.EXTENSION_TEST_DIR, vscode.ConfigurationTarget.Global);
     });
 
     it('should show smart contract packages in the BlockchainPackageExplorer view', async () => {
@@ -63,6 +61,15 @@ describe('packageExplorer', () => {
         testPackages[2].label.should.equal('vscode-pkg-3@1.2.3');
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
     });
+
+    it('should say that there are no packages', async () => {
+
+        await PackageRegistry.instance().clear();
+        const packages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren() as Array<PackageTreeItem>;
+        packages.length.should.equal(1);
+        packages[0].label.should.equal(`No packages found`);
+    });
+
     it('should refresh the smart contract packages view when refresh is called', async () => {
         const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainPackageExplorerProvider['_onDidChangeTreeData'], 'fire');
 

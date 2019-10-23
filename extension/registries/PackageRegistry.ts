@@ -49,6 +49,13 @@ export class PackageRegistry {
         await fs.remove(packageEntry.path);
     }
 
+    public async clear(): Promise<void> {
+        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const pkgDir: string = path.join(extDir, 'packages');
+        const resolvedPkgDir: string = FileSystemUtil.getDirPath(pkgDir);
+        await fs.emptyDir(resolvedPkgDir);
+    }
+
     private async getEntries(): Promise<PackageRegistryEntry[]> {
         // Determine the directory that will contain the packages and ensure it exists.
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
