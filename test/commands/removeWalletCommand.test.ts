@@ -103,6 +103,7 @@ describe('removeWalletCommand', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
+        showWalletsQuickPickStub.should.be.calledWithExactly('Choose the wallet(s) that you want to remove', true, false);
         const wallets: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
         wallets.length.should.equal(2);
         wallets[0].name.should.equal(blueWallet.name);
@@ -126,6 +127,7 @@ describe('removeWalletCommand', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
+        showWalletsQuickPickStub.should.be.calledWithExactly('Choose the wallet(s) that you want to remove', true, false);
         const wallets: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
         wallets.length.should.equal(1);
         wallets[0].name.should.equal(createdWallet.name);
@@ -149,6 +151,7 @@ describe('removeWalletCommand', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
+        showWalletsQuickPickStub.should.be.calledWithExactly('Choose the wallet(s) that you want to remove', true, false);
         const wallets: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
         wallets.length.should.equal(3);
 
@@ -164,6 +167,7 @@ describe('removeWalletCommand', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
+        showWalletsQuickPickStub.should.be.calledWithExactly('Choose the wallet(s) that you want to remove', true, false);
         const wallets: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
         wallets.length.should.equal(3);
 
@@ -187,6 +191,7 @@ describe('removeWalletCommand', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
+        showWalletsQuickPickStub.should.be.calledWithExactly('Choose the wallet(s) that you want to remove', true, false);
         const wallets: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
         wallets.length.should.equal(1);
         wallets[0].name.should.equal(purpleWallet.name);
@@ -204,6 +209,7 @@ describe('removeWalletCommand', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
+        showWalletsQuickPickStub.should.be.calledWithExactly('Choose the wallet(s) that you want to remove', true, false);
         const wallets: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
 
         wallets.length.should.equal(3);
@@ -222,6 +228,7 @@ describe('removeWalletCommand', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
+        showWalletsQuickPickStub.should.be.calledWithExactly('Choose the wallet(s) that you want to remove', true, false);
         const wallets: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
 
         wallets.length.should.equal(3);
@@ -242,6 +249,7 @@ describe('removeWalletCommand', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
+        showWalletsQuickPickStub.should.be.calledWithExactly('Choose the wallet(s) that you want to remove', true, false);
         const wallets: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
 
         wallets.length.should.equal(2);
@@ -273,6 +281,7 @@ describe('removeWalletCommand', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
+        showWalletsQuickPickStub.should.be.calledWithExactly('Choose the wallet(s) that you want to remove', true, false);
         const wallets: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
 
         wallets.length.should.equal(1);

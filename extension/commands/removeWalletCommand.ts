@@ -40,7 +40,7 @@ export async function removeWallet(treeItem: WalletTreeItem): Promise<void> {
             return;
         }
 
-        const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry>[] = await UserInputUtil.showWalletsQuickPickBox('Choose the wallet(s) that you want to remove', true) as IBlockchainQuickPickItem<FabricWalletRegistryEntry>[];
+        const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry>[] = await UserInputUtil.showWalletsQuickPickBox('Choose the wallet(s) that you want to remove', true, false) as IBlockchainQuickPickItem<FabricWalletRegistryEntry>[];
         if (!chosenWallet || chosenWallet.length === 0) {
             return;
         }
