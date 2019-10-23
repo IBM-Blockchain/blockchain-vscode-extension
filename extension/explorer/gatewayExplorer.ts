@@ -39,6 +39,7 @@ import { InstantiatedMultiContractTreeItem } from './model/InstantiatedMultiCont
 import { InstantiatedUnknownTreeItem } from './model/InstantiatedUnknownTreeItem';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { FabricChaincode } from '../fabric/FabricChaincode';
+import { TextTreeItem } from './model/TextTreeItem';
 
 export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProvider {
 
@@ -166,38 +167,42 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
 
         const allGateways: FabricGatewayRegistryEntry[] = await this.fabricGatewayRegistry.getAll();
 
-        for (const gateway of allGateways) {
+        if (allGateways.length === 0) {
+            tree.push(new TextTreeItem(this, 'No gateways found'));
+        } else {
+            for (const gateway of allGateways) {
 
-            const command: vscode.Command = {
-                command: ExtensionCommands.CONNECT_TO_GATEWAY,
-                title: '',
-                arguments: [gateway]
-            };
+                const command: vscode.Command = {
+                    command: ExtensionCommands.CONNECT_TO_GATEWAY,
+                    title: '',
+                    arguments: [gateway]
+                };
 
-            if (gateway.name === FabricRuntimeUtil.LOCAL_FABRIC) {
-                const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(
-                    this,
-                    FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME,
-                    gateway,
-                    vscode.TreeItemCollapsibleState.None,
-                    command
-                );
+                if (gateway.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+                    const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(
+                        this,
+                        FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME,
+                        gateway,
+                        vscode.TreeItemCollapsibleState.None,
+                        command
+                    );
 
-                tree.push(treeItem);
-            } else if (gateway.associatedWallet) {
-                tree.push(new GatewayAssociatedTreeItem(this,
-                    gateway.name,
-                    gateway,
-                    vscode.TreeItemCollapsibleState.None,
-                    command)
-                );
-            } else {
-                tree.push(new GatewayDissociatedTreeItem(this,
-                    gateway.name,
-                    gateway,
-                    vscode.TreeItemCollapsibleState.None,
-                    command)
-                );
+                    tree.push(treeItem);
+                } else if (gateway.associatedWallet) {
+                    tree.push(new GatewayAssociatedTreeItem(this,
+                        gateway.name,
+                        gateway,
+                        vscode.TreeItemCollapsibleState.None,
+                        command)
+                    );
+                } else {
+                    tree.push(new GatewayDissociatedTreeItem(this,
+                        gateway.name,
+                        gateway,
+                        vscode.TreeItemCollapsibleState.None,
+                        command)
+                    );
+                }
             }
         }
 

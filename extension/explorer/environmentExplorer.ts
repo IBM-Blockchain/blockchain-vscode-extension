@@ -50,6 +50,7 @@ import { SetupTreeItem } from './runtimeOps/identitySetupTree/SetupTreeItem';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { EnvironmentConnectedTreeItem } from './runtimeOps/connectedTree/EnvironmentConnectedTreeItem';
 import { FabricChaincode } from '../fabric/FabricChaincode';
+import { TextTreeItem } from './model/TextTreeItem';
 
 export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorerProvider {
 
@@ -189,34 +190,40 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
         try {
             const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
-            for (const environmentEntry of environmentEntries) {
-                if (environmentEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
-                    const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
-                    const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
-                        runtime.getName(),
-                        environmentEntry,
-                        {
-                            command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
-                            title: '',
-                            arguments: [environmentEntry]
-                        }
-                    );
-                    tree.push(treeItem);
 
-                } else {
-                    const environmentTreeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(this,
-                        environmentEntry.name,
-                        environmentEntry,
-                        {
-                            command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
-                            title: '',
-                            arguments: [environmentEntry]
-                        }
-                    );
+            if (environmentEntries.length === 0) {
+                tree.push(new TextTreeItem(this, 'No environments found'));
+            } else {
+                for (const environmentEntry of environmentEntries) {
+                    if (environmentEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+                        const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+                        const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
+                            runtime.getName(),
+                            environmentEntry,
+                            {
+                                command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                                title: '',
+                                arguments: [environmentEntry]
+                            }
+                        );
+                        tree.push(treeItem);
 
-                    tree.push(environmentTreeItem);
+                    } else {
+                        const environmentTreeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(this,
+                            environmentEntry.name,
+                            environmentEntry,
+                            {
+                                command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                                title: '',
+                                arguments: [environmentEntry]
+                            }
+                        );
+
+                        tree.push(environmentTreeItem);
+                    }
                 }
             }
+
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error populating Fabric Environment Panel: ${error.message}`, `Error populating Fabric Environment Panel: ${error.toString()}`);
         }
