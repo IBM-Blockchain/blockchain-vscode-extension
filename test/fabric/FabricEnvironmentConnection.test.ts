@@ -57,6 +57,7 @@ describe('FabricEnvironmentConnection', () => {
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
         mockRuntime = mySandBox.createStubInstance(FabricRuntime);
+        mockRuntime.getAllOrganizationNames.resolves(['OrdererMSP', 'Org1MSP', 'Org2MSP']);
         mockRuntime.getNodes.resolves([
             FabricNode.newPeer(
                 'peer0.org1.example.com',
@@ -532,14 +533,12 @@ describe('FabricEnvironmentConnection', () => {
             await connection.getAllInstantiatedChaincodes()
                 .should.be.rejectedWith(/such error/);
         });
-
     });
 
     describe('getAllOrganizationNames', () => {
-        it('should get all of the organization names', () => {
-            connection.getAllOrganizationNames().should.deep.equal(['OrdererMSP', 'Org1MSP', 'Org2MSP']);
+        it('should get all of the organization names', async () => {
+            await connection.getAllOrganizationNames().should.eventually.deep.equal(['OrdererMSP', 'Org1MSP', 'Org2MSP']);
         });
-
     });
 
     describe('getAllCertificateAuthorityNames', () => {

@@ -346,7 +346,8 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
     private async createOrganizationsTree(): Promise<Array<BlockchainTreeItem>> {
         const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
-        return connection.getAllOrganizationNames().map((organizationName: string) => new OrgTreeItem(this, organizationName));
+        const orgNames: string[] = await connection.getAllOrganizationNames();
+        return orgNames.map((organizationName: string) => new OrgTreeItem(this, organizationName));
     }
 
     private async createInstantiatedTree(): Promise<Array<BlockchainTreeItem>> {
