@@ -45,8 +45,8 @@ steps:
           n=$(( n + 1 ))
         done
         return $rc;}
-
-      exit 0
+      runNpmAudit
+      exit $?
     displayName: run npm audit
 
   - bash: |
