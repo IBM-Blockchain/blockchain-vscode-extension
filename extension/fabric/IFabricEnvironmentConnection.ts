@@ -33,7 +33,7 @@ export interface IFabricEnvironmentConnection {
 
     getAllInstantiatedChaincodes(): Promise<Array<{name: string, version: string}>>;
 
-    getAllOrganizationNames(): Array<string>;
+    getAllOrganizationNames(): Promise<Array<string>>;
 
     getAllCertificateAuthorityNames(): Array<string>;
 

@@ -40,8 +40,6 @@ import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { Reporter } from '../../extension/util/Reporter';
-import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
-import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
 
@@ -58,7 +56,6 @@ describe('AddWalletIdentityCommand', () => {
     });
 
     describe('addWalletIdentity', () => {
-        let fabricEnvironmentConnectionMock: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
         let inputBoxStub: sinon.SinonStub;
         const rootPath: string = path.dirname(__dirname);
         const walletPath: string = path.join(rootPath, '../../test/data/walletDir/wallet');
@@ -121,13 +118,6 @@ describe('AddWalletIdentityCommand', () => {
             await FabricWalletRegistry.instance().add(connectionOneWallet);
             await FabricWalletRegistry.instance().add(connectionTwoWallet);
 
-            fabricEnvironmentConnectionMock = mySandBox.createStubInstance(FabricEnvironmentConnection);
-            fabricEnvironmentConnectionMock.connect.resolves();
-            fabricEnvironmentConnectionMock.getAllOrganizationNames.resolves();
-            const fabricEnvironmentManager: FabricEnvironmentManager = FabricEnvironmentManager.instance();
-            mySandBox.stub(fabricEnvironmentManager, 'getConnection').returns(fabricEnvironmentConnectionMock);
-            fabricEnvironmentConnectionMock.getAllOrganizationNames.returns(['myMSPID']);
-
             inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
             fsReadFile = mySandBox.stub(fs, 'readFile');
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
@@ -155,9 +145,10 @@ describe('AddWalletIdentityCommand', () => {
         });
 
         it('should test an identity can be added with an enroll id and secret, when called from the command palette using a JSON file', async () => {
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
-                data: FabricWalletRegistry.instance().get('externalWallet')
+                data: externalWallet
             });
 
             fsReadFile.resolves(`{
@@ -171,9 +162,10 @@ describe('AddWalletIdentityCommand', () => {
             inputBoxStub.onFirstCall().resolves('greenConga');
             inputBoxStub.onSecondCall().resolves('myMSPID');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+            const gatewayA: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayA');
             showGatewayQuickPickBoxStub.resolves({
                 label: 'myGatewayA',
-                data: FabricGatewayRegistry.instance().get('myGatewayA')
+                data: gatewayA
             });
             getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
             enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
@@ -197,9 +189,10 @@ describe('AddWalletIdentityCommand', () => {
 
         it('should test an identity can be added with an enroll id and secret, when called from the command palette using a JSON file and mspid passed in', async () => {
             connectionProfilePathStub.resolves(path.join('myPath', 'connection.yml'));
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
-                data: FabricWalletRegistry.instance().get('externalWallet')
+                data: externalWallet
             });
 
             fsReadFile.resolves(`{
@@ -213,9 +206,10 @@ describe('AddWalletIdentityCommand', () => {
             inputBoxStub.onFirstCall().resolves('greyConga');
 
             addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+            const gatewayA: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayA');
             showGatewayQuickPickBoxStub.resolves({
                 label: 'myGatewayA',
-                data: FabricGatewayRegistry.instance().get('myGatewayA')
+                data: gatewayA
             });
             getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
             enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
@@ -239,9 +233,10 @@ describe('AddWalletIdentityCommand', () => {
 
         it('should test an identity can be added with an enroll id and secret, when called from the command palette using a yaml file', async () => {
             connectionProfilePathStub.resolves(path.join('myPath', 'connection.yml'));
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
-                data: FabricWalletRegistry.instance().get('externalWallet')
+                data: externalWallet
             });
 
             fsReadFile.resolves(`---
@@ -278,9 +273,10 @@ describe('AddWalletIdentityCommand', () => {
 
         it('should test an identity can be added with an enroll id and secret, when called from the command palette using a yaml file with caName', async () => {
             connectionProfilePathStub.resolves(path.join('myPath', 'connection.yml'));
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
-                data: FabricWalletRegistry.instance().get('externalWallet')
+                data: externalWallet
             });
 
             fsReadFile.resolves(`---
@@ -292,9 +288,10 @@ describe('AddWalletIdentityCommand', () => {
             inputBoxStub.onFirstCall().resolves('greenConga');
             inputBoxStub.onSecondCall().resolves('myMSPID');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+            const myGatewayC: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayC');
             showGatewayQuickPickBoxStub.resolves({
                 label: 'myGatewayC',
-                data: FabricGatewayRegistry.instance().get('myGatewayC')
+                data: myGatewayC
             });
             getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
             enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
@@ -317,9 +314,10 @@ describe('AddWalletIdentityCommand', () => {
         });
 
         it('should return when user cancels when selecting a CA to enroll with', async () => {
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
-                data: FabricWalletRegistry.instance().get('externalWallet')
+                data: externalWallet
             });
 
             fsReadFile.resolves(`{
@@ -338,9 +336,10 @@ describe('AddWalletIdentityCommand', () => {
             inputBoxStub.onFirstCall().resolves('greenConga');
             inputBoxStub.onSecondCall().resolves('myMSPID');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+            const myGatewayA: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayA');
             showGatewayQuickPickBoxStub.resolves({
                 label: 'myGatewayA',
-                data: FabricGatewayRegistry.instance().get('myGatewayA')
+                data: myGatewayA
             });
             getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
             enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
@@ -362,9 +361,10 @@ describe('AddWalletIdentityCommand', () => {
         });
 
         it('should ask which ca if more than one', async () => {
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
-                data: FabricWalletRegistry.instance().get('externalWallet')
+                data: externalWallet
             });
 
             fsReadFile.resolves(`{
@@ -383,9 +383,11 @@ describe('AddWalletIdentityCommand', () => {
             inputBoxStub.onFirstCall().resolves('greenConga');
             inputBoxStub.onSecondCall().resolves('myMSPID');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+
+            const myGatewayA: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayA');
             showGatewayQuickPickBoxStub.resolves({
                 label: 'myGatewayA',
-                data: FabricGatewayRegistry.instance().get('myGatewayA')
+                data: myGatewayA
             });
             getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
             enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
@@ -418,10 +420,12 @@ describe('AddWalletIdentityCommand', () => {
         });
 
         it('should test adding an identity can be cancelled when failing to give an identity name', async () => {
+            const blueWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('blueWallet');
             showWalletsQuickPickStub.resolves({
                 label: 'blueWallet',
-                data: FabricWalletRegistry.instance().get('blueWallet')
+                data: blueWallet
             });
+
             inputBoxStub.resolves();
 
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
@@ -432,9 +436,10 @@ describe('AddWalletIdentityCommand', () => {
         });
 
         it('should test adding an identity can be cancelled when asked to select a method for adding an identity', async () => {
+            const blueWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('blueWallet');
             showWalletsQuickPickStub.resolves({
                 label: 'blueWallet',
-                data: FabricWalletRegistry.instance().get('blueWallet')
+                data: blueWallet
             });
 
             inputBoxStub.onFirstCall().resolves('greenConga');
@@ -450,9 +455,10 @@ describe('AddWalletIdentityCommand', () => {
         });
 
         it('should test adding an identity can be cancelled when asked to give an MSPID', async () => {
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
-                data: FabricWalletRegistry.instance().get('externalWallet')
+                data: externalWallet
             });
 
             inputBoxStub.onFirstCall().resolves('greenConga');
@@ -466,9 +472,10 @@ describe('AddWalletIdentityCommand', () => {
         });
 
         it('should test adding an identity can be cancelled chosing a gateway to enroll with', async () => {
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
-                data: FabricWalletRegistry.instance().get('externalWallet')
+                data: externalWallet
             });
 
             inputBoxStub.onFirstCall().resolves('greenConga');
@@ -484,17 +491,19 @@ describe('AddWalletIdentityCommand', () => {
         });
 
         it('should test adding an identity can be cancelled when adding using an identity and secret', async () => {
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
-                data: FabricWalletRegistry.instance().get('externalWallet')
+                data: externalWallet
             });
 
             inputBoxStub.onFirstCall().resolves('greenConga');
             inputBoxStub.onSecondCall().resolves('myMSPID');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+            const myGatewayB: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayB');
             showGatewayQuickPickBoxStub.resolves({
                 label: 'myGatewayB',
-                data: FabricGatewayRegistry.instance().get('myGatewayB')
+                data: myGatewayB
             });
             getEnrollIdSecretStub.resolves();
 
@@ -507,9 +516,10 @@ describe('AddWalletIdentityCommand', () => {
         });
 
         it('should test an identity can be added using a certificate and private key', async () => {
+            const blueWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('blueWallet');
             showWalletsQuickPickStub.resolves({
                 label: 'blueWallet',
-                data: FabricWalletRegistry.instance().get('blueWallet')
+                data: blueWallet
             });
 
             inputBoxStub.onFirstCall().resolves('blueConga');
@@ -536,9 +546,10 @@ describe('AddWalletIdentityCommand', () => {
         });
 
         it('should test adding an identity can be cancelled when adding using a certificate and private key', async () => {
+            const blueWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('blueWallet');
             showWalletsQuickPickStub.resolves({
                 label: 'blueWallet',
-                data: FabricWalletRegistry.instance().get('blueWallet')
+                data: blueWallet
             });
             inputBoxStub.onFirstCall().resolves('blueConga');
             inputBoxStub.onSecondCall().resolves('myMSPID');
@@ -554,9 +565,10 @@ describe('AddWalletIdentityCommand', () => {
         });
 
         it('should show an error if parsing the certificate file fails', async () => {
+            const blueWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('blueWallet');
             showWalletsQuickPickStub.resolves({
                 label: 'blueWallet',
-                data: FabricWalletRegistry.instance().get('blueWallet')
+                data: blueWallet
             });
             inputBoxStub.onFirstCall().resolves('blueConga');
             inputBoxStub.onSecondCall().resolves('myMSPID');
@@ -585,17 +597,21 @@ describe('AddWalletIdentityCommand', () => {
                 }
             }`);
 
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
-                data: FabricWalletRegistry.instance().get('externalWallet')
+                data: externalWallet
             });
             inputBoxStub.onFirstCall().resolves('greenConga');
             inputBoxStub.onSecondCall().resolves('myMSPID');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+
+            const myGatewayB: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayB');
             showGatewayQuickPickBoxStub.resolves({
                 label: 'myGatewayB',
-                data: FabricGatewayRegistry.instance().get('myGatewayB')
+                data: myGatewayB
             });
+
             getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
             enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
             const error: Error = new Error('Already exists');
@@ -616,9 +632,16 @@ describe('AddWalletIdentityCommand', () => {
         });
 
         it('should test an error is thrown if trying to add an identity when no gateway doesnt exist', async () => {
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
-                data: FabricWalletRegistry.instance().get('externalWallet')
+                data: externalWallet
+            });
+
+            const myGatewayB: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayB');
+            showGatewayQuickPickBoxStub.resolves({
+                label: 'myGatewayB',
+                data: myGatewayB
             });
 
             await FabricGatewayRegistry.instance().clear();
@@ -626,10 +649,7 @@ describe('AddWalletIdentityCommand', () => {
             inputBoxStub.onFirstCall().resolves('greenConga');
             inputBoxStub.onSecondCall().resolves('myMSPID');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
-            showGatewayQuickPickBoxStub.resolves({
-                label: 'myGatewayB',
-                data: FabricGatewayRegistry.instance().get('myGatewayB')
-            });
+
             getEnrollIdSecretStub.resolves();
 
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
@@ -642,9 +662,10 @@ describe('AddWalletIdentityCommand', () => {
         });
 
         it('should test an identity can be added via a json identity file', async () => {
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
-                data: FabricWalletRegistry.instance().get('externalWallet')
+                data: externalWallet
             });
 
             inputBoxStub.onFirstCall().resolves('purpleConga');
@@ -667,9 +688,10 @@ describe('AddWalletIdentityCommand', () => {
         });
 
         it('should handle the user cancelling selecting a json file to create an identity', async () => {
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
-                data: FabricWalletRegistry.instance().get('externalWallet')
+                data: externalWallet
             });
 
             inputBoxStub.onFirstCall().resolves('purpleConga');
@@ -687,9 +709,10 @@ describe('AddWalletIdentityCommand', () => {
         });
 
         it('should display an error if the json file does not contain the correct properties', async () => {
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
-                data: FabricWalletRegistry.instance().get('externalWallet')
+                data: externalWallet
             });
 
             inputBoxStub.onFirstCall().resolves('purpleConga');
@@ -726,9 +749,10 @@ describe('AddWalletIdentityCommand', () => {
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 inputBoxStub.onSecondCall().resolves('myMSPID');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+                const myGatewayA: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayA');
                 showGatewayQuickPickBoxStub.resolves({
                     label: 'myGatewayA',
-                    data: FabricGatewayRegistry.instance().get('myGatewayA')
+                    data: myGatewayA
                 });
                 getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
                 enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
@@ -769,6 +793,7 @@ describe('AddWalletIdentityCommand', () => {
                 const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = mySandBox.createStubInstance(FabricRuntime);
                 mockRuntime.isRunning.resolves(true);
                 mockRuntime.getWalletNames.resolves([FabricWalletUtil.LOCAL_WALLET]);
+                mockRuntime.getAllOrganizationNames.resolves(['myMSPID']);
                 mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
                 getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
                 enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
@@ -806,13 +831,13 @@ describe('AddWalletIdentityCommand', () => {
                 }`);
 
                 inputBoxStub.onFirstCall().resolves('greenConga');
-                inputBoxStub.onSecondCall().resolves('myMSPID');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
 
                 const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = mySandBox.createStubInstance(FabricRuntime);
                 mockRuntime.importWalletsAndIdentities.resolves();
                 mockRuntime.isRunning.onCall(0).resolves(false);
                 mockRuntime.isRunning.onCall(1).resolves(true);
+                mockRuntime.getAllOrganizationNames.resolves(['myMSPID']);
                 mockRuntime.getWalletNames.resolves([FabricWalletUtil.LOCAL_WALLET]);
                 mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
                 executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
@@ -842,12 +867,12 @@ describe('AddWalletIdentityCommand', () => {
 
             it(`should handle ${FabricRuntimeUtil.LOCAL_FABRIC} failing to start`, async () => {
                 inputBoxStub.onFirstCall().resolves('greenConga');
-                inputBoxStub.onSecondCall().resolves('myMSPID');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
 
                 const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = mySandBox.createStubInstance(FabricRuntime);
                 mockRuntime.importWalletsAndIdentities.resolves();
                 mockRuntime.isRunning.resolves(false);
+                mockRuntime.getAllOrganizationNames.resolves(['myMSPID']);
                 mockRuntime.getWalletNames.resolves([FabricWalletUtil.LOCAL_WALLET]);
                 mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
                 executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
@@ -886,9 +911,10 @@ describe('AddWalletIdentityCommand', () => {
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 inputBoxStub.onSecondCall().resolves('myMSPID');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+                const myGatewayA: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayA');
                 showGatewayQuickPickBoxStub.resolves({
                     label: 'myGatewayA',
-                    data: FabricGatewayRegistry.instance().get('myGatewayA')
+                    data: myGatewayA
                 });
                 getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
                 enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });

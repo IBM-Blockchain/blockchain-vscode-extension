@@ -391,7 +391,7 @@ describe('environmentExplorer', () => {
                         version: '2.34'
                     }]);
 
-                fabricConnection.getAllOrganizationNames.returns(['Org1', 'Org2']);
+                fabricConnection.getAllOrganizationNames.resolves(['Org1', 'Org2']);
 
                 fabricConnection.getAllOrdererNames.returns(['orderer1', 'orderer2']);
 
