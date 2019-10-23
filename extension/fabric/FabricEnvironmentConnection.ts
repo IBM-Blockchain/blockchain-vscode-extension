@@ -192,12 +192,8 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
 
     }
 
-    public getAllOrganizationNames(): string[] {
-        const mspIDs: Set<string> = new Set<string>();
-        for (const node of this.nodes.values()) {
-            mspIDs.add(node.msp_id);
-        }
-        return Array.from(mspIDs).sort();
+    public async getAllOrganizationNames(): Promise<string[]> {
+        return this.environment.getAllOrganizationNames();
     }
 
     public getAllCertificateAuthorityNames(): Array<string> {

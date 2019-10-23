@@ -41,6 +41,17 @@ export class FabricEnvironment extends EventEmitter {
         return this.path;
     }
 
+    public async getAllOrganizationNames(): Promise<string[]> {
+        const mspIDs: Set<string> = new Set<string>();
+        const nodes: FabricNode[] = await this.getNodes();
+        for (const node of nodes) {
+            if (node.msp_id) {
+                mspIDs.add(node.msp_id);
+            }
+        }
+        return Array.from(mspIDs).sort();
+    }
+
     public async getNodes(withoutIdentitiies: boolean = false): Promise<FabricNode[]> {
         const rootNodesPath: string = path.resolve(this.path, 'nodes');
         const nodes: FabricNode[] = await this.loadNodes(rootNodesPath);

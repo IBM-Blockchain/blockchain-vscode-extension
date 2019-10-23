@@ -14,7 +14,6 @@
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import * as fs from 'fs-extra';
 import * as path from 'path';
@@ -38,7 +37,6 @@ describe('FabricEnvironment', () => {
     });
 
     beforeEach(async () => {
-        await ExtensionUtil.activateExtension();
         environment = new FabricEnvironment('myFabric');
         environment['path'] = environmentPath;
         sandbox = sinon.createSandbox();
@@ -57,6 +55,12 @@ describe('FabricEnvironment', () => {
     describe('#getPath', () => {
         it('should return the path of the runtime', () => {
             environment.getPath().should.equal(environmentPath);
+        });
+    });
+
+    describe('#getAllOrganisationNames', () => {
+        it('should get all the organisation names', async () => {
+            await environment.getAllOrganizationNames().should.eventually.deep.equal(['OrdererMSP', 'Org1MSP']);
         });
     });
 
