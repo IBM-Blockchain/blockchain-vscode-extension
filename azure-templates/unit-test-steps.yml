@@ -13,6 +13,7 @@
 steps:
   - bash: |
       set -ev
+      cd ./blockchain-extension
       npm test
     env:
       DISPLAY: ':99.0'

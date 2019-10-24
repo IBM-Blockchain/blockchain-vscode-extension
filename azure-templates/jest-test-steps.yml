@@ -12,6 +12,7 @@
 
 steps:
   - bash: |
+      cd ./blockchain-extension
       npm run jestTest
     env:
       DISPLAY: ':99.0'

@@ -13,6 +13,7 @@
 steps:
   - bash: |
       set -ev
+      cd ./blockchain-extesnion
       npm rebuild grpc --target=${TARGET} --runtime=electron --dist-url=https://atom.io/download/electron
       if [ $MODULES -lt 73 ]; then
         rm -rf ./node_modules/grpc/src/node/extension_binary/node-v${MODULES}-linux-x64-glibc
@@ -25,6 +26,7 @@ steps:
 
   - bash: |
       set -ev
+      cd ./blockchain-extension
       npm rebuild grpc --target=${TARGET} --runtime=electron --dist-url=https://atom.io/download/electron
       if [ $MODULES -lt 73 ]; then
         rm -rf ./node_modules/grpc/src/node/extension_binary/node-v${MODULES}-darwin-x64-unknown

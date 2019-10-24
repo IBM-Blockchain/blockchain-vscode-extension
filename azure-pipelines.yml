@@ -172,7 +172,7 @@ stages:
           - bash: |
               set -ev
               npm install vsce
-              node ./node_modules/vsce/out/vsce publish -p $(VSCETOKEN) --packagePath ibm-blockchain-platform-*
+              node ./blockchain-extension/node_modules/vsce/out/vsce publish -p $(VSCETOKEN) --packagePath ibm-blockchain-platform-*
             displayName: Publish extension
             condition: succeeded()
 
@@ -186,7 +186,7 @@ stages:
               # Bump the version number.
               node ./.azure/pkgbump.js
 
-              export NEW_VERSION=$(node -e "console.log(require('./package.json').version)")
+              export NEW_VERSION=$(node -e "console.log(require('./blockchain-extesnion/package.json').version)")
 
               # Change from HTTPS to SSH.
               .azure/fix_github_https_repo.sh
