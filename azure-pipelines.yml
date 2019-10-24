@@ -172,7 +172,7 @@ stages:
           - bash: |
               set -ev
               npm install vsce
-              node ./node_modules/vsce/out/vsce publish -p $(VSCETOKEN)
+              node ./node_modules/vsce/out/vsce publish -p $(VSCETOKEN) --packagePath ibm-blockchain-platform-*
             displayName: Publish extension
             condition: succeeded()
 
