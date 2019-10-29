@@ -10,7 +10,7 @@ chai.use(sinonChai);
 describe('TransactionViewSidebar component', () => {
 
     let mySandBox: sinon.SinonSandbox;
-    
+
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
     });

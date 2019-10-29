@@ -1,48 +1,45 @@
 import * as React from 'react';
 import './App.scss';
 import { HashRouter as Router, Route, Redirect } from 'react-router-dom';
-
 import TransactionViewPage from './components/TransactionViewPage/TransactionViewPage';
 
-class App extends React.Component<any> {
-    state: any;
-    constructor(props: any) {
+interface AppState {
+    redirectPath: string;
+    childState: any;
+}
+
+class App extends React.Component<{}, AppState> {
+    constructor(props: {}) {
         super(props);
         this.state = {
-            redirectPath: undefined
+            redirectPath: '',
+            childState: {}
         };
     }
 
-    componentDidMount() {
-        window.addEventListener('message', event => {
-            console.log('event is', event);
-            const componentName: string = event.data;
-            console.log('Received message in App.tsx>', componentName);
-
-            this.redirectComponent(componentName);
+    componentDidMount(): void {
+        window.addEventListener('message', (event: MessageEvent) => {
+            this.setState({
+                redirectPath: event.data.path,
+                childState: event.data.state
+            });
         });
     }
 
-    render() {
-        console.log('Rendering app, this.state.redirectPath is', this.state.redirectPath);
-        if (this.state.redirectPath === undefined) {
+    public render(): any {
+        if (this.state.redirectPath === '') {
             // Maybe we should display a loading spinner instead?
             return <div></div>;
         } else {
             return (
                 <Router>
                     <div>
-                    <Route render={() => <Redirect push to={this.state.redirectPath}/>}></Route>
-                    <Route path='/transaction' render={() => <TransactionViewPage activeSmartContract="penguinContract@0.0.1"/>}></Route>
+                    <Route render={(): any => <Redirect push to={this.state.redirectPath}/>}></Route>
+                    <Route path='/transaction' render={(): any => <TransactionViewPage messageData={this.state.childState}/>}></Route>
                     </div>
                 </Router>
             );
-
         }
-    }
-
-    public redirectComponent(path: string) {
-        this.setState({redirectPath: path});
     }
 }
 
