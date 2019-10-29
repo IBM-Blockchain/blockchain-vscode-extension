@@ -224,7 +224,7 @@
             },
             {
                 "command": "transactionPage.open",
-                "title": "Open Transaction Page",
+                "title": "Open Transaction View",
                 "category": "IBM Blockchain Platform"
             },
             {

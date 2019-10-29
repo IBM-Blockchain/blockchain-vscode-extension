@@ -101,7 +101,6 @@ import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurat
 import { importNodesToEnvironment } from '../commands/importNodesToEnvironmentCommand';
 import { deleteNode } from '../commands/deleteNodeCommand';
 import { FabricChaincode } from '../fabric/FabricChaincode';
-import { ReactView } from '../webview/ReactView';
 import { FileRegistry } from '../registries/FileRegistry';
 import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
 import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
@@ -109,6 +108,7 @@ import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
 import { RepositoryRegistryEntry } from '../registries/RepositoryRegistryEntry';
 import { RepositoryRegistry } from '../registries/RepositoryRegistry';
+import { openTransactionView } from '../commands/openTransactionViewCommand';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -364,9 +364,8 @@ export class ExtensionUtil {
             await tutorialView.openView();
         }));
 
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE, async () => {
-            const reactView: ReactView = new ReactView(context);
-            await reactView.openView(true);
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE, async (treeItem: InstantiatedTreeItem) => {
+            await openTransactionView(treeItem);
         }));
 
         FabricWalletRegistry.instance().on(FileRegistry.EVENT_NAME, (async (): Promise<void> => {

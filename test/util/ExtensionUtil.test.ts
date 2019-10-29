@@ -38,7 +38,6 @@ import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
-import { ReactView } from '../../extension/webview/ReactView';
 import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
 import { TestUtil } from '../TestUtil';
@@ -46,6 +45,7 @@ import { FabricEnvironmentRegistryEntry } from '../../extension/registries/Fabri
 import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
 import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistry';
 import { RepositoryRegistryEntry } from '../../extension/registries/RepositoryRegistryEntry';
+import * as openTransactionViewCommand from '../../extension/commands/openTransactionViewCommand';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -683,19 +683,17 @@ describe('ExtensionUtil Tests', () => {
             tutorialGalleryViewStub.should.have.been.calledOnce;
         });
 
-        it('should register and show React Page', async () => {
-            const reactViewStub: sinon.SinonStub = mySandBox.stub(ReactView.prototype, 'openView');
-            reactViewStub.resolves();
+        it('should register and show transaction page', async () => {
+            const openTransactionViewStub: sinon.SinonStub = mySandBox.stub(openTransactionViewCommand, 'openTransactionView');
+            openTransactionViewStub.resolves();
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            const registerOpenPreReqsCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerOpenPreReqsCommand').resolves(ctx);
 
             await ExtensionUtil.registerCommands(ctx);
 
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE);
 
-            registerOpenPreReqsCommandStub.should.have.been.calledOnce;
-            reactViewStub.should.have.been.calledOnce;
+            openTransactionViewStub.should.have.been.calledOnce;
         });
 
         it('should register and show tutorial page', async () => {

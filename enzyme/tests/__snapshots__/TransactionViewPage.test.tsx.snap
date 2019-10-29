@@ -3,6 +3,7 @@
 exports[`TransactionViewPage component should render the expected snapshot 1`] = `
 <div
   className="page-container bx--grid"
+  data-test-id="txn-page"
 >
   <div
     className="inner-container bx--row"
@@ -56,11 +57,9 @@ exports[`TransactionViewPage component should render the expected snapshot 1`] =
       <div
         className="titles-container"
       >
-        <a
-          className="bx--link"
-        >
-          penguinContract@0.0.1
-        </a>
+        <span>
+          greenContract@0.0.1
+        </span>
         <h1>
           Transactions
         </h1>
@@ -73,11 +72,11 @@ exports[`TransactionViewPage component should render the expected snapshot 1`] =
         >
           <p>
             Welcome to your transaction web view for 
-            <a
-              className="bx--link"
+            <span
+              className="disabled-smart-contract"
             >
-              penguinContract@0.0.1
-            </a>
+              greenContract@0.0.1
+            </span>
             ; use this to submit and evaluate new and existing transactions.
           </p>
           <p>
@@ -90,17 +89,19 @@ exports[`TransactionViewPage component should render the expected snapshot 1`] =
           <p>
             To switch to the web view for a different smart contract, select the smart contract below
           </p>
-          <a
-            className="bx--link"
-          >
-            penguinContract@0.0.1
-          </a>
-          <br />
-          <a
-            className="bx--link"
-          >
-            congaContract@0.0.1
-          </a>
+          <ul>
+            <li
+              className="smart-contract-item disabled-smart-contract"
+            >
+              greenContract@0.0.1
+            </li>
+            <li
+              className="smart-contract-item clickable-smart-contract"
+              onClick={[Function]}
+            >
+              blueContract@0.0.1
+            </li>
+          </ul>
         </div>
         <div
           className="contents-right bx--col"
