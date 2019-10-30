@@ -35,7 +35,7 @@ describe('FabricWalletUtil', () => {
     let fsRemoveStub: sinon.SinonStub;
     let walletA: any;
     let walletB: any;
-
+    let addSpy: sinon.SinonSpy;
     before(async () => {
         await FabricWalletRegistry.instance().clear();
         await TestUtil.setupTests(mySandBox);
@@ -69,6 +69,8 @@ describe('FabricWalletUtil', () => {
             getSettingsStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(TestUtil.EXTENSION_TEST_DIR);
             fsCopyStub = mySandBox.stub(fs, 'copy').resolves();
             fsRemoveStub = mySandBox.stub(fs, 'remove').resolves();
+
+            addSpy = mySandBox.spy(FabricWalletRegistry.instance(), 'add');
         });
 
         afterEach(async () => {
@@ -79,9 +81,10 @@ describe('FabricWalletUtil', () => {
             await FabricWalletUtil.tidyWalletSettings();
 
             getSettingsStub.should.have.been.calledWith(SettingConfigurations.OLD_FABRIC_WALLETS);
-
             fsCopyStub.should.not.have.been.called;
-
+            addSpy.should.have.been.calledTwice;
+            addSpy.getCall(0).should.have.been.calledWithExactly(walletA);
+            addSpy.getCall(1).should.have.been.calledWithExactly({name: walletB.name, walletPath: walletB.walletPath});
             await FabricWalletRegistry.instance().getAll().should.eventually.deep.equal([{ name: walletA.name, walletPath: walletA.walletPath }, { name: walletB.name, walletPath: walletB.walletPath }]);
         });
 
@@ -92,20 +95,25 @@ describe('FabricWalletUtil', () => {
             const dest: string = path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, walletA.name);
             fsCopyStub.should.have.been.calledOnceWithExactly(walletA.walletPath, dest);
             fsRemoveStub.should.have.been.calledOnceWithExactly(walletA.walletPath);
+            addSpy.should.have.been.calledTwice;
+            addSpy.getCall(0).should.have.been.calledWithExactly(walletA);
+            addSpy.getCall(1).should.have.been.calledWithExactly({name: walletB.name, walletPath: walletB.walletPath});
 
             await FabricWalletRegistry.instance().getAll().should.eventually.deep.equal([{ name: walletA.name, walletPath: walletA.walletPath }, { name: walletB.name, walletPath: walletB.walletPath }]);
         });
 
-        it('should not create registyr if already exists', async () => {
+        it('should not create registry if already exists', async () => {
             walletA.walletPath = path.join(TestUtil.EXTENSION_TEST_DIR, 'anotherWallet', 'walletA');
 
             await FabricWalletRegistry.instance().add(walletA);
+            addSpy.resetHistory();
+
             await FabricWalletUtil.tidyWalletSettings();
 
             const dest: string = path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, walletA.name);
             fsCopyStub.should.have.been.calledOnceWithExactly(walletA.walletPath, dest);
             fsRemoveStub.should.have.been.calledOnceWithExactly(walletA.walletPath);
-
+            addSpy.getCall(0).should.have.been.calledWithExactly({name: walletB.name, walletPath: walletB.walletPath});
             await FabricWalletRegistry.instance().getAll().should.eventually.deep.equal([{ name: walletA.name, walletPath: walletA.walletPath }, { name: walletB.name, walletPath: walletB.walletPath }]);
         });
 
@@ -125,6 +133,7 @@ describe('FabricWalletUtil', () => {
             await fs.ensureDir(path.join(TestUtil.EXTENSION_TEST_DIR, FabricWalletUtil.LOCAL_WALLET));
             getSettingsStub.withArgs(SettingConfigurations.OLD_FABRIC_WALLETS).returns([]);
             await FabricWalletUtil.tidyWalletSettings();
+            addSpy.getCall(0).should.have.been.calledWithExactly({name: FabricWalletUtil.LOCAL_WALLET, walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, FabricWalletUtil.LOCAL_WALLET), managedWallet: true});
 
             fsCopyStub.should.have.been.calledOnceWithExactly(path.join(TestUtil.EXTENSION_TEST_DIR, FabricWalletUtil.LOCAL_WALLET), path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, FabricWalletUtil.LOCAL_WALLET));
             fsRemoveStub.should.have.been.calledOnceWithExactly(path.join(TestUtil.EXTENSION_TEST_DIR, FabricWalletUtil.LOCAL_WALLET));
@@ -136,7 +145,7 @@ describe('FabricWalletUtil', () => {
             const error: Error = new Error('a problem');
             fsCopyStub.rejects(error);
             await FabricWalletUtil.tidyWalletSettings().should.be.rejectedWith(`Issue copying ${path.join(TestUtil.EXTENSION_TEST_DIR, FabricWalletUtil.LOCAL_WALLET)} to ${path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, FabricWalletUtil.LOCAL_WALLET)}: ${error.message}`);
-
+            addSpy.getCall(0).should.have.been.calledWithExactly({name: FabricWalletUtil.LOCAL_WALLET, walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, FabricWalletUtil.LOCAL_WALLET), managedWallet: true});
             fsCopyStub.should.have.been.calledOnceWithExactly(path.join(TestUtil.EXTENSION_TEST_DIR, FabricWalletUtil.LOCAL_WALLET), path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, FabricWalletUtil.LOCAL_WALLET));
 
             fsRemoveStub.should.not.have.been.called;
