@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
-import './TransactionViewPage.scss';
-import Sidebar from '../TransactionViewSidebar/TransactionViewSidebar';
+import './TransactionHome.scss';
 import { Accordion, AccordionItem } from 'carbon-components-react';
+import Sidebar from '../TransactionSidebar/TransactionSidebar';
 
 interface PageProps {
     messageData: {smartContracts: Array<string>, activeSmartContract: string};
@@ -12,7 +12,7 @@ interface PageState {
     activeSmartContract: string;
 }
 
-class TransactionViewPage extends Component<PageProps, PageState> {
+class TransactionHome extends Component<PageProps, PageState> {
 
     constructor(props: Readonly<PageProps>) {
         super(props);
@@ -35,7 +35,7 @@ class TransactionViewPage extends Component<PageProps, PageState> {
                     <Sidebar/>
                     <div className='page-contents bx--col'>
                         <div className='titles-container'>
-                            <span>{this.state.activeSmartContract}</span>
+                            <span>{this.state.activeSmartContract} home</span>
                             <h1>Transactions</h1>
                         </div>
                         <div className='contents-container bx--row'>
@@ -84,4 +84,4 @@ class TransactionViewPage extends Component<PageProps, PageState> {
     }
 }
 
-export default TransactionViewPage;
+export default TransactionHome;

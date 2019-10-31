@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TransactionViewSidebar component should render the expected snapshot 1`] = `
+exports[`TransactionSidebar component should render the expected snapshot 1`] = `
 <div
   className="sidebar-container"
   id="sidebar-container"

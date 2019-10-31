@@ -1,8 +1,8 @@
 import React from 'react';
-import './TransactionViewSidebar.scss';
-import SidebarPanel from '../TransactionViewSidebarPanel/TransactionViewSidebarPanel';
+import './TransactionSidebar.scss';
+import SidebarPanel from '../TransactionSidebarPanel/TransactionSidebarPanel';
 
-function TransactionViewSidebar(): any {
+function TransactionSidebar(): any {
 
         return (
             <div className='sidebar-container' id='sidebar-container'>
@@ -13,4 +13,4 @@ function TransactionViewSidebar(): any {
         );
 }
 
-export default TransactionViewSidebar;
+export default TransactionSidebar;

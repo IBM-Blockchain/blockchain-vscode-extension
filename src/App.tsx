@@ -1,7 +1,8 @@
 import * as React from 'react';
 import './App.scss';
 import { HashRouter as Router, Route, Redirect } from 'react-router-dom';
-import TransactionViewPage from './components/TransactionViewPage/TransactionViewPage';
+import TransactionHome from './components/TransactionHome/TransactionHome';
+import TransactionCreate from './components/TransactionCreate/TransactionCreate';
 
 interface AppState {
     redirectPath: string;
@@ -35,7 +36,8 @@ class App extends React.Component<{}, AppState> {
                 <Router>
                     <div>
                     <Route render={(): any => <Redirect push to={this.state.redirectPath}/>}></Route>
-                    <Route path='/transaction' render={(): any => <TransactionViewPage messageData={this.state.childState}/>}></Route>
+                    <Route exact path='/transaction' render={(): any => <TransactionHome messageData={this.state.childState}/>}></Route>
+                    <Route exact path='/transaction/create' render={(): any => <TransactionCreate/>}></Route>
                     </div>
                 </Router>
             );

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import './TransactionViewSidebarPanel.scss';
+import './TransactionSidebarPanel.scss';
 import { Button } from 'carbon-components-react';
 
 interface SidebarPanelProps {
@@ -10,7 +10,7 @@ interface SidebarPanelState {
     panelType: 'buttons' | 'filters' | 'log';
 }
 
-class TransactionViewSidebarPanel extends Component<SidebarPanelProps, SidebarPanelState> {
+class TransactionSidebarPanel extends Component<SidebarPanelProps, SidebarPanelState> {
 
     constructor(props: Readonly<SidebarPanelProps>) {
         super(props);
@@ -20,8 +20,11 @@ class TransactionViewSidebarPanel extends Component<SidebarPanelProps, SidebarPa
     }
 
     public createTxn(): void {
-        // tslint:disable-next-line: no-console
-        console.log('create a new transaction');
+        dispatchEvent(new MessageEvent('message', {
+            data: {
+                path: '/transaction/create'
+            }
+        }));
     }
 
     public importTxn(): void {
@@ -61,4 +64,4 @@ class TransactionViewSidebarPanel extends Component<SidebarPanelProps, SidebarPa
     }
 }
 
-export default TransactionViewSidebarPanel;
+export default TransactionSidebarPanel;
