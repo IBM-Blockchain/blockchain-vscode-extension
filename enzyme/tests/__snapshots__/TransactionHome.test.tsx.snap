@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TransactionViewPage component should render the expected snapshot 1`] = `
+exports[`TransactionHome component should render the expected snapshot 1`] = `
 <div
   className="page-container bx--grid"
   data-test-id="txn-page"
@@ -59,6 +59,7 @@ exports[`TransactionViewPage component should render the expected snapshot 1`] =
       >
         <span>
           greenContract@0.0.1
+           home
         </span>
         <h1>
           Transactions

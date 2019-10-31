@@ -2,14 +2,14 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
 import { mount } from 'enzyme';
-import TransactionViewPage from '../../src/components/TransactionViewPage/TransactionViewPage';
+import TransactionHome from '../../src/components/TransactionHome/TransactionHome';
 import chai from 'chai';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 chai.should();
 chai.use(sinonChai);
 
-describe('TransactionViewPage component', () => {
+describe('TransactionHome component', () => {
 
     let mySandBox: sinon.SinonSandbox;
     let switchSmartContractSpy: sinon.SinonSpy;
@@ -21,7 +21,7 @@ describe('TransactionViewPage component', () => {
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
-        switchSmartContractSpy = mySandBox.spy(TransactionViewPage.prototype, 'switchSmartContract');
+        switchSmartContractSpy = mySandBox.spy(TransactionHome.prototype, 'switchSmartContract');
     });
 
     afterEach(async () => {
@@ -30,20 +30,20 @@ describe('TransactionViewPage component', () => {
 
     it('should render the expected snapshot', async () => {
         const component: any = renderer
-            .create(<TransactionViewPage messageData={mockState}/>)
+            .create(<TransactionHome messageData={mockState}/>)
             .toJSON();
         expect(component).toMatchSnapshot();
     });
 
     it('should change the active smart contract if another contract is selected', async () => {
-        const component: any = mount(<TransactionViewPage messageData={mockState}/>);
+        const component: any = mount(<TransactionHome messageData={mockState}/>);
         component.find('li').at(1).simulate('click');
         switchSmartContractSpy.should.have.been.calledOnce;
         expect(component.state().activeSmartContract).toBe('blueContract@0.0.1');
     });
 
     it('should do nothing if the current smart contract is selected', async () => {
-        const component: any = mount(<TransactionViewPage messageData={mockState}/>);
+        const component: any = mount(<TransactionHome messageData={mockState}/>);
         component.find('li').at(0).simulate('click');
         switchSmartContractSpy.should.not.have.been.called;
         expect(component.state().activeSmartContract).toBe('greenContract@0.0.1');

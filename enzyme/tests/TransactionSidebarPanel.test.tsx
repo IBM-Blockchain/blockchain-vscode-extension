@@ -2,7 +2,7 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
 import { mount } from 'enzyme';
-import SidebarPanel from '../../src/components/TransactionViewSidebarPanel/TransactionViewSidebarPanel';
+import SidebarPanel from '../../src/components/TransactionSidebarPanel/TransactionSidebarPanel';
 import chai from 'chai';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
@@ -42,11 +42,11 @@ describe('SidebarPanel component', () => {
         expect(component).toMatchSnapshot();
     });
 
-    it('will one day allow a user to create a new transaction', async () => {
-        const createTxnSpy: sinon.SinonSpy = sinon.spy(SidebarPanel.prototype, 'createTxn');
+    it('should navigate to the create screen', async () => {
+        const dispatchEventSpy: sinon.SinonSpy = sinon.spy(EventTarget.prototype, 'dispatchEvent');
         const component: any = mount(<SidebarPanel panelType='buttons'/>);
         component.find('#create-button').at(1).simulate('click');
-        createTxnSpy.should.have.been.called;
+        dispatchEventSpy.should.have.been.called;
     });
 
     it('will one day allow a user to create a new transaction', async () => {
