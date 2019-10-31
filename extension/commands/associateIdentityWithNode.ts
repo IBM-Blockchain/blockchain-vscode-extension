@@ -158,27 +158,27 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
         vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
         outputAdapter.log(LogType.SUCCESS, `Successfully associated identity ${node.identity} from wallet ${node.wallet} with node ${node.name}`);
 
-        let askAgain: boolean = true;
         let otherNodes: FabricNode[] = [];
-        do {
-            otherNodes = await environment.getNodes(true);
+        otherNodes = await environment.getNodes(true);
 
-            if (otherNodes.length === 0) {
-                // shouldn't ask if no more nodes
-                break;
+        if (otherNodes.length === 0) {
+            // shouldn't ask if no more nodes
+            return;
+        }
+
+        const yesnoPick: string = await UserInputUtil.showQuickPickYesNo('Do you want to associate the same identity with another node?');
+
+        if (!yesnoPick || yesnoPick === UserInputUtil.NO) {
+            return;
+        } else {
+            const nodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showFabricNodeQuickPick('Choose the nodes you wish to associate with this identity', environmentRegistryEntry.name, [], false, true, true) as IBlockchainQuickPickItem<FabricNode>[];
+
+            if (!nodes || nodes.length === 0) {
+                return;
             }
 
-            const items: string[] = otherNodes.map((_node: FabricNode) => {
-                return `Yes, ${_node.name}`;
-            });
-
-            items.push('No');
-            const nodeName: string = await UserInputUtil.showQuickPick('Do you want to associate the same identity with another node?', items) as string;
-
-            if (!nodeName || nodeName === 'No') {
-                askAgain = false;
-            } else {
-                const foundNode: FabricNode = otherNodes.find((_node: FabricNode) => nodeName.endsWith(_node.name));
+            for (const _node of nodes) {
+                const foundNode: FabricNode = otherNodes.find((Fnode: FabricNode) => Fnode.name === _node.data.name);
 
                 foundNode.wallet = walletName;
                 foundNode.identity = identityName;
@@ -186,10 +186,9 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
                 await environment.updateNode(foundNode);
 
                 vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
-                outputAdapter.log(LogType.SUCCESS, `Successfully associated identity ${foundNode.identity} from wallet ${foundNode.wallet} with node ${foundNode.name}`);
-
             }
-        } while (askAgain && otherNodes.length > 1);
+            outputAdapter.log(LogType.SUCCESS, `Successfully associated identities`);
+        }
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Failed to associate identity with node ${error.message}`, `Failed to associate identity with node ${error.toString()}`);
     }

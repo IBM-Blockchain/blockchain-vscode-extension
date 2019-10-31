@@ -896,9 +896,9 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
     }
 
-    public static async showNodesInEnvironmentQuickPick(prompt: string, environmentName: string, nodeTypefilter: FabricNodeType[], showAsociatedIdentity: boolean = false, canPickMany: boolean = false): Promise<Array<IBlockchainQuickPickItem<FabricNode>> | IBlockchainQuickPickItem<FabricNode>> {
+    public static async showNodesInEnvironmentQuickPick(prompt: string, environmentName: string, nodeTypefilter: FabricNodeType[], showAsociatedIdentity: boolean = false, canPickMany: boolean = false, showUnassociatedNodes: boolean = false): Promise<Array<IBlockchainQuickPickItem<FabricNode>> | IBlockchainQuickPickItem<FabricNode>> {
         const environment: FabricEnvironment = new FabricEnvironment(environmentName);
-        let nodes: FabricNode[] = await environment.getNodes();
+        let nodes: FabricNode[] = await environment.getNodes(showUnassociatedNodes);
 
         if (nodeTypefilter.length > 1) {
             nodes = nodes.filter((node: FabricNode) => nodeTypefilter.indexOf(node.type) !== -1);
