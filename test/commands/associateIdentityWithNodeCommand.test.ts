@@ -56,6 +56,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
         let showIdentityQuickPickStub: sinon.SinonStub;
         let showInputBoxStub: sinon.SinonStub;
         let showQuickPickStub: sinon.SinonStub;
+        let showQuickPickYesNoStub: sinon.SinonStub;
         let environmentRegistryEntry: FabricEnvironmentRegistryEntry;
         let peerNode: FabricNode;
         let caNodeWithoutCreds: FabricNode;
@@ -114,7 +115,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
 
             showIdentityQuickPickStub = mySandBox.stub(UserInputUtil, 'showIdentitiesQuickPickBox').resolves('identityOne');
             showQuickPickStub = mySandBox.stub(UserInputUtil, 'showQuickPick').resolves('Choose an existing identity');
-            showQuickPickStub.withArgs('Do you want to associate the same identity with another node?').resolves('No');
+            showQuickPickYesNoStub = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').withArgs('Do you want to associate the same identity with another node?').resolves(UserInputUtil.NO);
             showInputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
             showInputBoxStub.onFirstCall().resolves('identityOne');
             showInputBoxStub.onSecondCall().resolves('org1MSP');
@@ -238,7 +239,9 @@ describe('AssociateIdentityWithNodeCommand', () => {
             });
 
             it('should associate identity with multiple nodes', async () => {
-                showQuickPickStub.withArgs('Do you want to associate the same identity with another node?').onFirstCall().resolves('Yes, orderer.example.com');
+                showFabricNodeQuickPickStub.withArgs('Choose the nodes you wish to associate with this identity').resolves([{label: ordererNode.name, data: ordererNode}]);
+                showQuickPickYesNoStub.withArgs('Do you want to associate the same identity with another node?').resolves(UserInputUtil.YES);
+
                 await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, ...[environmentRegistryEntry, peerNode]);
 
                 peerNode.identity = 'identityOne';
@@ -253,11 +256,36 @@ describe('AssociateIdentityWithNodeCommand', () => {
 
                 logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
                 logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated identity ${peerNode.identity} from wallet ${peerNode.wallet} with node ${peerNode.name}`);
-                logSpy.getCall(2).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated identity ${ordererNode.identity} from wallet ${ordererNode.wallet} with node ${ordererNode.name}`);
+                logSpy.getCall(2).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated identities`);
             });
 
-            it('should handle cancel when choosing to asscoiate more identities', async () => {
-                showQuickPickStub.withArgs('Do you want to associate the same identity with another node?').onFirstCall().resolves();
+            it('should associate identity with multiple nodes by allowing user to select multiple nodes using a checkbox', async () => {
+                showFabricNodeQuickPickStub.withArgs('Choose the nodes you wish to associate with this identity').resolves([{label: ordererNode.name, data: ordererNode}, {label: caNodeWithoutCreds.name, data: caNodeWithoutCreds}]);
+                showQuickPickYesNoStub.withArgs('Do you want to associate the same identity with another node?').resolves(UserInputUtil.YES);
+
+                await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, ...[environmentRegistryEntry, peerNode]);
+
+                peerNode.identity = 'identityOne';
+                peerNode.wallet = 'blueWallet';
+                ordererNode.identity = 'identityOne';
+                ordererNode.wallet = 'blueWallet';
+                caNodeWithoutCreds.identity = 'identityOne';
+                caNodeWithoutCreds.wallet = 'blueWallet';
+                updateStub.should.have.been.calledThrice;
+                updateStub.firstCall.should.have.been.calledWith(peerNode);
+                updateStub.secondCall.should.have.been.calledWith(ordererNode);
+                updateStub.thirdCall.should.have.been.calledWith(caNodeWithoutCreds);
+
+                commandsStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+
+                logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
+                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated identity ${peerNode.identity} from wallet ${peerNode.wallet} with node ${peerNode.name}`);
+                logSpy.getCall(2).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated identities`);
+            });
+
+            it('should handle cancel when choosing to associate more identities', async () => {
+                showQuickPickYesNoStub.withArgs('Do you want to associate the same identity with another node?').onFirstCall().resolves(UserInputUtil.YES);
+                showFabricNodeQuickPickStub.withArgs('Choose the nodes you wish to associate with this identity').resolves([]);
                 await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, ...[environmentRegistryEntry, peerNode]);
 
                 peerNode.identity = 'identityOne';
