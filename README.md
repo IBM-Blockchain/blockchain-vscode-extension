@@ -89,7 +89,7 @@ If you are connecting to an instance of IBM Blockchain platform the JSON node fi
 ##### JSON Node Files
 All node files must contain a `name`, `type`, and `api_url` property. There are three types: `fabric-peer`, `fabric-ca` and `fabric-orderer`. `Peer` and `Orderer` nodes must also contain an `msp_id` property. While `Certificate Authority` nodes must contain a `ca_name` property. If you have `TLS` enabled then then the `pem` property must also be set.
 
-There are also some additional optional properties. `peer` and `orderer` nodes can set the property `ssl_target_name_overide`, this will override the hostname used to verify the servers TLS certificate. A `certificate authority` node can contain the properties `enroll_id` and `enroll_secret`, these properties are used for identity to connect to the certificate authority. If you have a `multi-node ordering service` then on each `orderer` node the `cluster_name` property can be set. If this property is set then the `orderer` nodes in the same cluster will be grouped together.
+There are also some additional optional properties. `peer` and `orderer` nodes can set the property `ssl_target_name_override`, this will override the hostname used to verify the servers TLS certificate. A `certificate authority` node can contain the properties `enroll_id` and `enroll_secret`, these properties are used for identity to connect to the certificate authority. If you have a `multi-node ordering service` then on each `orderer` node the `cluster_name` property can be set. If this property is set then the `orderer` nodes in the same cluster will be grouped together.
 A JSON node file can contain more than one node definition using array syntax
 
 Here are some examples of node files:
