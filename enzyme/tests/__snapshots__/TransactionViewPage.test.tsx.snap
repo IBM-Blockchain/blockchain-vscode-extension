@@ -115,6 +115,7 @@ exports[`TransactionViewPage component should render the expected snapshot 1`] =
           >
             <li
               className="bx--accordion__item"
+              onAnimationEnd={[Function]}
             >
               <button
                 aria-expanded={false}
@@ -160,6 +161,7 @@ exports[`TransactionViewPage component should render the expected snapshot 1`] =
           >
             <li
               className="bx--accordion__item"
+              onAnimationEnd={[Function]}
             >
               <button
                 aria-expanded={false}
@@ -205,6 +207,7 @@ exports[`TransactionViewPage component should render the expected snapshot 1`] =
           >
             <li
               className="bx--accordion__item"
+              onAnimationEnd={[Function]}
             >
               <button
                 aria-expanded={false}
@@ -250,6 +253,7 @@ exports[`TransactionViewPage component should render the expected snapshot 1`] =
           >
             <li
               className="bx--accordion__item"
+              onAnimationEnd={[Function]}
             >
               <button
                 aria-expanded={false}
