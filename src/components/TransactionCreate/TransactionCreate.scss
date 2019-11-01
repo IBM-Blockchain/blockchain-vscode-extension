@@ -15,6 +15,14 @@ fieldset > legend {
     }
 }
 
+.home-link {
+    color: $carbon--blue-50;
+
+    &:hover {
+        cursor: pointer;
+    }
+}
+
 .select-width {
     width: 100%;
 
@@ -28,6 +36,7 @@ fieldset > legend {
     width: 100%;
 
     textarea {
+        font-size: 100%;
         width: 100%;
         resize: vertical;
     }

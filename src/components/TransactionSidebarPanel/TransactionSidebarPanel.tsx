@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './TransactionSidebarPanel.scss';
+import Utils from '../../Utils';
 import { Button } from 'carbon-components-react';
 
 interface SidebarPanelProps {
@@ -19,14 +20,6 @@ class TransactionSidebarPanel extends Component<SidebarPanelProps, SidebarPanelS
         };
     }
 
-    public createTxn(): void {
-        dispatchEvent(new MessageEvent('message', {
-            data: {
-                path: '/transaction/create'
-            }
-        }));
-    }
-
     public importTxn(): void {
         // tslint:disable-next-line: no-console
         console.log('import an existing transaction');
@@ -42,7 +35,7 @@ class TransactionSidebarPanel extends Component<SidebarPanelProps, SidebarPanelS
         if (this.state.panelType === 'buttons') {
             panelTSX = (
                 <div className='panel-container'>
-                    <Button id='create-button' size='field' onClick={this.createTxn}>Create a new transaction</Button>
+                    <Button id='create-button' size='field' onClick={(): void => Utils.changeRoute('/transaction/create')}>Create a new transaction</Button>
                     <Button id='import-button' size='field' onClick={this.importTxn}>Import existing transaction</Button>
                  </div>
             );
