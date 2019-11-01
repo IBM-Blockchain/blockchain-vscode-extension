@@ -228,7 +228,7 @@ For now though, we've got our contract installed on all (one) of the peers that 
 
 4. You'll be asked if you want to provide a private data configuration file. For this tutorial just click `No`, in future tutorials we will explain more about this.
 
-Instantiation can take a while longer than install - watch out for the success message and `demoContract@0.0.1` appearing in the Smart Contracts > Instantiated list to confirm it's worked!
+Instantiation will take a while longer than install - watch out for the success message and `demoContract@0.0.1` appearing in the Smart Contracts > Instantiated list to confirm it's worked!
 
 > Command Palette alternative: `Instantiate Smart Contract`
 
