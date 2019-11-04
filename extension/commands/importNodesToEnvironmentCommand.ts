@@ -25,7 +25,7 @@ import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FileSystemUtil } from '../util/FileSystemUtil';
 import Axios from 'axios';
-import { ExtensionData, GlobalState } from '../util/GlobalState';
+import { ExtensionData, GlobalState, DEFAULT_EXTENSION_DATA } from '../util/GlobalState';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 
 export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false): Promise<boolean> {
@@ -111,16 +111,40 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                 return;
             }
 
-            const extensionData: ExtensionData = GlobalState.get();
+            let extensionData: ExtensionData;
+
+            try {
+                extensionData = GlobalState.get();
+            } catch (error) {
+                outputAdapter.log(LogType.ERROR, `Failed to get GlobalState`);
+                return;
+            }
+
+            if (!extensionData.url) {
+                extensionData.url = DEFAULT_EXTENSION_DATA.url;
+            }
+
             extensionData.url.push({url: url, envName: environmentRegistryEntry.name});
-            await GlobalState.update(extensionData);
+
+            try {
+                await GlobalState.update(extensionData);
+            } catch (error) {
+                outputAdapter.log(LogType.ERROR, `Error updating global state: ${error.message}`, `Error updating global state: ${error.toString()}`);
+                return;
+            }
 
             const keytar: any = getCoreNodeModule('keytar');
             if (!keytar) {
                 outputAdapter.log(LogType.ERROR, `Error importing the keytar module`);
                 return;
             }
-            await keytar.setPassword('blockchain-vscode-ext', url, apiKey);
+
+            try {
+                await keytar.setPassword('blockchain-vscode-ext', url, apiKey);
+            } catch (error) {
+                outputAdapter.log(LogType.ERROR, `Failed to store apiKey securely in your keychain: ${error.message}`, `Failed to store apiKey securely in your keychain: ${error.toString()}`);
+                return;
+            }
 
             try {
                 const api: string = url.replace(/\/$/, '') + GET_ALL_COMPONENTS;
@@ -211,9 +235,13 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
 function getCoreNodeModule(moduleName: string): any {
     try {
       return ExtensionUtil.getModuleAsar(moduleName);
-    } catch (err) {}
+    } catch (err) {
+        // do nothing
+    }
     try {
       return ExtensionUtil.getModule(moduleName);
-    } catch (err) {}
+    } catch (err) {
+        // do nothing
+    }
     return undefined;
   }

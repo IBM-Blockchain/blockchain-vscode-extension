@@ -58,7 +58,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         await TestUtil.setupTests(mySandBox);
     });
 
-    describe('importNodeaToEnvironment', () => {
+    describe('importNodesToEnvironment', () => {
 
         beforeEach(async () => {
             addMethodChooserStub = mySandBox.stub(UserInputUtil, 'showQuickPick').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
@@ -163,18 +163,19 @@ describe('ImportNodesToEnvironmentCommand', () => {
         });
 
         it('should test nodes can be added from URL and key', async () => {
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            showInputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves('someURL');
+            showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').resolves('someKey');
             const getGlobalStateStub: sinon.SinonStub = mySandBox.stub(GlobalState, 'get').returns(DEFAULT_EXTENSION_DATA);
             const updateGlobalStateStub: sinon.SinonStub = mySandBox.stub(GlobalState, 'update').resolves();
 
+            const setPasswordStub: sinon.SinonStub = mySandBox.stub().resolves();
+            const requireAsarModuleStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getModuleAsar').returns({
+                setPassword: setPasswordStub
+              });
+
             const expectedNewState: ExtensionData = DEFAULT_EXTENSION_DATA;
             expectedNewState.url = [{url: 'someURL', envName: 'someKey'}];
-
-            const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
-            browseStub.onFirstCall().resolves([uri]);
-
-            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
-            showInputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves('someURL');
-            showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').resolves('someKey');
 
             axiosGetStub.withArgs(`someURL/ak/api/v1/components`, { headers: { Authorization: `Bearer someKey` }}).resolves({ data: opsToolNodes });
 
@@ -182,6 +183,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
 
+            requireAsarModuleStub.should.have.been.calledOnce;
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
@@ -196,7 +198,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         });
 
         it('should handle when user cancels when asked for method to add nodes to environment', async () => {
-            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment').resolves(undefined);
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]).resolves(undefined);
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
 
             showInputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').should.not.have.been.called;
@@ -209,7 +211,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         });
 
         it('should handle when user cancels when asked for url', async () => {
-            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             showInputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves(undefined);
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
@@ -223,7 +225,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         });
 
         it('should handle when user cancels when asked for api key', async () => {
-            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             showInputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves('someURL');
             showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').resolves(undefined);
 
@@ -236,16 +238,89 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Import nodes to environment');
         });
 
-        it('should handle when the keytar module is imported successfully through .asar', async () => {
-            const requireAsarModuleStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getModuleAsar');
-            const requireModuleStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getModule');
-            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+        it('should handle when globalState cannot be retrieved', async () => {
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             showInputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves('someURL');
             showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').resolves('someKey');
-            requireAsarModuleStub.returns(require(path.join(vscode.env.appRoot, 'node_modules.asar', 'keytar')));
+            const error: Error = new Error('Could not get global state');
+            const getGlobalStateStub: sinon.SinonStub = mySandBox.stub(GlobalState, 'get').throws(error);
+
+            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
+
+            getGlobalStateStub.should.be.called.calledOnce;
+            axiosGetStub.should.not.have.been.called;
+            ensureDirStub.should.not.have.been.called;
+            updateNodeStub.should.not.have.been.called;
+            getNodesStub.should.not.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, 'Failed to get GlobalState');
+        });
+
+        it('should handle when url of the global state is undefined', async () => {
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            showInputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves('someURL');
+            showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').resolves('someKey');
+            const getGlobalStateStub: sinon.SinonStub = mySandBox.stub(GlobalState, 'get').returns({activationCount: 0, version: null, migrationCheck: 0, generatorVersion: null, preReqPageShown: false, dockerForWindows: false, systemRequirements: false});
+            const updateGlobalStateStub: sinon.SinonStub = mySandBox.stub(GlobalState, 'update');
+
+            const setPasswordStub: sinon.SinonStub = mySandBox.stub().resolves();
+            const requireAsarModuleStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getModuleAsar').returns({
+                setPassword: setPasswordStub
+              });
+
+            axiosGetStub.withArgs(`someURL/ak/api/v1/components`, { headers: { Authorization: `Bearer someKey` }}).resolves({ data: opsToolNodes });
+
+            getNodesStub.onSecondCall().resolves(opsToolNodes);
+
+            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
+
+            requireAsarModuleStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.been.calledTwice;
+            getNodesStub.should.have.been.calledTwice;
+
+            getGlobalStateStub.should.have.been.calledOnce;
+            updateGlobalStateStub.should.have.been.calledOnceWithExactly(DEFAULT_EXTENSION_DATA);
+
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+        });
+
+        it('should handle when globalState cannot be updated', async () => {
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            showInputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves('someURL');
+            showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').resolves('someKey');
+            const getGlobalStateStub: sinon.SinonStub = mySandBox.stub(GlobalState, 'get').returns(DEFAULT_EXTENSION_DATA);
+            const error: Error = new Error('Could not update global state');
+            const updateGlobalStateStub: sinon.SinonStub = mySandBox.stub(GlobalState, 'update').throws(error);
+
+            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
+
+            getGlobalStateStub.should.have.been.calledOnce;
+            updateGlobalStateStub.should.be.called.calledOnce;
+            axiosGetStub.should.not.have.been.called;
+            ensureDirStub.should.not.have.been.called;
+            updateNodeStub.should.not.have.been.called;
+            getNodesStub.should.not.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error updating global state: ${error.message}`, `Error updating global state: ${error.toString()}`);
+        });
+
+        it('should handle when the keytar module is imported successfully through .asar', async () => {
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            showInputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves('someURL');
+            showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').resolves('someKey');
+            const requireModuleSpy: sinon.SinonSpy = mySandBox.spy(ExtensionUtil, 'getModule');
 
             const getGlobalStateStub: sinon.SinonStub = mySandBox.stub(GlobalState, 'get').returns(DEFAULT_EXTENSION_DATA);
             const updateGlobalStateStub: sinon.SinonStub = mySandBox.stub(GlobalState, 'update').resolves();
+
+            const setPasswordStub: sinon.SinonStub = mySandBox.stub().resolves();
+            const requireAsarModuleStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getModuleAsar').returns({
+                setPassword: setPasswordStub
+              });
 
             const expectedNewState: ExtensionData = DEFAULT_EXTENSION_DATA;
             expectedNewState.url = [{url: 'someURL', envName: 'someKey'}];
@@ -262,20 +337,23 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getGlobalStateStub.should.have.been.calledOnce;
             updateGlobalStateStub.should.have.been.calledOnceWithExactly(expectedNewState);
             requireAsarModuleStub.should.have.been.calledOnce;
-            requireModuleStub.should.not.have.been.called;
+            requireModuleSpy.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
         });
 
         it('should handle when the keytar module is imported successfully (without .asar)', async () => {
-            const requireAsarModuleStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getModuleAsar');
-            const requireModuleStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getModule');
-            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             showInputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves('someURL');
             showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').resolves('someKey');
+            const requireAsarModuleStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getModuleAsar');
             const error: Error = new Error('newError');
             requireAsarModuleStub.withArgs('keytar').throws(error);
-            requireModuleStub.returns(require(path.join(vscode.env.appRoot, 'node_modules', 'keytar')));
+
+            const setPasswordStub: sinon.SinonStub = mySandBox.stub().resolves();
+            const requireModuleStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getModule').returns({
+                setPassword: setPasswordStub
+              });
 
             const getGlobalStateStub: sinon.SinonStub = mySandBox.stub(GlobalState, 'get').returns(DEFAULT_EXTENSION_DATA);
             const updateGlobalStateStub: sinon.SinonStub = mySandBox.stub(GlobalState, 'update').resolves();
@@ -301,11 +379,11 @@ describe('ImportNodesToEnvironmentCommand', () => {
         });
 
         it('should handle when the keytar module cannot be imported at all', async () => {
-            const requireAsarModuleStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getModuleAsar');
-            const requireModuleStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getModule');
-            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             showInputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves('someURL');
             showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').resolves('someKey');
+            const requireAsarModuleStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getModuleAsar');
+            const requireModuleStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getModule');
             const error: Error = new Error('newError');
             requireAsarModuleStub.withArgs('keytar').throws(error);
             requireModuleStub.withArgs('keytar').throws(error);
@@ -318,9 +396,101 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error importing the keytar module`);
         });
 
+        it('should test that the setPassword function can successfully save api key using .asar import', async () => {
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            showInputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves('someURL');
+            showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').resolves('someKey');
+            const requireModuleSpy: sinon.SinonSpy = mySandBox.spy(ExtensionUtil, 'getModule');
+            const setPasswordStub: sinon.SinonStub = mySandBox.stub().resolves();
+            const requireAsarModuleStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getModuleAsar').returns({
+                setPassword: setPasswordStub
+              });
+
+            const getGlobalStateStub: sinon.SinonStub = mySandBox.stub(GlobalState, 'get').returns(DEFAULT_EXTENSION_DATA);
+            const updateGlobalStateStub: sinon.SinonStub = mySandBox.stub(GlobalState, 'update').resolves();
+
+            const expectedNewState: ExtensionData = DEFAULT_EXTENSION_DATA;
+            expectedNewState.url = [{url: 'someURL', envName: 'someKey'}];
+
+            axiosGetStub.withArgs(`someURL/ak/api/v1/components`, { headers: { Authorization: `Bearer someKey` }}).resolves({ data: opsToolNodes });
+
+            getNodesStub.onSecondCall().resolves(opsToolNodes);
+
+            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
+
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.been.calledTwice;
+            getNodesStub.should.have.been.calledTwice;
+            getGlobalStateStub.should.have.been.calledOnce;
+            updateGlobalStateStub.should.have.been.calledOnceWithExactly(expectedNewState);
+            requireAsarModuleStub.should.have.been.calledOnce;
+            requireModuleSpy.should.not.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+        });
+
+        it('should test that the setPassword function can successfully save api key using non .asar import', async () => {
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            showInputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves('someURL');
+            showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').resolves('someKey');
+            const requireAsarModuleStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getModuleAsar');
+            const error: Error = new Error('newError');
+            requireAsarModuleStub.withArgs('keytar').throws(error);
+            const setPasswordStub: sinon.SinonStub = mySandBox.stub().resolves();
+            const requireModuleStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getModule').returns({
+                setPassword: setPasswordStub
+              });
+
+            const getGlobalStateStub: sinon.SinonStub = mySandBox.stub(GlobalState, 'get').returns(DEFAULT_EXTENSION_DATA);
+            const updateGlobalStateStub: sinon.SinonStub = mySandBox.stub(GlobalState, 'update').resolves();
+
+            const expectedNewState: ExtensionData = DEFAULT_EXTENSION_DATA;
+            expectedNewState.url = [{url: 'someURL', envName: 'someKey'}];
+
+            axiosGetStub.withArgs(`someURL/ak/api/v1/components`, { headers: { Authorization: `Bearer someKey` }}).resolves({ data: opsToolNodes });
+
+            getNodesStub.onSecondCall().resolves(opsToolNodes);
+
+            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
+
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.been.calledTwice;
+            getNodesStub.should.have.been.calledTwice;
+            getGlobalStateStub.should.have.been.calledOnce;
+            updateGlobalStateStub.should.have.been.calledOnceWithExactly(expectedNewState);
+            requireAsarModuleStub.should.have.been.calledOnce;
+            requireModuleStub.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+        });
+
+        it('should handle when the api key cannot be stored saved securely onto the keychain using the setPassword function', async () => {
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            showInputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves('someURL');
+            showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').resolves('someKey');
+            const error: Error = new Error('newError');
+            const setPasswordStub: sinon.SinonStub = mySandBox.stub().throws(error);
+
+            const requireAsarModuleStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getModuleAsar').returns({
+                setPassword: setPasswordStub
+              });
+
+            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
+
+            requireAsarModuleStub.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to store apiKey securely in your keychain: ${error.message}`, `Failed to store apiKey securely in your keychain: ${error.toString()}`);
+        });
+
         it('should test nodes can be added from URL and key (non TLS network)', async () => {
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
             browseStub.onFirstCall().resolves([uri]);
+
+            const setPasswordStub: sinon.SinonStub = mySandBox.stub().resolves();
+            const requireAsarModuleStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getModuleAsar').returns({
+                setPassword: setPasswordStub
+              });
 
             axiosGetStub.withArgs(`${url}/ak/api/v1/components`, { headers: { Authorization: `Bearer ${key}` }}).resolves(
                 {
@@ -352,11 +522,11 @@ describe('ImportNodesToEnvironmentCommand', () => {
                         }
                 ]
             });
-            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             getNodesStub.onSecondCall().resolves(opsToolNodes);
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
 
+            requireAsarModuleStub.should.have.been.calledOnce;
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
@@ -582,17 +752,22 @@ describe('ImportNodesToEnvironmentCommand', () => {
         });
 
         it('should handle error connecting to Ops Tool URL when adding nodes to existing environment', async () => {
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
             browseStub.onFirstCall().resolves([uri]);
             getNodesStub.onSecondCall().resolves([]);
+            const setPasswordStub: sinon.SinonStub = mySandBox.stub().resolves();
+            const requireAsarModuleStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getModuleAsar').returns({
+                setPassword: setPasswordStub
+              });
 
-            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             const connectionError: Error = new Error('some error');
             const executionError: Error = new Error('no nodes were added');
             axiosGetStub.withArgs(`${url}/ak/api/v1/components`, { headers: { Authorization: `Bearer ${key}` }}).rejects(connectionError);
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, undefined, false);
 
+            requireAsarModuleStub.should.have.been.calledOnce;
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.have.been.calledTwice;
@@ -602,15 +777,20 @@ describe('ImportNodesToEnvironmentCommand', () => {
         });
 
         it('should handle error connecting to Ops Tool URL when adding nodes via add environment', async () => {
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
             browseStub.onFirstCall().resolves([uri]);
-
-            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             const error: Error = new Error('some error');
             axiosGetStub.withArgs(`${url}/ak/api/v1/components`, { headers: { Authorization: `Bearer ${key}` }}).rejects(error);
 
+            const setPasswordStub: sinon.SinonStub = mySandBox.stub().resolves();
+            const requireAsarModuleStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getModuleAsar').returns({
+                setPassword: setPasswordStub
+              });
+
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, undefined, true).should.eventually.be.rejectedWith(error);
 
+            requireAsarModuleStub.should.have.been.calledOnce;
             ensureDirStub.should.not.have.been.called;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.not.have.been.called;

@@ -57,9 +57,6 @@ export class GlobalState {
     public static get(): ExtensionData {
         try {
             const extensionData: ExtensionData = GlobalState.context.globalState.get<ExtensionData>(EXTENSION_DATA_KEY, DEFAULT_EXTENSION_DATA);
-            if (!extensionData.url) {
-                extensionData.url = DEFAULT_EXTENSION_DATA.url;
-            }
             return extensionData;
         } catch (error) {
             const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
