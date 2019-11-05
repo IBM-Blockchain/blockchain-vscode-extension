@@ -180,6 +180,11 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Bypass the prerequisites check"
+                },
+                "ibm-blockchain-platform.ext.enableLocalFabric": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable the Local Fabric functionality"
                 }
             }
         },
@@ -501,16 +506,20 @@
             ],
             "commandPalette": [
                 {
-                    "command": "environmentExplorer.startFabricRuntime"
+                    "command": "environmentExplorer.startFabricRuntime",
+                    "when": "local-fabric-enabled"
                 },
                 {
-                    "command": "environmentExplorer.stopFabricRuntime"
+                    "command": "environmentExplorer.stopFabricRuntime",
+                    "when": "local-fabric-enabled"
                 },
                 {
-                    "command": "environmentExplorer.restartFabricRuntime"
+                    "command": "environmentExplorer.restartFabricRuntime",
+                    "when": "local-fabric-enabled"
                 },
                 {
-                    "command": "environmentExplorer.teardownFabricRuntime"
+                    "command": "environmentExplorer.teardownFabricRuntime",
+                    "when": "local-fabric-enabled"
                 },
                 {
                     "command": "environmentExplorer.openNewTerminal"
@@ -593,17 +602,17 @@
                 },
                 {
                     "command": "environmentExplorer.stopFabricRuntime",
-                    "when": "view == environmentExplorer && blockchain-runtime-connected",
+                    "when": "view == environmentExplorer && blockchain-runtime-connected && local-fabric-enabled",
                     "group": "blockchain"
                 },
                 {
                     "command": "environmentExplorer.restartFabricRuntime",
-                    "when": "view == environmentExplorer && blockchain-runtime-connected",
+                    "when": "view == environmentExplorer && blockchain-runtime-connected && local-fabric-enabled",
                     "group": "blockchain"
                 },
                 {
                     "command": "environmentExplorer.teardownFabricRuntime",
-                    "when": "view == environmentExplorer && blockchain-runtime-connected",
+                    "when": "view == environmentExplorer && blockchain-runtime-connected && local-fabric-enabled",
                     "group": "blockchain"
                 },
                 {
@@ -644,15 +653,15 @@
                 },
                 {
                     "command": "environmentExplorer.stopFabricRuntime",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-item"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-item && local-fabric-enabled"
                 },
                 {
                     "command": "environmentExplorer.restartFabricRuntime",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-item"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-item && local-fabric-enabled"
                 },
                 {
                     "command": "environmentExplorer.teardownFabricRuntime",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-item"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-item && local-fabric-enabled"
                 },
                 {
                     "command": "environmentExplorer.deleteNodeEntry",

@@ -43,6 +43,7 @@ import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
 import { InstantiatedUnknownTreeItem } from '../../extension/explorer/model/InstantiatedUnknownTreeItem';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
+import { TextTreeItem } from '../../extension/explorer/model/TextTreeItem';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -60,7 +61,6 @@ describe('gatewayExplorer', () => {
     });
 
     beforeEach(async () => {
-
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
     });
 
@@ -116,12 +116,14 @@ describe('gatewayExplorer', () => {
     });
 
     describe('getChildren', () => {
-
         describe('unconnected tree', () => {
 
             let getConnectionStub: sinon.SinonStub;
-
+            let getExtensionLocalFabricSetting: sinon.SinonStub;
             beforeEach(async () => {
+                getExtensionLocalFabricSetting = mySandBox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting');
+                getExtensionLocalFabricSetting.returns(true);
+
                 getConnectionStub = mySandBox.stub(FabricConnectionManager.instance(), 'getConnection');
             });
 
@@ -221,6 +223,27 @@ describe('gatewayExplorer', () => {
                 localGatewayTreeItem.tooltip.should.deep.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is running
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
+            });
+
+            it('should ignore managed runtime if local fabric is disabled', async () => {
+
+                getExtensionLocalFabricSetting.returns(false);
+
+                await FabricGatewayRegistry.instance().clear();
+                await FabricRuntimeManager.instance().getRuntime().importGateways();
+
+                mySandBox.stub(FabricRuntimeManager.instance().getRuntime(), 'isRunning').resolves(true);
+
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
+
+                allChildren.length.should.equal(1);
+                allChildren[0].should.not.be.an.instanceOf(LocalGatewayTreeItem);
+                allChildren[0].should.be.an.instanceOf(TextTreeItem);
+                const textTreeItem: TextTreeItem = allChildren[0] as TextTreeItem;
+                textTreeItem.label.should.equal('No gateways found');
+                textTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                textTreeItem.tooltip.should.deep.equal('No gateways found');
             });
 
             it('should handle errors thrown when connection fails', async () => {

@@ -27,6 +27,8 @@ import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentR
 import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { FabricChaincode } from '../fabric/FabricChaincode';
 import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
+import { SettingConfigurations } from '../../configurations';
+import { ExtensionUtil } from '../util/ExtensionUtil';
 
 export abstract class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
@@ -73,6 +75,11 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
     public async resolveDebugConfiguration(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         try {
+            const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
+            if (!localFabricEnabled) {
+                outputAdapter.log(LogType.ERROR, `Setting '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' must be set to 'true' to enable debugging.`);
+                return;
+            }
 
             const extensionData: ExtensionData = GlobalState.get();
 

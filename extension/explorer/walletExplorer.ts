@@ -31,6 +31,7 @@ import { FabricCertificate, Attribute } from '../fabric/FabricCertificate';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 import { TextTreeItem } from './model/TextTreeItem';
+import { ExtensionUtil } from '../util/ExtensionUtil';
 
 export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvider {
 
@@ -71,35 +72,39 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
         const tree: Array<BlockchainTreeItem> = [];
 
         const walletRegistryEntries: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
+        const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
 
-        if (walletRegistryEntries.length === 0) {
-            tree.push(new TextTreeItem(this, 'No wallets found'));
-        } else {
-            // Populate the tree with the name of each wallet
-            for (const walletRegistryEntry of walletRegistryEntries) {
+        // Populate the tree with the name of each wallet
+        for (const walletRegistryEntry of walletRegistryEntries) {
 
-                if (walletRegistryEntry.walletPath) {
-                    // get identityNames in the wallet
-                    const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-                    const wallet: IFabricWallet = await walletGenerator.getWallet(walletRegistryEntry.name);
-                    const identityNames: string[] = await wallet.getIdentityNames();
+            if (walletRegistryEntry.walletPath) {
+                // get identityNames in the wallet
+                const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
+                const wallet: IFabricWallet = await walletGenerator.getWallet(walletRegistryEntry.name);
+                const identityNames: string[] = await wallet.getIdentityNames();
 
-                    const treeState: vscode.TreeItemCollapsibleState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
+                const treeState: vscode.TreeItemCollapsibleState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
 
-                    let walletName: string;
-                    if (walletRegistryEntry.name === FabricWalletUtil.LOCAL_WALLET) {
-                        walletName = FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME;
-                    } else {
-                        walletName = walletRegistryEntry.name;
-                    }
-
-                    if (walletRegistryEntry.managedWallet) {
-                        tree.push(new LocalWalletTreeItem(this, walletName, identityNames, treeState, walletRegistryEntry));
-                    } else {
-                        tree.push(new WalletTreeItem(this, walletName, identityNames, treeState, walletRegistryEntry));
-                    }
+                let walletName: string;
+                if (walletRegistryEntry.name === FabricWalletUtil.LOCAL_WALLET) {
+                    walletName = FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME;
+                } else {
+                    walletName = walletRegistryEntry.name;
                 }
+
+                if (walletRegistryEntry.managedWallet) {
+                    if (localFabricEnabled) {
+                        tree.push(new LocalWalletTreeItem(this, walletName, identityNames, treeState, walletRegistryEntry));
+                    }
+                } else {
+                    tree.push(new WalletTreeItem(this, walletName, identityNames, treeState, walletRegistryEntry));
+                }
+
             }
+        }
+
+        if (tree.length === 0) {
+            tree.push(new TextTreeItem(this, 'No wallets found'));
         }
 
         return tree;

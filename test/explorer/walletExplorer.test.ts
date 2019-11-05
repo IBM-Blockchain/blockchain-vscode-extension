@@ -52,6 +52,7 @@ describe('walletExplorer', () => {
     let greenWalletEntry: FabricWalletRegistryEntry;
     let getIdentityNamesStub: sinon.SinonStub;
     let getIdentitiesStub: sinon.SinonStub;
+    let getExtensionLocalFabricSetting: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
@@ -59,6 +60,9 @@ describe('walletExplorer', () => {
     });
 
     beforeEach(async () => {
+        getExtensionLocalFabricSetting = mySandBox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting');
+        getExtensionLocalFabricSetting.returns(true);
+
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         blockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
 
@@ -241,5 +245,19 @@ describe('walletExplorer', () => {
         wallets.length.should.equal(3);
         wallets[1].label.should.equal(blueWalletEntry.name);
         wallets[2].label.should.equal(greenWalletEntry.name);
+    });
+
+    it('should ignore local wallet if local fabric disabled', async () => {
+        getIdentityNamesStub.onCall(0).resolves([FabricRuntimeUtil.ADMIN_USER] );
+
+        await FabricWalletRegistry.instance().clear();
+        getExtensionLocalFabricSetting.returns(false);
+
+        await FabricRuntimeManager.instance().getRuntime().importWalletsAndIdentities();
+
+        const wallets: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
+        wallets.length.should.equal(1);
+        wallets[0].label.should.equal(`No wallets found`);
+
     });
 });

@@ -51,6 +51,7 @@ import { EnvironmentConnectedTreeItem } from '../../extension/explorer/runtimeOp
 import { ImportNodesTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/ImportNodesTreeItem';
 import { InstalledChainCodeOpsTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/InstalledChainCodeOpsTreeItem';
 import { InstallCommandTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/InstallCommandTreeItem';
+import { TextTreeItem } from '../../extension/explorer/model/TextTreeItem';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -58,6 +59,8 @@ const should: Chai.Should = chai.should();
 // tslint:disable no-unused-expression
 describe('environmentExplorer', () => {
     let mySandBox: sinon.SinonSandbox;
+    let getExtensionLocalFabricSetting: sinon.SinonStub;
+
     before(async () => {
         mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
@@ -65,6 +68,11 @@ describe('environmentExplorer', () => {
 
     after(() => {
         mySandBox.restore();
+    });
+
+    beforeEach(async () => {
+        getExtensionLocalFabricSetting = mySandBox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting');
+        getExtensionLocalFabricSetting.returns(true);
     });
 
     describe('getChildren', () => {
@@ -141,6 +149,20 @@ describe('environmentExplorer', () => {
                 await blockchainRuntimeExplorerProvider.getChildren();
 
                 logSpy.should.have.been.calledWith(LogType.ERROR, `Error populating Fabric Environment Panel: ${error.message}`, `Error populating Fabric Environment Panel: ${error.toString()}`);
+            });
+
+            it('should not show local environment if functionality is disabled', async () => {
+
+                getExtensionLocalFabricSetting.returns(false);
+
+                await FabricEnvironmentRegistry.instance().clear();
+                await FabricRuntimeManager.instance().getRuntime().create();
+
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+                const treeItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+                treeItems[0].should.not.be.an.instanceOf(RuntimeTreeItem);
+                treeItems[0].should.be.an.instanceOf(TextTreeItem);
+                treeItems[0].label.should.equal('No environments found');
             });
 
         });

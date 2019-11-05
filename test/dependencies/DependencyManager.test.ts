@@ -38,6 +38,10 @@ const should: Chai.Should = chai.should();
 // tslint:disable no-unused-expression
 describe('DependencyManager Tests', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
+    let getExtensionLocalFabricSetting: sinon.SinonStub;
+    beforeEach(async () => {
+        getExtensionLocalFabricSetting = mySandBox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting').returns(true);
+    });
 
     describe('hasNativeDependenciesInstalled', () => {
 
@@ -731,7 +735,40 @@ describe('DependencyManager Tests', () => {
 
         });
 
+        it(`should return true if all non-local fabric prereqs have been met`, async () => {
+            getExtensionLocalFabricSetting.returns(false);
+            mySandBox.stub(process, 'platform').value('linux'); // We don't have any Linux only prereqs, so this is okay.
+
+            const dependencies: any = {
+                node: {
+                    name: 'Node.js',
+                    version: '8.12.0',
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
+                },
+                npm: {
+                    name: 'npm',
+                    version: '6.4.1',
+                    requiredVersion: Dependencies.NPM_REQUIRED
+                },
+                systemRequirements: {
+                    name: 'System Requirements',
+                    complete: true
+                }
+            };
+
+            getPreReqVersionsStub.resolves(dependencies);
+
+            const dependencyManager: DependencyManager = DependencyManager.instance();
+            const result: boolean = await dependencyManager.hasPreReqsInstalled();
+
+            result.should.equal(true);
+            getPreReqVersionsStub.should.have.been.calledOnce;
+
+        });
+
         it(`should be able to pass dependencies to the function`, async () => {
+
+            getExtensionLocalFabricSetting.returns(false);
             mySandBox.stub(process, 'platform').value('linux'); // We don't have any Linux only prereqs, so this is okay.
 
             const dependencies: any = {
@@ -996,6 +1033,42 @@ describe('DependencyManager Tests', () => {
                     buildTools: {
                         name: 'C++ Build Tools',
                         version: '1.2.3'
+                    },
+                    dockerForWindows: {
+                        name: 'Docker for Windows',
+                        complete: true
+                    }
+                };
+
+                getPreReqVersionsStub.resolves(dependencies);
+
+                const dependencyManager: DependencyManager = DependencyManager.instance();
+                const result: boolean = await dependencyManager.hasPreReqsInstalled();
+
+                result.should.equal(true);
+                getPreReqVersionsStub.should.have.been.calledOnce;
+
+            });
+
+            it(`should return true if all non-local fabric Windows prereqs have been met (Windows)`, async () => {
+
+                getExtensionLocalFabricSetting.returns(false);
+                mySandBox.stub(process, 'platform').value('win32');
+
+                const dependencies: any = {
+                    node: {
+                        name: 'Node.js',
+                        version: '8.12.0',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
+                    },
+                    systemRequirements: {
+                        name: 'System Requirements',
+                        complete: true
                     },
                     dockerForWindows: {
                         name: 'Docker for Windows',
@@ -1933,6 +2006,16 @@ describe('DependencyManager Tests', () => {
             result.systemRequirements.complete.should.equal(false);
         });
 
+        it('should only get non-local fabric versions', async () => {
+            getExtensionLocalFabricSetting.returns(false);
+
+            mySandBox.stub(process, 'platform').value('some_other_platform');
+            await dependencyManager.getPreReqVersions();
+
+            sendCommandStub.should.not.have.been.calledWith('docker -v');
+            sendCommandStub.should.not.have.been.calledWith('docker-compose -v');
+        });
+
         describe('Windows', () => {
 
             it('should get version of OpenSSL', async () => {
@@ -2017,6 +2100,18 @@ describe('DependencyManager Tests', () => {
 
                 const result: any = await dependencyManager.getPreReqVersions();
                 result.dockerForWindows.complete.should.equal(false);
+            });
+
+            it('should only get non-local fabric versions for Windows', async () => {
+                getExtensionLocalFabricSetting.returns(false);
+
+                mySandBox.stub(process, 'platform').value('win32');
+                await dependencyManager.getPreReqVersions();
+
+                sendCommandStub.should.not.have.been.calledWith('docker -v');
+                sendCommandStub.should.not.have.been.calledWith('docker-compose -v');
+                sendCommandStub.should.not.have.been.calledWith('openssl version -v');
+                sendCommandStub.should.not.have.been.calledWith('npm ls -g windows-build-tools');
             });
 
         });
