@@ -116,6 +116,17 @@ export class FabricRuntime extends FabricEnvironment {
                 walletRegistryEntry.walletPath = path.join(homeExtDir, FileConfigurations.FABRIC_WALLETS, walletName);
                 walletRegistryEntry.managedWallet = true;
                 await FabricWalletRegistry.instance().add(walletRegistryEntry);
+            } else {
+                // Fallback solution if FabricWalletUtil.tidyWalletSettings() fix for "No path for wallet has been provided" doesn't work - https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1593
+                // I think the problem occurred because we weren't setting a walletPath or managedWallet in FabricWalletUtil.tidyWalletSettings().
+                const walletRegistryEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletName);
+                if (!walletRegistryEntry.walletPath || !walletRegistryEntry.managedWallet) {
+                    const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+                    const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
+                    walletRegistryEntry.walletPath = path.join(homeExtDir, FileConfigurations.FABRIC_WALLETS, walletName);
+                    walletRegistryEntry.managedWallet = true;
+                    await FabricWalletRegistry.instance().update(walletRegistryEntry);
+                }
             }
 
             const localWallet: IFabricWallet = await fabricWalletGenerator.getWallet(walletName);

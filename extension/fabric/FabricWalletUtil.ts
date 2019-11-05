@@ -68,12 +68,15 @@ export class FabricWalletUtil {
         const localWalletExists: boolean = await fs.pathExists(localFabricWalletPath);
         if (localWalletExists) {
             try {
+                newWalletDir = path.join(walletsExtDir, FabricWalletUtil.LOCAL_WALLET);
+
                 // create the new registry entry
                 const walletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
                 walletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET;
+                walletRegistryEntry.walletPath = newWalletDir;
+                walletRegistryEntry.managedWallet = true;
                 await FabricWalletRegistry.instance().add(walletRegistryEntry);
 
-                newWalletDir = path.join(walletsExtDir, FabricWalletUtil.LOCAL_WALLET);
                 await fs.copy(localFabricWalletPath, newWalletDir);
             } catch (error) {
                 throw new Error(`Issue copying ${localFabricWalletPath} to ${newWalletDir}: ${error.message}`);
