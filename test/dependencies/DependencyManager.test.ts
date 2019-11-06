@@ -1472,6 +1472,72 @@ describe('DependencyManager Tests', () => {
 
             });
 
+            it(`should return false if the optional Java Test Runner Extension hasn't been installed`, async () => {
+                mySandBox.stub(process, 'platform').value('linux');
+
+                const dependencies: any = {
+                    node: {
+                        name: 'Node.js',
+                        version: '8.12.0',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
+                    },
+                    docker: {
+                        name: 'Docker',
+                        version: '18.1.2',
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                    },
+                    dockerCompose: {
+                        name: 'Docker Compose',
+                        version: '1.21.1',
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                    },
+                    systemRequirements: {
+                        name: 'System Requirements',
+                        complete: true
+                    },
+                    go: {
+                        name: 'Go',
+                        version: '2.0.0',
+                        requiredVersion: Dependencies.GO_REQUIRED
+                    },
+                    goExtension: {
+                        name: 'Go Extension',
+                        version: '1.0.0'
+                    },
+                    java: {
+                        name: 'Java OpenJDK 8',
+                        version: '1.8.0',
+                        requiredVersion: Dependencies.JAVA_REQUIRED
+                    },
+                    javaLanguageExtension: {
+                        name: 'Java Language Support Extension',
+                        version: '1.0.0'
+                    },
+                    javaDebuggerExtension: {
+                        name: 'Java Debugger Extension',
+                        version: '1.0.0'
+                    },
+                    javaTestRunnerExtension: {
+                        name: 'Java Test Runner Extension',
+                        version: undefined
+                    }
+                };
+
+                getPreReqVersionsStub.resolves(dependencies);
+
+                const dependencyManager: DependencyManager = DependencyManager.instance();
+                const result: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+
+                result.should.equal(false);
+                getPreReqVersionsStub.should.have.been.calledOnce;
+
+            });
+
             it(`should return true if all the optional prereqs have been installed`, async () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
@@ -1520,6 +1586,10 @@ describe('DependencyManager Tests', () => {
                     },
                     javaDebuggerExtension: {
                         name: 'Java Debugger Extension',
+                        version: '1.0.0'
+                    },
+                    javaTestRunnerExtension: {
+                        name: 'Java Test Runner Extension',
                         version: '1.0.0'
                     }
                 };
@@ -1808,6 +1878,28 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             should.not.exist(result.javaDebuggerExtension.version);
+        });
+
+        it('should get version of Java Test Runner Extension', async () => {
+            const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
+            getExtensionStub.withArgs('vscjava.vscode-java-test').returns({
+                packageJSON: {
+                    version: '2.0.0'
+                }
+            });
+
+            const result: any = await dependencyManager.getPreReqVersions();
+            result.javaTestRunnerExtension.version.should.equal('2.0.0');
+        });
+
+        it('should not get version of Java Test Runner Extension if it cannot be found', async () => {
+            mySandBox.stub(process, 'platform').value('some_other_platform');
+
+            const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
+            getExtensionStub.withArgs('vscjava.vscode-java-test').returns(undefined);
+
+            const result: any = await dependencyManager.getPreReqVersions();
+            should.not.exist(result.javaTestRunnerExtension.version);
         });
 
         it('should return true if user has agreed to system requirements', async () => {

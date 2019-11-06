@@ -106,6 +106,7 @@ describe('PreReqView', () => {
                 goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: '1.0.0', url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
+                javaTestRunnerExtension: {name: 'Java Test Runner Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-test', requiredVersion: undefined, requiredLabel: '' },
                 systemRequirements: {name: 'System Requirements', id: 'systemRequirements', complete: true, version: undefined, checkbox: true, required: true, text: 'In order to support the local runtime, please confirm your system has at least 4GB of RAM' }
             });
 
@@ -130,6 +131,7 @@ describe('PreReqView', () => {
             html.should.contain(`"goExtension":{"name":"Go Extension","required":false,"version":"1.0.0","url":"vscode:extension/ms-vscode.Go","requiredVersion":"","requiredLabel":""}`);
             html.should.contain(`"javaLanguageExtension":{"name":"Java Language Support Extension","required":false,"version":"1.0.0","url":"vscode:extension/redhat.java","requiredLabel":""}`);
             html.should.contain(`"javaDebuggerExtension":{"name":"Java Debugger Extension","required":false,"version":"1.0.0","url":"vscode:extension/vscjava.vscode-java-debug","requiredLabel":""}`);
+            html.should.contain(`"javaTestRunnerExtension":{"name":"Java Test Runner Extension","required":false,"version":"1.0.0","url":"vscode:extension/vscjava.vscode-java-test","requiredLabel":""}`);
             html.should.contain(`"systemRequirements":{"name":"System Requirements","id":"systemRequirements","complete":true,"checkbox":true,"required":true,"text":"In order to support the local runtime, please confirm your system has at least 4GB of RAM"}`);
 
         });
@@ -145,6 +147,7 @@ describe('PreReqView', () => {
                 goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: undefined, url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
+                javaTestRunnerExtension: {name: 'Java Test Runner Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-test', requiredVersion: undefined, requiredLabel: '' },
                 systemRequirements: {name: 'System Requirements', id: 'systemRequirements', complete: true, version: undefined, checkbox: true, required: true, text: 'In order to support the local runtime, please confirm your system has at least 4GB of RAM' }
             });
 
@@ -169,6 +172,7 @@ describe('PreReqView', () => {
             html.should.contain(`"goExtension":{"name":"Go Extension","required":false,"version":"1.0.0","url":"vscode:extension/ms-vscode.Go","requiredVersion":"","requiredLabel":""}`);
             html.should.not.contain(`"javaLanguageExtension":{"name":"Java Language Support Extension","required":false,"version"`);
             html.should.contain(`"javaDebuggerExtension":{"name":"Java Debugger Extension","required":false,"version":"1.0.0","url":"vscode:extension/vscjava.vscode-java-debug","requiredLabel":""}`);
+            html.should.contain(`"javaTestRunnerExtension":{"name":"Java Test Runner Extension","required":false,"version":"1.0.0","url":"vscode:extension/vscjava.vscode-java-test","requiredLabel":""}`);
             html.should.contain(`"systemRequirements":{"name":"System Requirements","id":"systemRequirements","complete":true,"checkbox":true,"required":true,"text":"In order to support the local runtime, please confirm your system has at least 4GB of RAM"}`);
 
         });
@@ -190,6 +194,7 @@ describe('PreReqView', () => {
                 goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: '1.0.0', url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
+                javaTestRunnerExtension: {name: 'Java Test Runner Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-test', requiredVersion: undefined, requiredLabel: '' },
                 systemRequirements: {name: 'System Requirements', id: 'systemRequirements', complete: true, version: undefined, checkbox: true, required: true, text: 'In order to support the local runtime, please confirm your system has at least 4GB of RAM' }
             };
 
@@ -210,6 +215,7 @@ describe('PreReqView', () => {
             html.should.contain(`"goExtension":{"name":"Go Extension","required":false,"version":"1.0.0","url":"vscode:extension/ms-vscode.Go","requiredVersion":"","requiredLabel":""}`);
             html.should.contain(`"javaLanguageExtension":{"name":"Java Language Support Extension","required":false,"version":"1.0.0","url":"vscode:extension/redhat.java","requiredLabel":""}`);
             html.should.contain(`"javaDebuggerExtension":{"name":"Java Debugger Extension","required":false,"version":"1.0.0","url":"vscode:extension/vscjava.vscode-java-debug","requiredLabel":""}`);
+            html.should.contain(`"javaTestRunnerExtension":{"name":"Java Test Runner Extension","required":false,"version":"1.0.0","url":"vscode:extension/vscjava.vscode-java-test","requiredLabel":""}`);
             html.should.contain(`"systemRequirements":{"name":"System Requirements","id":"systemRequirements","complete":true,"checkbox":true,"required":true,"text":"In order to support the local runtime, please confirm your system has at least 4GB of RAM"}`);
 
         });
@@ -226,6 +232,7 @@ describe('PreReqView', () => {
                 goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: undefined, url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
+                javaTestRunnerExtension: {name: 'Java Test Runner Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-test', requiredVersion: undefined, requiredLabel: '' },
                 systemRequirements: {name: 'System Requirements', id: 'systemRequirements', complete: true, version: undefined, checkbox: true, required: true, text: 'In order to support the local runtime, please confirm your system has at least 4GB of RAM' }
             });
 
@@ -530,6 +537,7 @@ describe('PreReqView', () => {
                 goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: '1.0.0', url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
+                javaTestRunnerExtension: {name: 'Java Test Runner Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-test', requiredVersion: undefined, requiredLabel: '' },
                 systemRequirements: {name: 'System Requirements', id: 'systemRequirements', complete: true, version: undefined, checkbox: true, required: true, text: 'In order to support the local runtime, please confirm your system has at least 4GB of RAM' },
                 dockerForWindows: {name: 'Docker for Windows', id: 'dockerForWindows', complete: undefined, checkbox: true, required: true, text: 'Docker for Windows must be configured to use Linux containers (this is the default)' }
             };
@@ -606,6 +614,7 @@ describe('PreReqView', () => {
                 goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: '1.0.0', url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
+                javaTestRunnerExtension: {name: 'Java Test Runner Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-test', requiredVersion: undefined, requiredLabel: '' },
                 systemRequirements: {name: 'System Requirements', id: 'systemRequirements', complete: true, version: undefined, checkbox: true, required: true, text: 'In order to support the local runtime, please confirm your system has at least 4GB of RAM' }
             };
 
@@ -681,6 +690,7 @@ describe('PreReqView', () => {
                 goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: undefined, requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: '1.0.0', url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
+                javaTestRunnerExtension: {name: 'Java Test Runner Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-test', requiredVersion: undefined, requiredLabel: '' },
                 systemRequirements: {name: 'System Requirements', id: 'systemRequirements', complete: true, version: undefined, checkbox: true, required: true, text: 'In order to support the local runtime, please confirm your system has at least 4GB of RAM' }
             };
 
@@ -755,6 +765,7 @@ describe('PreReqView', () => {
                 goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: undefined, requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: '1.0.0', url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
+                javaTestRunnerExtension: {name: 'Java Test Runner Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-test', requiredVersion: undefined, requiredLabel: '' },
                 systemRequirements: {name: 'System Requirements', id: 'systemRequirements', complete: true, version: undefined, checkbox: true, required: true, text: 'In order to support the local runtime, please confirm your system has at least 4GB of RAM' }
             };
 
