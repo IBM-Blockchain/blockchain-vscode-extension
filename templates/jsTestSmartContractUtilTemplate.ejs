@@ -9,11 +9,20 @@
 const fs = require('fs-extra');
 const yaml = require('js-yaml');
 const URL = require('url');
+<%_ if (conProfileHome) {-%>
+const os = require('os');
+const path = require('path');
+<%_ } _%>
 
 class SmartContractUtil {
 
     static async getConnectionProfile() {
+        <%_ if (conProfileHome) {-%>
+        const homedir = os.homedir();
+        const connectionProfilePath = <%-connectionProfilePath%>;
+        <%_ } else { _%>
         const connectionProfilePath = '<%-connectionProfilePath%>';
+        <%_ } _%>
 
         const connectionProfileContents = await fs.readFile(connectionProfilePath, 'utf8');
         if (connectionProfilePath.endsWith('.json')) {

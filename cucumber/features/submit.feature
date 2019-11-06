@@ -37,4 +37,4 @@ Feature: Submit transaction
         Examples:
         | language   | assetType | name               | version |
         | JavaScript | Conga     | JavaScriptContract | 0.0.1   |
-        | TypeScript | Conga     | TypeScriptContract | 0.0.1   |
+        | Java       | Conga     | JavaContract       | 0.0.1   |

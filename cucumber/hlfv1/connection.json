@@ -12,16 +12,6 @@
             }
         }
     },
-    "channels": {
-        "mychannel": {
-            "orderers": [
-                "orderer.example.com"
-            ],
-            "peers": {
-                "peer0.org1.example.com": {}
-            }
-        }
-    },
     "organizations": {
         "Org1": {
             "mspid": "Org1MSP",
@@ -31,11 +21,6 @@
             "certificateAuthorities": [
                 "ca.example.com"
             ]
-        }
-    },
-    "orderers": {
-        "orderer.example.com": {
-            "url": "grpc://localhost:7050"
         }
     },
     "peers": {

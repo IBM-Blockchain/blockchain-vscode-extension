@@ -7,11 +7,21 @@ import * as fabricNetwork from 'fabric-network';
 import * as fs from 'fs-extra';
 import * as yaml from 'js-yaml';
 import { URL } from 'url';
+<%_ if (conProfileHome) {-%>
+
+import * as os from 'os';
+import * as path from 'path';
+<%_ } _%>
 
 export class SmartContractUtil {
 
     public static async getConnectionProfile() {
+        <%_ if (conProfileHome) {-%>
+        const homedir = os.homedir();
+        const connectionProfilePath: string = <%-connectionProfilePath%>;
+        <%_ } else { _%>
         const connectionProfilePath: string = '<%-connectionProfilePath%>';
+        <%_ } _%>
 
         const connectionProfileContents: any = await fs.readFile(connectionProfilePath, 'utf8');
         if (connectionProfilePath.endsWith('.json')) {
