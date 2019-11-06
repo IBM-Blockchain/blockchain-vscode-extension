@@ -16,7 +16,7 @@ Please visit the [Visual Studio Code Marketplace](https://marketplace.visualstud
 
 You will need the following installed in order to use the extension:
 - Windows 10, Linux, or Mac OS are currently the supported operating systems.
-- [VS Code version 1.32 or greater](https://code.visualstudio.com)
+- [VS Code version 1.35.1 or greater](https://code.visualstudio.com)
 - [Node v8.x or v10.x and npm v6.x or greater](https://nodejs.org/en/download/)
 - [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)
 - [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/)
@@ -260,6 +260,9 @@ You can also create a gateway from a fabric environment. When you run the `Add G
 Connect by clicking on a gateway in the `Fabric Gateways` panel, and expand the navigation tree to explore its resources. Instantiated Smart Contracts are listed under the channel and from here you can generate functional-level test files on single or multiple smart contracts. Submit or evaluate individual transactions listed under the instantiated smart contracts, with the result displayed in the `Blockchain` output channel.
 
 #### **BETA** Java functional tests
+
+To test Java smart contracts, please install the [Java Test Runner extension](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-test).
+
 When creating Java functional tests new dependencies must be added to the build file.
 
 If you select 'Yes' when prompted with `The last step might overwrite build.gradle/pom.xml. Do you wish to continue?`, these modifications will be done automatically. You can alternatively choose to skip this step and manually add the code listed below.
