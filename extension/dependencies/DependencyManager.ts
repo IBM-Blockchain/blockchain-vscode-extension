@@ -85,7 +85,7 @@ export class DependencyManager {
             } else {
                 return false;
             }
-        } else if (name === 'C++ Build Tools' || name === 'Xcode' || name === 'Go Extension' || name === 'Java Language Support Extension' || name === 'Java Debugger Extension') {
+        } else if (name === 'C++ Build Tools' || name === 'Xcode' || name === 'Go Extension' || name === 'Java Language Support Extension' || name === 'Java Debugger Extension' || name === 'Java Test Runner Extension') {
             if (dependency.version) {
                 return true;
             } else {
@@ -164,6 +164,10 @@ export class DependencyManager {
             }
 
             if (!this.isValidDependency(dependencies.javaDebuggerExtension)) {
+                return false;
+            }
+
+            if (!this.isValidDependency(dependencies.javaTestRunnerExtension)) {
                 return false;
             }
 
@@ -382,6 +386,18 @@ export class DependencyManager {
             if (javaDebuggerExtensionResult) {
                 const version: string = javaDebuggerExtensionResult.packageJSON.version;
                 dependencies.javaDebuggerExtension.version = version;
+            }
+        } catch (error) {
+            // Ignore the error
+        }
+
+        // Java Debugger Extension
+        dependencies.javaTestRunnerExtension = { name: 'Java Test Runner Extension', required: false, version: undefined, url: 'vscode:extension/vscjava.vscode-java-test', requiredVersion: undefined, requiredLabel: '', tooltip: 'Used for running Java smart contract functional tests.' };
+        try {
+            const javaTestRunnerExtensionResult: vscode.Extension<any> = vscode.extensions.getExtension('vscjava.vscode-java-test');
+            if (javaTestRunnerExtensionResult) {
+                const version: string = javaTestRunnerExtensionResult.packageJSON.version;
+                dependencies.javaTestRunnerExtension.version = version;
             }
         } catch (error) {
             // Ignore the error
