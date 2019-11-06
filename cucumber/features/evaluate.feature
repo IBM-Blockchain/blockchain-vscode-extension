@@ -38,5 +38,5 @@ Feature: Evaluate transaction
         Then the logger should have been called with 'SUCCESS', 'Successfully evaluated transaction' and 'Returned value from readConga: {"value":"Big Conga"}'
         Examples:
         | language   | assetType | name               | version |
-        | JavaScript | Conga     | JavaScriptContract | 0.0.1   |
+        | Java       | Conga     | JavaContract       | 0.0.1   |
         | TypeScript | Conga     | TypeScriptContract | 0.0.1   |

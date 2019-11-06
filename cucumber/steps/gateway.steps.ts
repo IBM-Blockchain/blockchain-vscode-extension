@@ -120,41 +120,63 @@ module.exports = function(): any {
      * Then
      */
 
-    this.Then("a functional test file with the filename '{string}' should exist and contain the correct contents", this.timeout, async (fileName: string) => {
-        const filePath: string = path.join(this.contractDirectory, 'functionalTests', fileName);
-        const exists: boolean = await fs.pathExists(filePath);
-        exists.should.equal(true);
+    this.Then('a functional test file with .{string} extension for the {string} contract {string} version {string} with assets {string} should exist and contain the correct contents',
+              this.timeout,
+              async (fileExtension: string, testLanguage: string, contractName: string, version: string, assetType: string) => {
+                let functionalDirPath: string;
+                let capsContractName: string;
+                let fileName: string;
+                let filePath: string;
+                if (testLanguage === 'Java') {
+                    const capsAssetType: string = assetType[0].toUpperCase() + assetType.slice(1);
+                    const versionPlain: string = version.replace(/\./g, '');
+                    capsContractName = contractName[0].toUpperCase() + contractName.slice(1);
+                    fileName = `Fv${capsAssetType}Contract${capsContractName}${versionPlain}Test.java`;
+                    functionalDirPath = path.join(this.contractDirectory, 'src', 'test', 'java', 'org', 'example');
+                } else {
+                    fileName = `${assetType}Contract-${contractName}@${version}.test.${fileExtension}`;
+                    functionalDirPath = path.join(this.contractDirectory, 'functionalTests');
+                }
+                filePath = path.join(functionalDirPath, fileName);
+                const exists: boolean = await fs.pathExists(filePath);
+                exists.should.equal(true);
 
-        const testFileContentsBuffer: Buffer = await fs.readFile(filePath);
-        const testFileContents: string = testFileContentsBuffer.toString();
-        // Did it open?
-        const textEditors: vscode.TextEditor[] = vscode.window.visibleTextEditors;
-        const openFileNameArray: string[] = [];
-        for (const textEditor of textEditors) {
-            openFileNameArray.push(textEditor.document.fileName);
-        }
-        openFileNameArray.includes(filePath).should.be.true;
-        // Get the smart contract metadata
-        const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
-        const smartContractTransactionsMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, this.contractName, 'mychannel');
-        let smartContractTransactionsArray: string[];
-        for (const name of smartContractTransactionsMap.keys()) {
-            smartContractTransactionsArray = smartContractTransactionsMap.get(name);
-        }
-        // Check the test file was populated properly
-        testFileContents.includes(this.contractName).should.be.true;
-        testFileContents.startsWith('/*').should.be.true;
-        testFileContents.includes('gateway.connect').should.be.true;
-        testFileContents.includes('submitTransaction').should.be.true;
-        testFileContents.includes(smartContractTransactionsArray[0]).should.be.true;
-        testFileContents.includes(smartContractTransactionsArray[1]).should.be.true;
-        testFileContents.includes(smartContractTransactionsArray[2]).should.be.true;
+                const testFileContentsBuffer: Buffer = await fs.readFile(filePath);
+                const testFileContents: string = testFileContentsBuffer.toString();
+                // Did it open?
+                const textEditors: vscode.TextEditor[] = vscode.window.visibleTextEditors;
+                const openFileNameArray: string[] = [];
+                for (const textEditor of textEditors) {
+                    openFileNameArray.push(textEditor.document.fileName);
+                }
+                openFileNameArray.includes(filePath).should.be.true;
+
+                // Get the smart contract metadata
+                const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
+                const smartContractTransactionsMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, this.contractName, 'mychannel');
+                let smartContractTransactionsArray: string[];
+                for (const name of smartContractTransactionsMap.keys()) {
+                    smartContractTransactionsArray = smartContractTransactionsMap.get(name);
+                }
+                // Check the test file was populated properly
+                if (testLanguage === 'Java') {
+                    testFileContents.includes(capsContractName).should.be.true;
+                    testFileContents.includes('builder.connect').should.be.true;
+                } else {
+                    testFileContents.includes(this.contractName).should.be.true;
+                    testFileContents.includes('gateway.connect').should.be.true;
+                }
+                testFileContents.startsWith('/*').should.be.true;
+                testFileContents.includes('submitTransaction').should.be.true;
+                testFileContents.includes(smartContractTransactionsArray[0]).should.be.true;
+                testFileContents.includes(smartContractTransactionsArray[1]).should.be.true;
+                testFileContents.includes(smartContractTransactionsArray[2]).should.be.true;
     });
 
     this.Then('the tests should be runnable', this.timeout, async () => {
-        if (this.contractLanguage === 'TypeScript') {
-            const testRunResult: string = await this.generatedTestsHelper.runSmartContractTests(this.contractName, this.testLanguage, this.contractAssetType);
-            testRunResult.includes('1 passing').should.be.true;
+        if (this.contractLanguage === 'TypeScript' || this.contractLanguage === 'Java') {
+            const testRunResult: boolean = await this.generatedTestsHelper.runSmartContractTests(this.contractName, this.testLanguage, this.contractAssetType);
+            testRunResult.should.equal(true);
         }
     });
 

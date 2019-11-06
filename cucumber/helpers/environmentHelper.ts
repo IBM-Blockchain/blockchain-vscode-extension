@@ -74,7 +74,7 @@ export class EnvironmentHelper {
     }
 
     public async deleteNode(nodeName: string, environmentName: string): Promise<void> {
-        this.userInputUtilHelper.showConfirmationWarningMessageStub.resolves('yes');
+        this.userInputUtilHelper.showConfirmationWarningMessageStub.resolves(true);
         const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
         this.userInputUtilHelper.showEnvironmentQuickPickStub.resolves({ label: environmentName, data: fabricEnvironmentRegistryEntry });
 
@@ -91,7 +91,7 @@ export class EnvironmentHelper {
     }
 
     public async deleteEnvironment(environmentName: string): Promise<void> {
-        this.userInputUtilHelper.showConfirmationWarningMessageStub.resolves('yes');
+        this.userInputUtilHelper.showConfirmationWarningMessageStub.resolves(true);
         const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
         this.userInputUtilHelper.showEnvironmentQuickPickStub.resolves([{ label: environmentName, data: fabricEnvironmentRegistryEntry }]);
         await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);

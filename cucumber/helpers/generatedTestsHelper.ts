@@ -67,26 +67,49 @@ export class GeneratedTestsHelper {
         const packageJSONPath: string = path.join(contractDirectory, 'package.json');
         this.userInputUtilHelper.findFilesStub.resolves([vscode.Uri.file(packageJSONPath)]);
 
+        if (language === 'Java') {
+            this.userInputUtilHelper.showConfirmationWarningMessageStub.withArgs(`This task might overwrite ${path.join(contractDirectory, 'build.gradle')}. Do you wish to continue?`).resolves(true);
+            this.userInputUtilHelper.showWarningMessageStub.withArgs('A build file was modified. Do you want to synchronize the Java classpath/configuration?').resolves('Now');
+        }
         await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
     }
 
-    public async runSmartContractTests(name: string, testLanguage: string, contractAssetType: string): Promise<string> {
+    public async runSmartContractTests(name: string, testLanguage: string, contractAssetType: string): Promise<boolean> {
         const contractDirectory: string = this.smartContractHelper.getContractDirectory(name, testLanguage);
         let fileExtension: string;
         if (testLanguage === 'JavaScript') {
             fileExtension = 'js';
         } else if (testLanguage === 'TypeScript') {
             fileExtension = 'ts';
+        } else if (testLanguage === 'Java') {
+            fileExtension = 'java';
         } else {
             // If we get here then we're running a language not supported for test files
             return;
         }
-        let testCommand: string = `node_modules/.bin/mocha ${path.join(contractDirectory, 'functionalTests', contractAssetType)}Contract-${name}@0.0.1.test.${fileExtension} --grep="create${contractAssetType}"`;
-        if (testLanguage === 'TypeScript') {
-            testCommand += ` -r ts-node/register`;
+
+        let testResult: string;
+        let success: boolean = false;
+        let testCommand: string;
+        if (testLanguage === 'Java') {
+            const capsContractName: string = name[0].toUpperCase() + name.slice(1);
+            const capsAssetType: string = contractAssetType[0].toUpperCase() + contractAssetType.slice(1);
+            testCommand = `./gradlew test --tests org.example.Fv${capsAssetType}Contract${capsContractName}001Test*.submitCreate${capsAssetType}Test`;
+            testResult = await CommandUtil.sendCommand(testCommand, contractDirectory);
+            if (testResult.includes('BUILD SUCCESSFUL')) {
+                success = true;
+            }
+        } else {
+            testCommand = `node_modules/.bin/mocha ${path.join(contractDirectory, 'functionalTests', contractAssetType)}Contract-${name}@0.0.1.test.${fileExtension} --grep="create${contractAssetType}"`;
+            if (testLanguage === 'TypeScript') {
+                testCommand += ` -r ts-node/register`;
+            }
+            testResult = await CommandUtil.sendCommand(testCommand, contractDirectory);
+            if (testResult.includes('1 passing')) {
+                success = true;
+            }
         }
-        const testResult: string = await CommandUtil.sendCommand(testCommand, contractDirectory);
-        return testResult;
+        return success;
     }
 
     private getWorkspaceFolder(name: string, contractDirectory: string): vscode.WorkspaceFolder {

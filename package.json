@@ -1390,6 +1390,8 @@
             "templates/tsTestSmartContractUtilTemplate.ejs",
             "templates/jsTestSmartContractTemplate.ejs",
             "templates/jsTestSmartContractUtilTemplate.ejs",
+            "templates/javaTestSmartContractTemplate.ejs",
+            "templates/javaTestSmartContractUtilTemplate.ejs",
             "templates/HomeView.ejs",
             "templates/SampleView.ejs",
             "templates/TutorialGallery.ejs",
