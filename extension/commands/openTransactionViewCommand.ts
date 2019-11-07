@@ -27,7 +27,9 @@ import { GlobalState } from '../util/GlobalState';
 export async function openTransactionView(treeItem?: InstantiatedTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, `Open Transaction View`);
-    let smartContract: string;
+    let smartContractLabel: string;
+    let contract: { name: string, contractInstance: {}, transactions: Array<{}>, info: {} };
+    let data: { name: string, version: string, channel: string, label: string, transactions: Array<{}>, namespace: string };
 
     let connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
 
@@ -41,30 +43,48 @@ export async function openTransactionView(treeItem?: InstantiatedTreeItem): Prom
     }
 
     if (treeItem) {
-        smartContract = treeItem.name + '@' + treeItem.version;
+        smartContractLabel = treeItem.name + '@' + treeItem.version;
     } else {
         const chosenSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick(`Choose a smart contract`, null);
         if (!chosenSmartContract) {
             return;
         }
-        smartContract = chosenSmartContract.data.name + '@' + chosenSmartContract.data.version;
+        smartContractLabel = chosenSmartContract.data.name + '@' + chosenSmartContract.data.version;
     }
 
     const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
 
-    const instantiatedChaincodes: Array<string> = [];
+    const instantiatedChaincodes: Array<{ label: string, channel: string }> = [];
+
+    let metadataObj: any = {
+        contracts: {
+            '' : {
+                name: '',
+                transactions: [],
+            }
+        }
+    };
 
     for (const [thisChannelName] of channelMap) {
         const chaincodes: Array<FabricChaincode> = await connection.getInstantiatedChaincode(thisChannelName); // returns array of objects
         for (const chaincode of chaincodes) {
-            const data: string = chaincode.name + '@' + chaincode.version;
+            metadataObj = await connection.getMetadata(chaincode.name, thisChannelName);
+            contract = metadataObj.contracts[Object.keys(metadataObj.contracts)[0]];
+            data = {
+                name: chaincode.name,
+                version: chaincode.version,
+                channel: thisChannelName,
+                label: chaincode.name + '@' + chaincode.version,
+                transactions: contract.transactions,
+                namespace: contract.name
+            };
             instantiatedChaincodes.push(data);
         }
     }
 
-    const appState: {smartContracts: Array<string>, activeSmartContract: string} = {
+    const appState: {} = {
         smartContracts: instantiatedChaincodes,
-        activeSmartContract: smartContract
+        activeSmartContract: instantiatedChaincodes.filter((obj: any) => obj.label === smartContractLabel)[0]
     };
 
     const context: vscode.ExtensionContext = GlobalState.getExtensionContext();

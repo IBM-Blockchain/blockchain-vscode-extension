@@ -2,30 +2,35 @@ import React, { Component } from 'react';
 import './TransactionHome.scss';
 import { Accordion, AccordionItem } from 'carbon-components-react';
 import Sidebar from '../TransactionSidebar/TransactionSidebar';
+import ISmartContract from '../../interfaces/ISmartContract';
 
-interface PageProps {
-    messageData: {smartContracts: Array<string>, activeSmartContract: string};
+interface HomeProps {
+    messageData: {
+        activeSmartContract: ISmartContract,
+        smartContracts: Array<ISmartContract>
+    };
+    switchSmartContract: (newActiveContract: string) => void;
 }
 
-interface PageState {
-    smartContracts: string[];
-    activeSmartContract: string;
+interface HomeState {
+    activeSmartContractLabel: string;
+    smartContractLabels: Array<string>;
+    switchSmartContract: (newActiveContract: string) => void;
 }
 
-class TransactionHome extends Component<PageProps, PageState> {
+class TransactionHome extends Component<HomeProps, HomeState> {
 
-    constructor(props: Readonly<PageProps>) {
+    constructor(props: Readonly<HomeProps>) {
         super(props);
-        this.state = {
-            smartContracts: this.props.messageData.smartContracts,
-            activeSmartContract: this.props.messageData.activeSmartContract
-        };
+        this.state = this.setUpState(this.props);
     }
 
-    public switchSmartContract(selectedSmartContract: string): void {
-        this.setState({
-            activeSmartContract: selectedSmartContract
-        });
+    componentDidUpdate(prevProps: HomeProps): void {
+        if (prevProps.messageData.activeSmartContract.label !== this.props.messageData.activeSmartContract.label) {
+            this.setState({
+                activeSmartContractLabel: this.props.messageData.activeSmartContract.label
+            });
+        }
     }
 
     public render(): any {
@@ -35,17 +40,17 @@ class TransactionHome extends Component<PageProps, PageState> {
                     <Sidebar/>
                     <div className='page-contents bx--col'>
                         <div className='titles-container'>
-                            <span>{this.state.activeSmartContract} home</span>
+                            <span>{this.state.activeSmartContractLabel} home</span>
                             <h1>Transactions</h1>
                         </div>
                         <div className='contents-container bx--row'>
                             <div className='contents-left bx--col'>
-                                <p>Welcome to your transaction web view for <span className='disabled-smart-contract'>{this.state.activeSmartContract}</span>; use this to submit and evaluate new and existing transactions.</p>
+                                <p>Welcome to your transaction web view for <span className='disabled-smart-contract'>{this.state.activeSmartContractLabel}</span>; use this to submit and evaluate new and existing transactions.</p>
                                 <p>Unsure of where to start? Follow our introductory Getting Started section opposite.</p>
                                 <br/>
                                 <h5>Smart Contracts</h5>
                                 <p>To switch to the web view for a different smart contract, select the smart contract below</p>
-                                {this.getSmartContractItems(this.state.smartContracts)}
+                                {this.getSmartContractItems(this.state.smartContractLabels)}
                             </div>
                             <div className='contents-right bx--col' id='contents-right'>
                                 <h5>Getting Started</h5>
@@ -69,14 +74,27 @@ class TransactionHome extends Component<PageProps, PageState> {
         );
     }
 
-    private getSmartContractItems(smartContracts: string[]): any {
+    private setUpState(receivedProps: HomeProps): HomeState {
+        const contractLabels: Array<string> = [];
+        for (const contract of receivedProps.messageData.smartContracts) {
+            contractLabels.push(contract.label);
+        }
+
+        return {
+            activeSmartContractLabel: receivedProps.messageData.activeSmartContract.label,
+            smartContractLabels: contractLabels,
+            switchSmartContract: receivedProps.switchSmartContract
+        };
+    }
+
+    private getSmartContractItems(smartContracts: Array<string>): any {
         const smartContractItems: any = [];
 
         for (const contract of smartContracts) {
-            if (contract === this.state.activeSmartContract) {
+            if (contract === this.state.activeSmartContractLabel) {
                 smartContractItems.push(<li className='smart-contract-item disabled-smart-contract' key={contract}>{contract}</li>);
             } else {
-                smartContractItems.push(<li className='smart-contract-item clickable-smart-contract' key={contract}  onClick={(): void => this.switchSmartContract(contract)}>{contract}</li>);
+                smartContractItems.push(<li className='smart-contract-item clickable-smart-contract' key={contract}  onClick={(): void => this.state.switchSmartContract(contract)}>{contract}</li>);
             }
         }
 

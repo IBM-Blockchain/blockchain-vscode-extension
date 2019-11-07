@@ -22,6 +22,8 @@ import { TransactionView } from '../../extension/webview/TransactionView';
 import { View } from '../../extension/webview/View';
 import { TestUtil } from '../TestUtil';
 import { GlobalState } from '../../extension/util/GlobalState';
+import ITransaction from '../../src/interfaces/ITransaction';
+import ISmartContract from '../../src/interfaces/ISmartContract';
 chai.use(sinonChai);
 
 describe('TransactionView', () => {
@@ -31,9 +33,53 @@ describe('TransactionView', () => {
     let postMessageStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
 
-    const mockAppState: {smartContracts: Array<string>, activeSmartContract: string} = {
-        smartContracts: ['greenContract@0.0.1', 'blueContract@0.0.1'],
-        activeSmartContract: 'greenContract@0.0.1'
+    const transactionOne: ITransaction = {
+        name: 'transactionOne',
+        parameters: [{
+            description: '',
+            name: 'name',
+            schema: {}
+        }],
+        returns: {
+            type: ''
+        },
+        tag: ['submit']
+    };
+
+    const transactionTwo: ITransaction = {
+        name: 'transactionTwo',
+        parameters: [{
+            description: '',
+            name: 'size',
+            schema: {}
+        }],
+        returns: {
+            type: ''
+        },
+        tag: ['submit']
+    };
+
+    const greenContract: ISmartContract = {
+        name: 'greenContract',
+        version: '0.0.1',
+        channel: 'mychannel',
+        label: 'greenContract@0.0.1',
+        transactions: [transactionOne, transactionTwo],
+        namespace: 'GreenContract'
+    };
+
+    const blueContract: ISmartContract = {
+        name: 'blueContract',
+        version: '0.0.1',
+        channel: 'mychannel',
+        label: 'blueContract@0.0.1',
+        transactions: [transactionOne, transactionTwo],
+        namespace: 'BlueContract'
+    };
+
+    const mockAppState: {smartContracts: Array<ISmartContract>, activeSmartContract: ISmartContract} = {
+        smartContracts: [greenContract, blueContract],
+        activeSmartContract: greenContract
     };
 
     before(async () => {

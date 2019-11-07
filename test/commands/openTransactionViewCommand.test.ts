@@ -92,12 +92,26 @@ describe('OpenTransactionViewCommand', () => {
 
             fabricClientConnectionMock.getAllPeerNames.returns(['peerOne']);
             fabricClientConnectionMock.getAllChannelsForPeer.withArgs('peerOne').resolves(['myChannel']);
-            fabricClientConnectionMock.getInstantiatedChaincode.resolves([
+
+            fabricClientConnectionMock.getInstantiatedChaincode.resolves([{ name: 'mySmartContract', version: '0.0.1' }]);
+
+            fabricClientConnectionMock.getMetadata.resolves(
                 {
-                    name: 'myContract',
-                    version: '0.0.1',
+                    contracts: {
+                        'my-contract': {
+                            name: 'my-contract',
+                            transactions: [
+                                {
+                                    name: 'transaction1'
+                                },
+                                {
+                                    name: 'transaction2'
+                                }
+                            ],
+                        }
+                    }
                 }
-            ]);
+            );
 
             showInstantiatedSmartContractQuickPickStub = mySandBox.stub(UserInputUtil, 'showClientInstantiatedSmartContractsQuickPick').resolves({
                 label: 'myContract',
