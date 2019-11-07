@@ -57,8 +57,12 @@ exports[`TransactionCreate component should render the expected snapshot 1`] = `
       <div
         className="titles-container"
       >
-        <span>
-          smartContract@0.0.1 home
+        <span
+          className="home-link"
+          onClick={[Function]}
+        >
+          greenContract@0.0.1
+           home
         </span>
       </div>
       <div
@@ -145,46 +149,31 @@ exports[`TransactionCreate component should render the expected snapshot 1`] = `
                     <select
                       className="bx--select-input"
                       id="transaction-name-select"
+                      onChange={[Function]}
                     >
                       <option
                         className="bx--select-option"
                         disabled={false}
-                        hidden={false}
-                        value="create-penguin"
+                        hidden={true}
+                        value="placeholder-item"
                       >
-                        Create Penguin
+                        Select the transaction name
                       </option>
                       <option
                         className="bx--select-option"
                         disabled={false}
                         hidden={false}
-                        value="read-penguin"
+                        value="transactionOne"
                       >
-                        Read Penguin
+                        transactionOne
                       </option>
                       <option
                         className="bx--select-option"
                         disabled={false}
                         hidden={false}
-                        value="update-penguin"
+                        value="transactionTwo"
                       >
-                        Update Penguin
-                      </option>
-                      <option
-                        className="bx--select-option"
-                        disabled={false}
-                        hidden={false}
-                        value="delete-penguin"
-                      >
-                        Delete Penguin
-                      </option>
-                      <option
-                        className="bx--select-option"
-                        disabled={false}
-                        hidden={false}
-                        value="penguin-exists"
-                      >
-                        Penguin Exists
+                        transactionTwo
                       </option>
                     </select>
                     <svg
@@ -313,6 +302,7 @@ exports[`TransactionCreate component should render the expected snapshot 1`] = `
               >
                 <label
                   className="bx--label"
+                  htmlFor="arguments-text-area"
                 >
                   Arguments
                 </label>
@@ -326,10 +316,12 @@ exports[`TransactionCreate component should render the expected snapshot 1`] = `
                     className="bx--text-area"
                     cols={50}
                     disabled={false}
+                    id="arguments-text-area"
                     onChange={[Function]}
                     onClick={[Function]}
                     placeholder=""
                     rows={4}
+                    value=""
                   />
                 </div>
               </div>
