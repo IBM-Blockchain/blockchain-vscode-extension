@@ -1100,6 +1100,24 @@ export class UserInputUtil {
 
     }
 
+    public static async showOpsToolNodesQuickPickBox(prompt: string, nodes: FabricNode[], canPickMany: boolean): Promise<Array<IBlockchainQuickPickItem<FabricNode>> | IBlockchainQuickPickItem<FabricNode> | undefined> {
+        if (nodes.length === 0) {
+            throw new Error('Error when importing nodes, no nodes found to choose from.');
+        }
+
+        const quickPickItems: IBlockchainQuickPickItem<FabricNode>[] = nodes.map((_node: FabricNode) => {
+            return { label: _node.name, data: _node };
+        });
+
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: true,
+            canPickMany: canPickMany,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+    }
+
     private static async checkForUnsavedFiles(): Promise<void> {
         const unsavedFiles: vscode.TextDocument = vscode.workspace.textDocuments.find((document: vscode.TextDocument) => {
             return document.isDirty;
