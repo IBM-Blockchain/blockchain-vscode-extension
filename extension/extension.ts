@@ -35,7 +35,7 @@ import { FabricWalletUtil } from './fabric/FabricWalletUtil';
 import { FabricGatewayHelper } from './fabric/FabricGatewayHelper';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
-
+    // trigger build
     GlobalState.setExtensionContext(context);
 
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
