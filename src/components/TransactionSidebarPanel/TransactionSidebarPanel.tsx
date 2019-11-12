@@ -20,16 +20,12 @@ class TransactionSidebarPanel extends Component<SidebarPanelProps, SidebarPanelS
         };
     }
 
-    public importTxn(): void {
+    importTxn(): void {
         // tslint:disable-next-line: no-console
         console.log('import an existing transaction');
     }
 
-    public render(): any {
-        return this.getContents();
-    }
-
-    private getContents(): any {
+    getContents(): any {
         let panelTSX: any;
 
         if (this.state.panelType === 'buttons') {
@@ -55,6 +51,11 @@ class TransactionSidebarPanel extends Component<SidebarPanelProps, SidebarPanelS
 
         return panelTSX;
     }
+
+    render(): any {
+        return this.getContents();
+    }
+
 }
 
 export default TransactionSidebarPanel;
