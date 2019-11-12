@@ -1,3 +1,4 @@
+// tslint:disable: no-unused-expression
 import React from 'react';
 import { mount } from 'enzyme';
 import App from '../../src/App';
@@ -119,4 +120,10 @@ describe('App', () => {
         expect(component.state().childState.activeSmartContract).toBe(blueContract);
     });
 
+    it('attempts to post a message to vscode', async () => {
+        const postToVSCodeStub: sinon.SinonStub = mySandBox.stub(Utils, 'postToVSCode').resolves();
+        const component: any = mount(<App/>);
+        component.instance().postMessageHandler({});
+        postToVSCodeStub.should.have.been.called;
+    });
 });

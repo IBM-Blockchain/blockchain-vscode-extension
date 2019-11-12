@@ -26,7 +26,7 @@ html {
             }
 
             // Button Components (create and import buttons in sidebar)
-            #create-button, #import-button, #save-txn-button {
+            #create-button, #import-button, #save-txn-button, #evaluate-button, #submit-button {
                 @include button-dark;
             }
 
@@ -65,7 +65,7 @@ html {
             }
 
             // Button Components (create and import buttons in sidebar)
-            #create-button, #import-button, #save-txn-button {
+            #create-button, #import-button, #save-txn-button, #evaluate-button, #submit-button {
                 @include button-light;
             }
 

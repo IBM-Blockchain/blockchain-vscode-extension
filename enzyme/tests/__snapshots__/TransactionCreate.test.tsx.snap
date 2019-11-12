@@ -388,6 +388,29 @@ exports[`TransactionCreate component should render the expected snapshot 1`] = `
           </div>
         </div>
       </div>
+      <div
+        className="bx--row"
+      >
+        <button
+          className="bx--btn bx--btn--field bx--btn--primary"
+          disabled={false}
+          id="evaluate-button"
+          tabIndex={0}
+          type="button"
+        >
+          Evaluate
+        </button>
+        <button
+          className="bx--btn bx--btn--field bx--btn--primary"
+          disabled={false}
+          id="submit-button"
+          onClick={[Function]}
+          tabIndex={0}
+          type="button"
+        >
+          Submit
+        </button>
+      </div>
     </div>
   </div>
 </div>

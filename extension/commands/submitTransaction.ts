@@ -26,7 +26,7 @@ import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryE
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 
-export async function submitTransaction(evaluate: boolean, treeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string): Promise<void> {
+export async function submitTransaction(evaluate: boolean, treeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string, transactionObject?: any): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     let action: string;
     let actioning: string;
@@ -41,118 +41,131 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
         actioned = 'submitted';
     }
     outputAdapter.log(LogType.INFO, undefined, `${action}Transaction`);
+
     let transactionName: string;
     let namespace: string;
-
-    if (treeItem instanceof TransactionTreeItem) {
-        smartContract = treeItem.chaincodeName;
-        transactionName = treeItem.name;
-        channelName = treeItem.channelName;
-        namespace = treeItem.contractName;
-    } else {
-        if (!treeItem && !channelName && !smartContract) {
-            if (!FabricConnectionManager.instance().getConnection()) {
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
-                if (!FabricConnectionManager.instance().getConnection()) {
-                    // either the user cancelled or ther was an error so don't carry on
-                    return;
-                }
-            }
-
-            const chosenSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick(`Choose a smart contract to ${action} a transaction from`, null);
-            if (!chosenSmartContract) {
-                return;
-            }
-
-            channelName = chosenSmartContract.data.channel;
-            smartContract = chosenSmartContract.data.name;
-        } else if (treeItem instanceof InstantiatedTreeItem) {
-            channelName = treeItem.channels[0].label;
-            smartContract = treeItem.name;
-        }
-
-        const chosenTransaction: IBlockchainQuickPickItem<{ name: string, contract: string }> = await UserInputUtil.showTransactionQuickPick(`Choose a transaction to ${action}`, smartContract, channelName);
-        if (!chosenTransaction) {
-            return;
-        } else {
-            transactionName = chosenTransaction.data.name;
-            namespace = chosenTransaction.data.contract;
-        }
-    }
-
     let args: Array<string> = [];
-    const argsString: string = await UserInputUtil.showInputBox('optional: What are the arguments to the transaction, (e.g. ["arg1", "arg2"])', '[]');
-    if (argsString === undefined) {
-        return;
-    } else if (argsString === '') {
-        args = [];
-    } else {
-        try {
-            if (!argsString.startsWith('[') || !argsString.endsWith(']')) {
-                throw new Error('transaction arguments should be in the format ["arg1", {"key" : "value"}]');
-            }
-            args = JSON.parse(argsString);
-        } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Error with transaction arguments: ${error.message}`);
-            return;
-        }
-    }
-
     let transientData: { [key: string]: Buffer };
-    try {
-
-        const transientDataString: string = await UserInputUtil.showInputBox('optional: What is the transient data for the transaction, e.g. {"key": "value"}', '{}');
-
-        if (transientDataString === undefined) {
-            return;
-        } else if (transientDataString !== '' && transientDataString !== '{}') {
-            if (!transientDataString.startsWith('{') || !transientDataString.endsWith('}')) {
-                throw new Error('transient data should be in the format {"key": "value"}');
-            }
-            transientData = JSON.parse(transientDataString);
-            const keys: Array<string> = Array.from(Object.keys(transientData));
-
-            keys.forEach((key: string) => {
-                transientData[key] = Buffer.from(transientData[key]);
-            });
-        }
-    } catch (error) {
-        outputAdapter.log(LogType.ERROR, `Error with transaction transient data: ${error.message}`);
-        return;
-    }
-
-    const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
-    const channelPeerInfo: {name: string, mspID: string}[] = await connection.getChannelPeersInfo(channelName);
-
-    let selectPeers: string;
-
-    if (channelPeerInfo.length === 0) {
-        outputAdapter.log(LogType.ERROR, `No channel peers available to target`);
-        return;
-    } else if (channelPeerInfo.length === 1) {
-        selectPeers = UserInputUtil.DEFAULT;
-    } else {
-        selectPeers = await UserInputUtil.showQuickPick('Select a peer-targeting policy for this transaction', [UserInputUtil.DEFAULT, UserInputUtil.CUSTOM]) as string;
-    }
-
     let peerTargetNames: string[] = [];
     let peerTargetMessage: string = '';
+    let connection: IFabricClientConnection;
 
-    if (!selectPeers) {
-        return;
-    } else if (selectPeers === UserInputUtil.CUSTOM) {
-
-        const peerTargets: Array<IBlockchainQuickPickItem<string>> = await UserInputUtil.showChannelPeersQuickPick(channelPeerInfo) as Array<IBlockchainQuickPickItem<string>>;
-
-        if (!peerTargets || peerTargets.length === 0) {
-            return;
+    if (!transactionObject) {
+        if (treeItem instanceof TransactionTreeItem) {
+            smartContract = treeItem.chaincodeName;
+            transactionName = treeItem.name;
+            channelName = treeItem.channelName;
+            namespace = treeItem.contractName;
         } else {
-            peerTargetNames = peerTargets.map((peer: IBlockchainQuickPickItem<string>) => {
-                return peer.data;
-            });
+            if (!treeItem && !channelName && !smartContract) {
+                if (!FabricConnectionManager.instance().getConnection()) {
+                    await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
+                    if (!FabricConnectionManager.instance().getConnection()) {
+                        // either the user cancelled or ther was an error so don't carry on
+                        return;
+                    }
+                }
 
-            peerTargetMessage = ` to peers ${peerTargetNames}`;
+                const chosenSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick(`Choose a smart contract to ${action} a transaction from`, null);
+                if (!chosenSmartContract) {
+                    return;
+                }
+
+                channelName = chosenSmartContract.data.channel;
+                smartContract = chosenSmartContract.data.name;
+            } else if (treeItem instanceof InstantiatedTreeItem) {
+                channelName = treeItem.channels[0].label;
+                smartContract = treeItem.name;
+            }
+
+            const chosenTransaction: IBlockchainQuickPickItem<{ name: string, contract: string }> = await UserInputUtil.showTransactionQuickPick(`Choose a transaction to ${action}`, smartContract, channelName);
+            if (!chosenTransaction) {
+                return;
+            } else {
+                transactionName = chosenTransaction.data.name;
+                namespace = chosenTransaction.data.contract;
+            }
         }
+
+        const argsString: string = await UserInputUtil.showInputBox('optional: What are the arguments to the transaction, (e.g. ["arg1", "arg2"])', '[]');
+        if (argsString === undefined) {
+            return;
+        } else if (argsString === '') {
+            args = [];
+        } else {
+            try {
+                if (!argsString.startsWith('[') || !argsString.endsWith(']')) {
+                    throw new Error('transaction arguments should be in the format ["arg1", {"key" : "value"}]');
+                }
+                args = JSON.parse(argsString);
+            } catch (error) {
+                outputAdapter.log(LogType.ERROR, `Error with transaction arguments: ${error.message}`);
+                return;
+            }
+        }
+
+        try {
+
+            const transientDataString: string = await UserInputUtil.showInputBox('optional: What is the transient data for the transaction, e.g. {"key": "value"}', '{}');
+
+            if (transientDataString === undefined) {
+                return;
+            } else if (transientDataString !== '' && transientDataString !== '{}') {
+                if (!transientDataString.startsWith('{') || !transientDataString.endsWith('}')) {
+                    throw new Error('transient data should be in the format {"key": "value"}');
+                }
+                transientData = JSON.parse(transientDataString);
+                const keys: Array<string> = Array.from(Object.keys(transientData));
+
+                keys.forEach((key: string) => {
+                    transientData[key] = Buffer.from(transientData[key]);
+                });
+            }
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Error with transaction transient data: ${error.message}`);
+            return;
+        }
+
+        connection = FabricConnectionManager.instance().getConnection();
+        const channelPeerInfo: {name: string, mspID: string}[] = await connection.getChannelPeersInfo(channelName);
+
+        let selectPeers: string;
+
+        if (channelPeerInfo.length === 0) {
+            outputAdapter.log(LogType.ERROR, `No channel peers available to target`);
+            return;
+        } else if (channelPeerInfo.length === 1) {
+            selectPeers = UserInputUtil.DEFAULT;
+        } else {
+            selectPeers = await UserInputUtil.showQuickPick('Select a peer-targeting policy for this transaction', [UserInputUtil.DEFAULT, UserInputUtil.CUSTOM]) as string;
+        }
+
+        if (!selectPeers) {
+            return;
+        } else if (selectPeers === UserInputUtil.CUSTOM) {
+
+            const peerTargets: Array<IBlockchainQuickPickItem<string>> = await UserInputUtil.showChannelPeersQuickPick(channelPeerInfo) as Array<IBlockchainQuickPickItem<string>>;
+
+            if (!peerTargets || peerTargets.length === 0) {
+                return;
+            } else {
+                peerTargetNames = peerTargets.map((peer: IBlockchainQuickPickItem<string>) => {
+                    return peer.data;
+                });
+
+                peerTargetMessage = ` to peers ${peerTargetNames}`;
+            }
+        }
+    } else {
+        channelName = transactionObject.channelName;
+        smartContract = transactionObject.smartContract;
+        transactionName = transactionObject.transactionName;
+        namespace = transactionObject.namespace;
+        args = transactionObject.args;
+        transientData = transactionObject.transientData;
+        peerTargetNames = transactionObject.peerTargetNames;
+        peerTargetMessage = peerTargetNames.length > 0 ? ` to peers ${peerTargetNames}` : '';
+        connection = FabricConnectionManager.instance().getConnection();
     }
 
     await vscode.window.withProgress({

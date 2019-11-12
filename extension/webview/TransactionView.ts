@@ -15,6 +15,7 @@
 'use strict';
 import * as vscode from 'vscode';
 import { ReactView } from './ReactView';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 export class TransactionView extends ReactView {
     public appState: any;
@@ -25,6 +26,11 @@ export class TransactionView extends ReactView {
     }
 
     async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
+        panel.webview.onDidReceiveMessage(async (message: any) => {
+            if (message.command === 'submit') {
+                await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, message.data);
+            }
+        });
         this.loadComponent(panel);
     }
 
@@ -34,5 +40,4 @@ export class TransactionView extends ReactView {
             state: this.appState
         });
     }
-
 }

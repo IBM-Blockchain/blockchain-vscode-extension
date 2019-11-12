@@ -22,6 +22,7 @@ import { TransactionView } from '../../extension/webview/TransactionView';
 import { View } from '../../extension/webview/View';
 import { TestUtil } from '../TestUtil';
 import { GlobalState } from '../../extension/util/GlobalState';
+import { ExtensionCommands } from '../../ExtensionCommands';
 import ITransaction from '../../src/interfaces/ITransaction';
 import ISmartContract from '../../src/interfaces/ISmartContract';
 chai.use(sinonChai);
@@ -82,6 +83,16 @@ describe('TransactionView', () => {
         activeSmartContract: greenContract
     };
 
+    const transactionObject: any = {
+        smartContract: 'greenContract',
+        transactionName: 'transactionOne',
+        channelName: 'mychannel',
+        args: ['arg1', 'arg2', 'arg3'],
+        namespace: 'GreenContract',
+        transientData: undefined,
+        peerTargetNames: undefined
+    };
+
     before(async () => {
         await TestUtil.setupTests(mySandBox);
     });
@@ -90,13 +101,20 @@ describe('TransactionView', () => {
         context = GlobalState.getExtensionContext();
         executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
         executeCommandStub.callThrough();
+        executeCommandStub.withArgs(ExtensionCommands.SUBMIT_TRANSACTION).resolves();
 
         createWebviewPanelStub = mySandBox.stub(vscode.window, 'createWebviewPanel');
 
         postMessageStub = mySandBox.stub().resolves();
 
         View['openPanels'].splice(0, View['openPanels'].length);
+    });
 
+    afterEach(() => {
+        mySandBox.restore();
+    });
+
+    it('should register and show transaction page', async () => {
         createWebviewPanelStub.returns({
             title: 'Transaction Page',
             webview: {
@@ -107,15 +125,8 @@ describe('TransactionView', () => {
             dispose: mySandBox.stub(),
             onDidDispose: mySandBox.stub(),
             onDidChangeViewState: mySandBox.stub()
-
         });
-    });
 
-    afterEach(() => {
-        mySandBox.restore();
-    });
-
-    it('should register and show transaction page', async () => {
         const transactionView: TransactionView = new TransactionView(context, mockAppState);
         await transactionView.openView(false);
         createWebviewPanelStub.should.have.been.called;
@@ -123,6 +134,66 @@ describe('TransactionView', () => {
             path: '/transaction',
             state: mockAppState
         });
+    });
+
+    it(`should handle a 'submit' message`, async () => {
+        const onDidReceiveMessagePromises: any[] = [];
+
+        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
+            createWebviewPanelStub.onCall(0).returns({
+                webview: {
+                    postMessage: mySandBox.stub(),
+                    onDidReceiveMessage: async (callback: any): Promise<void> => {
+                        await callback({
+                            command: 'submit',
+                            data: transactionObject
+                        });
+                        resolve();
+                    }
+                },
+                reveal: (): void => {
+                    return;
+                },
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
+            });
+        }));
+
+        const transactionView: TransactionView = new TransactionView(context, mockAppState);
+        await transactionView.openView(false);
+        await Promise.all(onDidReceiveMessagePromises);
+
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
+    });
+
+    it('should not do anything if it receives an invalid message', async () => {
+        const onDidReceiveMessagePromises: any[] = [];
+
+        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
+            createWebviewPanelStub.onCall(0).returns({
+                webview: {
+                    postMessage: mySandBox.stub(),
+                    onDidReceiveMessage: async (callback: any): Promise<void> => {
+                        await callback({
+                            command: 'invalid',
+                            data: transactionObject
+                        });
+                        resolve();
+                    }
+                },
+                reveal: (): void => {
+                    return;
+                },
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
+            });
+        }));
+
+        const transactionView: TransactionView = new TransactionView(context, mockAppState);
+        await transactionView.openView(false);
+        await Promise.all(onDidReceiveMessagePromises);
+
+        executeCommandStub.should.not.have.been.called;
     });
 
 });

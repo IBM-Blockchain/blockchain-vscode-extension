@@ -1,3 +1,6 @@
+import IVSCode from './interfaces/IVSCode';
+declare const vscode: IVSCode;
+
 const Utils: any = {
 
     changeRoute(newPath: string): void {
@@ -6,6 +9,13 @@ const Utils: any = {
                 path: newPath
             }
         }));
+    },
+
+    postToVSCode(message: any): void {
+        vscode.postMessage({
+            command: message.type,
+            data: message.data
+        });
     }
 
 };

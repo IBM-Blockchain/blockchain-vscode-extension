@@ -16,6 +16,7 @@ describe('TransactionCreate component', () => {
     let mySandbox: sinon.SinonSandbox;
     let changeRouteStub: sinon.SinonStub;
     let getTransactionArgumentsSpy: sinon.SinonSpy;
+    let postMessageHandlerStub: sinon.SinonStub;
 
     const transactionOne: ITransaction = {
         name: 'transactionOne',
@@ -56,6 +57,7 @@ describe('TransactionCreate component', () => {
         mySandbox = sinon.createSandbox();
         changeRouteStub = mySandbox.stub(Utils, 'changeRoute').resolves();
         getTransactionArgumentsSpy = mySandbox.spy(TransactionCreate.prototype, 'getTransactionArguments');
+        postMessageHandlerStub = mySandbox.stub();
     });
 
     afterEach(async () => {
@@ -64,38 +66,56 @@ describe('TransactionCreate component', () => {
 
     it('should render the expected snapshot', async () => {
         const component: any = renderer
-            .create(<TransactionCreate activeSmartContract={greenContract}/>)
+            .create(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>)
             .toJSON();
         expect(component).toMatchSnapshot();
     });
 
     it('redirects back to the home page when the appropriate link is clicked on', async () => {
-        const component: any = mount(<TransactionCreate activeSmartContract={greenContract}/>);
+        const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
         component.find('.titles-container > span').simulate('click');
         changeRouteStub.should.have.been.called;
     });
 
     it('generates transaction arguments when an option from the transaction select is chosen', async () => {
-        const component: any = mount(<TransactionCreate activeSmartContract={greenContract}/>);
+        const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
         expect(component.state().transactionArguments).toBe('');
-        component.find('select').at(0).prop('onChange')( { currentTarget: { value: 'transactionOne' } });
+        component.find('select').at(0).prop('onChange')( { currentTarget: { value: 'transactionOne' } } );
         getTransactionArgumentsSpy.should.have.been.called;
+        expect(component.state().activeTransaction).toBe(transactionOne);
         expect(component.state().transactionArguments).toBe('name: \n');
     });
 
     it('does not generate arguments in the event that the chosen transaction doesn\'t exist', async () => {
-        const component: any = mount(<TransactionCreate activeSmartContract={greenContract}/>);
+        const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
         expect(component.state().transactionArguments).toBe('');
-        component.find('select').at(0).prop('onChange')( { currentTarget: { value: 'anotherTransaction' } });
+        component.find('select').at(0).prop('onChange')( { currentTarget: { value: 'anotherTransaction' } } );
         getTransactionArgumentsSpy.should.have.been.called;
+        expect(component.state().activeTransaction).toBe(undefined);
         expect(component.state().transactionArguments).toBe('');
     });
 
     it('updates when the user types in the textarea', async () => {
-        const component: any = mount(<TransactionCreate activeSmartContract={greenContract}/>);
+        const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
         expect(component.state().transactionArguments).toBe('');
         component.find('textarea').prop('onChange')( { currentTarget: { value: 'hello' } } );
         expect(component.state().transactionArguments).toBe('hello');
+    });
+
+    it('should attempt to submit a transaction when the submit button is clicked ', async () => {
+        const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
+        component.setState({
+            activeTransaction: transactionOne,
+            transactionArguments: 'name: Green\n'
+        });
+        component.find('#submit-button').at(1).simulate('click');
+        postMessageHandlerStub.should.have.been.called;
+    });
+
+    it('should do nothing if there is no active transaction ', async () => {
+        const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
+        component.find('#submit-button').at(1).simulate('click');
+        postMessageHandlerStub.should.not.have.been.called;
     });
 
 });
