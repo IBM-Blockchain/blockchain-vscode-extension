@@ -10,9 +10,6 @@
                 "singleline": "never"
             }
         ],
-        "rulesDirectory": [
-            "./node_modules/codelyzer"
-        ],
         "interface-name": [
             false,
             "always-prefix"

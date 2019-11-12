@@ -16,7 +16,7 @@ Please visit the [Visual Studio Code Marketplace](https://marketplace.visualstud
 
 You will need the following installed in order to use the extension:
 - Windows 10, Linux, or Mac OS are currently the supported operating systems.
-- [VS Code version 1.35.1 or greater](https://code.visualstudio.com)
+- [VS Code version 1.38.1 or greater](https://code.visualstudio.com)
 - [Node v8.x or v10.x and npm v6.x or greater](https://nodejs.org/en/download/)
 - [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)
 - [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/)
@@ -411,7 +411,7 @@ The extension uses telemetry reporting to track usage data and help improve futu
 For instructions on how to disable telemetry reporting, please visit the [Visual Studio Code FAQ](https://code.visualstudio.com/docs/supporting/FAQ#_how-to-disable-telemetry-reporting)
 
 ## License <a name="license"></a>
-The source code files are made available under the Apache License, Version 2.0 (Apache-2.0), located in the [LICENSE](LICENSE.txt) file.
+The source code files are made available under the Apache License, Version 2.0 (Apache-2.0), located in the [LICENSE](blockchain-extension/LICENSE.txt) file.
 
 This software uses the IBM Plex Sans font licensed under the SIL Open Font License, Version 1.1.
 Copyright © 2017 IBM Corp. with Reserved Font Name "Plex"
