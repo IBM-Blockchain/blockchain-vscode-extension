@@ -164,7 +164,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
         args = transactionObject.args;
         transientData = transactionObject.transientData;
         peerTargetNames = transactionObject.peerTargetNames;
-        peerTargetMessage = peerTargetNames.length > 0 ? ` to peers ${peerTargetNames}` : '';
+        peerTargetMessage = '';
         connection = FabricConnectionManager.instance().getConnection();
     }
 

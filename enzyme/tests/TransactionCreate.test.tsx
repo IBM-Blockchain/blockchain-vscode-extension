@@ -112,6 +112,16 @@ describe('TransactionCreate component', () => {
         postMessageHandlerStub.should.have.been.called;
     });
 
+    it('should attempt to evaluate a transaction when the evaluate button is clicked', async () => {
+        const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
+        component.setState({
+            activeTransaction: transactionOne,
+            transactionArguments: 'name: Green\n'
+        });
+        component.find('#evaluate-button').at(1).simulate('click');
+        postMessageHandlerStub.should.have.been.called;
+    });
+
     it('should do nothing if there is no active transaction ', async () => {
         const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
         component.find('#submit-button').at(1).simulate('click');

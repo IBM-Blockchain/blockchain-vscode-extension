@@ -13,7 +13,7 @@ const Utils: any = {
 
     postToVSCode(message: any): void {
         vscode.postMessage({
-            command: message.type,
+            command: message.command,
             data: message.data
         });
     }

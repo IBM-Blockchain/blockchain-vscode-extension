@@ -94,7 +94,7 @@ class TransactionCreate extends Component<CreateProps, CreateState> {
                             </div>
                         </div>
                         <div className='bx--row'>
-                            <Button size='field' id='evaluate-button'>Evaluate</Button>
+                            <Button size='field' id='evaluate-button' onClick={(): void => this.submitTxn(true)}>Evaluate</Button>
                             <Button size='field' id='submit-button' onClick={(): void => this.submitTxn(false)}>Submit</Button>
                         </div>
                     </div>
@@ -122,10 +122,13 @@ class TransactionCreate extends Component<CreateProps, CreateState> {
 
     private submitTxn(evaluate: boolean): void {
         if (this.state.activeTransaction !== undefined) {
+
+            const commandType: string = evaluate ? 'evaluate' : 'submit';
+
             const args: Array<string> = this.parseArgs(this.state.transactionArguments);
 
             const transactionObject: any = {
-                type: 'submit',
+                command: commandType,
                 data: {
                     smartContract: this.state.activeSmartContract.name,
                     transactionName: this.state.activeTransaction.name,
