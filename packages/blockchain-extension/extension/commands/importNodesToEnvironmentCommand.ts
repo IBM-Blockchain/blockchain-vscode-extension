@@ -25,6 +25,7 @@ import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FileSystemUtil } from '../util/FileSystemUtil';
 import Axios from 'axios';
+import { ExtensionUtil } from '../util/ExtensionUtil';
 
 export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false): Promise<boolean> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -42,8 +43,11 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
         }
 
         const createMethod: string = await UserInputUtil.showQuickPick('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]);
+        if (!createMethod) {
+            return;
+        }
 
-        const nodesToUodate: FabricNode[] = [];
+        const nodesToUpdate: FabricNode[] = [];
         let addedAllNodes: boolean = true;
         if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_NODES) {
             const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
@@ -88,7 +92,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                         nodes = [nodes];
                     }
 
-                    nodesToUodate.push(...nodes);
+                    nodesToUpdate.push(...nodes);
                 } catch (error) {
                     addedAllNodes = false;
                     outputAdapter.log(LogType.ERROR, `Error importing node file ${nodeUri.fsPath}: ${error.message}`, `Error importing node file ${nodeUri.fsPath}: ${error.toString()}`);
@@ -96,15 +100,29 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             }
         } else {
 
+            const keytar: any = getCoreNodeModule('keytar');
+            if (!keytar) {
+                throw new Error('Error importing the keytar module');
+            }
+
             const GET_ALL_COMPONENTS: string = '/ak/api/v1/components';
             const url: string = await UserInputUtil.showInputBox('Enter the url of the ops tools you want to connect to');
+            if (!url) {
+                return;
+            }
             const apiKey: string = await UserInputUtil.showInputBox('Enter the api key of the ops tools you want to connect to');
+            if (!apiKey) {
+                return;
+            }
 
+            let response: any;
             try {
                 const api: string = url.replace(/\/$/, '') + GET_ALL_COMPONENTS;
-                const response: any = await Axios.get(api, {
+                response = await Axios.get(api, {
                     headers: { Authorization: `Bearer ${apiKey}` }
                 });
+
+                environmentRegistryEntry.url = url;
 
                 const data: any = response.data;
                 const filteredData: FabricNode[] = data.filter((_data: any) => _data.api_url)
@@ -118,12 +136,19 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                         delete _data.display_name;
                         return FabricNode.pruneNode(_data);
                     });
-                nodesToUodate.push(...filteredData);
+                nodesToUpdate.push(...filteredData);
+
             } catch (error) {
                 outputAdapter.log(LogType.ERROR, `Failed to connect to ${url}, with error ${error.message}`, `Failed to connect to ${url}, with error ${error.toString()}`);
                 if (fromAddEnvironment) {
                     throw error;
                 }
+            }
+
+            try {
+                await keytar.setPassword('blockchain-vscode-ext', url, apiKey);
+            } catch (error) {
+                throw new Error(`Unable to store API key securely in your keychain: ${error.message}`);
             }
         }
 
@@ -136,13 +161,13 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
         const environment: FabricEnvironment = new FabricEnvironment(environmentRegistryEntry.name);
         const oldNodes: FabricNode[] = await environment.getNodes();
 
-        for (const node of nodesToUodate) {
+        for (const node of nodesToUpdate) {
             try {
                 const alreadyExists: boolean = oldNodes.some((_node: FabricNode) => _node.name === node.name);
                 if (alreadyExists && createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_NODES) {
                     throw new Error(`Node with name ${node.name} already exists`);
                 }
-                await FabricNode.validateNode(node);
+                FabricNode.validateNode(node);
                 await environment.updateNode(node);
             } catch (error) {
                 addedAllNodes = false;
@@ -179,9 +204,23 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
         return addedAllNodes;
 
     } catch (error) {
-        outputAdapter.log(LogType.ERROR, `Error importing nodes: ${error.message}`, `Error importing nodes: ${error.toString()}`);
+        outputAdapter.log(LogType.ERROR, `Error importing nodes: ${error.message}`);
         if (fromAddEnvironment) {
             throw error;
         }
     }
 }
+
+function getCoreNodeModule(moduleName: string): any {
+    try {
+      return ExtensionUtil.getModuleAsar(moduleName);
+    } catch (err) {
+        // do nothing
+    }
+    try {
+      return ExtensionUtil.getModule(moduleName);
+    } catch (err) {
+        // do nothing
+    }
+    return undefined;
+  }

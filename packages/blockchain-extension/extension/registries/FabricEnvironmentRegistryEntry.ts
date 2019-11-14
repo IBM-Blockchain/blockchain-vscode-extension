@@ -17,6 +17,7 @@ import { RegistryEntry } from './RegistryEntry';
 export class FabricEnvironmentRegistryEntry extends RegistryEntry {
 
     public managedRuntime?: boolean;
+    public url?: string;
     constructor(fields?: FabricEnvironmentRegistryEntry) {
         super();
         Object.assign(this, fields);
