@@ -18,6 +18,7 @@ export class FabricEnvironmentRegistryEntry extends RegistryEntry {
 
     public managedRuntime: boolean;
     public associatedWallet: string;
+    public url?: string;
     constructor(fields?: FabricEnvironmentRegistryEntry) {
         super();
         Object.assign(this, fields);
