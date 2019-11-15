@@ -140,12 +140,12 @@ stages:
               set -ev
               cd ./blockchain-extension
               rm -rf node_modules
-              yarn install
+              npm install
               npm run package
 
           - task: CopyFiles@2
             inputs:
-              sourceFolder: '$(Build.SourcesDirectory)'
+              sourceFolder: '$(Build.SourcesDirectory)/blockchain-extension'
               contents: '*.vsix'
               targetFolder: '$(Build.ArtifactStagingDirectory)'
 
