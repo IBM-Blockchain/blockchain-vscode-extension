@@ -1,0 +1,1480 @@
+{
+  "name": "ibm-blockchain-platform",
+  "displayName": "IBM Blockchain Platform",
+  "description": "End to end extension for Hyperledger Fabric developers. Develop and test your blockchain smart contracts and client applications on your local machine, and package your projects for deployment into IBM Blockchain Platform runtimes.",
+  "author": "IBMBlockchain",
+  "keywords": [
+    "blockchain",
+    "smart contracts",
+    "distributed ledger technology",
+    "Hyperledger Fabric",
+    "IBM Blockchain Platform"
+  ],
+  "homepage": "https://www.ibm.com/blockchain",
+  "license": "Apache-2.0",
+  "version": "1.0.16",
+  "publisher": "IBMBlockchain",
+  "icon": "resources/blockchain_marketplace.png",
+  "galleryBanner": {
+    "color": "#313131",
+    "theme": "dark"
+  },
+  "production": false,
+  "engines": {
+    "vscode": "^1.38.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/IBM-Blockchain/blockchain-vscode-extension"
+  },
+  "categories": [
+    "Programming Languages",
+    "Debuggers",
+    "Other"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "actualActivationEvents": {
+    "other": [
+      "onDebug"
+    ],
+    "onView": [
+      "gatewayExplorer",
+      "environmentExplorer",
+      "aPackagesExplorer",
+      "walletExplorer"
+    ],
+    "onCommand": [
+      "gatewaysExplorer.addGatewayEntry",
+      "gatewaysExplorer.deleteGatewayEntry",
+      "gatewaysExplorer.connectEntry",
+      "gatewaysExplorer.disconnectEntry",
+      "gatewaysExplorer.refreshEntry",
+      "gatewaysExplorer.testSmartContractEntry",
+      "gatewaysExplorer.testAllSmartContractEntry",
+      "gatewaysExplorer.submitTransactionEntry",
+      "gatewaysExplorer.evaluateTransactionEntry",
+      "gatewaysExplorer.associateWallet",
+      "gatewaysExplorer.dissociateWallet",
+      "gatewaysExplorer.exportConnectionProfileEntry",
+      "gatewaysExplorer.exportConnectionProfileConnectedEntry",
+      "aPackagesExplorer.createSmartContractProjectEntry",
+      "aPackagesExplorer.packageSmartContractProjectEntry",
+      "aPackagesExplorer.deleteSmartContractPackageEntry",
+      "aPackagesExplorer.exportSmartContractPackageEntry",
+      "aPackagesExplorer.importSmartContractPackageEntry",
+      "aPackagesExplorer.refreshEntry",
+      "environmentExplorer.addEnvironmentEntry",
+      "environmentExplorer.importNodesEntry",
+      "environmentExplorer.deleteEnvironmentEntry",
+      "environmentExplorer.associateIdentityNodeEntry",
+      "environmentExplorer.replaceAssociatedIdentityEntry",
+      "environmentExplorer.deleteNodeEntry",
+      "environmentExplorer.connectEntry",
+      "environmentExplorer.disconnectEntry",
+      "environmentExplorer.installSmartContractEntry",
+      "environmentExplorer.instantiateSmartContractEntry",
+      "environmentExplorer.refreshEntry",
+      "environmentExplorer.startFabricRuntime",
+      "environmentExplorer.stopFabricRuntime",
+      "environmentExplorer.restartFabricRuntime",
+      "environmentExplorer.teardownFabricRuntime",
+      "environmentExplorer.openNewTerminal",
+      "environmentExplorer.upgradeSmartContractEntry",
+      "environmentExplorer.createNewIdentityEntry",
+      "walletExplorer.refreshEntry",
+      "walletExplorer.addWalletEntry",
+      "walletExplorer.addWalletIdentityEntry",
+      "walletExplorer.removeWalletEntry",
+      "walletExplorer.deleteIdentityEntry",
+      "walletExplorer.exportWalletEntry",
+      "extensionHome.open",
+      "preReq.open",
+      "tutorialGallery.open",
+      "transactionPage.open"
+    ]
+  },
+  "main": "./build/extension/extension",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "blockchain-explorer",
+          "title": "IBM Blockchain Platform",
+          "icon": "resources/blockchain_activitybar.svg"
+        }
+      ]
+    },
+    "views": {
+      "blockchain-explorer": [
+        {
+          "id": "aPackagesExplorer",
+          "name": "Smart Contracts"
+        },
+        {
+          "id": "environmentExplorer",
+          "name": "Fabric Environments"
+        },
+        {
+          "id": "gatewaysExplorer",
+          "name": "Fabric Gateways"
+        },
+        {
+          "id": "walletExplorer",
+          "name": "Fabric Wallets"
+        }
+      ]
+    },
+    "configuration": {
+      "type": "object",
+      "title": "Blockchain configuration",
+      "properties": {
+        "ibm-blockchain-platform.fabric.gateways": {
+          "type": "array",
+          "default": [],
+          "description": "Gateways for connecting to a Blockchain network"
+        },
+        "ibm-blockchain-platform.fabric.environments": {
+          "type": "array",
+          "default": [],
+          "description": "Environments for connecting to a Blockchain network"
+        },
+        "ibm-blockchain-platform.fabric.wallets": {
+          "type": "array",
+          "default": [],
+          "description": "Wallets for connecting to a Blockchain network"
+        },
+        "ibm-blockchain-platform.fabric.runtime": {
+          "type": "object",
+          "default": {},
+          "description": "Configurations for the local Blockchain managed runtime"
+        },
+        "ibm-blockchain-platform.ext.directory": {
+          "type": "string",
+          "default": "~/.fabric-vscode",
+          "description": "Configurations for IBM Blockchain extension directory"
+        },
+        "ibm-blockchain-platform.ext.repositories": {
+          "type": "array",
+          "default": [],
+          "description": "Repositories for accessing samples stored on disk"
+        },
+        "ibm-blockchain-platform.home.showOnStartup": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show home page when clicking on extension for the first time"
+        },
+        "ibm-blockchain-platform.fabric.chaincode.timeout": {
+          "type": "integer",
+          "default": 120,
+          "description": "Used to configure the Local Fabric's chaincode timeout value (seconds)"
+        },
+        "ibm-blockchain-platform.fabric.client.timeout": {
+          "type": "integer",
+          "default": 120,
+          "description": "Used to configure the client timeout value (seconds)",
+          "minimum": 45
+        },
+        "ibm-blockchain-platform.ext.bypassPreReqs": {
+          "type": "boolean",
+          "default": false,
+          "description": "Bypass the prerequisites check"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "debug.commandList",
+        "title": "Debug Command List",
+        "category": "IBM Blockchain Platform",
+        "icon": {
+          "light": "resources/blockchain_marketplace.png",
+          "dark": "resources/blockchain_marketplace.png"
+        }
+      },
+      {
+        "command": "sample.open",
+        "title": "Open Sample",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "tutorial.open",
+        "title": "Open Tutorial",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "extensionHome.open",
+        "title": "View Homepage",
+        "category": "IBM Blockchain Platform",
+        "icon": {
+          "light": "resources/icon_light.svg",
+          "dark": "resources/icon_dark.svg"
+        }
+      },
+      {
+        "command": "preReq.open",
+        "title": "View Prerequisites",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "tutorialGallery.open",
+        "title": "View Tutorial Gallery",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "transactionPage.open",
+        "title": "Open Transaction View",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "gatewaysExplorer.refreshEntry",
+        "title": "Refresh Fabric Gateways",
+        "icon": {
+          "light": "resources/light/refresh_light.svg",
+          "dark": "resources/dark/refresh.svg"
+        },
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "gatewaysExplorer.connectEntry",
+        "title": "Connect Via Gateway",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "gatewaysExplorer.disconnectEntry",
+        "title": "Disconnect from Gateway",
+        "icon": {
+          "light": "resources/light/back_light.svg",
+          "dark": "resources/dark/back.svg"
+        },
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "gatewaysExplorer.addGatewayEntry",
+        "title": "Add Gateway",
+        "icon": {
+          "light": "resources/light/add_light.svg",
+          "dark": "resources/dark/add.svg"
+        },
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "gatewaysExplorer.deleteGatewayEntry",
+        "title": "Delete Gateway",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "walletExplorer.addWalletIdentityEntry",
+        "title": "Add Identity To Wallet",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "aPackagesExplorer.createSmartContractProjectEntry",
+        "title": "%blockchain.createSmartContractProjectEntry.title%",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "environmentExplorer.addEnvironmentEntry",
+        "title": "Add Environment",
+        "icon": {
+          "light": "resources/light/add_light.svg",
+          "dark": "resources/dark/add.svg"
+        },
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "environmentExplorer.importNodesEntry",
+        "title": "Import nodes into environment",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "environmentExplorer.deleteEnvironmentEntry",
+        "title": "Delete Environment",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "environmentExplorer.associateIdentityNodeEntry",
+        "title": "Associate Identitiy with a Node",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "environmentExplorer.replaceAssociatedIdentityEntry",
+        "title": "Replace Identity Associated with a node",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "environmentExplorer.deleteNodeEntry",
+        "title": "Delete Node",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "environmentExplorer.connectEntry",
+        "title": "Connect to a Fabric Environment",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "environmentExplorer.disconnectEntry",
+        "title": "Disconnect from a Fabric Environment",
+        "icon": {
+          "light": "resources/light/back_light.svg",
+          "dark": "resources/dark/back.svg"
+        },
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "environmentExplorer.refreshEntry",
+        "title": "Refresh Environments",
+        "icon": {
+          "light": "resources/light/refresh_light.svg",
+          "dark": "resources/dark/refresh.svg"
+        },
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "environmentExplorer.installSmartContractEntry",
+        "title": "Install Smart Contract",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "environmentExplorer.instantiateSmartContractEntry",
+        "title": "Instantiate Smart Contract",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "aPackagesExplorer.refreshEntry",
+        "title": "Refresh Smart Contracts",
+        "icon": {
+          "light": "resources/light/refresh_light.svg",
+          "dark": "resources/dark/refresh.svg"
+        },
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "aPackagesExplorer.packageSmartContractProjectEntry",
+        "title": "Package Open Project",
+        "icon": {
+          "light": "resources/light/add_light.svg",
+          "dark": "resources/dark/add.svg"
+        },
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "environmentExplorer.startFabricRuntime",
+        "title": "Start Fabric Runtime",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "environmentExplorer.stopFabricRuntime",
+        "title": "Stop Fabric Runtime",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "environmentExplorer.restartFabricRuntime",
+        "title": "Restart Fabric Runtime",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "environmentExplorer.teardownFabricRuntime",
+        "title": "Teardown Fabric Runtime",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "environmentExplorer.openNewTerminal",
+        "title": "Open New Terminal",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "aPackagesExplorer.deleteSmartContractPackageEntry",
+        "title": "Delete Package",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "aPackagesExplorer.exportSmartContractPackageEntry",
+        "title": "Export Package",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "aPackagesExplorer.importSmartContractPackageEntry",
+        "title": "Import a Package",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "gatewaysExplorer.testAllSmartContractEntry",
+        "title": "Generate Tests For All Smart Contracts",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "gatewaysExplorer.testSmartContractEntry",
+        "title": "Generate Tests for Smart Contract(s)",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "environmentExplorer.upgradeSmartContractEntry",
+        "title": "Upgrade Smart Contract",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "gatewaysExplorer.submitTransactionEntry",
+        "title": "Submit Transaction",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "gatewaysExplorer.evaluateTransactionEntry",
+        "title": "Evaluate Transaction",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "gatewaysExplorer.exportConnectionProfileEntry",
+        "title": "Export Connection Profile",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "gatewaysExplorer.exportConnectionProfileConnectedEntry",
+        "title": "Export Connection Profile",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "environmentExplorer.createNewIdentityEntry",
+        "title": "Create Identity (register and enroll)",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "walletExplorer.refreshEntry",
+        "title": "Refresh Fabric Wallets",
+        "icon": {
+          "light": "resources/light/refresh_light.svg",
+          "dark": "resources/dark/refresh.svg"
+        },
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "walletExplorer.addWalletEntry",
+        "title": "Add Wallet",
+        "icon": {
+          "light": "resources/light/add_light.svg",
+          "dark": "resources/dark/add.svg"
+        },
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "walletExplorer.removeWalletEntry",
+        "title": "Remove Wallet",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "walletExplorer.deleteIdentityEntry",
+        "title": "Delete Identity",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "gatewaysExplorer.associateWallet",
+        "title": "Associate A Wallet",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "gatewaysExplorer.dissociateWallet",
+        "title": "Dissociate A Wallet",
+        "category": "IBM Blockchain Platform"
+      },
+      {
+        "command": "walletExplorer.exportWalletEntry",
+        "title": "Export Wallet",
+        "category": "IBM Blockchain Platform"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "when": "!false",
+          "command": "extensionHome.open",
+          "alt": "extensionHome.open",
+          "group": "navigation"
+        }
+      ],
+      "debug/toolbar": [
+        {
+          "command": "debug.commandList",
+          "when": "blockchain-debug",
+          "group": "blockchain"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "environmentExplorer.startFabricRuntime"
+        },
+        {
+          "command": "environmentExplorer.stopFabricRuntime"
+        },
+        {
+          "command": "environmentExplorer.restartFabricRuntime"
+        },
+        {
+          "command": "environmentExplorer.teardownFabricRuntime"
+        },
+        {
+          "command": "environmentExplorer.openNewTerminal"
+        },
+        {
+          "command": "sample.open",
+          "when": "false"
+        },
+        {
+          "command": "tutorial.open",
+          "when": "false"
+        },
+        {
+          "command": "debug.commandList",
+          "when": "false"
+        },
+        {
+          "command": "gatewaysExplorer.exportConnectionProfileConnectedEntry",
+          "when": "false"
+        },
+        {
+          "command": "transactionPage.open",
+          "when": "false"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "gatewaysExplorer.addGatewayEntry",
+          "when": "view == gatewaysExplorer && !blockchain-gateway-connected",
+          "group": "navigation"
+        },
+        {
+          "command": "gatewaysExplorer.disconnectEntry",
+          "when": "view == gatewaysExplorer && blockchain-gateway-connected",
+          "group": "navigation"
+        },
+        {
+          "command": "gatewaysExplorer.refreshEntry",
+          "when": "view == gatewaysExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "gatewaysExplorer.exportConnectionProfileConnectedEntry",
+          "when": "view == gatewaysExplorer && blockchain-gateway-connected"
+        },
+        {
+          "command": "environmentExplorer.addEnvironmentEntry",
+          "when": "view == environmentExplorer && !blockchain-environment-connected  && !blockchain-environment-setup",
+          "group": "navigation"
+        },
+        {
+          "command": "environmentExplorer.refreshEntry",
+          "when": "view == environmentExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "environmentExplorer.disconnectEntry",
+          "when": "view == environmentExplorer && blockchain-environment-connected || view == environmentExplorer && blockchain-environment-setup",
+          "group": "navigation"
+        },
+        {
+          "command": "aPackagesExplorer.refreshEntry",
+          "when": "view == aPackagesExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "aPackagesExplorer.packageSmartContractProjectEntry",
+          "when": "view == aPackagesExplorer",
+          "group": "blockchain"
+        },
+        {
+          "command": "aPackagesExplorer.createSmartContractProjectEntry",
+          "when": "view == aPackagesExplorer",
+          "group": "blockchain"
+        },
+        {
+          "command": "aPackagesExplorer.importSmartContractPackageEntry",
+          "when": "view == aPackagesExplorer",
+          "group": "blockchain"
+        },
+        {
+          "command": "environmentExplorer.stopFabricRuntime",
+          "when": "view == environmentExplorer && blockchain-runtime-connected",
+          "group": "blockchain"
+        },
+        {
+          "command": "environmentExplorer.restartFabricRuntime",
+          "when": "view == environmentExplorer && blockchain-runtime-connected",
+          "group": "blockchain"
+        },
+        {
+          "command": "environmentExplorer.teardownFabricRuntime",
+          "when": "view == environmentExplorer && blockchain-runtime-connected",
+          "group": "blockchain"
+        },
+        {
+          "command": "walletExplorer.refreshEntry",
+          "when": "view == walletExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "walletExplorer.addWalletEntry",
+          "when": "view == walletExplorer",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "gatewaysExplorer.deleteGatewayEntry",
+          "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-associated-item || viewItem == blockchain-gateway-dissociated-item"
+        },
+        {
+          "command": "gatewaysExplorer.exportConnectionProfileEntry",
+          "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-associated-item || viewItem == blockchain-gateway-dissociated-item || viewItem == blockchain-local-gateway-item"
+        },
+        {
+          "command": "walletExplorer.addWalletIdentityEntry",
+          "when": "view == walletExplorer && viewItem == blockchain-wallet-item || viewItem == blockchain-local-wallet-item"
+        },
+        {
+          "command": "aPackagesExplorer.deleteSmartContractPackageEntry",
+          "when": "view == aPackagesExplorer && viewItem == blockchain-package-item"
+        },
+        {
+          "command": "aPackagesExplorer.exportSmartContractPackageEntry",
+          "when": "view == aPackagesExplorer && viewItem == blockchain-package-item"
+        },
+        {
+          "command": "environmentExplorer.deleteEnvironmentEntry",
+          "when": "view == environmentExplorer && viewItem == blockchain-environment-item"
+        },
+        {
+          "command": "environmentExplorer.stopFabricRuntime",
+          "when": "view == environmentExplorer && viewItem == blockchain-runtime-item"
+        },
+        {
+          "command": "environmentExplorer.restartFabricRuntime",
+          "when": "view == environmentExplorer && viewItem == blockchain-runtime-item"
+        },
+        {
+          "command": "environmentExplorer.teardownFabricRuntime",
+          "when": "view == environmentExplorer && viewItem == blockchain-runtime-item"
+        },
+        {
+          "command": "environmentExplorer.deleteNodeEntry",
+          "when": "view == environmentExplorer && viewItem == blockchain-peer-item && !blockchain-runtime-connected"
+        },
+        {
+          "command": "environmentExplorer.deleteNodeEntry",
+          "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item && !blockchain-runtime-connected"
+        },
+        {
+          "command": "environmentExplorer.deleteNodeEntry",
+          "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item && !blockchain-runtime-connected"
+        },
+        {
+          "command": "environmentExplorer.installSmartContractEntry",
+          "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-environment-connected"
+        },
+        {
+          "command": "environmentExplorer.installSmartContractEntry",
+          "when": "view == environmentExplorer && viewItem == blockchain-runtime-installed-item"
+        },
+        {
+          "command": "environmentExplorer.openNewTerminal",
+          "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-environment-connected && blockchain-runtime-connected"
+        },
+        {
+          "command": "environmentExplorer.openNewTerminal",
+          "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item && blockchain-environment-connected && blockchain-runtime-connected"
+        },
+        {
+          "command": "environmentExplorer.openNewTerminal",
+          "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item && blockchain-environment-connected && blockchain-runtime-connected"
+        },
+        {
+          "command": "environmentExplorer.instantiateSmartContractEntry",
+          "when": "view == environmentExplorer && viewItem == blockchain-channel-item || viewItem == blockchain-runtime-instantiated-item"
+        },
+        {
+          "command": "environmentExplorer.upgradeSmartContractEntry",
+          "when": "view == environmentExplorer && viewItem == blockchain-channel-item"
+        },
+        {
+          "command": "environmentExplorer.upgradeSmartContractEntry",
+          "when": "view == environmentExplorer && viewItem == blockchain-runtime-instantiated-item"
+        },
+        {
+          "command": "environmentExplorer.upgradeSmartContractEntry",
+          "when": "view == environmentExplorer && viewItem == blockchain-instantiated-contract-item || viewItem == blockchain-instantiated-chaincode-item"
+        },
+        {
+          "command": "environmentExplorer.replaceAssociatedIdentityEntry",
+          "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item && blockchain-environment-connected && !blockchain-runtime-connected"
+        },
+        {
+          "command": "environmentExplorer.replaceAssociatedIdentityEntry",
+          "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item && blockchain-environment-connected && !blockchain-runtime-connected"
+        },
+        {
+          "command": "environmentExplorer.replaceAssociatedIdentityEntry",
+          "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-environment-connected && !blockchain-runtime-connected"
+        },
+        {
+          "command": "gatewaysExplorer.testSmartContractEntry",
+          "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-multi-contract-item || viewItem == blockchain-instantiated-contract-item || viewItem == blockchain-contract-item || viewItem == blockchain-instantiated-unknown-item"
+        },
+        {
+          "command": "transactionPage.open",
+          "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-unknown-item && false"
+        },
+        {
+          "command": "transactionPage.open",
+          "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-contract-item && false"
+        },
+        {
+          "command": "gatewaysExplorer.submitTransactionEntry",
+          "when": "view == gatewaysExplorer && viewItem == blockchain-transaction-item"
+        },
+        {
+          "command": "gatewaysExplorer.submitTransactionEntry",
+          "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-chaincode-item"
+        },
+        {
+          "command": "gatewaysExplorer.evaluateTransactionEntry",
+          "when": "view == gatewaysExplorer && viewItem == blockchain-transaction-item"
+        },
+        {
+          "command": "gatewaysExplorer.evaluateTransactionEntry",
+          "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-chaincode-item"
+        },
+        {
+          "command": "environmentExplorer.createNewIdentityEntry",
+          "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item"
+        },
+        {
+          "command": "walletExplorer.removeWalletEntry",
+          "when": "view == walletExplorer && viewItem == blockchain-wallet-item"
+        },
+        {
+          "command": "walletExplorer.deleteIdentityEntry",
+          "when": "view == walletExplorer && viewItem == blockchain-identity-item"
+        },
+        {
+          "command": "gatewaysExplorer.associateWallet",
+          "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-dissociated-item"
+        },
+        {
+          "command": "gatewaysExplorer.dissociateWallet",
+          "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-associated-item"
+        },
+        {
+          "command": "walletExplorer.exportWalletEntry",
+          "when": "view == walletExplorer && viewItem == blockchain-wallet-item || viewItem == blockchain-local-wallet-item"
+        }
+      ]
+    },
+    "debuggers": [
+      {
+        "type": "fabric:go",
+        "label": "Fabric Smart Contract (Go)",
+        "runtime": "node",
+        "configurationAttributes": {
+          "launch": {
+            "required": [],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Path to the program folder (or any file within that folder) when in 'debug' or 'test' mode, and to the pre-built binary file to debug in 'exec' mode.",
+                "default": "${workspaceFolder}"
+              },
+              "mode": {
+                "enum": [
+                  "auto",
+                  "debug",
+                  "remote",
+                  "test",
+                  "exec"
+                ],
+                "description": "One of 'auto', 'debug', 'remote', 'test', 'exec'.",
+                "default": "auto"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Automatically stop program after launch.",
+                "default": false
+              },
+              "args": {
+                "type": "array",
+                "description": "Command line arguments passed to the program.",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
+              },
+              "showLog": {
+                "type": "boolean",
+                "description": "Show log output from the delve debugger.",
+                "default": false
+              },
+              "cwd": {
+                "type": "string",
+                "description": "Workspace relative or absolute path to the working directory of the program being debugged. Default is the current workspace.",
+                "default": "."
+              },
+              "env": {
+                "type": "object",
+                "description": "Environment variables passed to the program.",
+                "default": {}
+              },
+              "buildFlags": {
+                "type": "string",
+                "description": "Build flags, to be passed to the Go compiler.",
+                "default": ""
+              },
+              "init": {
+                "type": "string",
+                "description": "Init file, executed by the terminal client.",
+                "default": ""
+              },
+              "remotePath": {
+                "type": "string",
+                "description": "If remote debugging, the path to the source code on the remote machine, if different from the local machine.",
+                "default": ""
+              },
+              "port": {
+                "type": "number",
+                "description": "The port that the delve debugger will be listening on.",
+                "default": 2345
+              },
+              "host": {
+                "type": "string",
+                "description": "The host name of the machine the delve debugger will be listening on.",
+                "default": "127.0.0.1"
+              },
+              "trace": {
+                "type": "string",
+                "enum": [
+                  "log",
+                  "verbose",
+                  "error"
+                ],
+                "default": "error",
+                "description": "Various levels of logging shown in the debug console. When set to 'log' or 'verbose', the logs will also be written to a file."
+              },
+              "envFile": {
+                "type": "string",
+                "description": "Absolute path to a file containing environment variable definitions.",
+                "default": "${workspaceFolder}/.env"
+              },
+              "backend": {
+                "type": "string",
+                "enum": [
+                  "default",
+                  "native",
+                  "lldb"
+                ],
+                "description": "Backend used by delve. Only available in delve version 0.12.2 and above."
+              },
+              "output": {
+                "type": "string",
+                "description": "Output path for the binary of delve",
+                "default": "debug"
+              },
+              "logOutput": {
+                "type": "string",
+                "enum": [
+                  "debugger",
+                  "gdbwire",
+                  "lldbout",
+                  "debuglineerr",
+                  "rpc"
+                ],
+                "description": "Comma separated list of components that should produce debug output.",
+                "default": "debugger"
+              },
+              "dlvLoadConfig": {
+                "type": "object",
+                "properties": {
+                  "followPointers": {
+                    "type": "boolean",
+                    "description": "FollowPointers requests pointers to be automatically dereferenced",
+                    "default": true
+                  },
+                  "maxVariableRecurse": {
+                    "type": "number",
+                    "description": "MaxVariableRecurse is how far to recurse when evaluating nested types",
+                    "default": 1
+                  },
+                  "maxStringLen": {
+                    "type": "number",
+                    "description": "MaxStringLen is the maximum number of bytes read from a string",
+                    "default": 64
+                  },
+                  "maxArrayValues": {
+                    "type": "number",
+                    "description": "MaxArrayValues is the maximum number of elements read from an array, a slice or a map",
+                    "default": 64
+                  },
+                  "maxStructFields": {
+                    "type": "number",
+                    "description": "MaxStructFields is the maximum number of fields read from a struct, -1 will read all fields",
+                    "default": -1
+                  }
+                },
+                "description": "LoadConfig describes to delve, how to load values from target's memory",
+                "default": {
+                  "followPointers": true,
+                  "maxVariableRecurse": 1,
+                  "maxStringLen": 64,
+                  "maxArrayValues": 64,
+                  "maxStructFields": -1
+                }
+              },
+              "apiVersion": {
+                "type": "number",
+                "enum": [
+                  1,
+                  2
+                ],
+                "description": "Delve Api Version to use. Default value is 2.",
+                "default": 2
+              },
+              "stackTraceDepth": {
+                "type": "number",
+                "description": "Maximum depth of stack trace collected from Delve",
+                "default": 50
+              },
+              "showGlobalVariables": {
+                "type": "boolean",
+                "default": true,
+                "description": "Boolean value to indicate whether global package variables should be shown in the variables pane or not."
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "fabric:java",
+        "label": "Fabric Smart Contract (Java)",
+        "runtime": "node",
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "mainClass"
+            ],
+            "properties": {
+              "projectName": {
+                "type": "string",
+                "description": "The preferred project in which the debugger searches for classes. There could be duplicated class names in different projects. This setting also works when the debugger looks for the specified main class when launching a program. It is required for expression evaluation.",
+                "default": ""
+              },
+              "mainClass": {
+                "type": "string",
+                "description": "The fully qualified class name (e.g. [java module name/]com.xyz.MainApp) or the java file path of the program entry.",
+                "default": ""
+              },
+              "args": {
+                "type": [
+                  "array",
+                  "string"
+                ],
+                "description": "The command line arguments passed to the program.",
+                "default": ""
+              },
+              "vmArgs": {
+                "type": [
+                  "array",
+                  "string"
+                ],
+                "description": "The extra options and system properties for the JVM (e.g. -Xms<size> -Xmx<size> -D<name>=<value>).",
+                "default": ""
+              },
+              "modulePaths": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "The modulepaths for launching the JVM. If not specified, the debugger will automatically resolve from current project.",
+                "default": []
+              },
+              "classPaths": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "The classpaths for launching the JVM. If not specified, the debugger will automatically resolve from current project.",
+                "default": []
+              },
+              "sourcePaths": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "The extra source directories of the program. The debugger looks for source code from project settings by default. This option allows the debugger to look for source code in extra directories.",
+                "default": []
+              },
+              "encoding": {
+                "type": "string",
+                "description": "The file.encoding setting for the JVM. If not specified, 'UTF-8' will be used. Possible values can be found in http://docs.oracle.com/javase/8/docs/technotes/guides/intl/encoding.doc.html.",
+                "default": "UTF-8"
+              },
+              "cwd": {
+                "type": "string",
+                "description": "The working directory of the program. Defaults to the current workspace root.",
+                "default": "${workspaceFolder}"
+              },
+              "env": {
+                "type": "object",
+                "description": "The extra environment variables for the program.",
+                "default": {}
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Automatically pause the program after launching.",
+                "default": true
+              },
+              "console": {
+                "type": "string",
+                "enum": [
+                  "internalConsole",
+                  "integratedTerminal",
+                  "externalTerminal"
+                ],
+                "enumDescriptions": [
+                  "VS Code debug console (input stream not supported).",
+                  "VS Code integrated terminal.",
+                  "External terminal that can be configured in user settings."
+                ],
+                "description": "The specified console to launch the program.",
+                "default": "internalConsole"
+              },
+              "shortenCommandLine": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "jarmanifest",
+                  "argfile",
+                  "auto"
+                ],
+                "enumDescriptions": [
+                  "Launch the program with the standard command line 'java [options] classname [args]'.",
+                  "Generate the classpath parameters to a temporary classpath.jar file, and launch the program with the command line 'java -cp classpath.jar classname [args]'.",
+                  "Generate the classpath parameters to a temporary argument file, and launch the program with the command line 'java @argfile [args]'. This value only applies to Java 9 and higher.",
+                  "Automatically detect the command line length and determine whether to shorten the command line via an appropriate approach."
+                ],
+                "description": "When the project has long classpath or big VM arguments, the command line to launch the program may exceed the maximum command line string limitation allowed by the OS. This configuration item provides multiple approaches to shorten the command line.",
+                "default": "auto"
+              },
+              "stepFilters": {
+                "type": "object",
+                "description": "Skip specified classes or methods when stepping.",
+                "default": {
+                  "classNameFilters": [
+                    "java.*",
+                    "javax.*",
+                    "com.sun.*",
+                    "sun.*",
+                    "sunw.*",
+                    "org.omg.*"
+                  ],
+                  "skipSynthetics": false,
+                  "skipStaticInitializers": false,
+                  "skipConstructors": false
+                },
+                "properties": {
+                  "classNameFilters": {
+                    "type": "array",
+                    "description": "Skip the specified classes when stepping. Class names should be fully qualified. Wildcard is supported.",
+                    "item": {
+                      "type": "string"
+                    },
+                    "default": [
+                      "java.*",
+                      "javax.*",
+                      "com.sun.*",
+                      "sun.*",
+                      "sunw.*",
+                      "org.omg.*"
+                    ]
+                  },
+                  "skipSynthetics": {
+                    "type": "boolean",
+                    "description": "Skip synthetic methods when stepping.",
+                    "default": true
+                  },
+                  "skipStaticInitializers": {
+                    "type": "boolean",
+                    "description": "Skip static initializer methods when stepping.",
+                    "default": true
+                  },
+                  "skipConstructors": {
+                    "type": "boolean",
+                    "description": "Skip constructor methods when stepping.",
+                    "default": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "fabric:node",
+        "label": "Fabric Smart Contract (Node.js)",
+        "runtime": "node",
+        "configurationAttributes": {
+          "launch": {
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Absolute path to a text file.",
+                "default": "${workspaceFolder}/node_modules/bin/fabric-chaincode-node"
+              },
+              "cwd": {
+                "type": "string",
+                "description": "The current working directory",
+                "default": "${workspaceFolder}"
+              },
+              "args": {
+                "type": "array",
+                "description": "The arguments to give to the Fabric runtime",
+                "default": []
+              },
+              "env": {
+                "type": "object",
+                "description": "The environment variables to give to the Fabric runtime",
+                "default": {}
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Automatically stop program after launch.",
+                "default": true
+              },
+              "sourceMaps": {
+                "type": "boolean",
+                "description": "Use JavaScript source maps (if they exist).",
+                "default": true
+              },
+              "outFiles": {
+                "type": "array",
+                "description": "If source maps are enabled, these glob patterns specify the generated JavaScript files. If a pattern starts with '!' the files are excluded. If not specified, the generated code is expected in the same directory as its source.",
+                "items": {
+                  "type": "string"
+                },
+                "default": [
+                  "${workspaceFolder}/dist/**/*.js"
+                ]
+              },
+              "smartStep": {
+                "type": "boolean",
+                "description": "Automatically step through generated code that cannot be mapped back to the original source.",
+                "default": true
+              },
+              "skipFiles": {
+                "type": "array",
+                "description": "An array of file or folder names, or glob patterns, to skip when debugging.",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
+              },
+              "trace": {
+                "type": [
+                  "boolean",
+                  "string"
+                ],
+                "description": "When 'true', the debugger will log tracing info to a file. When 'verbose', it will also show logs in the console.",
+                "default": true
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "fabric:go",
+            "request": "launch",
+            "name": "Launch Smart Contract"
+          },
+          {
+            "type": "fabric:java",
+            "request": "launch",
+            "name": "Launch Smart Contract"
+          },
+          {
+            "type": "fabric:node",
+            "request": "launch",
+            "name": "Launch Smart Contract"
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "Fabric Smart Contract (Go): Launch",
+            "description": "Launch a Fabric smart contract written in Go",
+            "body": {
+              "type": "fabric:go",
+              "request": "launch",
+              "name": "Launch Smart Contract"
+            }
+          },
+          {
+            "label": "Fabric Smart Contract (Java): Launch",
+            "description": "Launch a Fabric smart contract written in Java",
+            "body": {
+              "type": "fabric:java",
+              "request": "launch",
+              "name": "Launch Smart Contract"
+            }
+          },
+          {
+            "label": "Fabric Smart Contract (Node.js): Launch",
+            "description": "Launch a Fabric smart contract written in JavaScript or TypeScript",
+            "body": {
+              "type": "fabric:node",
+              "request": "launch",
+              "name": "Launch Smart Contract"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile && npm run localize",
+    "package": "node ./node_modules/vsce/out/vsce package --yarn",
+    "compile": "rimraf build && npm run build",
+    "watch": "rimraf build && tsc -watch -p ./tsconfig.extension.json",
+    "pretest": "npm run compile && npm run lint && npm run licchk && npm run updatePackageJSON",
+    "test": "node ./build/test/runTests.js",
+    "posttest": "remap-istanbul -i ./coverage/coverage.json -o ./coverage/coverage-remap.json && istanbul check-coverage ./coverage/coverage-remap.json",
+    "cucumber": "npm run compile && node ./build/cucumber/runCucumberTests.js",
+    "licchk": "license-check-and-add",
+    "tslint": "tslint --project tsconfig.extension.json",
+    "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts' 'cucumber/**/*.ts'",
+    "updatePackageJSON": "node ../.azure/rewritePackageJson.js",
+    "productionFlag": "node ../.azure/rewritePackageJson.js publish",
+    "cucumberTests": "./cucumber/hlfv1/start.sh && npm run compile",
+    "localize": "node ./node_modules/vscode-nls-dev/lib/vscl build/src/**/*.js",
+    "build": "cp ./ExtensionCommands.ts ./src/ExtensionCommands.ts && cp ../README.md ./README.md && ./scripts/build-non-split.js && tsc -p tsconfig.extension.json && tsc -p tsconfig.json",
+    "cypress": "cypress open",
+    "cypressCli": "cypress run",
+    "jestTest": "./node_modules/.bin/jest",
+    "start": "react-scripts start"
+  },
+  "nativeDependencies": [
+    "grpc"
+  ],
+  "extensionPack": [
+    "oshri6688.javascript-test-runner"
+  ],
+  "license-check-and-add-config": {
+    "folder": ".",
+    "license": "LICENSE.txt",
+    "exact_paths_method": "EXCLUDE",
+    "exact_paths": [
+      "cypress",
+      ".env",
+      "enzyme",
+      "public",
+      "scripts",
+      "src",
+      "node_modules",
+      ".idea",
+      ".git",
+      ".azure",
+      "build",
+      ".vscode-test",
+      "coverage",
+      "resources",
+      "test/data",
+      ".DS_Store",
+      "config/.DS_Store",
+      "test/.DS_Store",
+      "i18n/README.md",
+      "cucumber/data",
+      "cucumber/tmp",
+      "cucumber/hlfv1",
+      "basic-network",
+      "CHANGELOG.md",
+      "ISSUE_TEMPLATE.md",
+      "README.md",
+      "LICENSE",
+      "templates/tsTestSmartContractTemplate.ejs",
+      "templates/tsTestSmartContractUtilTemplate.ejs",
+      "templates/jsTestSmartContractTemplate.ejs",
+      "templates/jsTestSmartContractUtilTemplate.ejs",
+      "templates/javaTestSmartContractTemplate.ejs",
+      "templates/javaTestSmartContractUtilTemplate.ejs",
+      "templates/HomeView.ejs",
+      "templates/SampleView.ejs",
+      "templates/TutorialGallery.ejs",
+      "templates/PreReqView.ejs",
+      "tutorials"
+    ],
+    "file_type_method": "EXCLUDE",
+    "file_types": [
+      ".txt",
+      ".vsix",
+      ".yml",
+      ".yml",
+      ".yaml",
+      ".tgz",
+      ".key",
+      ".gz",
+      ".pem",
+      ".crt",
+      ".tx",
+      ".block",
+      ".log",
+      ".pid",
+      ".port",
+      ".feature"
+    ],
+    "insert_license": false,
+    "clear_license": false,
+    "license_formats": {
+      "ts|acl|cto|js|qry": {
+        "prepend": "/*",
+        "append": "*/",
+        "eachLine": {
+          "prepend": " * "
+        }
+      },
+      "vscodeignore": {
+        "eachLine": {
+          "prepend": "# "
+        }
+      },
+      "md": {
+        "file": "./markdown-license.txt"
+      }
+    }
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ],
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json"
+    ],
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest",
+      ".+\\.(css|styl|less|sass|scss)$": "jest-transform-css"
+    },
+    "moduleNameMapper": {
+      "^.+\\.(css|less|scss)$": "babel-jest",
+      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/enzyme/__mocks__/fileMock.js"
+    },
+    "testMatch": [
+      "<rootDir>/enzyme/tests/*.(ts|tsx)"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/enzyme/setupTests.ts"
+    ],
+    "collectCoverage": true,
+    "coverageThreshold": {
+      "global": {
+        "branches": 100,
+        "functions": 100,
+        "lines": 100,
+        "statements": -1
+      }
+    }
+  },
+  "dependencies": {
+    "@fidm/x509": "1.1.3",
+    "axios": "^0.19.0",
+    "child-process-promise": "^2.2.1",
+    "dateformat": "^3.0.3",
+    "dockerode": "^2.5.8",
+    "ejs": "^2.6.1",
+    "fabric-ca-client": "1.4.5-snapshot.73",
+    "fabric-client": "1.4.5-snapshot.69",
+    "fabric-network": "1.4.5-snapshot.76",
+    "find-free-port": "^2.0.0",
+    "fs-extra": "^7.0.1",
+    "generator-fabric": "0.0.38",
+    "handlebars": "^4.5.1",
+    "home-dir": "1.0.0",
+    "react": "^16.3.2",
+    "react-dom": "^16.3.2",
+    "react-router-dom": "^4.3.1",
+    "request": "2.88.0",
+    "semver": "^6.3.0",
+    "shelljs": "^0.8.3",
+    "showdown": "^1.9.1",
+    "strip-ansi": "^4.0.0",
+    "uuid": "^3.3.2",
+    "vscode-extension-telemetry": "0.1.1",
+    "vscode-nls": "^4.0.0",
+    "yeoman-environment": "^2.3.3"
+  },
+  "devDependencies": {
+    "@bahmutov/add-typescript-to-cypress": "2.1.2",
+    "@carbon/colors": "^10.5.0",
+    "@carbon/grid": "^10.6.0",
+    "@carbon/layout": "^10.5.0",
+    "@carbon/themes": "^10.7.0",
+    "@carbon/type": "^10.6.0",
+    "@types/carbon-components-react": "^7.6.2",
+    "@types/chai": "4.1.4",
+    "@types/chai-as-promised": "7.1.0",
+    "@types/dateformat": "1.0.1",
+    "@types/enzyme": "^3.10.3",
+    "@types/enzyme-adapter-react-16": "^1.0.5",
+    "@types/fs-extra": "5.0.4",
+    "@types/glob": "5.0.35",
+    "@types/jest": "^23.3.13",
+    "@types/mocha": "5.2.5",
+    "@types/node": "10.14.5",
+    "@types/react": "^16.3.14",
+    "@types/react-dom": "^16.0.5",
+    "@types/react-router-dom": "^4.3.5",
+    "@types/react-test-renderer": "^16.9.0",
+    "@types/rimraf": "^2.0.2",
+    "@types/semver": "^6.0.0",
+    "@types/sinon": "5.0.1",
+    "@types/sinon-chai": "3.2.0",
+    "@types/strip-ansi": "^3.0.0",
+    "@types/tmp": "0.0.33",
+    "@types/vscode": "1.38.0",
+    "carbon-components": "^10.7.2",
+    "carbon-components-react": "^7.7.2",
+    "carbon-icons": "^7.0.7",
+    "chai": "4.1.2",
+    "chai-as-promised": "7.1.1",
+    "cucumber": "2.2.0",
+    "cucumber-html-reporter": "5.0.0",
+    "cypress": "^3.4.1",
+    "decache": "4.4.0",
+    "enzyme": "^3.10.0",
+    "enzyme-adapter-react-16": "^1.14.0",
+    "glob": "7.1.2",
+    "istanbul": "0.4.5",
+    "jest": "24.9.0",
+    "jest-transform-css": "^2.0.0",
+    "js-yaml": "3.13.1",
+    "license-check-and-add": "2.3.6",
+    "mocha": "^6.1.4",
+    "mocha-junit-reporter": "^1.23.1",
+    "mocha-multi-reporters": "^1.1.7",
+    "node-sass": "^4.13.0",
+    "raf": "^3.4.1",
+    "react-scripts": "^3.1.1",
+    "remap-istanbul": "0.11.1",
+    "rewire": "^4.0.1",
+    "rimraf": "^2.6.2",
+    "sinon": "6.1.4",
+    "sinon-chai": "3.2.0",
+    "tmp": "0.0.33",
+    "ts-jest": "^24.1.0",
+    "ts-node": "7.0.0",
+    "tslint": "5.11.0",
+    "tslint-loader": "3.6.0",
+    "typescript": "3.6.3",
+    "vsce": "1.69.0",
+    "vscode-nls-dev": "3.2.5",
+    "vscode-test": "1.2.0"
+  }
+}

@@ -12,6 +12,7 @@
 
 steps:
   - bash: |
+      cd ./blockchain-extension
       npm run cypressCli
     env:
       DISPLAY: ':99.0'

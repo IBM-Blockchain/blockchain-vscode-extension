@@ -12,6 +12,7 @@
 
 steps:
   - bash: |
+      cd ./blockchain-extension
       npm run jestTest
     env:
       DISPLAY: ':99.0'
@@ -22,4 +23,4 @@ steps:
     condition: succeededOrFailed()
     inputs:
       codeCoverageTool: Cobertura
-      summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage/clover.xml'
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/blockchain-extension/coverage/clover.xml'
