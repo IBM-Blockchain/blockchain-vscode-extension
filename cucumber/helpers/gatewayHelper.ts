@@ -84,7 +84,7 @@ export class GatewayHelper {
                     return _node.type === FabricNodeType.CERTIFICATE_AUTHORITY;
                 });
 
-                this.userInputUtilHelper.showFabricNodeQuickPickStub({ label: caNode.name, data: caNode });
+                this.userInputUtilHelper.showNodesInEnvironmentQuickPickStub({ label: caNode.name, data: caNode });
             }
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);

@@ -135,11 +135,22 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                         _data.name = _data.display_name;
                         delete _data.display_name;
                         return FabricNode.pruneNode(_data);
-                    });
-                nodesToUpdate.push(...filteredData);
+                    }
+                );
 
+                // Ask user to chose which nodes to add to the environemnt.
+                let chosenNodesToUpdate: FabricNode[];
+                const chosenNodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesQuickPickBox('Which nodes would you like to import?', filteredData, true) as IBlockchainQuickPickItem<FabricNode>[];
+                if (!chosenNodes || chosenNodes.length === 0) {
+                    return;
+                }
+
+                chosenNodesToUpdate = chosenNodes.map((_chosenNode: IBlockchainQuickPickItem<FabricNode>) => {
+                    return _chosenNode.data;
+                });
+                nodesToUpdate.push(...chosenNodesToUpdate);
             } catch (error) {
-                outputAdapter.log(LogType.ERROR, `Failed to connect to ${url}, with error ${error.message}`, `Failed to connect to ${url}, with error ${error.toString()}`);
+                outputAdapter.log(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${error.message}`, `Failed to acquire nodes from ${url}, with error ${error.toString()}`);
                 if (fromAddEnvironment) {
                     throw error;
                 }
