@@ -1245,8 +1245,8 @@
         "licchk": "license-check-and-add",
         "tslint": "tslint --project tsconfig.extension.json",
         "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts' 'cucumber/**/*.ts'",
-        "updatePackageJSON": "node ./.azure/rewritePackageJson.js",
-        "productionFlag": "node ./.azure/rewritePackageJson.js publish",
+        "updatePackageJSON": "node ../../.azure/rewritePackageJson.js",
+        "productionFlag": "node ../../.azure/rewritePackageJson.js publish",
         "cucumberTests": "./cucumber/hlfv1/start.sh && npm run compile",
         "localize": "vscl build/src/**/*.js",
         "build": "tsc -p tsconfig.extension.json"
@@ -1292,7 +1292,7 @@
         "tslint-loader": "3.6.0",
         "typescript": "3.6.3",
         "vsce": "1.65.0",
-        "vscode-nls-dev": "3.2.5",
+        "vscode-nls-dev": "^3.3.1",
         "vscode-test": "1.2.0"
     },
     "dependencies": {
@@ -1303,10 +1303,10 @@
         "ejs": "^2.6.1",
         "find-free-port": "^2.0.0",
         "fs-extra": "^7.0.1",
-        "generator-fabric": "0.0.38",
-        "handlebars": "^4.5.1",
+        "generator-fabric": "0.0.41",
+        "handlebars": "^4.5.3",
         "home-dir": "1.0.0",
-        "ibm-blockchain-platform-ui": "file:../blockchain-ui/ibm-blockchain-platform-ui-1.0.16.tgz",
+        "ibm-blockchain-platform-ui": "1.0.16",
         "semver": "^6.3.0",
         "shelljs": "^0.8.3",
         "showdown": "^1.9.1",
@@ -1368,7 +1368,8 @@
             "templates/SampleView.ejs",
             "templates/TutorialGallery.ejs",
             "templates/PreReqView.ejs",
-            "tutorials"
+            "tutorials",
+            "docker"
         ],
         "file_type_method": "EXCLUDE",
         "file_types": [

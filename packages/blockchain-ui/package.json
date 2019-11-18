@@ -36,13 +36,14 @@
         "pretest": "npm run compile && npm run lint && npm run licchk",
         "test": "./node_modules/.bin/jest",
         "licchk": "license-check-and-add",
-        "tslint": "tslint --project tsconfig.extension.json",
+        "tslint": "tslint --project tsconfig.json",
         "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts' 'cucumber/**/*.ts'",
         "productionFlag": "node ./.azure/rewritePackageJson.js publish",
         "build": "cp ../blockchain-extension/ExtensionCommands.ts ./src/ExtensionCommands.ts && ./scripts/build-non-split.js && tsc -p tsconfig.json",
         "cypress": "cypress open",
         "cypressCli": "cypress run",
-        "start": "react-scripts start"
+        "start": "react-scripts start",
+        "createModule": "npm pack"
     },
     "devDependencies": {
         "@bahmutov/add-typescript-to-cypress": "^2.1.2",
@@ -94,7 +95,6 @@
     },
     "dependencies": {
         "fs-extra": "^7.0.1",
-        "handlebars": "^4.5.1",
         "react": "^16.3.2",
         "react-dom": "^16.3.2",
         "react-router-dom": "^4.3.1"
