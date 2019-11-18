@@ -1330,7 +1330,7 @@
         "find-free-port": "^2.0.0",
         "fs-extra": "^7.0.1",
         "generator-fabric": "0.0.38",
-        "handlebars": "^4.5.1",
+        "handlebars": "^4.5.2",
         "home-dir": "1.0.0",
         "react": "^16.3.2",
         "react-dom": "^16.3.2",
