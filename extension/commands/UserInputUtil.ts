@@ -417,7 +417,13 @@ export class UserInputUtil {
     }
 
     public static async showSmartContractPackagesQuickPickBox(prompt: string, canPickMany: boolean): Promise<Array<IBlockchainQuickPickItem<PackageRegistryEntry>> | IBlockchainQuickPickItem<PackageRegistryEntry> | undefined> {
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         const packages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
+
+        if (packages.length === 0) {
+            outputAdapter.log(LogType.ERROR, 'There are no open packages.');
+            return;
+        }
 
         const quickPickItems: IBlockchainQuickPickItem<PackageRegistryEntry>[] = packages.map((_package: PackageRegistryEntry) => {
             return { label: _package.name, description: _package.version, data: _package };
