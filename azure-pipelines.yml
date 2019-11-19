@@ -176,28 +176,25 @@ stages:
             displayName: Publish extension
             condition: succeeded()
 
-          - bash: |
-              set -ev
-
-              git checkout master
-
-              npm install semver
-
-              # Bump the version number.
-              node ./.azure/pkgbump.js
-
-              export NEW_VERSION=$(node -e "console.log(require('./package.json').version)")
-
-              # Change from HTTPS to SSH.
-              .azure/fix_github_https_repo.sh
-
-              # Add the version number changes and push them to Git.
-              git config user.name "$(GH_USER_NAME)"
-              git config user.email "$(GH_USER_EMAIL)"
-              git add .
-              git commit -m "Automatic version bump to ${NEW_VERSION}"
-              git push origin master
-            displayName: Version bump
+          - script: |
+              set -ex
+              git config --global user.name $(GITHUB_USER_NAME)
+              git config --global user.email $(GITHUB_USER_EMAIL)
+            displayName: Set GitHub user name and email
+            condition: succeeded()
+          - script: npm version patch --no-git-tag-version
+            displayName: Use npm to bump version
+            condition: succeeded()
+          - script: |
+              set -ex
+              VERSION=$(jq -r ".version" package.json)
+              git commit -asm "Automatic version bump to ${VERSION}"
+            displayName: Commit version bump
+            condition: succeeded()
+          - script: |
+              set -ex
+              git -c http.extraheader="Authorization: Basic $(GITHUB_BASIC_AUTH)" push $(Build.Repository.Uri) HEAD:master -f
+            displayName: Push commit to GitHub
             condition: succeeded()
 
   - stage: otherVersionsUnitTest
