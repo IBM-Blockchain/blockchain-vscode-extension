@@ -1,0 +1,42 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vscode
+spec:
+  selector:
+    matchLabels:
+      app: vscode
+  template:
+    metadata:
+      labels:
+        app: vscode
+    spec:
+      initContainers:
+        - name: init-vscode
+          image: ubuntu:18.04
+          command: ["/bin/sh", "-c"]
+          args:
+            - chown 1001:1001 /home/vscode
+          volumeMounts:
+            - mountPath: /home/vscode
+              name: vscode
+      containers:
+        - name: vscode
+          image: ibmblockchain/vscode:latest
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "2000m"
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - mountPath: /home/vscode
+              name: vscode
+      volumes:
+        - name: vscode
+          persistentVolumeClaim:
+            claimName: vscode
