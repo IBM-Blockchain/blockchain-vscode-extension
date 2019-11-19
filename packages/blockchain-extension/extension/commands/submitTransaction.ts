@@ -14,7 +14,7 @@
 'use strict';
 import * as vscode from 'vscode';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
+import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { TransactionTreeItem } from '../explorer/model/TransactionTreeItem';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
@@ -23,8 +23,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
-import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
+import { IFabricGatewayConnection, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 export async function submitTransaction(evaluate: boolean, treeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string, transactionObject?: any): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -48,7 +47,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
     let transientData: { [key: string]: Buffer };
     let peerTargetNames: string[] = [];
     let peerTargetMessage: string = '';
-    let connection: IFabricClientConnection;
+    let connection: IFabricGatewayConnection;
 
     if (transactionObject) {
         channelName = transactionObject.channelName;
@@ -62,9 +61,9 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
         namespace = treeItem.contractName;
     } else {
         if (!treeItem && !channelName && !smartContract) {
-            if (!FabricConnectionManager.instance().getConnection()) {
+            if (!FabricGatewayConnectionManager.instance().getConnection()) {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
-                if (!FabricConnectionManager.instance().getConnection()) {
+                if (!FabricGatewayConnectionManager.instance().getConnection()) {
                     // either the user cancelled or there was an error so don't carry on
                     return;
                 }
@@ -141,7 +140,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
         return;
     }
 
-    connection = FabricConnectionManager.instance().getConnection();
+    connection = FabricGatewayConnectionManager.instance().getConnection();
     const channelPeerInfo: {name: string, mspID: string}[] = await connection.getChannelPeersInfo(channelName);
 
     let selectPeers: string;
@@ -191,7 +190,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
                 outputAdapter.log(LogType.INFO, undefined, `${actioning} transaction ${transactionName} with args ${args} on channel ${channelName}${peerTargetMessage}`);
             }
 
-            const gatewayRegistyrEntry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
+            const gatewayRegistyrEntry: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
             if (gatewayRegistyrEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
                 VSCodeBlockchainDockerOutputAdapter.instance().show();
             }

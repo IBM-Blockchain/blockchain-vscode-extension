@@ -26,16 +26,15 @@ import { WalletTreeItem } from '../../extension/explorer/wallets/WalletTreeItem'
 import { LocalWalletTreeItem } from '../../extension/explorer/wallets/LocalWalletTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
-import { FabricWallet } from '../../extension/fabric/FabricWallet';
+import { FabricWallet } from 'ibm-blockchain-platform-gateway-v1';
 import { IdentityTreeItem } from '../../extension/explorer/model/IdentityTreeItem';
 import { FabricWalletGeneratorFactory } from '../../extension/fabric/FabricWalletGeneratorFactory';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { AdminIdentityTreeItem } from '../../extension/explorer/model/AdminIdentityTreeItem';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil, IFabricWallet } from 'ibm-blockchain-platform-common';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
 import { FabricCertificate } from '../../extension/fabric/FabricCertificate';
-import { IFabricWallet } from '../../extension/fabric/IFabricWallet';
 import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 

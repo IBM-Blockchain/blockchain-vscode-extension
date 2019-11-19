@@ -13,7 +13,7 @@
 */
 
 import { VSCodeOutputAdapter } from './VSCodeOutputAdapter';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 export class VSCodeBlockchainDockerOutputAdapter extends VSCodeOutputAdapter {
 

@@ -22,7 +22,7 @@ import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManage
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
+import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 import * as fs from 'fs-extra';
@@ -31,12 +31,11 @@ import { LogType } from '../../extension/logging/OutputAdapter';
 import { FabricCertificate } from '../../extension/fabric/FabricCertificate';
 import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
-import { FabricWallet } from '../../extension/fabric/FabricWallet';
+import { FabricGatewayConnection, FabricWallet } from 'ibm-blockchain-platform-gateway-v1';
 import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
-import { FabricClientConnection } from '../../extension/fabric/FabricClientConnection';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { FabricNode, FabricNodeType } from '../../extension/fabric/FabricNode';
 import { FileConfigurations } from '../../configurations';
@@ -66,7 +65,7 @@ describe('UserInputUtil', () => {
 
     let getConnectionStub: sinon.SinonStub;
     let fabricRuntimeConnectionStub: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
-    let fabricClientConnectionStub: sinon.SinonStubbedInstance<FabricClientConnection>;
+    let fabricClientConnectionStub: sinon.SinonStubbedInstance<FabricGatewayConnection>;
 
     let environmentStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
@@ -129,7 +128,7 @@ describe('UserInputUtil', () => {
         await walletRegistry.add(walletEntryOne);
         await walletRegistry.add(walletEntryTwo);
 
-        const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
+        const fabricConnectionManager: FabricGatewayConnectionManager = FabricGatewayConnectionManager.instance();
 
         fabricRuntimeConnectionStub = mySandBox.createStubInstance(FabricEnvironmentConnection);
         fabricRuntimeConnectionStub.getAllPeerNames.returns(['myPeerOne', 'myPeerTwo']);
@@ -148,7 +147,7 @@ describe('UserInputUtil', () => {
 
         fabricRuntimeConnectionStub.getInstantiatedChaincode.withArgs('channelTwo').resolves(chaincodeMapTwo);
 
-        fabricClientConnectionStub = mySandBox.createStubInstance(FabricClientConnection);
+        fabricClientConnectionStub = mySandBox.createStubInstance(FabricGatewayConnection);
         fabricClientConnectionStub.createChannelMap.resolves(map);
         fabricClientConnectionStub.getInstantiatedChaincode.withArgs('channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
         getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionStub);
@@ -1424,7 +1423,7 @@ describe('UserInputUtil', () => {
             });
             const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             registryEntry.name = 'myFabric';
-            mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
+            mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
             fabricClientConnectionStub.getMetadata.resolves(
                 {
                     contracts: {

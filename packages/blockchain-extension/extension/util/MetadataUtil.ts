@@ -14,10 +14,9 @@
 'use strict';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
-import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
+import { FabricRuntimeUtil, IFabricGatewayConnection } from 'ibm-blockchain-platform-common';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
-import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import * as vscode from 'vscode';
@@ -25,7 +24,7 @@ import * as vscode from 'vscode';
 // Functions for parsing metadata object
 export class MetadataUtil {
 
-    public static async getTransactionNames(connection: IFabricClientConnection, instantiatedChaincodeName: string, channelName: string): Promise<Map<string, string[]> | null> {
+    public static async getTransactionNames(connection: IFabricGatewayConnection, instantiatedChaincodeName: string, channelName: string): Promise<Map<string, string[]> | null> {
         const metadataTransactions: Map<string, any[]> = await this.getTransactions(connection, instantiatedChaincodeName, channelName);
         if (!metadataTransactions) {
             return null;
@@ -42,7 +41,7 @@ export class MetadataUtil {
         return transactionNames;
     }
 
-    public static async getContractNames(connection: IFabricClientConnection, instantiatedChaincodeName: string, channelName: string): Promise<string[] | null> {
+    public static async getContractNames(connection: IFabricGatewayConnection, instantiatedChaincodeName: string, channelName: string): Promise<string[] | null> {
         const metadataTransactions: Map<string, any[]> = await this.getTransactions(connection, instantiatedChaincodeName, channelName);
         if (!metadataTransactions) {
             return null;
@@ -57,7 +56,7 @@ export class MetadataUtil {
 
     }
 
-    public static async getTransactions(connection: IFabricClientConnection, instantiatedChaincodeName: string, channelName: string, checkForEmpty?: boolean): Promise<Map<string, any[]> | null> {
+    public static async getTransactions(connection: IFabricGatewayConnection, instantiatedChaincodeName: string, channelName: string, checkForEmpty?: boolean): Promise<Map<string, any[]> | null> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         let metadataObj: any = {
@@ -93,7 +92,7 @@ export class MetadataUtil {
     }
 
     private static async killChaincodeContainer(chaincodeName: string): Promise<void> {
-        const gatewayRegistryEntry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
+        const gatewayRegistryEntry: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
         if (gatewayRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
             // make sure there is a debug session and its from a smart contract
             const activeSession: vscode.DebugSession = vscode.debug.activeDebugSession;

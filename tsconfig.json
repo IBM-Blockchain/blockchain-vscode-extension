@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "target": "es6",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "rootDir": ".",
+        "outDir": "build",
+        "lib": [ "es2016" ],
+        "declaration": true,
+        "sourceMap": true,
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "types": ["node", "mocha", "chai", "sinon-chai"]
+    },
+    "exclude": [
+        "node_modules",
+        "build"
+    ],
+    "include": [
+        "src",
+        "test",
+        "index.ts"
+    ]
+}

@@ -22,7 +22,7 @@ import * as path from 'path';
 import { SettingConfigurations } from '../configurations';
 import { SinonSandbox, SinonStub } from 'sinon';
 import { UserInputUtil } from '../extension/commands/UserInputUtil';
-import { FabricRuntimeUtil } from '../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { GlobalState, ExtensionData } from '../extension/util/GlobalState';
 
 export class TestUtil {

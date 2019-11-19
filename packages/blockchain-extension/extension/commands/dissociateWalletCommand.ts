@@ -18,7 +18,7 @@ import { LogType } from '../logging/OutputAdapter';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
 export async function dissociateWallet(associatedGatewayTreeItem: GatewayAssociatedTreeItem): Promise<any> {

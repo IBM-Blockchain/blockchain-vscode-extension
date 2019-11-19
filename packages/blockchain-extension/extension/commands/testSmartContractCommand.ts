@@ -18,7 +18,7 @@ import * as ejs from 'ejs';
 import * as path from 'path';
 import * as os from 'os';
 import { UserInputUtil, IBlockchainQuickPickItem, LanguageQuickPickItem } from './UserInputUtil';
-import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
+import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { Reporter } from '../util/Reporter';
 import { CommandUtil } from '../util/CommandUtil';
@@ -28,7 +28,7 @@ import { MetadataUtil } from '../util/MetadataUtil';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
-import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
+import { IFabricGatewayConnection } from 'ibm-blockchain-platform-common';
 import { ContractTreeItem } from '../explorer/model/ContractTreeItem';
 import { FABRIC_CLIENT_VERSION, FABRIC_NETWORK_VERSION } from '../util/ExtensionUtil';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
@@ -45,10 +45,10 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
 
     // If called from the command palette, ask for instantiated smart contract to test
     if (!chaincode) {
-        if (!FabricConnectionManager.instance().getConnection()) {
+        if (!FabricGatewayConnectionManager.instance().getConnection()) {
             // Connect if not already connected
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
-            if (!FabricConnectionManager.instance().getConnection()) {
+            if (!FabricGatewayConnectionManager.instance().getConnection()) {
                 // either the user cancelled or there was an error so don't carry on
                 return;
             }
@@ -80,7 +80,7 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
     }
 
     // Get metadata
-    const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
+    const connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
 
     let transactions: Map<string, any[]> = await MetadataUtil.getTransactions(connection, chaincodeName, channelName, true);
     if (!transactions || transactions.size === 0) {
@@ -165,7 +165,7 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
         testFileSuffix = languagesToSuffixes[testLang];
     }
 
-    const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
+    const fabricConnectionManager: FabricGatewayConnectionManager = FabricGatewayConnectionManager.instance();
     const fabricGatewayRegistryEntry: FabricGatewayRegistryEntry = fabricConnectionManager.getGatewayRegistryEntry();
     const fabricWalletRegistryEntry: FabricWalletRegistryEntry = fabricConnectionManager.getConnectionWallet();
     const connectionIdentityName: string = fabricConnectionManager.getConnectionIdentity();

@@ -16,6 +16,8 @@ cp -r ./media ./packages/blockchain-extension/media
 cd ./packages/blockchain-extension
 npm install vsce
 npm install ../blockchain-ui/ibm-blockchain-platform-ui-*.tgz
+npm install ../blockchain-common/ibm-blockchain-platform-common-*.tgz
+npm install ../blockchain-gateway-v1/ibm-blockchain-platform-gateway-v1-*.tgz
 npm run compile
 npm run productionFlag
 cat package.json.orig \

@@ -15,24 +15,25 @@
 import { EventEmitter } from 'events';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
-import { IFabricClientConnection } from './IFabricClientConnection';
+import { IFabricGatewayConnection } from 'ibm-blockchain-platform-common';
 
-export class FabricConnectionManager extends EventEmitter {
+export class FabricGatewayConnectionManager extends EventEmitter {
 
-    public static instance(): FabricConnectionManager {
-        return FabricConnectionManager._instance;
+    public static instance(): FabricGatewayConnectionManager {
+        return FabricGatewayConnectionManager._instance;
     }
 
-    private static _instance: FabricConnectionManager = new FabricConnectionManager();
+    private static _instance: FabricGatewayConnectionManager = new FabricGatewayConnectionManager();
 
-    private connection: IFabricClientConnection;
+    private connection: IFabricGatewayConnection;
     private gatewayRegistryEntry: FabricGatewayRegistryEntry;
+    private walletRegistryEntry: FabricWalletRegistryEntry;
 
     private constructor() {
         super();
     }
 
-    public getConnection(): IFabricClientConnection {
+    public getConnection(): IFabricGatewayConnection {
         return this.connection;
     }
 
@@ -40,9 +41,10 @@ export class FabricConnectionManager extends EventEmitter {
         return this.gatewayRegistryEntry;
     }
 
-    public connect(connection: IFabricClientConnection, gatewayRegistryEntry: FabricGatewayRegistryEntry): void {
+    public connect(connection: IFabricGatewayConnection, gatewayRegistryEntry: FabricGatewayRegistryEntry, walletRegistryEntry: FabricWalletRegistryEntry): void {
         this.connection = connection;
         this.gatewayRegistryEntry = gatewayRegistryEntry;
+        this.walletRegistryEntry = walletRegistryEntry;
         this.emit('connected', connection);
     }
 
@@ -63,7 +65,7 @@ export class FabricConnectionManager extends EventEmitter {
     }
 
     public getConnectionWallet(): FabricWalletRegistryEntry {
-        return this.connection.wallet;
+        return this.walletRegistryEntry;
     }
 
 }

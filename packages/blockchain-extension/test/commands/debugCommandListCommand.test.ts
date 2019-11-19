@@ -20,9 +20,9 @@ import * as sinonChai from 'sinon-chai';
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
+import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
@@ -83,7 +83,7 @@ describe('DebugCommandListCommand', () => {
         runtimeStub.getInstantiatedChaincode.resolves([]);
 
         environmentConnectionStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns(runtimeStub);
-        connectionManagerGetConnectionStub = mySandBox.stub(FabricConnectionManager.instance(), 'getConnection').returns(runtimeStub);
+        connectionManagerGetConnectionStub = mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getConnection').returns(runtimeStub);
     });
 
     afterEach(async () => {

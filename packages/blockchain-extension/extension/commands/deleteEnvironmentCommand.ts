@@ -16,7 +16,7 @@ import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentTreeItem } from '../explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';

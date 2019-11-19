@@ -14,7 +14,7 @@
 'use strict';
 // tslint:disable no-unused-expression
 import * as vscode from 'vscode';
-import { FabricClientConnection } from '../../extension/fabric/FabricClientConnection';
+import { FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 
 import * as chai from 'chai';
@@ -22,7 +22,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
 import { TestUtil } from '../TestUtil';
-import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
+import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { UserInputUtil, IBlockchainQuickPickItem } from '../../extension/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
@@ -37,7 +37,7 @@ import { InstantiatedContractTreeItem } from '../../extension/explorer/model/Ins
 import { InstantiatedChaincodeTreeItem } from '../../extension/explorer/model/InstantiatedChaincodeTreeItem';
 import { InstantiatedUnknownTreeItem } from '../../extension/explorer/model/InstantiatedUnknownTreeItem';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 chai.use(sinonChai);
 chai.should();
@@ -50,7 +50,7 @@ describe('SubmitTransactionCommand', () => {
     });
 
     describe('SubmitTransaction', () => {
-        let fabricClientConnectionMock: sinon.SinonStubbedInstance<FabricClientConnection>;
+        let fabricClientConnectionMock: sinon.SinonStubbedInstance<FabricGatewayConnection>;
 
         let executeCommandStub: sinon.SinonStub;
         let logSpy: sinon.SinonSpy;
@@ -74,9 +74,9 @@ describe('SubmitTransactionCommand', () => {
             executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_GATEWAY).resolves();
             executeCommandStub.callThrough();
 
-            fabricClientConnectionMock = mySandBox.createStubInstance(FabricClientConnection);
+            fabricClientConnectionMock = mySandBox.createStubInstance(FabricGatewayConnection);
             fabricClientConnectionMock.connect.resolves();
-            const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
+            const fabricConnectionManager: FabricGatewayConnectionManager = FabricGatewayConnectionManager.instance();
             getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionMock);
 
             showInstantiatedSmartContractQuickPickStub = mySandBox.stub(UserInputUtil, 'showClientInstantiatedSmartContractsQuickPick').resolves({
@@ -141,7 +141,7 @@ describe('SubmitTransactionCommand', () => {
 
             const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             registryEntry.name = 'myConnection';
-            registryStub = mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
+            registryStub = mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
 
             blockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
 

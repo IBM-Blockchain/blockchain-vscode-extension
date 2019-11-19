@@ -25,11 +25,11 @@ import { LogType } from '../../extension/logging/OutputAdapter';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
 import { BlockchainWalletExplorerProvider } from '../../extension/explorer/walletExplorer';
-import { FabricWallet } from '../../extension/fabric/FabricWallet';
+import { FabricWallet } from 'ibm-blockchain-platform-gateway-v1';
 import { FabricWalletGeneratorFactory } from '../../extension/fabric/FabricWalletGeneratorFactory';
 import { IdentityTreeItem } from '../../extension/explorer/model/IdentityTreeItem';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 

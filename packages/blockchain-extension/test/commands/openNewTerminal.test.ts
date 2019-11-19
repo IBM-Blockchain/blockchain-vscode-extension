@@ -23,7 +23,7 @@ import { NodeTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/
 import { FabricNode, FabricNodeType } from '../../extension/fabric/FabricNode';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 chai.should();
 

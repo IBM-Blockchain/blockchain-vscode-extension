@@ -24,8 +24,8 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
 chai.should();
@@ -60,7 +60,7 @@ describe('teardownFabricRuntime', () => {
         gatewayRegistyEntry = new FabricGatewayRegistryEntry();
         gatewayRegistyEntry.name = 'myFabric';
 
-        getRegistryEntryStub = sandbox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistyEntry);
+        getRegistryEntryStub = sandbox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistyEntry);
 
         logSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
     });

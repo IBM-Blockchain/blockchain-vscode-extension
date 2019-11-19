@@ -23,7 +23,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricWallet } from '../../extension/fabric/FabricWallet';
+import { FabricWallet } from 'ibm-blockchain-platform-gateway-v1';
 import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
 import { FileConfigurations } from '../../configurations';

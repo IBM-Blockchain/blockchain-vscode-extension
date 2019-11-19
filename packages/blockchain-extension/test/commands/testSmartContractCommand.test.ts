@@ -21,13 +21,13 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as os from 'os';
 import { TestUtil } from '../TestUtil';
-import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
+import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { UserInputUtil, LanguageType } from '../../extension/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
 import { ChannelTreeItem } from '../../extension/explorer/model/ChannelTreeItem';
 import { Reporter } from '../../extension/util/Reporter';
-import { FabricClientConnection } from '../../extension/fabric/FabricClientConnection';
+import { FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
 import { CommandUtil } from '../../extension/util/CommandUtil';
 import { InstantiatedContractTreeItem } from '../../extension/explorer/model/InstantiatedContractTreeItem';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
@@ -46,7 +46,7 @@ chai.use(sinonChai);
 
 describe('testSmartContractCommand', () => {
     let mySandBox: sinon.SinonSandbox = sinon.createSandbox();
-    let fabricClientConnectionMock: sinon.SinonStubbedInstance<FabricClientConnection>;
+    let fabricClientConnectionMock: sinon.SinonStubbedInstance<FabricGatewayConnection>;
     let executeCommandStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
     let fsRemoveStub: sinon.SinonStub;
@@ -57,7 +57,7 @@ describe('testSmartContractCommand', () => {
     let showTextDocumentStub: sinon.SinonStub;
     let allChildren: Array<BlockchainTreeItem>;
     let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
-    let fabricConnectionManager: FabricConnectionManager;
+    let fabricConnectionManager: FabricGatewayConnectionManager;
     let instantiatedSmartContract: InstantiatedContractTreeItem;
     let instantiatedJavaSmartContract: InstantiatedContractTreeItem;
     let smartContractName: string;
@@ -169,7 +169,7 @@ describe('testSmartContractCommand', () => {
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
             executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_GATEWAY).resolves();
             executeCommandStub.callThrough();
-            fabricClientConnectionMock = mySandBox.createStubInstance(FabricClientConnection);
+            fabricClientConnectionMock = mySandBox.createStubInstance(FabricGatewayConnection);
             fabricClientConnectionMock.connect.resolves();
             fakeMetadata = {
                 contracts: {
@@ -384,8 +384,8 @@ describe('testSmartContractCommand', () => {
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
             map.set('myEnglishChannel', ['peerOne']);
             fabricClientConnectionMock.createChannelMap.resolves(map);
-            fabricConnectionManager = FabricConnectionManager.instance();
-            getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionMock);
+            fabricConnectionManager = FabricGatewayConnectionManager.instance();
+            getConnectionStub = mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getConnection').returns(fabricClientConnectionMock);
 
             gatewayRegistryEntry = new FabricGatewayRegistryEntry();
             gatewayRegistryEntry.name = 'myGateway';

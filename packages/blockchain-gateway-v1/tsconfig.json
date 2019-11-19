@@ -1,0 +1,17 @@
+{
+    "extends": "../../tsconfig",
+    "compilerOptions": {
+        "rootDir": ".",
+        "outDir": "build",
+        "types": ["node", "mocha", "chai", "sinon-chai"]
+    },
+    "exclude": [
+        "node_modules",
+        "build"
+    ],
+    "include": [
+        "src",
+        "test", 
+        "index.ts"
+    ]
+}

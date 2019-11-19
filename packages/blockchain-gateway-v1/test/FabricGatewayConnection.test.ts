@@ -12,8 +12,7 @@
  * limitations under the License.
 */
 
-import { FabricClientConnection } from '../../extension/fabric/FabricClientConnection';
-import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
+import { FabricGatewayConnection } from '../src/FabricGatewayConnection';
 import * as fabricClient from 'fabric-client';
 import * as path from 'path';
 
@@ -22,30 +21,26 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { Gateway } from 'fabric-network';
-import { FabricWallet } from '../../extension/fabric/FabricWallet';
-import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
-import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { LogType, ConsoleOutputAdapter, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import Client = require('fabric-client');
+import { FabricWallet } from '../src/FabricWallet';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
 // tslint:disable no-unused-expression
-describe('FabricClientConnection', () => {
+describe('FabricGatewayConnection', () => {
 
     let fabricContractStub: any;
     let fabricTransactionStub: any;
     let fabricClientStub: sinon.SinonStubbedInstance<fabricClient>;
-    let fabricClientConnection: FabricClientConnection;
-    let fabricClientConnectionYaml: FabricClientConnection;
-    let otherFabricClientConnectionYml: FabricClientConnection;
-    let fabricClientConnectionWrong: FabricClientConnection;
+    let fabricClientConnection: FabricGatewayConnection;
+    let fabricClientConnectionYaml: FabricGatewayConnection;
+    let otherFabricClientConnectionYml: FabricGatewayConnection;
+    let fabricClientConnectionWrong: FabricGatewayConnection;
     let logSpy: sinon.SinonSpy;
     let wallet: FabricWallet;
-    let readConnectionProfileStub: sinon.SinonStub;
     let getChannelPeerStub: sinon.SinonStub;
 
     let mySandBox: sinon.SinonSandbox;
@@ -58,7 +53,7 @@ describe('FabricClientConnection', () => {
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
-        logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+        logSpy = mySandBox.spy(ConsoleOutputAdapter.instance(), 'log');
 
         fabricClientStub = mySandBox.createStubInstance(fabricClient);
 
@@ -117,10 +112,8 @@ describe('FabricClientConnection', () => {
         fabricGatewayStub.getNetwork.returns(fabricNetworkStub);
         fabricGatewayStub.disconnect.returns(null);
 
-        fabricClientConnection = new FabricClientConnection('connectionpath');
+        fabricClientConnection = new FabricGatewayConnection('connectionpath');
         fabricClientConnection['gateway'] = fabricGatewayStub;
-        fabricClientConnection['outputAdapter'] = VSCodeBlockchainOutputAdapter.instance();
-        readConnectionProfileStub = mySandBox.stub(ExtensionUtil, 'readConnectionProfile').callThrough();
     });
 
     afterEach(() => {
@@ -130,12 +123,12 @@ describe('FabricClientConnection', () => {
     describe('connect', () => {
 
         beforeEach(async () => {
-            const connectionProfilePath: string = path.join(rootPath, '../../test/data/connectionOne/connection.json');
+            const connectionProfilePath: string = path.join(rootPath, 'test/data/connectionProfiles/connection.json');
 
-            fabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionProfilePath) as FabricClientConnection;
+            fabricClientConnection = new FabricGatewayConnection(connectionProfilePath);
             fabricClientConnection['gateway'] = fabricGatewayStub;
 
-            wallet = new FabricWallet(path.join(rootPath, '../../test/data/walletDir/wallet'));
+            wallet = new FabricWallet(path.join(rootPath, 'test/data/walletDir/wallet'));
         });
 
         it('should connect to a fabric', async () => {
@@ -145,19 +138,11 @@ describe('FabricClientConnection', () => {
             fabricClientConnection['description'].should.equal(false);
         });
 
-        it('should connect with an already loaded client connection', async () => {
-            should.exist(FabricConnectionFactory['clientConnection']);
-            await fabricClientConnection.connect(wallet, FabricRuntimeUtil.ADMIN_USER, timeout);
-            fabricGatewayStub.connect.should.have.been.called;
-            logSpy.should.not.have.been.calledWith(LogType.ERROR);
-            fabricClientConnection['description'].should.equal(false);
-        });
-
         it('should connect to a fabric with a .yaml connection profile', async () => {
-            const connectionProfilePath: string = path.join(rootPath, '../../test/data/connectionYaml/connection.yaml');
+            const connectionProfilePath: string = path.join(rootPath, 'test/data/connectionProfiles/connection.yaml');
 
-            wallet = new FabricWallet(path.join(rootPath, '../../test/data/connectionYaml/wallet'));
-            fabricClientConnectionYaml = FabricConnectionFactory.createFabricClientConnection(connectionProfilePath) as FabricClientConnection;
+            wallet = new FabricWallet(path.join(rootPath, 'test/data/wallet'));
+            fabricClientConnectionYaml = new FabricGatewayConnection(connectionProfilePath);
             fabricClientConnectionYaml['gateway'] = fabricGatewayStub;
 
             await fabricClientConnectionYaml.connect(wallet, FabricRuntimeUtil.ADMIN_USER, timeout);
@@ -167,10 +152,10 @@ describe('FabricClientConnection', () => {
         });
 
         it('should connect to a fabric with a .yml connection profile', async () => {
-            const connectionProfilePath: string = path.join(rootPath, '../../test/data/connectionYaml/otherConnectionProfile.yml');
+            const connectionProfilePath: string = path.join(rootPath, 'test/data/connectionProfiles/otherConnectionProfile.yml');
 
-            wallet = new FabricWallet(path.join(rootPath, '../../test/data/connectionYaml/wallet'));
-            otherFabricClientConnectionYml = FabricConnectionFactory.createFabricClientConnection(connectionProfilePath) as FabricClientConnection;
+            wallet = new FabricWallet(path.join(rootPath, 'test/data/wallet'));
+            otherFabricClientConnectionYml = new FabricGatewayConnection(connectionProfilePath);
             otherFabricClientConnectionYml['gateway'] = fabricGatewayStub;
 
             await otherFabricClientConnectionYml.connect(wallet, FabricRuntimeUtil.ADMIN_USER, timeout);
@@ -180,10 +165,10 @@ describe('FabricClientConnection', () => {
         });
 
         it('should detect connecting to ibp instance', async () => {
-            const connectionProfilePath: string = path.join(rootPath, '../../test/data/connectionTwo/connection.json');
-            wallet = new FabricWallet(path.join(rootPath, '../../test/data/walletDir/wallet'));
+            const connectionProfilePath: string = path.join(rootPath, 'test/data/connectionProfiles/connectionIBP.json');
+            wallet = new FabricWallet(path.join(rootPath, 'test/data/wallet'));
 
-            fabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionProfilePath) as FabricClientConnection;
+            fabricClientConnection = new FabricGatewayConnection(connectionProfilePath);
             fabricClientConnection['gateway'] = fabricGatewayStub;
 
             await fabricClientConnection.connect(wallet, FabricRuntimeUtil.ADMIN_USER, timeout);
@@ -194,17 +179,12 @@ describe('FabricClientConnection', () => {
         });
 
         it('should detect not connecting to ibp instance', async () => {
-
-            readConnectionProfileStub.resolves({
-                description: 'Not an IBP Network!'
-            });
-
             const connectionData: any = {
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
+                connectionProfilePath: path.join(rootPath, 'test/data/connectionProfiles/connection.json'),
+                walletPath: path.join(rootPath, 'test/data/wallet')
             };
             wallet = new FabricWallet(connectionData.walletPath);
-            fabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionData) as FabricClientConnection;
+            fabricClientConnection = new FabricGatewayConnection(connectionData.connectionProfilePath);
             fabricClientConnection['gateway'] = fabricGatewayStub;
 
             await fabricClientConnection.connect(wallet, FabricRuntimeUtil.ADMIN_USER, timeout);
@@ -215,10 +195,10 @@ describe('FabricClientConnection', () => {
         });
 
         it('should show an error if connection profile is not .yaml or .json file', async () => {
-            const connectionProfilePath: string = path.join(rootPath, '../../test/data/connectionYaml/connection');
+            const connectionProfilePath: string = path.join(rootPath, 'test/data/connectionProfiles/connection.bad');
 
-            wallet = new FabricWallet(path.join(rootPath, '../../test/data/connectionYaml/wallet'));
-            fabricClientConnectionWrong = FabricConnectionFactory.createFabricClientConnection(connectionProfilePath) as FabricClientConnection;
+            wallet = new FabricWallet(path.join(rootPath, 'test/data/wallet'));
+            fabricClientConnectionWrong = new FabricGatewayConnection(connectionProfilePath);
             fabricClientConnectionWrong['gateway'] = fabricGatewayStub;
 
             await fabricClientConnectionWrong.connect(wallet, FabricRuntimeUtil.ADMIN_USER, timeout).should.have.been.rejectedWith('Connection profile must be in JSON or yaml format');

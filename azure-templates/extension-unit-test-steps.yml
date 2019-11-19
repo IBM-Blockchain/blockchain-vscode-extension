@@ -12,15 +12,23 @@
 
 steps:
   - bash: |
-      cd ./packages/blockchain-ui
-      npm run test
+      set -ev
+      cd ./packages/blockchain-extension
+      npm test
     env:
       DISPLAY: ':99.0'
-    displayName: Run jest tests
+    displayName: Run unit tests
     condition: succeeded()
+
+  - task: PublishTestResults@2
+    condition: succeededOrFailed()
+    inputs:
+      testRunner: JUnit
+      testResultsFiles: '$(System.DefaultWorkingDirectory)/packages/blockchain-extension/unit-tests.xml'
 
   - task: PublishCodeCoverageResults@1
     condition: succeededOrFailed()
     inputs:
       codeCoverageTool: Cobertura
-      summaryFileLocation: '$(System.DefaultWorkingDirectory)/packages/blockchain-ui/coverage/clover.xml'
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/packages/blockchain-extension/coverage/*coverage.xml'
+      reportDirectory: '$(System.DefaultWorkingDirectory)/coverage'

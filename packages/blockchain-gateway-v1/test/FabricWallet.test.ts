@@ -14,13 +14,12 @@
 
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { FabricWallet } from '../../extension/fabric/FabricWallet';
+import { FabricWallet } from '../src/FabricWallet';
 import * as sinon from 'sinon';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { FileSystemWallet, X509WalletMixin } from 'fabric-network';
-import { FabricIdentity } from '../../extension/fabric/FabricIdentity';
-import { IFabricWallet } from '../../extension/fabric/IFabricWallet';
+import { FabricIdentity, IFabricWallet} from 'ibm-blockchain-platform-common';
 
 chai.use(chaiAsPromised);
 

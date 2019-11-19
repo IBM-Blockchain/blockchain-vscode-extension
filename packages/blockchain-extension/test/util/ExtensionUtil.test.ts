@@ -37,7 +37,7 @@ import { LogType } from '../../extension/logging/OutputAdapter';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
 import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';

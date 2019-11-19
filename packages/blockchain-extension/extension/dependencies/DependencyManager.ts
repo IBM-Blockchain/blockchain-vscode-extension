@@ -24,7 +24,7 @@ import { CommandUtil } from '../util/CommandUtil';
 import { LogType } from '../logging/OutputAdapter';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { Dependencies } from './Dependencies';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 export class DependencyManager {
 
@@ -530,16 +530,36 @@ export class DependencyManager {
                 if (!remote && semver.lt(info.longVersion, '6.0.0')) {
                     progress.report({ message: `Updating ${dependency}` });
                     outputAdapter.log(LogType.INFO, undefined, `Updating ${dependency}`);
-                    const basePath: string = path.join(extensionPath, 'node_modules', 'grpc', 'src', 'node', 'extension_binary');
+                    let basePath: string = path.join(extensionPath, 'node_modules', 'grpc', 'src', 'node', 'extension_binary');
 
-                    const origPath: string = path.join(basePath, `node-v${info.modules}-${os}-${architecture}-${thing}`);
-                    const newPath: string = path.join(basePath, `electron-v${info.shortVersion}-${os}-${architecture}-${thing}`);
+                    let origPath: string = path.join(basePath, `node-v${info.modules}-${os}-${architecture}-${thing}`);
+                    let newPath: string = path.join(basePath, `electron-v${info.shortVersion}-${os}-${architecture}-${thing}`);
 
-                    const exists: boolean = await fs.pathExists(origPath);
+                    let exists: boolean = await fs.pathExists(origPath);
                     if (exists) {
                         await fs.remove(origPath);
                     }
                     await fs.rename(newPath, origPath);
+
+                    // this is probably only needed in development
+                    const otherGRPC: string[] = ['ibm-blockchain-platform-gateway-v1'];
+
+                    for (const other of otherGRPC) {
+                        basePath = path.join(extensionPath, 'node_modules', `${other}`, 'node_modules', 'grpc', 'src', 'node', 'extension_binary');
+
+                        origPath = path.join(basePath, `node-v${info.modules}-${os}-${architecture}-${thing}`);
+                        newPath = path.join(basePath, `electron-v${info.shortVersion}-${os}-${architecture}-${thing}`);
+
+                        exists = await fs.pathExists(origPath);
+                        if (exists) {
+                            await fs.remove(origPath);
+                        }
+
+                        exists = await fs.pathExists(newPath);
+                        if (exists) {
+                            await fs.rename(newPath, origPath);
+                        }
+                    }
                 }
             }
 
@@ -626,5 +646,4 @@ export class DependencyManager {
         const currentDate: Date = new Date();
         await fs.utimes(extensionsPath, currentDate, currentDate);
     }
-
 }

@@ -1,16 +1,8 @@
 {
+    "extends": "../../tsconfig",
     "compilerOptions": {
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "target": "es6",
-        "module": "commonjs",
-        "moduleResolution": "node",
         "rootDir": ".",
         "outDir": "build",
-        "lib": [ "es2016" ],
-        "sourceMap": true,
-        "resolveJsonModule": true,
-        "skipLibCheck": true,
         "types": []
     },
     "exclude": [

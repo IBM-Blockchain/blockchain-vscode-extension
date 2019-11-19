@@ -21,12 +21,12 @@ import { LogType } from '../logging/OutputAdapter';
 import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
 import { IdentityTreeItem } from '../explorer/model/IdentityTreeItem';
-import { IFabricWallet } from '../fabric/IFabricWallet';
+import { IFabricWallet } from 'ibm-blockchain-platform-common';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> {
 

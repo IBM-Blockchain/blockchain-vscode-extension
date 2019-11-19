@@ -15,17 +15,13 @@
 
 import * as Client from 'fabric-client';
 import { Gateway, GatewayOptions, FileSystemWallet, Network } from 'fabric-network';
-import { OutputAdapter } from '../logging/OutputAdapter';
-import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
-import { FabricWallet } from './FabricWallet';
 import { URL } from 'url';
-import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
-import { FabricChaincode } from './FabricChaincode';
+import { ConsoleOutputAdapter, FabricChaincode, OutputAdapter } from 'ibm-blockchain-platform-common';
+import { FabricWallet } from './FabricWallet';
 
 export abstract class FabricConnection {
 
     public identityName: string;
-    public wallet: FabricWalletRegistryEntry;
     protected connectionProfilePath: string;
     protected outputAdapter: OutputAdapter;
     protected gateway: Gateway = new Gateway();
@@ -87,7 +83,7 @@ export abstract class FabricConnection {
     }
 
     public async getInstantiatedChaincode(channelName: string): Promise<Array<FabricChaincode>> {
-        const instantiatedChaincodes: Array<any> = [];
+        const instantiatedChaincodes: Array<FabricChaincode> = [];
         const channel: Client.Channel = await this.getChannel(channelName);
         const chainCodeResponse: Client.ChaincodeQueryResponse = await channel.queryInstantiatedChaincodes(null);
         chainCodeResponse.chaincodes.forEach((chainCode: Client.ChaincodeInfo) => {

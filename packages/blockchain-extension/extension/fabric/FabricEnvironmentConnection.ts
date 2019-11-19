@@ -22,13 +22,12 @@ import { PackageRegistryEntry } from '../registries//PackageRegistryEntry';
 import * as fs from 'fs-extra';
 import { FabricNode, FabricNodeType } from './FabricNode';
 import { IFabricWalletGenerator } from './IFabricWalletGenerator';
-import { IFabricWallet } from './IFabricWallet';
+import { FabricChaincode, IFabricWallet } from 'ibm-blockchain-platform-common';
 import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { URL } from 'url';
 import { Attribute } from './FabricCertificate';
 import { FabricEnvironment } from './FabricEnvironment';
-import { FabricChaincode } from './FabricChaincode';
 
 export class FabricEnvironmentConnection implements IFabricEnvironmentConnection {
 

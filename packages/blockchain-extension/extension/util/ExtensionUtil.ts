@@ -13,7 +13,6 @@
 */
 'use strict';
 import * as fs from 'fs-extra';
-import * as yaml from 'js-yaml';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -67,7 +66,7 @@ import { NodeTreeItem } from '../explorer/runtimeOps/connectedTree/NodeTreeItem'
 import { PeerTreeItem } from '../explorer/runtimeOps/connectedTree/PeerTreeItem';
 import { BlockchainWalletExplorerProvider } from '../explorer/walletExplorer';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
-import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
+import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { LogType } from '../logging/OutputAdapter';
@@ -96,11 +95,10 @@ import { TemporaryCommandRegistry } from '../dependencies/TemporaryCommandRegist
 import { version as currentExtensionVersion, dependencies } from '../../package.json';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { UserInputUtil } from '../commands/UserInputUtil';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricChaincode, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 import { importNodesToEnvironment } from '../commands/importNodesToEnvironmentCommand';
 import { deleteNode } from '../commands/deleteNodeCommand';
-import { FabricChaincode } from '../fabric/FabricChaincode';
 import { FileRegistry } from '../registries/FileRegistry';
 import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
 import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
@@ -158,19 +156,6 @@ export class ExtensionUtil {
         } catch (error) {
             throw new Error('error reading package.json from project ' + error.message);
         }
-    }
-
-    public static async readConnectionProfile(connectionProfilePath: string): Promise<object> {
-        const connectionProfileContents: string = await fs.readFile(connectionProfilePath, 'utf8');
-        let connectionProfile: object;
-        if (connectionProfilePath.endsWith('.json')) {
-            connectionProfile = JSON.parse(connectionProfileContents);
-        } else if (connectionProfilePath.endsWith('.yaml') || connectionProfilePath.endsWith('.yml')) {
-            connectionProfile = yaml.safeLoad(connectionProfileContents);
-        } else {
-            throw new Error('Connection profile must be in JSON or yaml format');
-        }
-        return connectionProfile;
     }
 
     // Migrate user setting configurations
@@ -296,7 +281,7 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.window.registerTreeDataProvider('walletExplorer', blockchainWalletExplorerProvider));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_GATEWAYS, (element: BlockchainTreeItem) => blockchainGatewayExplorerProvider.refresh(element)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.CONNECT_TO_GATEWAY, (gateway: FabricGatewayRegistryEntry, identityName: string) => gatewayConnect(gateway, identityName)));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISCONNECT_GATEWAY, () => FabricConnectionManager.instance().disconnect()));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISCONNECT_GATEWAY, () => FabricGatewayConnectionManager.instance().disconnect()));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_GATEWAY, () => addGateway()));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_GATEWAY, (gateway: GatewayTreeItem) => deleteGateway(gateway)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_WALLET_IDENTITY, (walletItem: WalletTreeItem | FabricWalletRegistryEntry, mspid: string) => addWalletIdentity(walletItem, mspid)));
