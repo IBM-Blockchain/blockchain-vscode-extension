@@ -1329,7 +1329,7 @@
         "ejs": "^2.6.1",
         "find-free-port": "^2.0.0",
         "fs-extra": "^7.0.1",
-        "generator-fabric": "0.0.38",
+        "generator-fabric": "0.0.41",
         "handlebars": "^4.5.2",
         "home-dir": "1.0.0",
         "react": "^16.3.2",
@@ -1396,7 +1396,8 @@
             "templates/SampleView.ejs",
             "templates/TutorialGallery.ejs",
             "templates/PreReqView.ejs",
-            "tutorials"
+            "tutorials",
+            "docker"
         ],
         "file_type_method": "EXCLUDE",
         "file_types": [
