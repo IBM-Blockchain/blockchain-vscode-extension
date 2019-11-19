@@ -567,6 +567,14 @@ describe('UserInputUtil', () => {
                 placeHolder: 'Choose the smart contract package that you want to delete'
             });
         });
+
+        it('should show error and return when there are no open packages', async () => {
+            await PackageRegistry.instance().clear();
+            const result: Array<IBlockchainQuickPickItem<PackageRegistryEntry>> = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package that you want to delete', true) as Array<IBlockchainQuickPickItem<PackageRegistryEntry>>;
+            should.equal(result, undefined);
+            quickPickStub.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'There are no open packages.');
+        });
     });
 
     describe('showLanguagesQuickPick', () => {
