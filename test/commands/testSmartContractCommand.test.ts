@@ -1852,7 +1852,7 @@ describe('testSmartContractCommand', () => {
             const capsJavaSmartContractLabel: string = javaSmartContractLabel[0].toUpperCase() + javaSmartContractLabel.slice(1).replace(/\./g, '').replace('@', '');
             const testFilePath: string = path.join(testFileDir, 'src', 'test', 'java', 'org', 'example', `FvMyJavaContract${capsJavaSmartContractLabel}Test.java`);
             const packageFolder: string = vscode.Uri.file(testFileDir).fsPath;
-            const error: Error = new Error(`Could not find property 'repositories'.`);
+            const error: Error = new Error(`Could not find property 'dependencies'.`);
             readFileStub.withArgs(gradleFilePath.fsPath, 'utf8').resolves(`{\n some wrong content \n}`);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedJavaSmartContract);
