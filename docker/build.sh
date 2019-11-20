@@ -5,10 +5,16 @@
 set -ex
 ROOT=$(git rev-parse --show-toplevel)
 cd ${ROOT}
-cp -f package.json package.json.orig
-trap "cd ${ROOT}; cp -f package.json.orig package.json; rm -f package.json.orig" EXIT
-npm ci --only=production
+cp -f ./packages/blockchain-extension/package.json ./packages/blockchain-extension/package.json.orig
+trap "cd ${ROOT}; cp -f ./packages/blockchain-extension/package.json.orig ./packages/blockchain-extension/package.json; rm -f ./packages/blockchain-extension/package.json.orig" EXIT
+npm install lerna
+node ./node_modules/lerna/cli.js bootstrap
+node ./node_modules/lerna/cli.js run compile
+node ./node_modules/lerna/cli.js run createModule
+cp ./README.md ./packages/blockchain-extension/README.md
+cd ./packages/blockchain-extension
 npm install vsce
+npm install ../blockchain-ui/ibm-blockchain-platform-ui-*.tgz
 npm run compile
 npm run productionFlag
 cat package.json.orig \
@@ -20,6 +26,7 @@ cat package.json.orig \
           .activationEvents = $onView + $onCommand + $other' \
     > package.json
 npm run package
-mv ibm-blockchain-platform-*.vsix docker/ibm-blockchain-platform-docker.vsix
+cd ${ROOT}
+mv ./packages/blockchain-extension/ibm-blockchain-platform-*.vsix docker/ibm-blockchain-platform-docker.vsix
 cd docker
 docker build -t ibmblockchain/vscode:latest .
