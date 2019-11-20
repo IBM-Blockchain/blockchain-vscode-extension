@@ -13,12 +13,14 @@
 steps:
   - bash: |
       set -ev
+      cd ./packages/blockchain-extension
       ./cucumber/hlfv1/start.sh
     displayName: Setup Fabric
     condition: and(succeeded(), eq(variables['OTHER_FABRIC'], 'true'))
 
   - bash: |
       set -ev
+      cd ./packages/blockchain-extension
       npm run cucumber
     env:
       DISPLAY: ':99.0'

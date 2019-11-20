@@ -134,15 +134,26 @@ stages:
           - bash: |
               set -ev
               npm run productionFlag
+            displayName: Set production flag
             condition: startsWith(variables['Build.SourceBranch'], 'refs/tags')
 
           - bash: |
               set -ev
+              cd ./packages/blockchain-ui
+              npm pack
+            displayName: npm pack the ui
+
+          - bash: |
+              set -ev
+              cp ./README.md ./packages/blockchain-extension/README.md
+              cd ./packages/blockchain-extension
+              npm install ../blockchain-ui/ibm-blockchain-platform-ui-*.tgz
               npm run package
+            displayName: package extension
 
           - task: CopyFiles@2
             inputs:
-              sourceFolder: '$(Build.SourcesDirectory)'
+              sourceFolder: '$(Build.SourcesDirectory)/packages/blockchain-extension'
               contents: '*.vsix'
               targetFolder: '$(Build.ArtifactStagingDirectory)'
 
@@ -172,7 +183,7 @@ stages:
           - bash: |
               set -ev
               npm install vsce
-              node ./node_modules/vsce/out/vsce publish -p $(VSCETOKEN) --packagePath ibm-blockchain-platform-*
+              node ./packages/blockchain-extension/node_modules/vsce/out/vsce publish -p $(VSCETOKEN) --packagePath ibm-blockchain-platform-*
             displayName: Publish extension
             condition: succeeded()
 
@@ -182,15 +193,21 @@ stages:
               git config --global user.email $(GITHUB_USER_EMAIL)
             displayName: Set GitHub user name and email
             condition: succeeded()
-          - script: npm version patch --no-git-tag-version
-            displayName: Use npm to bump version
-            condition: succeeded()
+
           - script: |
               set -ex
-              VERSION=$(jq -r ".version" package.json)
+              npm install -g lerna
+              lerna version patch --no-git-tag-version
+            displayName: Use lerna to bump version
+            condition: succeeded()
+
+          - script: |
+              set -ex
+              VERSION=$(jq -r ".version" ./packages/blockchain-extension/package.json)
               git commit -asm "Automatic version bump to ${VERSION}"
             displayName: Commit version bump
             condition: succeeded()
+
           - script: |
               set -ex
               git -c http.extraheader="Authorization: Basic $(GITHUB_BASIC_AUTH)" push $(Build.Repository.Uri) HEAD:master -f
