@@ -1,3 +1,4 @@
+// tslint:disable: no-unused-expression
 import React from 'react';
 import { mount } from 'enzyme';
 import App from '../../src/App';
@@ -68,7 +69,7 @@ describe('App', () => {
             }
         });
         dispatchEvent(msg);
-        expect(component.state().redirectPath).toBe('/transaction');
+        component.state().redirectPath.should.equal('/transaction');
     });
 
     it('should redirect to the transaction create view', async () => {
@@ -84,7 +85,7 @@ describe('App', () => {
             }
         });
         dispatchEvent(msg);
-        expect(component.state().redirectPath).toBe('/transaction/create');
+        component.state().redirectPath.should.equal('/transaction/create');
     });
 
     it('does not overwrite state when redirecting to a different page', async () => {
@@ -97,10 +98,10 @@ describe('App', () => {
             }
         });
         dispatchEvent(msg);
-        expect(component.state().childState).toBe(mockState);
+        component.state().childState.should.deep.equal(mockState);
 
         Utils.changeRoute('/transaction/create');
-        expect(component.state().childState).toBe(mockState);
+        component.state().childState.should.deep.equal(mockState);
     });
 
     it('updates the state correctly when switching smart contracts', async () => {
@@ -113,10 +114,16 @@ describe('App', () => {
             }
         });
         dispatchEvent(msg);
-        expect(component.state().childState.activeSmartContract).toBe(greenContract);
+        component.state().childState.activeSmartContract.should.deep.equal(greenContract);
 
         component.instance().switchSmartContract('blueContract@0.0.1');
-        expect(component.state().childState.activeSmartContract).toBe(blueContract);
+        component.state().childState.activeSmartContract.should.deep.equal(blueContract);
     });
 
+    it('attempts to post a message to vscode', async () => {
+        const postToVSCodeStub: sinon.SinonStub = mySandBox.stub(Utils, 'postToVSCode').resolves();
+        const component: any = mount(<App/>);
+        component.instance().postMessageHandler({});
+        postToVSCodeStub.should.have.been.calledOnceWithExactly({});
+    });
 });

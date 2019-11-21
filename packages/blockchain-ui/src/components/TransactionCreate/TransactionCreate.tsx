@@ -8,11 +8,14 @@ import ISmartContract from '../../interfaces/ISmartContract';
 
 interface CreateProps {
     activeSmartContract: ISmartContract;
+    postMessageHandler: (message: {command: string, data: any}) => void;
 }
 
 interface CreateState {
     activeSmartContract: ISmartContract;
+    activeTransaction: ITransaction | undefined;
     transactionArguments: string;
+    postMessageHandler: (message: {command: string, data: any}) => void;
 }
 
 class TransactionCreate extends Component<CreateProps, CreateState> {
@@ -20,35 +23,105 @@ class TransactionCreate extends Component<CreateProps, CreateState> {
         super(props);
         this.state = {
             activeSmartContract: this.props.activeSmartContract,
-            transactionArguments: ''
+            activeTransaction: undefined,
+            transactionArguments: '',
+            postMessageHandler: this.props.postMessageHandler
         };
         this.getTransactionArguments = this.getTransactionArguments.bind(this);
         this.updateTextArea = this.updateTextArea.bind(this);
+        this.submitTxn = this.submitTxn.bind(this);
     }
 
-    public getTransactionArguments(event: React.FormEvent<HTMLSelectElement>): void {
-        const transaction: ITransaction | undefined = this.state.activeSmartContract.transactions.find((txn: ITransaction) => txn.name === event.currentTarget.value);
-
-        let templateText: string = '';
+    getTransactionArguments(event: React.FormEvent<HTMLSelectElement>): void {
+        const transactionArray: Array<ITransaction> = this.state.activeSmartContract.transactions;
+        const transaction: ITransaction | undefined = transactionArray.find((txn: ITransaction) => txn.name === event.currentTarget.value);
 
         if (transaction !== undefined) {
-            for (let i: number = 0; i < transaction.parameters.length; i++) {
-                templateText += (transaction.parameters[i].name + ': \n');
+            let templateText: string = '';
+            if (transaction.parameters.length) {
+                templateText += '[\n';
+                for (const param of transaction.parameters) {
+                    templateText += (`  ${param.name}: "",\n`);
+                }
+                templateText = templateText.substring(0, templateText.length - 2);
+                templateText += '\n]';
             }
+
             this.setState({
+                activeTransaction: transaction,
                 transactionArguments: templateText
             });
         }
     }
 
-    public render(): any {
+    populateTransactionSelect(): JSX.Element {
+        const options: any = [];
+        options.push(<SelectItem disabled={false} hidden={true} text='Select the transaction name' value='placeholder-item'/>);
+
+        for (const txn of this.state.activeSmartContract.transactions) {
+            options.push(<SelectItem disabled={false} hidden={false} text={txn.name} value={txn.name}/>);
+        }
+
+        return options;
+    }
+
+    updateTextArea(event: React.FormEvent<HTMLTextAreaElement>): void {
+        this.setState({
+            transactionArguments: event.currentTarget.value
+        });
+    }
+
+    submitTxn(evaluate: boolean): void {
+        const activeTransaction: ITransaction = this.state.activeTransaction as ITransaction;
+
+        const args: string = this.parseArgs(activeTransaction, this.state.transactionArguments);
+
+        const transactionObject: any = {
+            command: 'submit',
+            data: {
+                smartContract: this.state.activeSmartContract.name,
+                transactionName: activeTransaction.name,
+                channelName: this.state.activeSmartContract.channel,
+                args: args,
+                namespace: this.state.activeSmartContract.namespace,
+                transientData: '',
+                evaluate: evaluate,
+                peerTargetNames: []
+            }
+        };
+
+        this.state.postMessageHandler(transactionObject);
+    }
+
+    parseArgs(activeTransaction: ITransaction, transactionArguments: string): string {
+        let parsedArguments: string = transactionArguments.replace(/\n/g, '');
+        for (const param of activeTransaction.parameters) {
+            parsedArguments = parsedArguments.replace(`${param.name}: `, '');
+        }
+        return parsedArguments;
+    }
+
+    getTransactionOutput(): JSX.Element {
+        return (
+            <div>
+                <p>Transaction output</p>
+                <p>More transaction output</p>
+                <p>Even more transaction output</p>
+                <p>A really really really long piece of transaction output</p>
+            </div>
+        );
+    }
+
+    render(): JSX.Element {
+        const shouldDisableButtons: boolean = this.state.activeTransaction === undefined;
+
         return (
             <div className='page-container bx--grid' data-test-id='txn-page'>
                 <div className='inner-container bx--row'>
                     <Sidebar/>
                     <div className='page-contents bx--col'>
                         <div className='titles-container'>
-                            <span className='home-link' onClick={(): void => Utils.changeRoute('/transaction')}>{this.state.activeSmartContract.label} home</span>
+                        <span className='home-link' onClick={(): void => Utils.changeRoute('/transaction')}>{this.state.activeSmartContract.label} home</span>
                         </div>
                         <div className='contents-container bx--row'>
                             <div className='bx--col-lg-11'>
@@ -67,7 +140,7 @@ class TransactionCreate extends Component<CreateProps, CreateState> {
                                     <FormGroup legendText='Peer targeting' id='target-peer-input'>
                                         <Checkbox id='target-peer-checkbox' labelText='Target custom peer'/>
                                         <Select id='peers-select' labelText='Peers' className='select-width hide-label'>
-                                            <SelectItem disabled={false} hidden={false} text='Peer 1, Peer 2' value='peer-1-and-2'/>
+                                            <SelectItem disabled={false} hidden={false} text='Select a peer' value='select-a-peer'/>
                                         </Select>
                                     </FormGroup>
                                     <FormGroup legendText='Arguments'>
@@ -85,36 +158,12 @@ class TransactionCreate extends Component<CreateProps, CreateState> {
                                 </div>
                             </div>
                         </div>
+                        <div className='bx--row'>
+                            <Button size='field' id='evaluate-button' disabled={shouldDisableButtons}>Evaluate</Button>
+                            <Button size='field' id='submit-button' disabled={shouldDisableButtons} onClick={(): void => this.submitTxn(false)}>Submit</Button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        );
-    }
-
-    private populateTransactionSelect(): any {
-        const options: any = [];
-        options.push(<SelectItem disabled={false} hidden={true} text='Select the transaction name' value='placeholder-item'/>);
-
-        for (const txn of this.state.activeSmartContract.transactions) {
-            options.push(<SelectItem disabled={false} hidden={false} text={txn.name} value={txn.name}/>);
-        }
-
-        return options;
-    }
-
-    private updateTextArea(event: React.FormEvent<HTMLTextAreaElement>): void {
-        this.setState({
-            transactionArguments: event.currentTarget.value
-        });
-    }
-
-    private getTransactionOutput(): any {
-        return (
-            <div>
-                <p>Transaction output</p>
-                <p>More transaction output</p>
-                <p>Even more transaction output</p>
-                <p>A really really really long piece of transaction output</p>
             </div>
         );
     }

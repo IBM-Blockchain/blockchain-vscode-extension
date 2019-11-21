@@ -2,6 +2,7 @@
 import ITransaction from '../../src/interfaces/ITransaction';
 import ISmartContract from '../../src/interfaces/ISmartContract';
 chai.should();
+
 describe('Cypress', () => {
 
     const transactionOne: ITransaction = {
@@ -111,9 +112,21 @@ describe('Cypress', () => {
                     activeSmartContract: greenContract
                 }
             };
+
             cy.visit('build/index.html').then((window: Window) => {
                 window.postMessage(mockMessage, '*');
             });
+
+             // @ts-ignore
+            cy.window().its('app')
+                .then((app: any) => {
+                    cy.stub(app, 'postMessageHandler').as('postMessageStub');
+                });
+        });
+
+        it('can navigate back to the home screen', () => {
+            cy.get('.titles-container > span').click();
+            cy.url().should('include', '/transaction');
         });
 
         it('generates appropriate arguments when a transaction is selected', () => {
@@ -121,9 +134,7 @@ describe('Cypress', () => {
             cy.get('#arguments-text-area')
                 .invoke('val')
                 .then((text: JQuery<HTMLElement>): void => {
-                    it('is a transaction create screen', () => {
-                        expect(text).to.equal('name: ');
-                    });
+                    expect(text).to.equal('[\n  name: ""\n]');
                 });
         });
 
@@ -132,24 +143,24 @@ describe('Cypress', () => {
             cy.get('#arguments-text-area')
                 .invoke('val')
                 .then((text: JQuery<HTMLElement>): void => {
-                    it('is a transaction create screen', () => {
-                        expect(text).to.equal('name: ');
-                    });
+                    expect(text).to.equal('[\n  name: ""\n]');
                 });
 
             cy.get('#transaction-name-select').select('transactionTwo');
             cy.get('#arguments-text-area')
                 .invoke('val')
                 .then((text: JQuery<HTMLElement>): void => {
-                    it('is a transaction create screen', () => {
-                        expect(text).to.equal('size: ');
-                    });
+                    expect(text).to.equal('[\n  size: ""\n]');
                 });
         });
 
-        it('can navigate back to the home screen', () => {
-            cy.get('.titles-container > span').click();
-            cy.url().should('include', '/transaction');
+        it('can submit a transaction with the user\'s input', () => {
+            cy.get('#transaction-name-select').select('transactionOne');
+            cy.get('#arguments-text-area').type('{leftarrow}{leftarrow}{leftarrow}penguin');
+
+            cy.get('#submit-button').click();
+
+            cy.get('@postMessageStub').should('be.called');
         });
     });
 });
