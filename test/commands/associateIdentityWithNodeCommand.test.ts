@@ -67,7 +67,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
         let certAuthorityStub: sinon.SinonStub;
         let wallet: FabricWalletRegistryEntry;
         let identityExistsStub: sinon.SinonStub;
-        let showFabricNodeQuickPickStub: sinon.SinonStub;
+        let showNodesInEnvironmentQuickPickStub: sinon.SinonStub;
 
         const nodes: any = {};
 
@@ -112,7 +112,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
             identityExistsStub = mySandBox.stub(FabricWallet.prototype, 'exists').resolves(false);
 
             showEnvironmentQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox').resolves({ label: 'myEnvironment', data: environmentRegistryEntry });
-            showFabricNodeQuickPickStub = mySandBox.stub(UserInputUtil, 'showFabricNodeQuickPick').resolves({ label: peerNode.name, data: peerNode });
+            showNodesInEnvironmentQuickPickStub = mySandBox.stub(UserInputUtil, 'showNodesInEnvironmentQuickPick').resolves({ label: peerNode.name, data: peerNode });
 
             showIdentityQuickPickStub = mySandBox.stub(UserInputUtil, 'showIdentitiesQuickPickBox').resolves('identityOne');
             showQuickPickStub = mySandBox.stub(UserInputUtil, 'showQuickPick').resolves('Choose an existing identity');
@@ -327,7 +327,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
             it('should test a wallet can be associated with a node using command', async () => {
                 await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
 
-                showFabricNodeQuickPickStub.should.have.been.calledWith('Choose a node to associate an identity with');
+                showNodesInEnvironmentQuickPickStub.should.have.been.calledWith('Choose a node to associate an identity with');
 
                 peerNode.identity = 'identityOne';
                 peerNode.wallet = 'blueWallet';
@@ -357,7 +357,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
             });
 
             it('should handle cancel from choosing node', async () => {
-                showFabricNodeQuickPickStub.resolves();
+                showNodesInEnvironmentQuickPickStub.resolves();
                 await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
 
                 logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
@@ -539,7 +539,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
             it(`should test a different identity can be associated with a node using the command`, async () => {
                 await vscode.commands.executeCommand(ExtensionCommands.REPLACE_ASSOCIATED_IDENTITY);
 
-                showFabricNodeQuickPickStub.should.have.been.calledWith('Choose a node to replace the identity');
+                showNodesInEnvironmentQuickPickStub.should.have.been.calledWith('Choose a node to replace the identity');
 
                 showWalletsQuickPickBoxStub.should.have.been.calledWith(`Which wallet is the admin identity in?`);
 

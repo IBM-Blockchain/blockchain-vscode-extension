@@ -974,7 +974,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
     }
 
-    public static async showFabricNodeQuickPick(prompt: string, environmentName: string, nodeTypefilter: FabricNodeType[], showAsociatedIdentity: boolean = false, canPickMany: boolean = false): Promise<Array<IBlockchainQuickPickItem<FabricNode>> | IBlockchainQuickPickItem<FabricNode>> {
+    public static async showNodesInEnvironmentQuickPick(prompt: string, environmentName: string, nodeTypefilter: FabricNodeType[], showAsociatedIdentity: boolean = false, canPickMany: boolean = false): Promise<Array<IBlockchainQuickPickItem<FabricNode>> | IBlockchainQuickPickItem<FabricNode>> {
         const environment: FabricEnvironment = new FabricEnvironment(environmentName);
         let nodes: FabricNode[] = await environment.getNodes();
 
@@ -1098,6 +1098,24 @@ export class UserInputUtil {
         const message: string = `Failed to determine workspace language type, supported languages are JavaScript, TypeScript, Go and Java. Please ensure your contract's root-level directory is open in the Explorer.`;
         throw new Error(message);
 
+    }
+
+    public static async showNodesQuickPickBox(prompt: string, nodes: FabricNode[], canPickMany: boolean): Promise<Array<IBlockchainQuickPickItem<FabricNode>> | IBlockchainQuickPickItem<FabricNode> | undefined> {
+        if (nodes.length === 0) {
+            throw new Error('Error when importing nodes, no nodes found to choose from.');
+        }
+
+        const quickPickItems: IBlockchainQuickPickItem<FabricNode>[] = nodes.map((_node: FabricNode) => {
+            return { label: _node.name, data: _node };
+        });
+
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: true,
+            canPickMany: canPickMany,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
     }
 
     private static async checkForUnsavedFiles(): Promise<void> {
