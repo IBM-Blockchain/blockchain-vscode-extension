@@ -1,0 +1,78 @@
+@import '@carbon/colors/scss/colors';
+@import '@carbon/themes/scss/themes';
+@import '@carbon/type/scss/type';
+@import '@carbon/type/scss/font-face/_mono';
+@import '@carbon/type/scss/font-face/_sans';
+@import './mixins.scss';
+
+@include carbon--type-reset();
+@include carbon--font-face-mono();
+@include carbon--font-face-sans();
+
+html {
+
+    .vscode-dark {
+        @include carbon--theme($carbon--theme--g90) {
+
+            #root {
+                // Color will default to #000000 otherwise
+                @include borders-dark;
+                color: $text-01;        
+            }
+
+            // Accordion Components (Getting Started section)
+            #contents-right {
+                @include accordion-dark;
+            }
+
+            // Button Components (create and import buttons in sidebar)
+            #create-button, #import-button, #save-txn-button {
+                @include button-dark;
+            }
+
+            // borders for sidebar
+            #sidebar-container, #sidebar-container > div {
+                @include borders-dark;
+            }
+
+            // text inputs on the create transaction screen
+            #create-txn-form {
+                @include text-inputs-dark;
+            }
+
+            // selects on the create transaction screen            
+            #transaction-name-select, #peers-select {
+                @include selects-dark;
+            }
+
+            // Checkbox
+            #target-peer-input {
+                @include checkbox-dark;
+            }
+
+            //panel containing transaction output
+            #txn-output-container {
+                @include txn-output-dark;
+            }
+        }
+    }
+
+    .vscode-light {
+        @include carbon--theme($carbon--theme--g10) {
+            
+            #root {
+                color: $text-01;
+            }
+
+            // Button Components (create and import buttons in sidebar)
+            #create-button, #import-button, #save-txn-button {
+                @include button-light;
+            }
+
+            // panel containing transaction output
+            #txn-output-container {
+                @include txn-output-light;
+            }
+        }
+    }
+}

@@ -16,7 +16,7 @@ Please visit the [Visual Studio Code Marketplace](https://marketplace.visualstud
 
 You will need the following installed in order to use the extension:
 - Windows 10, Linux, or Mac OS are currently the supported operating systems.
-- [VS Code version 1.32 or greater](https://code.visualstudio.com)
+- [VS Code version 1.35.1 or greater](https://code.visualstudio.com)
 - [Node v8.x or v10.x and npm v6.x or greater](https://nodejs.org/en/download/)
 - [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)
 - [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/)
@@ -89,7 +89,7 @@ If you are connecting to an instance of IBM Blockchain platform the JSON node fi
 ##### JSON Node Files
 All node files must contain a `name`, `type`, and `api_url` property. There are three types: `fabric-peer`, `fabric-ca` and `fabric-orderer`. `Peer` and `Orderer` nodes must also contain an `msp_id` property. While `Certificate Authority` nodes must contain a `ca_name` property. If you have `TLS` enabled then then the `pem` property must also be set.
 
-There are also some additional optional properties. `peer` and `orderer` nodes can set the property `ssl_target_name_overide`, this will override the hostname used to verify the servers TLS certificate. A `certificate authority` node can contain the properties `enroll_id` and `enroll_secret`, these properties are used for identity to connect to the certificate authority. If you have a `multi-node ordering service` then on each `orderer` node the `cluster_name` property can be set. If this property is set then the `orderer` nodes in the same cluster will be grouped together.
+There are also some additional optional properties. `peer` and `orderer` nodes can set the property `ssl_target_name_override`, this will override the hostname used to verify the servers TLS certificate. A `certificate authority` node can contain the properties `enroll_id` and `enroll_secret`, these properties are used for identity to connect to the certificate authority. If you have a `multi-node ordering service` then on each `orderer` node the `cluster_name` property can be set. If this property is set then the `orderer` nodes in the same cluster will be grouped together.
 A JSON node file can contain more than one node definition using array syntax
 
 Here are some examples of node files:
@@ -257,7 +257,70 @@ Add your gateway by providing a name and connection profile via the `Add Gateway
 You can also create a gateway from a fabric environment. When you run the `Add Gateway` command there will be an option to create a gateway from a fabric environment, select this then choose the environment you want to create the gateway from.
 
 ### Connect to a gateway and discover its resources
-Connect by clicking on a gateway in the `Fabric Gateways` panel, and expand the navigation tree to explore its resources. Instantiated Smart Contracts are listed under the channel and from here you can generate functional-level test files on single or multiple smart contracts (Currently you cannot generate Java functional tests). Submit or evaluate individual transactions listed under the instantiated smart contracts, with the result displayed in the `Blockchain` output channel.
+Connect by clicking on a gateway in the `Fabric Gateways` panel, and expand the navigation tree to explore its resources. Instantiated Smart Contracts are listed under the channel and from here you can generate functional-level test files on single or multiple smart contracts. Submit or evaluate individual transactions listed under the instantiated smart contracts, with the result displayed in the `Blockchain` output channel.
+
+#### **BETA** Java functional tests
+
+To test Java smart contracts, please install the [Java Test Runner extension](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-test).
+
+When creating Java functional tests new dependencies must be added to the build file.
+
+If you select 'Yes' when prompted with `The last step might overwrite build.gradle/pom.xml. Do you wish to continue?`, these modifications will be done automatically. You can alternatively choose to skip this step and manually add the code listed below.
+
+##### Gradle Project - modify build.gradle:
+
+Add the following repository:
+```
+maven {
+    url "https://oss.sonatype.org/content/repositories/snapshots"
+}
+```
+
+Add the following dependencies:
+```
+testImplementation 'org.hyperledger.fabric:fabric-gateway-java:1.4.1-SNAPSHOT'
+testImplementation 'org.assertj:assertj-core:3.14.0'
+testImplementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.10.0'
+testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.10.0'
+```
+
+##### Maven Project - modify pom.xml:
+
+Add the following repository:
+```
+<repository>
+    <id>nexus</id>
+    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+</repository>
+```
+Add the following dependencies:
+```
+<dependency>
+    <groupId>org.hyperledger.fabric</groupId>
+    <artifactId>fabric-gateway-java</artifactId>
+    <version>1.4.1-SNAPSHOT</version>
+</dependency>
+<dependency>
+    <groupId>org.assertj</groupId>
+    <artifactId>assertj-core</artifactId>
+    <version>3.14.0</version>
+</dependency>
+<dependency>
+    <groupId>com.fasterxml.jackson.dataformat</groupId>
+    <artifactId>jackson-dataformat-yaml</artifactId>
+    <version>2.10.0</version>
+</dependency> 
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+    <version>2.10.0</version>
+</dependency>
+```
+
+All functional tests will be created in `<yourProject>/src/test/java/org/example`.
+
+_Note that until version 1.4.1 of fabric-gateway-java is published in maven central, the functional tests will use version 1.4.1-SNAPSHOT._
+
 
 ### Wallet Management
 The extension creates a `Local Fabric Wallet` file system wallet when it is installed, which is used to connect to the `Local Fabric` runtime instance and is automatically associated with that gateway. When `Local Fabric` is started, an admin identity is added to the `Local Fabric Wallet` and cannot be deleted unless the `Local Fabric` runtime is torn down.
@@ -317,7 +380,6 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Disassociate A Wallet | Remove the association between a wallet and a gateway |
 | Disconnect From Environment | Disconnect from the environment you're currently connected to |
 | Disconnect From Gateway | Disconnect from the blockchain gateway you're currently connected to |
-| Edit Gateway | Edit connection profile for connecting to a blockchain gateway |
 | Evaluate Transaction | Evaluate a smart contract transaction |
 | Export Connection Profile | Export connection profile for a blockchain gateway |
 | Export Package | Export a smart contract package to use outside VS Code |

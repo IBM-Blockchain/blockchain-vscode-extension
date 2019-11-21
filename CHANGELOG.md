@@ -1,5 +1,53 @@
 # IBM Blockchain Platform Extension Change Log
 
+## 1.0.15: November 7th 2019
+
+Features & Enhancements
+---
+* Generate Java functional tests [#1513](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1513) :tada:
+> This is a BETA release of this feature as it requires a snapshot of a dependency. As a result, these generated tests shouldn’t be used in production as you may encounter problems - [please check here for more information](https://github.com/IBM-Blockchain/blockchain-vscode-extension#beta-java-functional-tests)
+* Added tutorials to the Tutorial Gallery for creating identities and creating identities with attributes [#1172](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1172) [#1170](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1170)
+* Ability to associate multiple nodes with an identity [#1416](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1416)
+
+
+Fixes
+---
+* Fixed "No path for wallet has been provided" bug [#1593](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1593)
+
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-62.jpg)
+
+
+## 1.0.14: October 24th 2019
+
+Fixes
+---
+* Fixed publishing & telemetry reporting [#1588](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/1588)
+
+
+## 1.0.13: October 24th 2019
+
+Features & Enhancements
+---
+* Delete multiple environments from command palette [#1376](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1376)
+* Display channel peers when hovering over channel tree item [#1492](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1492)
+* Target custom peers when submitting/evaluating a transaction [#1514](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1514)
+* Updated to use file system registries [#1517](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1517)
+* Display empty panel tree items [#1564](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1564)
+
+Fixes
+---
+* Fixed generated gateway ssl override property [#1525](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1525)
+* Fixed Local Fabric Wallet display name [#1509](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1509)
+* Fixed environment disconnect icon on other panels [#1549](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1549)
+* Updated ‘Add Environment’ tutorial [#1550](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1550)
+* Fixed to show stack trace when extension fails to activate [#1553](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1553)
+* Removed wallet property from exported connection profile [#1459](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1459)
+* Fixed adding an identity to Local Fabric Wallet if not connected [#1465](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1465)
+
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-61.png)
+
 ## 1.0.12: October 10th 2019
 
 * Fixed submitting transactions where there are multiple channels [#1443](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1443)

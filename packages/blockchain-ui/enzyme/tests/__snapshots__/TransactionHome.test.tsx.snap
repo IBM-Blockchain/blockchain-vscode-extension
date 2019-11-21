@@ -1,0 +1,303 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionHome component should render the expected snapshot 1`] = `
+<div
+  className="page-container bx--grid"
+  data-test-id="txn-page"
+>
+  <div
+    className="inner-container bx--row"
+  >
+    <div
+      className="sidebar-container"
+      id="sidebar-container"
+    >
+      <div
+        className="panel-container"
+      >
+        <button
+          className="bx--btn bx--btn--field bx--btn--primary"
+          disabled={false}
+          id="create-button"
+          onClick={[Function]}
+          tabIndex={0}
+          type="button"
+        >
+          Create a new transaction
+        </button>
+        <button
+          className="bx--btn bx--btn--field bx--btn--primary"
+          disabled={false}
+          id="import-button"
+          onClick={[Function]}
+          tabIndex={0}
+          type="button"
+        >
+          Import existing transaction
+        </button>
+      </div>
+      <div
+        className="panel-container"
+      >
+        <h5>
+          Filters
+        </h5>
+      </div>
+      <div
+        className="panel-container"
+      >
+        <h5>
+          Transactions
+        </h5>
+      </div>
+    </div>
+    <div
+      className="page-contents bx--col"
+    >
+      <div
+        className="titles-container"
+      >
+        <span>
+          greenContract@0.0.1
+           home
+        </span>
+        <h1>
+          Transactions
+        </h1>
+      </div>
+      <div
+        className="contents-container bx--row"
+      >
+        <div
+          className="contents-left bx--col"
+        >
+          <p>
+            Welcome to your transaction web view for 
+            <span
+              className="disabled-smart-contract"
+            >
+              greenContract@0.0.1
+            </span>
+            ; use this to submit and evaluate new and existing transactions.
+          </p>
+          <p>
+            Unsure of where to start? Follow our introductory Getting Started section opposite.
+          </p>
+          <br />
+          <h5>
+            Smart Contracts
+          </h5>
+          <p>
+            To switch to the web view for a different smart contract, select the smart contract below
+          </p>
+          <ul>
+            <li
+              className="smart-contract-item disabled-smart-contract"
+            >
+              greenContract@0.0.1
+            </li>
+            <li
+              className="smart-contract-item clickable-smart-contract"
+              onClick={[Function]}
+            >
+              blueContract@0.0.1
+            </li>
+          </ul>
+        </div>
+        <div
+          className="contents-right bx--col"
+          id="contents-right"
+        >
+          <h5>
+            Getting Started
+          </h5>
+          <ul
+            className="bx--accordion"
+          >
+            <li
+              className="bx--accordion__item"
+              onAnimationEnd={[Function]}
+            >
+              <button
+                aria-expanded={false}
+                className="bx--accordion__heading"
+                onClick={[Function]}
+                onKeyDown={[Function]}
+                title="Expand/Collapse"
+                type="button"
+              >
+                <svg
+                  aria-label="Expand/Collapse"
+                  className="bx--accordion__arrow"
+                  focusable="false"
+                  height={16}
+                  preserveAspectRatio="xMidYMid meet"
+                  role="img"
+                  style={
+                    Object {
+                      "willChange": "transform",
+                    }
+                  }
+                  viewBox="0 0 16 16"
+                  width={16}
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M11 8l-5 5-.7-.7L9.6 8 5.3 3.7 6 3z"
+                  />
+                </svg>
+                <div
+                  className="bx--accordion__title"
+                >
+                  Create a new transaction
+                </div>
+              </button>
+              <div
+                className="bx--accordion__content"
+              />
+            </li>
+          </ul>
+          <ul
+            className="bx--accordion"
+          >
+            <li
+              className="bx--accordion__item"
+              onAnimationEnd={[Function]}
+            >
+              <button
+                aria-expanded={false}
+                className="bx--accordion__heading"
+                onClick={[Function]}
+                onKeyDown={[Function]}
+                title="Expand/Collapse"
+                type="button"
+              >
+                <svg
+                  aria-label="Expand/Collapse"
+                  className="bx--accordion__arrow"
+                  focusable="false"
+                  height={16}
+                  preserveAspectRatio="xMidYMid meet"
+                  role="img"
+                  style={
+                    Object {
+                      "willChange": "transform",
+                    }
+                  }
+                  viewBox="0 0 16 16"
+                  width={16}
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M11 8l-5 5-.7-.7L9.6 8 5.3 3.7 6 3z"
+                  />
+                </svg>
+                <div
+                  className="bx--accordion__title"
+                >
+                  Edit existing transactions
+                </div>
+              </button>
+              <div
+                className="bx--accordion__content"
+              />
+            </li>
+          </ul>
+          <ul
+            className="bx--accordion"
+          >
+            <li
+              className="bx--accordion__item"
+              onAnimationEnd={[Function]}
+            >
+              <button
+                aria-expanded={false}
+                className="bx--accordion__heading"
+                onClick={[Function]}
+                onKeyDown={[Function]}
+                title="Expand/Collapse"
+                type="button"
+              >
+                <svg
+                  aria-label="Expand/Collapse"
+                  className="bx--accordion__arrow"
+                  focusable="false"
+                  height={16}
+                  preserveAspectRatio="xMidYMid meet"
+                  role="img"
+                  style={
+                    Object {
+                      "willChange": "transform",
+                    }
+                  }
+                  viewBox="0 0 16 16"
+                  width={16}
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M11 8l-5 5-.7-.7L9.6 8 5.3 3.7 6 3z"
+                  />
+                </svg>
+                <div
+                  className="bx--accordion__title"
+                >
+                  Favouriting & deleting transactions
+                </div>
+              </button>
+              <div
+                className="bx--accordion__content"
+              />
+            </li>
+          </ul>
+          <ul
+            className="bx--accordion"
+          >
+            <li
+              className="bx--accordion__item"
+              onAnimationEnd={[Function]}
+            >
+              <button
+                aria-expanded={false}
+                className="bx--accordion__heading"
+                onClick={[Function]}
+                onKeyDown={[Function]}
+                title="Expand/Collapse"
+                type="button"
+              >
+                <svg
+                  aria-label="Expand/Collapse"
+                  className="bx--accordion__arrow"
+                  focusable="false"
+                  height={16}
+                  preserveAspectRatio="xMidYMid meet"
+                  role="img"
+                  style={
+                    Object {
+                      "willChange": "transform",
+                    }
+                  }
+                  viewBox="0 0 16 16"
+                  width={16}
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M11 8l-5 5-.7-.7L9.6 8 5.3 3.7 6 3z"
+                  />
+                </svg>
+                <div
+                  className="bx--accordion__title"
+                >
+                  Submitting and evaluating: what's the difference?
+                </div>
+              </button>
+              <div
+                className="bx--accordion__content"
+              />
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

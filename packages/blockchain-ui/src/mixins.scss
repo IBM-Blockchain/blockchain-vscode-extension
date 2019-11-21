@@ -1,0 +1,79 @@
+
+@import '@carbon/colors/scss/colors';
+@import '@carbon/type/scss/type';
+    
+
+//-------------------------
+// dark theme styles
+//-------------------------
+
+@mixin accordion-dark {
+    ul, li, button {
+        color: $text-01;
+    }
+
+    li {
+        border-color: $carbon--gray-80;
+    }
+    
+    button:hover:before {
+        background-color: $carbon--gray-80;
+    }
+    
+    svg {
+        fill: $text-01;
+    }
+}
+
+@mixin borders-dark {
+    border-color: $carbon--gray-80;
+}
+
+@mixin button-dark {
+    background-color: $carbon--gray-80;
+}
+
+@mixin checkbox-dark {
+
+    .bx--checkbox-label::before {
+        border-color: $carbon--gray-10;
+    }
+
+    input:checked ~ .bx--checkbox-label::before {
+        background-color: $carbon--gray-10;
+    }
+
+    input:checked ~ .bx--checkbox-label::after {
+        border-color: #000000;
+    }
+}
+
+@mixin selects-dark {
+    background-color: $carbon--gray-60;
+    color: white;
+}
+
+@mixin text-inputs-dark {
+    input, textarea {
+        background-color: $carbon--gray-60;
+        color: white;
+    }
+}
+
+@mixin txn-output-dark {
+    background-color: $carbon--gray-80;
+}
+
+//-------------------------
+// light theme styles
+//-------------------------
+
+@mixin button-light {
+    background-color: $carbon--gray-20;
+    color: black;
+}
+
+@mixin txn-output-light {
+    background-color: $carbon--gray-20;
+    color: black;
+}

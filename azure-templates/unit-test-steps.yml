@@ -13,6 +13,7 @@
 steps:
   - bash: |
       set -ev
+      cd ./packages/blockchain-extension
       npm test
     env:
       DISPLAY: ':99.0'
@@ -23,11 +24,11 @@ steps:
     condition: succeededOrFailed()
     inputs:
       testRunner: JUnit
-      testResultsFiles: '$(System.DefaultWorkingDirectory)/unit-tests.xml'
+      testResultsFiles: '$(System.DefaultWorkingDirectory)/packages/blockchain-extension/unit-tests.xml'
 
   - task: PublishCodeCoverageResults@1
     condition: succeededOrFailed()
     inputs:
       codeCoverageTool: Cobertura
-      summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage/*coverage.xml'
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/packages/blockchain-extension/coverage/*coverage.xml'
       reportDirectory: '$(System.DefaultWorkingDirectory)/coverage'
