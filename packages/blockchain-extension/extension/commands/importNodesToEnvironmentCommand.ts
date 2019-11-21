@@ -42,7 +42,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             environmentRegistryEntry = chosenEnvironment.data;
         }
 
-        const createMethod: string = await UserInputUtil.showQuickPick('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]);
+        const createMethod: string = await UserInputUtil.showQuickPick('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]) as string;
         if (!createMethod) {
             return;
         }
