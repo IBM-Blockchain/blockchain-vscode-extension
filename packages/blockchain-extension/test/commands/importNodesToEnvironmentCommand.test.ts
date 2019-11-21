@@ -27,6 +27,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { FabricNode } from '../../extension/fabric/FabricNode';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -48,6 +49,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
     let addMethodChooserStub: sinon.SinonStub;
     let showInputBoxStub: sinon.SinonStub;
     let axiosGetStub: sinon.SinonStub;
+    let showNodesQuickPickBoxStub: sinon.SinonStub;
     let localFabricNodes: any;
     let opsToolNodes: any;
     let url: string;
@@ -72,6 +74,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT).resolves();
             updateNodeStub = mySandBox.stub(FabricEnvironment.prototype, 'updateNode').resolves();
             getNodesStub = mySandBox.stub(FabricEnvironment.prototype, 'getNodes').onFirstCall().resolves([]);
+            showNodesQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showNodesQuickPickBox');
             localFabricNodes = [
                 {
                     short_name: 'peer0.org1.example.com',
@@ -139,6 +142,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             showInputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves(url);
             showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').resolves(key);
             axiosGetStub.withArgs(`${url}/ak/api/v1/components`, { headers: { Authorization: `Bearer ${key}` }}).resolves({ data: opsToolNodes });
+            showNodesQuickPickBoxStub.resolves(opsToolNodes.map((_node: FabricNode) => ({ label: _node.name, data: _node })));
         });
 
         afterEach(async () => {
@@ -615,7 +619,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to connect to ${url}, with error ${connectionError.message}`, `Failed to connect to ${url}, with error ${connectionError.toString()}`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${connectionError.message}`, `Failed to acquire nodes from ${url}, with error ${connectionError.toString()}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error importing nodes: ${executionError.message}`);
         });
 
@@ -638,8 +642,25 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to connect to ${url}, with error ${error.message}`, `Failed to connect to ${url}, with error ${error.toString()}`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${error.message}`, `Failed to acquire nodes from ${url}, with error ${error.toString()}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error importing nodes: ${error.message}`);
+        });
+
+        it('should handle user not choosing any nodes from Ops Tool', async () => {
+            const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
+            browseStub.onFirstCall().resolves([uri]);
+            showNodesQuickPickBoxStub.resolves([]);
+            addMethodChooserStub.withArgs('Choose a method to import nodes to an environment').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+
+            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, undefined, true);
+
+            ensureDirStub.should.not.have.been.called;
+            updateNodeStub.should.not.have.been.called;
+            getNodesStub.should.not.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
+
         });
 
         it('should handle errors when copying node files', async () => {

@@ -85,7 +85,7 @@ export class EnvironmentHelper {
             return _node.name === nodeName;
         });
 
-        this.userInputUtilHelper.showFabricNodeQuickPickStub.resolves([{ label: nodeName, data: node }]);
+        this.userInputUtilHelper.showNodesInEnvironmentQuickPickStub.resolves([{ label: nodeName, data: node }]);
 
         await vscode.commands.executeCommand(ExtensionCommands.DELETE_NODE);
     }
