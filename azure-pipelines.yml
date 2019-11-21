@@ -146,6 +146,7 @@ stages:
           - bash: |
               set -ev
               cp ./README.md ./packages/blockchain-extension/README.md
+              cp -r ./media ./packages/blockchain-extension/media
               cd ./packages/blockchain-extension
               npm install ../blockchain-ui/ibm-blockchain-platform-ui-*.tgz
               npm run package
