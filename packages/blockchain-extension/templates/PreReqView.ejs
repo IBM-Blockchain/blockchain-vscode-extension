@@ -181,6 +181,46 @@
             margin-bottom: 24px;
         }
 
+        .optional-features-container {
+            flex-shrink: 1;
+            display: flex;
+            margin-bottom: 16px;
+        }
+
+        .optional-features-title {
+            display:inline;
+            font-size: 22px;
+            font-weight: 400;
+            font-family: 'IBMPlexSans-Light', 'IBM Plex Sans', 'IBMPlexSans', Arial, Helvetica, sans-serif;
+        }
+
+        .optional-feature {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feature-name {
+            flex: 1;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .optional-docker-description{
+            margin-bottom: 16px;
+            max-width: 1005px;
+        }
+
+        .switch-container {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+        }
+
+        .switch-button {
+            flex-shrink: 1;
+        }
+
         .prereqs-title-container{
             flex-shrink:1;
             padding-right: 8px;
@@ -505,6 +545,70 @@
             border-style: solid;
         }
 
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #8d8d8d;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #fff;
+            transition: all 70ms ease-out;
+        }
+
+        input:checked + .slider {
+            background-color: #24a148;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #24a148;
+        }
+
+        input:checked + .slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+            transition: all 70ms ease-out;
+        }
+
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
+        #toggle-text{
+            align-self: center;
+            padding-left: 8px;
+        }
+
         /*
         ##############################################
         ### Styling for vscode-dark grouped themes ###
@@ -786,6 +890,30 @@
                         Click any un-installed apps to visit their install instructions.
                         Click "check again" when you’ve got everything installed.
                     </p>
+                    <br>
+                    <br>
+                    <div class="optional-features-container">
+                        <div class="optional-features-title">Optional Features</div>
+                    </div>
+                    <div class="optional-features-container">
+                        <div class="optional-feature">
+                            <div class="optional-docker-description">
+                                This extension can use Docker and Docker Compose to run a simple pre-configured local Hyperledger Fabric network on your local machine.
+                                You may disable this feature if you cannot run Docker on this machine, or if you only want to import your own Fabric network for development.
+                            </div>
+                            <div class="feature-name">Enable Local Fabric</div>
+                            <div class="switch-container">
+                                <label class="switch switch-button">
+                                    <input id="local-fabric-functionality" type="checkbox" onclick="toggleLocalFabric();" <%if(localFabricFunctionality){ %>
+                                    checked
+                                    <% } %>
+                                    >
+                                    <span class="slider round"></span>
+                                </label>
+                                <div id="toggle-text"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div id="content-middle">
@@ -945,8 +1073,6 @@
     <script>
         const vscode = acquireVsCodeApi();
 
-        // Send message and wait for response on whether required dependencies are installed.
-
 
         const rowsPerPage = 4;
         const totalPages = document.getElementById('totalPages').innerHTML;
@@ -968,6 +1094,10 @@
         let pageDisplayed = pages[pageDisplayedIndex];
 
         refreshTable(pageDisplayed);
+
+
+        let localFabricFunctionality = document.getElementById('local-fabric-functionality');
+        updateLocalFabricText(localFabricFunctionality.checked);
 
         function toggleCollapsibleTable(){
             if(document.getElementById('installed-table').classList.contains('hidden')){
@@ -1040,66 +1170,70 @@
         }
 
         function check(){
-            if(document.getElementById('check-finish-button') && document.getElementById('check-finish-button').classList.contains('check')){
-                // Checking dependencies again
-                let checkObject = {
-                    command: 'check'
-                };
+            // Checking dependencies again
+            let localFabricFunctionality = document.getElementById('local-fabric-functionality');
 
-                if(document.getElementById('dockerForWindows')){
-                    if(document.getElementById('dockerForWindows').checked === true){
-                        checkObject['dockerForWindows'] = true;
-                    }
+            let checkObject = {
+                command: 'check',
+                localFabricFunctionality: localFabricFunctionality.checked
+            };
+
+            if(document.getElementById('dockerForWindows')){
+                if(document.getElementById('dockerForWindows').checked === true){
+                    checkObject['dockerForWindows'] = true;
                 }
-
-                if(document.getElementById('systemRequirements')){
-                    if(document.getElementById('systemRequirements').checked === true){
-                        checkObject['systemRequirements'] = true;
-                    }
-                }
-
-
-                vscode.postMessage((checkObject));
             }
+
+            if(document.getElementById('systemRequirements')){
+                if(document.getElementById('systemRequirements').checked === true){
+                    checkObject['systemRequirements'] = true;
+                }
+            }
+
+            vscode.postMessage((checkObject));
+
+        }
+
+        function updateLocalFabricText(isLocalFunctionalityEnabled){
+            if(isLocalFunctionalityEnabled){
+                document.getElementById('toggle-text').innerHTML = 'On';
+            } else {
+                document.getElementById('toggle-text').innerHTML = 'Off';
+            }
+        }
+
+        function toggleLocalFabric(){
+            let localFabricFunctionality = document.getElementById('local-fabric-functionality');
+
+            updateLocalFabricText(localFabricFunctionality.checked);
+
+            vscode.postMessage({
+                command: 'check',
+                localFabricFunctionality: localFabricFunctionality.checked,
+                toggle: 'true'
+            });
         }
 
         function finish(){
             // All required dependencies installed
+            let localFabricFunctionality = document.getElementById('local-fabric-functionality');
+
             vscode.postMessage({
-                command: 'finish'
+                command: 'finish',
+                localFabricFunctionality: localFabricFunctionality.checked
             })
         }
 
         function skip(){
             // Skip prerequisites
+            let localFabricFunctionality = document.getElementById('local-fabric-functionality');
+
             vscode.postMessage({
-                command: 'skip'
+                command: 'skip',
+                localFabricFunctionality: localFabricFunctionality.checked
             })
         }
 
-        /* window.addEventListener('message', event => {
-            const message = event.data;
-            if(message.isComplete !== undefined){
-                let isComplete = message.isComplete;
-                if(isComplete === true){
-                    // Toggle class and text
-                    let checkAction = document.getElementById('check-finish-button');
-
-                    checkAction.innerHTML = "Let's Blockchain!";
-                    checkAction.classList.remove('check');
-                    checkAction.classList.add('finish');
-                    checkAction.setAttributes("onclick", "finish()")
-
-
-                    const allInstalled = true;
-                    document.getElementById('complete-panel').classList.remove('hidden');
-
-                } else{
-                    document.getElementById('complete-panel').classList.add('hidden');
-
-                }
-            }
-        }); */
     </script>
 </body>
 </html>
