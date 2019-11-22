@@ -139,16 +139,23 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                 );
 
                 // Ask user to chose which nodes to add to the environemnt.
-                let chosenNodesToUpdate: FabricNode[];
-                const chosenNodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesQuickPickBox('Which nodes would you like to import?', filteredData, true) as IBlockchainQuickPickItem<FabricNode>[];
+                let chosenNodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesQuickPickBox('Which nodes would you like to import?', filteredData, true) as IBlockchainQuickPickItem<FabricNode>[];
                 if (!chosenNodes || chosenNodes.length === 0) {
                     return;
+                } else if (!Array.isArray(chosenNodes)) {
+                    chosenNodes = [chosenNodes];
                 }
 
-                chosenNodesToUpdate = chosenNodes.map((_chosenNode: IBlockchainQuickPickItem<FabricNode>) => {
-                    return _chosenNode.data;
+                const chosenNodesNames: string[] = chosenNodes.map((_chosenNode: IBlockchainQuickPickItem<FabricNode>) => {
+                    return _chosenNode.label;
                 });
-                nodesToUpdate.push(...chosenNodesToUpdate);
+
+                filteredData.forEach((node: FabricNode) => {
+                    if (chosenNodesNames.indexOf(node.name) === -1) {
+                        node.hidden = true;
+                    }
+                });
+                nodesToUpdate.push(...filteredData);
             } catch (error) {
                 outputAdapter.log(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${error.message}`, `Failed to acquire nodes from ${url}, with error ${error.toString()}`);
                 if (fromAddEnvironment) {
@@ -162,6 +169,12 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                 throw new Error(`Unable to store API key securely in your keychain: ${error.message}`);
             }
         }
+
+        nodesToUpdate.forEach((node: FabricNode) => {
+            if (node.hidden === undefined) {
+                node.hidden = false;
+            }
+        });
 
         const dirPath: string = await vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY) as string;
         const homeExtDir: string = FileSystemUtil.getDirPath(dirPath);
