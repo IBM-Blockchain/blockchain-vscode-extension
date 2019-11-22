@@ -322,6 +322,18 @@ describe('UserInputUtil', () => {
             result.label.should.equal('myGatewayB');
             result.data.should.deep.equal(gatewayEntryTwo);
         });
+
+        it('should throw an error if there are no gateways', async () => {
+            await FabricGatewayRegistry.instance().clear();
+
+            await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', true).should.be.rejectedWith(`Error when choosing gateway, no gateway found to choose from.`);
+
+            quickPickStub.should.not.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: true,
+                canPickMany: true,
+                placeHolder: 'Choose a gateway'
+            });
+        });
     });
 
     describe('showIdentitiesQuickPickBox', () => {

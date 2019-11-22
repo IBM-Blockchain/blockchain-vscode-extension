@@ -109,12 +109,15 @@ export class DependencyManager {
             return false;
         }
 
-        if (!this.isValidDependency(dependencies.docker)) {
-            return false;
-        }
+        const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
+        if (localFabricEnabled) {
+            if (!this.isValidDependency(dependencies.docker)) {
+                return false;
+            }
 
-        if (!this.isValidDependency(dependencies.dockerCompose)) {
-            return false;
+            if (!this.isValidDependency(dependencies.dockerCompose)) {
+                return false;
+            }
         }
 
         if (!this.isValidDependency(dependencies.systemRequirements)) {
@@ -124,12 +127,14 @@ export class DependencyManager {
         if (process.platform === 'win32') {
             // Windows
 
-            if (!this.isValidDependency(dependencies.openssl)) {
-                return false;
-            }
+            if (localFabricEnabled) {
+                if (!this.isValidDependency(dependencies.openssl)) {
+                    return false;
+                }
 
-            if (!this.isValidDependency(dependencies.buildTools)) {
-                return false;
+                if (!this.isValidDependency(dependencies.buildTools)) {
+                    return false;
+                }
             }
 
             if (!this.isValidDependency(dependencies.dockerForWindows)) {
@@ -189,8 +194,6 @@ export class DependencyManager {
         const dependencies: any = {
             node: {name: 'Node.js', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NODEJS_REQUIRED, requiredLabel: 'only', tooltip: 'Required for developing JavaScript and TypeScript smart contracts. If installing Node and npm using a manager such as \'nvm\' or \'nodenv\', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.' },
             npm: {name: 'npm', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NPM_REQUIRED, requiredLabel: '', tooltip: 'Required for installing JavaScript and TypeScript smart contract dependencies. If installing Node and npm using a manager such as \'nvm\' or \'nodenv\', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.' },
-            docker: {name: 'Docker', required: true, version: undefined, url: 'https://docs.docker.com/install/#supported-platforms', requiredVersion: Dependencies.DOCKER_REQUIRED, requiredLabel: '', tooltip: `Used to download Hyperledger Fabric images and manage containers for the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}.` },
-            dockerCompose: {name: 'Docker Compose', required: true, version: undefined, url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '', tooltip: `Used for managing and operating the individual ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} components.` }
         };
 
         // Node
@@ -220,71 +223,59 @@ export class DependencyManager {
             // Ignore
         }
 
-        // Docker
-        try {
-            const dockerResult: string = await CommandUtil.sendCommand('docker -v'); // Format: Docker version X.Y.Z-ce, build e68fc7a
-            if (this.isCommandFound(dockerResult)) {
-                const dockerMatchedVersion: string = dockerResult.match(/version (.*),/)[1]; // Format: X.Y.Z-ce "version 18.06.1-ce,"
-                const dockerCleaned: string = semver.clean(dockerMatchedVersion, { loose: true });
-                const dockerVersionCoerced: semver.SemVer = semver.coerce(dockerCleaned); // Format: X.Y.Z
-                const dockerVersion: string = semver.valid(dockerVersionCoerced); // Returns version
-                if (dockerVersion) {
-                    dependencies.docker.version = dockerVersion;
-                }
-            }
-        } catch (error) {
-            // Ignore
-        }
+        const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
+        if (localFabricEnabled) {
+            dependencies.docker = {name: 'Docker', required: true, version: undefined, url: 'https://docs.docker.com/install/#supported-platforms', requiredVersion: Dependencies.DOCKER_REQUIRED, requiredLabel: '', tooltip: `Used to download Hyperledger Fabric images and manage containers for the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}.` };
+            dependencies.dockerCompose = {name: 'Docker Compose', required: true, version: undefined, url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '', tooltip: `Used for managing and operating the individual ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} components.` };
 
-        // docker-compose
-
-        try {
-            const composeResult: string = await CommandUtil.sendCommand('docker-compose -v'); // Format: docker-compose version 1.22.0, build f46880f
-            if (this.isCommandFound(composeResult)) {
-                const composeMatchedVersion: string = composeResult.match(/version (.*),/)[1]; // Format: X.Y.Z
-                const composeCleaned: string = semver.clean(composeMatchedVersion, { loose: true });
-                const composeVersionCoerced: semver.SemVer = semver.coerce(composeCleaned); // Format: X.Y.Z
-                const composeVersion: string = semver.valid(composeVersionCoerced); // Returns version
-                if (composeVersion) {
-                    dependencies.dockerCompose.version = composeVersion;
-                }
+            // Docker
+            const dockerVersion: string = await this.getDockerVersion();
+            if (dockerVersion) {
+                dependencies.docker.version = dockerVersion;
             }
-        } catch (error) {
-            // Ignore
+
+            // docker-compose
+            const composeVersion: string = await this.getDockerComposeVersion();
+            if (composeVersion) {
+                dependencies.dockerCompose.version = composeVersion;
+            }
+
         }
 
         if (process.platform === 'win32') {
             // Windows
 
-            dependencies.openssl = {name: 'OpenSSL', required: true, version: undefined, url: 'http://slproweb.com/products/Win32OpenSSL.html', requiredVersion: Dependencies.OPENSSL_REQUIRED, requiredLabel: 'for Node 8.x and Node 10.x respectively'};
-            dependencies.buildTools = {name: 'C++ Build Tools', required: true, version: undefined, url: 'https://github.com/felixrieseberg/windows-build-tools#windows-build-tools', requiredVersion: undefined, requiredLabel: undefined};
             dependencies.dockerForWindows = {name: 'Docker for Windows', id: 'dockerForWindows', complete: undefined, checkbox: true, required: true, text: 'Docker for Windows must be configured to use Linux containers (this is the default)' };
 
-            try {
-                const opensslResult: string = await CommandUtil.sendCommand('openssl version -v'); // Format: OpenSSL 1.0.2k  26 Jan 2017
-                if (this.isCommandFound(opensslResult)) {
-                    const opensslMatchedVersion: string = opensslResult.match(/OpenSSL (\S*)/)[1]; // Format: 1.0.2k
-                    const opensslVersionCoerced: semver.SemVer = semver.coerce(opensslMatchedVersion); // Format: X.Y.Z
-                    const opensslVersion: string = semver.valid(opensslVersionCoerced); // Returns version
-                    if (opensslVersion) {
-                        dependencies.openssl.version = opensslVersion;
+            if (localFabricEnabled) {
+                dependencies.openssl = {name: 'OpenSSL', required: true, version: undefined, url: 'http://slproweb.com/products/Win32OpenSSL.html', requiredVersion: Dependencies.OPENSSL_REQUIRED, requiredLabel: 'for Node 8.x and Node 10.x respectively'};
+                dependencies.buildTools = {name: 'C++ Build Tools', required: true, version: undefined, url: 'https://github.com/felixrieseberg/windows-build-tools#windows-build-tools', requiredVersion: undefined, requiredLabel: undefined};
+                try {
+                    const opensslResult: string = await CommandUtil.sendCommand('openssl version -v'); // Format: OpenSSL 1.0.2k  26 Jan 2017
+                    if (this.isCommandFound(opensslResult)) {
+                        const opensslMatchedVersion: string = opensslResult.match(/OpenSSL (\S*)/)[1]; // Format: 1.0.2k
+                        const opensslVersionCoerced: semver.SemVer = semver.coerce(opensslMatchedVersion); // Format: X.Y.Z
+                        const opensslVersion: string = semver.valid(opensslVersionCoerced); // Returns version
+                        if (opensslVersion) {
+                            dependencies.openssl.version = opensslVersion;
+                        }
                     }
+                } catch (error) {
+                    // Ignore
                 }
-            } catch (error) {
-                // Ignore
-            }
 
-            try {
-                const buildToolsResult: string = await CommandUtil.sendCommand('npm ls -g windows-build-tools');
-                if (this.isCommandFound(buildToolsResult)) {
-                    const buildToolsMatchedVersion: string = buildToolsResult.match(/windows-build-tools@(\S*)/)[1]; // Format: X.Y.Z
-                    const buildToolsVersion: string = semver.valid(buildToolsMatchedVersion); // Returns version
-                    if (buildToolsVersion) {
-                        dependencies.buildTools.version = buildToolsVersion;
+                try {
+                    const buildToolsResult: string = await CommandUtil.sendCommand('npm ls -g windows-build-tools');
+                    if (this.isCommandFound(buildToolsResult)) {
+                        const buildToolsMatchedVersion: string = buildToolsResult.match(/windows-build-tools@(\S*)/)[1]; // Format: X.Y.Z
+                        const buildToolsVersion: string = semver.valid(buildToolsMatchedVersion); // Returns version
+                        if (buildToolsVersion) {
+                            dependencies.buildTools.version = buildToolsVersion;
+                        }
                     }
+                } catch (error) {
+                    // Ignore
                 }
-            } catch (error) {
-                // Ignore
             }
 
             if (!extensionData.dockerForWindows) {
@@ -426,6 +417,38 @@ export class DependencyManager {
         });
 
         return this.writePackageJson(packageJson);
+    }
+
+    public async getDockerVersion(): Promise<string> {
+        try {
+            const dockerResult: string = await CommandUtil.sendCommand('docker -v'); // Format: Docker version X.Y.Z-ce, build e68fc7a
+            if (this.isCommandFound(dockerResult)) {
+                const dockerMatchedVersion: string = dockerResult.match(/version (.*),/)[1]; // Format: X.Y.Z-ce "version 18.06.1-ce,"
+                const dockerCleaned: string = semver.clean(dockerMatchedVersion, { loose: true });
+                const dockerVersionCoerced: semver.SemVer = semver.coerce(dockerCleaned); // Format: X.Y.Z
+                const dockerVersion: string = semver.valid(dockerVersionCoerced); // Returns version
+                return dockerVersion;
+            }
+        } catch (error) {
+            // Ignore
+            return;
+        }
+    }
+
+    public async getDockerComposeVersion(): Promise<string> {
+        try {
+            const composeResult: string = await CommandUtil.sendCommand('docker-compose -v'); // Format: docker-compose version 1.22.0, build f46880f
+            if (this.isCommandFound(composeResult)) {
+                const composeMatchedVersion: string = composeResult.match(/version (.*),/)[1]; // Format: X.Y.Z
+                const composeCleaned: string = semver.clean(composeMatchedVersion, { loose: true });
+                const composeVersionCoerced: semver.SemVer = semver.coerce(composeCleaned); // Format: X.Y.Z
+                const composeVersion: string = semver.valid(composeVersionCoerced); // Returns version
+                return composeVersion;
+            }
+        } catch (error) {
+            // Ignore
+            return;
+        }
     }
 
     private isCommandFound(output: string): boolean {

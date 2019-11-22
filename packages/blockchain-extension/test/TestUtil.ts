@@ -34,6 +34,7 @@ export class TestUtil {
             await this.storeAll();
             await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, this.EXTENSION_TEST_DIR, vscode.ConfigurationTarget.Global);
             await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
 
             if (!sandbox) {
                 sandbox = sinon.createSandbox();
@@ -41,7 +42,6 @@ export class TestUtil {
 
             const showConfirmationWarningMessage: SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage');
             showConfirmationWarningMessage.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} now?`).resolves(false);
-
             await ExtensionUtil.activateExtension();
         }
     }
@@ -51,6 +51,7 @@ export class TestUtil {
         await this.storeRuntimesConfig();
         await this.storeShowHomeOnStart();
         await this.storeBypassPreReqs();
+        await this.storeEnableLocalFabric();
         try {
             await this.storeGlobalState();
         } catch (error) {
@@ -63,6 +64,7 @@ export class TestUtil {
         await this.restoreRuntimesConfig();
         await this.restoreShowHomeOnStart();
         await this.restoreBypassPreReqs();
+        await this.restoreEnableLocalFabric();
         try {
             await this.restoreGlobalState();
         } catch (error) {
@@ -113,6 +115,16 @@ export class TestUtil {
         await GlobalState.update(this.GLOBAL_STATE);
     }
 
+    static async storeEnableLocalFabric(): Promise<void> {
+        this.ENABLE_LOCAL_FABRIC = await vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
+        console.log('Storing enable Local Fabric to settings:', this.ENABLE_LOCAL_FABRIC);
+    }
+
+    static async restoreEnableLocalFabric(): Promise<void> {
+        console.log('Restoring enable Local Fabric to settings:', this.ENABLE_LOCAL_FABRIC);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_LOCAL_FABRIC, this.ENABLE_LOCAL_FABRIC, vscode.ConfigurationTarget.Global);
+    }
+
     static async deleteTestFiles(deletePath: string): Promise<void> {
         try {
             await fs.remove(deletePath);
@@ -128,4 +140,5 @@ export class TestUtil {
     private static HOME_STARTUP: any;
     private static BYPASS_PREREQS: any;
     private static GLOBAL_STATE: ExtensionData;
+    private static ENABLE_LOCAL_FABRIC: boolean;
 }

@@ -31,6 +31,7 @@ export class SettingConfigurations {
     // EXTENSION CONFIGURATIONS
     static readonly EXTENSION_DIRECTORY: string = 'ibm-blockchain-platform.ext.directory';
     static readonly EXTENSION_BYPASS_PREREQS: string = 'ibm-blockchain-platform.ext.bypassPreReqs';
+    static readonly EXTENSION_LOCAL_FABRIC: string = 'ibm-blockchain-platform.ext.enableLocalFabric';
 
     // HOME CONFIGURATIONS
     static readonly HOME_SHOW_ON_STARTUP: string = 'ibm-blockchain-platform.home.showOnStartup';

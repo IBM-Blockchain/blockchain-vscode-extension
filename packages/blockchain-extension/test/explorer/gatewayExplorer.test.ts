@@ -60,7 +60,6 @@ describe('gatewayExplorer', () => {
     });
 
     beforeEach(async () => {
-
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
     });
 
@@ -116,7 +115,6 @@ describe('gatewayExplorer', () => {
     });
 
     describe('getChildren', () => {
-
         describe('unconnected tree', () => {
 
             let getConnectionStub: sinon.SinonStub;

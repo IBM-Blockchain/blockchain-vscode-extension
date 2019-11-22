@@ -178,6 +178,10 @@ export class UserInputUtil {
 
         allGateways.push(...gateways);
 
+        if (allGateways.length === 0) {
+            throw new Error('Error when choosing gateway, no gateway found to choose from.');
+        }
+
         const gatewaysQuickPickItems: Array<IBlockchainQuickPickItem<FabricGatewayRegistryEntry>> = allGateways.map((gateway: FabricGatewayRegistryEntry) => {
             const gatewayDispalyName: string = (gateway.name === FabricRuntimeUtil.LOCAL_FABRIC) ? FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME : gateway.name;
             return { label: gatewayDispalyName, data: gateway };

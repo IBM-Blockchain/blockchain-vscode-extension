@@ -30,6 +30,7 @@ import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironme
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { GlobalState } from '../../extension/util/GlobalState';
 import { FabricChaincode } from '../../extension/fabric/FabricChaincode';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -63,9 +64,12 @@ describe('FabricJavaDebugConfigurationProvider', () => {
         let startDebuggingStub: sinon.SinonStub;
         let sendTelemetryEventStub: sinon.SinonStub;
         let showInputBoxStub: sinon.SinonStub;
-
+        let getExtensionLocalFabricSetting: sinon.SinonStub;
         beforeEach(async () => {
+
             mySandbox = sinon.createSandbox();
+            getExtensionLocalFabricSetting = mySandbox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting');
+            getExtensionLocalFabricSetting.returns(true);
 
             fabricDebugConfig = new FabricJavaDebugConfigurationProvider();
 

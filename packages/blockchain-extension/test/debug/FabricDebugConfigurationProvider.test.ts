@@ -29,6 +29,9 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { GlobalState } from '../../extension/util/GlobalState';
 import { FabricChaincode } from '../../extension/fabric/FabricChaincode';
 import { TestUtil } from '../TestUtil';
+import { SettingConfigurations } from '../../configurations';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -60,7 +63,7 @@ class TestFabricDebugConfigurationProvider extends FabricDebugConfigurationProvi
 describe('FabricDebugConfigurationProvider', () => {
 
     let mySandbox: sinon.SinonSandbox;
-
+    let getExtensionLocalFabricSetting: sinon.SinonStub;
     before(async () => {
         mySandbox = sinon.createSandbox();
         await TestUtil.setupTests(mySandbox);
@@ -81,7 +84,10 @@ describe('FabricDebugConfigurationProvider', () => {
         let getEnvironmentRegistryStub: sinon.SinonStub;
         let environmentRegistry: FabricEnvironmentRegistryEntry;
 
-        beforeEach(() => {
+        beforeEach(async () => {
+            getExtensionLocalFabricSetting = mySandbox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting');
+            getExtensionLocalFabricSetting.returns(true);
+
             fabricDebugConfig = new TestFabricDebugConfigurationProvider();
 
             runtimeStub = mySandbox.createStubInstance(FabricRuntime);
@@ -387,6 +393,14 @@ describe('FabricDebugConfigurationProvider', () => {
             should.equal(config, undefined);
 
             logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Failed to launch debug: ${error.message}`);
+        });
+
+        it(`should error if ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is not enabled`, async () => {
+            mySandbox.stub(UserInputUtil, 'showConfirmationWarningMessage').withArgs(`Toggling this feature will remove the world state and ledger data for the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime. Do you want to continue?`).resolves(true);
+            getExtensionLocalFabricSetting.returns(false);
+            await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+
+            logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Setting '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' must be set to 'true' to enable debugging.`);
         });
     });
 });
