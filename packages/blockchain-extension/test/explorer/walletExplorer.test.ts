@@ -59,6 +59,7 @@ describe('walletExplorer', () => {
     });
 
     beforeEach(async () => {
+
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         blockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
 

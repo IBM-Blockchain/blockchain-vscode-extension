@@ -58,6 +58,7 @@ const should: Chai.Should = chai.should();
 // tslint:disable no-unused-expression
 describe('environmentExplorer', () => {
     let mySandBox: sinon.SinonSandbox;
+
     before(async () => {
         mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
