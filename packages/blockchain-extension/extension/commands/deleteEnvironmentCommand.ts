@@ -35,7 +35,7 @@ export async function deleteEnvironment(environment: FabricEnvironmentTreeItem |
             // First check there is at least one that isn't local_fabric
             const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll(false);
             if (environments.length === 0) {
-                outputAdapter.log(LogType.ERROR, `No environments to delete. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be deleted.`);
+                outputAdapter.log(LogType.ERROR, `No environments to delete. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} cannot be deleted.`);
                 return;
             }
 
