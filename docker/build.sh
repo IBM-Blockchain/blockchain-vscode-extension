@@ -20,6 +20,7 @@ npm run productionFlag
 cat package.json.orig \
     | jq '.contributes.configuration.properties."ibm-blockchain-platform.ext.bypassPreReqs".default = true' \
     | jq '.contributes.configuration.properties."ibm-blockchain-platform.home.showOnStartup".default = false' \
+    | jq '.contributes.configuration.properties."ibm-blockchain-platform.ext.enableLocalFabric".default = false' \
     | jq '(.actualActivationEvents.onView | map("onView:" + .)) as $onView |
           (.actualActivationEvents.onCommand | map("onCommand:" + .)) as $onCommand |
           (.actualActivationEvents.other) as $other |
