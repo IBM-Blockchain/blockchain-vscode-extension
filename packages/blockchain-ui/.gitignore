@@ -19,3 +19,4 @@ build
 /cypress/screenshots
 /jest-tests.xml
 *.tgz
+coverage

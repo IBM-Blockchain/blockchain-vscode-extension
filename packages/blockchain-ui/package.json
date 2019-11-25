@@ -210,6 +210,10 @@
             "<rootDir>/enzyme/setupTests.ts"
         ],
         "collectCoverage": true,
+        "collectCoverageFrom": [
+            "src/App.tsx",
+            "src/components/**"
+        ],
         "coverageThreshold": {
             "global": {
                 "branches": 100,

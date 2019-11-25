@@ -11,3 +11,4 @@
 # limitations under the License.
 /.idea
 .DS_Store
+test/tmp

@@ -15,6 +15,7 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { View } from './View';
 
@@ -28,26 +29,22 @@ export abstract class ReactView extends View {
 
     constructor(context: vscode.ExtensionContext, panelID: string, panelTitle: string) {
         super(context, panelID,  panelTitle);
-        this._extensionPath = ExtensionUtil.getExtensionPath();
+        this._extensionPath = path.join(ExtensionUtil.getExtensionPath(), 'node_modules', 'ibm-blockchain-platform-ui');
     }
 
     async getHTMLString(): Promise<string> {
-        // const manifest: any = require(path.join(
-        //     this._extensionPath,
-        //     'build',
-        //     'asset-manifest.json'
-        // ));
-        const mainScript: any = manifest.files['main.js'];
-        const mainStyle: any = manifest.files['main.css'];
+        const mainScript: string = manifest.files['main.js'];
+        const mainStyle: string = manifest.files['main.css'];
 
-        const scriptPathOnDisk: any = vscode.Uri.file(
+        const scriptPathOnDisk: {scheme: string, authority: string, path: string} = vscode.Uri.file(
             path.join(this._extensionPath, 'build', mainScript)
           );
-        const scriptUri: any = scriptPathOnDisk.with({ scheme: 'vscode-resource' });
-        const stylePathOnDisk: any = vscode.Uri.file(
+        const scriptContents: Buffer = fs.readFileSync(scriptPathOnDisk.path);
+
+        const stylePathOnDisk: {scheme: string, authority: string, path: string} = vscode.Uri.file(
             path.join(this._extensionPath, 'build', mainStyle)
           );
-        const styleUri: any = stylePathOnDisk.with({ scheme: 'vscode-resource' });
+        const styleContents: Buffer = fs.readFileSync(stylePathOnDisk.path);
 
         return `<!DOCTYPE html>
                   <html lang="en">
@@ -56,7 +53,7 @@ export abstract class ReactView extends View {
                       <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
 
                       <title>React</title>
-                      <link rel="stylesheet" type="text/css" href="${styleUri}">
+                      <style>${styleContents.toString()}</style>
                       <meta img-src vscode-resource: https: ;style-src vscode-resource: 'unsafe-inline' http: https: data:;">
                       <base href="${vscode.Uri.file(path.join(this._extensionPath, 'build')).with({
                 scheme: 'vscode-resource'
@@ -68,7 +65,7 @@ export abstract class ReactView extends View {
               <body class="vscode-dark">
               <noscript>You need to enable JavaScript to run this app.</noscript>
               <div id="root"></div>
-              <script src="${scriptUri}"></script>
+              <script>${scriptContents.toString()}</script>
 
                   </body>
                   </html>`;
