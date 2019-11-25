@@ -535,18 +535,11 @@ async function updateBuildFile(buildFile: string, state: any): Promise<void> {
     state.doneCopy = true;
 
     const additionalRequirements: any = {
-        repositories: {
-            sonatype: {
-                url: 'https://oss.sonatype.org/content/repositories/snapshots',
-                id: 'oss.sonatype.org',
-                present: false,
-            },
-        },
         dependencies: {
             'fabric-gateway-java': {
                 groupId: 'org.hyperledger.fabric',
                 artifactId: 'fabric-gateway-java',
-                version: '1.4.1-SNAPSHOT',
+                version: '1.4.2',
                 present: false,
             },
             'assertj-core': {
@@ -574,11 +567,9 @@ async function updateBuildFile(buildFile: string, state: any): Promise<void> {
     state.needUpdate = checkContent(originalContents, additionalRequirements);
 
     if (state.needUpdate) {
-        const currentRepos: string = getProperty(originalContents, 'repositories', isGradle);
         const currentDep: string = getProperty(originalContents, 'dependencies', isGradle);
-        const replaceRepos: string = getReplacement(currentRepos, additionalRequirements, 'repositories', isGradle);
         const replaceDep: string = getReplacement(currentDep, additionalRequirements, 'dependencies', isGradle);
-        const modifiedContents: string = originalContents.replace(currentRepos, replaceRepos).replace(currentDep, replaceDep);
+        const modifiedContents: string = originalContents.replace(currentDep, replaceDep);
         state.tryUpdate = true;
         await fs.writeFile(buildFile, modifiedContents);
         state.doneupdate = true;
@@ -590,7 +581,7 @@ function checkContent(content: string, requirements: any): boolean {
     let needUpdate: boolean = false;
     for (const obj in requirements) {
         for (const req in requirements[obj]) {
-            const searchItem: string = requirements[obj][req].url ? requirements[obj][req].url : requirements[obj][req].artifactId;
+            const searchItem: string = requirements[obj][req].artifactId;
             if (content.indexOf(searchItem) > -1) {
                 requirements[obj][req].present = true;
             } else {
@@ -633,28 +624,13 @@ function getProperty(data: string, property: string, isGradle: boolean): string 
 function getReplacement(data: string, requirements: any, type: string, isGradle: boolean): string {
     for (const obj in requirements[type]) {
         if (!requirements[type][obj].present) {
-            if (requirements[type][obj].url) {
-                if (isGradle) {
-                    data = data.replace(/^repositories\s*{\n*/, `repositories {\n\t// TODO: remove when 'fabric gateway java' version 1.4.1 published in maven central\n\tmaven {\n\t\turl "${requirements[type][obj].url}"\n\t}\n`);
-                } else {
-                    data = data.replace(/<repositories>/, `<repositories>\n\t\t<!-- TODO: remove when 'fabric gateway java' version 1.4.1 published in maven central-->\n\t\t<repository>\n\t\t\t<id>${requirements[type][obj].id}</id>\n\t\t\t<url>${requirements[type][obj].url}</url>\n\t\t</repository>\n`);
-                }
+            let replacement: string;
+            if (isGradle) {
+                replacement = `\ttestImplementation '${requirements[type][obj].groupId}:${requirements[type][obj].artifactId}:${requirements[type][obj].version}'\n}`;
+                data = data.replace(/\n*}$/, '\n}').replace(/}$/, replacement);
             } else {
-                const comment: string = 'TODO: replace with version 1.4.1 when published to maven central';
-                let replacement: string;
-                if (isGradle) {
-                    replacement = `\ttestImplementation '${requirements[type][obj].groupId}:${requirements[type][obj].artifactId}:${requirements[type][obj].version}'\n}`;
-                    if (requirements[type][obj].artifactId === 'fabric-gateway-java') {
-                        replacement = `\t//${comment}\n${replacement}`;
-                    }
-                    data = data.replace(/\n*}$/, '\n}').replace(/}$/, replacement);
-                } else {
-                    replacement = `\n\t\t<dependency>\n\t\t\t<groupId>${requirements[type][obj].groupId}</groupId>\n\t\t\t<artifactId>${requirements[type][obj].artifactId}</artifactId>\n\t\t\t<version>${requirements[type][obj].version}</version>\n\t\t</dependency>\n\t</dependencies>`;
-                    if (requirements[type][obj].artifactId === 'fabric-gateway-java') {
-                        replacement = `\n\t\t<!-- ${comment}-->${replacement}`;
-                    }
-                    data = data.replace(/\n*\s*<\/dependencies>/, replacement);
-                }
+                replacement = `\n\t\t<dependency>\n\t\t\t<groupId>${requirements[type][obj].groupId}</groupId>\n\t\t\t<artifactId>${requirements[type][obj].artifactId}</artifactId>\n\t\t\t<version>${requirements[type][obj].version}</version>\n\t\t</dependency>\n\t</dependencies>`;
+                data = data.replace(/\n*\s*<\/dependencies>/, replacement);
             }
         }
     }
