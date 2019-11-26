@@ -166,6 +166,36 @@ describe('TransactionView', () => {
         executeCommandStub.should.have.been.calledWith(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
     });
 
+    it(`should handle an 'evaluate' message`, async () => {
+        const onDidReceiveMessagePromises: any[] = [];
+
+        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
+            createWebviewPanelStub.onCall(0).returns({
+                webview: {
+                    postMessage: mySandBox.stub(),
+                    onDidReceiveMessage: async (callback: any): Promise<void> => {
+                        await callback({
+                            command: 'evaluate',
+                            data: transactionObject
+                        });
+                        resolve();
+                    }
+                },
+                reveal: (): void => {
+                    return;
+                },
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
+            });
+        }));
+
+        const transactionView: TransactionView = new TransactionView(context, mockAppState);
+        await transactionView.openView(false);
+        await Promise.all(onDidReceiveMessagePromises);
+
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.EVALUATE_TRANSACTION, undefined, undefined, undefined, transactionObject);
+    });
+
     it('should not do anything if it receives an invalid message', async () => {
         const onDidReceiveMessagePromises: any[] = [];
 

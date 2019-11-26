@@ -29,6 +29,8 @@ export class TransactionView extends ReactView {
         panel.webview.onDidReceiveMessage(async (message: {command: string, data: any}) => {
             if (message.command === 'submit') {
                 await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, message.data);
+            } else if (message.command === 'evaluate') {
+                await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION, undefined, undefined, undefined, message.data);
             }
         });
         this.loadComponent(panel);

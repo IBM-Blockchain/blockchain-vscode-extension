@@ -395,6 +395,7 @@ exports[`TransactionCreate component should render the expected snapshot 1`] = `
           className="bx--btn bx--btn--field bx--btn--primary bx--btn--disabled"
           disabled={true}
           id="evaluate-button"
+          onClick={[Function]}
           tabIndex={0}
           type="button"
         >
