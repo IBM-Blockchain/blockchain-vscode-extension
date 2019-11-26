@@ -626,5 +626,24 @@ describe('SubmitTransactionCommand', () => {
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.have.been.calledWith('submit transaction');
         });
+
+        it('should evaluate a transaction through the transaction view', async () => {
+            const transactionObject: any = {
+                smartContract: 'myContract',
+                transactionName: 'transaction1',
+                channelName: 'myChannel',
+                args: `["arg1", "arg2", "arg3"]`,
+                namespace: 'my-contract',
+                transientData: '',
+                peerTargetNames: []
+            };
+
+            await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION, undefined, undefined, undefined, transactionObject);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `evaluating transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully evaluated transaction');
+            reporterStub.should.have.been.calledWith('evaluate transaction');
+        });
     });
 });

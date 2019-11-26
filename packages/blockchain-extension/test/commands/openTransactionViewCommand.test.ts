@@ -108,6 +108,14 @@ describe('OpenTransactionViewCommand', () => {
                                     name: 'transaction2'
                                 }
                             ],
+                        },
+                        'org.hyperledger.fabric': {
+                            name: 'org.hyperledger.fabric',
+                            transactions: [
+                                {
+                                    name: 'GetMetadata'
+                                }
+                            ]
                         }
                     }
                 }
