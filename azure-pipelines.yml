@@ -226,14 +226,14 @@ stages:
               imageName: 'ubuntu-16.04'
               VERSION: 'insiders'
               MODULES: 73
-              ELECTRON: '6.0'
-              TARGET: '6.0.12'
+              ELECTRON: '6.1'
+              TARGET: '6.1.2'
             insiders_mac:
               imageName: 'macos-10.14'
               VERSION: 'insiders'
               MODULES: 73
-              ELECTRON: '6.0'
-              TARGET: '6.0.12'
+              ELECTRON: '6.1'
+              TARGET: '6.1.2'
         pool:
           vmImage: $(imageName)
 
