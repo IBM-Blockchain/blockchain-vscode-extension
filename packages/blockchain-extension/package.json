@@ -1256,6 +1256,7 @@
         "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts' 'cucumber/**/*.ts'",
         "updatePackageJSON": "node ../../.azure/rewritePackageJson.js",
         "productionFlag": "node ../../.azure/rewritePackageJson.js publish",
+        "checkReleaseNotes": "node ../../.azure/checkReleaseNotes.js",
         "cucumberTests": "./cucumber/hlfv1/start.sh && npm run compile",
         "localize": "vscl build/src/**/*.js",
         "build": "tsc -p tsconfig.extension.json"
@@ -1365,6 +1366,7 @@
             "cucumber/hlfv1",
             "basic-network",
             "CHANGELOG.md",
+            "RELEASE-NOTES.md",
             "ISSUE_TEMPLATE.md",
             "LICENSE",
             "templates/tsTestSmartContractTemplate.ejs",
