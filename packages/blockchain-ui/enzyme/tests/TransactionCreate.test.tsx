@@ -128,6 +128,28 @@ describe('TransactionCreate component', () => {
         });
     });
 
+    it('should attempt to evaluate a transaction when the evaluate button is clicked', async () => {
+        const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
+        component.setState({
+            activeTransaction: transactionOne,
+            transactionArguments: 'name: Green\n'
+        });
+        component.find('#evaluate-button').at(1).simulate('click');
+        postMessageHandlerStub.should.have.been.calledOnceWithExactly({
+            data: {
+                args: 'Green',
+                channelName: 'mychannel',
+                evaluate: true,
+                namespace: 'GreenContract',
+                peerTargetNames: [],
+                smartContract: 'greenContract',
+                transactionName: 'transactionOne',
+                transientData: ''
+              },
+              command: 'evaluate'
+        });
+    });
+
     it('should do nothing if no transaction has been selected', async () => {
         const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
         component.find('#submit-button').at(1).simulate('click');

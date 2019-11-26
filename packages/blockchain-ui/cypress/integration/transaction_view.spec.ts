@@ -154,11 +154,20 @@ describe('Cypress', () => {
                 });
         });
 
-        it('can submit a transaction with the user\'s input', () => {
+        it(`can submit a transaction with the user's input`, () => {
             cy.get('#transaction-name-select').select('transactionOne');
             cy.get('#arguments-text-area').type('{leftarrow}{leftarrow}{leftarrow}penguin');
 
             cy.get('#submit-button').click();
+
+            cy.get('@postMessageStub').should('be.called');
+        });
+
+        it(`can evaluate a transaction with the user's input`, () => {
+            cy.get('#transaction-name-select').select('transactionTwo');
+            cy.get('#arguments-text-area').type('{leftarrow}{leftarrow}{leftarrow}big');
+
+            cy.get('#evaluate-button').click();
 
             cy.get('@postMessageStub').should('be.called');
         });

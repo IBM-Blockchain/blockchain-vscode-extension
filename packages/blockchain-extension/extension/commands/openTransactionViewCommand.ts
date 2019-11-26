@@ -69,22 +69,27 @@ export async function openTransactionView(treeItem?: InstantiatedTreeItem): Prom
         const chaincodes: Array<FabricChaincode> = await connection.getInstantiatedChaincode(thisChannelName); // returns array of objects
         for (const chaincode of chaincodes) {
             metadataObj = await connection.getMetadata(chaincode.name, thisChannelName);
-            contract = metadataObj.contracts[Object.keys(metadataObj.contracts)[0]];
-            data = {
-                name: chaincode.name,
-                version: chaincode.version,
-                channel: thisChannelName,
-                label: chaincode.name + '@' + chaincode.version,
-                transactions: contract.transactions,
-                namespace: contract.name
-            };
-            instantiatedChaincodes.push(data);
+            const contractsObject: any = metadataObj.contracts;
+            Object.keys(contractsObject).forEach((key: string) => {
+                if (key !== 'org.hyperledger.fabric' && (contractsObject[key].transactions.length > 0)) {
+                    contract = metadataObj.contracts[key];
+                    data = {
+                        name: chaincode.name,
+                        version: chaincode.version,
+                        channel: thisChannelName,
+                        label: chaincode.name + '@' + chaincode.version,
+                        transactions: contract.transactions,
+                        namespace: contract.name
+                    };
+                    instantiatedChaincodes.push(data);
+                }
+            });
         }
     }
 
     const appState: {} = {
         smartContracts: instantiatedChaincodes,
-        activeSmartContract: instantiatedChaincodes.filter((obj: any) => obj.label === smartContractLabel)[0]
+        activeSmartContract: instantiatedChaincodes.find((obj: any) => obj.label === smartContractLabel)
     };
 
     const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
