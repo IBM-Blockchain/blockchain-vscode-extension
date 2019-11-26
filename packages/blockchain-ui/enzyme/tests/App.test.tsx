@@ -14,6 +14,7 @@ chai.use(sinonChai);
 describe('App', () => {
 
     let mySandBox: sinon.SinonSandbox;
+    let postToVSCodeStub: sinon.SinonStub;
 
     const mockTxn: ITransaction = {
         name: 'mockTxn',
@@ -46,13 +47,15 @@ describe('App', () => {
         namespace: 'BlueContract'
     };
 
-    const mockState: { smartContracts: Array<ISmartContract>, activeSmartContract: ISmartContract } = {
+    const mockState: { gatewayName: string, smartContracts: Array<ISmartContract>, activeSmartContract: ISmartContract } = {
+        gatewayName: 'myGateway',
         smartContracts: [greenContract, blueContract],
         activeSmartContract: greenContract
     };
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
+        postToVSCodeStub = mySandBox.stub(Utils, 'postToVSCode').resolves();
     });
 
     afterEach(async () => {
@@ -98,10 +101,10 @@ describe('App', () => {
             }
         });
         dispatchEvent(msg);
-        component.state().childState.should.deep.equal(mockState);
+        component.state().messageData.should.deep.equal(mockState);
 
         Utils.changeRoute('/transaction/create');
-        component.state().childState.should.deep.equal(mockState);
+        component.state().messageData.should.deep.equal(mockState);
     });
 
     it('updates the state correctly when switching smart contracts', async () => {
@@ -114,16 +117,31 @@ describe('App', () => {
             }
         });
         dispatchEvent(msg);
-        component.state().childState.activeSmartContract.should.deep.equal(greenContract);
+        component.state().messageData.activeSmartContract.should.deep.equal(greenContract);
 
         component.instance().switchSmartContract('blueContract@0.0.1');
-        component.state().childState.activeSmartContract.should.deep.equal(blueContract);
+        component.state().messageData.activeSmartContract.should.deep.equal(blueContract);
     });
 
     it('attempts to post a message to vscode', async () => {
-        const postToVSCodeStub: sinon.SinonStub = mySandBox.stub(Utils, 'postToVSCode').resolves();
         const component: any = mount(<App/>);
-        component.instance().postMessageHandler({});
-        postToVSCodeStub.should.have.been.calledOnceWithExactly({});
+        component.instance().postMessageHandler('some command', {some: 'data'});
+        postToVSCodeStub.should.have.been.calledOnceWithExactly({command: 'some command', data: {some: 'data'}});
+    });
+
+    it('posts its state to vscode if no alternate message data is provided', async () => {
+        const component: any = mount(<App/>);
+
+        const msg: MessageEvent = new MessageEvent('message', {
+            data: {
+                path: '/transaction',
+                state: mockState
+            }
+        });
+        dispatchEvent(msg);
+        component.state().messageData.should.deep.equal(mockState);
+
+        component.instance().postMessageHandler('some command');
+        postToVSCodeStub.should.have.been.calledOnceWithExactly({command: 'some command', data: mockState});
     });
 });

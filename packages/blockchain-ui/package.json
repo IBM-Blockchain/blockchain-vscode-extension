@@ -118,7 +118,8 @@
             ".DS_Store",
             "CHANGELOG.md",
             "ISSUE_TEMPLATE.md",
-            "LICENSE"
+            "LICENSE",
+            "unit-tests.xml"
         ],
         "file_type_method": "EXCLUDE",
         "file_types": [

@@ -1,0 +1,72 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`InlineSelect component should render the expected snapshot 1`] = `
+<div
+  id="my-inline-select-wrapper"
+>
+  <div
+    className="bx--form-item"
+  >
+    <div
+      className="bx--select inline-select"
+    >
+      <label
+        className="bx--label"
+        htmlFor="my-inline-select"
+      >
+        My Inline Select
+      </label>
+      <div
+        className="bx--select-input__wrapper"
+        data-invalid={null}
+      >
+        <select
+          className="bx--select-input"
+          id="my-inline-select"
+          onChange={[Function]}
+        >
+          <option
+            className="bx--select-option"
+            disabled={false}
+            hidden={false}
+            value="Inline Select Option 1"
+          >
+            Inline Select Option 1
+          </option>
+          <option
+            className="bx--select-option"
+            disabled={false}
+            hidden={false}
+            value="Inline Select Option 2"
+          >
+            Inline Select Option 2
+          </option>
+        </select>
+        <svg
+          aria-label="open list of options"
+          className="bx--select__arrow"
+          focusable="false"
+          height={16}
+          preserveAspectRatio="xMidYMid meet"
+          role="img"
+          style={
+            Object {
+              "willChange": "transform",
+            }
+          }
+          viewBox="0 0 16 16"
+          width={16}
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M8 11L3 6l.7-.7L8 9.6l4.3-4.3.7.7z"
+          />
+          <title>
+            open list of options
+          </title>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+`;

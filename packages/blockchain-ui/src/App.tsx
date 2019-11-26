@@ -8,7 +8,8 @@ import Utils from './Utils';
 
 interface AppState {
     redirectPath: string;
-    childState: {
+    messageData: {
+        gatewayName: string;
         activeSmartContract: ISmartContract,
         smartContracts: Array<ISmartContract>
     };
@@ -19,7 +20,8 @@ class App extends React.Component<{}, AppState> {
         super(props);
         this.state = {
             redirectPath: '',
-            childState: {
+            messageData: {
+                gatewayName: '',
                 activeSmartContract: {
                     name: '',
                     version: '',
@@ -40,23 +42,31 @@ class App extends React.Component<{}, AppState> {
         window.addEventListener('message', (event: MessageEvent) => {
             this.setState({
                 redirectPath: event.data.path,
-                childState: event.data.state ? event.data.state : this.state.childState
+                messageData: event.data.state ? event.data.state : this.state.messageData
             });
         });
     }
 
     switchSmartContract(newActiveContractLabel: string): void {
-        const smartContracts: Array<ISmartContract> = this.state.childState.smartContracts;
+        const smartContracts: Array<ISmartContract> = this.state.messageData.smartContracts;
         this.setState({
-            childState: {
+            messageData: {
+                gatewayName: this.state.messageData.gatewayName,
                 activeSmartContract: smartContracts.find((obj: ISmartContract) => obj.label === newActiveContractLabel) as ISmartContract,
                 smartContracts: smartContracts
             }
         });
     }
 
-    postMessageHandler(message: {command: string, data: any}): void {
-        Utils.postToVSCode(message);
+    postMessageHandler(command: string, data?: any): void {
+        if (data === undefined) {
+            data = this.state.messageData;
+        }
+
+        Utils.postToVSCode({
+            command: command,
+            data: data
+        });
     }
 
     render(): JSX.Element {
@@ -67,8 +77,8 @@ class App extends React.Component<{}, AppState> {
                 <Router>
                     <div>
                         <Route render={(): JSX.Element => <Redirect push to={this.state.redirectPath}/>}></Route>
-                        <Route exact path='/transaction' render={(): JSX.Element => <TransactionHome messageData={this.state.childState} switchSmartContract={this.switchSmartContract}/>}></Route>
-                        <Route exact path='/transaction/create' render={(): JSX.Element => <TransactionCreate activeSmartContract={this.state.childState.activeSmartContract} postMessageHandler={this.postMessageHandler}/>}></Route>
+                        <Route exact path='/transaction' render={(): JSX.Element => <TransactionHome messageData={this.state.messageData} switchSmartContract={this.switchSmartContract} postMessageHandler={this.postMessageHandler}/>}></Route>
+                        <Route exact path='/transaction/create' render={(): JSX.Element => <TransactionCreate activeSmartContract={this.state.messageData.activeSmartContract} postMessageHandler={this.postMessageHandler}/>}></Route>
                     </div>
                 </Router>
             );

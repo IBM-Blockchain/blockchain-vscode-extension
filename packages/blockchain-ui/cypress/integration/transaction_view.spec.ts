@@ -51,68 +51,16 @@ describe('Cypress', () => {
 
     describe('Transaction home screen', () => {
 
-        const mockMessage: {path: string, state: {smartContracts: Array<ISmartContract>, activeSmartContract: ISmartContract}} = {
+        const mockMessage: {path: string, state: {gatewayName: string, smartContracts: Array<ISmartContract>, activeSmartContract: ISmartContract}} = {
             path: 'transaction',
             state: {
+                gatewayName: 'myGateway',
                 smartContracts: [greenContract, blueContract],
                 activeSmartContract: greenContract
             }
         };
 
         beforeEach(() => {
-            cy.visit('build/index.html').then((window: Window) => {
-                window.postMessage(mockMessage, '*');
-            });
-        });
-
-        it('should correctly display the currently active smart contract', () => {
-            cy.get('.titles-container > span').contains('greenContract@0.0.1');
-            cy.get('.contents-left > p > span').contains('greenContract@0.0.1');
-        });
-
-        it('should correctly display the list of instantiated smart contracts', () => {
-            cy.get('.contents-left > ul > li:first')
-                .contains('greenContract@0.0.1')
-                .should('have.class', 'smart-contract-item disabled-smart-contract');
-
-            cy.get('.contents-left > ul > li:nth-of-type(2)')
-                .contains('blueContract@0.0.1')
-                .should('have.class', 'smart-contract-item clickable-smart-contract');
-        });
-
-        it('should allow switching between smart contracts', () => {
-            cy.get('.contents-left > ul > li:nth-of-type(2)').click();
-
-            cy.get('.titles-container > span').contains('blueContract@0.0.1');
-            cy.get('.contents-left > p > span').contains('blueContract@0.0.1');
-
-            cy.get('.contents-left > ul > li:first')
-                .contains('greenContract@0.0.1')
-                .should('have.class', 'smart-contract-item clickable-smart-contract');
-
-            cy.get('.contents-left > ul > li:nth-of-type(2)')
-                .contains('blueContract@0.0.1')
-                .should('have.class', 'smart-contract-item disabled-smart-contract');
-        });
-
-        it('should navigate to the create screen', () => {
-            cy.get('#create-button').click();
-            cy.url().should('include', '/transaction/create');
-        });
-    });
-
-    describe('Transaction create screen', () => {
-
-        beforeEach(() => {
-
-            const mockMessage: {path: string, state: {smartContracts: Array<ISmartContract>, activeSmartContract: ISmartContract}} = {
-                path: 'transaction/create',
-                state: {
-                    smartContracts: [greenContract, blueContract],
-                    activeSmartContract: greenContract
-                }
-            };
-
             cy.visit('build/index.html').then((window: Window) => {
                 window.postMessage(mockMessage, '*');
             });
@@ -124,9 +72,54 @@ describe('Cypress', () => {
                 });
         });
 
-        it('can navigate back to the home screen', () => {
-            cy.get('.titles-container > span').click();
-            cy.url().should('include', '/transaction');
+        it('should correctly display the gatewayName', () => {
+            cy.get('h2').contains('myGateway');
+            cy.get('.contents-container > p').contains('myGateway');
+        });
+
+        it('should correctly display the currently active smart contract', () => {
+            cy.get('#smart-contract-select').contains('greenContract@0.0.1');
+            cy.get('.contents-container > p').contains('greenContract@0.0.1');
+        });
+
+        it('should allow switching between smart contracts', () => {
+            cy.get('#smart-contract-select').select('blueContract@0.0.1');
+            cy.get('#smart-contract-select').contains('blueContract@0.0.1');
+            cy.get('.contents-container > p').contains('blueContract@0.0.1');
+        });
+
+        it('should navigate to the create screen', () => {
+            cy.get('#recent-txns-table-btn').click();
+            cy.get('@postMessageStub').should('be.calledWith', 'create');
+        });
+    });
+
+    describe('Transaction create screen', () => {
+
+        const mockMessage: {path: string, state: {gatewayName: string, smartContracts: Array<ISmartContract>, activeSmartContract: ISmartContract}} = {
+            path: 'transaction/create',
+            state: {
+                gatewayName: 'myGateway',
+                smartContracts: [greenContract, blueContract],
+                activeSmartContract: greenContract
+            }
+        };
+
+        beforeEach(() => {
+            cy.visit('build/index.html').then((window: Window) => {
+                window.postMessage(mockMessage, '*');
+            });
+
+             // @ts-ignore
+            cy.window().its('app')
+                .then((app: any) => {
+                    cy.stub(app, 'postMessageHandler').as('postMessageStub');
+                });
+        });
+
+        it('should navigate back to the home screen', () => {
+            cy.get('.home-link').click();
+            cy.get('@postMessageStub').should('be.calledWith', 'home');
         });
 
         it('generates appropriate arguments when a transaction is selected', () => {

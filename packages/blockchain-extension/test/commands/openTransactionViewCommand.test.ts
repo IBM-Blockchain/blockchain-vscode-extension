@@ -17,6 +17,7 @@
 import * as vscode from 'vscode';
 import { FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -153,6 +154,17 @@ describe('OpenTransactionViewCommand', () => {
             openViewStub.should.have.been.calledOnce;
         });
 
+        it(`should correctly display the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} gateway name`, async () => {
+            const localGatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            localGatewayRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
+            getGatewayRegistryStub.returns(localGatewayRegistryEntry);
+
+            await vscode.commands.executeCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE);
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Open Transaction View`);
+            showInstantiatedSmartContractQuickPickStub.should.have.been.calledOnce;
+            openViewStub.should.have.been.calledOnce;
+        });
+
         it('should open the transaction web view through the command when not connected', async () => {
             getConnectionStub.onCall(0).returns(null);
 
@@ -162,7 +174,6 @@ describe('OpenTransactionViewCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_GATEWAY);
             showInstantiatedSmartContractQuickPickStub.should.have.been.calledOnce;
             openViewStub.should.have.been.calledOnce;
-
         });
 
         it('should handle cancellation when connecting to a gateway', async () => {
@@ -175,7 +186,6 @@ describe('OpenTransactionViewCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_GATEWAY);
             showInstantiatedSmartContractQuickPickStub.should.not.have.been.called;
             openViewStub.should.not.have.been.called;
-
         });
 
         it('should handle cancellation when choosing a smart contract', async () => {
@@ -186,8 +196,6 @@ describe('OpenTransactionViewCommand', () => {
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Open Transaction View`);
             showInstantiatedSmartContractQuickPickStub.should.have.been.calledOnce;
             openViewStub.should.not.have.been.called;
-
         });
-
     });
 });

@@ -16,23 +16,8 @@ html {
 
             #root {
                 // Color will default to #000000 otherwise
-                @include borders-dark;
                 color: $text-01;        
-            }
-
-            // Accordion Components (Getting Started section)
-            #contents-right {
-                @include accordion-dark;
-            }
-
-            // Button Components (create and import buttons in sidebar)
-            #create-button, #import-button, #save-txn-button, #evaluate-button, #submit-button {
-                @include button-dark;
-            }
-
-            // borders for sidebar
-            #sidebar-container, #sidebar-container > div {
-                @include borders-dark;
+                @include select-dark;
             }
 
             // text inputs on the create transaction screen
@@ -40,15 +25,18 @@ html {
                 @include text-inputs-dark;
             }
 
-            // selects on the create transaction screen            
-            #transaction-name-select, #peers-select {
-                @include selects-dark;
+            // data tables on home page
+            #recent-txns-table, #saved-txns-table {
+                @include data-table-dark;
+            }
+
+            // InlineSelect components
+            #smart-contract-select-wrapper {
+                @include inline-select-dark;
             }
 
             // Checkbox
-            #target-peer-input {
-                @include checkbox-dark;
-            }
+            @include checkbox-dark;
 
             //panel containing transaction output
             #txn-output-container {
@@ -62,11 +50,6 @@ html {
             
             #root {
                 color: $text-01;
-            }
-
-            // Button Components (create and import buttons in sidebar)
-            #create-button, #import-button, #save-txn-button, #evaluate-button, #submit-button {
-                @include button-light;
             }
 
             // panel containing transaction output

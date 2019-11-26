@@ -9,49 +9,6 @@ exports[`TransactionCreate component should render the expected snapshot 1`] = `
     className="inner-container bx--row"
   >
     <div
-      className="sidebar-container"
-      id="sidebar-container"
-    >
-      <div
-        className="panel-container"
-      >
-        <button
-          className="bx--btn bx--btn--field bx--btn--primary"
-          disabled={false}
-          id="create-button"
-          onClick={[Function]}
-          tabIndex={0}
-          type="button"
-        >
-          Create a new transaction
-        </button>
-        <button
-          className="bx--btn bx--btn--field bx--btn--primary"
-          disabled={false}
-          id="import-button"
-          onClick={[Function]}
-          tabIndex={0}
-          type="button"
-        >
-          Import existing transaction
-        </button>
-      </div>
-      <div
-        className="panel-container"
-      >
-        <h5>
-          Filters
-        </h5>
-      </div>
-      <div
-        className="panel-container"
-      >
-        <h5>
-          Transactions
-        </h5>
-      </div>
-    </div>
-    <div
       className="page-contents bx--col"
     >
       <div
@@ -61,9 +18,11 @@ exports[`TransactionCreate component should render the expected snapshot 1`] = `
           className="home-link"
           onClick={[Function]}
         >
-          greenContract@0.0.1
-           home
+          Transactions webview home
         </span>
+        <h2>
+          Create a new transaction
+        </h2>
       </div>
       <div
         className="contents-container bx--row"
@@ -140,7 +99,7 @@ exports[`TransactionCreate component should render the expected snapshot 1`] = `
                     className="bx--label"
                     htmlFor="transaction-name-select"
                   >
-                    Transaction name
+                    Transaction name*
                   </label>
                   <div
                     className="bx--select-input__wrapper"
@@ -304,7 +263,7 @@ exports[`TransactionCreate component should render the expected snapshot 1`] = `
                   className="bx--label"
                   htmlFor="arguments-text-area"
                 >
-                  Arguments
+                  Arguments*
                 </label>
                 <div
                   className="bx--text-area__wrapper"
@@ -338,10 +297,10 @@ exports[`TransactionCreate component should render the expected snapshot 1`] = `
                 className="bx--form-item bx--text-input-wrapper"
               >
                 <label
-                  className="bx--label bx--visually-hidden"
+                  className="bx--label"
                   htmlFor="transient-data-input"
                 >
-                  Transient data
+                  Transient data (optional)
                 </label>
                 <div
                   className="bx--text-input__field-wrapper"
@@ -358,59 +317,39 @@ exports[`TransactionCreate component should render the expected snapshot 1`] = `
                 </div>
               </div>
             </fieldset>
+            <fieldset
+              className="bx--fieldset"
+              id="submit-and-evaluate-buttons"
+            >
+              <legend
+                className="bx--label"
+              >
+                Submit and Evaluate buttons
+              </legend>
+              <button
+                className="submit-and-evaluate-buttons bx--btn bx--btn--field bx--btn--primary bx--btn--disabled"
+                disabled={true}
+                id="evaluate-button"
+                onClick={[Function]}
+                tabIndex={0}
+                type="button"
+              >
+                Evaluate
+              </button>
+              <button
+                className="submit-and-evaluate-buttons bx--btn bx--btn--field bx--btn--primary bx--btn--disabled"
+                disabled={true}
+                id="submit-button"
+                onClick={[Function]}
+                tabIndex={0}
+                type="button"
+              >
+                Submit
+              </button>
+            </fieldset>
              
           </form>
         </div>
-        <div
-          className="bx--col-lg-5"
-        >
-          <div>
-            Transaction output
-          </div>
-          <div
-            className="txn-output-container"
-            id="txn-output-container"
-          >
-            <div>
-              <p>
-                Transaction output
-              </p>
-              <p>
-                More transaction output
-              </p>
-              <p>
-                Even more transaction output
-              </p>
-              <p>
-                A really really really long piece of transaction output
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        className="bx--row"
-      >
-        <button
-          className="bx--btn bx--btn--field bx--btn--primary bx--btn--disabled"
-          disabled={true}
-          id="evaluate-button"
-          onClick={[Function]}
-          tabIndex={0}
-          type="button"
-        >
-          Evaluate
-        </button>
-        <button
-          className="bx--btn bx--btn--field bx--btn--primary bx--btn--disabled"
-          disabled={true}
-          id="submit-button"
-          onClick={[Function]}
-          tabIndex={0}
-          type="button"
-        >
-          Submit
-        </button>
       </div>
     </div>
   </div>

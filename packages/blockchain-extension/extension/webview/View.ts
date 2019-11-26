@@ -22,11 +22,13 @@ export abstract class View {
     protected static openPanels: Array<vscode.WebviewPanel> = [];
     protected panelTitle: string;
     protected panelID: string;
+    protected viewColumn: vscode.ViewColumn;
     protected context: vscode.ExtensionContext;
 
-    constructor(context: vscode.ExtensionContext, panelID: string, panelTitle: string) {
+    constructor(context: vscode.ExtensionContext, panelID: string, panelTitle: string, viewColumn: vscode.ViewColumn = vscode.ViewColumn.One) {
         this.panelID = panelID;
         this.panelTitle = panelTitle;
+        this.viewColumn = viewColumn;
         this.context = context;
     }
 
@@ -46,11 +48,11 @@ export abstract class View {
             panel.reveal(undefined);
         } else {
 
-            // Create the Home panel
+            // Create the panel
             panel = vscode.window.createWebviewPanel(
                 this.panelID, // Identifies the type of the webview. Used internally
                 this.panelTitle, // Title of the panel displayed to the user
-                vscode.ViewColumn.One, // Editor column to show the new webview panel in.
+                this.viewColumn, // Editor column to show the new webview panel in (the first column by default)
                 {
                     enableScripts: true,
                     retainContextWhenHidden: keepContext,

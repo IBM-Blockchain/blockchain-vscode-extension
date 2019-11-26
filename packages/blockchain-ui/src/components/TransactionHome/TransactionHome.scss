@@ -32,7 +32,7 @@ body {
 .titles-container {
     padding: 0px $spacing-04;
 
-    h1 {
+    h2 {
         padding: $spacing-09 0px;
     }
 }
@@ -41,29 +41,3 @@ body {
     margin: $spacing-02;
 }
 
-.contents-left {
-
-    h5 {
-        padding-top: $spacing-09;
-    }
-}
-
-.smart-contract-item {
-    padding-top: $spacing-02;
-
-    &:first-of-type {
-        padding-top: $spacing-01;
-    }
-}
-
-.clickable-smart-contract {
-    color: $carbon--blue-50;
-
-    &:hover {
-        cursor: pointer;
-    }
-}
-
-.disabled-smart-contract {
-    color: $carbon--gray-50;
-}
