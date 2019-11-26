@@ -18,7 +18,7 @@ import { TestUtil } from '../TestUtil';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { FabricWalletUtil, FabricNode } from 'ibm-blockchain-platform-common';
-import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
+import { FabricEnvironment } from '../../extension/fabric/environments/FabricEnvironment';
 
 chai.should();
 

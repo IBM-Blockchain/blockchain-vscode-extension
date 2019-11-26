@@ -18,7 +18,7 @@ import { TestUtil } from '../TestUtil';
 import { UserInputUtil, IBlockchainQuickPickItem, LanguageQuickPickItem, LanguageType } from '../../extension/commands/UserInputUtil';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -33,8 +33,8 @@ import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenera
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { FabricCertificate, FabricEnvironmentRegistry, FabricRuntimeUtil, FileConfigurations, FabricWalletRegistry, FabricWalletRegistryEntry, FabricNode, FabricNodeType, FabricWalletUtil, FabricEnvironmentRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
-import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
-import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
+import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
+import { FabricEnvironment } from '../../extension/fabric/environments/FabricEnvironment';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();

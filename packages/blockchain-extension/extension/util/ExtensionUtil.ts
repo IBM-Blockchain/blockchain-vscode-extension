@@ -68,7 +68,7 @@ import { BlockchainWalletExplorerProvider } from '../explorer/walletExplorer';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { FabricRuntimeManager } from '../fabric/environments/FabricRuntimeManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { HomeView } from '../webview/HomeView';
@@ -85,12 +85,12 @@ import { FabricEnvironmentTreeItem } from '../explorer/runtimeOps/disconnectedTr
 import { deleteEnvironment } from '../commands/deleteEnvironmentCommand';
 import { associateIdentityWithNode } from '../commands/associateIdentityWithNode';
 import { fabricEnvironmentConnect } from '../commands/environmentConnectCommand';
-import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { DependencyManager } from '../dependencies/DependencyManager';
 import { GlobalState, ExtensionData } from './GlobalState';
 import { TemporaryCommandRegistry } from '../dependencies/TemporaryCommandRegistry';
 import { version as currentExtensionVersion, dependencies } from '../../package.json';
-import { FabricRuntime } from '../fabric/FabricRuntime';
+import { AnsibleEnvironment } from '../fabric/environments/AnsibleEnvironment';
 import { UserInputUtil } from '../commands/UserInputUtil';
 import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, FileRegistry, LogType } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
@@ -378,7 +378,7 @@ export class ExtensionUtil {
                 const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
                 const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
-                const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+                const runtime: AnsibleEnvironment = FabricRuntimeManager.instance().getRuntime();
 
                 let isGenerated: boolean;
 
@@ -572,7 +572,7 @@ export class ExtensionUtil {
         if (generatorVersion !== extensionData.generatorVersion) {
             // If the latest generator version is not equal to the previous used version
 
-            const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+            const runtime: AnsibleEnvironment = FabricRuntimeManager.instance().getRuntime();
             let generated: boolean = false;
             if (runtime) {
                 generated = await runtime.isGenerated();

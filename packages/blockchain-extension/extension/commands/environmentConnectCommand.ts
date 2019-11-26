@@ -16,12 +16,12 @@ import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { FabricRuntimeManager } from '../fabric/environments/FabricRuntimeManager';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironment } from '../fabric/FabricEnvironment';
-import { FabricEnvironmentManager, ConnectedState } from '../fabric/FabricEnvironmentManager';
+import { FabricEnvironment } from '../fabric/environments/FabricEnvironment';
+import { FabricEnvironmentManager, ConnectedState } from '../fabric/environments/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, IFabricEnvironmentConnection, FabricNode, LogType } from 'ibm-blockchain-platform-common';
 
 export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry): Promise<void> {

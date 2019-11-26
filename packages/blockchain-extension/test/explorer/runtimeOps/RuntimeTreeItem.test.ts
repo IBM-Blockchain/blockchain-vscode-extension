@@ -15,14 +15,15 @@
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { RuntimeTreeItem } from '../../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
-import { FabricRuntimeManager } from '../../../extension/fabric/FabricRuntimeManager';
-import { FabricRuntime, FabricRuntimeState } from '../../../extension/fabric/FabricRuntime';
+import { FabricRuntimeManager } from '../../../extension/fabric/environments/FabricRuntimeManager';
+import { AnsibleEnvironment } from '../../../extension/fabric/environments/AnsibleEnvironment';
 import { ExtensionUtil } from '../../../extension/util/ExtensionUtil';
 import { TestUtil } from '../../TestUtil';
 import { ExtensionCommands } from '../../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 import { BlockchainEnvironmentExplorerProvider } from '../../../extension/explorer/environmentExplorer';
+import { FabricRuntimeState } from '../../../extension/fabric/FabricRuntimeState';
 
 describe('RuntimeTreeItem', () => {
 
@@ -32,7 +33,7 @@ describe('RuntimeTreeItem', () => {
     let clock: sinon.SinonFakeTimers;
     let provider: BlockchainEnvironmentExplorerProvider;
     let environmentRegistryEntry: FabricEnvironmentRegistryEntry;
-    let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
+    let mockRuntime: sinon.SinonStubbedInstance<AnsibleEnvironment>;
     let onBusyCallback: any;
     let command: vscode.Command;
 
@@ -50,7 +51,7 @@ describe('RuntimeTreeItem', () => {
 
         provider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-        mockRuntime = sandbox.createStubInstance(FabricRuntime);
+        mockRuntime = sandbox.createStubInstance(AnsibleEnvironment);
         mockRuntime.on.callsFake((name: string, callback: any) => {
             name.should.equal('busy');
             onBusyCallback = callback;

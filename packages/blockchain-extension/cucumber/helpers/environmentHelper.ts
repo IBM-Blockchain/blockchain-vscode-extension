@@ -27,7 +27,7 @@ import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
+import { FabricEnvironment } from '../../extension/fabric/environments/FabricEnvironment';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);

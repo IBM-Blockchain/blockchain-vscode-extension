@@ -29,7 +29,7 @@ import { FabricWalletGeneratorFactory } from '../../extension/fabric/FabricWalle
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { AdminIdentityTreeItem } from '../../extension/explorer/model/AdminIdentityTreeItem';
 import { FabricCertificate, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, IFabricWallet, LogType } from 'ibm-blockchain-platform-common';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 chai.use(sinonChai);

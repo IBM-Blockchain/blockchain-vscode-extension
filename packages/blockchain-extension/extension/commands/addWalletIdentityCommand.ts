@@ -22,7 +22,7 @@ import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFac
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricCertificateAuthorityFactory } from '../fabric/FabricCertificateAuthorityFactory';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { FabricRuntimeManager } from '../fabric/environments/FabricRuntimeManager';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';

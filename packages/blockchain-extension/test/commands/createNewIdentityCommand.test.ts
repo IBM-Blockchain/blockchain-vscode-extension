@@ -27,7 +27,7 @@ import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTre
 import { NodesTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/NodesTreeItem';
 import { CertificateAuthorityTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/CertificateAuthorityTreeItem';
 import { Reporter } from '../../extension/util/Reporter';
-import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, IFabricWallet, LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 

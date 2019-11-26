@@ -19,24 +19,17 @@ import { FabricRuntimePorts } from './FabricRuntimePorts';
 import { CommandUtil } from '../util/CommandUtil';
 import * as request from 'request';
 import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricIdentity, FabricNode, FabricNodeType, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, FileConfigurations, IFabricWallet, IFabricWalletGenerator, ConsoleOutputAdapter, OutputAdapter } from 'ibm-blockchain-platform-common';
-import { FabricGateway } from './FabricGateway';
-import { YeomanUtil } from '../util/YeomanUtil';
-import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
-import { SettingConfigurations } from '../../configurations';
+import { FabricGateway } from '../FabricGateway';
+import { YeomanUtil } from '../../util/YeomanUtil';
+import { FabricWalletGeneratorFactory } from '../FabricWalletGeneratorFactory';
+import { SettingConfigurations } from '../../../configurations';
 import { FabricEnvironment } from './FabricEnvironment';
-import { FileSystemUtil } from '../util/FileSystemUtil';
-import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
-import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
+import { FileSystemUtil } from '../../util/FileSystemUtil';
+import { FabricGatewayRegistryEntry } from '../../registries/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistry } from '../../registries/FabricGatewayRegistry';
+import { FabricRuntimeState } from '../FabricRuntimeState';
 
-export enum FabricRuntimeState {
-    STARTING = 'starting',
-    STARTED = 'started',
-    STOPPING = 'stopping',
-    STOPPED = 'stopped',
-    RESTARTING = 'restarting',
-}
-
-export class FabricRuntime extends FabricEnvironment {
+export class AnsibleEnvironment extends FabricEnvironment {
 
     public ports?: FabricRuntimePorts;
 
@@ -52,18 +45,28 @@ export class FabricRuntime extends FabricEnvironment {
         this.dockerName = `fabricvscodelocalfabric`;
     }
 
+    // Both (?)
     public getDockerName(): string {
         return this.dockerName;
     }
 
+    // Both
     public isBusy(): boolean {
         return this.busy;
     }
 
+    // Both
     public getState(): FabricRuntimeState {
         return this.state;
     }
 
+    // LocalEnvironment
+    // Update implementation to generate fabric using ansible (?)
+    // Are AnsibleEnvironment's local or IBP? - they are local
+
+    // On IBP how do we stop/start?
+    // What does ansible actually generate/do?
+    // ran playbook to generate structure - add environment - dir - imports ansible stuff
     public async create(): Promise<void> {
 
         // Delete any existing runtime directory, and then recreate it.
@@ -90,6 +93,8 @@ export class FabricRuntime extends FabricEnvironment {
         });
     }
 
+    // Both
+    // when they give directory, there will be a wallets directory
     public async importWalletsAndIdentities(): Promise<void> {
 
         // Ensure that all wallets are created and populated with identities.
@@ -131,6 +136,7 @@ export class FabricRuntime extends FabricEnvironment {
         }
     }
 
+    // Both see above
     public async importGateways(): Promise<void> {
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
@@ -150,6 +156,7 @@ export class FabricRuntime extends FabricEnvironment {
         }
     }
 
+    // Both (?)
     public async deleteWalletsAndIdentities(): Promise<void> {
         // Ensure that all known identities in all known wallets are deleted.
         const walletNames: string[] = await this.getWalletNames();
@@ -158,6 +165,7 @@ export class FabricRuntime extends FabricEnvironment {
         }
     }
 
+    // LocalEnvironment
     public async generate(outputAdapter?: OutputAdapter): Promise<void> {
         try {
             this.setBusy(true);
@@ -174,6 +182,7 @@ export class FabricRuntime extends FabricEnvironment {
         }
     }
 
+    // Both
     public async start(outputAdapter?: OutputAdapter): Promise<void> {
         try {
             this.setBusy(true);
@@ -190,6 +199,7 @@ export class FabricRuntime extends FabricEnvironment {
         }
     }
 
+    // Both
     public async stop(outputAdapter?: OutputAdapter): Promise<void> {
         try {
             this.setBusy(true);
@@ -206,6 +216,7 @@ export class FabricRuntime extends FabricEnvironment {
         }
     }
 
+    // Both - see ansible generated scripts
     public async teardown(outputAdapter?: OutputAdapter): Promise<void> {
         try {
             this.setBusy(true);
@@ -225,6 +236,7 @@ export class FabricRuntime extends FabricEnvironment {
         }
     }
 
+    // Both
     public async restart(outputAdapter?: OutputAdapter): Promise<void> {
         try {
             this.setBusy(true);
@@ -243,11 +255,13 @@ export class FabricRuntime extends FabricEnvironment {
         }
     }
 
+    // Both
     public async getGateways(): Promise<FabricGateway[]> {
         const gatewaysPath: string = path.resolve(this.path, FileConfigurations.FABRIC_GATEWAYS);
         return this.loadGateways(gatewaysPath);
     }
 
+    // Both
     public async getWalletNames(): Promise<string[]> {
         const walletsPath: string = path.resolve(this.path, 'wallets');
         const walletsExist: boolean = await fs.pathExists(walletsPath);
@@ -260,6 +274,7 @@ export class FabricRuntime extends FabricEnvironment {
             .filter((walletPath: string) => !walletPath.startsWith('.'));
     }
 
+    // Both
     public async getIdentities(walletName: string): Promise<FabricIdentity[]> {
         const walletPath: string = path.resolve(this.path, 'wallets', walletName);
         const walletExists: boolean = await fs.pathExists(walletPath);
@@ -283,10 +298,12 @@ export class FabricRuntime extends FabricEnvironment {
         return identities;
     }
 
+    // LocalEnvironment
     public async isCreated(): Promise<boolean> {
         return FabricEnvironmentRegistry.instance().exists(this.name);
     }
 
+    // LocalEnvironment
     public async isGenerated(): Promise<boolean> {
         try {
             const created: boolean = await this.isCreated();
@@ -300,6 +317,7 @@ export class FabricRuntime extends FabricEnvironment {
         }
     }
 
+    // Both
     public isRunning(args?: string[]): Promise<boolean> {
         if (this.isRunningPromise) {
             return this.isRunningPromise;
@@ -311,10 +329,12 @@ export class FabricRuntime extends FabricEnvironment {
         return this.isRunningPromise;
     }
 
+    // LocalEnvironment - used for debug so... ?
     public async killChaincode(args?: string[], outputAdapter?: OutputAdapter): Promise<void> {
         await this.killChaincodeInner(args, outputAdapter);
     }
 
+    // Both
     public async getPeerChaincodeURL(): Promise<string> {
         const nodes: FabricNode[] = await this.getNodes();
         const peer: FabricNode = nodes.find((node: FabricNode) => node.type === FabricNodeType.PEER);
@@ -324,6 +344,7 @@ export class FabricRuntime extends FabricEnvironment {
         return peer.chaincode_url;
     }
 
+    // Both - ask simon where logging is implemented (?)
     public async getLogspoutURL(): Promise<string> {
         const nodes: FabricNode[] = await this.getNodes();
         const logspout: FabricNode = nodes.find((node: FabricNode) => node.type === FabricNodeType.LOGSPOUT);
@@ -333,6 +354,7 @@ export class FabricRuntime extends FabricEnvironment {
         return logspout.api_url;
     }
 
+    // Both
     public async getPeerContainerName(): Promise<string> {
         const nodes: FabricNode[] = await this.getNodes();
         const peer: FabricNode = nodes.find((node: FabricNode) => node.type === FabricNodeType.PEER);
@@ -342,22 +364,26 @@ export class FabricRuntime extends FabricEnvironment {
         return peer.container_name;
     }
 
+    // Both - see getLogspoutUrl
     public async startLogs(outputAdapter: OutputAdapter): Promise<void> {
         const logspoutURL: string = await this.getLogspoutURL();
         this.logsRequest = CommandUtil.sendRequestWithOutput(`${logspoutURL}/logs`, outputAdapter);
     }
 
+    // Both
     public stopLogs(): void {
         if (this.logsRequest) {
             CommandUtil.abortRequest(this.logsRequest);
         }
     }
 
+    // Both
     public setState(state: FabricRuntimeState): void {
         this.state = state;
 
     }
 
+    // LocalEnvironment
     public async updateUserSettings(): Promise<void> {
         const runtimeObject: any = {
             ports: this.ports
@@ -404,33 +430,40 @@ export class FabricRuntime extends FabricEnvironment {
         }
     }
 
+    // Both
     private async killChaincodeInner(args: string[], outputAdapter?: OutputAdapter): Promise<void> {
         await this.execute('kill_chaincode', args, outputAdapter);
     }
 
+    // Both
     private setBusy(busy: boolean): void {
         this.busy = busy;
         this.emit('busy', busy);
     }
 
+    // LocalEnvironment
     private async generateInner(outputAdapter?: OutputAdapter): Promise<void> {
         await this.execute('generate', [], outputAdapter);
     }
 
+    // Both
     private async startInner(outputAdapter?: OutputAdapter): Promise<void> {
         await this.execute('start', [], outputAdapter);
     }
 
+    // Both
     private async stopInner(outputAdapter?: OutputAdapter): Promise<void> {
         this.stopLogs();
         await this.execute('stop', [], outputAdapter);
     }
 
+    // Both
     private async teardownInner(outputAdapter?: OutputAdapter): Promise<void> {
         this.stopLogs();
         await this.execute('teardown', [], outputAdapter);
     }
 
+    // Both
     private async execute(script: string, args: string[] = [], outputAdapter?: OutputAdapter): Promise<void> {
         if (!outputAdapter) {
             outputAdapter = ConsoleOutputAdapter.instance();
@@ -450,6 +483,7 @@ export class FabricRuntime extends FabricEnvironment {
         }
     }
 
+    // LocalEnvironment (? - different implementation for ansible)
     private getChaincodeTimeout(): number {
         return vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_CHAINCODE_TIMEOUT) as number;
     }

@@ -13,8 +13,8 @@
 */
 
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
-import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
+import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
+import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
 import { TestUtil } from '../TestUtil';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
@@ -26,7 +26,7 @@ import { CommandUtil } from '../../extension/util/CommandUtil';
 import { version } from '../../package.json';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { SettingConfigurations } from '../../configurations';
-import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
@@ -38,12 +38,12 @@ describe('FabricRuntimeManager', () => {
 
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-    let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
+    let mockRuntime: sinon.SinonStubbedInstance<AnsibleEnvironment>;
     let mockConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
 
     let sandbox: sinon.SinonSandbox;
     let findFreePortStub: sinon.SinonStub;
-    let originalRuntime: FabricRuntime;
+    let originalRuntime: AnsibleEnvironment;
 
     before(async () => {
         await TestUtil.setupTests(sandbox);
@@ -53,9 +53,9 @@ describe('FabricRuntimeManager', () => {
     beforeEach(async () => {
         sandbox = sinon.createSandbox();
         await connectionRegistry.clear();
-        mockRuntime = sandbox.createStubInstance(FabricRuntime);
+        mockRuntime = sandbox.createStubInstance(AnsibleEnvironment);
         runtimeManager['connection'] = runtimeManager['connectingPromise'] = undefined;
-        runtimeManager['runtime'] = ((mockRuntime as any) as FabricRuntime);
+        runtimeManager['runtime'] = ((mockRuntime as any) as AnsibleEnvironment);
         mockConnection = sandbox.createStubInstance(FabricEnvironmentConnection);
         sandbox.stub(FabricConnectionFactory, 'createFabricEnvironmentConnection').returns(mockConnection);
         findFreePortStub = sandbox.stub().resolves([17050, 17051, 17052, 17053, 17054, 17055, 17056]);
@@ -74,7 +74,7 @@ describe('FabricRuntimeManager', () => {
         Object.defineProperty(runtimeManager, 'runtime', {
             configurable: true,
             enumerable: true,
-            get: (): FabricRuntime => (originalRuntime as any) as FabricRuntime
+            get: (): AnsibleEnvironment => (originalRuntime as any) as AnsibleEnvironment
         });
     });
 
@@ -90,7 +90,7 @@ describe('FabricRuntimeManager', () => {
             Object.defineProperty(runtimeManager, 'runtime', {
                 configurable: true,
                 enumerable: true,
-                get: (): FabricRuntime => (mockRuntime as any) as FabricRuntime,
+                get: (): AnsibleEnvironment => (mockRuntime as any) as AnsibleEnvironment,
                 set: (): void => { /* Ignore the new value */ }
             });
         });

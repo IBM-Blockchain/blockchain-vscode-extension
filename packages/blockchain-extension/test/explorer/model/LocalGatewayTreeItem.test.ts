@@ -18,8 +18,8 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { LocalGatewayTreeItem } from '../../../extension/explorer/model/LocalGatewayTreeItem';
 import { BlockchainGatewayExplorerProvider } from '../../../extension/explorer/gatewayExplorer';
-import { FabricRuntimeManager } from '../../../extension/fabric/FabricRuntimeManager';
-import { FabricRuntime } from '../../../extension/fabric/FabricRuntime';
+import { FabricRuntimeManager } from '../../../extension/fabric/environments/FabricRuntimeManager';
+import { AnsibleEnvironment } from '../../../extension/fabric/environments/AnsibleEnvironment';
 import { FabricGatewayRegistry } from '../../../extension/registries/FabricGatewayRegistry';
 import { FabricGatewayRegistryEntry } from '../../../extension/registries/FabricGatewayRegistryEntry';
 import { ExtensionUtil } from '../../../extension/util/ExtensionUtil';
@@ -36,7 +36,7 @@ describe('LocalGatewayTreeItem', () => {
     const gatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
 
     let gateway: FabricGatewayRegistryEntry;
-    let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
+    let mockRuntime: sinon.SinonStubbedInstance<AnsibleEnvironment>;
     let onBusyCallback: any;
 
     const sandbox: sinon.SinonSandbox = sinon.createSandbox();
@@ -57,7 +57,7 @@ describe('LocalGatewayTreeItem', () => {
 
         provider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-        mockRuntime = sandbox.createStubInstance(FabricRuntime);
+        mockRuntime = sandbox.createStubInstance(AnsibleEnvironment);
         mockRuntime.on.callsFake((name: string, callback: any) => {
             name.should.equal('busy');
             onBusyCallback = callback;

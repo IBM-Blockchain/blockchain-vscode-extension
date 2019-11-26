@@ -16,9 +16,9 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
 import { EventEmitter } from 'events';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../../../configurations';
 import { FabricNode, FabricNodeType, FileConfigurations } from 'ibm-blockchain-platform-common';
-import { FileSystemUtil } from '../util/FileSystemUtil';
+import { FileSystemUtil } from '../../util/FileSystemUtil';
 
 export class FabricEnvironment extends EventEmitter {
 

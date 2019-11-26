@@ -14,9 +14,9 @@
 
 import * as vscode from 'vscode';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
+import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
@@ -35,7 +35,7 @@ describe('startFabricRuntime', () => {
     const sandbox: sinon.SinonSandbox = sinon.createSandbox();
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-    let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
+    let mockRuntime: sinon.SinonStubbedInstance<AnsibleEnvironment>;
     let runtimeTreeItem: RuntimeTreeItem;
     let blockchainLogsOutputSpy: sinon.SinonSpy;
     let commandStub: sinon.SinonStub;
@@ -49,7 +49,7 @@ describe('startFabricRuntime', () => {
         await connectionRegistry.clear();
         await FabricEnvironmentRegistry.instance().clear();
         await runtimeManager.initialize();
-        mockRuntime = sandbox.createStubInstance(FabricRuntime);
+        mockRuntime = sandbox.createStubInstance(AnsibleEnvironment);
         mockRuntime.isGenerated.resolves(true);
         mockRuntime.generate.resolves();
         mockRuntime.isCreated.resolves(true);

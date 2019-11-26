@@ -24,7 +24,7 @@ import { ChannelTreeItem } from '../../extension/explorer/model/ChannelTreeItem'
 import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { TransactionTreeItem } from '../../extension/explorer/model/TransactionTreeItem';
 import { InstantiatedContractTreeItem } from '../../extension/explorer/model/InstantiatedContractTreeItem';

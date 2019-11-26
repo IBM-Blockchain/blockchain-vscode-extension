@@ -22,7 +22,7 @@ import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
+import { FabricEnvironment } from '../../extension/fabric/environments/FabricEnvironment';
 import { FabricEnvironmentRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
 

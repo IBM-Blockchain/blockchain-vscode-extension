@@ -16,8 +16,8 @@
 
 import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
-import { FabricRuntimeManager } from '../../../fabric/FabricRuntimeManager';
-import { FabricRuntime } from '../../../fabric/FabricRuntime';
+import { FabricRuntimeManager } from '../../../fabric/environments/FabricRuntimeManager';
+import { AnsibleEnvironment } from '../../../fabric/environments/AnsibleEnvironment';
 import { VSCodeBlockchainOutputAdapter } from '../../../logging/VSCodeBlockchainOutputAdapter';
 import { FabricEnvironmentTreeItem } from './FabricEnvironmentTreeItem';
 import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
@@ -32,7 +32,7 @@ export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
 
     contextValue: string = 'blockchain-runtime-item';
     private name: string;
-    private runtime: FabricRuntime;
+    private runtime: AnsibleEnvironment;
     private busyTicker: NodeJS.Timer;
     private busyTicks: number = 0;
 

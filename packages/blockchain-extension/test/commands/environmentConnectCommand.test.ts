@@ -18,9 +18,8 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
 import { TestUtil } from '../TestUtil';
-import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
 import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
 import { Reporter } from '../../extension/util/Reporter';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
@@ -30,9 +29,10 @@ import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { RuntimeTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
-import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
+import { FabricEnvironment } from '../../extension/fabric/environments/FabricEnvironment';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
+import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
 
 chai.use(sinonChai);
 // tslint:disable-next-line no-var-requires
@@ -50,7 +50,7 @@ describe('EnvironmentConnectCommand', () => {
     describe('connect', () => {
 
         let mockConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
-        let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
+        let mockRuntime: sinon.SinonStubbedInstance<AnsibleEnvironment>;
         let logSpy: sinon.SinonSpy;
         let environmentRegistryEntry: FabricEnvironmentRegistryEntry;
         let localFabricRegistryEntry: FabricEnvironmentRegistryEntry;
@@ -84,7 +84,7 @@ describe('EnvironmentConnectCommand', () => {
 
             localFabricRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
 
-            mockRuntime = mySandBox.createStubInstance(FabricRuntime);
+            mockRuntime = mySandBox.createStubInstance(AnsibleEnvironment);
             mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(true);

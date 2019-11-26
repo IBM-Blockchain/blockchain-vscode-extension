@@ -33,15 +33,15 @@ import { DependencyManager } from '../../extension/dependencies/DependencyManage
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { TemporaryCommandRegistry } from '../../extension/dependencies/TemporaryCommandRegistry';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FabricWalletRegistryEntry, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
 import { TestUtil } from '../TestUtil';
 import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistry';
 import { RepositoryRegistryEntry } from '../../extension/registries/RepositoryRegistryEntry';
 import * as openTransactionViewCommand from '../../extension/commands/openTransactionViewCommand';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
+import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -1158,7 +1158,7 @@ describe('ExtensionUtil Tests', () => {
         let globalStateGetStub: sinon.SinonStub;
         let executeCommandStub: sinon.SinonStub;
         let showConfirmationWarningMessageStub: sinon.SinonStub;
-        let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
+        let mockRuntime: sinon.SinonStubbedInstance<AnsibleEnvironment>;
         let getRuntimeStub: sinon.SinonStub;
         let globalStateUpdateStub: sinon.SinonStub;
         beforeEach(() => {
@@ -1169,7 +1169,7 @@ describe('ExtensionUtil Tests', () => {
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
 
             showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
-            mockRuntime = mySandBox.createStubInstance(FabricRuntime);
+            mockRuntime = mySandBox.createStubInstance(AnsibleEnvironment);
 
             getRuntimeStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
             globalStateUpdateStub = mySandBox.stub(GlobalState, 'update');
@@ -1491,7 +1491,7 @@ describe('ExtensionUtil Tests', () => {
     });
 
     describe('onDidChangeConfiguration', () => {
-        let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
+        let mockRuntime: sinon.SinonStubbedInstance<AnsibleEnvironment>;
         let affectsConfigurationStub: sinon.SinonStub;
         let executeCommandStub: sinon.SinonStub;
         let onDidChangeConfiguration: sinon.SinonStub;
@@ -1511,7 +1511,7 @@ describe('ExtensionUtil Tests', () => {
             if (!ExtensionUtil.isActive()) {
                 await ExtensionUtil.activateExtension();
             }
-            mockRuntime = mySandBox.createStubInstance(FabricRuntime);
+            mockRuntime = mySandBox.createStubInstance(AnsibleEnvironment);
             mockRuntime.isGenerated.resolves(true);
             mockRuntime.isRunning.resolves(true);
             getRuntimeStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime');

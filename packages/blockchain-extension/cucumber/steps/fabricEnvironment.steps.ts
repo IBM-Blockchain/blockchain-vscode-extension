@@ -17,8 +17,8 @@ import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as vscode from 'vscode';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
-import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
+import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
+import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { NodeTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
@@ -38,7 +38,7 @@ module.exports = function(): any {
     this.Given(`the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is running`, this.timeout, async () => {
 
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-        const runtime: FabricRuntime = runtimeManager.getRuntime();
+        const runtime: AnsibleEnvironment = runtimeManager.getRuntime();
 
         let isRunning: boolean = await runtime.isRunning();
         if (!isRunning) {
@@ -99,7 +99,7 @@ module.exports = function(): any {
 
     this.When(`I stop the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`, this.timeout, async () => {
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-        const runtime: FabricRuntime = runtimeManager.getRuntime();
+        const runtime: AnsibleEnvironment = runtimeManager.getRuntime();
 
         await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
         const isRunning: boolean = await runtime.isRunning();
@@ -108,7 +108,7 @@ module.exports = function(): any {
 
     this.When(`I start the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`, this.timeout, async () => {
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-        const runtime: FabricRuntime = runtimeManager.getRuntime();
+        const runtime: AnsibleEnvironment = runtimeManager.getRuntime();
 
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
         const isRunning: boolean = await runtime.isRunning();
@@ -117,7 +117,7 @@ module.exports = function(): any {
 
     this.When(`I teardown the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`, this.timeout, async () => {
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-        const runtime: FabricRuntime = runtimeManager.getRuntime();
+        const runtime: AnsibleEnvironment = runtimeManager.getRuntime();
 
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
         const isRunning: boolean = await runtime.isRunning();

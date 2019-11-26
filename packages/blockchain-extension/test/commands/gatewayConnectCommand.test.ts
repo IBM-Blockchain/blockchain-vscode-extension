@@ -20,11 +20,11 @@ import * as sinonChai from 'sinon-chai';
 import { FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
 import { TestUtil } from '../TestUtil';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
+import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
 import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
 import { Reporter } from '../../extension/util/Reporter';
 import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
@@ -56,7 +56,7 @@ describe('GatewayConnectCommand', () => {
 
         let rootPath: string;
         let mockConnection: sinon.SinonStubbedInstance<FabricGatewayConnection>;
-        let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
+        let mockRuntime: sinon.SinonStubbedInstance<AnsibleEnvironment>;
         let logSpy: sinon.SinonSpy;
         let connectionMultiple: FabricGatewayRegistryEntry;
         let connectionSingle: FabricGatewayRegistryEntry;
@@ -136,7 +136,7 @@ describe('GatewayConnectCommand', () => {
             await FabricWalletRegistry.instance().add(connectionAssociatedWallet);
             await FabricWalletRegistry.instance().add(emptyWallet);
 
-            mockRuntime = mySandBox.createStubInstance(FabricRuntime);
+            mockRuntime = mySandBox.createStubInstance(AnsibleEnvironment);
             mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(true);

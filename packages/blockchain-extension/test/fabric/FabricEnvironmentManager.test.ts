@@ -12,7 +12,7 @@
  * limitations under the License.
 */
 
-import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';

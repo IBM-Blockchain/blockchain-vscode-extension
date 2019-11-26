@@ -14,15 +14,14 @@
 
 import * as vscode from 'vscode';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricRuntime } from '../fabric/FabricRuntime';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { FabricRuntimeManager } from '../fabric/environments/FabricRuntimeManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 
 export async function startFabricRuntime(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'startFabricRuntime');
-    const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+    const runtime: AnsibleEnvironment = FabricRuntimeManager.instance().getRuntime();
     VSCodeBlockchainOutputAdapter.instance().show();
 
     await vscode.window.withProgress({

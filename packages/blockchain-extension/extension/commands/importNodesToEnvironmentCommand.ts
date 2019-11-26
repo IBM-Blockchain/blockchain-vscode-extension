@@ -19,7 +19,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { SettingConfigurations } from '../../configurations';
 import { FabricEnvironmentRegistryEntry, FabricNode, LogType } from 'ibm-blockchain-platform-common';
-import { FabricEnvironment } from '../fabric/FabricEnvironment';
+import { FabricEnvironment } from '../fabric/environments/FabricEnvironment';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FileSystemUtil } from '../util/FileSystemUtil';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';

@@ -23,8 +23,8 @@ import { MetadataUtil } from '../util/MetadataUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { FabricCertificate, FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, IFabricEnvironmentConnection, IFabricGatewayConnection, LogType  } from 'ibm-blockchain-platform-common';
-import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
-import { FabricEnvironment } from '../fabric/FabricEnvironment';
+import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
+import { FabricEnvironment } from '../fabric/environments/FabricEnvironment';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;

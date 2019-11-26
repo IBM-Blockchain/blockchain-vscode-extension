@@ -17,7 +17,7 @@ import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayR
 import * as chai from 'chai';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { TestUtil } from '../TestUtil';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
 import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 chai.should();

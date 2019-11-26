@@ -16,8 +16,8 @@ import * as vscode from 'vscode';
 import { BlockchainTreeItem } from './BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { FabricGatewayRegistryEntry } from '../../registries/FabricGatewayRegistryEntry';
-import { FabricRuntimeManager } from '../../fabric/FabricRuntimeManager';
-import { FabricRuntime } from '../../fabric/FabricRuntime';
+import { FabricRuntimeManager } from '../../fabric/environments/FabricRuntimeManager';
+import { AnsibleEnvironment } from '../../fabric/environments/AnsibleEnvironment';
 import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../../ExtensionCommands';
 import { FabricRuntimeUtil, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
@@ -33,7 +33,7 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-local-gateway-item';
 
     public readonly name: string;
-    private runtime: FabricRuntime;
+    private runtime: AnsibleEnvironment;
     private busyTicker: NodeJS.Timer;
     private busyTicks: number = 0;
 

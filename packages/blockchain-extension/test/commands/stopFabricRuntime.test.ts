@@ -14,9 +14,9 @@
 
 import * as vscode from 'vscode';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
+import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { TestUtil } from '../TestUtil';
 import * as chai from 'chai';
@@ -25,7 +25,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
-import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -34,7 +34,7 @@ describe('stopFabricRuntime', () => {
     const sandbox: sinon.SinonSandbox = sinon.createSandbox();
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-    let runtime: FabricRuntime;
+    let runtime: AnsibleEnvironment;
     let gatewayRegistyEntry: FabricGatewayRegistryEntry;
     let getRegistryEntryStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;

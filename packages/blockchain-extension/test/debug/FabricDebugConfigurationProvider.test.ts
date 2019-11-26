@@ -16,13 +16,13 @@ import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
+import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
 import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
-import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { GlobalState } from '../../extension/util/GlobalState';
 import { TestUtil } from '../TestUtil';
@@ -71,7 +71,7 @@ describe('FabricDebugConfigurationProvider', () => {
         let fabricDebugConfig: TestFabricDebugConfigurationProvider;
         let workspaceFolder: any;
         let debugConfig: any;
-        let runtimeStub: sinon.SinonStubbedInstance<FabricRuntime>;
+        let runtimeStub: sinon.SinonStubbedInstance<AnsibleEnvironment>;
         let commandStub: sinon.SinonStub;
         let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
         let getConnectionStub: sinon.SinonStub;
@@ -87,7 +87,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             fabricDebugConfig = new TestFabricDebugConfigurationProvider();
 
-            runtimeStub = mySandbox.createStubInstance(FabricRuntime);
+            runtimeStub = mySandbox.createStubInstance(AnsibleEnvironment);
             runtimeStub.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
             runtimeStub.getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);

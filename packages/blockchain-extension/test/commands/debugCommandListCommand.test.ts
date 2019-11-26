@@ -24,9 +24,9 @@ import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGat
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { FabricRuntimeUtil, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 
 // tslint:disable no-unused-expression

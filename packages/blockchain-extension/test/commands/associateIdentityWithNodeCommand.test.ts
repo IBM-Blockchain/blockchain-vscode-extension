@@ -28,7 +28,7 @@ import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, 
 import { NodeTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
-import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);

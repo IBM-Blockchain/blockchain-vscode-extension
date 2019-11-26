@@ -14,13 +14,13 @@
 
 import * as vscode from 'vscode';
 import * as semver from 'semver';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
-import { FabricRuntime } from '../fabric/FabricRuntime';
+import { FabricRuntimeManager } from '../fabric/environments/FabricRuntimeManager';
+import { AnsibleEnvironment } from '../fabric/environments/AnsibleEnvironment';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 import { URL } from 'url';
-import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../util/ExtensionUtil';
@@ -65,7 +65,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
         return connection;
     }
 
-    private runtime: FabricRuntime;
+    private runtime: AnsibleEnvironment;
 
     public async resolveDebugConfiguration(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();

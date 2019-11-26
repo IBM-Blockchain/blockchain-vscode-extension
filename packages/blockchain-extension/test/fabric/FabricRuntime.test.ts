@@ -13,7 +13,7 @@
 */
 
 import * as child_process from 'child_process';
-import { FabricRuntime, FabricRuntimeState } from '../../extension/fabric/FabricRuntime';
+import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
 import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
@@ -33,19 +33,20 @@ import { FabricGateway } from '../../extension/fabric/FabricGateway';
 import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
+import { FabricRuntimeState } from '../../extension/fabric/FabricRuntimeState';
 
 chai.should();
 chai.use(chaiAsPromised);
 
 // tslint:disable no-unused-expression
-describe('FabricRuntime', () => {
+describe('AnsibleEnvironment', () => {
 
     const originalPlatform: string = process.platform;
     const originalSpawn: any = child_process.spawn;
     const rootPath: string = path.dirname(__dirname);
     const runtimePath: string = path.resolve(rootPath, '..', '..', 'test', 'data', 'yofn');
 
-    let runtime: FabricRuntime;
+    let runtime: AnsibleEnvironment;
     let sandbox: sinon.SinonSandbox;
 
     // tslint:disable max-classes-per-file
@@ -82,7 +83,7 @@ describe('FabricRuntime', () => {
     });
 
     beforeEach(async () => {
-        runtime = new FabricRuntime();
+        runtime = new AnsibleEnvironment();
         runtime.ports = {
             orderer: 12347,
             peerRequest: 12345,
