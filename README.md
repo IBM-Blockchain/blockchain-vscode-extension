@@ -14,12 +14,14 @@ Please visit the [Visual Studio Code Marketplace](https://marketplace.visualstud
 
 ## Requirements
 
+The first time you install this extension, it will check your system for the prequisites, and guide you to install any that you are missing.
+
+The following information explains what requirements are included in that page.
+
 You will need the following installed in order to use the extension:
 - Windows 10, Linux, or Mac OS are currently the supported operating systems.
 - [VS Code version 1.35.1 or greater](https://code.visualstudio.com)
 - [Node v8.x or v10.x and npm v6.x or greater](https://nodejs.org/en/download/)
-- [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)
-- [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/)
 - [Go version v1.12 or greater for developing Go contracts](https://golang.org/dl/)
 - [Java v8 for developing Java contracts](https://adoptopenjdk.net/?variant=openjdk8)
 
@@ -31,6 +33,13 @@ If you are using Windows, you must also ensure the following:
   - Install the normal version, not the version marked as "light"
   - Install the Win32 version into `C:\OpenSSL-Win32` on 32-bit systems
   - Install the Win64 version into `C:\OpenSSL-Win64` on 64-bit systems
+
+This extension can use Docker and Docker Compose to run a simple pre-configured local Hyperledger Fabric network on your machine. You may disable this feature, but we highly recommend using it if you can!
+
+You will need the following:
+
+- [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)
+- [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/)
 
 You can check your installed versions by running the following commands from a terminal:
 - `node --version`
