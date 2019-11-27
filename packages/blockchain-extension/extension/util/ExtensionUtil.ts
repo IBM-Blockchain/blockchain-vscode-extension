@@ -611,13 +611,11 @@ export class ExtensionUtil {
                 generated = await runtime.isGenerated();
             }
 
+            let updateGeneratorVersion: boolean = true;
             if (generated) {
                 // We know the user has a generated Fabric using an older version, so we should give the user the option to teardown either now or later
                 const response: boolean = await UserInputUtil.showConfirmationWarningMessage(`The ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} now?`);
-                if (!response) {
-                    // Assume they will teardown later
-                    return;
-                } else {
+                if (response) {
                     const isRunning: boolean = await runtime.isRunning();
 
                     // Teardown and remove generated Fabric
@@ -627,20 +625,25 @@ export class ExtensionUtil {
                         // Start the Fabric again
                         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
                     }
+                } else {
+                    // Assume they will teardown later
+                    updateGeneratorVersion = false;
                 }
             }
             // If they don't have a Fabric generated, we can update the version immediately
 
             // Update the generator version
-            extensionData.generatorVersion = generatorVersion;
-            await GlobalState.update(extensionData);
-
-            const localFabricEnabled: boolean = this.getExtensionLocalFabricSetting();
-            if (localFabricEnabled) {
-                await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', true);
-            } else {
-                await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', false);
+            if (updateGeneratorVersion) {
+                extensionData.generatorVersion = generatorVersion;
+                await GlobalState.update(extensionData);
             }
+        }
+
+        const localFabricEnabled: boolean = this.getExtensionLocalFabricSetting();
+        if (localFabricEnabled) {
+            await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', true);
+        } else {
+            await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', false);
         }
     }
 
