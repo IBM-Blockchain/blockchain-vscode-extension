@@ -413,7 +413,7 @@ export class ExtensionUtil {
 
                 if (!localFabricEnabled) {
                     // Just got set to false
-                    outputAdapter.log(LogType.INFO, `Set '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting to 'false'.`);
+                    outputAdapter.log(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality set to 'false'.`);
                     try {
                         // If Local Fabric is running, warn the user that it will be torndown
                         let isRunning: boolean = false;
@@ -424,7 +424,7 @@ export class ExtensionUtil {
                             const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`Toggling this feature will remove the world state and ledger data for the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime. Do you want to continue?`);
                             if (!reallyDoIt) {
                                 // log setting variable back
-                                outputAdapter.log(LogType.WARNING, `Changed '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting back to 'true'.`);
+                                outputAdapter.log(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality back to 'true'.`);
                                 await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
                                 return;
                             }
@@ -438,12 +438,12 @@ export class ExtensionUtil {
                         await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', false);
 
                     } catch (error) {
-                        outputAdapter.log(LogType.ERROR, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality context to false: ${error.message}`, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality context to false: ${error.toString()}`);
+                        outputAdapter.log(LogType.ERROR, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality to false: ${error.message}`, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality to false: ${error.toString()}`);
                     }
 
                 } else {
                     // Just got set to true
-                    outputAdapter.log(LogType.INFO, `Set '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting to 'true'.`);
+                    outputAdapter.log(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality set to 'true'.`);
                     try {
                         const bypassPreReqs: boolean = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_BYPASS_PREREQS);
                         let dependenciesInstalled: boolean = true;
@@ -471,7 +471,7 @@ export class ExtensionUtil {
                         }
                         await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', true);
                     } catch (error) {
-                        outputAdapter.log(LogType.ERROR, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality context to true: ${error.message}`, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality context to true: ${error.toString()}`);
+                        outputAdapter.log(LogType.ERROR, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality to true: ${error.message}`, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality to true: ${error.toString()}`);
                     }
                 }
 
