@@ -18,7 +18,7 @@ import { TestUtil } from '../TestUtil';
 import { UserInputUtil, IBlockchainQuickPickItem, LanguageQuickPickItem, LanguageType } from '../../extension/commands/UserInputUtil';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
-import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -84,7 +84,7 @@ describe('UserInputUtil', () => {
 
         await FabricEnvironmentRegistry.instance().add(environmentEntryTwo);
 
-        await FabricRuntimeManager.instance().getRuntime().create();
+        await LocalEnvironmentManager.instance().getRuntime().create();
 
         gatewayEntryOne = new FabricGatewayRegistryEntry();
         gatewayEntryOne.name = 'myGatewayA';
@@ -100,7 +100,7 @@ describe('UserInputUtil', () => {
         await gatewayRegistry.add(gatewayEntryTwo);
 
         // add the local gateway back in
-        await FabricRuntimeManager.instance().getRuntime().importGateways();
+        await LocalEnvironmentManager.instance().getRuntime().importGateways();
 
         walletEntryOne = new FabricWalletRegistryEntry({
             name: 'purpleWallet',
@@ -115,7 +115,7 @@ describe('UserInputUtil', () => {
         await walletRegistry.clear();
 
         // add the local fabric wallet back in
-        await FabricRuntimeManager.instance().getRuntime().importWalletsAndIdentities();
+        await LocalEnvironmentManager.instance().getRuntime().importWalletsAndIdentities();
 
         await walletRegistry.add(walletEntryOne);
         await walletRegistry.add(walletEntryTwo);
@@ -217,7 +217,7 @@ describe('UserInputUtil', () => {
 
             await FabricEnvironmentRegistry.instance().clear();
 
-            await FabricRuntimeManager.instance().getRuntime().create();
+            await LocalEnvironmentManager.instance().getRuntime().create();
 
             const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false, true, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             result.data.name.should.equal(localFabricEntry.name);

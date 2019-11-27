@@ -26,15 +26,15 @@ import { FabricEnvironmentManager } from './FabricEnvironmentManager';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../logging/VSCodeBlockchainDockerOutputAdapter';
 import { FileSystemUtil } from '../../util/FileSystemUtil';
 
-export class FabricRuntimeManager {
+export class LocalEnvironmentManager {
 
     public static findFreePort: any = require('find-free-port');
 
-    public static instance(): FabricRuntimeManager {
+    public static instance(): LocalEnvironmentManager {
         return this._instance;
     }
 
-    private static _instance: FabricRuntimeManager = new FabricRuntimeManager();
+    private static _instance: LocalEnvironmentManager = new LocalEnvironmentManager();
 
     private runtime: AnsibleEnvironment;
 
@@ -230,7 +230,7 @@ export class FabricRuntimeManager {
 
     private async generateLogsPort(highestPort: number): Promise<number> {
 
-        const freep: number[] = await FabricRuntimeManager.findFreePort(highestPort + 1, null, null, 1);
+        const freep: number[] = await LocalEnvironmentManager.findFreePort(highestPort + 1, null, null, 1);
 
         return freep[0];
 
@@ -258,7 +258,7 @@ export class FabricRuntimeManager {
             certificateAuthority,
             couchDB,
             logs
-        ]: number[] = await FabricRuntimeManager.findFreePort(17050, null, null, 7);
+        ]: number[] = await LocalEnvironmentManager.findFreePort(17050, null, null, 7);
         ports.orderer = orderer;
         ports.peerRequest = peerRequest;
         ports.peerChaincode = peerChaincode;

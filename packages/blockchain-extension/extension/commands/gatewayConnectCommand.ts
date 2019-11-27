@@ -21,8 +21,8 @@ import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { IFabricGatewayConnection, IFabricWallet, LogType } from 'ibm-blockchain-platform-common';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
-import { FabricRuntimeManager } from '../fabric/environments/FabricRuntimeManager';
 import { FabricRuntimeUtil, FabricWalletUtil, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWalletGenerator } from 'ibm-blockchain-platform-common';
+import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { SettingConfigurations } from '../../configurations';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
@@ -43,7 +43,7 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
     }
 
     if (gatewayRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
-        const running: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
+        const running: boolean = await LocalEnvironmentManager.instance().getRuntime().isRunning();
         if (!running) {
             outputAdapter.log(LogType.ERROR, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} has not been started, please start it before connecting.`);
             return;

@@ -14,7 +14,7 @@
 
 import * as vscode from 'vscode';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
-import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
@@ -33,7 +33,7 @@ describe('teardownFabricRuntime', () => {
 
     const sandbox: sinon.SinonSandbox = sinon.createSandbox();
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
-    const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+    const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
     let mockRuntime: sinon.SinonStubbedInstance<AnsibleEnvironment>;
     let gatewayRegistyEntry: FabricGatewayRegistryEntry;
     let getRegistryEntryStub: sinon.SinonStub;
@@ -53,7 +53,7 @@ describe('teardownFabricRuntime', () => {
         mockRuntime = sandbox.createStubInstance(AnsibleEnvironment);
         mockRuntime.teardown.resolves();
         mockRuntime.deleteWalletsAndIdentities.resolves();
-        sandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+        sandbox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
 
         gatewayRegistyEntry = new FabricGatewayRegistryEntry();
         gatewayRegistyEntry.name = 'myFabric';

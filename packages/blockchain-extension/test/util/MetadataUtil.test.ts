@@ -24,7 +24,7 @@ import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 
 import * as vscode from 'vscode';
 import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
-import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -149,7 +149,7 @@ describe('Metadata ConnectionProfileUtil tests', () => {
         mockRuntime.isRunning.resolves(true);
         mockRuntime.killChaincode.resolves();
 
-        mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+        mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
     });
 
     afterEach(() => {

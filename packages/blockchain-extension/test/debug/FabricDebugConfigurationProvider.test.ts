@@ -17,7 +17,7 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
-import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
@@ -64,7 +64,7 @@ describe('FabricDebugConfigurationProvider', () => {
     before(async () => {
         mySandbox = sinon.createSandbox();
         await TestUtil.setupTests(mySandbox);
-        await FabricRuntimeManager.instance().getRuntime().create();
+        await LocalEnvironmentManager.instance().getRuntime().create();
     });
 
     describe('resolveDebugConfiguration', () => {
@@ -94,7 +94,7 @@ describe('FabricDebugConfigurationProvider', () => {
             runtimeStub.killChaincode.resolves();
             runtimeStub.getGateways.resolves([{name: 'myGateway', path: 'myPath'}]);
 
-            mySandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(runtimeStub);
+            mySandbox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(runtimeStub);
 
             workspaceFolder = {
                 name: 'myFolder',

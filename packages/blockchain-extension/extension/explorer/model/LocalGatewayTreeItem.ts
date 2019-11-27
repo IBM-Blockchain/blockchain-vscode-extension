@@ -16,7 +16,7 @@ import * as vscode from 'vscode';
 import { BlockchainTreeItem } from './BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { FabricGatewayRegistryEntry } from '../../registries/FabricGatewayRegistryEntry';
-import { FabricRuntimeManager } from '../../fabric/environments/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../fabric/environments/LocalEnvironmentManager';
 import { AnsibleEnvironment } from '../../fabric/environments/AnsibleEnvironment';
 import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../../ExtensionCommands';
@@ -39,7 +39,7 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
 
     constructor(provider: BlockchainExplorerProvider, public readonly label: string, public gateway: FabricGatewayRegistryEntry, public readonly collapsableState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
         super(provider, label, collapsableState);
-        const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+        const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
         this.name = label;
         this.runtime = runtimeManager.getRuntime();
         this.runtime.on('busy', () => {

@@ -15,7 +15,8 @@
 import * as vscode from 'vscode';
 import { UserInputUtil } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricRuntimeManager } from '../fabric/environments/FabricRuntimeManager';
+import { AnsibleEnvironment } from '../fabric/environments/AnsibleEnvironment';
+import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
@@ -27,7 +28,7 @@ import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 export async function teardownFabricRuntime(_treeItem?: RuntimeTreeItem, force: boolean = false): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'teardownFabricRuntime');
-    const runtime: AnsibleEnvironment = FabricRuntimeManager.instance().getRuntime();
+    const runtime: AnsibleEnvironment = LocalEnvironmentManager.instance().getRuntime();
 
     if (!force) {
         const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`All world state and ledger data for the Fabric runtime ${runtime.getName()} will be destroyed. Do you want to continue?`);

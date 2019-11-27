@@ -13,7 +13,7 @@
 */
 
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
-import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
 import { TestUtil } from '../TestUtil';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
@@ -34,10 +34,10 @@ import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
 chai.should();
 
 // tslint:disable no-unused-expression
-describe('FabricRuntimeManager', () => {
+describe('LocalEnvironmentManager', () => {
 
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
-    const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+    const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
     let mockRuntime: sinon.SinonStubbedInstance<AnsibleEnvironment>;
     let mockConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
 
@@ -59,7 +59,7 @@ describe('FabricRuntimeManager', () => {
         mockConnection = sandbox.createStubInstance(FabricEnvironmentConnection);
         sandbox.stub(FabricConnectionFactory, 'createFabricEnvironmentConnection').returns(mockConnection);
         findFreePortStub = sandbox.stub().resolves([17050, 17051, 17052, 17053, 17054, 17055, 17056]);
-        sandbox.stub(FabricRuntimeManager, 'findFreePort').value(findFreePortStub);
+        sandbox.stub(LocalEnvironmentManager, 'findFreePort').value(findFreePortStub);
     });
 
     afterEach(async () => {

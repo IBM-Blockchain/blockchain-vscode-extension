@@ -18,7 +18,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { LocalGatewayTreeItem } from '../../../extension/explorer/model/LocalGatewayTreeItem';
 import { BlockchainGatewayExplorerProvider } from '../../../extension/explorer/gatewayExplorer';
-import { FabricRuntimeManager } from '../../../extension/fabric/environments/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../../extension/fabric/environments/LocalEnvironmentManager';
 import { AnsibleEnvironment } from '../../../extension/fabric/environments/AnsibleEnvironment';
 import { FabricGatewayRegistry } from '../../../extension/registries/FabricGatewayRegistry';
 import { FabricGatewayRegistryEntry } from '../../../extension/registries/FabricGatewayRegistryEntry';
@@ -56,7 +56,7 @@ describe('LocalGatewayTreeItem', () => {
         gateway.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
         provider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
-        const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+        const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
         mockRuntime = sandbox.createStubInstance(AnsibleEnvironment);
         mockRuntime.on.callsFake((name: string, callback: any) => {
             name.should.equal('busy');

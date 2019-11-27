@@ -14,7 +14,7 @@
 
 import * as vscode from 'vscode';
 import * as semver from 'semver';
-import { FabricRuntimeManager } from '../fabric/environments/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { AnsibleEnvironment } from '../fabric/environments/AnsibleEnvironment';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
@@ -84,7 +84,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                 return;
             }
 
-            this.runtime = FabricRuntimeManager.instance().getRuntime();
+            this.runtime = LocalEnvironmentManager.instance().getRuntime();
 
             const isRunning: boolean = await this.runtime.isRunning();
 

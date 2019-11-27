@@ -33,7 +33,8 @@ import { DependencyManager } from '../../extension/dependencies/DependencyManage
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { TemporaryCommandRegistry } from '../../extension/dependencies/TemporaryCommandRegistry';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
+import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FabricWalletRegistryEntry, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
 import { TestUtil } from '../TestUtil';
@@ -41,7 +42,6 @@ import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistr
 import { RepositoryRegistryEntry } from '../../extension/registries/RepositoryRegistryEntry';
 import * as openTransactionViewCommand from '../../extension/commands/openTransactionViewCommand';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
-import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -1171,7 +1171,7 @@ describe('ExtensionUtil Tests', () => {
             showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
             mockRuntime = mySandBox.createStubInstance(AnsibleEnvironment);
 
-            getRuntimeStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+            getRuntimeStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
             globalStateUpdateStub = mySandBox.stub(GlobalState, 'update');
         });
 
@@ -1477,8 +1477,8 @@ describe('ExtensionUtil Tests', () => {
     describe('setupLocalRuntime', () => {
         it(`should migrate runtime and initialize the runtime manager`, async () => {
             const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            const migrateStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'migrate').resolves();
-            const initializeStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'initialize').resolves();
+            const migrateStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'migrate').resolves();
+            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').resolves();
 
             await ExtensionUtil.setupLocalRuntime('1.2.3');
 
@@ -1514,7 +1514,7 @@ describe('ExtensionUtil Tests', () => {
             mockRuntime = mySandBox.createStubInstance(AnsibleEnvironment);
             mockRuntime.isGenerated.resolves(true);
             mockRuntime.isRunning.resolves(true);
-            getRuntimeStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime');
+            getRuntimeStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime');
             getRuntimeStub.returns(mockRuntime);
 
             affectsConfigurationStub = mySandBox.stub().resolves(true);
@@ -1595,7 +1595,7 @@ describe('ExtensionUtil Tests', () => {
             it('should initialize runtime if not generated', async () => {
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_BYPASS_PREREQS).returns(true);
 
-                const initializeStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'initialize').resolves();
+                const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').resolves();
                 mockRuntime.isGenerated.resolves(false);
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
@@ -1662,7 +1662,7 @@ describe('ExtensionUtil Tests', () => {
             });
 
             it(`should initalize if runtime cannot be retrieved and dependencies installed`, async () => {
-                const initializeStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'initialize').resolves();
+                const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').resolves();
 
                 getRuntimeStub.returns(undefined);
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_BYPASS_PREREQS).returns(false);
@@ -1692,7 +1692,7 @@ describe('ExtensionUtil Tests', () => {
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_BYPASS_PREREQS).returns(true);
 
                 const error: Error = new Error('Unable to initalize');
-                const initializeStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'initialize').throws(error);
+                const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').throws(error);
                 mockRuntime.isGenerated.resolves(false);
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 

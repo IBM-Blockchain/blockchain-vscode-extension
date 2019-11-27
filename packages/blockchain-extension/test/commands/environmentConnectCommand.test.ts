@@ -18,7 +18,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
-import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { TestUtil } from '../TestUtil';
 import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
 import { Reporter } from '../../extension/util/Reporter';
@@ -80,7 +80,7 @@ describe('EnvironmentConnectCommand', () => {
             await FabricEnvironmentRegistry.instance().clear();
             await FabricEnvironmentRegistry.instance().add(environmentRegistryEntry);
 
-            await FabricRuntimeManager.instance().getRuntime().create();
+            await LocalEnvironmentManager.instance().getRuntime().create();
 
             localFabricRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
 
@@ -89,7 +89,7 @@ describe('EnvironmentConnectCommand', () => {
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(true);
             mockRuntime.start.resolves();
-            mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+            mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
 
             requireSetupStub = mySandBox.stub(FabricEnvironment.prototype, 'requireSetup').resolves(false);
 

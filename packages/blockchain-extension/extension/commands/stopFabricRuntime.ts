@@ -14,7 +14,8 @@
 
 import * as vscode from 'vscode';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricRuntimeManager } from '../fabric/environments/FabricRuntimeManager';
+import { AnsibleEnvironment } from '../fabric/environments/AnsibleEnvironment';
+import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
@@ -25,7 +26,7 @@ import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 export async function stopFabricRuntime(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'stopFabricRuntime');
-    const runtime: AnsibleEnvironment = FabricRuntimeManager.instance().getRuntime();
+    const runtime: AnsibleEnvironment = LocalEnvironmentManager.instance().getRuntime();
 
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,

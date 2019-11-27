@@ -24,7 +24,7 @@ import { PeerTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import { RuntimeTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
-import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
 import { InstantiatedChaincodeTreeItem } from '../../extension/explorer/model/InstantiatedChaincodeTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
@@ -93,10 +93,10 @@ describe('environmentExplorer', () => {
                 await FabricEnvironmentRegistry.instance().add(registryEntryOne);
                 await FabricEnvironmentRegistry.instance().add(registryEntryTwo);
 
-                await FabricRuntimeManager.instance().getRuntime().create();
+                await LocalEnvironmentManager.instance().getRuntime().create();
 
                 const mockRuntime: sinon.SinonStubbedInstance<AnsibleEnvironment> = mySandBox.createStubInstance(AnsibleEnvironment);
-                mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+                mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
                 mockRuntime.isRunning.resolves(false);
 
                 const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -128,7 +128,7 @@ describe('environmentExplorer', () => {
                 registryEntryOne.managedRuntime = false;
 
                 await FabricEnvironmentRegistry.instance().clear();
-                await FabricRuntimeManager.instance().getRuntime().create();
+                await LocalEnvironmentManager.instance().getRuntime().create();
 
                 const error: Error = new Error('some error');
                 mySandBox.stub(RuntimeTreeItem, 'newRuntimeTreeItem').rejects(error);
@@ -403,7 +403,7 @@ describe('environmentExplorer', () => {
                 environmentStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
 
                 blockchainRuntimeExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
-                const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+                const fabricRuntimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
                 mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns((fabricConnection as any) as FabricEnvironmentConnection);
                 mySandBox.stub(fabricRuntimeManager.getRuntime(), 'isRunning').resolves(true);
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
@@ -1010,9 +1010,9 @@ describe('environmentExplorer', () => {
 
         it('should get a tree item', async () => {
 
-            await FabricRuntimeManager.instance().getRuntime().create();
+            await LocalEnvironmentManager.instance().getRuntime().create();
 
-            mySandBox.stub(FabricRuntimeManager.instance().getRuntime(), 'isRunning').resolves(false);
+            mySandBox.stub(LocalEnvironmentManager.instance().getRuntime(), 'isRunning').resolves(false);
             const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren();
 

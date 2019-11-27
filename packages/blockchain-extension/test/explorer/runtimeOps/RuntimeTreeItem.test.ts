@@ -15,7 +15,7 @@
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { RuntimeTreeItem } from '../../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
-import { FabricRuntimeManager } from '../../../extension/fabric/environments/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../../extension/fabric/environments/LocalEnvironmentManager';
 import { AnsibleEnvironment } from '../../../extension/fabric/environments/AnsibleEnvironment';
 import { ExtensionUtil } from '../../../extension/util/ExtensionUtil';
 import { TestUtil } from '../../TestUtil';
@@ -50,7 +50,7 @@ describe('RuntimeTreeItem', () => {
         environmentRegistryEntry.managedRuntime = true;
 
         provider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
-        const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+        const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
         mockRuntime = sandbox.createStubInstance(AnsibleEnvironment);
         mockRuntime.on.callsFake((name: string, callback: any) => {
             name.should.equal('busy');

@@ -33,15 +33,15 @@ export class AnsibleEnvironment extends FabricEnvironment {
 
     public ports?: FabricRuntimePorts;
 
-    private dockerName: string;
-    private busy: boolean = false;
-    private state: FabricRuntimeState;
-    private isRunningPromise: Promise<boolean>;
+    protected dockerName: string;
+    protected busy: boolean = false;
+    protected state: FabricRuntimeState;
+    protected isRunningPromise: Promise<boolean>;
 
-    private logsRequest: request.Request;
+    protected logsRequest: request.Request;
 
-    constructor() {
-        super(FabricRuntimeUtil.LOCAL_FABRIC);
+    constructor(name: string) {
+        super(name);
         this.dockerName = `fabricvscodelocalfabric`;
     }
 
@@ -58,39 +58,6 @@ export class AnsibleEnvironment extends FabricEnvironment {
     // Both
     public getState(): FabricRuntimeState {
         return this.state;
-    }
-
-    // LocalEnvironment
-    // Update implementation to generate fabric using ansible (?)
-    // Are AnsibleEnvironment's local or IBP? - they are local
-
-    // On IBP how do we stop/start?
-    // What does ansible actually generate/do?
-    // ran playbook to generate structure - add environment - dir - imports ansible stuff
-    public async create(): Promise<void> {
-
-        // Delete any existing runtime directory, and then recreate it.
-        await FabricEnvironmentRegistry.instance().delete(this.name, true);
-
-        const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
-            name: this.name,
-            managedRuntime: true
-        });
-
-        await FabricEnvironmentRegistry.instance().add(registryEntry);
-
-        // Use Yeoman to generate a new network configuration.
-        await YeomanUtil.run('fabric:network', {
-            destination: this.path,
-            name: this.name,
-            dockerName: this.dockerName,
-            orderer: this.ports.orderer,
-            peerRequest: this.ports.peerRequest,
-            peerChaincode: this.ports.peerChaincode,
-            certificateAuthority: this.ports.certificateAuthority,
-            couchDB: this.ports.couchDB,
-            logspout: this.ports.logs
-        });
     }
 
     // Both
@@ -165,23 +132,6 @@ export class AnsibleEnvironment extends FabricEnvironment {
         }
     }
 
-    // LocalEnvironment
-    public async generate(outputAdapter?: OutputAdapter): Promise<void> {
-        try {
-            this.setBusy(true);
-            this.setState(FabricRuntimeState.STARTING);
-            await this.generateInner(outputAdapter);
-        } finally {
-            this.setBusy(false);
-            const running: boolean = await this.isRunning();
-            if (running) {
-                this.setState(FabricRuntimeState.STARTED);
-            } else {
-                this.setState(FabricRuntimeState.STOPPED);
-            }
-        }
-    }
-
     // Both
     public async start(outputAdapter?: OutputAdapter): Promise<void> {
         try {
@@ -216,24 +166,17 @@ export class AnsibleEnvironment extends FabricEnvironment {
         }
     }
 
-    // Both - see ansible generated scripts
+    // Both - see what the ansible generated scripts look like
+    // I guess it could be possible that we have multiple implementations of the same function for AnsibleEnvironments and LocalEnvironment
     public async teardown(outputAdapter?: OutputAdapter): Promise<void> {
         try {
-            this.setBusy(true);
-            this.setState(FabricRuntimeState.STOPPING);
             await this.teardownInner(outputAdapter);
-            await this.create();
-            await this.importWalletsAndIdentities();
-            await this.importGateways();
-        } finally {
-            this.setBusy(false);
-            const running: boolean = await this.isRunning();
-            if (running) {
-                this.setState(FabricRuntimeState.STARTED);
-            } else {
-                this.setState(FabricRuntimeState.STOPPED);
-            }
+        } catch (err) {
+            // ignore
         }
+
+        await this.setTeardownState();
+
     }
 
     // Both
@@ -298,25 +241,6 @@ export class AnsibleEnvironment extends FabricEnvironment {
         return identities;
     }
 
-    // LocalEnvironment
-    public async isCreated(): Promise<boolean> {
-        return FabricEnvironmentRegistry.instance().exists(this.name);
-    }
-
-    // LocalEnvironment
-    public async isGenerated(): Promise<boolean> {
-        try {
-            const created: boolean = await this.isCreated();
-            if (!created) {
-                return false;
-            }
-            await this.execute('is_generated');
-            return true;
-        } catch (error) {
-            return false;
-        }
-    }
-
     // Both
     public isRunning(args?: string[]): Promise<boolean> {
         if (this.isRunningPromise) {
@@ -327,11 +251,6 @@ export class AnsibleEnvironment extends FabricEnvironment {
             return result;
         });
         return this.isRunningPromise;
-    }
-
-    // LocalEnvironment - used for debug so... ?
-    public async killChaincode(args?: string[], outputAdapter?: OutputAdapter): Promise<void> {
-        await this.killChaincodeInner(args, outputAdapter);
     }
 
     // Both
@@ -383,12 +302,48 @@ export class AnsibleEnvironment extends FabricEnvironment {
 
     }
 
-    // LocalEnvironment
-    public async updateUserSettings(): Promise<void> {
-        const runtimeObject: any = {
-            ports: this.ports
-        };
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, runtimeObject, vscode.ConfigurationTarget.Global);
+    // Both
+    public async execute(script: string, args: string[] = [], outputAdapter?: OutputAdapter): Promise<void> {
+        if (!outputAdapter) {
+            outputAdapter = ConsoleOutputAdapter.instance();
+        }
+
+        const chaincodeTimeout: number = this.getChaincodeTimeout();
+
+        const env: any = Object.assign({}, process.env, {
+            CORE_CHAINCODE_MODE: 'dev',
+            CORE_CHAINCODE_EXECUTETIMEOUT: `${chaincodeTimeout}s` // This is needed as well as 'request-timeout' to change TX timeout
+        });
+
+        if (process.platform === 'win32') {
+            await CommandUtil.sendCommandWithOutput('cmd', ['/c', `${script}.cmd`, ...args], this.path, env, outputAdapter);
+        } else {
+            await CommandUtil.sendCommandWithOutput('/bin/sh', [`${script}.sh`, ...args], this.path, env, outputAdapter);
+        }
+    }
+
+    // Both
+    public setBusy(busy: boolean): void {
+        this.busy = busy;
+        this.emit('busy', busy);
+    }
+
+    protected async setTeardownState(): Promise<void> {
+        this.setBusy(false);
+        const running: boolean = await this.isRunning();
+        if (running) {
+            this.setState(FabricRuntimeState.STARTED);
+        } else {
+            this.setState(FabricRuntimeState.STOPPED);
+        }
+    }
+
+    // Both
+    protected async teardownInner(outputAdapter?: OutputAdapter): Promise<void> {
+        this.setBusy(true);
+        this.setState(FabricRuntimeState.STOPPING);
+        this.stopLogs();
+        await this.execute('teardown', [], outputAdapter);
     }
 
     private async loadGateways(gatewaysPath: string): Promise<FabricGateway[]> {
@@ -431,22 +386,6 @@ export class AnsibleEnvironment extends FabricEnvironment {
     }
 
     // Both
-    private async killChaincodeInner(args: string[], outputAdapter?: OutputAdapter): Promise<void> {
-        await this.execute('kill_chaincode', args, outputAdapter);
-    }
-
-    // Both
-    private setBusy(busy: boolean): void {
-        this.busy = busy;
-        this.emit('busy', busy);
-    }
-
-    // LocalEnvironment
-    private async generateInner(outputAdapter?: OutputAdapter): Promise<void> {
-        await this.execute('generate', [], outputAdapter);
-    }
-
-    // Both
     private async startInner(outputAdapter?: OutputAdapter): Promise<void> {
         await this.execute('start', [], outputAdapter);
     }
@@ -457,33 +396,7 @@ export class AnsibleEnvironment extends FabricEnvironment {
         await this.execute('stop', [], outputAdapter);
     }
 
-    // Both
-    private async teardownInner(outputAdapter?: OutputAdapter): Promise<void> {
-        this.stopLogs();
-        await this.execute('teardown', [], outputAdapter);
-    }
-
-    // Both
-    private async execute(script: string, args: string[] = [], outputAdapter?: OutputAdapter): Promise<void> {
-        if (!outputAdapter) {
-            outputAdapter = ConsoleOutputAdapter.instance();
-        }
-
-        const chaincodeTimeout: number = this.getChaincodeTimeout();
-
-        const env: any = Object.assign({}, process.env, {
-            CORE_CHAINCODE_MODE: 'dev',
-            CORE_CHAINCODE_EXECUTETIMEOUT: `${chaincodeTimeout}s` // This is needed as well as 'request-timeout' to change TX timeout
-        });
-
-        if (process.platform === 'win32') {
-            await CommandUtil.sendCommandWithOutput('cmd', ['/c', `${script}.cmd`, ...args], this.path, env, outputAdapter);
-        } else {
-            await CommandUtil.sendCommandWithOutput('/bin/sh', [`${script}.sh`, ...args], this.path, env, outputAdapter);
-        }
-    }
-
-    // LocalEnvironment (? - different implementation for ansible)
+    // I think this is okay here
     private getChaincodeTimeout(): number {
         return vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_CHAINCODE_TIMEOUT) as number;
     }

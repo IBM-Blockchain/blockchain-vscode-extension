@@ -16,7 +16,7 @@ import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricRuntimeManager } from '../fabric/environments/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
@@ -41,17 +41,17 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
         }
 
         if (fabricEnvironmentRegistryEntry.managedRuntime) {
-            let running: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
+            let running: boolean = await LocalEnvironmentManager.instance().getRuntime().isRunning();
             if (!running) {
                 await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
-                running = await FabricRuntimeManager.instance().getRuntime().isRunning();
+                running = await LocalEnvironmentManager.instance().getRuntime().isRunning();
                 if (!running) {
                     // failed to start local fabric so return
                     return;
                 }
             }
 
-            fabricEnvironment = FabricRuntimeManager.instance().getRuntime();
+            fabricEnvironment = LocalEnvironmentManager.instance().getRuntime();
         } else {
             fabricEnvironment = new FabricEnvironment(fabricEnvironmentRegistryEntry.name);
         }

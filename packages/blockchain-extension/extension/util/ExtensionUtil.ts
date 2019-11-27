@@ -68,7 +68,7 @@ import { BlockchainWalletExplorerProvider } from '../explorer/walletExplorer';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
-import { FabricRuntimeManager } from '../fabric/environments/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { HomeView } from '../webview/HomeView';
@@ -152,7 +152,7 @@ export class ExtensionUtil {
 
     // Migrate user setting configurations
     public static async migrateSettingConfigurations(): Promise<any> {
-        // No need to handle migrating 'fabric.runtime' to the new configuration as this is handled in FabricRuntimeManager
+        // No need to handle migrating 'fabric.runtime' to the new configuration as this is handled in LocalEnvironmentManager
 
         // Migrate Fabric gateways
         const oldGateways: any = vscode.workspace.getConfiguration().get('fabric.gateways');
@@ -378,7 +378,7 @@ export class ExtensionUtil {
                 const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
                 const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
-                const runtime: AnsibleEnvironment = FabricRuntimeManager.instance().getRuntime();
+                const runtime: AnsibleEnvironment = LocalEnvironmentManager.instance().getRuntime();
 
                 let isGenerated: boolean;
 
@@ -395,7 +395,7 @@ export class ExtensionUtil {
                         // If Local Fabric is running, warn the user that it will be torndown
                         let isRunning: boolean = false;
                         if (runtime) {
-                            isRunning = await FabricRuntimeManager.instance().getRuntime().isRunning();
+                            isRunning = await LocalEnvironmentManager.instance().getRuntime().isRunning();
                         }
                         if (isRunning || isGenerated) {
                             const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`Toggling this feature will remove the world state and ledger data for the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime. Do you want to continue?`);
@@ -444,7 +444,7 @@ export class ExtensionUtil {
 
                         if (!isGenerated && dependenciesInstalled) {
                             outputAdapter.log(LogType.INFO, undefined, 'Initializing local runtime manager');
-                            await FabricRuntimeManager.instance().initialize();
+                            await LocalEnvironmentManager.instance().initialize();
                         }
                         await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', true);
                     } catch (error) {
@@ -496,10 +496,10 @@ export class ExtensionUtil {
     public static async setupLocalRuntime(version: string): Promise<void> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         outputAdapter.log(LogType.INFO, undefined, 'Migrating local runtime manager');
-        await FabricRuntimeManager.instance().migrate(version);
+        await LocalEnvironmentManager.instance().migrate(version);
 
         outputAdapter.log(LogType.INFO, undefined, 'Initializing local runtime manager');
-        await FabricRuntimeManager.instance().initialize();
+        await LocalEnvironmentManager.instance().initialize();
     }
 
     public static async setupCommands(): Promise<void> {
@@ -572,7 +572,7 @@ export class ExtensionUtil {
         if (generatorVersion !== extensionData.generatorVersion) {
             // If the latest generator version is not equal to the previous used version
 
-            const runtime: AnsibleEnvironment = FabricRuntimeManager.instance().getRuntime();
+            const runtime: AnsibleEnvironment = LocalEnvironmentManager.instance().getRuntime();
             let generated: boolean = false;
             if (runtime) {
                 generated = await runtime.isGenerated();

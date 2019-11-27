@@ -20,7 +20,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { FabricNodeDebugConfigurationProvider } from '../../extension/debug/FabricNodeDebugConfigurationProvider';
 import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
-import { FabricRuntimeManager } from '../../extension/fabric/environments/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
@@ -114,7 +114,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
             runtimeStub.getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
 
-            mySandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(runtimeStub);
+            mySandbox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(runtimeStub);
 
             const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;

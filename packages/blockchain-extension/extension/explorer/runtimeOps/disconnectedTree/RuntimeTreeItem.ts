@@ -16,7 +16,7 @@
 
 import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
-import { FabricRuntimeManager } from '../../../fabric/environments/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../../fabric/environments/LocalEnvironmentManager';
 import { AnsibleEnvironment } from '../../../fabric/environments/AnsibleEnvironment';
 import { VSCodeBlockchainOutputAdapter } from '../../../logging/VSCodeBlockchainOutputAdapter';
 import { FabricEnvironmentTreeItem } from './FabricEnvironmentTreeItem';
@@ -38,7 +38,7 @@ export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
 
     private constructor(provider: BlockchainExplorerProvider, public readonly label: string, environmentRegistryEntry: FabricEnvironmentRegistryEntry, public readonly command: vscode.Command) {
         super(provider, label, environmentRegistryEntry, command);
-        const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+        const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
         this.name = label;
         this.runtime = runtimeManager.getRuntime();
         this.runtime.on('busy', () => {

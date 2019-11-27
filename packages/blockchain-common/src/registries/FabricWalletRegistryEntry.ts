@@ -18,6 +18,8 @@ import { RegistryEntry } from './RegistryEntry';
 export class FabricWalletRegistryEntry extends RegistryEntry {
 
     public walletPath: string;
+
+    // Which gateways will have this property? What determines whether the wallet is managed? Associated with LocalEnvironment and/or AnsibleEnvironments?
     public managedWallet?: boolean;
 
     constructor(fields?: FabricWalletRegistryEntry) {
