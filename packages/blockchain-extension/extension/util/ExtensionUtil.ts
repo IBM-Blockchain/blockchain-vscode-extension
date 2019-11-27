@@ -584,6 +584,21 @@ export class ExtensionUtil {
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_HOME_PAGE);
         }
 
+        // If necessary, we want to open up the release notes last, so they show first.
+        if (extensionUpdated) {
+            try {
+
+                // Open up Release Notes markdown
+                const getExtensionPath: string = this.getExtensionPath();
+                const releaseNotes: string = path.join(getExtensionPath, 'RELEASE-NOTES.md');
+                const uri: vscode.Uri = vscode.Uri.file(releaseNotes);
+
+                await vscode.commands.executeCommand('markdown.showPreview', uri);
+            } catch (error) {
+                outputAdapter.log(LogType.ERROR, `Unable to open release notes: ${error.toString()}`);
+            }
+        }
+
         // Check if there is a newer version of the generator available
         // This needs to be done as a seperate call to make sure the dependencies have been installed
         const generatorVersion: string = dependencies['generator-fabric'];
@@ -596,13 +611,11 @@ export class ExtensionUtil {
                 generated = await runtime.isGenerated();
             }
 
+            let updateGeneratorVersion: boolean = true;
             if (generated) {
                 // We know the user has a generated Fabric using an older version, so we should give the user the option to teardown either now or later
                 const response: boolean = await UserInputUtil.showConfirmationWarningMessage(`The ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} now?`);
-                if (!response) {
-                    // Assume they will teardown later
-                    return;
-                } else {
+                if (response) {
                     const isRunning: boolean = await runtime.isRunning();
 
                     // Teardown and remove generated Fabric
@@ -612,20 +625,25 @@ export class ExtensionUtil {
                         // Start the Fabric again
                         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
                     }
+                } else {
+                    // Assume they will teardown later
+                    updateGeneratorVersion = false;
                 }
             }
             // If they don't have a Fabric generated, we can update the version immediately
 
             // Update the generator version
-            extensionData.generatorVersion = generatorVersion;
-            await GlobalState.update(extensionData);
-
-            const localFabricEnabled: boolean = this.getExtensionLocalFabricSetting();
-            if (localFabricEnabled) {
-                await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', true);
-            } else {
-                await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', false);
+            if (updateGeneratorVersion) {
+                extensionData.generatorVersion = generatorVersion;
+                await GlobalState.update(extensionData);
             }
+        }
+
+        const localFabricEnabled: boolean = this.getExtensionLocalFabricSetting();
+        if (localFabricEnabled) {
+            await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', true);
+        } else {
+            await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', false);
         }
     }
 
