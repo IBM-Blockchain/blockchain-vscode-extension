@@ -13,6 +13,7 @@
 */
 import * as vscode from 'vscode';
 import * as os from 'os';
+import * as path from 'path';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -90,8 +91,8 @@ describe('ExtensionUtil Tests', () => {
     describe('getExtensionPath', () => {
         // skipping as path doesn't contain blockchain-vscode-extension in azure devops pipeline
         xit('should get the extension path', () => {
-            const path: string = ExtensionUtil.getExtensionPath();
-            path.should.contain('blockchain-vscode-extension');
+            const extensionPath: string = ExtensionUtil.getExtensionPath();
+            extensionPath.should.contain('blockchain-vscode-extension');
         });
     });
 
@@ -1167,13 +1168,17 @@ describe('ExtensionUtil Tests', () => {
         let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
         let getRuntimeStub: sinon.SinonStub;
         let globalStateUpdateStub: sinon.SinonStub;
-
+        let releaseNotesUri: vscode.Uri;
         beforeEach(() => {
             mySandBox.restore();
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             globalStateGetStub = mySandBox.stub(GlobalState, 'get');
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
+
+            const releaseNotesPath: string = path.join(ExtensionUtil.getExtensionPath(), 'RELEASE-NOTES.md');
+            releaseNotesUri = vscode.Uri.file(releaseNotesPath);
+            executeCommandStub.withArgs('markdown.showPreview', releaseNotesUri).resolves();
 
             showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
             mockRuntime = mySandBox.createStubInstance(FabricRuntime);
@@ -1186,15 +1191,17 @@ describe('ExtensionUtil Tests', () => {
             await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
 
             globalStateGetStub.returns({
+                version: '0.0.1',
                 generatorVersion: dependencies['generator-fabric']
             });
 
             executeCommandStub.resolves();
 
-            await ExtensionUtil.completeActivation(false);
+            await ExtensionUtil.completeActivation();
 
-            logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
+            logSpy.should.have.been.calledWith(LogType.INFO, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+            executeCommandStub.should.have.been.calledWith('markdown.showPreview', releaseNotesUri);
             getRuntimeStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
         });
@@ -1212,6 +1219,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+            executeCommandStub.should.have.been.calledWith('markdown.showPreview', releaseNotesUri);
             getRuntimeStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
         });
@@ -1230,6 +1238,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+            executeCommandStub.should.have.been.calledWith('markdown.showPreview', releaseNotesUri);
             getRuntimeStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
         });
@@ -1248,6 +1257,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+            executeCommandStub.should.not.have.been.calledWith('markdown.showPreview', releaseNotesUri);
             getRuntimeStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
         });
@@ -1266,6 +1276,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+            executeCommandStub.should.not.have.been.calledWith('markdown.showPreview', releaseNotesUri);
             getRuntimeStub.should.have.been.calledOnce;
             mockRuntime.isGenerated.should.have.been.calledOnce;
             showConfirmationWarningMessageStub.should.not.have.been.called;
@@ -1289,6 +1300,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+            executeCommandStub.should.not.have.been.calledWith('markdown.showPreview', releaseNotesUri);
             getRuntimeStub.should.have.been.calledOnce;
             mockRuntime.isGenerated.should.not.have.been.calledOnce;
             showConfirmationWarningMessageStub.should.not.have.been.called;
@@ -1315,6 +1327,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+            executeCommandStub.should.not.have.been.calledWith('markdown.showPreview', releaseNotesUri);
             getRuntimeStub.should.have.been.calledOnce;
             mockRuntime.isGenerated.should.have.been.calledOnce;
             showConfirmationWarningMessageStub.should.have.been.calledOnce;
@@ -1344,6 +1357,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+            executeCommandStub.should.not.have.been.calledWith('markdown.showPreview', releaseNotesUri);
 
             getRuntimeStub.should.have.been.calledOnce;
             mockRuntime.isGenerated.should.have.been.calledOnce;
@@ -1371,6 +1385,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+            executeCommandStub.should.not.have.been.calledWith('markdown.showPreview', releaseNotesUri);
             getRuntimeStub.should.have.been.calledOnce;
             mockRuntime.isGenerated.should.have.been.calledOnce;
             showConfirmationWarningMessageStub.should.have.been.calledOnce;
@@ -1400,6 +1415,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+            executeCommandStub.should.not.have.been.calledWith('markdown.showPreview', releaseNotesUri);
             showConfirmationWarningMessageStub.should.have.been.calledOnce;
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
@@ -1428,6 +1444,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+            executeCommandStub.should.not.have.been.calledWith('markdown.showPreview', releaseNotesUri);
             showConfirmationWarningMessageStub.should.have.been.calledOnce;
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
@@ -1436,6 +1453,28 @@ describe('ExtensionUtil Tests', () => {
             });
 
             executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
+        });
+
+        it(`shouldn't log if release notes can't be shown`, async () => {
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
+
+            const error: Error = new Error('unable to preview markdown');
+
+            globalStateGetStub.returns({
+                version: '0.0.1',
+                generatorVersion: dependencies['generator-fabric']
+            });
+            executeCommandStub.resolves();
+            executeCommandStub.withArgs('markdown.showPreview', releaseNotesUri).throws(error);
+
+            await ExtensionUtil.completeActivation();
+
+            logSpy.should.have.been.calledWith(LogType.INFO, 'IBM Blockchain Platform Extension activated');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+            executeCommandStub.should.been.calledWith('markdown.showPreview', releaseNotesUri);
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Unable to open release notes: ${error.toString()}`);
+            getRuntimeStub.should.not.have.been.called;
+            globalStateUpdateStub.should.not.have.been.called;
         });
 
     });

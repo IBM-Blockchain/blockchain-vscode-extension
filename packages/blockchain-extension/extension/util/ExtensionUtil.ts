@@ -584,6 +584,21 @@ export class ExtensionUtil {
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_HOME_PAGE);
         }
 
+        // If necessary, we want to open up the release notes last, so they show first.
+        if (extensionUpdated) {
+            try {
+
+                // Open up Release Notes markdown
+                const getExtensionPath: string = this.getExtensionPath();
+                const releaseNotes: string = path.join(getExtensionPath, 'RELEASE-NOTES.md');
+                const uri: vscode.Uri = vscode.Uri.file(releaseNotes);
+
+                await vscode.commands.executeCommand('markdown.showPreview', uri);
+            } catch (error) {
+                outputAdapter.log(LogType.ERROR, `Unable to open release notes: ${error.toString()}`);
+            }
+        }
+
         // Check if there is a newer version of the generator available
         // This needs to be done as a seperate call to make sure the dependencies have been installed
         const generatorVersion: string = dependencies['generator-fabric'];
