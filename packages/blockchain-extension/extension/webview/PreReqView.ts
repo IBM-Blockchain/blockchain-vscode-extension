@@ -24,6 +24,7 @@ import { SettingConfigurations } from '../../configurations';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export class PreReqView extends View {
 
@@ -35,6 +36,8 @@ export class PreReqView extends View {
     }
 
     async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
+        let outputAdapter: VSCodeBlockchainOutputAdapter;
+
         Reporter.instance().sendTelemetryEvent('openedView', {name: panel.title}); // Report that a user has opened a new panel
 
         const extensionPath: string = ExtensionUtil.getExtensionPath();
@@ -64,16 +67,22 @@ export class PreReqView extends View {
 
             } else {
                 // User won't be able to do anything so warn them they need to install all the prereqs
-                const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+                outputAdapter = VSCodeBlockchainOutputAdapter.instance();
                 outputAdapter.log(LogType.WARNING, `Required prerequisites are missing. They must be installed before the extension can be used.`);
             }
 
         });
 
         panel.webview.onDidReceiveMessage(async (message: any) => {
+
             if (message.command === 'finish') {
 
                 this.restoreCommandHijack = true;
+
+                const localFabricFunctionality: boolean = message.localFabricFunctionality;
+
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_LOCAL_FABRIC, localFabricFunctionality, vscode.ConfigurationTarget.Global);
+                await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', localFabricFunctionality);
 
                 panel.dispose();
 
@@ -85,6 +94,14 @@ export class PreReqView extends View {
                     cancellable: false
                 }, async (progress: vscode.Progress<{ message: string }>) => {
                     progress.report({ message: `Checking installed dependencies` });
+
+                    const localFabricFunctionality: boolean = message.localFabricFunctionality;
+                    await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_LOCAL_FABRIC, localFabricFunctionality, vscode.ConfigurationTarget.Global);
+                    if (message.toggle) {
+                        outputAdapter = VSCodeBlockchainOutputAdapter.instance();
+                        outputAdapter.log(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality set to '${localFabricFunctionality.toString()}'.`);
+                    }
+                    await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', localFabricFunctionality);
 
                     const dependencyManager: DependencyManager = DependencyManager.instance();
                     const dependencies: any = await dependencyManager.getPreReqVersions();
@@ -112,9 +129,9 @@ export class PreReqView extends View {
                     // Are all the required dependencies installed?
                     const isComplete: boolean = await dependencyManager.hasPreReqsInstalled(dependencies);
 
-                    panel.webview.html = await this.getHTMLString(dependencies, isComplete);
+                    panel.webview.html = await this.getHTMLString(dependencies, isComplete, localFabricFunctionality);
 
-                    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+                    outputAdapter = VSCodeBlockchainOutputAdapter.instance();
                     outputAdapter.log(LogType.SUCCESS, undefined, 'Finished checking installed dependencies');
                 });
 
@@ -142,10 +159,13 @@ export class PreReqView extends View {
 
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
 
+                const localFabricFunctionality: boolean = message.localFabricFunctionality;
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_LOCAL_FABRIC, localFabricFunctionality, vscode.ConfigurationTarget.Global);
+                await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', localFabricFunctionality);
+
                 this.restoreCommandHijack = true;
                 panel.dispose();
             }
-
         });
     }
 
@@ -153,7 +173,7 @@ export class PreReqView extends View {
         return;
     }
 
-    async getHTMLString(dependencies?: any, isComplete?: boolean): Promise<any> {
+    async getHTMLString(dependencies?: any, isComplete?: boolean, localFabricFunctionality?: boolean): Promise<any> {
         const packageJson: any = await ExtensionUtil.getPackageJSON();
         const extensionPath: string = ExtensionUtil.getExtensionPath();
         const extensionVersion: string = packageJson.version;
@@ -163,7 +183,7 @@ export class PreReqView extends View {
             dependencies = await dependencyManager.getPreReqVersions();
         }
 
-        if (!isComplete) {
+        if (isComplete === undefined) {
             isComplete = await dependencyManager.hasPreReqsInstalled(dependencies);
         }
 
@@ -204,6 +224,10 @@ export class PreReqView extends View {
             celebrateImage
         };
 
+        if (localFabricFunctionality === undefined) {
+            localFabricFunctionality = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
+        }
+
         const options: any = {
             extensionVersion,
             installedDependencies,
@@ -213,7 +237,8 @@ export class PreReqView extends View {
             commands : {
                 OPEN_HOME_PAGE: ExtensionCommands.OPEN_HOME_PAGE
             },
-            isComplete: isComplete
+            isComplete,
+            localFabricFunctionality
         };
 
         const templatePath: string = path.join(__dirname, '..', '..', '..', 'templates', 'PreReqView.ejs');

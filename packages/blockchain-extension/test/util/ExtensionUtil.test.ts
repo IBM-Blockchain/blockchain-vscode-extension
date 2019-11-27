@@ -1551,7 +1551,7 @@ describe('ExtensionUtil Tests', () => {
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 hasPreReqsInstalledStub.should.not.have.been.called;
                 mockRuntime.isGenerated.should.have.been.calledOnce;
-                logSpy.should.have.been.calledWith(LogType.INFO, `Set '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting to 'true'.`);
+                logSpy.should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality set to 'true'.`);
                 executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', true);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
@@ -1573,7 +1573,7 @@ describe('ExtensionUtil Tests', () => {
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 hasPreReqsInstalledStub.should.not.have.been.called;
                 mockRuntime.isGenerated.should.have.been.calledOnce;
-                logSpy.should.have.been.calledWith(LogType.INFO, `Set '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting to 'true'.`);
+                logSpy.should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality set to 'true'.`);
                 executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', true);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
@@ -1592,7 +1592,7 @@ describe('ExtensionUtil Tests', () => {
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 hasPreReqsInstalledStub.should.have.been.calledOnce;
                 mockRuntime.isGenerated.should.have.been.calledOnce;
-                logSpy.should.have.been.calledWith(LogType.INFO, `Set '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting to 'true'.`);
+                logSpy.should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality set to 'true'.`);
                 disposeExtensionStub.should.have.been.calledOnce;
                 disposeExtensionStub.should.not.have.been.calledTwice;
                 executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', true);
@@ -1616,7 +1616,7 @@ describe('ExtensionUtil Tests', () => {
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 hasPreReqsInstalledStub.should.have.been.calledOnce;
                 mockRuntime.isGenerated.should.have.been.calledOnce;
-                logSpy.should.have.been.calledWith(LogType.INFO, `Set '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting to 'true'.`);
+                logSpy.should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality set to 'true'.`);
                 disposeExtensionStub.should.have.been.calledTwice;
                 registerStub.should.have.been.called;
                 createTempCommands.should.have.been.calledWith(false, ExtensionCommands.OPEN_PRE_REQ_PAGE);
@@ -1642,7 +1642,7 @@ describe('ExtensionUtil Tests', () => {
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 hasPreReqsInstalledStub.should.have.been.calledOnce;
                 mockRuntime.isGenerated.should.not.have.been.calledOnce;
-                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `Set '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting to 'true'.`);
+                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality set to 'true'.`);
                 logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'Initializing local runtime manager');
                 disposeExtensionStub.should.have.been.calledOnce;
                 disposeExtensionStub.should.not.have.been.calledTwice;
@@ -1666,9 +1666,9 @@ describe('ExtensionUtil Tests', () => {
                 await Promise.all(promises);
 
                 initializeStub.should.have.been.calledOnce;
-                logSpy.should.have.been.calledWith(LogType.INFO, `Set '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting to 'true'.`);
+                logSpy.should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality set to 'true'.`);
                 logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Initializing local runtime manager');
-                logSpy.should.have.been.calledWith(LogType.ERROR, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality context to true: ${error.message}`, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality context to true: ${error.toString()}`);
+                logSpy.should.have.been.calledWith(LogType.ERROR, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality to true: ${error.message}`, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality to true: ${error.toString()}`);
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 hasPreReqsInstalledStub.should.not.have.been.called;
                 mockRuntime.isGenerated.should.have.been.calledOnce;
@@ -1709,8 +1709,8 @@ describe('ExtensionUtil Tests', () => {
                 mockRuntime.isRunning.should.have.been.calledOnce;
                 showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`Toggling this feature will remove the world state and ledger data for the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime. Do you want to continue?`);
                 updateSettingsStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
-                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `Set '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting to 'false'.`);
-                logSpy.getCall(1).should.have.been.calledWith(LogType.WARNING, `Changed '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting back to 'true'.`);
+                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality set to 'false'.`);
+                logSpy.getCall(1).should.have.been.calledWith(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality back to 'true'.`);
             });
 
             it(`should set context if runtime is running and user does teardown`, async () => {
@@ -1726,8 +1726,8 @@ describe('ExtensionUtil Tests', () => {
                 mockRuntime.isRunning.should.have.been.calledOnce;
                 showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`Toggling this feature will remove the world state and ledger data for the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime. Do you want to continue?`);
                 updateSettingsStub.should.not.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
-                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `Set '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting to 'false'.`);
-                logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting back to 'true'.`);
+                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality set to 'false'.`);
+                logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality back to 'true'.`);
                 deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
                 deleteGatewaySpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
                 deleteWalletSpy.should.have.been.calledOnceWithExactly(FabricWalletUtil.LOCAL_WALLET, true);
@@ -1753,8 +1753,8 @@ describe('ExtensionUtil Tests', () => {
                 mockRuntime.isRunning.should.have.been.calledOnce;
                 showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`Toggling this feature will remove the world state and ledger data for the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime. Do you want to continue?`);
                 updateSettingsStub.should.not.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
-                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `Set '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting to 'false'.`);
-                logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting back to 'true'.`);
+                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality set to 'false'.`);
+                logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality back to 'true'.`);
                 deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
                 deleteGatewaySpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
                 deleteWalletSpy.should.have.been.calledOnceWithExactly(FabricWalletUtil.LOCAL_WALLET, true);
@@ -1778,8 +1778,8 @@ describe('ExtensionUtil Tests', () => {
                 mockRuntime.isRunning.should.have.been.calledOnce;
                 showConfirmationWarningMessageStub.should.not.have.been.calledOnceWith(`Toggling this feature will remove the world state and ledger data for the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime. Do you want to continue?`);
                 updateSettingsStub.should.not.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
-                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `Set '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting to 'false'.`);
-                logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting back to 'true'.`);
+                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality set to 'false'.`);
+                logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality back to 'true'.`);
                 deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
                 deleteGatewaySpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
                 deleteWalletSpy.should.have.been.calledOnceWithExactly(FabricWalletUtil.LOCAL_WALLET, true);
@@ -1802,8 +1802,8 @@ describe('ExtensionUtil Tests', () => {
                 mockRuntime.isRunning.should.not.have.been.called;
                 showConfirmationWarningMessageStub.should.not.have.been.calledOnceWith(`Toggling this feature will remove the world state and ledger data for the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime. Do you want to continue?`);
                 updateSettingsStub.should.not.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
-                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `Set '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting to 'false'.`);
-                logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting back to 'true'.`);
+                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality set to 'false'.`);
+                logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality back to 'true'.`);
                 deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
                 deleteGatewaySpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
                 deleteWalletSpy.should.have.been.calledOnceWithExactly(FabricWalletUtil.LOCAL_WALLET, true);
@@ -1829,9 +1829,9 @@ describe('ExtensionUtil Tests', () => {
                 mockRuntime.isRunning.should.have.been.calledOnce;
                 showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`Toggling this feature will remove the world state and ledger data for the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime. Do you want to continue?`);
                 updateSettingsStub.should.not.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
-                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `Set '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting to 'false'.`);
-                logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' user setting back to 'true'.`);
-                logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality context to false: ${error.message}`, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality context to false: ${error.toString()}`);
+                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality set to 'false'.`);
+                logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality back to 'true'.`);
+                logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality to false: ${error.message}`, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality to false: ${error.toString()}`);
                 deleteEnvironmentSpy.should.not.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
                 deleteGatewaySpy.should.not.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
                 deleteWalletSpy.should.not. have.been.calledOnceWithExactly(FabricWalletUtil.LOCAL_WALLET, true);
