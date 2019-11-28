@@ -539,7 +539,7 @@ async function updateBuildFile(buildFile: string, state: any): Promise<void> {
             'fabric-gateway-java': {
                 groupId: 'org.hyperledger.fabric',
                 artifactId: 'fabric-gateway-java',
-                version: '1.4.2',
+                version: '1.4.4',
                 present: false,
             },
             'assertj-core': {

@@ -15,7 +15,7 @@ Features & Enhancements
    >
    > Disabling this functionality means that Docker and Docker Compose dependencies are not required. On Windows, the OpenSSL and the windows-build-tools are not required as well.
 * Updated Java functional test dependency and README [#1663](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1663)
-   > If you have previously generated Java functional tests during its BETA, please update the `fabric-gateway-java` dependency from `1.4.1-SNAPSHOT` to `1.4.2`.
+   > If you have previously generated Java functional tests during its BETA, please update the `fabric-gateway-java` dependency from `1.4.1-SNAPSHOT` to `1.4.4`.
    >
    > For more information on Java functional tests, please check the [README](https://github.com/IBM-Blockchain/blockchain-vscode-extension#java-functional-tests).
 * Release notes will now pop-up when the extension updates [#1689](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1689)

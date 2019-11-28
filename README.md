@@ -280,7 +280,7 @@ If you select 'Yes' when prompted with `The last step might overwrite build.grad
 
 Add the following dependencies:
 ```
-testImplementation 'org.hyperledger.fabric:fabric-gateway-java:1.4.2'
+testImplementation 'org.hyperledger.fabric:fabric-gateway-java:1.4.4'
 testImplementation 'org.assertj:assertj-core:3.14.0'
 testImplementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.10.0'
 testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.10.0'
@@ -293,7 +293,7 @@ Add the following dependencies:
 <dependency>
     <groupId>org.hyperledger.fabric</groupId>
     <artifactId>fabric-gateway-java</artifactId>
-    <version>1.4.2</version>
+    <version>1.4.4</version>
 </dependency>
 <dependency>
     <groupId>org.assertj</groupId>
@@ -314,7 +314,7 @@ Add the following dependencies:
 
 All functional tests will be created in `<yourProject>/src/test/java/org/example`.
 
-**_If you have previously generated Java functional tests during its BETA, please update the fabric-gateway-java dependency from 1.4.1-SNAPSHOT to 1.4.2_**
+**_If you have previously generated Java functional tests during its BETA, please update the fabric-gateway-java dependency from 1.4.1-SNAPSHOT to 1.4.4_**
 
 
 ### Wallet Management
