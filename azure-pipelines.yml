@@ -133,6 +133,7 @@ stages:
 
           - bash: |
               set -ev
+              cd ./packages/blockchain-extension
               npm run productionFlag
             displayName: Set production flag
             condition: startsWith(variables['Build.SourceBranch'], 'refs/tags')
@@ -187,6 +188,16 @@ stages:
               node ./packages/blockchain-extension/node_modules/vsce/out/vsce publish -p $(VSCETOKEN) --packagePath ibm-blockchain-platform-*
             displayName: Publish extension
             condition: succeeded()
+            
+
+          - script: |
+              set -ex
+              npm install dateformat
+              git checkout package.json package-lock.json
+              cd ./packages/blockchain-extension
+              npm run checkReleaseNotes
+            displayName: Check release notes
+            condition: succeeded() 
 
           - script: |
               set -ex
@@ -284,7 +295,7 @@ stages:
             displayName: Build Docker image
           - script: |
               set -ex
-              VERSION=$(jq -r ".version" package.json)
+              VERSION=$(jq -r ".version" ./packages/blockchain-extension/package.json)
               docker tag ibmblockchain/vscode:latest ibmblockchain/vscode:${VERSION}
               echo docker push ibmblockchain/vscode:${VERSION}
               echo docker push ibmblockchain/vscode:latest
