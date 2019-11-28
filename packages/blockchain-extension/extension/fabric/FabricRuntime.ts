@@ -16,26 +16,17 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
 import { FabricRuntimePorts } from './FabricRuntimePorts';
-import { OutputAdapter } from '../logging/OutputAdapter';
-import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
 import * as request from 'request';
-import { FabricIdentity, FabricRuntimeUtil, IFabricWallet } from 'ibm-blockchain-platform-common';
-import { FabricNode, FabricNodeType } from './FabricNode';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricIdentity, FabricNode, FabricNodeType, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, FileConfigurations, IFabricWallet, IFabricWalletGenerator, ConsoleOutputAdapter, OutputAdapter } from 'ibm-blockchain-platform-common';
 import { FabricGateway } from './FabricGateway';
 import { YeomanUtil } from '../util/YeomanUtil';
-import { IFabricWalletGenerator } from './IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
-import { SettingConfigurations, FileConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../../configurations';
 import { FabricEnvironment } from './FabricEnvironment';
 import { FileSystemUtil } from '../util/FileSystemUtil';
-import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
-import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
-import { FabricWalletUtil } from './FabricWalletUtil';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
-import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
-import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 
 export enum FabricRuntimeState {
     STARTING = 'starting',

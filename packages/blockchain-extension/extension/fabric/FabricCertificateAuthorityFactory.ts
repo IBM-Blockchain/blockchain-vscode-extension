@@ -13,13 +13,13 @@
 */
 'use strict';
 
-import { IFabricCertificateAuthority } from './IFabricCertificateAuthority';
+import { IFabricCertificateAuthority } from 'ibm-blockchain-platform-common';
 
 export class FabricCertificateAuthorityFactory {
 
     public static createCertificateAuthority(): IFabricCertificateAuthority {
         if (!this.FabricCertificateAuthority) {
-            this.FabricCertificateAuthority = require('./FabricCertificateAuthority');
+            this.FabricCertificateAuthority = require('ibm-blockchain-platform-environment-v1');
         }
 
         return this.FabricCertificateAuthority.FabricCertificateAuthority.instance();

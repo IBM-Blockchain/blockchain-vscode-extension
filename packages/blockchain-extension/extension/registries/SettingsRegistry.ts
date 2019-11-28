@@ -13,8 +13,7 @@
 */
 
 import * as vscode from 'vscode';
-import { RegistryEntry } from './RegistryEntry';
-import { IRegistry } from './IRegistry';
+import { IRegistry, RegistryEntry } from 'ibm-blockchain-platform-common';
 
 export abstract class SettingsRegistry<T extends RegistryEntry> implements IRegistry<RegistryEntry> {
 

@@ -17,7 +17,7 @@ import * as Client from 'fabric-client';
 import { Gateway, GatewayOptions, FileSystemWallet, Network } from 'fabric-network';
 import { URL } from 'url';
 import { ConsoleOutputAdapter, FabricChaincode, OutputAdapter } from 'ibm-blockchain-platform-common';
-import { FabricWallet } from './FabricWallet';
+import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 
 export abstract class FabricConnection {
 

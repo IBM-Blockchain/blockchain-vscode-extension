@@ -18,7 +18,7 @@ import { PackageTreeItem } from '../explorer/model/PackageTreeItem';
 import { PackageRegistry } from '../registries/PackageRegistry';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
+import { LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function deleteSmartContractPackage(packageTreeItem: PackageTreeItem): Promise<{} | void> {

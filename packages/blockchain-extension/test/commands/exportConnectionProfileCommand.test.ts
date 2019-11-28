@@ -22,7 +22,6 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { TestUtil } from '../TestUtil';
-import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import * as fs from 'fs-extra';
 import { Reporter } from '../../extension/util/Reporter';
@@ -33,7 +32,7 @@ import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayR
 import { GatewayTreeItem } from '../../extension/explorer/model/GatewayTreeItem';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
 import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
-import { ConnectionProfileUtil } from 'ibm-blockchain-platform-common';
+import { ConnectionProfileUtil, LogType} from 'ibm-blockchain-platform-common';
 
 // tslint:disable no-unused-expression
 describe('exportConnectionProfileCommand', () => {

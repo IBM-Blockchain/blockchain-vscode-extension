@@ -1288,6 +1288,7 @@
         "cucumber-html-reporter": "5.0.0",
         "decache": "4.4.0",
         "glob": "7.1.2",
+        "grpc": "^1.23.3",
         "istanbul": "0.4.5",
         "js-yaml": "3.13.1",
         "license-check-and-add": "2.3.6",
@@ -1322,8 +1323,11 @@
         "handlebars": "^4.5.3",
         "home-dir": "1.0.0",
         "ibm-blockchain-platform-common": "^1.0.17",
+        "ibm-blockchain-platform-environment-v1": "^1.0.17",
         "ibm-blockchain-platform-gateway-v1": "^1.0.17",
         "ibm-blockchain-platform-ui": "^1.0.17",
+        "ibm-blockchain-platform-wallet": "^1.0.17",
+        "request": "^2.88.0",
         "semver": "^6.3.0",
         "shelljs": "^0.8.3",
         "showdown": "^1.9.1",
@@ -1332,10 +1336,6 @@
         "vscode-extension-telemetry": "0.1.1",
         "vscode-nls": "^4.0.0",
         "yeoman-environment": "^2.3.3"
-    },
-    "optionalDependencies": {
-        "fabric-ca-client": "1.4.5-snapshot.73",
-        "fabric-client": "1.4.5-snapshot.69"
     },
     "nativeDependencies": [
         "grpc"

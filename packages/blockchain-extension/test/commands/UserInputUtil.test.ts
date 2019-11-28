@@ -27,22 +27,14 @@ import { PackageRegistryEntry } from '../../extension/registries/PackageRegistry
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 import * as fs from 'fs-extra';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
-import { FabricCertificate } from '../../extension/fabric/FabricCertificate';
-import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
-import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
-import { FabricGatewayConnection, FabricWallet } from 'ibm-blockchain-platform-gateway-v1';
+import { FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
+import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
-import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
-import { FabricNode, FabricNodeType } from '../../extension/fabric/FabricNode';
-import { FileConfigurations } from '../../configurations';
+import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
+import { FabricCertificate, FabricEnvironmentRegistry, FabricRuntimeUtil, FileConfigurations, FabricWalletRegistry, FabricWalletRegistryEntry, FabricNode, FabricNodeType, FabricWalletUtil, FabricEnvironmentRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
-import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();

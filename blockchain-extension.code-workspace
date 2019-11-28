@@ -11,6 +11,12 @@
 		},
 		{
 			"path": "packages/blockchain-ui"
+		},
+		{
+			"path": "packages/blockchain-environment-v1"
+		},
+		{
+			"path": "packages/blockchain-wallet"
 		}
 	],
 	"settings": {

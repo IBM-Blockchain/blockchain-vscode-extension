@@ -21,13 +21,12 @@ import * as path from 'path';
 import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
 import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
-import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
+import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { FabricGoDebugConfigurationProvider } from '../../extension/debug/FabricGoDebugConfigurationProvider';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { FabricChaincode, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { Reporter } from '../../extension/util/Reporter';
 import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { GlobalState } from '../../extension/util/GlobalState';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 

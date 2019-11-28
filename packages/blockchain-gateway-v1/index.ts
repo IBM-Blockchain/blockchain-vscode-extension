@@ -14,4 +14,3 @@
 'use strict';
 
 export * from './src/FabricGatewayConnection';
-export * from './src/FabricWallet';

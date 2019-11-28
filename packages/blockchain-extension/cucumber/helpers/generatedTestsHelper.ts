@@ -22,7 +22,7 @@ import { CommandUtil } from '../../extension/util/CommandUtil';
 import { SmartContractHelper, LanguageType } from './smartContractHelper';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
-import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
+import { FabricWalletUtil } from 'ibm-blockchain-platform-common';
 
 export class GeneratedTestsHelper {
     mySandBox: sinon.SinonSandbox;

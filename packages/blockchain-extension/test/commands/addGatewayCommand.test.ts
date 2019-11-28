@@ -21,12 +21,10 @@ import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { Reporter } from '../../extension/util/Reporter';
-import { FabricNode } from '../../extension/fabric/FabricNode';
-import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry, FabricNode, LogType } from 'ibm-blockchain-platform-common';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 
 // tslint:disable no-unused-expression

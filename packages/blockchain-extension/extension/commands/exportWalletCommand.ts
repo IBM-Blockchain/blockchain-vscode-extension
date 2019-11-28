@@ -14,9 +14,8 @@
 
 'use strict';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
-import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
+import { FabricWalletRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';

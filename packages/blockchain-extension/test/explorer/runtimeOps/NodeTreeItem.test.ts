@@ -18,10 +18,9 @@ import { TestUtil } from '../../TestUtil';
 
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { FabricNode } from '../../../extension/fabric/FabricNode';
+import { FabricEnvironmentRegistryEntry, FabricNode } from 'ibm-blockchain-platform-common';
 import { NodeTreeItem } from '../../../extension/explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { BlockchainExplorerProvider } from '../../../extension/explorer/BlockchainExplorerProvider';
-import { FabricEnvironmentRegistryEntry } from '../../../extension/registries/FabricEnvironmentRegistryEntry';
 
 class TestTreeItem extends NodeTreeItem {
 

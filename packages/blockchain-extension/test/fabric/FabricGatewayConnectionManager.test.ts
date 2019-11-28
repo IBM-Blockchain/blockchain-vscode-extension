@@ -17,7 +17,7 @@ import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGat
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
+import { FabricWalletRegistryEntry } from 'ibm-blockchain-platform-common';
 import { FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
 
 const should: Chai.Should = chai.should();

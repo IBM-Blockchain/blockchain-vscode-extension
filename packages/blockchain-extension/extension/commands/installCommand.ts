@@ -18,13 +18,11 @@ import { PeerTreeItem } from '../explorer/runtimeOps/connectedTree/PeerTreeItem'
 import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
-import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
+import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType } from 'ibm-blockchain-platform-common';
 import { Reporter } from '../util/Reporter';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 
 export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNames?: Set<string>, chosenPackage?: PackageRegistryEntry): Promise<PackageRegistryEntry | undefined> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -90,7 +88,7 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
             for (const peer of peerNames) {
                 progress.report({ message: `Installing Smart Contract on peer ${peer}` });
                 try {
-                    await connection.installChaincode(chosenPackage, peer);
+                    await connection.installChaincode(chosenPackage.path, peer);
                     outputAdapter.log(LogType.SUCCESS, `Successfully installed on peer ${peer}`);
                 } catch (error) {
                     outputAdapter.log(LogType.ERROR, `Failed to install on peer ${peer} with reason: ${error.message}`, `Failed to install on peer ${peer} with reason: ${error.toString()}`);

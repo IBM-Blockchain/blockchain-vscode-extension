@@ -18,10 +18,9 @@ import * as sinonChai from 'sinon-chai';
 import {  FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
 import { MetadataUtil } from '../../extension/util/MetadataUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
 import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 
 import * as vscode from 'vscode';
 import { FabricRuntime } from '../../extension/fabric/FabricRuntime';

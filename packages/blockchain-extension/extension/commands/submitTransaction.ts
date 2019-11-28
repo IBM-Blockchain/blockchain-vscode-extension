@@ -18,12 +18,11 @@ import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectio
 import { TransactionTreeItem } from '../explorer/model/TransactionTreeItem';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
-import { IFabricGatewayConnection, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { IFabricGatewayConnection, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 
 export async function submitTransaction(evaluate: boolean, treeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string, transactionObject?: any): Promise<void | string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();

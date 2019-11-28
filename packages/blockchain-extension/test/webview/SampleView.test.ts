@@ -27,7 +27,7 @@ import { CommandUtil } from '../../extension/util/CommandUtil';
 import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistry';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import * as ejs from 'ejs';
-import { LogType } from '../../extension/logging/OutputAdapter';
+import { LogType } from 'ibm-blockchain-platform-common';
 import { View } from '../../extension/webview/View';
 import { Reporter } from '../../extension/util/Reporter';
 import { RepositoryRegistryEntry } from '../../extension/registries/RepositoryRegistryEntry';

@@ -19,17 +19,13 @@ import * as sinonChai from 'sinon-chai';
 import { TestUtil } from '../TestUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
-import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
-import { FabricNode } from '../../extension/fabric/FabricNode';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
 import { PeerTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/PeerTreeItem';
-import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricNode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 
 chai.should();
 chai.use(sinonChai);

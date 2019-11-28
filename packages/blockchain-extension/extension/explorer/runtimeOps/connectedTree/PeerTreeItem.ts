@@ -15,8 +15,7 @@
 import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
 import { NodeTreeItem } from './NodeTreeItem';
-import { FabricNode } from '../../../fabric/FabricNode';
-import { FabricEnvironmentRegistryEntry } from '../../../registries/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry, FabricNode } from 'ibm-blockchain-platform-common';
 
 export class PeerTreeItem extends NodeTreeItem {
 

@@ -69,7 +69,6 @@ import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
-import { LogType } from '../logging/OutputAdapter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { HomeView } from '../webview/HomeView';
@@ -84,8 +83,6 @@ import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/Runtime
 import { addEnvironment } from '../commands/addEnvironmentCommand';
 import { FabricEnvironmentTreeItem } from '../explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { deleteEnvironment } from '../commands/deleteEnvironmentCommand';
-import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
-import { FabricNode } from '../fabric/FabricNode';
 import { associateIdentityWithNode } from '../commands/associateIdentityWithNode';
 import { fabricEnvironmentConnect } from '../commands/environmentConnectCommand';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
@@ -95,19 +92,14 @@ import { TemporaryCommandRegistry } from '../dependencies/TemporaryCommandRegist
 import { version as currentExtensionVersion, dependencies } from '../../package.json';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { UserInputUtil } from '../commands/UserInputUtil';
-import { FabricChaincode, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, FileRegistry, LogType } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 import { importNodesToEnvironment } from '../commands/importNodesToEnvironmentCommand';
 import { deleteNode } from '../commands/deleteNodeCommand';
-import { FileRegistry } from '../registries/FileRegistry';
-import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
-import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
-import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
 import { RepositoryRegistryEntry } from '../registries/RepositoryRegistryEntry';
 import { RepositoryRegistry } from '../registries/RepositoryRegistry';
 import { openTransactionView } from '../commands/openTransactionViewCommand';
-import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;

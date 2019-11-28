@@ -16,8 +16,8 @@ import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
-import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
+import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 
 const should: Chai.Should = chai.should();
 
@@ -46,7 +46,7 @@ describe('FabricEnvironmentManager', () => {
 
     describe('#getConnection', () => {
         it('should get the connection', () => {
-            environmentManager['connection'] = ((mockEnvironmentConnection as any) as FabricEnvironmentConnection);
+            environmentManager['connection'] = ((mockEnvironmentConnection as any) as IFabricEnvironmentConnection);
             environmentManager.getConnection().should.equal(mockEnvironmentConnection);
         });
     });
@@ -62,7 +62,7 @@ describe('FabricEnvironmentManager', () => {
         it('should store the connection and emit an event', () => {
             const listenerStub: sinon.SinonStub = sandbox.stub();
             environmentManager.once('connected', listenerStub);
-            environmentManager.connect((mockEnvironmentConnection as any) as FabricEnvironmentConnection, registryEntry, ConnectedState.CONNECTED);
+            environmentManager.connect((mockEnvironmentConnection as any) as IFabricEnvironmentConnection, registryEntry, ConnectedState.CONNECTED);
             environmentManager.getConnection().should.equal(mockEnvironmentConnection);
             environmentManager.getEnvironmentRegistryEntry().should.equal(registryEntry);
             environmentManager.getState().should.equal(ConnectedState.CONNECTED);

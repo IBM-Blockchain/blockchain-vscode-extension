@@ -17,15 +17,10 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
-import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
-import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
 import { IdentityTreeItem } from '../explorer/model/IdentityTreeItem';
-import { IFabricWallet } from 'ibm-blockchain-platform-common';
-import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
+import { FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, IFabricWallet, IFabricWalletGenerator, LogType } from 'ibm-blockchain-platform-common';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> {
