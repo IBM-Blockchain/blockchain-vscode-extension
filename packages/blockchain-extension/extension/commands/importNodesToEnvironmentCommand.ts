@@ -27,7 +27,7 @@ import { FileSystemUtil } from '../util/FileSystemUtil';
 import Axios from 'axios';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 
-export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false): Promise<boolean> {
+export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false, createMethod?: string): Promise<boolean> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'Import nodes to environment');
 
@@ -42,9 +42,12 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             environmentRegistryEntry = chosenEnvironment.data;
         }
 
-        const createMethod: string = await UserInputUtil.showQuickPick('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]) as string;
-        if (!createMethod) {
-            return;
+        if (!fromAddEnvironment) {
+            if (environmentRegistryEntry.url) {
+                createMethod = UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS;
+            } else {
+                createMethod = UserInputUtil.ADD_ENVIRONMENT_FROM_NODES;
+            }
         }
 
         const nodesToUpdate: FabricNode[] = [];
