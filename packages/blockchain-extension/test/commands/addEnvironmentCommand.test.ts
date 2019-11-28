@@ -23,6 +23,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -32,6 +33,7 @@ describe('AddEnvironmentCommand', () => {
     let mySandBox: sinon.SinonSandbox;
     let logSpy: sinon.SinonSpy;
     let showInputBoxStub: sinon.SinonStub;
+    let chooseMethodStub: sinon.SinonStub;
 
     let executeCommandStub: sinon.SinonStub;
     let sendTelemetryEventStub: sinon.SinonStub;
@@ -48,6 +50,9 @@ describe('AddEnvironmentCommand', () => {
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
+            chooseMethodStub = mySandBox.stub(UserInputUtil, 'showQuickPick');
+
+            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
 
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand').callThrough();
             executeCommandStub.withArgs(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT).resolves(true);
@@ -57,6 +62,39 @@ describe('AddEnvironmentCommand', () => {
 
         afterEach(async () => {
             mySandBox.restore();
+        });
+
+        it('should test an OpsTool environment can be added', async () => {
+            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            showInputBoxStub.onFirstCall().resolves('myEnvironment');
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+
+            environments.length.should.equal(1);
+            environments[0].should.deep.equal({
+                name: 'myEnvironment'
+            });
+
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
+        });
+
+        it('should test adding a environment can be cancelled when choosing the method of adding environment', async () => {
+            chooseMethodStub.resolves(undefined);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(0);
+            showInputBoxStub.should.not.have.been.called;
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Add environment');
+            sendTelemetryEventStub.should.not.have.been.called;
         });
 
         it('should test an environment can be added', async () => {
@@ -71,7 +109,7 @@ describe('AddEnvironmentCommand', () => {
                 name: 'myEnvironment'
             });
 
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
@@ -100,7 +138,7 @@ describe('AddEnvironmentCommand', () => {
                 name: 'myEnvironmentTwo'
             });
 
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
@@ -180,7 +218,7 @@ describe('AddEnvironmentCommand', () => {
                 name: 'myEnvironment'
             });
 
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
