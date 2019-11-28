@@ -185,7 +185,7 @@ stages:
           - bash: |
               set -ev
               npm install vsce
-              git checkout package.json package-lock.json
+              git checkout package.json
               node ./node_modules/vsce/out/vsce publish -p $(VSCETOKEN) --packagePath ibm-blockchain-platform-*
             displayName: Publish extension
             condition: succeeded()
@@ -194,7 +194,7 @@ stages:
           - script: |
               set -ex
               npm install dateformat
-              git checkout package.json package-lock.json
+              git checkout package.json
               cd ./packages/blockchain-extension
               npm run checkReleaseNotes
             displayName: Check release notes
