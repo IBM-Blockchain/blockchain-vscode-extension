@@ -209,7 +209,8 @@ stages:
 
           - script: |
               set -ex
-              npm install -g lerna
+              npm install lerna
+              git checkout package.json
               lerna version patch --no-git-tag-version
             displayName: Use lerna to bump version
             condition: succeeded()
