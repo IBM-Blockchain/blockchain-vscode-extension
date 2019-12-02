@@ -51,6 +51,7 @@ import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { EnvironmentConnectedTreeItem } from './runtimeOps/connectedTree/EnvironmentConnectedTreeItem';
 import { FabricChaincode } from '../fabric/FabricChaincode';
 import { TextTreeItem } from './model/TextTreeItem';
+import { EditFiltersTreeItem } from './runtimeOps/connectedTree/EditFiltersTreeItem';
 
 export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorerProvider {
 
@@ -124,6 +125,10 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', true);
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', true);
             } else {
+                // check if registry has url, if it does, change context?
+                if (environmentRegistryEntry.url) {
+                    await vscode.commands.executeCommand('setContext', 'opstool-environment-connected', true);
+                }
                 await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', true);
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
             }
@@ -131,6 +136,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
             this.tree = await this.createConnectedTree(environmentRegistryEntry);
         } else {
+            await vscode.commands.executeCommand('setContext', 'opstool-environment-connected', false);
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
             await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', false);
@@ -329,11 +335,19 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
             if (environmentEntry.name !== FabricRuntimeUtil.LOCAL_FABRIC) {
 
-                tree.push(new ImportNodesTreeItem(this, {
+                if (environmentEntry.url) {
+                    tree.push(new EditFiltersTreeItem(this, {
+                        command: ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT,
+                        title: '',
+                        arguments: [environmentEntry],
+                    }));
+                } else {
+                    tree.push(new ImportNodesTreeItem(this, {
                     command: ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT,
                     title: '',
                     arguments: [environmentEntry]
-                }));
+                    }));
+                }
             }
 
         } catch (error) {

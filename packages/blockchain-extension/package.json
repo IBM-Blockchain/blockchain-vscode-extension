@@ -289,6 +289,11 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "environmentExplorer.editNodeFiltersEntry",
+                "title": "Edit node filters",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "environmentExplorer.deleteEnvironmentEntry",
                 "title": "Delete Environment",
                 "category": "IBM Blockchain Platform"
@@ -534,6 +539,14 @@
                 {
                     "command": "transactionPage.open",
                     "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.editNodeFiltersEntry",
+                    "when": "opstool-environment-connected"
+                },
+                {
+                    "command": "environmentExplorer.importNodesEntry",
+                    "when": "!opstool-environment-connected"
                 }
             ],
             "view/title": [
