@@ -21,7 +21,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { View } from '../../extension/webview/View';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 

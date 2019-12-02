@@ -11,9 +11,11 @@ Detailed below are various instructions for getting set up with the Ibm Blockcha
     - `npm install -g lerna # This installs lerna, which can install dependencies across multiple packages`
     - `lerna bootstrap # This installs the packages dependencies`
     - `lerna run compile`
-4. Open `packages/blockchain-extension` in VS Code.
+4. Open `blockchain-extension-.code-workspace` in VS Code.
 5. To launch the development version of the extension, open the debug panel (click on the bug icon in the left sidebar), make sure the value in the dropdown at the top is "Extension", and then click the play button.
 6. Follow the instructions provided on the Pre-requisites page that appears to finish getting set up
+
+_Note: If you have grpc errors when you run the extension do a `lerna clean`, then `lerna bootstrap` and `lerna run compile`
 
 _Note: See [this gist](https://gist.github.com/Chaser324/ce0505fbed06b947d962) for help with setting up a forked repository_
 
@@ -29,6 +31,9 @@ _Note: See [this gist](https://gist.github.com/Chaser324/ce0505fbed06b947d962) f
 
 
 ## Running the unit tests
+There are several packages, each with their own unit tests. To run all the unit tests apart from the extension ones run `lerna run unit`. This will also check coverage. If you want to debug the unit tests then in the debug panel choose `Unit tests` for the package you want to test and click play.
+
+To run the extension unit tests
 1. In the debug panel, change the value in the dropdown from "Extension" to "Unit Tests", and then click play. The output from the tests will appear in the VS Code debug console when the Unit Tests output is selected.
 2. You can check the code coverage by navigating to the coverage directory in the repository, and opening the `index.html` file that you find there. This file is regenerated every time you run the unit tests.
 3. Changing "Unit Tests" to "Debug Unit Tests" will let you... debug your unit tests. Be aware that running the unit tests in this way will not generate a coverage report.
@@ -47,8 +52,8 @@ You may have noticed a directory inside `packages` called `blockchain-ui`. While
     - Don't forget that while the app happily renders, any information that comes from the extension (smart contracts, user settings etc) will be missing. Clicking anything that tries to access that missing data, or tries to make a call to the extension, will cause the app to error.
 
 ### Tests
-1. We use [Jest](https://jestjs.io/docs/en/getting-started.html) for unit testing the React app. To run the Jest tests, run `npm run test` in the `blockchain-ui` directory.
-2. [Snapshot tests](https://jestjs.io/docs/en/snapshot-testing) are used to test that the html that makes up the react components is rendered as expected. If a snapshot test is failing because the snapshot is out of date, run `npm run test -- -u` to update that snapshot.
+1. We use [Jest](https://jestjs.io/docs/en/getting-started.html) for unit testing the React app. To run the Jest tests, run `npm run unit` in the `blockchain-ui` directory.
+2. [Snapshot tests](https://jestjs.io/docs/en/snapshot-testing) are used to test that the html that makes up the react components is rendered as expected. If a snapshot test is failing because the snapshot is out of date, run `npm run unit -- -u` to update that snapshot.
 3. The code coverage is configured in the Jest settings (at the bottom of `blockchain-ui/package.json`) so that the tests will fail if the coverage is below 100%. A summary of the coverage is output in the terminal when the tests have finished running, and more detailed coverage reports can be found in `blockchain-ui/coverage/lcov-report/index.html`.
 4. [Cypress](https://docs.cypress.io/guides/overview/why-cypress.html#In-a-nutshell) is used for end to end testing in the React app. Running `npm run cypress` in the `blockchain-ui` directory will launch Cypress and allow you to run the various test specs.
 

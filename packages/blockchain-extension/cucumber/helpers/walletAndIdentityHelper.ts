@@ -22,14 +22,13 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { UserInputUtilHelper } from './userInputUtilHelper';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { IFabricWallet } from '../../extension/fabric/IFabricWallet';
+import { IFabricWallet, FabricIdentity } from 'ibm-blockchain-platform-common';
 import { FabricWalletGeneratorFactory } from '../../extension/fabric/FabricWalletGeneratorFactory';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 import { IFabricWalletGenerator } from '../../extension/fabric/IFabricWalletGenerator';
-import { FabricIdentity } from '../../extension/fabric/FabricIdentity';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);

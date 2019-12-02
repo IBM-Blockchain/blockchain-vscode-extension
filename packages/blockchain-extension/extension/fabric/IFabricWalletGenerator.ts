@@ -12,7 +12,7 @@
  * limitations under the License.
 */
 'use strict';
-import { IFabricWallet } from './IFabricWallet';
+import { IFabricWallet } from 'ibm-blockchain-platform-common';
 
 export interface IFabricWalletGenerator {
 

@@ -22,7 +22,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { LogType } from '../logging/OutputAdapter';
 import { SettingConfigurations } from '../../configurations';
-import { FabricRuntimeUtil } from './FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager } from './FabricEnvironmentManager';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';

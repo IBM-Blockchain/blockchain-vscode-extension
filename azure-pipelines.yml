@@ -36,8 +36,9 @@ stages:
 
         steps:
           - template: azure-templates/setup-steps.yml
-          - template: azure-templates/rebuild-steps.yml
           - template: azure-templates/unit-test-steps.yml
+          - template: azure-templates/rebuild-steps.yml
+          - template: azure-templates/extension-unit-test-steps.yml
 
   - stage: cucumberTest
     condition: ne(variables['Build.Reason'], 'Schedule')
@@ -59,33 +60,6 @@ stages:
         steps:
           - template: azure-templates/setup-steps.yml
           - template: azure-templates/cucumber-steps.yml
-
-  - stage: jestTest
-    condition: ne(variables['Build.Reason'], 'Schedule')
-    dependsOn: []
-    jobs:
-      - job: jest
-        strategy:
-          matrix:
-            linux:
-              imageName: 'ubuntu-16.04'
-              VERSION: '1.35.1'
-              MODULES: 64
-              ELECTRON: '3.0'
-              TARGET: '3.0.0'
-            mac:
-              imageName: 'macos-10.14'
-              VERSION: '1.35.1'
-              MODULES: 64
-              ELECTRON: '3.0'
-              TARGET: '3.0.0'
-        pool:
-          vmImage: $(imageName)
-
-        steps:
-          - template: azure-templates/setup-steps.yml
-          - template: azure-templates/rebuild-steps.yml
-          - template: azure-templates/jest-test-steps.yml
 
   - stage: cypressTest
     condition: ne(variables['Build.Reason'], 'Schedule')
@@ -120,7 +94,6 @@ stages:
     dependsOn:
       - unitTest
       - cucumberTest
-      - jestTest
       - cypressTest
     jobs:
       - job: buildPackage
@@ -140,9 +113,8 @@ stages:
 
           - bash: |
               set -ev
-              cd ./packages/blockchain-ui
-              npm pack
-            displayName: npm pack the ui
+              lerna run createModule
+            displayName: npm pack the modules
 
           - bash: |
               set -ev
@@ -150,6 +122,8 @@ stages:
               cp -r ./media ./packages/blockchain-extension/media
               cd ./packages/blockchain-extension
               npm install ../blockchain-ui/ibm-blockchain-platform-ui-*.tgz
+              npm install ../blockchain-common/ibm-blockchain-platform-common-*.tgz
+              npm install ../blockchain-gateway-v1/ibm-blockchain-platform-gateway-v1-*.tgz
               npm run package
             displayName: package extension
 
@@ -169,7 +143,6 @@ stages:
     dependsOn:
       - unitTest
       - cucumberTest
-      - jestTest
       - cypressTest
       - buildPackage
     jobs:
@@ -252,8 +225,9 @@ stages:
 
         steps:
           - template: azure-templates/setup-steps.yml
-          - template: azure-templates/rebuild-steps.yml
           - template: azure-templates/unit-test-steps.yml
+          - template: azure-templates/rebuild-steps.yml
+          - template: azure-templates/extension-unit-test-steps.yml
 
   - stage: otherVersionsCucumberTest
     condition: eq(variables['Build.Reason'], 'Schedule')
@@ -286,7 +260,6 @@ stages:
     dependsOn:
       - unitTest
       - cucumberTest
-      - jestTest
       - cypressTest
     jobs:
       - job: docker

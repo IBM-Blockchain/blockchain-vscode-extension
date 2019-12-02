@@ -15,13 +15,13 @@
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { FabricClientConnection } from '../../extension/fabric/FabricClientConnection';
+import {  FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
 import { MetadataUtil } from '../../extension/util/MetadataUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../extension/logging/OutputAdapter';
-import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
+import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 import * as vscode from 'vscode';
 import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
@@ -31,10 +31,10 @@ const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
-describe('Metadata Util tests', () => {
+describe('Metadata ConnectionProfileUtil tests', () => {
 
     let mySandBox: sinon.SinonSandbox;
-    let fabricClientConnectionMock: sinon.SinonStubbedInstance<FabricClientConnection>;
+    let fabricClientConnectionMock: sinon.SinonStubbedInstance<FabricGatewayConnection>;
     let fakeMetadata: any;
     let transactionOne: any;
     let transactionTwo: any;
@@ -53,7 +53,7 @@ describe('Metadata Util tests', () => {
 
     beforeEach(() => {
         mySandBox = sinon.createSandbox();
-        fabricClientConnectionMock = mySandBox.createStubInstance(FabricClientConnection);
+        fabricClientConnectionMock = mySandBox.createStubInstance(FabricGatewayConnection);
         fakeMetadata = {
             contracts: {
                 'cake': {
@@ -142,7 +142,7 @@ describe('Metadata Util tests', () => {
         otherGateway = new FabricGatewayRegistryEntry();
         otherGateway.name = 'myFabric';
 
-        getGatewayRegistryEntryStub = mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(otherGateway);
+        getGatewayRegistryEntryStub = mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(otherGateway);
 
         debugSessionStub = mySandBox.stub(vscode.debug, 'activeDebugSession');
 

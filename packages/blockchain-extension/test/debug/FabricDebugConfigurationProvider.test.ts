@@ -22,12 +22,11 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricChaincode, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { GlobalState } from '../../extension/util/GlobalState';
-import { FabricChaincode } from '../../extension/fabric/FabricChaincode';
 import { TestUtil } from '../TestUtil';
 import { SettingConfigurations } from '../../configurations';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';

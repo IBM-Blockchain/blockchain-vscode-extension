@@ -23,9 +23,9 @@ import { LogType } from '../../extension/logging/OutputAdapter';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
+import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
 chai.should();
@@ -56,7 +56,7 @@ describe('stopFabricRuntime', () => {
         gatewayRegistyEntry = new FabricGatewayRegistryEntry();
         gatewayRegistyEntry.name = 'myGateway';
 
-        getRegistryEntryStub = sandbox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistyEntry);
+        getRegistryEntryStub = sandbox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistyEntry);
 
         logSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         stopStub = sandbox.stub(runtime, 'stop').resolves();

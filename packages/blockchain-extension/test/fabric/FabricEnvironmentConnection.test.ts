@@ -14,7 +14,7 @@
 
 import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
 import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
-import { FabricWallet } from '../../extension/fabric/FabricWallet';
+import { FabricWallet } from 'ibm-blockchain-platform-gateway-v1';
 import * as Client from 'fabric-client';
 import * as FabricCAServices from 'fabric-ca-client';
 import * as fs from 'fs';
@@ -29,8 +29,7 @@ import { LogType } from '../../extension/logging/OutputAdapter';
 import { FabricNodeType, FabricNode } from '../../extension/fabric/FabricNode';
 import { FabricWalletGeneratorFactory } from '../../extension/fabric/FabricWalletGeneratorFactory';
 import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
-import { IFabricWallet } from '../../extension/fabric/IFabricWallet';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricChaincode, FabricRuntimeUtil, IFabricWallet } from 'ibm-blockchain-platform-common';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { ConsoleOutputAdapter } from '../../extension/logging/ConsoleOutputAdapter';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
@@ -38,7 +37,6 @@ import { FabricConnectionFactory } from '../../extension/fabric/FabricConnection
 import { IFabricEnvironmentConnection } from '../../extension/fabric/IFabricEnvironmentConnection';
 import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
-import { FabricChaincode } from '../../extension/fabric/FabricChaincode';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);

@@ -16,12 +16,12 @@ import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
-import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
+import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 
 export async function debugCommandList(commandName?: string): Promise<void> {
@@ -65,12 +65,12 @@ export async function debugCommandList(commandName?: string): Promise<void> {
 
     if (commandName === ExtensionCommands.SUBMIT_TRANSACTION || commandName === ExtensionCommands.EVALUATE_TRANSACTION) {
 
-        if (!FabricConnectionManager.instance().getConnection()) {
+        if (!FabricGatewayConnectionManager.instance().getConnection()) {
             // Connect to local_fabric gateway before submitting/evaluating transaction
             const runtimeGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
             // Assume one runtime gateway registry entry
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY, runtimeGateway);
-            if (!FabricConnectionManager.instance().getConnection()) {
+            if (!FabricGatewayConnectionManager.instance().getConnection()) {
                 // either the user cancelled or ther was an error so don't carry on
                 return;
             }

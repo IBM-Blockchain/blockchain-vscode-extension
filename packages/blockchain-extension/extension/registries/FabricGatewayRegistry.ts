@@ -15,7 +15,7 @@
 import { FileRegistry } from './FileRegistry';
 import { FabricGatewayRegistryEntry } from './FabricGatewayRegistryEntry';
 import { FileConfigurations } from '../../configurations';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEntry> {
 

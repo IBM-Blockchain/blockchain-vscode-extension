@@ -15,7 +15,7 @@
 // tslint:disable no-unused-expression
 
 import * as vscode from 'vscode';
-import { FabricClientConnection } from '../../extension/fabric/FabricClientConnection';
+import { FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 
 import * as chai from 'chai';
@@ -25,7 +25,7 @@ import * as sinonChai from 'sinon-chai';
 import * as path from 'path';
 
 import { TestUtil } from '../TestUtil';
-import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
+import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
@@ -45,13 +45,13 @@ chai.should();
 describe('OpenTransactionViewCommand', () => {
     let mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let instantiatedSmartContract: InstantiatedContractTreeItem;
-    let fabricClientConnectionMock: sinon.SinonStubbedInstance<FabricClientConnection>;
+    let fabricClientConnectionMock: sinon.SinonStubbedInstance<FabricGatewayConnection>;
 
     let executeCommandStub: sinon.SinonStub;
     let getConnectionStub: sinon.SinonStub;
     let showInstantiatedSmartContractQuickPickStub: sinon.SinonStub;
 
-    let fabricConnectionManager: FabricConnectionManager;
+    let fabricConnectionManager: FabricGatewayConnectionManager;
 
     let logSpy: sinon.SinonSpy;
 
@@ -74,13 +74,13 @@ describe('OpenTransactionViewCommand', () => {
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
             executeCommandStub.callThrough();
             executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_GATEWAY).resolves();
-            fabricClientConnectionMock = mySandBox.createStubInstance(FabricClientConnection);
+            fabricClientConnectionMock = mySandBox.createStubInstance(FabricGatewayConnection);
             fabricClientConnectionMock.connect.resolves();
 
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
             map.set('myChannel', ['peerOne']);
             fabricClientConnectionMock.createChannelMap.resolves(map);
-            fabricConnectionManager = FabricConnectionManager.instance();
+            fabricConnectionManager = FabricGatewayConnectionManager.instance();
             getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionMock);
 
             gatewayRegistryEntry = new FabricGatewayRegistryEntry();

@@ -12,15 +12,13 @@
  * limitations under the License.
 */
 'use strict';
-import { OutputAdapter } from '../logging/OutputAdapter';
 import { FabricConnection } from './FabricConnection';
 import { FabricWallet } from './FabricWallet';
-import { ExtensionUtil } from '../util/ExtensionUtil';
-import { IFabricClientConnection } from './IFabricClientConnection';
+import { IFabricGatewayConnection, OutputAdapter, ConnectionProfileUtil } from 'ibm-blockchain-platform-common';
 import { Network, Contract, Transaction } from 'fabric-network';
 import * as Client from 'fabric-client';
 
-export class FabricClientConnection extends FabricConnection implements IFabricClientConnection {
+export class FabricGatewayConnection extends FabricConnection implements IFabricGatewayConnection {
 
     private description: boolean;
 
@@ -29,7 +27,7 @@ export class FabricClientConnection extends FabricConnection implements IFabricC
     }
 
     async connect(wallet: FabricWallet, identityName: string, timeout: number): Promise<void> {
-        const connectionProfile: object = await ExtensionUtil.readConnectionProfile(this.connectionProfilePath);
+        const connectionProfile: object = await ConnectionProfileUtil.readConnectionProfile(this.connectionProfilePath);
         if (connectionProfile['description']) {
             this.description = (connectionProfile['description'].includes('Network on IBP') ? true : false);
         } else {

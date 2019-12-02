@@ -13,18 +13,18 @@
 */
 'use strict';
 import { OutputAdapter } from '../logging/OutputAdapter';
-import { IFabricClientConnection } from './IFabricClientConnection';
+import { IFabricGatewayConnection } from 'ibm-blockchain-platform-common';
 import { IFabricEnvironmentConnection } from './IFabricEnvironmentConnection';
 import { FabricEnvironment } from './FabricEnvironment';
 
 export class FabricConnectionFactory {
 
-    public static createFabricClientConnection(connection: any, outputAdapter?: OutputAdapter): IFabricClientConnection {
-        if (!this.clientConnection) {
-            this.clientConnection = require('./FabricClientConnection');
+    public static createFabricGatewayConnection(connection: any, outputAdapter?: OutputAdapter): IFabricGatewayConnection {
+        if (!this.gatewayConnection) {
+            this.gatewayConnection = require('ibm-blockchain-platform-gateway-v1');
         }
 
-        return new (this.clientConnection).FabricClientConnection(connection, outputAdapter);
+        return new (this.gatewayConnection).FabricGatewayConnection(connection, outputAdapter);
     }
 
     public static createFabricEnvironmentConnection(environment: FabricEnvironment, outputAdapter?: OutputAdapter): IFabricEnvironmentConnection {
@@ -37,5 +37,5 @@ export class FabricConnectionFactory {
 
     private static environmentConnection: any;
 
-    private static clientConnection: any;
+    private static gatewayConnection: any;
 }

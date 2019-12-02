@@ -21,7 +21,7 @@ import { UserInputUtil } from './UserInputUtil';
 import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
 import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { IFabricWallet } from '../fabric/IFabricWallet';
+import { IFabricWallet } from 'ibm-blockchain-platform-common';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';

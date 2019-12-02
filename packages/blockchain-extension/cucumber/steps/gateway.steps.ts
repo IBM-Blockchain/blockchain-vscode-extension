@@ -19,9 +19,8 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
-import { IFabricClientConnection } from '../../extension/fabric/IFabricClientConnection';
-import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
+import { FabricRuntimeUtil, IFabricGatewayConnection } from 'ibm-blockchain-platform-common';
+import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { MetadataUtil } from '../../extension/util/MetadataUtil';
 
 // tslint:disable:no-unused-expression
@@ -152,7 +151,7 @@ module.exports = function(): any {
                 openFileNameArray.includes(filePath).should.be.true;
 
                 // Get the smart contract metadata
-                const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
+                const connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
                 const smartContractTransactionsMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, this.contractName, 'mychannel');
                 let smartContractTransactionsArray: string[];
                 for (const name of smartContractTransactionsMap.keys()) {

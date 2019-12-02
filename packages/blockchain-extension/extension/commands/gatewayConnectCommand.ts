@@ -15,20 +15,19 @@
 import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
-import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
+import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
-import { IFabricWallet } from '../fabric/IFabricWallet';
+import { IFabricGatewayConnection, IFabricWallet } from 'ibm-blockchain-platform-common';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
-import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { SettingConfigurations } from '../../configurations';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
@@ -124,15 +123,14 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
 
     const connectionProfilePath: string = await FabricGatewayHelper.getConnectionProfilePath(gatewayRegistryEntry.name);
 
-    const connection: IFabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionProfilePath);
+    const connection: IFabricGatewayConnection = FabricConnectionFactory.createFabricGatewayConnection(connectionProfilePath);
 
     try {
         const timeout: number = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_CLIENT_TIMEOUT) as number;
 
         await connection.connect(wallet, identityName, timeout);
-        connection.wallet = walletData;
         connection.identityName = identityName;
-        FabricConnectionManager.instance().connect(connection, gatewayRegistryEntry);
+        FabricGatewayConnectionManager.instance().connect(connection, gatewayRegistryEntry, walletData);
 
         let gatewayName: string;
         if (gatewayRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {

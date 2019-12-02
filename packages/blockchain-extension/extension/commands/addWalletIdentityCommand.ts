@@ -19,7 +19,7 @@ import { Reporter } from '../util/Reporter';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
-import { IFabricWallet } from '../fabric/IFabricWallet';
+import { IFabricWallet } from 'ibm-blockchain-platform-common';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { ExtensionCommands } from '../../ExtensionCommands';
@@ -31,7 +31,7 @@ import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalletRegistryEntry, mspid: string): Promise<string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -155,7 +155,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
                 if (!isRunning) {
                     // Start local_fabric to enroll identity
                     await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
-                    isRunning = await FabricRuntimeManager.instance().getRuntime().isRunning()
+                    isRunning = await FabricRuntimeManager.instance().getRuntime().isRunning();
                     if (!isRunning) {
                         // Start local_fabric failed so return
                         return;

@@ -23,9 +23,9 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { LogType } from '../../extension/logging/OutputAdapter';
-import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
+import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
 chai.should();
@@ -71,7 +71,7 @@ describe('restartFabricRuntime', () => {
         const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
         gatewayRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
 
-        sandbox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistryEntry);
+        sandbox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistryEntry);
 
         const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
 

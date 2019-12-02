@@ -20,7 +20,7 @@ import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
 export async function associateWallet(gatewayTreeItem: GatewayDissociatedTreeItem): Promise<any> {

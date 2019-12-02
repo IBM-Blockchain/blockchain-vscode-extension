@@ -15,13 +15,12 @@
 import * as vscode from 'vscode';
 import { TransactionView } from '../webview/TransactionView';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
+import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
-import { FabricChaincode } from '../fabric/FabricChaincode';
-import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
+import { IFabricGatewayConnection, FabricChaincode } from 'ibm-blockchain-platform-common';
 import { GlobalState } from '../util/GlobalState';
 
 export async function openTransactionView(treeItem?: InstantiatedTreeItem): Promise<void> {
@@ -31,11 +30,11 @@ export async function openTransactionView(treeItem?: InstantiatedTreeItem): Prom
     let contract: { name: string, contractInstance: {}, transactions: Array<{}>, info: {} };
     let data: { name: string, version: string, channel: string, label: string, transactions: Array<{}>, namespace: string };
 
-    let connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
+    let connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
 
     if (!connection) {
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
-        connection = FabricConnectionManager.instance().getConnection();
+        connection = FabricGatewayConnectionManager.instance().getConnection();
         if (!connection) {
             // either the user cancelled or there was an error so don't carry on
             return;

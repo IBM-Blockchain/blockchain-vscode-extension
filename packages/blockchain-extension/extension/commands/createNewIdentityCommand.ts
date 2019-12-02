@@ -19,7 +19,7 @@ import { CertificateAuthorityTreeItem } from '../explorer/runtimeOps/connectedTr
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { UserInputUtil } from './UserInputUtil';
-import { IFabricWallet } from '../fabric/IFabricWallet';
+import { IFabricWallet } from 'ibm-blockchain-platform-common';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { FabricNode } from '../fabric/FabricNode';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';

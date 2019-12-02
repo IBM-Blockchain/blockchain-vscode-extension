@@ -14,13 +14,10 @@
 'use strict';
 
 import { IFabricWallet } from './IFabricWallet';
-import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 
-export interface IFabricClientConnection {
+export interface IFabricGatewayConnection {
 
     identityName: string;
-
-    wallet: FabricWalletRegistryEntry;
 
     connect(wallet: IFabricWallet, identityName: string, timeout: number): Promise<void>;
 
