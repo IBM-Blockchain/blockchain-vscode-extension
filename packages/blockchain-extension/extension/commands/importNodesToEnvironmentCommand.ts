@@ -18,9 +18,10 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType } from '../logging/OutputAdapter';
 import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import * as fs from 'fs-extra';
+import * as https from 'https';
 import * as path from 'path';
 import { SettingConfigurations } from '../../configurations';
-import { FabricNode } from '../fabric/FabricNode';
+import { FabricNode, FabricNodeType } from '../fabric/FabricNode';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FileSystemUtil } from '../util/FileSystemUtil';
@@ -102,7 +103,6 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                 }
             }
         } else {
-
             const keytar: any = getCoreNodeModule('keytar');
             if (!keytar) {
                 throw new Error('Error importing the keytar module');
@@ -117,13 +117,51 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             if (!apiKey) {
                 return;
             }
+            const apiSecret: string = await UserInputUtil.showInputBox('Enter the api secret of the ops tools you want to connect to');
+            if (!apiSecret) {
+                return;
+            }
 
+            const api: string = url.replace(/\/$/, '') + GET_ALL_COMPONENTS;
             let response: any;
+            const requestOptions: any = {
+                headers: { 'Content-Type': 'application/json' },
+                auth: { username: apiKey, password: apiSecret }
+            };
             try {
-                const api: string = url.replace(/\/$/, '') + GET_ALL_COMPONENTS;
-                response = await Axios.get(api, {
-                    headers: { Authorization: `Bearer ${apiKey}` }
-                });
+                try {
+                    response = await Axios.get(api, requestOptions);
+                } catch (error) {
+                    // This needs to be fixed - exactly what codes can we get that will require this behaviour?
+                    if (error.code === 'DEPTH_ZERO_SELF_SIGNED_CERT') {
+                        const certificateUsage: string = await UserInputUtil.showQuickPick('Unable to perform certificate verification. Please choose how to proceed', [UserInputUtil.ADD_CA_CERT_CHAIN, UserInputUtil.CONNECT_NO_CA_CERT_CHAIN]) as string;
+                        if (!certificateUsage) {
+                            return;
+                        } else if (certificateUsage === UserInputUtil.ADD_CA_CERT_CHAIN) {
+                            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
+                            const browseOptions: vscode.OpenDialogOptions = {
+                                canSelectFiles: true,
+                                canSelectFolders: false,
+                                canSelectMany: false,
+                                openLabel: 'Select',
+                                filters: {
+                                    Certificates: ['pem']
+                                }
+                            };
+                            const certificatePath: vscode.Uri = await UserInputUtil.browse('Select CA certificate chain (.pem) file', quickPickItems, browseOptions, true) as vscode.Uri;
+                            if (certificatePath === undefined) {
+                                return;
+                            }
+                            const caCertificate: string = await fs.readFile(certificatePath.fsPath, 'utf8');
+                            requestOptions.httpsAgent = new https.Agent({ ca: caCertificate });
+                        } else {
+                            requestOptions.httpsAgent = new https.Agent({ rejectUnauthorized: false });
+                        }
+                        response = await Axios.get(api, requestOptions);
+                    } else {
+                        throw error;
+                    }
+                }
 
                 environmentRegistryEntry.url = url;
 
@@ -154,7 +192,9 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                 });
 
                 filteredData.forEach((node: FabricNode) => {
-                    if (chosenNodesNames.indexOf(node.name) === -1) {
+                    if (node.type === FabricNodeType.ORDERER && node.cluster_name) {
+                        node.hidden = chosenNodesNames.indexOf(node.cluster_name) === -1;
+                    } else if (chosenNodesNames.indexOf(node.name) === -1) {
                         node.hidden = true;
                     }
                 });
@@ -167,9 +207,9 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             }
 
             try {
-                await keytar.setPassword('blockchain-vscode-ext', url, apiKey);
+                await keytar.setPassword('blockchain-vscode-ext', url, `${apiKey}:${apiSecret}`);
             } catch (error) {
-                throw new Error(`Unable to store API key securely in your keychain: ${error.message}`);
+                throw new Error(`Unable to store API key and API secret securely in your keychain: ${error.message}`);
             }
         }
 
