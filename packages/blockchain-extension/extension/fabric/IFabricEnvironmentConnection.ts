@@ -14,10 +14,9 @@
 'use strict';
 
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
-import { IFabricWallet } from './IFabricWallet';
+import { FabricChaincode, IFabricWallet } from 'ibm-blockchain-platform-common';
 import { FabricNode } from './FabricNode';
 import { Attribute } from './FabricCertificate';
-import { FabricChaincode } from './FabricChaincode';
 
 export interface IFabricEnvironmentConnection {
 

@@ -13,7 +13,7 @@
 */
 
 'use strict';
-import { FabricWallet } from './FabricWallet';
+import { FabricWallet } from 'ibm-blockchain-platform-gateway-v1';
 import { IFabricWalletGenerator } from './IFabricWalletGenerator';
 import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';

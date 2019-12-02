@@ -21,7 +21,7 @@ import { FabricConnectionFactory } from '../../extension/fabric/FabricConnection
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { CommandUtil } from '../../extension/util/CommandUtil';
 import { version } from '../../package.json';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';

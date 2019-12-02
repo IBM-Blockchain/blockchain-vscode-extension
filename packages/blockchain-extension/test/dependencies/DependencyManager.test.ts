@@ -332,6 +332,34 @@ describe('DependencyManager Tests', () => {
             utimesFileStub.should.have.been.called;
         });
 
+        it('should install the dependencies in other projects in development', async () => {
+            mySandBox.stub(process, 'platform').value('darwin');
+
+            const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
+            const dependencyManager: DependencyManager = DependencyManager.instance();
+
+            mySandBox.stub(process, 'arch').value('x64');
+
+            await dependencyManager.installNativeDependencies();
+
+            dependencyManager['dependencies'].length.should.equal(1);
+            dependencyManager['dependencies'][0].should.equal('grpc');
+
+            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=4.1.5', '--runtime=electron', '--update-binary', '--fallback-to-build', `--target_arch=x64`, '--dist-url=https://atom.io/download/electron'], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter));
+
+            const origPath: string = path.join(basePath, `node-v69-darwin-x64-unknown`);
+            const newPath: string = path.join(basePath, `electron-v4.1-darwin-x64-unknown`);
+
+            removeStub.should.have.been.calledTwice;
+            renameStub.should.have.been.calledTwice;
+            removeStub.should.have.been.calledWith(origPath);
+            renameStub.should.have.been.calledWith(newPath, origPath);
+            existsStub.should.have.been.called;
+
+            writeFileStub.should.have.been.called;
+            utimesFileStub.should.have.been.called;
+        });
+
         it('should handle errors', async () => {
             mySandBox.stub(process, 'arch').value('x64');
 

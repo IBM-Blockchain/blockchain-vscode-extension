@@ -15,7 +15,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
+import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { PackageRegistry } from '../registries/PackageRegistry';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
@@ -27,14 +27,12 @@ import { FabricCertificate } from '../fabric/FabricCertificate';
 import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
-import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
+import { FabricChaincode, FabricRuntimeUtil, IFabricGatewayConnection } from 'ibm-blockchain-platform-common';
 import { FabricNode, FabricNodeType } from '../fabric/FabricNode';
 import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
-import { FabricChaincode } from '../fabric/FabricChaincode';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
@@ -508,7 +506,7 @@ export class UserInputUtil {
 
     public static async showClientInstantiatedSmartContractsQuickPick(prompt: string, channelName?: string): Promise<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> | undefined> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-        const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
+        const connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
         const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
 
         const instantiatedChaincodes: Array<{ name: string, version: string, channel: string }> = [];
@@ -610,8 +608,8 @@ export class UserInputUtil {
     }
 
     public static async showTransactionQuickPick(prompt: string, chaincodeName: string, channelName: string): Promise<IBlockchainQuickPickItem<{ name: string, contract: string }> | undefined> {
-        const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
-        const connection: IFabricClientConnection = fabricConnectionManager.getConnection();
+        const fabricConnectionManager: FabricGatewayConnectionManager = FabricGatewayConnectionManager.instance();
+        const connection: IFabricGatewayConnection = fabricConnectionManager.getConnection();
 
         if (!connection) {
             VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, 'No connection to a blockchain found');

@@ -26,7 +26,7 @@ import { View } from '../../extension/webview/View';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);

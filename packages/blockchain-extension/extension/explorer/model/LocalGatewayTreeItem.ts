@@ -22,7 +22,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOut
 import { LogType } from '../../logging/OutputAdapter';
 import { FabricWalletUtil } from '../../fabric/FabricWalletUtil';
 import { ExtensionCommands } from '../../../ExtensionCommands';
-import { FabricRuntimeUtil } from '../../fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 export class LocalGatewayTreeItem extends BlockchainTreeItem {
 

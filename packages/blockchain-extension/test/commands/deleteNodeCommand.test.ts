@@ -29,7 +29,7 @@ import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
 import { PeerTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/PeerTreeItem';
 import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 chai.should();
 chai.use(sinonChai);

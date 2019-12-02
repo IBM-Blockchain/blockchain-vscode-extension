@@ -17,7 +17,6 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { FabricConnection } from '../../extension/fabric/FabricConnection';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { ChannelTreeItem } from '../../extension/explorer/model/ChannelTreeItem';
@@ -44,7 +43,7 @@ import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnviro
 import { FabricNode } from '../../extension/fabric/FabricNode';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
 import { EnvironmentConnectedTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/EnvironmentConnectedTreeItem';
@@ -409,7 +408,7 @@ describe('environmentExplorer', () => {
 
                 blockchainRuntimeExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-                mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns((fabricConnection as any) as FabricConnection);
+                mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns((fabricConnection as any) as FabricEnvironmentConnection);
                 mySandBox.stub(fabricRuntimeManager.getRuntime(), 'isRunning').resolves(true);
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
 

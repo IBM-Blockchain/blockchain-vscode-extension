@@ -18,7 +18,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType } from '../logging/OutputAdapter';
 import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 export async function deleteGateway(gatewayTreeItem: GatewayTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();

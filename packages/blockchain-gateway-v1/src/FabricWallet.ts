@@ -15,8 +15,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { FileSystemWallet, X509WalletMixin, IdentityInfo} from 'fabric-network';
-import { IFabricWallet} from './IFabricWallet';
-import { FabricIdentity } from './FabricIdentity';
+import { FabricIdentity, IFabricWallet} from 'ibm-blockchain-platform-common';
 
 export class FabricWallet extends FileSystemWallet implements IFabricWallet {
     public walletPath: string;

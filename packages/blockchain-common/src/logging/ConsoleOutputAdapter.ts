@@ -11,21 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-'use strict';
 
-import { FabricIdentity } from './FabricIdentity';
+import { OutputAdapter } from './OutputAdapter';
 
-export interface IFabricWallet {
+export class ConsoleOutputAdapter extends OutputAdapter {
 
-    importIdentity(certificate: string, privateKey: string, identityName: string, mspid: string): Promise<void>;
+    public static instance(): ConsoleOutputAdapter {
+        return ConsoleOutputAdapter._instance;
+    }
 
-    delete(identityName: string): Promise<void>;
+    private static _instance: ConsoleOutputAdapter = new ConsoleOutputAdapter();
 
-    exists(identityName: string): Promise<boolean>;
+    private constructor() {
+        super();
+    }
 
-    getIdentityNames(): Promise<string[]>;
-
-    getIdentities(): Promise<FabricIdentity[]>;
-
-    getWalletPath(): string;
 }

@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"path": "packages/blockchain-common"
+		},
+		{
+			"path": "packages/blockchain-extension"
+		},
+		{
+			"path": "packages/blockchain-gateway-v1"
+		},
+		{
+			"path": "packages/blockchain-ui"
+		}
+	],
+	"settings": {
+		"typescript.tsdk": "./node_modules/typescript/lib"
+	}
+}

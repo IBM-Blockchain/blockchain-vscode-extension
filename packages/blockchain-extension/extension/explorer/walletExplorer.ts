@@ -18,7 +18,7 @@ import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { WalletTreeItem } from './wallets/WalletTreeItem';
 import { LocalWalletTreeItem } from './wallets/LocalWalletTreeItem';
-import { IFabricWallet } from '../fabric/IFabricWallet';
+import { FabricRuntimeUtil, IFabricWallet } from 'ibm-blockchain-platform-common';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
 import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
@@ -28,7 +28,6 @@ import { IdentityTreeItem } from './model/IdentityTreeItem';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { AdminIdentityTreeItem } from './model/AdminIdentityTreeItem';
 import { FabricCertificate, Attribute } from '../fabric/FabricCertificate';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 import { TextTreeItem } from './model/TextTreeItem';
 

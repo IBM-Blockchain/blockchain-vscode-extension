@@ -32,7 +32,7 @@ import { SettingConfigurations } from '../../configurations';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { Dependencies } from '../../extension/dependencies/Dependencies';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 

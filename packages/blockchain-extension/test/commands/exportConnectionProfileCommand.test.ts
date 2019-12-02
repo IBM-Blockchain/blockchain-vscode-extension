@@ -32,7 +32,8 @@ import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGat
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { GatewayTreeItem } from '../../extension/explorer/model/GatewayTreeItem';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
-import { FabricConnectionManager } from '../../extension/fabric/FabricConnectionManager';
+import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
+import { ConnectionProfileUtil } from 'ibm-blockchain-platform-common';
 
 // tslint:disable no-unused-expression
 describe('exportConnectionProfileCommand', () => {
@@ -84,7 +85,7 @@ describe('exportConnectionProfileCommand', () => {
         showSaveDialogStub = sandbox.stub(vscode.window, 'showSaveDialog').resolves(vscode.Uri.file(fakeTargetPath));
         homeDirStub = sandbox.stub(os, 'homedir');
         homeDirStub.returns('homedir');
-        readProfileStub = sandbox.stub(ExtensionUtil, 'readConnectionProfile');
+        readProfileStub = sandbox.stub(ConnectionProfileUtil, 'readConnectionProfile');
 
         getConnectionProfilePathStub = sandbox.stub(FabricGatewayHelper, 'getConnectionProfilePath');
         getConnectionProfilePathStub.resolves(path.join('myPath', 'connection.json'));
@@ -157,7 +158,7 @@ describe('exportConnectionProfileCommand', () => {
     });
 
     it('should handle exporting the connection profile of a connected gateway', async () => {
-        sandbox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistryEntry);
+        sandbox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistryEntry);
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE_CONNECTED);
         delete connectionProfile.wallet;
         writeFileStub.should.have.been.called.calledOnceWithExactly(fakeTargetPath, JSON.stringify(connectionProfile, null, 4));

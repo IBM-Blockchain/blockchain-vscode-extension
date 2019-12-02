@@ -26,8 +26,8 @@ import { LogType } from '../logging/OutputAdapter';
 import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
-import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
-import { ExtensionUtil } from '../util/ExtensionUtil';
+import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
+import { ConnectionProfileUtil } from 'ibm-blockchain-platform-common';
 
 export async function exportConnectionProfile(gatewayTreeItem: GatewayTreeItem, isConnected?: boolean): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -35,7 +35,7 @@ export async function exportConnectionProfile(gatewayTreeItem: GatewayTreeItem, 
 
     let gatewayEntry: FabricGatewayRegistryEntry;
     if (isConnected) {
-        const connectedGateway: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
+        const connectedGateway: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
         gatewayEntry = connectedGateway;
 
     } else if (!gatewayTreeItem) {
@@ -73,7 +73,7 @@ export async function exportConnectionProfile(gatewayTreeItem: GatewayTreeItem, 
     try {
         const connectionProfilePath: string = await FabricGatewayHelper.getConnectionProfilePath(gatewayEntry.name);
 
-        const connectionProfile: any = await ExtensionUtil.readConnectionProfile(connectionProfilePath);
+        const connectionProfile: any = await ConnectionProfileUtil.readConnectionProfile(connectionProfilePath);
         delete connectionProfile.wallet;
 
         let connectionProfileData: any;

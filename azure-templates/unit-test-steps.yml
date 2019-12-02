@@ -13,8 +13,7 @@
 steps:
   - bash: |
       set -ev
-      cd ./packages/blockchain-extension
-      npm test
+      lerna run unit
     env:
       DISPLAY: ':99.0'
     displayName: Run unit tests
@@ -24,11 +23,4 @@ steps:
     condition: succeededOrFailed()
     inputs:
       testRunner: JUnit
-      testResultsFiles: '$(System.DefaultWorkingDirectory)/packages/blockchain-extension/unit-tests.xml'
-
-  - task: PublishCodeCoverageResults@1
-    condition: succeededOrFailed()
-    inputs:
-      codeCoverageTool: Cobertura
-      summaryFileLocation: '$(System.DefaultWorkingDirectory)/packages/blockchain-extension/coverage/*coverage.xml'
-      reportDirectory: '$(System.DefaultWorkingDirectory)/coverage'
+      testResultsFiles: '$(System.DefaultWorkingDirectory)/packages/blockchain-gateway-v1/unit-tests.xml; $(System.DefaultWorkingDirectory)/packages/blockchain-common/unit-tests.xml'

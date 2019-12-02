@@ -17,8 +17,7 @@ import * as path from 'path';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { FabricClientConnection } from '../../extension/fabric/FabricClientConnection';
-import { IdentityInfo } from 'fabric-network';
+import { FabricGatewayConnection, FabricWallet } from 'ibm-blockchain-platform-gateway-v1';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
 import { TestUtil } from '../TestUtil';
@@ -30,7 +29,6 @@ import { Reporter } from '../../extension/util/Reporter';
 import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../extension/logging/OutputAdapter';
-import { FabricWallet } from '../../extension/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
 import { GatewayDissociatedTreeItem } from '../../extension/explorer/model/GatewayDissociatedTreeItem';
 import { GatewayAssociatedTreeItem } from '../../extension/explorer/model/GatewayAssociatedTreeItem';
@@ -39,7 +37,7 @@ import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 import { LocalGatewayTreeItem } from '../../extension/explorer/model/LocalGatewayTreeItem';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
@@ -60,7 +58,7 @@ describe('GatewayConnectCommand', () => {
     describe('connect', () => {
 
         let rootPath: string;
-        let mockConnection: sinon.SinonStubbedInstance<FabricClientConnection>;
+        let mockConnection: sinon.SinonStubbedInstance<FabricGatewayConnection>;
         let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
         let logSpy: sinon.SinonSpy;
         let connectionMultiple: FabricGatewayRegistryEntry;
@@ -73,7 +71,7 @@ describe('GatewayConnectCommand', () => {
         let choseIdentityQuickPick: sinon.SinonStub;
         let chosenGatewayQuickPick: sinon.SinonStub;
         let chosenWalletQuickPick: sinon.SinonStub;
-        let identity: IdentityInfo;
+        let identity: any;
         let walletGenerator: FabricWalletGenerator;
         let sendTelemetryEventStub: sinon.SinonStub;
 
@@ -83,11 +81,11 @@ describe('GatewayConnectCommand', () => {
 
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_CLIENT_TIMEOUT, timeout,  vscode.ConfigurationTarget.Global);
 
-            mockConnection = mySandBox.createStubInstance(FabricClientConnection);
+            mockConnection = mySandBox.createStubInstance(FabricGatewayConnection);
             mockConnection.connect.resolves();
             mockConnection.isIBPConnection.returns(false);
 
-            mySandBox.stub(FabricConnectionFactory, 'createFabricClientConnection').returns(mockConnection);
+            mySandBox.stub(FabricConnectionFactory, 'createFabricGatewayConnection').returns(mockConnection);
 
             rootPath = path.dirname(__dirname);
 

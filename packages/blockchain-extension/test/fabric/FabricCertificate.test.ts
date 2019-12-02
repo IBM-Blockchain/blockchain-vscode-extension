@@ -19,7 +19,7 @@ import * as sinon from 'sinon';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import { FabricCertificate } from '../../extension/fabric/FabricCertificate';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 // tslint:disable no-var-requires
 const {Certificate} = require('@fidm/x509');

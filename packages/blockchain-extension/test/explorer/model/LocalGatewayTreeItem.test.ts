@@ -27,7 +27,7 @@ import { TestUtil } from '../../TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../../extension/logging/OutputAdapter';
 import { FabricWalletUtil } from '../../../extension/fabric/FabricWalletUtil';
-import { FabricRuntimeUtil } from '../../../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../../ExtensionCommands';
 
 const should: Chai.Should = chai.should();

@@ -43,13 +43,12 @@ import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnec
 import { FabricNode, FabricNodeType } from '../fabric/FabricNode';
 import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager, ConnectedState } from '../fabric/FabricEnvironmentManager';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricChaincode, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
 import { FabricEnvironmentTreeItem } from './runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { SetupTreeItem } from './runtimeOps/identitySetupTree/SetupTreeItem';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { EnvironmentConnectedTreeItem } from './runtimeOps/connectedTree/EnvironmentConnectedTreeItem';
-import { FabricChaincode } from '../fabric/FabricChaincode';
 import { TextTreeItem } from './model/TextTreeItem';
 
 export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorerProvider {

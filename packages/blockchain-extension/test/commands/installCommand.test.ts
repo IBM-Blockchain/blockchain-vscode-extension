@@ -33,7 +33,7 @@ import { VSCodeBlockchainDockerOutputAdapter } from '../../extension/logging/VSC
 import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { SettingConfigurations } from '../../configurations';
 

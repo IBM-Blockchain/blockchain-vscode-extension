@@ -23,7 +23,7 @@ import { NodeTreeItem } from '../explorer/runtimeOps/connectedTree/NodeTreeItem'
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 export async function deleteNode(nodeTreeItem: NodeTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();

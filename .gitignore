@@ -12,4 +12,6 @@
 /.idea
 .DS_Store
 test/tmp
+*.tgz
+/lerna-debug.log
 /node_modules/

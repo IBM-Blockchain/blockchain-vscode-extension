@@ -22,7 +22,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../../logging/VSCodeBlockchain
 import { LogType } from '../../../logging/OutputAdapter';
 import { FabricEnvironmentTreeItem } from './FabricEnvironmentTreeItem';
 import { FabricEnvironmentRegistryEntry } from '../../../registries/FabricEnvironmentRegistryEntry';
-import { FabricRuntimeUtil } from '../../../fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
 

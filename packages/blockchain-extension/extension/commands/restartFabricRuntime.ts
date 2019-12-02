@@ -17,9 +17,9 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { LogType } from '../logging/OutputAdapter';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
-import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
+import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
@@ -36,7 +36,7 @@ export async function restartFabricRuntime(): Promise<void> {
     }, async (progress: vscode.Progress<{ message: string }>) => {
         progress.report({ message: `Restarting Fabric runtime ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}` });
 
-        const connectedGatewayRegistry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
+        const connectedGatewayRegistry: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
         if (connectedGatewayRegistry && connectedGatewayRegistry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
             await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
         }

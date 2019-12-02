@@ -16,7 +16,7 @@ import * as path from 'path';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { FabricWallet } from '../../extension/fabric/FabricWallet';
+import { FabricWallet } from 'ibm-blockchain-platform-gateway-v1';
 import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
 import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';

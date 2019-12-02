@@ -12,7 +12,7 @@
  * limitations under the License.
 */
 
-import { FabricConnection } from '../../extension/fabric/FabricConnection';
+import { FabricConnection } from '../src/FabricConnection';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
@@ -20,8 +20,7 @@ import * as sinonChai from 'sinon-chai';
 import * as fabricClientCA from 'fabric-ca-client';
 import { Gateway, Wallet, FileSystemWallet } from 'fabric-network';
 import * as Client from 'fabric-client';
-import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { OutputAdapter } from '../../extension/logging/OutputAdapter';
+import { OutputAdapter, LogType } from 'ibm-blockchain-platform-common';
 
 chai.should();
 chai.use(sinonChai);
@@ -31,6 +30,24 @@ chai.use(chaiAsPromised);
 // tslint:disable no-use-before-declare
 describe('FabricConnection', () => {
 
+    class TestOutputAdapter extends OutputAdapter {
+
+        public static instance(): TestOutputAdapter {
+            return TestOutputAdapter._instance;
+        }
+
+        private static _instance: TestOutputAdapter = new TestOutputAdapter();
+
+        private constructor() {
+            super();
+        }
+
+        public log(type: LogType, popupMessage: string, outputMessage?: string, stackTrace?: string): void {
+            super.log(type, popupMessage, outputMessage, stackTrace);
+        }
+    }
+
+    // tslint:disable-next-line: max-classes-per-file
     class TestFabricConnection extends FabricConnection {
 
         private connectionProfile: any;
@@ -124,7 +141,7 @@ describe('FabricConnection', () => {
         fabricGatewayStub.disconnect.returns(null);
 
         fabricConnection['gateway'] = fabricGatewayStub;
-        fabricConnection['outputAdapter'] = VSCodeBlockchainOutputAdapter.instance();
+        fabricConnection['outputAdapter'] = TestOutputAdapter.instance();
 
         await fabricConnection.connect(mockWallet, mockIdentityName, 120);
     });
@@ -135,7 +152,7 @@ describe('FabricConnection', () => {
 
     describe('constructor', () => {
         it('should set output adapter', async () => {
-            const adapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+            const adapter: TestOutputAdapter = TestOutputAdapter.instance();
             const connectionProfile: any = {
                 orderers: {
                     'orderer.example.com': {
@@ -619,13 +636,13 @@ describe('FabricConnection', () => {
             getMspidStub.onCall(0).returns(mspIds[0]);
             getMspidStub.onCall(1).returns(mspIds[1]);
 
-            fabricChannelStub.getChannelPeers.returns([{getName: getNameStub, getMspid: getMspidStub}, {getName: getNameStub, getMspid: getMspidStub}]);
+            fabricChannelStub.getChannelPeers.returns([{ getName: getNameStub, getMspid: getMspidStub }, { getName: getNameStub, getMspid: getMspidStub }]);
 
-            const channelPeersInfo: {name: string, mspID: string}[] = await fabricConnection.getChannelPeersInfo(channelName);
+            const channelPeersInfo: { name: string, mspID: string }[] = await fabricConnection.getChannelPeersInfo(channelName);
             fabricChannelStub.getChannelPeers.should.have.been.calledOnce;
             getNameStub.should.have.been.calledTwice;
             channelPeersInfo.length.should.equal(2);
-            channelPeersInfo.should.deep.equal([{name: peerNames[0], mspID: mspIds[0]}, {name: peerNames[1], mspID: mspIds[1]}]);
+            channelPeersInfo.should.deep.equal([{ name: peerNames[0], mspID: mspIds[0] }, { name: peerNames[1], mspID: mspIds[1] }]);
         });
 
         it('should handle any errors', async () => {

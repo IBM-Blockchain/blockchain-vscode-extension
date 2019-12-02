@@ -19,7 +19,7 @@ import { ChannelTreeItem } from './model/ChannelTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { GatewayAssociatedTreeItem } from './model/GatewayAssociatedTreeItem';
 import { GatewayDissociatedTreeItem } from './model/GatewayDissociatedTreeItem';
-import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
+import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { TransactionTreeItem } from './model/TransactionTreeItem';
@@ -34,11 +34,9 @@ import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedContractTreeItem } from './model/InstantiatedContractTreeItem';
 import { InstantiatedTreeItem } from './model/InstantiatedTreeItem';
-import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
+import { FabricChaincode, FabricRuntimeUtil, IFabricGatewayConnection } from 'ibm-blockchain-platform-common';
 import { InstantiatedMultiContractTreeItem } from './model/InstantiatedMultiContractTreeItem';
 import { InstantiatedUnknownTreeItem } from './model/InstantiatedUnknownTreeItem';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
-import { FabricChaincode } from '../fabric/FabricChaincode';
 import { TextTreeItem } from './model/TextTreeItem';
 
 export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProvider {
@@ -59,14 +57,14 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
     constructor() {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
-        FabricConnectionManager.instance().on('connected', async () => {
+        FabricGatewayConnectionManager.instance().on('connected', async () => {
             try {
                 await this.connect();
             } catch (error) {
                 outputAdapter.log(LogType.ERROR, `Error handling connected event: ${error.message}`, `Error handling connected event: ${error.toString()}`);
             }
         });
-        FabricConnectionManager.instance().on('disconnected', async () => {
+        FabricGatewayConnectionManager.instance().on('disconnected', async () => {
             try {
                 await this.disconnect();
             } catch (error) {
@@ -147,7 +145,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
                 this.instantiatedChaincodeTreeItems = [];
             }
 
-            if (FabricConnectionManager.instance().getConnection()) {
+            if (FabricGatewayConnectionManager.instance().getConnection()) {
                 // If connected to a gateway
                 this.tree = await this.createConnectedTree();
             } else {
@@ -231,7 +229,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
 
     private async populateInstantiatedTreeItems(unknownTreItem: InstantiatedUnknownTreeItem): Promise<void> {
         // Determine contracts for each instantiated chaincode and properly assign element
-        const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
+        const connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
         const contracts: Array<string> = await MetadataUtil.getContractNames(connection, unknownTreItem.name, unknownTreItem.channels[0].label);
         let newElement: BlockchainTreeItem;
         if (!contracts) {
@@ -251,7 +249,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
     private async createContractTree(chainCodeElement: InstantiatedChaincodeTreeItem): Promise<Array<ContractTreeItem>> {
         const tree: Array<any> = [];
         for (const contract of chainCodeElement.contracts) {
-            const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
+            const connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
             const transactionNamesMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, chainCodeElement.name, chainCodeElement.channels[0].label);
             const transactionNames: string[] = transactionNamesMap.get(contract);
             if (contract === '' || chainCodeElement.contracts.length === 1) {
@@ -279,8 +277,8 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         try {
             const tree: Array<BlockchainTreeItem> = [];
 
-            const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
-            const gatewayRegistryEntry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
+            const connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
+            const gatewayRegistryEntry: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
             let gatewayName: string = gatewayRegistryEntry.name;
             if (gatewayRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
                 gatewayName = FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
@@ -291,7 +289,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
 
             return tree;
         } catch (error) {
-            FabricConnectionManager.instance().disconnect();
+            FabricGatewayConnectionManager.instance().disconnect();
             throw error;
         }
     }
@@ -299,7 +297,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
     private async getChannelsTree(): Promise<ChannelTreeItem[]> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         try {
-            const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
+            const connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
 
             const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
             const channels: Array<string> = Array.from(channelMap.keys());
@@ -323,7 +321,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
             }
             return tree;
         } catch (error) {
-            FabricConnectionManager.instance().disconnect();
+            FabricGatewayConnectionManager.instance().disconnect();
 
             throw error;
         }

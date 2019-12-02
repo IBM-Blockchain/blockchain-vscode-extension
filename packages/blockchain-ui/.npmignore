@@ -14,5 +14,6 @@ enzyme
 scripts
 src
 node_modules
+coverage
 
 

@@ -18,7 +18,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { FabricWallet } from '../../extension/fabric/FabricWallet';
+import { FabricWallet } from 'ibm-blockchain-platform-gateway-v1';
 import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
@@ -31,8 +31,7 @@ import { Reporter } from '../../extension/util/Reporter';
 import { FabricNode } from '../../extension/fabric/FabricNode';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
-import { FabricRuntimeUtil } from '../../extension/fabric/FabricRuntimeUtil';
-import { IFabricWallet } from '../../extension/fabric/IFabricWallet';
+import { FabricRuntimeUtil, IFabricWallet } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 // tslint:disable no-unused-expression

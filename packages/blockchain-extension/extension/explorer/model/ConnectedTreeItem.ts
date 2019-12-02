@@ -17,7 +17,7 @@ import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { FabricGatewayRegistryEntry } from '../../registries/FabricGatewayRegistryEntry';
 import * as path from 'path';
-import { FabricRuntimeUtil } from '../../fabric/FabricRuntimeUtil';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 export class ConnectedTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-connected-item';
