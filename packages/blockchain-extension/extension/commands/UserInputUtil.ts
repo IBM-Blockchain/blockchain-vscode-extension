@@ -58,6 +58,8 @@ export class UserInputUtil {
     static readonly DEFAULT: string = 'Default';
     static readonly CUSTOM: string = 'Custom';
 
+    static readonly DEFAULT_SC_EP: string = `${UserInputUtil.DEFAULT} (single endorser, any org)`;
+
     static readonly OVERWRITE_FILE: string = 'Overwrite file';
     static readonly SKIP_FILE: string = 'Skip file';
     static readonly FORCE_FILES: string = 'Force all files to overwrite';

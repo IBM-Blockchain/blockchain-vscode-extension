@@ -18,6 +18,7 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as path from 'path';
+import * as fs from 'fs-extra';
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
@@ -63,9 +64,14 @@ describe('InstantiateCommand', () => {
         let smartContractsChildren: BlockchainTreeItem[];
         let channelsChildren: BlockchainTreeItem[];
         let showYesNo: sinon.SinonStub;
+        let showQuickPick: sinon.SinonStub;
+        let browseStub: sinon.SinonStub;
         let sendTelemetryEventStub: sinon.SinonStub;
         let environmentConnectionStub: sinon.SinonStub;
         let environmentRegistryStub: sinon.SinonStub;
+        let openDialogOptions: any;
+        let policyObject: any;
+        let policyString: string;
 
         beforeEach(async () => {
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
@@ -134,6 +140,32 @@ describe('InstantiateCommand', () => {
 
             const channels: ChannelsOpsTreeItem = allChildren[2] as ChannelsOpsTreeItem;
             channelsChildren = await blockchainRuntimeExplorerProvider.getChildren(channels);
+
+            showQuickPick = mySandBox.stub(UserInputUtil, 'showQuickPick').resolves(UserInputUtil.DEFAULT_SC_EP);
+            browseStub = mySandBox.stub(UserInputUtil, 'browse');
+
+            openDialogOptions = {
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: false,
+                openLabel: 'Select',
+                filters: {
+                    Identity: ['json']
+                }
+            };
+
+            policyString = `{
+                "identities": [
+                    { "role": { "name": "member", "mspId": "ecobankMSP" }},
+                    { "role": { "name": "member", "mspId": "finregMSP" }},
+                    { "role": { "name": "member", "mspId": "digibankMSP" }}
+                ],
+                "policy": {
+                    "2-of": [{ "signed-by": 0 }, { "signed-by": 1 }, { "signed-by": 2 }]
+                }
+            }`;
+
+            policyObject = JSON.parse(policyString);
         });
 
         afterEach(async () => {
@@ -168,11 +200,11 @@ describe('InstantiateCommand', () => {
         it('should instantiate the smart contract through the command with collection', async () => {
             showYesNo.resolves(UserInputUtil.YES);
             mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([]);
-            mySandBox.stub(UserInputUtil, 'browse').resolves(path.join('myPath'));
+            browseStub.resolves(path.join('myPath'));
             executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
-            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3'], 'myPath');
+            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3'], 'myPath', undefined);
 
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
@@ -190,12 +222,12 @@ describe('InstantiateCommand', () => {
             };
 
             mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([workspaceFolder]);
-            const showBrowse: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browse').resolves(path.join('myPath'));
+            browseStub.resolves(path.join('myPath'));
             executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
 
-            showBrowse.should.have.been.calledWith(sinon.match.any, sinon.match.any, {
+            browseStub.should.have.been.calledWith(sinon.match.any, sinon.match.any, {
                 canSelectFiles: true,
                 canSelectFolders: false,
                 canSelectMany: false,
@@ -203,13 +235,101 @@ describe('InstantiateCommand', () => {
                 defaultUri: vscode.Uri.file(path.join('myPath'))
             });
 
-            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3'], 'myPath');
+            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3'], 'myPath', undefined);
 
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
+        });
+
+        it('should stop if cancelled when asked what chaincode EP to use', async () => {
+            showYesNo.resolves(UserInputUtil.NO);
+            showQuickPick.resolves(undefined);
+
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+            fabricRuntimeMock.instantiateChaincode.should.not.have.been.called;
+
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
+        it(`should use the default chaincode EP when selecting '${UserInputUtil.DEFAULT_SC_EP}'`, async () => {
+            showYesNo.resolves(UserInputUtil.NO);
+            showQuickPick.resolves(UserInputUtil.DEFAULT_SC_EP);
+
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+            fabricRuntimeMock.instantiateChaincode.should.have.been.called;
+
+            dockerLogsOutputSpy.should.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
+        });
+
+        it(`should stop if user cancelled passing custom JSON CC EP file`, async () => {
+            showYesNo.onFirstCall().resolves(UserInputUtil.NO);
+            showQuickPick.resolves(UserInputUtil.CUSTOM);
+
+            browseStub.withArgs('Browse for the JSON file containing the smart contract endorsement policy', [UserInputUtil.BROWSE_LABEL], openDialogOptions, true).resolves(undefined);
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+            fabricRuntimeMock.instantiateChaincode.should.not.have.been.called;
+
+            dockerLogsOutputSpy.should.not.have.been.called;
+            browseStub.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
+        it(`should be able to pass a chaincode EP`, async () => {
+            showYesNo.resolves(UserInputUtil.NO);
+            showQuickPick.resolves(UserInputUtil.CUSTOM);
+            browseStub.withArgs('Browse for the JSON file containing the smart contract endorsement policy', [UserInputUtil.BROWSE_LABEL], openDialogOptions, true).resolves(vscode.Uri.file('myPath'));
+            const readFileStub: sinon.SinonStub = mySandBox.stub(fs, 'readFile').resolves(policyString);
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+            fabricRuntimeMock.instantiateChaincode.should.have.been.calledOnceWithExactly('myContract', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined, policyObject);
+
+            dockerLogsOutputSpy.should.have.been.called;
+            browseStub.should.have.been.calledOnce;
+            readFileStub.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
+        });
+
+        it(`should handle any errors parsing the chaincode EP`, async () => {
+            showYesNo.resolves(UserInputUtil.NO);
+            showQuickPick.resolves(UserInputUtil.CUSTOM);
+            browseStub.withArgs('Browse for the JSON file containing the smart contract endorsement policy', [UserInputUtil.BROWSE_LABEL], openDialogOptions, true).resolves(vscode.Uri.file('myPath'));
+            const readFileStub: sinon.SinonStub = mySandBox.stub(fs, 'readFile').resolves(`{invalidJSON}`);
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+            fabricRuntimeMock.instantiateChaincode.should.not.have.been.called;
+
+            dockerLogsOutputSpy.should.not.have.been.called;
+            browseStub.should.have.been.calledOnce;
+            readFileStub.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Unable to read smart contract endorsement policy: Unexpected token i in JSON at position 1`);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            sendTelemetryEventStub.should.not.have.been.calledOnceWithExactly('instantiateCommand');
         });
 
         it('should not show docker logs if not managed runtime', async () => {
@@ -245,7 +365,7 @@ describe('InstantiateCommand', () => {
 
         it('should handle cancel when choosing collection path', async () => {
             showYesNo.resolves(UserInputUtil.YES);
-            mySandBox.stub(UserInputUtil, 'browse').resolves();
+            browseStub.resolves();
             executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
@@ -323,7 +443,7 @@ describe('InstantiateCommand', () => {
         it('should instantiate the smart contract through the command with no function', async () => {
             showInputBoxStub.onFirstCall().resolves('');
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
-            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWithExactly('myContract', '0.0.1', ['peerOne'], 'myChannel', '', [], undefined);
+            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWithExactly('myContract', '0.0.1', ['peerOne'], 'myChannel', '', [], undefined, undefined);
             showInputBoxStub.should.have.been.calledOnce;
 
             dockerLogsOutputSpy.should.have.been.called;
@@ -336,7 +456,7 @@ describe('InstantiateCommand', () => {
             showInputBoxStub.onFirstCall().resolves('instantiate');
             showInputBoxStub.onSecondCall().resolves('');
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
-            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWithExactly('myContract', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', [], undefined);
+            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWithExactly('myContract', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', [], undefined, undefined);
             showInputBoxStub.should.have.been.calledTwice;
 
             dockerLogsOutputSpy.should.have.been.called;
