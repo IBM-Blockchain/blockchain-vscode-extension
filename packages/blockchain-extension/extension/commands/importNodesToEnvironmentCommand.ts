@@ -51,6 +51,10 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             }
         }
 
+        const environment: FabricEnvironment = new FabricEnvironment(environmentRegistryEntry.name);
+        const environmentBaseDir: string = path.resolve(environment.getPath());
+        await fs.ensureDir(environmentBaseDir);
+
         const nodesToUpdate: FabricNode[] = [];
         let addedAllNodes: boolean = true;
         if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_NODES) {
@@ -134,6 +138,8 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                 } catch (error) {
                     // This needs to be fixed - exactly what codes can we get that will require this behaviour?
                     if (error.code === 'DEPTH_ZERO_SELF_SIGNED_CERT') {
+                        let caCertificate: string;
+                        let certificatePath: vscode.Uri;
                         const certificateUsage: string = await UserInputUtil.showQuickPick('Unable to perform certificate verification. Please choose how to proceed', [UserInputUtil.ADD_CA_CERT_CHAIN, UserInputUtil.CONNECT_NO_CA_CERT_CHAIN]) as string;
                         if (!certificateUsage) {
                             return;
@@ -148,16 +154,24 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                                     Certificates: ['pem']
                                 }
                             };
-                            const certificatePath: vscode.Uri = await UserInputUtil.browse('Select CA certificate chain (.pem) file', quickPickItems, browseOptions, true) as vscode.Uri;
+                            certificatePath = await UserInputUtil.browse('Select CA certificate chain (.pem) file', quickPickItems, browseOptions, true) as vscode.Uri;
                             if (certificatePath === undefined) {
                                 return;
+                            } else if (Array.isArray(certificatePath)) {
+                                certificatePath = certificatePath[0];
                             }
-                            const caCertificate: string = await fs.readFile(certificatePath.fsPath, 'utf8');
+                            caCertificate = await fs.readFile(certificatePath.fsPath, 'utf8');
                             requestOptions.httpsAgent = new https.Agent({ ca: caCertificate });
                         } else {
                             requestOptions.httpsAgent = new https.Agent({ rejectUnauthorized: false });
                         }
                         response = await Axios.get(api, requestOptions);
+
+                        if (caCertificate) {
+                            const separator: string = process.platform === 'win32' ? '\\' : '/';
+                            const caCertificateCopy: string = path.join(environmentBaseDir, certificatePath.fsPath.split(separator).pop());
+                            await fs.copy(certificatePath.fsPath, caCertificateCopy, { overwrite: true });
+                        }
                     } else {
                         throw error;
                     }
@@ -221,11 +235,10 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
 
         const dirPath: string = await vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY) as string;
         const homeExtDir: string = FileSystemUtil.getDirPath(dirPath);
-        const environmentPath: string = path.join(homeExtDir, 'environments', environmentRegistryEntry.name, 'nodes');
+        const environmentNodesPath: string = path.join(homeExtDir, 'environments', environmentRegistryEntry.name, 'nodes');
 
-        await fs.ensureDir(environmentPath);
+        await fs.ensureDir(environmentNodesPath);
 
-        const environment: FabricEnvironment = new FabricEnvironment(environmentRegistryEntry.name);
         const oldNodes: FabricNode[] = await environment.getNodes();
 
         for (const node of nodesToUpdate) {
@@ -251,7 +264,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
         const newEnvironment: FabricEnvironment = new FabricEnvironment(environmentRegistryEntry.name);
         const newNodes: FabricNode[] = await newEnvironment.getNodes();
         if (newNodes.length === 0) {
-            await fs.remove(environmentPath);
+            await fs.remove(environmentNodesPath);
             throw new Error('no nodes were added');
         } else if (newNodes.length === oldNodes.length) {
             throw new Error('no nodes were added');

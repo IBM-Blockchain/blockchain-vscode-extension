@@ -56,6 +56,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
     let showQuickPickStub: sinon.SinonStub;
     let chooseCertVerificationStub: sinon.SinonStub;
     let readFileStub: sinon.SinonStub;
+    let fsCopyStub: sinon.SinonStub;
     let localFabricNodes: any;
     let opsToolNodes: any;
     let url: string;
@@ -79,6 +80,8 @@ describe('ImportNodesToEnvironmentCommand', () => {
             addMoreStub = mySandBox.stub(UserInputUtil, 'addMoreNodes').resolves(UserInputUtil.DONE_ADDING_NODES);
             ensureDirStub = mySandBox.stub(fs, 'ensureDir').resolves();
             removeDirStub = mySandBox.stub(fs, 'remove').resolves();
+            fsCopyStub = mySandBox.stub(fs, 'copy').resolves();
+
             showInputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
             axiosGetStub = mySandBox.stub(Axios, 'get');
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand').callThrough();
@@ -190,7 +193,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
 
-            ensureDirStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.have.been.calledOnce;
             getNodesStub.should.have.been.calledTwice;
 
@@ -206,9 +209,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             requireAsarModuleStub.should.have.been.calledOnce;
-            ensureDirStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
+            fsCopyStub.should.have.been.calledOnce;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
@@ -219,9 +223,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, OpsToolRegistryEntry, false);
 
             requireAsarModuleStub.should.have.been.calledOnce;
-            ensureDirStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
+            fsCopyStub.should.have.been.calledOnce;
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, OpsToolRegistryEntry);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
@@ -235,9 +240,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').should.not.have.been.called;
             axiosGetStub.should.not.have.been.called;
-            ensureDirStub.should.not.have.been.called;
+            ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.not.have.been.called;
+            fsCopyStub.should.not.have.been.called;
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Import nodes to environment');
         });
 
@@ -248,9 +254,11 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             showInputBoxStub.withArgs('Enter the api secret of the ops tools you want to connect to').should.not.have.been.called;
             axiosGetStub.should.not.have.been.called;
-            ensureDirStub.should.not.have.been.called;
+            ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.not.have.been.called;
+            fsCopyStub.should.not.have.been.called;
+
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Import nodes to environment');
         });
 
@@ -260,9 +268,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             axiosGetStub.should.not.have.been.called;
-            ensureDirStub.should.not.have.been.called;
+            ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.not.have.been.called;
+            fsCopyStub.should.not.have.been.called;
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Import nodes to environment');
         });
 
@@ -273,11 +282,12 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
-            ensureDirStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
             requireAsarModuleStub.should.have.been.calledOnce;
             requireModuleSpy.should.not.have.been.called;
+            fsCopyStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
         });
@@ -294,11 +304,12 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
-            ensureDirStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
             requireAsarModuleStub.should.have.been.calledOnce;
             requireModuleStub.should.have.been.calledOnce;
+            fsCopyStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
         });
@@ -312,9 +323,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             requireAsarModuleStub.should.have.been.calledOnce;
             requireModuleStub.should.have.been.calledOnce;
-            ensureDirStub.should.not.have.been.called;
+            ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.not.have.been.called;
+            fsCopyStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error importing nodes: Error importing the keytar module`);
         });
@@ -326,16 +338,17 @@ describe('ImportNodesToEnvironmentCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS).should.be.rejectedWith('Unable to store API key and API secret securely in your keychain: newError');
 
             requireAsarModuleStub.should.have.been.calledOnce;
-            ensureDirStub.should.not.have.been.called;
+            ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.not.have.been.called;
+            fsCopyStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error importing nodes: Unable to store API key and API secret securely in your keychain: ${error.message}`);
         });
 
         it('should test nodes can be added from URL and key (non TLS network) when adding a new OpsTool instance', async () => {
             const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
-            browseStub.onFirstCall().resolves([uri]);
+            browseStub.onSecondCall().resolves([uri]);
 
             axiosGetStub.resolves(
                 {
@@ -372,9 +385,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             requireAsarModuleStub.should.have.been.calledOnce;
-            ensureDirStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
+            fsCopyStub.should.have.been.calledOnce;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
@@ -386,9 +400,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             readFileStub.withArgs(caCertChainUri.fsPath, 'utf8').should.have.not.been.called;
-            ensureDirStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
+            fsCopyStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
         });
@@ -398,9 +413,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             axiosGetStub.should.have.have.been.calledOnce;
-            ensureDirStub.should.not.have.been.called;
+            ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.not.have.been.called;
+            fsCopyStub.should.not.have.been.called;
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Import nodes to environment');
         });
 
@@ -409,9 +425,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             axiosGetStub.should.have.have.been.calledOnce;
-            ensureDirStub.should.not.have.been.called;
+            ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.not.have.been.called;
+            fsCopyStub.should.not.have.been.called;
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Import nodes to environment');
         });
 
@@ -421,7 +438,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry);
 
-            ensureDirStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.have.been.calledOnce;
             getNodesStub.should.have.been.calledTwice;
 
@@ -437,7 +454,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
 
-            ensureDirStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.have.been.calledOnce;
             getNodesStub.should.have.been.calledTwice;
 
@@ -477,7 +494,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
 
-            ensureDirStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
 
@@ -516,7 +533,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
 
-            ensureDirStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.have.been.calledOnce;
             getNodesStub.should.have.been.calledTwice;
 
@@ -541,7 +558,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
 
-            ensureDirStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
 
@@ -603,7 +620,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             addMoreStub.resolves(UserInputUtil.DONE_ADDING_NODES);
 
             const error: Error = new Error('some error');
-            ensureDirStub.rejects(error);
+            ensureDirStub.onSecondCall().rejects(error);
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
 
@@ -640,9 +657,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, OpsToolRegistryEntry, false);
 
             requireAsarModuleStub.should.have.been.calledOnce;
-            ensureDirStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.have.been.calledTwice;
+            fsCopyStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${connectionError.message}`, `Failed to acquire nodes from ${url}, with error ${connectionError.toString()}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error importing nodes: ${executionError.message}`);
@@ -657,9 +675,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS).should.eventually.be.rejectedWith(error);
 
             requireAsarModuleStub.should.have.been.calledOnce;
-            ensureDirStub.should.not.have.been.called;
+            ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.not.have.been.called;
+            fsCopyStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${error.message}`, `Failed to acquire nodes from ${url}, with error ${error.toString()}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error importing nodes: ${error.message}`);
@@ -670,9 +689,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
-            ensureDirStub.should.not.have.been.called;
+            ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.not.have.been.called;
+            fsCopyStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
         });
@@ -685,9 +705,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             requireAsarModuleStub.should.have.been.calledOnce;
-            ensureDirStub.should.have.been.called;
+            ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
+            fsCopyStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
         });
@@ -744,9 +765,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
             savedNodesHidden.should.deep.equal(expectedNodesHidden);
 
             requireAsarModuleStub.should.have.been.calledOnce;
-            ensureDirStub.should.have.been.called;
+            ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
+            fsCopyStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
         });
@@ -790,7 +812,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
 
-            ensureDirStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.have.been.calledTwice;
 
@@ -821,7 +843,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES).should.eventually.be.rejectedWith('no nodes were added');
 
-            ensureDirStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.have.been.calledTwice;
 
@@ -845,7 +867,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, undefined, false);
 
-            ensureDirStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.have.been.calledOnce;
             getNodesStub.should.have.been.calledTwice;
             removeDirStub.should.have.been.called;
@@ -882,7 +904,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
 
-            ensureDirStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.have.been.calledOnce;
             getNodesStub.should.have.been.calledTwice;
 
