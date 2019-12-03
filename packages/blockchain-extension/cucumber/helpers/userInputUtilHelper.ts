@@ -50,7 +50,7 @@ export class UserInputUtilHelper {
     showQuickPickStub: sinon.SinonStub;
     showEnvironmentQuickPickStub: sinon.SinonStub;
     showOrgQuickPickStub: sinon.SinonStub;
-    showFabricNodeQuickPickStub: sinon.SinonStub;
+    showNodesInEnvironmentQuickPickStub: sinon.SinonStub;
     showWorkspaceQuickPickBoxStub: sinon.SinonStub;
     showSaveDialogStub: sinon.SinonStub;
     showWarningMessageStub: sinon.SinonStub;
@@ -90,7 +90,7 @@ export class UserInputUtilHelper {
         this.showQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showQuickPick').callThrough();
         this.showEnvironmentQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox').callThrough();
         this.showOrgQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showOrgQuickPick').callThrough();
-        this.showFabricNodeQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showFabricNodeQuickPick').callThrough();
+        this.showNodesInEnvironmentQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showNodesInEnvironmentQuickPick').callThrough();
         this.showWorkspaceQuickPickBoxStub = this.mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox').callThrough();
         this.showWarningMessageStub = this.mySandBox.stub(vscode.window, 'showWarningMessage').callThrough();
         this.openFileBrowserStub = this.mySandBox.stub(UserInputUtil, 'openFileBrowser').callThrough();

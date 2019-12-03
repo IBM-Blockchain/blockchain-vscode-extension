@@ -48,13 +48,16 @@ export class FabricEnvironment extends EventEmitter {
         return Array.from(mspIDs).sort();
     }
 
-    public async getNodes(withoutIdentities: boolean = false): Promise<FabricNode[]> {
+    public async getNodes(withoutIdentities: boolean = false, showAll: boolean = false): Promise<FabricNode[]> {
         const rootNodesPath: string = path.resolve(this.path, 'nodes');
         const nodes: FabricNode[] = await this.loadNodes(rootNodesPath);
+        const nodesToUse: FabricNode[] = showAll ? nodes : nodes.filter((_node: FabricNode) => {
+            return _node.hidden === undefined || _node.hidden === false;
+        });
         if (withoutIdentities) {
-            return nodes.filter((node: FabricNode) => (!node.wallet || !node.identity));
+            return nodesToUse.filter((node: FabricNode) => (!node.wallet || !node.identity));
         } else {
-            return nodes;
+            return nodesToUse;
         }
     }
 
