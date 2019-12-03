@@ -24,6 +24,11 @@ export async function addEnvironment(): Promise<void> {
     try {
         outputAdapter.log(LogType.INFO, undefined, 'Add environment');
 
+        const createMethod: string = await UserInputUtil.showQuickPick('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]) as string;
+        if (!createMethod) {
+            return;
+        }
+
         const fabricEnvironmentRegistry: FabricEnvironmentRegistry = FabricEnvironmentRegistry.instance();
 
         const environmentName: string = await UserInputUtil.showInputBox('Enter a name for the environment');
@@ -40,7 +45,7 @@ export async function addEnvironment(): Promise<void> {
         const fabricEnvironmentEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         fabricEnvironmentEntry.name = environmentName;
 
-        const addedAllNodes: boolean = await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, fabricEnvironmentEntry, true) as boolean;
+        const addedAllNodes: boolean = await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, fabricEnvironmentEntry, true, createMethod) as boolean;
         if (addedAllNodes === undefined) {
             return;
         }

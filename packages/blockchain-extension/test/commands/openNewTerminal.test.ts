@@ -83,7 +83,7 @@ describe('openNewTerminal', () => {
     });
 
     it('should open a terminal for a Fabric node specified by user selection', async () => {
-        sandbox.stub(UserInputUtil, 'showFabricNodeQuickPick').resolves({data: node});
+        sandbox.stub(UserInputUtil, 'showNodesInEnvironmentQuickPick').resolves({data: node});
         await vscode.commands.executeCommand(ExtensionCommands.OPEN_NEW_TERMINAL);
         createTerminalStub.should.have.been.calledOnceWithExactly(
             'Fabric runtime - peer0.org1.example.com',
@@ -100,7 +100,7 @@ describe('openNewTerminal', () => {
     });
 
     it('should not open a terminal if a user cancels specifying a Fabric node', async () => {
-        sandbox.stub(UserInputUtil, 'showFabricNodeQuickPick').resolves(undefined);
+        sandbox.stub(UserInputUtil, 'showNodesInEnvironmentQuickPick').resolves(undefined);
         await vscode.commands.executeCommand(ExtensionCommands.OPEN_NEW_TERMINAL);
         createTerminalStub.should.not.have.been.called;
     });

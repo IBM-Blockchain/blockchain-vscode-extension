@@ -162,4 +162,17 @@ describe('FabricNode', () => {
             }
         });
     });
+
+    describe('pruneNode', () => {
+        it('should set hidden to false when undefined', () => {
+            try {
+                peerNode.hidden = undefined;
+                const prunedNode: FabricNode = FabricNode.pruneNode(peerNode);
+                prunedNode.hidden.should.equal(false);
+            } catch (error) {
+                throw new Error('should not get here ' + error.message);
+            }
+        });
+    });
+
 });

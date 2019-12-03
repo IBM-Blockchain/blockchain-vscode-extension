@@ -58,7 +58,7 @@ describe('GlobalState', () => {
 
         it('should handle any problems getting the global state', async () => {
             const error: Error = new Error(`can't get global state`);
-            const getStateStub: sinon.SinonSpy = mySandBox.stub(context.globalState, 'get').throws(error);
+            const getStateStub: sinon.SinonStub = mySandBox.stub(context.globalState, 'get').throws(error);
 
             const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 

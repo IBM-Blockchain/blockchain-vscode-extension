@@ -190,7 +190,7 @@ describe('AddGatewayCommand', () => {
 
         let showEnvironmentQuickPickStub: sinon.SinonStub;
         let showOrgQuickPickStub: sinon.SinonStub;
-        let showFabricNodeQuickPickStub: sinon.SinonStub;
+        let showNodesInEnvironmentQuickPickStub: sinon.SinonStub;
         let generateConnectionProfileStub: sinon.SinonStub;
         let peerNode: FabricNode;
         let caNode: FabricNode;
@@ -210,7 +210,7 @@ describe('AddGatewayCommand', () => {
             showOrgQuickPickStub = mySandBox.stub(UserInputUtil, 'showOrgQuickPick').resolves({ label: 'Org1MSP', data: peerNode });
 
             caNode = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:7054', 'ca_name', 'local_fabric_wallet', 'admin', 'Org1MSP', 'admin', 'adminpw');
-            showFabricNodeQuickPickStub = mySandBox.stub(UserInputUtil, 'showFabricNodeQuickPick').resolves({ label: 'ca.org1.example.com', data: caNode });
+            showNodesInEnvironmentQuickPickStub = mySandBox.stub(UserInputUtil, 'showNodesInEnvironmentQuickPick').resolves({ label: 'ca.org1.example.com', data: caNode });
 
             generateConnectionProfileStub = mySandBox.stub(FabricGatewayHelper, 'generateConnectionProfile').resolves(path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'));
 
@@ -289,7 +289,7 @@ describe('AddGatewayCommand', () => {
         });
 
         it('should handle cancel choosing ca', async () => {
-            showFabricNodeQuickPickStub.resolves();
+            showNodesInEnvironmentQuickPickStub.resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
@@ -303,7 +303,7 @@ describe('AddGatewayCommand', () => {
         });
 
         it('should handle no ca found', async () => {
-            showFabricNodeQuickPickStub.rejects('some error');
+            showNodesInEnvironmentQuickPickStub.rejects('some error');
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
