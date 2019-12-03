@@ -239,7 +239,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
             });
 
             it('should associate identity with multiple nodes', async () => {
-                showFabricNodeQuickPickStub.withArgs('Choose the nodes you wish to associate with this identity').resolves([{label: ordererNode.name, data: ordererNode}]);
+                showNodesInEnvironmentQuickPickStub.withArgs('Choose the nodes you wish to associate with this identity').resolves([{label: ordererNode.name, data: ordererNode}]);
                 showQuickPickYesNoStub.withArgs('Do you want to associate the same identity with another node?').resolves(UserInputUtil.YES);
 
                 await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, ...[environmentRegistryEntry, peerNode]);
@@ -260,7 +260,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
             });
 
             it('should associate identity with multiple nodes by allowing user to select multiple nodes using a checkbox', async () => {
-                showFabricNodeQuickPickStub.withArgs('Choose the nodes you wish to associate with this identity').resolves([{label: ordererNode.name, data: ordererNode}, {label: caNodeWithoutCreds.name, data: caNodeWithoutCreds}]);
+                showNodesInEnvironmentQuickPickStub.withArgs('Choose the nodes you wish to associate with this identity').resolves([{label: ordererNode.name, data: ordererNode}, {label: caNodeWithoutCreds.name, data: caNodeWithoutCreds}]);
                 showQuickPickYesNoStub.withArgs('Do you want to associate the same identity with another node?').resolves(UserInputUtil.YES);
 
                 await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, ...[environmentRegistryEntry, peerNode]);
@@ -285,7 +285,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
 
             it('should handle cancel when choosing to associate more identities', async () => {
                 showQuickPickYesNoStub.withArgs('Do you want to associate the same identity with another node?').onFirstCall().resolves(UserInputUtil.YES);
-                showFabricNodeQuickPickStub.withArgs('Choose the nodes you wish to associate with this identity').resolves([]);
+                showNodesInEnvironmentQuickPickStub.withArgs('Choose the nodes you wish to associate with this identity').resolves([]);
                 await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, ...[environmentRegistryEntry, peerNode]);
 
                 peerNode.identity = 'identityOne';
