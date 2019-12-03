@@ -83,10 +83,15 @@ If you wish to control which files in the project are packaged, you can create a
 ```
 
 ### Connecting to an instance of Hyperledger Fabric
+
+The extension is compatible with connecting to and interacting with any Fabric 1.4.x network.
+
 #### Local Fabric
-The extension contains a pre-configured local instance of Hyperledger Fabric named `Local Fabric`, which the extension will automatically pull and use the correct Docker images for. It is a pre-configured network with one organization, one peer and one channel. It can be enabled and operated under the `Fabric Environments` panel. The first time it is started, Fabric images will be installed and an admin identity created in the `Local Fabric Wallet` wallet.
+The extension contains a pre-configured local instance of Hyperledger Fabric named `Local Fabric`, which the extension will automatically pull and use the correct Docker images for. It is a pre-configured network with one organization, one peer and one channel. It can be enabled and operated under the `Fabric Environments` panel. The first time it is started, Fabric 1.4.4 images will be installed and an admin identity created in the `Local Fabric Wallet` wallet.
 
 For `Local Fabric` management tasks such as restart and teardown, right click on `Local Fabric` in the `Fabric Environments` panel.
+
+The `Local Fabric` currently uses Fabric 1.4.4 images.
 
 #### Connecting to another instance of Hyperledger Fabric
 The extension allow you to connect to any Hyperledger Fabric instance and perform some operational tasks. The tasks available are: install, instantiate and registering and enrolling identities.
