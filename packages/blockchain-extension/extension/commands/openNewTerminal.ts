@@ -26,7 +26,7 @@ export async function openNewTerminal(nodeItem: NodeTreeItem): Promise<void> {
         node = nodeItem.node;
     } else {
         const environmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
-        const chosenNode: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick(
+        const chosenNode: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showNodesInEnvironmentQuickPick(
             'Select a Fabric runtime node to open a new terminal for', environmentRegistryEntry,
             [FabricNodeType.PEER, FabricNodeType.CERTIFICATE_AUTHORITY, FabricNodeType.ORDERER]
         ) as IBlockchainQuickPickItem<FabricNode>;

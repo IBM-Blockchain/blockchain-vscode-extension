@@ -55,6 +55,7 @@ export class EnvironmentHelper {
         if (!treeItem) {
 
             this.userInputUtilHelper.inputBoxStub.withArgs('Enter a name for the environment').resolves(name);
+            this.userInputUtilHelper.showQuickPickStub.withArgs('Choose a method to import nodes to an environment').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
 
             if (process.env.ANSIBLE_FABRIC) {
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR});
@@ -87,7 +88,7 @@ export class EnvironmentHelper {
             return _node.name === nodeName;
         });
 
-        this.userInputUtilHelper.showFabricNodeQuickPickStub.resolves([{ label: nodeName, data: node }]);
+        this.userInputUtilHelper.showNodesInEnvironmentQuickPickStub.resolves([{ label: nodeName, data: node }]);
 
         await vscode.commands.executeCommand(ExtensionCommands.DELETE_NODE);
     }
