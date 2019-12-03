@@ -162,6 +162,7 @@ describe('AddEnvironmentCommand', () => {
 
         it('should handle errors when adding nodes to an environment', async () => {
             showInputBoxStub.onFirstCall().resolves('myEnvironment');
+            const deleteEnvironmentSpy: sinon.SinonSpy = mySandBox.spy(FabricEnvironmentRegistry.instance(), 'delete');
 
             const error: Error = new Error('some error');
 
@@ -173,6 +174,7 @@ describe('AddEnvironmentCommand', () => {
 
             environments.length.should.equal(0);
             logSpy.should.have.been.calledTwice;
+            deleteEnvironmentSpy.should.have.been.calledOnceWithExactly('myEnvironment', true);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${error.message}`, `Failed to add a new environment: ${error.toString()}`);
             sendTelemetryEventStub.should.not.have.been.called;
