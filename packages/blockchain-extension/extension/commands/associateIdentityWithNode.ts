@@ -171,7 +171,7 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
         if (!yesnoPick || yesnoPick === UserInputUtil.NO) {
             return;
         } else {
-            const nodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showFabricNodeQuickPick('Choose the nodes you wish to associate with this identity', environmentRegistryEntry.name, [], false, true, true) as IBlockchainQuickPickItem<FabricNode>[];
+            const nodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesInEnvironmentQuickPick('Choose the nodes you wish to associate with this identity', environmentRegistryEntry.name, [], false, true, true) as IBlockchainQuickPickItem<FabricNode>[];
 
             if (!nodes || nodes.length === 0) {
                 return;
