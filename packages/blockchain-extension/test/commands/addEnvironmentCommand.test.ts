@@ -85,6 +85,39 @@ describe('AddEnvironmentCommand', () => {
             mySandBox.restore();
         });
 
+        it('should test an OpsTool environment can be added', async () => {
+            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            showInputBoxStub.onFirstCall().resolves('myEnvironment');
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+
+            environments.length.should.equal(1);
+            environments[0].should.deep.equal({
+                name: 'myEnvironment'
+            });
+
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
+        });
+
+        it('should test adding a environment can be cancelled when choosing the method of adding environment', async () => {
+            chooseMethodStub.resolves(undefined);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(0);
+            showInputBoxStub.should.not.have.been.called;
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Add environment');
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
         it('should test an environment can be added', async () => {
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
@@ -95,7 +128,7 @@ describe('AddEnvironmentCommand', () => {
                 name: 'myEnvironment'
             });
 
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
 
             deleteEnvironmentSpy.should.have.not.been.called;
@@ -125,7 +158,7 @@ describe('AddEnvironmentCommand', () => {
                 name: 'myEnvironmentTwo'
             });
 
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             deleteEnvironmentSpy.should.have.not.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
@@ -218,7 +251,7 @@ describe('AddEnvironmentCommand', () => {
                 name: 'myEnvironment'
             });
 
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
 
             deleteEnvironmentSpy.should.have.not.been.called;
