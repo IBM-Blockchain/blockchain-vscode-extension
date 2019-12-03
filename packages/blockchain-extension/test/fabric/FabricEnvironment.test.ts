@@ -27,6 +27,7 @@ chai.should();
 describe('FabricEnvironment', () => {
 
     const rootPath: string = path.dirname(__dirname);
+
     const environmentPath: string = path.resolve(rootPath, '..', '..', 'test', 'data', 'environment');
 
     let environment: FabricEnvironment;
@@ -125,7 +126,8 @@ describe('FabricEnvironment', () => {
                     chaincode_url: 'grpc://localhost:17052',
                     type: 'fabric-peer',
                     msp_id: 'Org1MSP',
-                    container_name: 'yofn_peer1.org1.example.com'
+                    container_name: 'yofn_peer1.org1.example.com',
+                    hidden: false
                 }
             ]);
         });
@@ -153,7 +155,46 @@ describe('FabricEnvironment', () => {
                     chaincode_url: 'grpc://localhost:17052',
                     type: 'fabric-peer',
                     msp_id: 'Org1MSP',
-                    container_name: 'yofn_peer1.org1.example.com'
+                    container_name: 'yofn_peer1.org1.example.com',
+                    hidden: false
+                }
+            ]);
+        });
+        it('should return hidden nodes if showAll is true', async () => {
+            await environment.getNodes(true, true).should.eventually.deep.equal([
+                {
+                    short_name: 'couchdb',
+                    name: 'couchdb',
+                    api_url: 'http://localhost:17055',
+                    type: 'couchdb',
+                    container_name: 'yofn_couchdb'
+                },
+                {
+                    short_name: 'logspout',
+                    name: 'logspout',
+                    api_url: 'http://localhost:17056',
+                    type: 'logspout',
+                    container_name: 'yofn_logspout'
+                },
+                {
+                    short_name: 'peer1.org1.example.com',
+                    name: 'peer1.org1.example.com',
+                    api_url: 'grpc://localhost:17051',
+                    chaincode_url: 'grpc://localhost:17052',
+                    type: 'fabric-peer',
+                    msp_id: 'Org1MSP',
+                    container_name: 'yofn_peer1.org1.example.com',
+                    hidden: false
+                },
+                {
+                    short_name: 'peer2.org1.example.com',
+                    name: 'peer2.org1.example.com',
+                    api_url: 'grpc://localhost:17051',
+                    chaincode_url: 'grpc://localhost:17052',
+                    type: 'fabric-peer',
+                    msp_id: 'Org1MSP',
+                    container_name: 'yofn_peer2.org1.example.com',
+                    hidden: true
                 }
             ]);
         });
