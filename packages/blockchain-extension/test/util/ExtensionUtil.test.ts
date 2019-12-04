@@ -1216,6 +1216,26 @@ describe('ExtensionUtil Tests', () => {
             globalStateUpdateStub.should.not.have.been.called;
         });
 
+        it(`should open home page if enabled in user settings, extension has updated and user selected show next setting - the latter should be set to false after`, async () => {
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_NEXT_ACTIVATION, true, vscode.ConfigurationTarget.Global);
+
+            globalStateGetStub.returns({
+                generatorVersion: dependencies['generator-fabric']
+            });
+
+            executeCommandStub.resolves();
+
+            await ExtensionUtil.completeActivation(true);
+
+            logSpy.should.have.been.calledWith(LogType.INFO, 'IBM Blockchain Platform Extension activated');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+            getRuntimeStub.should.not.have.been.called;
+            globalStateUpdateStub.should.not.have.been.called;
+            const showOnNext: boolean = await vscode.workspace.getConfiguration().get(SettingConfigurations.HOME_SHOW_ON_NEXT_ACTIVATION);
+            showOnNext.should.be.false;
+        });
+
         it(`should open home page on first activation`, async () => {
             await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
 
@@ -1250,6 +1270,26 @@ describe('ExtensionUtil Tests', () => {
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
             getRuntimeStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
+        });
+
+        it(`should open home page if user selects show on next activation setting, and setting should be set to false after`, async () => {
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_NEXT_ACTIVATION, true, vscode.ConfigurationTarget.Global);
+
+            globalStateGetStub.returns({
+                generatorVersion: dependencies['generator-fabric']
+            });
+
+            executeCommandStub.resolves();
+
+            await ExtensionUtil.completeActivation(true);
+
+            logSpy.should.have.been.calledWith(LogType.INFO, 'IBM Blockchain Platform Extension activated');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+            getRuntimeStub.should.not.have.been.called;
+            globalStateUpdateStub.should.not.have.been.called;
+            const showOnNext: boolean = await vscode.workspace.getConfiguration().get(SettingConfigurations.HOME_SHOW_ON_NEXT_ACTIVATION);
+            showOnNext.should.be.false;
         });
 
         it(`should update generator version to latest when the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} has not been generated`, async () => {

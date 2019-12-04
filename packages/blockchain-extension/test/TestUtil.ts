@@ -35,6 +35,7 @@ export class TestUtil {
             await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, this.EXTENSION_TEST_DIR, vscode.ConfigurationTarget.Global);
             await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
             await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_NEXT_ACTIVATION, false, vscode.ConfigurationTarget.Global);
 
             if (!sandbox) {
                 sandbox = sinon.createSandbox();
@@ -134,6 +135,14 @@ export class TestUtil {
             }
         }
     }
+    static async storeShowHomeOnNextStart(): Promise<void> {
+        this.HOME_STARTUP_NEXT = await vscode.workspace.getConfiguration().get(SettingConfigurations.HOME_SHOW_ON_NEXT_ACTIVATION);
+        console.log('Storing home startup on next activation:', this.HOME_STARTUP_NEXT);
+    }
+    static async restoreShowHomeOnNextStart(): Promise<void> {
+        console.log('Restoring show home startup on next activation config to settings:', this.HOME_STARTUP_NEXT);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_NEXT_ACTIVATION, this.HOME_STARTUP_NEXT, vscode.ConfigurationTarget.Global);
+    }
 
     private static USER_PACKAGE_DIR_CONFIG: any;
     private static USER_RUNTIMES_CONFIG: any;
@@ -141,4 +150,5 @@ export class TestUtil {
     private static BYPASS_PREREQS: any;
     private static GLOBAL_STATE: ExtensionData;
     private static ENABLE_LOCAL_FABRIC: boolean;
+    private static HOME_STARTUP_NEXT: boolean;
 }
