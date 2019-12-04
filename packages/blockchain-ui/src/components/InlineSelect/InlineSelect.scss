@@ -1,7 +1,12 @@
-.inline-select {
+@import '@carbon/layout/scss/_spacing';
 
+.inline-select {
     display: inline-flex;
     flex-direction: row;
+
+    .bx--select-input__wrapper {
+        margin-left: $spacing-03;
+    }
 
     .bx--select-input {
         background: none;

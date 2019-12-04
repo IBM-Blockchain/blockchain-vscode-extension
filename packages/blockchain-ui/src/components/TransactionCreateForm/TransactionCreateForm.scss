@@ -1,0 +1,48 @@
+@import '@carbon/colors/scss/colors';
+@import '@carbon/layout/scss/_spacing';
+
+fieldset > legend {
+    opacity: 0;
+}
+
+.inline-row {
+    padding: 0px $spacing-05;
+}
+
+.hide-label {
+    label {
+        display: none;
+    }
+}
+
+.home-link {
+    color: $carbon--blue-50;
+
+    &:hover {
+        cursor: pointer;
+    }
+}
+
+.select-width {
+    width: 100%;
+
+    select {
+        max-width: none;
+        width: 100%
+    }
+}
+
+.bx--text-area__wrapper {
+    width: 100%;
+
+    textarea {
+        font-size: 100%;
+        width: 100%;
+        resize: vertical;
+    }
+}
+
+.submit-and-evaluate-buttons {
+    margin-right: $spacing-03;
+    min-width: 140px;
+}

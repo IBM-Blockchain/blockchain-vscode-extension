@@ -105,12 +105,16 @@ describe('Cypress', () => {
             }
         };
 
+        const mockOutput: {output: string} = {
+            output: 'some transaction output'
+        };
+
         beforeEach(() => {
             cy.visit('build/index.html').then((window: Window) => {
                 window.postMessage(mockMessage, '*');
             });
 
-             // @ts-ignore
+            // @ts-ignore
             cy.window().its('app')
                 .then((app: any) => {
                     cy.stub(app, 'postMessageHandler').as('postMessageStub');
@@ -154,6 +158,12 @@ describe('Cypress', () => {
             cy.get('#submit-button').click();
 
             cy.get('@postMessageStub').should('be.called');
+
+            cy.window().then((window: Window) => {
+                window.postMessage(mockOutput, '*');
+            });
+
+            cy.get('.output-body').contains(mockOutput.output);
         });
 
         it(`can evaluate a transaction with the user's input`, () => {
@@ -163,6 +173,12 @@ describe('Cypress', () => {
             cy.get('#evaluate-button').click();
 
             cy.get('@postMessageStub').should('be.called');
+
+            cy.window().then((window: Window) => {
+                window.postMessage(mockOutput, '*');
+            });
+
+            cy.get('.output-body').contains(mockOutput.output);
         });
     });
 });

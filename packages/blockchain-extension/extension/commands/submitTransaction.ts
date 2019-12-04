@@ -25,7 +25,7 @@ import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { IFabricGatewayConnection, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
-export async function submitTransaction(evaluate: boolean, treeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string, transactionObject?: any): Promise<void> {
+export async function submitTransaction(evaluate: boolean, treeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string, transactionObject?: any): Promise<void | string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     let action: string;
     let actioning: string;
@@ -48,6 +48,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
     let peerTargetNames: string[] = [];
     let peerTargetMessage: string = '';
     let connection: IFabricGatewayConnection;
+    let errorMessage: string;
 
     if (transactionObject) {
         channelName = transactionObject.channelName;
@@ -108,8 +109,9 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
             }
             args = JSON.parse(argsString);
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Error with transaction arguments: ${error.message}`);
-            return;
+            errorMessage = `Error with transaction arguments: ${error.message}`;
+            outputAdapter.log(LogType.ERROR, errorMessage);
+            return transactionObject ? errorMessage : undefined;
         }
     }
 
@@ -176,7 +178,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
         }
     }
 
-    await vscode.window.withProgress({
+    return await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
@@ -214,12 +216,23 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
             outputAdapter.log(LogType.SUCCESS, `Successfully ${actioned} transaction`, message);
 
             outputAdapter.show(); // Bring the 'Blockchain' output channel into focus.
+
+            if (transactionObject) {
+                return message;
+            }
+
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Error ${actioning} transaction: ${error.message}`);
+            errorMessage = `Error ${actioning} transaction: ${error.message}`;
+            outputAdapter.log(LogType.ERROR, errorMessage);
             if (error.endorsements) {
                 for (const endorsement of error.endorsements) {
-                    outputAdapter.log(LogType.ERROR, `Endorsement failed with: ${endorsement.message}`);
+                    const endorsementError: string = `Endorsement failed with: ${endorsement.message}`;
+                    outputAdapter.log(LogType.ERROR, endorsementError);
+                    errorMessage += `\n${endorsementError}`;
                 }
+            }
+            if (transactionObject) {
+                return errorMessage;
             }
         }
     });

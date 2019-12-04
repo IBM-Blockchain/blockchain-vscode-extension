@@ -28,7 +28,7 @@ exports[`TransactionCreate component should render the expected snapshot 1`] = `
         className="contents-container bx--row"
       >
         <div
-          className="bx--col-lg-11"
+          className="bx--col"
         >
           <form
             className="bx--form"
@@ -61,11 +61,11 @@ exports[`TransactionCreate component should render the expected snapshot 1`] = `
                   >
                     <input
                       className="bx--text-input bx--text__input"
-                      defaultValue="Enter transaction label"
                       disabled={false}
                       id="transaction-label-input"
                       onChange={[Function]}
                       onClick={[Function]}
+                      placeholder="Enter transaction label"
                       type="text"
                     />
                   </div>
@@ -350,6 +350,25 @@ exports[`TransactionCreate component should render the expected snapshot 1`] = `
              
           </form>
         </div>
+      </div>
+    </div>
+    <div
+      className="bx--col"
+    >
+      <div
+        className="output-panel"
+        id="output-panel"
+      >
+        <p
+          className="output-title"
+        >
+          Output for untitled transaction
+        </p>
+        <p
+          className="output-body"
+        >
+          here is some transaction output
+        </p>
       </div>
     </div>
   </div>

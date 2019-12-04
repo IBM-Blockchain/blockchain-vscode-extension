@@ -1,43 +1,5 @@
-@import '@carbon/layout/scss/_spacing';
-@import '@carbon/grid/scss/grid';
-@import '@carbon/colors/scss/colors';
-
-body {
-    font-size: 14px;
-    letter-spacing: 0.01px;
-    font-weight: 400;
-    -webkit-font-smoothing: antialiased;
-    -moz-font-smoothing: antialiased;
-    -o-font-smoothing: antialiased;
-}
+@import '../../mixins/layout-mixins.scss';
 
 .page-container {
-    margin: 0;
-    padding: 0;
-
-    h5 {
-        padding-bottom: $spacing-06;
-    }
+    @include default-page-styling;
 }
-
-.inner-container {
-    height: 100vh;
-    max-width: 100%;
-}
-
-.page-contents {
-    padding: $spacing-07;
-}
-
-.titles-container {
-    padding: 0px $spacing-04;
-
-    h2 {
-        padding: $spacing-09 0px;
-    }
-}
-
-.contents-container {
-    margin: $spacing-02;
-}
-

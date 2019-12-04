@@ -6,11 +6,9 @@ import TransactionTable from '../TransactionTable/TransactionTable';
 import ISmartContract from '../../interfaces/ISmartContract';
 
 interface HomeProps {
-    messageData: {
-        gatewayName: string;
-        activeSmartContract: ISmartContract,
-        smartContracts: Array<ISmartContract>
-    };
+    gatewayName: string;
+    activeSmartContract: ISmartContract;
+    smartContracts: Array<ISmartContract>;
     switchSmartContract: (newActiveContract: string) => void;
     postMessageHandler: (command: string, data?: any) => void;
 }
@@ -32,22 +30,22 @@ class TransactionHome extends Component<HomeProps, HomeState> {
     }
 
     componentDidUpdate(prevProps: HomeProps): void {
-        if (prevProps.messageData.activeSmartContract.label !== this.props.messageData.activeSmartContract.label) {
+        if (prevProps.activeSmartContract.label !== this.props.activeSmartContract.label) {
             this.setState({
-                activeSmartContractLabel: this.props.messageData.activeSmartContract.label
+                activeSmartContractLabel: this.props.activeSmartContract.label
             });
         }
     }
 
     setUpState(receivedProps: HomeProps): HomeState {
         const contractLabels: Array<string> = [];
-        for (const contract of receivedProps.messageData.smartContracts) {
+        for (const contract of receivedProps.smartContracts) {
             contractLabels.push(contract.label);
         }
 
         return {
-            gatewayName: receivedProps.messageData.gatewayName,
-            activeSmartContractLabel: receivedProps.messageData.activeSmartContract.label,
+            gatewayName: receivedProps.gatewayName,
+            activeSmartContractLabel: receivedProps.activeSmartContract.label,
             smartContractLabels: contractLabels,
             switchSmartContract: receivedProps.switchSmartContract,
             postMessageHandler: receivedProps.postMessageHandler
