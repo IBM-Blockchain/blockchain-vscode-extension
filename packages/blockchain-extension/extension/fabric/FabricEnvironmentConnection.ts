@@ -145,7 +145,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         const peers: Array<Client.Peer> = peerNames.map((peerName: string) => this.getPeer(peerName));
 
         // Get the channel.
-        const channel: Client.Channel = this.getOrCreateChannel(channelName);
+        const channel: Client.Channel = await this.getOrCreateChannel(channelName, peers);
 
         // Use the first peer to perform this query.
         await this.setNodeContext(peerNames[0]);
@@ -154,6 +154,28 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
             return new FabricChaincode(chaincode.name, chaincode.version);
         });
 
+    }
+
+    public async getEndorsementPlan(channelName: string, peerNames: string[], contractName: string): Promise<Client.DiscoveryResultEndorsementPlan> {
+        const peers: Array<Client.Peer> = peerNames.map((peerName: string) => this.getPeer(peerName));
+
+        const channel: Client.Channel = await this.getOrCreateChannel(channelName, peers);
+
+        // channel.refresh() doesn't seem to actually retrieve the latest discovery results
+        // const newResults: any = await channel.refresh();
+
+        // This is a viable workaround until we figure out what's happening.
+        let endorsementHint: Client.DiscoveryChaincodeInterest;
+        const discoveryInterests: any = channel['_discovery_interests'];
+        for (const interest of discoveryInterests) {
+            if (interest[1].chaincodes[0].name === contractName) {
+                endorsementHint = interest[1];
+                break;
+            }
+        }
+
+        const endorsementPlan: Client.DiscoveryResultEndorsementPlan = await channel.getEndorsementPlan(endorsementHint);
+        return endorsementPlan;
     }
 
     public async getAllInstantiatedChaincodes(): Promise<Array<FabricChaincode>> {
@@ -290,6 +312,26 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         return fabricWalletGenerator.getWallet(walletName);
     }
 
+    private async getOrCreateChannel(channelName: string, peers?: Client.Peer[]): Promise<Client.Channel> {
+        let channel: Client.Channel = this.client.getChannel(channelName, false);
+        if (!channel) {
+            channel = this.client.newChannel(channelName);
+
+            // Do we want to do peers[0] here?
+            const initializeRequest: Client.InitializeRequest = {
+                discover: true,
+                target: peers[0]
+            };
+
+            // We need to initialize with discovery as it's off by default.
+            // Alternatively we should do Client.setConfigSetting('initialize-with-discovery', true) to make it always initialize with discovery on.
+            await channel.initialize(initializeRequest);
+
+        }
+
+        return channel;
+    }
+
     private async instantiateOrUpgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionsConfig: string, contractEP: any,  upgrade: boolean): Promise<Buffer> {
 
         const peers: Array<Client.Peer> = [];
@@ -307,7 +349,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         }
 
         // Get the channel.
-        const channel: Client.Channel = this.getOrCreateChannel(channelName);
+        const channel: Client.Channel = await this.getOrCreateChannel(channelName, peers);
 
         // Determine if a chaincode with the specified name is already instantiated on this channel.
         // Use the first peer to perform this query, and as the signing identity for all subsequent operations.
@@ -450,14 +492,6 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
             throw new Error(`The Fabric certificate authority ${certificateAuthorityName} does not exist`);
         }
         return this.certificateAuthorities.get(certificateAuthorityName);
-    }
-
-    private getOrCreateChannel(channelName: string): Client.Channel {
-        let channel: Client.Channel = this.client.getChannel(channelName, false);
-        if (!channel) {
-            channel = this.client.newChannel(channelName);
-        }
-        return channel;
     }
 
     private async getAllChannelNamesForPeer(peerName: string): Promise<Array<string>> {
