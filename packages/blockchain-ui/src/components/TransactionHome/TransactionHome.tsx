@@ -1,21 +1,26 @@
 import React, { Component } from 'react';
 import './TransactionHome.scss';
-import { Accordion, AccordionItem } from 'carbon-components-react';
-import Sidebar from '../TransactionSidebar/TransactionSidebar';
+import { SelectItem } from 'carbon-components-react';
+import InlineSelect from '../InlineSelect/InlineSelect';
+import TransactionTable from '../TransactionTable/TransactionTable';
 import ISmartContract from '../../interfaces/ISmartContract';
 
 interface HomeProps {
     messageData: {
+        gatewayName: string;
         activeSmartContract: ISmartContract,
         smartContracts: Array<ISmartContract>
     };
     switchSmartContract: (newActiveContract: string) => void;
+    postMessageHandler: (command: string, data?: any) => void;
 }
 
 interface HomeState {
+    gatewayName: string;
     activeSmartContractLabel: string;
     smartContractLabels: Array<string>;
     switchSmartContract: (newActiveContract: string) => void;
+    postMessageHandler: (command: string, data?: any) => void;
 }
 
 class TransactionHome extends Component<HomeProps, HomeState> {
@@ -23,6 +28,7 @@ class TransactionHome extends Component<HomeProps, HomeState> {
     constructor(props: Readonly<HomeProps>) {
         super(props);
         this.state = this.setUpState(this.props);
+        this.smartContractSelectChangeHandler = this.smartContractSelectChangeHandler.bind(this);
     }
 
     componentDidUpdate(prevProps: HomeProps): void {
@@ -40,60 +46,96 @@ class TransactionHome extends Component<HomeProps, HomeState> {
         }
 
         return {
+            gatewayName: receivedProps.messageData.gatewayName,
             activeSmartContractLabel: receivedProps.messageData.activeSmartContract.label,
             smartContractLabels: contractLabels,
-            switchSmartContract: receivedProps.switchSmartContract
+            switchSmartContract: receivedProps.switchSmartContract,
+            postMessageHandler: receivedProps.postMessageHandler
         };
     }
 
-    getSmartContractItems(smartContracts: Array<string>): JSX.Element {
-        const smartContractItems: JSX.Element[] = [];
+    smartContractSelectChangeHandler(event: React.FormEvent<HTMLSelectElement>): void {
+        const newSmartContractLabel: string = event.currentTarget.value;
+        this.state.switchSmartContract(newSmartContractLabel);
+    }
 
-        for (const contract of smartContracts) {
-            if (contract === this.state.activeSmartContractLabel) {
-                smartContractItems.push(<li className='smart-contract-item disabled-smart-contract' key={contract}>{contract}</li>);
-            } else {
-                smartContractItems.push(<li className='smart-contract-item clickable-smart-contract' key={contract}  onClick={(): void => this.state.switchSmartContract(contract)}>{contract}</li>);
-            }
+    populateSmartContractSelect(): Array<JSX.Element> {
+        const options: Array<JSX.Element> = [];
+        options.push(<SelectItem disabled={false} hidden={true} text={this.state.activeSmartContractLabel} value={this.state.activeSmartContractLabel}/>);
+        for (const contract of this.state.smartContractLabels) {
+            options.push(<SelectItem disabled={false} hidden={false} text={contract} value={contract}/>);
         }
+        return options;
+    }
 
-        return <ul>{smartContractItems}</ul>;
+    getRecentTransactions(): Array<any> {
+        return [
+            {
+                id: '1',
+                name: 'createAsset',
+                arguments: 'AssetID: myAsset01',
+                timestamp: '1:15pm',
+                result: '✅'
+            },
+            {
+                id: '2',
+                name: 'readAsset',
+                arguments: 'AssetID: myAsset01',
+                timestamp: '1:32pm',
+                result: '✅'
+            },
+            {
+                id: '3',
+                name: 'updateAsset',
+                arguments: 'AssetID: myAsset01',
+                timestamp: '1:42pm',
+                result: '✅'
+            },
+            {
+                id: '4',
+                name: 'deleteAsset',
+                arguments: 'AssetID: myAsset01',
+                timestamp: '1:59pm',
+                result: '✅'
+            }
+        ];
     }
 
     render(): JSX.Element {
+        const tableRows: Array<any> = this.getRecentTransactions();
+
         return (
             <div className='page-container bx--grid' data-test-id='txn-page'>
-                <div className='inner-container bx--row'>
-                    <Sidebar/>
-                    <div className='page-contents bx--col'>
+                <div className='inner-container'>
+                    <div className='page-contents'>
                         <div className='titles-container'>
-                            <span>{this.state.activeSmartContractLabel} home</span>
-                            <h1>Transactions</h1>
+                            <InlineSelect id='smart-contract-select' labelText='Smart contract' contents={this.populateSmartContractSelect()} onChangeCallback={this.smartContractSelectChangeHandler}/>
+                            <h2>Transactions view for {this.state.gatewayName}</h2>
                         </div>
                         <div className='contents-container bx--row'>
-                            <div className='contents-left bx--col'>
-                                <p>Welcome to your transaction web view for <span className='disabled-smart-contract'>{this.state.activeSmartContractLabel}</span>; use this to submit and evaluate new and existing transactions.</p>
-                                <p>Unsure of where to start? Follow our introductory Getting Started section opposite.</p>
-                                <br/>
-                                <h5>Smart Contracts</h5>
-                                <p>To switch to the web view for a different smart contract, select the smart contract below</p>
-                                {this.getSmartContractItems(this.state.smartContractLabels)}
-                            </div>
-                            <div className='contents-right bx--col' id='contents-right'>
-                                <h5>Getting Started</h5>
-                                <Accordion>
-                                    <AccordionItem title={'Create a new transaction'}></AccordionItem>
-                                </Accordion>
-                                <Accordion>
-                                    <AccordionItem title={'Edit existing transactions'}></AccordionItem>
-                                </Accordion>
-                                <Accordion>
-                                    <AccordionItem title={'Favouriting & deleting transactions'}></AccordionItem>
-                                </Accordion>
-                                <Accordion>
-                                    <AccordionItem title={'Submitting and evaluating: what\'s the difference?'}></AccordionItem>
-                                </Accordion>
-                            </div>
+                            <p>Welcome to the transaction webview for {this.state.activeSmartContractLabel}. View, submit and evaluate transactions, as well as import and export them. Navigate to alternative smart contracts under {this.state.gatewayName} through the top left.</p>
+                            <br/>
+                            <TransactionTable
+                                id={'recent-txns-table'}
+                                title={'Recent Transactions'}
+                                description={'View your recent transactions, unused transactions will clear every 50 submitted.'}
+                                rows={tableRows}
+                                buttonId={'recent-txns-table-btn'}
+                                buttonText={'Create a new transaction'}
+                                buttonFunction={(): void => this.state.postMessageHandler('create')}
+                            />
+                        </div>
+                        <br></br>
+                        <div className='contents-container bx--row'>
+                            <TransactionTable
+                                id={'saved-txns-table'}
+                                title={'Saved templates'}
+                                description={'View your saved templates'}
+                                rows={[{id: '1', name: 'No transaction templates saved'}]}
+                                buttonId={'saved-txns-table-btn'}
+                                buttonText={'Import a transaction'}
+                                buttonFunction={(): void => this.state.postMessageHandler('import')}
+                            />
                         </div>
                     </div>
                 </div>

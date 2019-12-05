@@ -11,25 +11,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-/* istanbul ignore file */
+/*istanbul ignore file*/
 'use strict';
 import * as vscode from 'vscode';
 import { ReactView } from './ReactView';
-import { TransactionCreateView } from './TransactionCreateView';
+import { ExtensionCommands } from '../../ExtensionCommands';
+import { TransactionView } from './TransactionView';
 
-export class TransactionView extends ReactView {
+export class TransactionCreateView extends ReactView {
     protected appState: any;
 
-    constructor(context: vscode.ExtensionContext, appState: any, viewColumn: vscode.ViewColumn = vscode.ViewColumn.One) {
-        super(context, 'transactionView', 'Transaction View', viewColumn);
+    constructor(context: vscode.ExtensionContext, appState: any) {
+        super(context, 'transactionCreateView', 'Create Transaction Page', vscode.ViewColumn.Beside);
         this.appState = appState;
     }
 
     async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
         panel.webview.onDidReceiveMessage(async (message: {command: string, data: any}) => {
-            if (message.command === 'create') {
-                const transactionCreateView: TransactionCreateView = new TransactionCreateView(this.context, message.data);
-                await transactionCreateView.openView(true);
+            if (message.command === 'submit') {
+                await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, message.data);
+            } else if (message.command === 'evaluate') {
+                await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION, undefined, undefined, undefined, message.data);
+            } else if (message.command === 'home') {
+                const transactionView: TransactionView = new TransactionView(this.context, message.data, vscode.ViewColumn.Beside);
+                await transactionView.openView(true);
             }
         });
         this.loadComponent(panel);
@@ -37,7 +42,7 @@ export class TransactionView extends ReactView {
 
     loadComponent(panel: vscode.WebviewPanel): void {
         panel.webview.postMessage({
-            path: '/transaction',
+            path: '/transaction/create',
             state: this.appState
         });
     }

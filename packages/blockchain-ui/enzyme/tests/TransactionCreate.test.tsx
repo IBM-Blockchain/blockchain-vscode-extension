@@ -14,7 +14,6 @@ chai.use(sinonChai);
 
 describe('TransactionCreate component', () => {
     let mySandbox: sinon.SinonSandbox;
-    let changeRouteStub: sinon.SinonStub;
     let getTransactionArgumentsSpy: sinon.SinonSpy;
     let postMessageHandlerStub: sinon.SinonStub;
 
@@ -51,8 +50,7 @@ describe('TransactionCreate component', () => {
 
     beforeEach(async () => {
         mySandbox = sinon.createSandbox();
-        changeRouteStub = mySandbox.stub(Utils, 'changeRoute').resolves();
-        getTransactionArgumentsSpy = mySandbox.spy(TransactionCreate.prototype, 'getTransactionArguments');
+        getTransactionArgumentsSpy = mySandbox.spy(TransactionCreate.prototype, 'generateTransactionArguments');
         postMessageHandlerStub = mySandbox.stub();
     });
 
@@ -70,7 +68,7 @@ describe('TransactionCreate component', () => {
     it('redirects back to the home page when the appropriate link is clicked on', async () => {
         const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
         component.find('.titles-container > span').simulate('click');
-        changeRouteStub.should.have.been.called;
+        postMessageHandlerStub.should.have.been.calledOnceWithExactly('home');
     });
 
     it('generates transaction arguments when an option from the transaction select is chosen', async () => {
@@ -110,12 +108,12 @@ describe('TransactionCreate component', () => {
         const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
         component.setState({
             activeTransaction: transactionOne,
-            transactionArguments: 'name: Green\n'
+            transactionArguments: '[\nname: "Green"\n]'
         });
         component.find('#submit-button').at(1).simulate('click');
-        postMessageHandlerStub.should.have.been.calledOnceWithExactly({
-            data: {
-                args: 'Green',
+        postMessageHandlerStub.should.have.been.calledOnceWithExactly(
+            'submit', {
+                args: '["Green"]',
                 channelName: 'mychannel',
                 evaluate: false,
                 namespace: 'GreenContract',
@@ -123,21 +121,20 @@ describe('TransactionCreate component', () => {
                 smartContract: 'greenContract',
                 transactionName: 'transactionOne',
                 transientData: ''
-              },
-              command: 'submit'
-        });
+            }
+        );
     });
 
     it('should attempt to evaluate a transaction when the evaluate button is clicked', async () => {
         const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
         component.setState({
             activeTransaction: transactionOne,
-            transactionArguments: 'name: Green\n'
+            transactionArguments: '[\nname: "Green"\n]'
         });
         component.find('#evaluate-button').at(1).simulate('click');
-        postMessageHandlerStub.should.have.been.calledOnceWithExactly({
-            data: {
-                args: 'Green',
+        postMessageHandlerStub.should.have.been.calledOnceWithExactly(
+            'evaluate', {
+                args: '["Green"]',
                 channelName: 'mychannel',
                 evaluate: true,
                 namespace: 'GreenContract',
@@ -145,9 +142,8 @@ describe('TransactionCreate component', () => {
                 smartContract: 'greenContract',
                 transactionName: 'transactionOne',
                 transientData: ''
-              },
-              command: 'evaluate'
-        });
+            }
+        );
     });
 
     it('should do nothing if no transaction has been selected', async () => {

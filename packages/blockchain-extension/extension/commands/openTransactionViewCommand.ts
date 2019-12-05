@@ -21,7 +21,9 @@ import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 import { IFabricGatewayConnection, FabricChaincode } from 'ibm-blockchain-platform-common';
+import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { GlobalState } from '../util/GlobalState';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 export async function openTransactionView(treeItem?: InstantiatedTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -40,6 +42,9 @@ export async function openTransactionView(treeItem?: InstantiatedTreeItem): Prom
             return;
         }
     }
+
+    const gatewayRegistryEntry: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
+    const gatewayName: string = (gatewayRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) ? FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME : gatewayRegistryEntry.name;
 
     if (treeItem) {
         smartContractLabel = treeItem.name + '@' + treeItem.version;
@@ -87,6 +92,7 @@ export async function openTransactionView(treeItem?: InstantiatedTreeItem): Prom
     }
 
     const appState: {} = {
+        gatewayName,
         smartContracts: instantiatedChaincodes,
         activeSmartContract: instantiatedChaincodes.find((obj: any) => obj.label === smartContractLabel)
     };

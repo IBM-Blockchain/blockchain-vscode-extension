@@ -29,33 +29,94 @@
     border-color: $carbon--gray-80;
 }
 
-@mixin button-dark {
-    background-color: $carbon--gray-80;
-}
-
 @mixin checkbox-dark {
-
     .bx--checkbox-label::before {
         border-color: $carbon--gray-10;
     }
 
-    input:checked ~ .bx--checkbox-label::before {
+    input:checked ~ .bx--checkbox-label::before, input:indeterminate ~ .bx--checkbox-label::before {
         background-color: $carbon--gray-10;
     }
 
-    input:checked ~ .bx--checkbox-label::after {
+    input:checked ~ .bx--checkbox-label::after, input:indeterminate ~ .bx--checkbox-label::after{
         border-color: #000000;
     }
 }
 
-@mixin selects-dark {
-    background-color: $carbon--gray-60;
-    color: white;
+@mixin data-table-dark {
+    @include checkbox-dark;
+
+    .bx--data-table-container {
+        background-color: #1E2529;
+        
+        h4 {
+            color: white;
+        }
+
+        p {
+            color: #ABABAB
+        }
+
+        .bx--data-table-header, .bx--table-toolbar, .bx--data-table tbody, tr, td {
+            background-color: inherit;
+        }
+
+        .bx--data-table tbody tr:hover {
+            background-color: #343D43;
+        }
+    
+        th {
+            background-color: #343D43;
+            color: white;
+        }
+    
+        td {
+            border-color: #343D43;
+            color: #ABABAB
+        }
+
+    }
+}
+
+@mixin inline-select-dark {
+    .bx--select {
+        border: none;
+    }
+
+    .bx--select-input {
+        color: white;
+    }
+}
+
+@mixin select-dark {
+    .bx--select  {
+        border-bottom: 1px solid #8D8D8D;
+        label {
+            color: inherit;
+        }
+
+        svg {
+            fill: white;
+        }
+    }
+
+    .bx--label {
+        color: inherit;
+    }
+
+    .bx--select-input__wrapper:hover .bx--select-input {
+        background-color: #343D43;
+    }
+
+    .bx--select-input {
+        background-color: #1E2529;
+        color: white;
+    }
 }
 
 @mixin text-inputs-dark {
     input, textarea {
-        background-color: $carbon--gray-60;
+        background-color: #1E2529   ;
         color: white;
     }
 }
@@ -67,11 +128,6 @@
 //-------------------------
 // light theme styles
 //-------------------------
-
-@mixin button-light {
-    background-color: $carbon--gray-20;
-    color: black;
-}
 
 @mixin txn-output-light {
     background-color: $carbon--gray-20;

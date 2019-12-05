@@ -1,0 +1,18 @@
+.inline-select {
+
+    display: inline-flex;
+    flex-direction: row;
+
+    .bx--select-input {
+        background: none;
+        border: none;
+    }
+
+    .bx--label {
+        margin-top: 11.5px;
+        margin-bottom: 0px;
+        font-size: 100%;
+        color: inherit;
+    }
+
+}

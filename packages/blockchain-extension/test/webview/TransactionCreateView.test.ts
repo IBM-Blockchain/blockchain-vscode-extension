@@ -19,7 +19,7 @@ import * as path from 'path';
 import * as sinon from 'sinon';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
-import { TransactionView } from '../../extension/webview/TransactionView';
+import { TransactionCreateView } from '../../extension/webview/TransactionCreateView';
 import { View } from '../../extension/webview/View';
 import { TestUtil } from '../TestUtil';
 import { GlobalState } from '../../extension/util/GlobalState';
@@ -28,7 +28,7 @@ type ITransaction = any;
 type ISmartContract = any;
 chai.use(sinonChai);
 
-describe('TransactionView', () => {
+describe('TransactionCreateView', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let context: vscode.ExtensionContext;
     let createWebviewPanelStub: sinon.SinonStub;
@@ -115,9 +115,9 @@ describe('TransactionView', () => {
         mySandBox.restore();
     });
 
-    it('should register and show the transaction page', async () => {
+    it('should register and show the create transaction page', async () => {
         createWebviewPanelStub.returns({
-            title: 'Transaction Page',
+            title: 'Create Transaction Page',
             webview: {
                 postMessage: postMessageStub,
                 onDidReceiveMessage: mySandBox.stub()
@@ -128,26 +128,86 @@ describe('TransactionView', () => {
             onDidChangeViewState: mySandBox.stub()
         });
 
-        const transactionView: TransactionView = new TransactionView(context, mockAppState);
-        await transactionView.openView(false);
+        const transactionCreateView: TransactionCreateView = new TransactionCreateView(context, mockAppState);
+        await transactionCreateView.openView(false);
         createWebviewPanelStub.should.have.been.called;
         postMessageStub.should.have.been.calledWith({
-            path: '/transaction',
+            path: '/transaction/create',
             state: mockAppState
         });
     });
 
-    it(`should open the TransactionCreateView when it receives a 'create' message`, async () => {
+    it(`should handle a 'submit' message`, async () => {
         const onDidReceiveMessagePromises: any[] = [];
 
         onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
             createWebviewPanelStub.returns({
-                title: 'Transaction Page',
+                webview: {
+                    postMessage: mySandBox.stub(),
+                    onDidReceiveMessage: async (callback: any): Promise<void> => {
+                        await callback({
+                            command: 'submit',
+                            data: transactionObject
+                        });
+                        resolve();
+                    }
+                },
+                reveal: (): void => {
+                    return;
+                },
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
+            });
+        }));
+
+        const transactionCreateView: TransactionCreateView = new TransactionCreateView(context, mockAppState);
+        await transactionCreateView.openView(false);
+        await Promise.all(onDidReceiveMessagePromises);
+
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
+    });
+
+    it(`should handle an 'evaluate' message`, async () => {
+        const onDidReceiveMessagePromises: any[] = [];
+
+        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
+            createWebviewPanelStub.returns({
+                webview: {
+                    postMessage: mySandBox.stub(),
+                    onDidReceiveMessage: async (callback: any): Promise<void> => {
+                        await callback({
+                            command: 'evaluate',
+                            data: transactionObject
+                        });
+                        resolve();
+                    }
+                },
+                reveal: (): void => {
+                    return;
+                },
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
+            });
+        }));
+
+        const transactionCreateView: TransactionCreateView = new TransactionCreateView(context, mockAppState);
+        await transactionCreateView.openView(false);
+        await Promise.all(onDidReceiveMessagePromises);
+
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.EVALUATE_TRANSACTION, undefined, undefined, undefined, transactionObject);
+    });
+
+    it(`should open the TransactionCreateView when it receives a 'home' message`, async () => {
+        const onDidReceiveMessagePromises: any[] = [];
+
+        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
+            createWebviewPanelStub.returns({
+                title: 'Create Transaction Page',
                 webview: {
                     postMessage: postMessageStub,
                     onDidReceiveMessage: async (callback: any): Promise<void> => {
                         await callback({
-                            command: 'create',
+                            command: 'home',
                             data: transactionObject
                         });
                         resolve();
@@ -162,14 +222,14 @@ describe('TransactionView', () => {
             });
         }));
 
-        const transactionView: TransactionView = new TransactionView(context, mockAppState);
-        await transactionView.openView(false);
+        const transactionCreateView: TransactionCreateView = new TransactionCreateView(context, mockAppState);
+        await transactionCreateView.openView(false);
         await Promise.all(onDidReceiveMessagePromises);
 
         createWebviewPanelStub.should.have.been.calledTwice;
         createWebviewPanelStub.should.have.been.calledWith(
-            'transactionCreateView',
-            'Create Transaction Page',
+            'transactionView',
+            'Transaction View',
             vscode.ViewColumn.Beside,
             {
                 enableScripts: true,
@@ -206,11 +266,10 @@ describe('TransactionView', () => {
             });
         }));
 
-        const transactionView: TransactionView = new TransactionView(context, mockAppState);
-        await transactionView.openView(false);
+        const transactionCreateView: TransactionCreateView = new TransactionCreateView(context, mockAppState);
+        await transactionCreateView.openView(false);
         await Promise.all(onDidReceiveMessagePromises);
 
         executeCommandStub.should.not.have.been.called;
     });
-
 });

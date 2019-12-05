@@ -1,0 +1,46 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionTable component should render the expected snapshot 1`] = `
+Array [
+  <div
+    className="transaction-table-container"
+  >
+    <DataTable
+      filterRows={[Function]}
+      headers={
+        Array [
+          Object {
+            "header": "Name",
+            "key": "name",
+          },
+          Object {
+            "header": "Arguments",
+            "key": "arguments",
+          },
+          Object {
+            "header": "Timestamp",
+            "key": "timestamp",
+          },
+          Object {
+            "header": "Result",
+            "key": "result",
+          },
+        ]
+      }
+      locale="en"
+      render={[Function]}
+      rows={
+        Object {
+          "arguments": "AssetID: myAsset01",
+          "id": "1",
+          "name": "createAsset",
+          "result": "✅",
+          "timestamp": "1:15pm",
+        }
+      }
+      sortRow={[Function]}
+      translateWithId={[Function]}
+    />
+  </div>,
+]
+`;

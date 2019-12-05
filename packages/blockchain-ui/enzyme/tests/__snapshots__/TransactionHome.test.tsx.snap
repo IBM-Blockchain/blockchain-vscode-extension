@@ -1,303 +1,127 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransactionHome component should render the expected snapshot 1`] = `
-<div
-  className="page-container bx--grid"
-  data-test-id="txn-page"
->
+Array [
   <div
-    className="inner-container bx--row"
+    className="page-container bx--grid"
+    data-test-id="txn-page"
   >
     <div
-      className="sidebar-container"
-      id="sidebar-container"
+      className="inner-container"
     >
       <div
-        className="panel-container"
-      >
-        <button
-          className="bx--btn bx--btn--field bx--btn--primary"
-          disabled={false}
-          id="create-button"
-          onClick={[Function]}
-          tabIndex={0}
-          type="button"
-        >
-          Create a new transaction
-        </button>
-        <button
-          className="bx--btn bx--btn--field bx--btn--primary"
-          disabled={false}
-          id="import-button"
-          onClick={[Function]}
-          tabIndex={0}
-          type="button"
-        >
-          Import existing transaction
-        </button>
-      </div>
-      <div
-        className="panel-container"
-      >
-        <h5>
-          Filters
-        </h5>
-      </div>
-      <div
-        className="panel-container"
-      >
-        <h5>
-          Transactions
-        </h5>
-      </div>
-    </div>
-    <div
-      className="page-contents bx--col"
-    >
-      <div
-        className="titles-container"
-      >
-        <span>
-          greenContract@0.0.1
-           home
-        </span>
-        <h1>
-          Transactions
-        </h1>
-      </div>
-      <div
-        className="contents-container bx--row"
+        className="page-contents"
       >
         <div
-          className="contents-left bx--col"
+          className="titles-container"
+        >
+          <InlineSelect
+            contents={
+              Array [
+                <SelectItem
+                  disabled={false}
+                  hidden={true}
+                  text="greenContract@0.0.1"
+                  value="greenContract@0.0.1"
+                />,
+                <SelectItem
+                  disabled={false}
+                  hidden={false}
+                  text="greenContract@0.0.1"
+                  value="greenContract@0.0.1"
+                />,
+                <SelectItem
+                  disabled={false}
+                  hidden={false}
+                  text="blueContract@0.0.1"
+                  value="blueContract@0.0.1"
+                />,
+              ]
+            }
+            id="smart-contract-select"
+            labelText="Smart contract"
+            onChangeCallback={[Function]}
+          />
+          <h2>
+            Transactions view for 
+            myGateway
+          </h2>
+        </div>
+        <div
+          className="contents-container bx--row"
         >
           <p>
-            Welcome to your transaction web view for 
-            <span
-              className="disabled-smart-contract"
-            >
-              greenContract@0.0.1
-            </span>
-            ; use this to submit and evaluate new and existing transactions.
-          </p>
-          <p>
-            Unsure of where to start? Follow our introductory Getting Started section opposite.
+            Welcome to the transaction webview for 
+            greenContract@0.0.1
+            . View, submit and evaluate transactions, as well as import and export them. Navigate to alternative smart contracts under 
+            myGateway
+             through the top left.
           </p>
           <br />
-          <h5>
-            Smart Contracts
-          </h5>
-          <p>
-            To switch to the web view for a different smart contract, select the smart contract below
-          </p>
-          <ul>
-            <li
-              className="smart-contract-item disabled-smart-contract"
-            >
-              greenContract@0.0.1
-            </li>
-            <li
-              className="smart-contract-item clickable-smart-contract"
-              onClick={[Function]}
-            >
-              blueContract@0.0.1
-            </li>
-          </ul>
+          <TransactionTable
+            buttonFunction={[Function]}
+            buttonId="recent-txns-table-btn"
+            buttonText="Create a new transaction"
+            description="View your recent transactions, unused transactions will clear every 50 submitted."
+            id="recent-txns-table"
+            rows={
+              Array [
+                Object {
+                  "arguments": "AssetID: myAsset01",
+                  "id": "1",
+                  "name": "createAsset",
+                  "result": "✅",
+                  "timestamp": "1:15pm",
+                },
+                Object {
+                  "arguments": "AssetID: myAsset01",
+                  "id": "2",
+                  "name": "readAsset",
+                  "result": "✅",
+                  "timestamp": "1:32pm",
+                },
+                Object {
+                  "arguments": "AssetID: myAsset01",
+                  "id": "3",
+                  "name": "updateAsset",
+                  "result": "✅",
+                  "timestamp": "1:42pm",
+                },
+                Object {
+                  "arguments": "AssetID: myAsset01",
+                  "id": "4",
+                  "name": "deleteAsset",
+                  "result": "✅",
+                  "timestamp": "1:59pm",
+                },
+              ]
+            }
+            title="Recent Transactions"
+          />
         </div>
+        <br />
         <div
-          className="contents-right bx--col"
-          id="contents-right"
+          className="contents-container bx--row"
         >
-          <h5>
-            Getting Started
-          </h5>
-          <ul
-            className="bx--accordion"
-          >
-            <li
-              className="bx--accordion__item"
-              onAnimationEnd={[Function]}
-            >
-              <button
-                aria-expanded={false}
-                className="bx--accordion__heading"
-                onClick={[Function]}
-                onKeyDown={[Function]}
-                title="Expand/Collapse"
-                type="button"
-              >
-                <svg
-                  aria-label="Expand/Collapse"
-                  className="bx--accordion__arrow"
-                  focusable="false"
-                  height={16}
-                  preserveAspectRatio="xMidYMid meet"
-                  role="img"
-                  style={
-                    Object {
-                      "willChange": "transform",
-                    }
-                  }
-                  viewBox="0 0 16 16"
-                  width={16}
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M11 8l-5 5-.7-.7L9.6 8 5.3 3.7 6 3z"
-                  />
-                </svg>
-                <div
-                  className="bx--accordion__title"
-                >
-                  Create a new transaction
-                </div>
-              </button>
-              <div
-                className="bx--accordion__content"
-              />
-            </li>
-          </ul>
-          <ul
-            className="bx--accordion"
-          >
-            <li
-              className="bx--accordion__item"
-              onAnimationEnd={[Function]}
-            >
-              <button
-                aria-expanded={false}
-                className="bx--accordion__heading"
-                onClick={[Function]}
-                onKeyDown={[Function]}
-                title="Expand/Collapse"
-                type="button"
-              >
-                <svg
-                  aria-label="Expand/Collapse"
-                  className="bx--accordion__arrow"
-                  focusable="false"
-                  height={16}
-                  preserveAspectRatio="xMidYMid meet"
-                  role="img"
-                  style={
-                    Object {
-                      "willChange": "transform",
-                    }
-                  }
-                  viewBox="0 0 16 16"
-                  width={16}
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M11 8l-5 5-.7-.7L9.6 8 5.3 3.7 6 3z"
-                  />
-                </svg>
-                <div
-                  className="bx--accordion__title"
-                >
-                  Edit existing transactions
-                </div>
-              </button>
-              <div
-                className="bx--accordion__content"
-              />
-            </li>
-          </ul>
-          <ul
-            className="bx--accordion"
-          >
-            <li
-              className="bx--accordion__item"
-              onAnimationEnd={[Function]}
-            >
-              <button
-                aria-expanded={false}
-                className="bx--accordion__heading"
-                onClick={[Function]}
-                onKeyDown={[Function]}
-                title="Expand/Collapse"
-                type="button"
-              >
-                <svg
-                  aria-label="Expand/Collapse"
-                  className="bx--accordion__arrow"
-                  focusable="false"
-                  height={16}
-                  preserveAspectRatio="xMidYMid meet"
-                  role="img"
-                  style={
-                    Object {
-                      "willChange": "transform",
-                    }
-                  }
-                  viewBox="0 0 16 16"
-                  width={16}
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M11 8l-5 5-.7-.7L9.6 8 5.3 3.7 6 3z"
-                  />
-                </svg>
-                <div
-                  className="bx--accordion__title"
-                >
-                  Favouriting & deleting transactions
-                </div>
-              </button>
-              <div
-                className="bx--accordion__content"
-              />
-            </li>
-          </ul>
-          <ul
-            className="bx--accordion"
-          >
-            <li
-              className="bx--accordion__item"
-              onAnimationEnd={[Function]}
-            >
-              <button
-                aria-expanded={false}
-                className="bx--accordion__heading"
-                onClick={[Function]}
-                onKeyDown={[Function]}
-                title="Expand/Collapse"
-                type="button"
-              >
-                <svg
-                  aria-label="Expand/Collapse"
-                  className="bx--accordion__arrow"
-                  focusable="false"
-                  height={16}
-                  preserveAspectRatio="xMidYMid meet"
-                  role="img"
-                  style={
-                    Object {
-                      "willChange": "transform",
-                    }
-                  }
-                  viewBox="0 0 16 16"
-                  width={16}
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M11 8l-5 5-.7-.7L9.6 8 5.3 3.7 6 3z"
-                  />
-                </svg>
-                <div
-                  className="bx--accordion__title"
-                >
-                  Submitting and evaluating: what's the difference?
-                </div>
-              </button>
-              <div
-                className="bx--accordion__content"
-              />
-            </li>
-          </ul>
+          <TransactionTable
+            buttonFunction={[Function]}
+            buttonId="saved-txns-table-btn"
+            buttonText="Import a transaction"
+            description="View your saved templates"
+            id="saved-txns-table"
+            rows={
+              Array [
+                Object {
+                  "id": "1",
+                  "name": "No transaction templates saved",
+                },
+              ]
+            }
+            title="Saved templates"
+          />
         </div>
       </div>
     </div>
-  </div>
-</div>
+  </div>,
+]
 `;
