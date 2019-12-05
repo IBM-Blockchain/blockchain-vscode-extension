@@ -247,12 +247,12 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         }
     }
 
-    public async instantiateChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionPath: string): Promise<Buffer> {
-        return this.instantiateOrUpgradeChaincode(name, version, peerNames, channelName, fcn, args, collectionPath, false);
+    public async instantiateChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionPath: string, contractEP: any): Promise<Buffer> {
+        return this.instantiateOrUpgradeChaincode(name, version, peerNames, channelName, fcn, args, collectionPath, contractEP, false);
     }
 
-    public async upgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionPath: string): Promise<Buffer> {
-        return this.instantiateOrUpgradeChaincode(name, version, peerNames, channelName, fcn, args, collectionPath, true);
+    public async upgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionPath: string, contractEP: any): Promise<Buffer> {
+        return this.instantiateOrUpgradeChaincode(name, version, peerNames, channelName, fcn, args, collectionPath, contractEP, true);
     }
 
     public async enroll(certificateAuthorityName: string, enrollmentID: string, enrollmentSecret: string): Promise<{ certificate: string, privateKey: string }> {
@@ -290,7 +290,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         return fabricWalletGenerator.getWallet(walletName);
     }
 
-    private async instantiateOrUpgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionsConfig: string, upgrade: boolean): Promise<Buffer> {
+    private async instantiateOrUpgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionsConfig: string, contractEP: any,  upgrade: boolean): Promise<Buffer> {
 
         const peers: Array<Client.Peer> = [];
         // filter out the peers that don't have the smart contract installed
@@ -349,7 +349,8 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
             txId,
             fcn,
             args,
-            'collections-config': collectionsConfig
+            'collections-config': collectionsConfig,
+            'endorsement-policy': contractEP
         };
 
         // Send the instantiate/upgrade proposal to all of the specified peers.

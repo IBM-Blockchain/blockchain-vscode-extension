@@ -13,6 +13,7 @@
 */
 'use strict';
 import * as vscode from 'vscode';
+import * as fs from 'fs-extra';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
 import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
@@ -186,6 +187,38 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
             }
         }
 
+        let contractEP: any;
+        const wantsContractEP: string = await UserInputUtil.showQuickPick('Choose a smart contract endorsement policy', [UserInputUtil.DEFAULT_SC_EP, UserInputUtil.CUSTOM]) as string;
+
+        if (!wantsContractEP) {
+            return;
+        } else if (wantsContractEP === UserInputUtil.CUSTOM) {
+
+            const openDialogOptions: vscode.OpenDialogOptions = {
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: false,
+                openLabel: 'Select',
+                filters: {
+                    Identity: ['json']
+                }
+            };
+
+            const jsonEpPath: vscode.Uri = await UserInputUtil.browse('Browse for the JSON file containing the smart contract endorsement policy', [UserInputUtil.BROWSE_LABEL], openDialogOptions, true) as vscode.Uri;
+            if (!jsonEpPath) {
+                return;
+            }
+
+            const jsonEpContents: string = await fs.readFile(jsonEpPath.fsPath, 'utf8');
+            try {
+                contractEP = JSON.parse(jsonEpContents);
+            } catch (error) {
+                outputAdapter.log(LogType.ERROR, `Unable to read smart contract endorsement policy: ${error.message}`);
+                return;
+            }
+
+        }
+
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: 'IBM Blockchain Platform Extension',
@@ -199,7 +232,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
                 VSCodeBlockchainDockerOutputAdapter.instance().show();
             }
 
-            await connection.instantiateChaincode(smartContractName, smartContractVersion, peerNames, channelName, fcn, args, collectionPath);
+            await connection.instantiateChaincode(smartContractName, smartContractVersion, peerNames, channelName, fcn, args, collectionPath, contractEP);
 
             Reporter.instance().sendTelemetryEvent('instantiateCommand');
 

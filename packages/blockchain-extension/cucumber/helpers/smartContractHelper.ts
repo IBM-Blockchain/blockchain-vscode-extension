@@ -192,6 +192,8 @@ export class SmartContractHelper {
                 const collectionPath: string = path.join(__dirname, '../../integrationTest/data/collection.json');
                 this.userInputUtilHelper.browseStub.resolves(collectionPath);
             }
+
+            this.userInputUtilHelper.showQuickPickStub.withArgs('Choose a smart contract endorsement policy', [UserInputUtil.DEFAULT_SC_EP, UserInputUtil.CUSTOM]).resolves(UserInputUtil.DEFAULT_SC_EP);
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
         }
     }
@@ -232,6 +234,9 @@ export class SmartContractHelper {
             const collectionPath: string = path.join(__dirname, '../../integrationTest/data/collection.json');
             this.userInputUtilHelper.browseStub.resolves(collectionPath);
         }
+
+        this.userInputUtilHelper.showQuickPickStub.withArgs('Choose a smart contract endorsement policy', [UserInputUtil.DEFAULT_SC_EP, UserInputUtil.CUSTOM]).resolves(UserInputUtil.DEFAULT_SC_EP);
+
         await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
     }
 }
