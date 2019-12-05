@@ -50,6 +50,7 @@ import { SetupTreeItem } from './runtimeOps/identitySetupTree/SetupTreeItem';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { EnvironmentConnectedTreeItem } from './runtimeOps/connectedTree/EnvironmentConnectedTreeItem';
 import { TextTreeItem } from './model/TextTreeItem';
+import Client = require('fabric-client');
 
 export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorerProvider {
 
@@ -381,6 +382,15 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
                         tempTree.push(new InstantiatedChaincodeTreeItem(this, chaincode.name, channels, chaincode.version, vscode.TreeItemCollapsibleState.None, null, false));
                     } else {
+
+                        try {
+                            // Maybe we want to add it as a tooltip?
+                            const ep: Client.DiscoveryResultEndorsementPlan = await connection.getEndorsementPlan(channelName, peerNames, chaincode.name);
+                            console.log('ep is', ep);
+                        } catch (e) {
+                            // We need to handle this error case.
+                        }
+
                         tempTree.push(new InstantiatedChaincodeTreeItem(this, chaincode.name, [channelTreeItem], chaincode.version, vscode.TreeItemCollapsibleState.None, null, false));
                     }
                 }

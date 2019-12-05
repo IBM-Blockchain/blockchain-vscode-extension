@@ -17,6 +17,7 @@ import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { FabricChaincode, IFabricWallet } from 'ibm-blockchain-platform-common';
 import { FabricNode } from './FabricNode';
 import { Attribute } from './FabricCertificate';
+import Client = require('fabric-client');
 
 export interface IFabricEnvironmentConnection {
 
@@ -54,4 +55,5 @@ export interface IFabricEnvironmentConnection {
 
     getWallet(nodeName: string): Promise<IFabricWallet>;
 
+    getEndorsementPlan(channelName: string, peerNames: string[], contractName: string): Promise<Client.DiscoveryResultEndorsementPlan>;
 }
