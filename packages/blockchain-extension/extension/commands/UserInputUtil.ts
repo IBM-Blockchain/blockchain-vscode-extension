@@ -92,7 +92,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(items, quickPickOptions);
     }
 
-    public static async showOrgQuickPick(prompt: string, environmentName: string): Promise<IBlockchainQuickPickItem<FabricNode>> {
+    public static async showOrgQuickPick(prompt: string, environmentName: string): Promise<IBlockchainQuickPickItem<FabricNode[]>> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
             canPickMany: false,
@@ -100,18 +100,23 @@ export class UserInputUtil {
         };
 
         const environment: FabricEnvironment = new FabricEnvironment(environmentName);
-        let nodes: FabricNode[] = await environment.getNodes();
+        const nodes: FabricNode[] = await environment.getNodes();
 
-        nodes = nodes.filter((node: FabricNode) => node.type === FabricNodeType.PEER);
+        const peerNodes: FabricNode[] = nodes.filter((node: FabricNode) => node.type === FabricNodeType.PEER);
 
-        const items: Array<IBlockchainQuickPickItem<FabricNode>> = [];
+        const orgObject: any = {};
 
-        for (const node of nodes) {
-            const found: boolean = items.some((item: IBlockchainQuickPickItem<FabricNode>) => item.data.msp_id === node.msp_id);
-
-            if (!found) {
-                items.push({ label: node.msp_id, data: node });
+        for (const node of peerNodes) {
+            if (!orgObject[node.msp_id]) {
+                orgObject[node.msp_id] = [node];
+            } else {
+                orgObject[node.msp_id].push(node);
             }
+        }
+        const items: Array<IBlockchainQuickPickItem<FabricNode[]>> = [];
+
+        for (const key of Object.keys(orgObject)) {
+            items.push({label: key, data: orgObject[key]});
         }
 
         if (items.length === 0) {
@@ -287,21 +292,21 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(listOfCAs, quickPickOptions);
     }
 
-    public static async showPeersQuickPickBox(prompt: string, peerNames?: string[]): Promise<string[] | undefined> {
-        const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
-        if (!connection) {
-            VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, undefined, 'No connection to a blockchain found');
-            return;
-        }
-
+    public static async showPeersQuickPickBox(prompt: string, peerNames?: string[], canPickMany: boolean = true): Promise<string[] | string | undefined> {
         if (!peerNames) {
+            const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+            if (!connection) {
+                VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, undefined, 'No connection to a blockchain found');
+                return;
+            }
+
             peerNames = connection.getAllPeerNames();
         }
 
         if (peerNames.length > 1) {
             return vscode.window.showQuickPick(peerNames, {
                 ignoreFocusOut: true,
-                canPickMany: true,
+                canPickMany,
                 placeHolder: prompt
             });
         } else {

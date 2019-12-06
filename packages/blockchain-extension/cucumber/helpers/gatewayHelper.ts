@@ -75,7 +75,7 @@ export class GatewayHelper {
                     return _node.type === FabricNodeType.PEER;
                 });
 
-                this.userInputUtilHelper.showOrgQuickPickStub.resolves({ label: peerNode.msp_id, data: peerNode });
+                this.userInputUtilHelper.showOrgQuickPickStub.resolves({ label: peerNode.msp_id, data: [peerNode] });
 
                 const caNode: FabricNode = nodes.find((_node: FabricNode) => {
                     return _node.type === FabricNodeType.CERTIFICATE_AUTHORITY;
