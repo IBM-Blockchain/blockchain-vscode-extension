@@ -21,6 +21,8 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function addEnvironment(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+    const fabricEnvironmentEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+    const fabricEnvironmentRegistry: FabricEnvironmentRegistry = FabricEnvironmentRegistry.instance();
     try {
         outputAdapter.log(LogType.INFO, undefined, 'Add environment');
 
@@ -28,8 +30,6 @@ export async function addEnvironment(): Promise<void> {
         if (!createMethod) {
             return;
         }
-
-        const fabricEnvironmentRegistry: FabricEnvironmentRegistry = FabricEnvironmentRegistry.instance();
 
         const environmentName: string = await UserInputUtil.showInputBox('Enter a name for the environment');
         if (!environmentName) {
@@ -42,7 +42,6 @@ export async function addEnvironment(): Promise<void> {
             throw new Error('An environment with this name already exists.');
         }
 
-        const fabricEnvironmentEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         fabricEnvironmentEntry.name = environmentName;
 
         const addedAllNodes: boolean = await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, fabricEnvironmentEntry, true, createMethod) as boolean;
@@ -59,6 +58,7 @@ export async function addEnvironment(): Promise<void> {
         }
         Reporter.instance().sendTelemetryEvent('addEnvironmentCommand');
     } catch (error) {
+        await fabricEnvironmentRegistry.delete(fabricEnvironmentEntry.name, true);
         outputAdapter.log(LogType.ERROR, `Failed to add a new environment: ${error.message}`, `Failed to add a new environment: ${error.toString()}`);
     }
 }
