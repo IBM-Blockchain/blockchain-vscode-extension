@@ -14,46 +14,13 @@ Please visit the [Visual Studio Code Marketplace](https://marketplace.visualstud
 
 ## Requirements
 
-The first time you install this extension, it will check your system for the prequisites, and guide you to install any that you are missing.
+The first time you install this extension, it will check your system for the prequisites, and guide you to install any that you are missing. 
 
-The following information explains what requirements are included in that page.
+Windows 10, Linux, or Mac OS are currently the supported operating systems.
+Each of these operating systems have their own additional requirements. 
 
-You will need the following installed in order to use the extension:
-- Windows 10, Linux, or Mac OS are currently the supported operating systems.
-- [VS Code version 1.35.1 or greater](https://code.visualstudio.com)
-- [Node v8.x or v10.x and npm v6.x or greater](https://nodejs.org/en/download/)
-- [Go version v1.12 or greater for developing Go contracts](https://golang.org/dl/)
-- [Java v8 for developing Java contracts](https://adoptopenjdk.net/?variant=openjdk8)
+For the full list of requirements that the extension will check for, please refer to the ['Dependency Installation'](#dependency-installation) section at the end of the README.
 
-If you are using Windows, you must also ensure the following:
-- You are using Windows 10 Pro or Enterprise and have the Anniversary Update 1607
-- Docker for Windows is configured to use Linux containers (this is the default)
-- You have installed the C++ Build Tools for Windows from [windows-build-tools](https://github.com/felixrieseberg/windows-build-tools#windows-build-tools)
-- You have installed OpenSSL v1.0.2 if using Node 8, or v1.1.1 if using Node 10 from [Win32 OpenSSL](http://slproweb.com/products/Win32OpenSSL.html)
-  - Install the normal version, not the version marked as "light"
-  - Install the Win32 version into `C:\OpenSSL-Win32` on 32-bit systems
-  - Install the Win64 version into `C:\OpenSSL-Win64` on 64-bit systems
-
-This extension can use Docker and Docker Compose to run a simple pre-configured local Hyperledger Fabric network on your machine. You may disable this feature, but we highly recommend using it if you can!
-
-You will need the following:
-
-- [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)
-- [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/)
-
-You can check your installed versions by running the following commands from a terminal:
-- `node --version`
-- `npm --version`
-- `docker --version`
-- `docker-compose --version`
-- `go version`
-- `java -version`
-
-**If installing Node and npm using a manager such as 'nvm' or 'nodenv', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.**
-
-To open the Prerequisites page again, run the following in the command palette: `View Prerequisites`
-
-Please note: the extension doesn't currently work with the VSCode Remote Development feature, we plan to make this work in the future, follow progress [here](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1357). 
 
 ## Smart Contract Development Lifecycle
 _Please note that all commands contributed by this extension are accessible via the VS Code Command Palette. The commands outlined below are available from burger menus located on the panel headers, or by right-clicking tree items, in the extension's side bar view._
@@ -401,6 +368,70 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Upgrade Smart Contract | Upgrade an instantiated smart contract |
 | View Homepage | View the extensions homepage |
 | View Prerequisites | View the required and optional dependencies on the prerequisites page |
+
+### Dependency Installation
+<details>
+<summary>Click to view installation instructions</summary>
+
+The following dependencies are required on all operating systems: 
+- [VS Code version 1.35.1 or greater](https://code.visualstudio.com)
+> VS Code version can be found by running: `code --version`
+
+- [Node v8.x or v10.x and npm v6.x or greater](https://nodejs.org/en/download/)
+> Node version can be found by running: `node --version`
+>
+> npm version can be found by running: `npm --version`
+
+**If installing Node and npm using a manager such as 'nvm' or 'nodenv', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.**
+
+The following dependencies are optional:
+- [Go version v1.12 or greater for developing Go contracts](https://golang.org/dl/)
+> Go version can be found by running: `go version`
+
+- [Java v8 for developing Java contracts](https://adoptopenjdk.net/?variant=openjdk8)
+> Java version can be found by running: `java -version`
+
+
+### Additional requirements for Mac & Linux
+
+- Xcode Command Line Tools
+> Can be installed by running: `xcode-select --install`
+>
+> Can find version by running: `xcode-select --version`
+
+### Additional requirements for Windows
+
+- You are using Windows 10 Pro or Enterprise and have the Anniversary Update 1607
+
+### Local Fabric functionality
+
+This extension can use Docker and Docker Compose to run a simple pre-configured local Hyperledger Fabric network on your machine. By default this feature is enabled as we highly recommend using it, however you may disable this feature if required.
+
+You will need the following:
+
+- [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)
+> Docker version can be found by running: `docker --version`
+
+- [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/) 
+> Docker Compose version can be found by running: `docker-compose --version`
+
+#### Additional requirements for Windows
+
+- Docker for Windows is configured to use Linux containers (this is the default)
+- You will need to install the C++ Build Tools for Windows from [windows-build-tools](https://github.com/felixrieseberg/windows-build-tools#windows-build-tools)
+- You will need to install OpenSSL v1.0.2 if using Node 8, or v1.1.1 if using Node 10 from [Win32 OpenSSL](http://slproweb.com/products/Win32OpenSSL.html)
+  - Install the normal version, not the version marked as "light"
+  - Install the Win32 version into `C:\OpenSSL-Win32` on 32-bit systems
+  - Install the Win64 version into `C:\OpenSSL-Win64` on 64-bit systems
+
+For more information see the [Local Fabric](#local-fabric) section.
+
+### Additional information
+To open the Prerequisites page manually, run the `View Prerequisites` command inside VS Code from the Command Palette.
+
+Please note: the extension doesn't currently work with the VSCode Remote Development feature, we plan to make this work in the future, follow progress [here](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1357). 
+
+</details>
 
 ## Contact Us
 If you have find any problems or want to make suggestions for future features please create [issues and suggestions on Github](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues). For any questions please [create a question on Stack Overflow](https://stackoverflow.com/questions/tagged/ibp-vscode-extension).
