@@ -374,7 +374,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 <summary>Click to view installation instructions</summary>
 
 The following dependencies are required on all operating systems: 
-- [VS Code version 1.35.1 or greater](https://code.visualstudio.com)
+- [VS Code version 1.38.0 or greater](https://code.visualstudio.com)
 > VS Code version can be found by running: `code --version`
 
 - [Node v8.x or v10.x and npm v6.x or greater](https://nodejs.org/en/download/)
