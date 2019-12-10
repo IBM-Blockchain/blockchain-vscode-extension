@@ -8,13 +8,12 @@ import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import ITransaction from '../../src/interfaces/ITransaction';
 import ISmartContract from '../../src/interfaces/ISmartContract';
-import Utils from '../../src/Utils';
+import TransactionCreateForm from '../../src/components/TransactionCreateForm/TransactionCreateForm';
 chai.should();
 chai.use(sinonChai);
 
 describe('TransactionCreate component', () => {
-    let mySandbox: sinon.SinonSandbox;
-    let getTransactionArgumentsSpy: sinon.SinonSpy;
+    let mySandBox: sinon.SinonSandbox;
     let postMessageHandlerStub: sinon.SinonStub;
 
     const transactionOne: ITransaction = {
@@ -48,108 +47,40 @@ describe('TransactionCreate component', () => {
         namespace: 'GreenContract'
     };
 
+    const mockTransactionOutput: string = 'here is some transaction output';
+    const moreMockTransactionOutput: string = 'here is some more transaction output';
+
     beforeEach(async () => {
-        mySandbox = sinon.createSandbox();
-        getTransactionArgumentsSpy = mySandbox.spy(TransactionCreate.prototype, 'generateTransactionArguments');
-        postMessageHandlerStub = mySandbox.stub();
+        mySandBox = sinon.createSandbox();
+        postMessageHandlerStub = mySandBox.stub();
     });
 
     afterEach(async () => {
-        mySandbox.restore();
+        mySandBox.restore();
     });
 
     it('should render the expected snapshot', async () => {
         const component: any = renderer
-            .create(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>)
+            .create(<TransactionCreate activeSmartContract={greenContract} transactionOutput={mockTransactionOutput} postMessageHandler={postMessageHandlerStub}/>)
             .toJSON();
         expect(component).toMatchSnapshot();
     });
 
     it('redirects back to the home page when the appropriate link is clicked on', async () => {
-        const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
+        const component: any = mount(<TransactionCreate activeSmartContract={greenContract} transactionOutput={mockTransactionOutput} postMessageHandler={postMessageHandlerStub}/>);
         component.find('.titles-container > span').simulate('click');
         postMessageHandlerStub.should.have.been.calledOnceWithExactly('home');
     });
 
-    it('generates transaction arguments when an option from the transaction select is chosen', async () => {
-        const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
-        component.state().transactionArguments.should.equal('');
-        component.find('select').at(0).prop('onChange')( { currentTarget: { value: 'transactionOne' } } );
-        getTransactionArgumentsSpy.should.have.been.called;
-        component.state().activeTransaction.should.deep.equal(transactionOne);
-        component.state().transactionArguments.should.equal('[\n  name: ""\n]');
-    });
+    it('should update the transaction output when something new is passed down through props', async () => {
+        const componentDidUpdateSpy: sinon.SinonSpy = mySandBox.spy(TransactionCreate.prototype, 'componentDidUpdate');
+        const component: any = mount(<TransactionCreate activeSmartContract={greenContract} transactionOutput={mockTransactionOutput} postMessageHandler={postMessageHandlerStub}/>);
+        component.state().transactionOutput.should.equal(mockTransactionOutput);
 
-    it('does not generate arguments in the event that the chosen transaction doesn\'t have any parameters', async () => {
-        const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
-        component.state().transactionArguments.should.equal('');
-        component.find('select').at(0).prop('onChange')( { currentTarget: { value: 'transactionTwo' } } );
-        getTransactionArgumentsSpy.should.have.been.called;
-        component.state().activeTransaction.should.deep.equal(transactionTwo);
-        component.state().transactionArguments.should.equal('');
-    });
-
-    it('does not generate arguments in the event that the chosen transaction doesn\'t exist', async () => {
-        const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
-        component.state().transactionArguments.should.equal('');
-        component.find('select').at(0).prop('onChange')( { currentTarget: { value: 'anotherTransaction' } } );
-        getTransactionArgumentsSpy.should.have.been.called;
-        component.state().transactionArguments.should.equal('');
-    });
-
-    it('updates when the user types in the textarea', async () => {
-        const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
-        component.state().transactionArguments.should.equal('');
-        component.find('textarea').prop('onChange')( { currentTarget: { value: 'hello' } } );
-        component.state().transactionArguments.should.equal('hello');
-    });
-
-    it('should attempt to submit a transaction when the submit button is clicked ', async () => {
-        const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
-        component.setState({
-            activeTransaction: transactionOne,
-            transactionArguments: '[\nname: "Green"\n]'
+        component.setProps({
+            transactionOutput: moreMockTransactionOutput
         });
-        component.find('#submit-button').at(1).simulate('click');
-        postMessageHandlerStub.should.have.been.calledOnceWithExactly(
-            'submit', {
-                args: '["Green"]',
-                channelName: 'mychannel',
-                evaluate: false,
-                namespace: 'GreenContract',
-                peerTargetNames: [],
-                smartContract: 'greenContract',
-                transactionName: 'transactionOne',
-                transientData: ''
-            }
-        );
+        componentDidUpdateSpy.should.have.been.called;
+        component.state().transactionOutput.should.equal(moreMockTransactionOutput);
     });
-
-    it('should attempt to evaluate a transaction when the evaluate button is clicked', async () => {
-        const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
-        component.setState({
-            activeTransaction: transactionOne,
-            transactionArguments: '[\nname: "Green"\n]'
-        });
-        component.find('#evaluate-button').at(1).simulate('click');
-        postMessageHandlerStub.should.have.been.calledOnceWithExactly(
-            'evaluate', {
-                args: '["Green"]',
-                channelName: 'mychannel',
-                evaluate: true,
-                namespace: 'GreenContract',
-                peerTargetNames: [],
-                smartContract: 'greenContract',
-                transactionName: 'transactionOne',
-                transientData: ''
-            }
-        );
-    });
-
-    it('should do nothing if no transaction has been selected', async () => {
-        const component: any = mount(<TransactionCreate activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
-        component.find('#submit-button').at(1).simulate('click');
-        postMessageHandlerStub.should.not.have.been.called;
-    });
-
 });

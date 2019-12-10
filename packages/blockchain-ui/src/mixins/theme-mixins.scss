@@ -1,7 +1,5 @@
-
 @import '@carbon/colors/scss/colors';
-@import '@carbon/type/scss/type';
-    
+@import '@carbon/type/scss/type'; 
 
 //-------------------------
 // dark theme styles
@@ -79,12 +77,13 @@
 }
 
 @mixin inline-select-dark {
-    .bx--select {
+    .inline-select {
         border: none;
-    }
 
-    .bx--select-input {
-        color: white;
+        .bx--select-input {
+            background: none;
+            color: white;
+        }
     }
 }
 
@@ -121,15 +120,9 @@
     }
 }
 
-@mixin txn-output-dark {
-    background-color: $carbon--gray-80;
-}
-
-//-------------------------
-// light theme styles
-//-------------------------
-
-@mixin txn-output-light {
-    background-color: $carbon--gray-20;
-    color: black;
+@mixin output-panel-dark {
+    background-color: #1E2529;
+    .output-title {
+        color: #ababab;
+    }
 }

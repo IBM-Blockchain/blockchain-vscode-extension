@@ -1,0 +1,22 @@
+@import '@carbon/type/scss/font-face/_mono';
+@import '@carbon/layout/scss/_spacing';
+
+.output-panel {
+    position: fixed;
+    height: 100%;
+    width: 52%;
+    background-color: #F4F4F4;
+    padding: $spacing-07;
+
+    .output-title {
+        font-size: 0.875rem;
+        color: #393939;
+    }
+
+    .output-body {
+        @include carbon--font-face-mono;
+        font-family: 'IBM Plex Mono';
+        font-size: 0.875rem;
+        color: inherit;
+    }
+}

@@ -29,9 +29,15 @@ export class TransactionCreateView extends ReactView {
     async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
         panel.webview.onDidReceiveMessage(async (message: {command: string, data: any}) => {
             if (message.command === 'submit') {
-                await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, message.data);
+                const response: string = await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, message.data) as string;
+                panel.webview.postMessage({
+                    output: response
+                });
             } else if (message.command === 'evaluate') {
-                await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION, undefined, undefined, undefined, message.data);
+                const response: string = await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION, undefined, undefined, undefined, message.data);
+                panel.webview.postMessage({
+                    output: response
+                });
             } else if (message.command === 'home') {
                 const transactionView: TransactionView = new TransactionView(this.context, message.data, vscode.ViewColumn.Beside);
                 await transactionView.openView(true);

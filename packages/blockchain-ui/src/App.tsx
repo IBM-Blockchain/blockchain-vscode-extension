@@ -8,11 +8,10 @@ import Utils from './Utils';
 
 interface AppState {
     redirectPath: string;
-    messageData: {
-        gatewayName: string;
-        activeSmartContract: ISmartContract,
-        smartContracts: Array<ISmartContract>
-    };
+    gatewayName: string;
+    activeSmartContract: ISmartContract;
+    smartContracts: Array<ISmartContract>;
+    transactionOutput: string;
 }
 
 class App extends React.Component<{}, AppState> {
@@ -20,47 +19,54 @@ class App extends React.Component<{}, AppState> {
         super(props);
         this.state = {
             redirectPath: '',
-            messageData: {
-                gatewayName: '',
-                activeSmartContract: {
-                    name: '',
-                    version: '',
-                    channel: '',
-                    label: '',
-                    transactions: [],
-                    namespace: ''
-                },
-                smartContracts : []
-            }
+            gatewayName: '',
+            activeSmartContract: {
+                name: '',
+                version: '',
+                channel: '',
+                label: '',
+                transactions: [],
+                namespace: ''
+            },
+            smartContracts : [],
+            transactionOutput: ''
         };
-
         this.switchSmartContract = this.switchSmartContract.bind(this);
         this.postMessageHandler = this.postMessageHandler.bind(this);
     }
 
     componentDidMount(): void {
         window.addEventListener('message', (event: MessageEvent) => {
-            this.setState({
-                redirectPath: event.data.path,
-                messageData: event.data.state ? event.data.state : this.state.messageData
-            });
+            if (event.data.output) {
+                this.setState({
+                    transactionOutput: event.data.output
+                });
+            } else {
+                this.setState({
+                    redirectPath: event.data.path,
+                    gatewayName: event.data.state ? event.data.state.gatewayName : this.state.gatewayName,
+                    activeSmartContract: event.data.state ? event.data.state.activeSmartContract : this.state.activeSmartContract,
+                    smartContracts: event.data.state ? event.data.state.smartContracts : this.state.smartContracts,
+                });
+            }
         });
     }
 
     switchSmartContract(newActiveContractLabel: string): void {
-        const smartContracts: Array<ISmartContract> = this.state.messageData.smartContracts;
+        const smartContracts: Array<ISmartContract> = this.state.smartContracts;
         this.setState({
-            messageData: {
-                gatewayName: this.state.messageData.gatewayName,
-                activeSmartContract: smartContracts.find((obj: ISmartContract) => obj.label === newActiveContractLabel) as ISmartContract,
-                smartContracts: smartContracts
-            }
+            activeSmartContract: smartContracts.find((obj: ISmartContract) => obj.label === newActiveContractLabel) as ISmartContract,
+            smartContracts: smartContracts
         });
     }
 
     postMessageHandler(command: string, data?: any): void {
         if (data === undefined) {
-            data = this.state.messageData;
+            data = {
+                gatewayName: this.state.gatewayName,
+                activeSmartContract: this.state.activeSmartContract,
+                smartContracts: this.state.smartContracts
+            };
         }
 
         Utils.postToVSCode({
@@ -77,8 +83,14 @@ class App extends React.Component<{}, AppState> {
                 <Router>
                     <div>
                         <Route render={(): JSX.Element => <Redirect push to={this.state.redirectPath}/>}></Route>
-                        <Route exact path='/transaction' render={(): JSX.Element => <TransactionHome messageData={this.state.messageData} switchSmartContract={this.switchSmartContract} postMessageHandler={this.postMessageHandler}/>}></Route>
-                        <Route exact path='/transaction/create' render={(): JSX.Element => <TransactionCreate activeSmartContract={this.state.messageData.activeSmartContract} postMessageHandler={this.postMessageHandler}/>}></Route>
+                        <Route exact path='/transaction' render={(): JSX.Element =>
+                            <TransactionHome gatewayName={this.state.gatewayName} activeSmartContract={this.state.activeSmartContract} smartContracts={this.state.smartContracts}
+                                switchSmartContract={this.switchSmartContract} postMessageHandler={this.postMessageHandler}/>}>
+                        </Route>
+                        <Route exact path='/transaction/create' render={(): JSX.Element =>
+                            <TransactionCreate activeSmartContract={this.state.activeSmartContract} transactionOutput={this.state.transactionOutput}
+                                postMessageHandler={this.postMessageHandler}/>}>
+                        </Route>
                     </div>
                 </Router>
             );

@@ -1,0 +1,32 @@
+@import '@carbon/layout/scss/_spacing';
+@import '@carbon/grid/scss/grid';
+
+@mixin default-page-styling {
+    margin: 0;
+    padding: 0;
+    
+    h5 {
+        padding-bottom: $spacing-06;
+    }
+    
+    .inner-container {
+        height: 100vh;
+        max-width: 100%;
+    }
+    
+    .page-contents {
+        padding: $spacing-07;
+    }
+    
+    .titles-container {
+        padding: 0px $spacing-04;
+    
+        h2 {
+            padding: $spacing-09 0px;
+        }
+    }
+    
+    .contents-container {
+        margin: $spacing-02;
+    }
+}

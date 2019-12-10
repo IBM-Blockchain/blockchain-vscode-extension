@@ -64,12 +64,12 @@ describe('TransactionHome component', () => {
     });
 
     it('should render the expected snapshot', async () => {
-        const component: any = shallow(<TransactionHome messageData={mockState} switchSmartContract={switchSmartContractStub} postMessageHandler={postMessageHandlerStub}/>);
+        const component: any = shallow(<TransactionHome {...mockState} switchSmartContract={switchSmartContractStub} postMessageHandler={postMessageHandlerStub}/>);
         expect(component.getElements()).toMatchSnapshot();
     });
 
     it('should correctly set the state', async () => {
-        const component: any = mount(<TransactionHome messageData={mockState} switchSmartContract={switchSmartContractStub} postMessageHandler={postMessageHandlerStub}/>);
+        const component: any = mount(<TransactionHome {...mockState} switchSmartContract={switchSmartContractStub} postMessageHandler={postMessageHandlerStub}/>);
         component.state().should.deep.equal({
             activeSmartContractLabel: mockState.activeSmartContract.label,
             gatewayName: mockState.gatewayName,
@@ -83,34 +83,33 @@ describe('TransactionHome component', () => {
     });
 
     it('should attempt to switch the active smart contract if another contract is selected', async () => {
-        const component: any = mount(<TransactionHome messageData={mockState} switchSmartContract={switchSmartContractStub} postMessageHandler={postMessageHandlerStub}/>);
+        const component: any = mount(<TransactionHome {...mockState} switchSmartContract={switchSmartContractStub} postMessageHandler={postMessageHandlerStub}/>);
         component.find('select').at(0).prop('onChange')( { currentTarget: { value: blueContract.label } } );
         switchSmartContractStub.should.have.been.calledOnceWithExactly(blueContract.label);
     });
 
     it('should update the active smart contract when a new one is passed down through props', async () => {
         const componentDidUpdateSpy: sinon.SinonSpy = mySandBox.spy(TransactionHome.prototype, 'componentDidUpdate');
-        const component: any = mount(<TransactionHome messageData={mockState} switchSmartContract={switchSmartContractStub} postMessageHandler={postMessageHandlerStub}/>);
+        const component: any = mount(<TransactionHome {...mockState} switchSmartContract={switchSmartContractStub} postMessageHandler={postMessageHandlerStub}/>);
         component.state().activeSmartContractLabel.should.equal(greenContract.label);
+
         component.setProps({
-            messageData: {
-                gatewayName: 'myGateway',
-                activeSmartContract: blueContract,
-                smartContracts: greenContract, blueContract
-            }
+            gatewayName: 'myGateway',
+            activeSmartContract: blueContract,
+            smartContracts: greenContract, blueContract
         });
         componentDidUpdateSpy.should.have.been.called;
         component.state().activeSmartContractLabel.should.equal(blueContract.label);
     });
 
     it('called the expected command when the recent transactions table button is clicked', async () => {
-        const component: any = mount(<TransactionHome messageData={mockState} switchSmartContract={switchSmartContractStub} postMessageHandler={postMessageHandlerStub}/>);
+        const component: any = mount(<TransactionHome {...mockState} switchSmartContract={switchSmartContractStub} postMessageHandler={postMessageHandlerStub}/>);
         component.find('#recent-txns-table-btn').at(1).simulate('click');
         postMessageHandlerStub.should.have.been.calledWith('create');
     });
 
     it('called the expected command when the saved transactions table button is clicked', async () => {
-        const component: any = mount(<TransactionHome messageData={mockState} switchSmartContract={switchSmartContractStub} postMessageHandler={postMessageHandlerStub}/>);
+        const component: any = mount(<TransactionHome {...mockState} switchSmartContract={switchSmartContractStub} postMessageHandler={postMessageHandlerStub}/>);
         component.find('#saved-txns-table-btn').at(1).simulate('click');
         postMessageHandlerStub.should.have.been.calledWith('import');
     });

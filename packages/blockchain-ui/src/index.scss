@@ -3,7 +3,7 @@
 @import '@carbon/type/scss/type';
 @import '@carbon/type/scss/font-face/_mono';
 @import '@carbon/type/scss/font-face/_sans';
-@import './mixins.scss';
+@import './mixins/theme-mixins.scss';
 
 @include carbon--type-reset();
 @include carbon--font-face-mono();
@@ -39,8 +39,8 @@ html {
             @include checkbox-dark;
 
             //panel containing transaction output
-            #txn-output-container {
-                @include txn-output-dark;
+            #output-panel {
+                @include output-panel-dark;
             }
         }
     }
@@ -50,11 +50,6 @@ html {
             
             #root {
                 color: $text-01;
-            }
-
-            // panel containing transaction output
-            #txn-output-container {
-                @include txn-output-light;
             }
         }
     }
