@@ -34,6 +34,7 @@ describe('TutorialView', () => {
         sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
         await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_NEXT_ACTIVATION, false, vscode.ConfigurationTarget.Global);
     });
 
     afterEach(() => {
