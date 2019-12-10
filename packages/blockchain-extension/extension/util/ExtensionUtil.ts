@@ -561,12 +561,17 @@ export class ExtensionUtil {
             outputAdapter.log(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
         }
 
-        // Detects if the user wants to have the Home page appear the first time they click on the extension's icon
-        // Only do this if the extension has been updated.
+        // Detects if the user wants to have the Home page appear the next time the extension is activated, or the first time they click on the extension's icon.
+        // If the latter, only do this if the extension has been updated.
         const showPage: boolean = vscode.workspace.getConfiguration().get(SettingConfigurations.HOME_SHOW_ON_STARTUP);
-        if (extensionUpdated && showPage) {
+        const showPageNext: boolean = vscode.workspace.getConfiguration().get(SettingConfigurations.HOME_SHOW_ON_NEXT_ACTIVATION);
+        if (showPageNext || (extensionUpdated && showPage)) {
             // Open the Home page
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_HOME_PAGE);
+            // Reset SHOW_ON_NEXT_ACTIVATION if needed
+            if (showPageNext) {
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_NEXT_ACTIVATION, false, vscode.ConfigurationTarget.Global);
+            }
         }
 
         // Check if there is a newer version of the generator available

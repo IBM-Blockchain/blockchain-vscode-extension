@@ -35,6 +35,7 @@ export class SettingConfigurations {
 
     // HOME CONFIGURATIONS
     static readonly HOME_SHOW_ON_STARTUP: string = 'ibm-blockchain-platform.home.showOnStartup';
+    static readonly HOME_SHOW_ON_NEXT_ACTIVATION: string = 'ibm-blockchain-platform.home.showOnNextActivation';
 }
 
 export class FileConfigurations {
