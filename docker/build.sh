@@ -12,6 +12,7 @@ node ./node_modules/lerna/cli.js bootstrap
 node ./node_modules/lerna/cli.js run compile
 node ./node_modules/lerna/cli.js run createModule
 cp ./README.md ./packages/blockchain-extension/README.md
+cp ./CHANGELOG.md ./packages/blockchain-extension/CHANGELOG.md
 cp -r ./media ./packages/blockchain-extension/media
 cd ./packages/blockchain-extension
 npm install vsce
