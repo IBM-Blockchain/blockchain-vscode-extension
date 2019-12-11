@@ -45,7 +45,7 @@ describe('FabricGoDebugConfigurationProvider', () => {
             config.should.deep.equal([{
                 type: 'fabric:go',
                 request: 'launch',
-                name: 'Launch Smart Contract'
+                name: 'Debug Smart Contract'
             }]);
         });
 

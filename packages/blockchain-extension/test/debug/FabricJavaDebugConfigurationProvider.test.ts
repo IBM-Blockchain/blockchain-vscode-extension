@@ -45,7 +45,8 @@ describe('FabricJavaDebugConfigurationProvider', () => {
             config.should.deep.equal([{
                 type: 'fabric:java',
                 request: 'launch',
-                name: 'Launch Smart Contract'
+                name: 'Debug Smart Contract',
+                mainClass: 'org.hyperledger.fabric.contract.ContractRouter'
             }]);
         });
 

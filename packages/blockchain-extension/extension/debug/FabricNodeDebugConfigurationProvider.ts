@@ -15,22 +15,33 @@
 import * as vscode from 'vscode';
 import { Reporter } from '../util/Reporter';
 import * as path from 'path';
+import * as fs from 'fs-extra';
 import { FabricDebugConfigurationProvider } from './FabricDebugConfigurationProvider';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 
 export class FabricNodeDebugConfigurationProvider extends FabricDebugConfigurationProvider {
 
-    public async provideDebugConfigurations(): Promise<vscode.DebugConfiguration[]> {
+    public async provideDebugConfigurations(folder: vscode.WorkspaceFolder): Promise<vscode.DebugConfiguration[]> {
+        const debugInfo: any = {
+            type: 'fabric:node',
+            request: 'launch',
+            name: 'Debug Smart Contract'
+        };
+
+        const files: string[] = await fs.readdir(folder.uri.fsPath);
+        if (files.includes('tsconfig.json')) {
+            debugInfo.preLaunchTask = 'tsc: build - tsconfig.json';
+            debugInfo.outFiles = [
+                '${workspaceFolder}/dist/**/*.js'
+            ];
+        }
+
         return [
-            {
-                type: 'fabric:node',
-                request: 'launch',
-                name: 'Launch Smart Contract'
-            }
+            debugInfo
         ];
     }
 
-    protected async getChaincodeNameAndVersion(folder: vscode.WorkspaceFolder | undefined): Promise<{name: string, version: string}> {
+    protected async getChaincodeNameAndVersion(folder: vscode.WorkspaceFolder | undefined): Promise<{ name: string, version: string }> {
         return ExtensionUtil.getContractNameAndVersion(folder);
     }
 
@@ -68,7 +79,7 @@ export class FabricNodeDebugConfigurationProvider extends FabricDebugConfigurati
             config.args.push('--peer.address', peerAddress);
         }
 
-        Reporter.instance().sendTelemetryEvent('Smart Contract Debugged', {language: 'Node'});
+        Reporter.instance().sendTelemetryEvent('Smart Contract Debugged', { language: 'Node' });
         return config;
     }
 }

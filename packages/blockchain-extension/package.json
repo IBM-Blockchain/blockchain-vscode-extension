@@ -960,7 +960,18 @@
                             }
                         }
                     }
-                }
+                },
+                "configurationSnippets": [
+                    {
+                        "label": "Fabric Smart Contract (Go): Launch",
+                        "description": "Debug a Fabric smart contract written in Go",
+                        "body": {
+                            "type": "fabric:go",
+                            "request": "launch",
+                            "name": "Debug Smart Contract"
+                        }
+                    }
+                ]        
             },
             {
                 "type": "fabric:java",
@@ -1125,7 +1136,18 @@
                             }
                         }
                     }
-                }
+                },
+                "configurationSnippets": [
+                    {
+                        "label": "Fabric Smart Contract (Java): Launch",
+                        "description": "Debug a Fabric smart contract written in Java",
+                        "body": {
+                            "type": "fabric:java",
+                            "request": "launch",
+                            "name": "Debug Smart Contract"
+                        }
+                    }
+                ]        
             },
             {
                 "type": "fabric:node",
@@ -1198,49 +1220,14 @@
                         }
                     }
                 },
-                "initialConfigurations": [
-                    {
-                        "type": "fabric:go",
-                        "request": "launch",
-                        "name": "Launch Smart Contract"
-                    },
-                    {
-                        "type": "fabric:java",
-                        "request": "launch",
-                        "name": "Launch Smart Contract"
-                    },
-                    {
-                        "type": "fabric:node",
-                        "request": "launch",
-                        "name": "Launch Smart Contract"
-                    }
-                ],
                 "configurationSnippets": [
                     {
-                        "label": "Fabric Smart Contract (Go): Launch",
-                        "description": "Launch a Fabric smart contract written in Go",
-                        "body": {
-                            "type": "fabric:go",
-                            "request": "launch",
-                            "name": "Launch Smart Contract"
-                        }
-                    },
-                    {
-                        "label": "Fabric Smart Contract (Java): Launch",
-                        "description": "Launch a Fabric smart contract written in Java",
-                        "body": {
-                            "type": "fabric:java",
-                            "request": "launch",
-                            "name": "Launch Smart Contract"
-                        }
-                    },
-                    {
                         "label": "Fabric Smart Contract (Node.js): Launch",
-                        "description": "Launch a Fabric smart contract written in JavaScript or TypeScript",
+                        "description": "Debug a Fabric smart contract written in JavaScript or TypeScript",
                         "body": {
                             "type": "fabric:node",
                             "request": "launch",
-                            "name": "Launch Smart Contract"
+                            "name": "Debug Smart Contract"
                         }
                     }
                 ]
