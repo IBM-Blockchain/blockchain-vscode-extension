@@ -14,6 +14,7 @@ interface CreateFormState {
     postMessageHandler: (command: string, data?: any) => void;
     activeTransaction: ITransaction | undefined;
     transactionArguments: string;
+    transientData: string;
 }
 
 class TransactionCreateForm extends Component<CreateFormProps, CreateFormState> {
@@ -23,10 +24,12 @@ class TransactionCreateForm extends Component<CreateFormProps, CreateFormState> 
             activeSmartContract: this.props.activeSmartContract,
             activeTransaction: undefined,
             transactionArguments: '',
+            transientData: '',
             postMessageHandler: this.props.postMessageHandler
         };
         this.generateTransactionArguments = this.generateTransactionArguments.bind(this);
-        this.updateTextArea = this.updateTextArea.bind(this);
+        this.updateTransactionArguments = this.updateTransactionArguments.bind(this);
+        this.updateTransientData = this.updateTransientData.bind(this);
         this.submitTxn = this.submitTxn.bind(this);
     }
 
@@ -66,9 +69,15 @@ class TransactionCreateForm extends Component<CreateFormProps, CreateFormState> 
         });
     }
 
-    updateTextArea(event: React.FormEvent<HTMLTextAreaElement>): void {
+    updateTransactionArguments(event: React.FormEvent<HTMLTextAreaElement>): void {
         this.setState({
             transactionArguments: event.currentTarget.value
+        });
+    }
+
+    updateTransientData(event: React.FormEvent<HTMLInputElement>): void {
+        this.setState({
+            transientData: event.currentTarget.value
         });
     }
 
@@ -92,7 +101,7 @@ class TransactionCreateForm extends Component<CreateFormProps, CreateFormState> 
             channelName: this.state.activeSmartContract.channel,
             args: args,
             namespace: this.state.activeSmartContract.namespace,
-            transientData: '',
+            transientData: this.state.transientData,
             evaluate: evaluate,
             peerTargetNames: []
         };
@@ -123,10 +132,10 @@ class TransactionCreateForm extends Component<CreateFormProps, CreateFormState> 
                     </Select>
                 </FormGroup>
                 <FormGroup legendText='Arguments'>
-                    <TextArea labelText='Arguments*' id='arguments-text-area' onChange={this.updateTextArea} value={this.state.transactionArguments}/>
+                    <TextArea labelText='Arguments*' id='arguments-text-area' onChange={this.updateTransactionArguments} value={this.state.transactionArguments}/>
                 </FormGroup>
                 <FormGroup legendText='Transient data'>
-                    <TextInput id='transient-data-input' labelText='Transient data (optional)' hideLabel={false}></TextInput>
+                    <TextInput id='transient-data-input' labelText='Transient data (optional) - e.g. {"key": "value"}' hideLabel={false} onChange={this.updateTransientData} value={this.state.transientData}></TextInput>
                 </FormGroup>
                 <FormGroup legendText='Submit and Evaluate buttons' id='submit-and-evaluate-buttons'>
                     <Button size='field' className='submit-and-evaluate-buttons' id='evaluate-button' disabled={shouldDisableButtons} onClick={(): void => this.submitTxn(true)}>Evaluate</Button>

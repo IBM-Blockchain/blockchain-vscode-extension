@@ -271,7 +271,7 @@ exports[`TransactionCreateForm component should render the expected snapshot 1`]
         className="bx--label"
         htmlFor="transient-data-input"
       >
-        Transient data (optional)
+        Transient data (optional) - e.g. {"key": "value"}
       </label>
       <div
         className="bx--text-input__field-wrapper"
@@ -284,6 +284,7 @@ exports[`TransactionCreateForm component should render the expected snapshot 1`]
           onChange={[Function]}
           onClick={[Function]}
           type="text"
+          value=""
         />
       </div>
     </div>
