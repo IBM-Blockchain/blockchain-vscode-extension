@@ -1,6 +1,7 @@
 {
-    "name": "yofn",
+    "name": "yofn-org1",
     "version": "1.0.0",
+    "wallet": "org1-wallet",
     "client": {
         "organization": "Org1",
         "connection": {
