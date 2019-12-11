@@ -154,7 +154,7 @@ export class FabricRuntime extends FabricEnvironment {
             await fs.copy(gateway.path, profilePath);
             const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             gatewayRegistryEntry.name = gateway.name;
-            gatewayRegistryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+            gatewayRegistryEntry.associatedWallet = (gateway.connectionProfile as any).wallet || FabricWalletUtil.LOCAL_WALLET;
             await FabricGatewayRegistry.instance().add(gatewayRegistryEntry);
         }
     }
@@ -254,22 +254,7 @@ export class FabricRuntime extends FabricEnvironment {
 
     public async getGateways(): Promise<FabricGateway[]> {
         const gatewaysPath: string = path.resolve(this.path, FileConfigurations.FABRIC_GATEWAYS);
-        const gatewaysExist: boolean = await fs.pathExists(gatewaysPath);
-        if (!gatewaysExist) {
-            return [];
-        }
-        let gatewayPaths: string[] = await fs.readdir(gatewaysPath);
-        gatewayPaths = gatewayPaths
-            .sort()
-            .filter((gatewayPath: string) => !gatewayPath.startsWith('.'))
-            .map((gatewayPath: string) => path.resolve(this.path, FileConfigurations.FABRIC_GATEWAYS, gatewayPath));
-        const gateways: FabricGateway[] = [];
-        for (const gatewayPath of gatewayPaths) {
-            const connectionProfile: any = await fs.readJson(gatewayPath);
-            const gateway: FabricGateway = new FabricGateway(connectionProfile.name, gatewayPath, connectionProfile);
-            gateways.push(gateway);
-        }
-        return gateways;
+        return this.loadGateways(gatewaysPath);
     }
 
     public async getWalletNames(): Promise<string[]> {
@@ -387,6 +372,31 @@ export class FabricRuntime extends FabricEnvironment {
             ports: this.ports
         };
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, runtimeObject, vscode.ConfigurationTarget.Global);
+    }
+
+    private async loadGateways(gatewaysPath: string): Promise<FabricGateway[]> {
+        const gatewaysExist: boolean = await fs.pathExists(gatewaysPath);
+        if (!gatewaysExist) {
+            return [];
+        }
+        let gatewayPaths: string[] = await fs.readdir(gatewaysPath);
+        gatewayPaths = gatewayPaths
+            .sort()
+            .filter((gatewayPath: string) => !gatewayPath.startsWith('.'))
+            .map((gatewayPath: string) => path.resolve(gatewaysPath, gatewayPath));
+        const gateways: FabricGateway[] = [];
+        for (const gatewayPath of gatewayPaths) {
+            const stats: fs.Stats = await fs.lstat(gatewayPath);
+            if (stats.isDirectory()) {
+                const subGateways: FabricGateway[] = await this.loadGateways(gatewayPath);
+                gateways.push(...subGateways);
+            } else if (stats.isFile() && gatewayPath.endsWith('.json')) {
+                const connectionProfile: any = await fs.readJson(gatewayPath);
+                const gateway: FabricGateway = new FabricGateway(connectionProfile.name, gatewayPath, connectionProfile);
+                gateways.push(gateway);
+            }
+        }
+        return gateways;
     }
 
     private async isRunningInner(args?: string[]): Promise<boolean> {
