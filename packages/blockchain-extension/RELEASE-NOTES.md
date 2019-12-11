@@ -1,34 +1,28 @@
-# IBM Blockchain Platform Extension updated to v1.0.16
-_Release date: November 28th 2019_
+# IBM Blockchain Platform Extension updated to v1.0.17
+_Release date: December 12th 2019_
 
 Announcements
 ---
 * We’re still waiting for the gRPC v1.25.0 binaries to be published so you may be affected by [this issue](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621), where gRPC fails to rebuild when using VS Code 1.40.x.
    > Please see [this comment](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621#issuecomment-552926559) for a workaround.
 
-* We’re currently exploring creating a status page. Creating this will allow us to make any future problems and workarounds visible, until they are able to be addressed in a release. 
-
 Features & Enhancements
 ---
-* Local Fabric functionality is now optional [#1497](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1497)
-   > If you do not want to use the Local Fabric functionality, you are now able to turn it on/off from the Prerequisites page (by calling `View Prerequisites` from the command palette) or User Settings.
+* Instantiate/Upgrade with a smart contract endorsement policy [#1603](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1603).
+   > When instantiating/upgrading a smart contract, you are now able to use the 'Default' smart contract endorsement policy (1 endorsement from any organisation), or to choose a 'Custom' endorsement policy.
    >
-   > Disabling this functionality means that Docker and Docker Compose dependencies are not required. On Windows, the OpenSSL and the windows-build-tools are not required as well.
-* Updated Java functional test dependency and README [#1663](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1663)
-   > If you have previously generated Java functional tests during its BETA, please update the `fabric-gateway-java` dependency from `1.4.1-SNAPSHOT` to `1.4.2`.
+   > Selecting Custom will allow you to provide a JSON file containing the custom smart contract endorsement policy.
    >
-   > For more information on Java functional tests, please check the [README](https://github.com/IBM-Blockchain/blockchain-vscode-extension#java-functional-tests).
-* Release notes will now pop-up when the extension updates [#1689](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1689)
-   > In a future release, we plan on making it possible to open the release notes from inside of VS Code at any time. 
-* Added performance reports link to the Home page [#1632](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/1632)
+   > For more information about writing endorsement policies in JSON, see [Hyperledger Fabric Node SDK documentation](https://fabric-sdk-node.github.io/global.html#ChaincodeInstantiateUpgradeRequest).
 
-Fixes
----
-* Fixed dialog when there are no packages to delete [#1567](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1567)
+* Updated README to add compatibility notes, restructure prerequisites section and included current Local Fabric version [#1708](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1708), [#1709](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1709), [#1710](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1710).
+
+* Added setting for showing the Home page on next activation [#1578](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1578).
+   > By setting `"ibm-blockchain-platform.home.showOnNextActivation": true`, the Home page will open when VS Code is reloaded and the extension is activated.  
 
 
 This release's Conga Comic:
 ---
-<img src="https://congacomic.github.io/assets/img/blockheight-63.jpg" width="800">
+<img src="https://congacomic.github.io/assets/img/blockheight-64.jpg" width="800">
 
 For the full history of all releases, see the [change log](https://marketplace.visualstudio.com/items/IBMBlockchain.ibm-blockchain-platform/changelog).
