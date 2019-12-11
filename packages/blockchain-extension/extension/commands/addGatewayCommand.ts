@@ -85,31 +85,10 @@ export async function addGateway(): Promise<{} | void> {
 
 async function createGatewayFromEnvironment(gatewayName: string, environmentName: string): Promise<FabricGatewayRegistryEntry> {
 
-    const chosenOrg: IBlockchainQuickPickItem<FabricNode[]> = await UserInputUtil.showOrgQuickPick('Choose an organisation to create the gateway for', environmentName);
+    const chosenOrg: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showOrgQuickPick('Choose an organisation to create the gateway for', environmentName);
 
     if (!chosenOrg) {
         return;
-    }
-
-    let peerNode: FabricNode;
-
-    if (chosenOrg.data.length > 1) {
-        const peerList: FabricNode[] = chosenOrg.data;
-
-        const peerListString: string[] = peerList.map((_peer: FabricNode) => {
-            return _peer.name;
-        });
-
-        const chosenPeer: string = await UserInputUtil.showPeersQuickPickBox('Choose a peer to create the gateway for', peerListString, false) as string;
-        if (!chosenPeer) {
-            return;
-        }
-
-        peerNode = peerList.find((peer: FabricNode) => {
-            return peer.name === chosenPeer;
-        });
-    } else {
-        peerNode = chosenOrg.data[0];
     }
 
     let caNode: FabricNode;
@@ -125,6 +104,8 @@ async function createGatewayFromEnvironment(gatewayName: string, environmentName
     } catch (error) {
         VSCodeBlockchainOutputAdapter.instance().log(LogType.INFO, 'Could not find a certifcate authority to add to the connection profile');
     }
+
+    const peerNode: FabricNode = chosenOrg.data;
 
     const fabricGatewayEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
     fabricGatewayEntry.name = gatewayName;
