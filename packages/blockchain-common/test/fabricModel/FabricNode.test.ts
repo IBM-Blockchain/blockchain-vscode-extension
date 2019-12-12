@@ -16,7 +16,7 @@
 import * as sinon from 'sinon';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { FabricNode } from '../../src/fabricModel/FabricNode';
+import { FabricNode, FabricNodeType } from '../../src/fabricModel/FabricNode';
 
 chai.use(chaiAsPromised);
 
@@ -172,6 +172,23 @@ describe('FabricNode', () => {
             } catch (error) {
                 throw new Error('should not get here ' + error.message);
             }
+        });
+
+        it('should set hidden, and cluster name if defined', () => {
+            const fabricNode: FabricNode = FabricNode.pruneNode({ short_name: 'myNode', name: 'myNode', type: FabricNodeType.ORDERER, api_url: 'grpc://localhost:1234', hidden: true, cluster_name: 'myCluster' });
+            fabricNode.hidden.should.equal(true);
+            fabricNode.cluster_name.should.equal('myCluster');
+        });
+
+        it('should set ca name if defined', () => {
+            const fabricNode: FabricNode = FabricNode.pruneNode({ short_name: 'myNode', name: 'myNode', type: FabricNodeType.CERTIFICATE_AUTHORITY, api_url: 'grpc://localhost:1234', ca_name: 'myCA' });
+            fabricNode.ca_name.should.equal('myCA');
+        });
+
+        it('should set pem and ssl target name override if set', () => {
+            const fabricNode: FabricNode = FabricNode.pruneNode({ short_name: 'myNode', name: 'myNode', type: FabricNodeType.PEER, api_url: 'grpc://localhost:1234', pem: 'myCert', ssl_target_name_override: 'myOverride' });
+            fabricNode.pem.should.equal('myCert');
+            fabricNode.ssl_target_name_override.should.equal('myOverride');
         });
     });
 
