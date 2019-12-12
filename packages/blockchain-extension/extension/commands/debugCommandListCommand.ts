@@ -21,11 +21,16 @@ import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { FabricRuntimeUtil, IFabricEnvironmentConnection, LogType } from 'ibm-blockchain-platform-common';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
+import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 
 export async function debugCommandList(commandName?: string): Promise<void> {
 
     // Get the debug configuration
     const configuration: vscode.DebugConfiguration = vscode.debug.activeDebugSession.configuration;
+    if (configuration.debugEvent !== FabricDebugConfigurationProvider.debugEvent) {
+        VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, undefined, 'The current debug session is not debugging a smart contract, this command can only be run when debugging a smart contract');
+        return;
+    }
     const chaincodeContainerName: string = configuration.env.CORE_CHAINCODE_ID_NAME;
     const smartContractName: string = chaincodeContainerName.split(':')[0];
 
