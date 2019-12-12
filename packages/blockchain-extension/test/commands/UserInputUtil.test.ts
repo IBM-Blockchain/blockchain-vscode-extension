@@ -50,7 +50,6 @@ describe('UserInputUtil', () => {
     let walletEntryTwo: FabricWalletRegistryEntry;
     let environmentEntryOne: FabricEnvironmentRegistryEntry;
     let environmentEntryTwo: FabricEnvironmentRegistryEntry;
-
     let getConnectionStub: sinon.SinonStub;
     let fabricRuntimeConnectionStub: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
     let fabricClientConnectionStub: sinon.SinonStubbedInstance<FabricGatewayConnection>;
@@ -153,6 +152,66 @@ describe('UserInputUtil', () => {
             result.data.name.should.equal(environmentEntryOne.name);
 
             quickPickStub.should.have.been.calledWith([{ label: environmentEntryOne.name, data: environmentEntryOne }, { label: environmentEntryTwo.name, data: environmentEntryTwo }], {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'choose an environment'
+            });
+        });
+
+        it('should show all environments except Ops Tool instances', async () => {
+            const localFabricEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            localFabricEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
+            localFabricEntry.managedRuntime = true;
+
+            const opsEnvironment1: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
+                name: 'opsEnvironment1',
+                url: 'someURL'
+            });
+
+            await FabricEnvironmentRegistry.instance().add(opsEnvironment1);
+
+            const opsEnvironment2: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
+                name: 'opsEnvironment2',
+                url: 'someOtherURL'
+            });
+
+            await FabricEnvironmentRegistry.instance().add(opsEnvironment2);
+
+            quickPickStub.resolves({ label: environmentEntryOne.name, data: environmentEntryOne });
+
+            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false, true, true, EnvironmentType.OTHERENV) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+
+            result.data.name.should.equal(environmentEntryOne.name);
+
+            quickPickStub.should.have.been.calledWith([{ label: FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, data: localFabricEntry }, { label: environmentEntryOne.name, data: environmentEntryOne }, { label: environmentEntryTwo.name, data: environmentEntryTwo }], {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'choose an environment'
+            });
+        });
+
+        it('should show only Ops tool environments', async () => {
+            const opsEnvironment1: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
+                name: 'opsEnvironment1',
+                url: 'someURL'
+            });
+
+            await FabricEnvironmentRegistry.instance().add(opsEnvironment1);
+
+            const opsEnvironment2: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
+                name: 'opsEnvironment2',
+                url: 'someOtherURL'
+            });
+
+            await FabricEnvironmentRegistry.instance().add(opsEnvironment2);
+
+            quickPickStub.resolves({ label: opsEnvironment1.name, data: opsEnvironment1 });
+
+            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false, true, false, EnvironmentType.OPSTOOLSENV) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+
+            result.data.name.should.equal(opsEnvironment1.name);
+
+            quickPickStub.should.have.been.calledWith([{ label: opsEnvironment1.name, data: opsEnvironment1 }, { label: opsEnvironment2.name, data: opsEnvironment2 }], {
                 ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'choose an environment'

@@ -301,6 +301,11 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "environmentExplorer.editNodeFiltersEntry",
+                "title": "Edit node filters",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "environmentExplorer.deleteEnvironmentEntry",
                 "title": "Delete Environment",
                 "category": "IBM Blockchain Platform"
