@@ -44,6 +44,7 @@ import { EnvironmentConnectedTreeItem } from './runtimeOps/connectedTree/Environ
 import { TextTreeItem } from './model/TextTreeItem';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
+import { EditFiltersTreeItem } from './runtimeOps/connectedTree/EditFiltersTreeItem';
 
 export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorerProvider {
 
@@ -322,11 +323,19 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
             if (environmentEntry.name !== FabricRuntimeUtil.LOCAL_FABRIC) {
 
-                tree.push(new ImportNodesTreeItem(this, {
-                    command: ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT,
-                    title: '',
-                    arguments: [environmentEntry]
-                }));
+                if (environmentEntry.url) {
+                    tree.push(new EditFiltersTreeItem(this, {
+                        command: ExtensionCommands.EDIT_NODE_FILTERS,
+                        title: '',
+                        arguments: [environmentEntry],
+                    }));
+                } else {
+                    tree.push(new ImportNodesTreeItem(this, {
+                        command: ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT,
+                        title: '',
+                        arguments: [environmentEntry]
+                    }));
+                }
             }
 
         } catch (error) {
