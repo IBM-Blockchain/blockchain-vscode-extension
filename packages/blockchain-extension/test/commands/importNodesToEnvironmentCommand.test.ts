@@ -20,7 +20,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import Axios from 'axios';
 import { TestUtil } from '../TestUtil';
-import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import { UserInputUtil, EnvironmentType } from '../../extension/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
@@ -204,7 +204,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         it('should test nodes can be added from URL and key when adding a new OpsTool instance', async () => {
             getNodesStub.onSecondCall().resolves(opsToolNodes);
 
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             requireAsarModuleStub.should.have.been.calledOnce;
             ensureDirStub.should.have.been.calledTwice;
@@ -216,10 +216,26 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
         });
 
+        // Update this test when doing issue for filtering nodes
+        it('should test nodes can be filtered for an existing OpsTool environment', async () => {
+            showEnvironmentQuickPickStub.resolves({ label: OpsToolRegistryEntry.name, data: OpsToolRegistryEntry });
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, undefined, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+
+            requireAsarModuleStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledTwice;
+            updateNodeStub.should.have.been.calledTwice;
+            getNodesStub.should.have.been.calledTwice;
+
+            showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, true, false, EnvironmentType.OPSTOOLSENV);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, OpsToolRegistryEntry);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+        });
+
         it('should test nodes can be added to an existing OpsTool environment', async () => {
             getNodesStub.onSecondCall().resolves(opsToolNodes);
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, OpsToolRegistryEntry, false);
 
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             requireAsarModuleStub.should.have.been.calledOnce;
             ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.have.been.calledTwice;
@@ -234,7 +250,8 @@ describe('ImportNodesToEnvironmentCommand', () => {
         it('should test nodes can be added to an existing OpsTool environment (on windows)', async () => {
             mySandBox.stub(process, 'platform').value('win32');
             getNodesStub.onSecondCall().resolves(opsToolNodes);
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, OpsToolRegistryEntry, false);
+
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             requireAsarModuleStub.should.have.been.calledOnce;
             ensureDirStub.should.have.been.calledTwice;
@@ -250,7 +267,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         it('should handle user cancelling when asked for url when creating an OpsTool instance', async () => {
             showInputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves(undefined);
 
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').should.not.have.been.called;
             axiosGetStub.should.not.have.been.called;
@@ -264,7 +281,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         it('should handle user cancelling when asked for api key when creating an OpsTool instance', async () => {
             showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').resolves(undefined);
 
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             showInputBoxStub.withArgs('Enter the api secret of the ops tools you want to connect to').should.not.have.been.called;
             axiosGetStub.should.not.have.been.called;
@@ -279,7 +296,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         it('should handle when user cancels when asked for api secret when creating an OpsTool instance', async () => {
             showInputBoxStub.withArgs('Enter the api secret of the ops tools you want to connect to').resolves(undefined);
 
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             axiosGetStub.should.not.have.been.called;
             ensureDirStub.should.have.not.been.called;
@@ -294,7 +311,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             getNodesStub.onSecondCall().resolves(opsToolNodes);
 
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.have.been.calledTwice;
@@ -316,7 +333,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             getNodesStub.onSecondCall().resolves(opsToolNodes);
 
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.have.been.calledTwice;
@@ -333,7 +350,8 @@ describe('ImportNodesToEnvironmentCommand', () => {
             const error: Error = new Error('newError');
             requireAsarModuleStub.withArgs('keytar').throws(error);
             requireModuleStub.withArgs('keytar').throws(error);
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS).should.be.rejectedWith('Error importing the keytar module');
+
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS).should.be.rejectedWith('Error importing the keytar module');
 
             requireAsarModuleStub.should.have.been.calledOnce;
             requireModuleStub.should.have.been.calledOnce;
@@ -350,7 +368,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             const caughtError: Error = new Error(`Unable to store the required credentials: ${error.message}`);
             setPasswordStub.throws(error);
 
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS).should.be.rejectedWith(caughtError.message);
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS).should.be.rejectedWith(caughtError.message);
 
             requireAsarModuleStub.should.have.been.calledOnce;
             ensureDirStub.should.have.not.been.called;
@@ -397,7 +415,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             });
             getNodesStub.onSecondCall().resolves(opsToolNodes);
 
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             requireAsarModuleStub.should.have.been.calledOnce;
             ensureDirStub.should.have.been.calledTwice;
@@ -409,10 +427,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
         });
 
-        it('should handle user choosing not to perform certificate verification on a new Ops Tool instance', async () => {
+        it('should handle user choosing not to perform certificate verification on a new OpsTool instance', async () => {
             chooseCertVerificationStub.onFirstCall().resolves(UserInputUtil.CONNECT_NO_CA_CERT_CHAIN);
 
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             readFileStub.withArgs(caCertChainUri.fsPath, 'utf8').should.have.not.been.called;
             ensureDirStub.should.have.been.calledOnce;
@@ -423,10 +441,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
         });
 
-        it('should handle CA certificate chain browse not returning array, on a new Ops Tool instance', async () => {
+        it('should handle CA certificate chain browse not returning array, on a new OpsTool instance', async () => {
             browseStub.withArgs('Select CA certificate chain (.pem) file', sinon.match.any, sinon.match.any, sinon.match.any).resolves(caCertChainUri);
 
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             readFileStub.withArgs(caCertChainUri.fsPath, 'utf8').should.have.been.calledOnce;
             ensureDirStub.should.have.been.calledTwice;
@@ -439,7 +457,8 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
         it('should handle when user cancels when asked to choose certificate verification methtod when creating an OpsTool instance', async () => {
             chooseCertVerificationStub.resolves();
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             axiosGetStub.should.have.have.been.calledOnce;
             ensureDirStub.should.have.not.been.called;
@@ -451,7 +470,8 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
         it('should handle when user cancels after choosing to provide a certificate chain when creating an OpsTool instance', async () => {
             browseStub.withArgs('Select CA certificate chain (.pem) file', sinon.match.any, sinon.match.any, sinon.match.any).resolves();
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             axiosGetStub.should.have.have.been.calledOnce;
             ensureDirStub.should.have.not.been.called;
@@ -681,7 +701,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             const executionError: Error = new Error('no nodes were added');
             axiosGetStub.onFirstCall().rejects(connectionError);
 
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, OpsToolRegistryEntry, false);
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             requireAsarModuleStub.should.have.been.calledOnce;
             ensureDirStub.should.have.been.calledOnce;
@@ -697,7 +717,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             const error: Error = new Error('some error');
             axiosGetStub.onFirstCall().rejects(error);
 
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS).should.eventually.be.rejectedWith(error);
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS).should.eventually.be.rejectedWith(error);
 
             requireAsarModuleStub.should.have.been.calledOnce;
             ensureDirStub.should.have.not.been.called;
@@ -712,7 +732,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         it('should handle user not choosing any nodes from a new Ops Tool instance', async () => {
             showNodesQuickPickBoxStub.resolves([]);
 
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.not.have.been.called;
@@ -725,7 +745,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         it('should handle user choosing a subset of nodes from Ops Tool from a new Ops Tool instance', async () => {
             showNodesQuickPickBoxStub.resolves({ label: opsToolNodes[0].display_name, data: opsToolNodes[0] });
 
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, environmentRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             requireAsarModuleStub.should.have.been.calledOnce;
             ensureDirStub.should.have.been.calledTwice;
@@ -780,7 +800,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             const savedNodes: FabricNode[] = [];
             updateNodeStub.callsFake( (_node: FabricNode) => { savedNodes.push(_node); });
 
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, OpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             const savedNodesHidden: any[] = expectedNodes.map((_node: FabricNode) => ({short_name: _node.short_name, hidden: _node.hidden}));
             savedNodesHidden.should.deep.equal(expectedNodesHidden);
