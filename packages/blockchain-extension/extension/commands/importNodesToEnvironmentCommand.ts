@@ -13,7 +13,7 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import {UserInputUtil, IBlockchainQuickPickItem} from './UserInputUtil';
+import {UserInputUtil, IBlockchainQuickPickItem, EnvironmentType} from './UserInputUtil';
 import {VSCodeBlockchainOutputAdapter} from '../logging/VSCodeBlockchainOutputAdapter';
 import * as fs from 'fs-extra';
 import * as https from 'https';
@@ -37,8 +37,15 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
     outputAdapter.log(LogType.INFO, undefined, 'Import nodes to environment');
 
     try {
+
+        let chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
         if (!environmentRegistryEntry) {
-            const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to import nodes to', false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS) {
+                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an OpsTool environment to filter nodes', false, true, false, EnvironmentType.OPSTOOLSENV) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            } else {
+                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to import nodes to', false, true, false, EnvironmentType.OTHERENV) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            }
+
             if (!chosenEnvironment) {
                 return;
             }
@@ -146,8 +153,8 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                     } catch (error) {
                         // This needs to be fixed - exactly what codes can we get that will require this behaviour?
                         if (error.code === 'DEPTH_ZERO_SELF_SIGNED_CERT') {
-                        let caCertificate: string;
-                        let certificatePath: vscode.Uri;
+                            let caCertificate: string;
+                            let certificatePath: vscode.Uri;
                             const certificateUsage: string = await UserInputUtil.showQuickPick('Unable to perform certificate verification. Please choose how to proceed', [UserInputUtil.ADD_CA_CERT_CHAIN, UserInputUtil.CONNECT_NO_CA_CERT_CHAIN]) as string;
                             if (!certificateUsage) {
                                 return;
@@ -162,30 +169,30 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                                         Certificates: ['pem']
                                     }
                                 };
-                            certificatePath = await UserInputUtil.browse('Select CA certificate chain (.pem) file', quickPickItems, browseOptions, true) as vscode.Uri;
+                                certificatePath = await UserInputUtil.browse('Select CA certificate chain (.pem) file', quickPickItems, browseOptions, true) as vscode.Uri;
                                 if (certificatePath === undefined) {
                                     return;
-                            } else if (Array.isArray(certificatePath)) {
-                                certificatePath = certificatePath[0];
+                                } else if (Array.isArray(certificatePath)) {
+                                    certificatePath = certificatePath[0];
                                 }
-                            caCertificate = await fs.readFile(certificatePath.fsPath, 'utf8');
+                                caCertificate = await fs.readFile(certificatePath.fsPath, 'utf8');
                                 requestOptions.httpsAgent = new https.Agent({ca: caCertificate});
                             } else {
                                 requestOptions.httpsAgent = new https.Agent({rejectUnauthorized: false});
                             }
                             response = await Axios.get(api, requestOptions);
 
-                        try {
-                            await keytar.setPassword('blockchain-vscode-ext', url, `${apiKey}:${apiSecret}`);
-                            if (caCertificate) {
-                                await fs.ensureDir(environmentBaseDir);
-                                const separator: string = process.platform === 'win32' ? '\\' : '/';
-                                const caCertificateCopy: string = path.join(environmentBaseDir, certificatePath.fsPath.split(separator).pop());
-                                await fs.copy(certificatePath.fsPath, caCertificateCopy, { overwrite: true });
+                            try {
+                                await keytar.setPassword('blockchain-vscode-ext', url, `${apiKey}:${apiSecret}`);
+                                if (caCertificate) {
+                                    await fs.ensureDir(environmentBaseDir);
+                                    const separator: string = process.platform === 'win32' ? '\\' : '/';
+                                    const caCertificateCopy: string = path.join(environmentBaseDir, certificatePath.fsPath.split(separator).pop());
+                                    await fs.copy(certificatePath.fsPath, caCertificateCopy, {overwrite: true});
+                                }
+                            } catch (error) {
+                                throw new Error(`Unable to store the required credentials: ${error.message}`);
                             }
-                        } catch (error) {
-                            throw new Error(`Unable to store the required credentials: ${error.message}`);
-                        }
                         } else {
                             throw error;
                         }
@@ -241,8 +248,8 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                 }
             });
 
-        const environmentNodesPath: string = path.join(environmentBaseDir, 'nodes');
-        await fs.ensureDir(environmentNodesPath);
+            const environmentNodesPath: string = path.join(environmentBaseDir, 'nodes');
+            await fs.ensureDir(environmentNodesPath);
 
             const oldNodes: FabricNode[] = await environment.getNodes();
             for (const node of nodesToUpdate) {
@@ -266,7 +273,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             // check if any nodes were added
             const newEnvironment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
             const newNodes: FabricNode[] = await newEnvironment.getNodes();
-        if (newNodes.length === oldNodes.length) {
+            if (newNodes.length === oldNodes.length) {
                 throw new Error('no nodes were added');
             }
 
@@ -295,16 +302,16 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
         }
     }
 
-function getCoreNodeModule(moduleName: string): any {
-    try {
-      return ExtensionUtil.getModuleAsar(moduleName);
-    } catch (err) {
-        // do nothing
+    function getCoreNodeModule(moduleName: string): any {
+        try {
+            return ExtensionUtil.getModuleAsar(moduleName);
+        } catch (err) {
+            // do nothing
+        }
+        try {
+            return ExtensionUtil.getModule(moduleName);
+        } catch (err) {
+            // do nothing
+        }
+        return undefined;
     }
-    try {
-      return ExtensionUtil.getModule(moduleName);
-    } catch (err) {
-        // do nothing
-    }
-    return undefined;
-  }

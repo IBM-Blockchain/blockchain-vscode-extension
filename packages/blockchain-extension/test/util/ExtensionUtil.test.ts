@@ -552,6 +552,7 @@ describe('ExtensionUtil Tests', () => {
                 ExtensionCommands.DELETE_ENVIRONMENT,
                 ExtensionCommands.ASSOCIATE_IDENTITY_NODE,
                 ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT,
+                ExtensionCommands.EDIT_NODE_FILTERS,
                 ExtensionCommands.REPLACE_ASSOCIATED_IDENTITY,
                 ExtensionCommands.DELETE_NODE,
                 ExtensionCommands.CONNECT_TO_ENVIRONMENT,

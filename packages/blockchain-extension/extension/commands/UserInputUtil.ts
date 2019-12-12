@@ -33,6 +33,12 @@ export enum LanguageType {
     CONTRACT = 'contract'
 }
 
+export enum EnvironmentType {
+    ALLENV = 'all-environments',
+    OPSTOOLSENV = 'ops-tools',
+    OTHERENV = 'other-environment'
+}
+
 export interface LanguageQuickPickItem extends vscode.QuickPickItem {
     type: LanguageType;
 }
@@ -120,7 +126,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(items, quickPickOptions);
     }
 
-    public static async showFabricEnvironmentQuickPickBox(prompt: string, canPickMany: boolean, autoChoose: boolean, showLocalFabric: boolean = false, onlyShowManagedEnvironment: boolean = false, onlyShowNonAnsibleEnvironment: boolean = false): Promise<Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> | IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
+    public static async showFabricEnvironmentQuickPickBox(prompt: string, canPickMany: boolean, autoChoose: boolean, showLocalFabric: boolean = false, envType: EnvironmentType, onlyShowManagedEnvironment: boolean = false, onlyShowNonAnsibleEnvironment: boolean = false): Promise<Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> | IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
             canPickMany: canPickMany,
@@ -129,9 +135,28 @@ export class UserInputUtil {
 
         const environments: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(showLocalFabric, onlyShowManagedEnvironment, onlyShowNonAnsibleEnvironment);
 
-        const environmentsQuickPickItems: Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> = environments.map((environment: FabricEnvironmentRegistryEntry) => {
-            const label: string = environment.name;
+        let environmentsQuickPickItems: Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>>;
+        let environmentsFiltered: Array<FabricEnvironmentRegistryEntry> = environments;
 
+        switch (envType) {
+            case EnvironmentType.ALLENV: {
+                break;
+            }
+            case EnvironmentType.OPSTOOLSENV: {
+                environmentsFiltered = environments.filter((environment: FabricEnvironmentRegistryEntry) => environment.url);
+                break;
+            }
+            case EnvironmentType.OTHERENV: {
+                environmentsFiltered = environments.filter((environment: FabricEnvironmentRegistryEntry) => !environment.url);
+                break;
+            }
+        }
+
+        environmentsQuickPickItems = environmentsFiltered.map((environment: FabricEnvironmentRegistryEntry) => {
+            let label: string = environment.name;
+            if (environment.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+                label = FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
+            }
             return { label: label, data: environment };
         });
 
