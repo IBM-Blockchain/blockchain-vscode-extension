@@ -17,15 +17,11 @@ import * as semver from 'semver';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
-import { FabricChaincode, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 import { URL } from 'url';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
-import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
 import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 

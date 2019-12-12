@@ -19,14 +19,12 @@ import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { TestUtil } from '../TestUtil';
-import { LogType } from '../../extension/logging/OutputAdapter';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
-import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
 chai.should();
 

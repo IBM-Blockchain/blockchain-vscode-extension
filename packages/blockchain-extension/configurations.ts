@@ -37,10 +37,3 @@ export class SettingConfigurations {
     static readonly HOME_SHOW_ON_STARTUP: string = 'ibm-blockchain-platform.home.showOnStartup';
     static readonly HOME_SHOW_ON_NEXT_ACTIVATION: string = 'ibm-blockchain-platform.home.showOnNextActivation';
 }
-
-export class FileConfigurations {
-    static readonly FABRIC_WALLETS: string = 'wallets';
-    static readonly FABRIC_GATEWAYS: string = 'gateways';
-    static readonly FABRIC_ENVIRONMENTS: string = 'environments';
-    static readonly REPOSITORIES: string = 'repositories';
-}

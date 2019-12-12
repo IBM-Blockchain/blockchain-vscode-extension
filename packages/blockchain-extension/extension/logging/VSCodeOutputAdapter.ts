@@ -12,9 +12,8 @@
  * limitations under the License.
 */
 
-import { OutputAdapter } from './OutputAdapter';
+import { LogType, OutputAdapter } from 'ibm-blockchain-platform-common';
 import * as vscode from 'vscode';
-import { LogType } from '../logging/OutputAdapter';
 
 export abstract class VSCodeOutputAdapter extends OutputAdapter {
 

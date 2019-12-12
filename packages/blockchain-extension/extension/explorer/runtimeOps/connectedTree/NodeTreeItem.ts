@@ -15,10 +15,9 @@
 'use strict';
 
 import { BlockchainTreeItem } from '../../model/BlockchainTreeItem';
-import { FabricNode } from '../../../fabric/FabricNode';
+import { FabricEnvironmentRegistryEntry, FabricNode } from 'ibm-blockchain-platform-common';
 import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
 import * as vscode from 'vscode';
-import { FabricEnvironmentRegistryEntry } from '../../../registries/FabricEnvironmentRegistryEntry';
 
 export abstract class NodeTreeItem extends BlockchainTreeItem {
 

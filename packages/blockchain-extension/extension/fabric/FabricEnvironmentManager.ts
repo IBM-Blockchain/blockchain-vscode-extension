@@ -13,8 +13,7 @@
 */
 
 import { EventEmitter } from 'events';
-import { IFabricEnvironmentConnection } from './IFabricEnvironmentConnection';
-import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection } from 'ibm-blockchain-platform-common';
 
 export enum ConnectedState {
     CONNECTED,

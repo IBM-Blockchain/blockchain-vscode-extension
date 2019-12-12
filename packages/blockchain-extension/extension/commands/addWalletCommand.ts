@@ -16,15 +16,11 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
 import { UserInputUtil } from './UserInputUtil';
-import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
-import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { IFabricWallet } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil , IFabricWallet, IFabricWalletGenerator, LogType } from 'ibm-blockchain-platform-common';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
-import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
-import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
+import {FabricWalletHelper} from '../fabric/FabricWalletHelper';
 
 export async function addWallet(createIdentity: boolean = true): Promise<FabricWalletRegistryEntry> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -98,7 +94,7 @@ export async function addWallet(createIdentity: boolean = true): Promise<FabricW
 
             // Add the wallet to the registry
             fabricWalletRegistryEntry.name = walletName;
-            fabricWalletRegistryEntry.walletPath = FabricWalletUtil.getWalletPath(walletName);
+            fabricWalletRegistryEntry.walletPath = FabricWalletHelper.getWalletPath(walletName);
             await fabricWalletRegistry.add(fabricWalletRegistryEntry);
 
             if (createIdentity) {

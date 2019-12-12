@@ -30,9 +30,8 @@ import { DependencyManager } from '../../extension/dependencies/DependencyManage
 import { GlobalState, DEFAULT_EXTENSION_DATA, ExtensionData } from '../../extension/util/GlobalState';
 import { SettingConfigurations } from '../../configurations';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
 import { Dependencies } from '../../extension/dependencies/Dependencies';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 

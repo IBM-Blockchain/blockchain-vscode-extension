@@ -23,7 +23,7 @@ import * as sinonChai from 'sinon-chai';
 import { Gateway } from 'fabric-network';
 import { LogType, ConsoleOutputAdapter, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import Client = require('fabric-client');
-import { FabricWallet } from '../src/FabricWallet';
+import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);

@@ -32,14 +32,12 @@ import { ConnectedTreeItem } from '../../extension/explorer/model/ConnectedTreeI
 import { ContractTreeItem } from '../../extension/explorer/model/ContractTreeItem';
 import { LocalGatewayTreeItem } from '../../extension/explorer/model/LocalGatewayTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedChaincodeTreeItem } from '../../extension/explorer/model/InstantiatedChaincodeTreeItem';
 import { GatewayTreeItem } from '../../extension/explorer/model/GatewayTreeItem';
 import { GatewayDissociatedTreeItem } from '../../extension/explorer/model/GatewayDissociatedTreeItem';
 import { GatewayAssociatedTreeItem } from '../../extension/explorer/model/GatewayAssociatedTreeItem';
-import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
 import { InstantiatedUnknownTreeItem } from '../../extension/explorer/model/InstantiatedUnknownTreeItem';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 

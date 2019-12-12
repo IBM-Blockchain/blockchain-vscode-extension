@@ -14,10 +14,9 @@
 
 import * as vscode from 'vscode';
 import { Reporter } from '../util/Reporter';
-import { FabricNode, FabricNodeType } from '../fabric/FabricNode';
 import { NodeTreeItem } from '../explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricNode, FabricNodeType, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 export async function openNewTerminal(nodeItem: NodeTreeItem): Promise<void> {
 

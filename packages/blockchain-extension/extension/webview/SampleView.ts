@@ -26,7 +26,7 @@ import { RepositoryRegistry } from '../registries/RepositoryRegistry';
 import * as shell from 'shelljs';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import * as ejs from 'ejs';
-import { LogType } from '../logging/OutputAdapter';
+import { LogType } from 'ibm-blockchain-platform-common';
 import { View } from './View';
 import { RepositoryRegistryEntry } from '../registries/RepositoryRegistryEntry';
 

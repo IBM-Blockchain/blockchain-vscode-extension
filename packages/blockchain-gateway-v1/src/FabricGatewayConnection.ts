@@ -13,7 +13,7 @@
 */
 'use strict';
 import { FabricConnection } from './FabricConnection';
-import { FabricWallet } from './FabricWallet';
+import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { IFabricGatewayConnection, OutputAdapter, ConnectionProfileUtil } from 'ibm-blockchain-platform-common';
 import { Network, Contract, Transaction } from 'fabric-network';
 import * as Client from 'fabric-client';

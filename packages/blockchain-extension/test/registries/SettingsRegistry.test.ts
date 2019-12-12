@@ -14,7 +14,7 @@
 
 import * as vscode from 'vscode';
 import { SettingsRegistry } from '../../extension/registries/SettingsRegistry';
-import { RegistryEntry } from '../../extension/registries/RegistryEntry';
+import { RegistryEntry } from 'ibm-blockchain-platform-common';
 
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';

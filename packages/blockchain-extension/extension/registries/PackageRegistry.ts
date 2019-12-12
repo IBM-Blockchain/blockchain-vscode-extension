@@ -17,7 +17,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
+import { LogType } from 'ibm-blockchain-platform-common';
 import { SettingConfigurations } from '../../configurations';
 import { FileSystemUtil } from '../util/FileSystemUtil';
 
@@ -92,13 +92,13 @@ export class PackageRegistry {
 
                 // Parse the package. Need to dynamically load the package class
                 // from the Fabric SDK to avoid early native module loading.
-                const { Package } = await import('fabric-client');
-                const pkg: any = await Package.fromBuffer(pkgBuffer);
+                const { PackageSmartContract } = await import('ibm-blockchain-platform-environment-v1');
+                const pkgInfo: {name: string, version: string} = await PackageSmartContract.getPackageInfo(pkgBuffer);
 
                 // Create the package registry entry.
                 pkgRegistryEntries.push(new PackageRegistryEntry({
-                    name: pkg.getName(),
-                    version: pkg.getVersion(),
+                    name: pkgInfo.name,
+                    version: pkgInfo.version,
                     path: pkgPath
                 }));
 

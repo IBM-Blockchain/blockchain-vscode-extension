@@ -25,9 +25,7 @@ import { TestUtil } from '../TestUtil';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { LogType } from '../../extension/logging/OutputAdapter';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
-import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
+import { FabricEnvironmentRegistry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 
 chai.should();
 

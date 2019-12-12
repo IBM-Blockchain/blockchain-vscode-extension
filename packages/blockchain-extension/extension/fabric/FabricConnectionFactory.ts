@@ -12,10 +12,7 @@
  * limitations under the License.
 */
 'use strict';
-import { OutputAdapter } from '../logging/OutputAdapter';
-import { IFabricGatewayConnection } from 'ibm-blockchain-platform-common';
-import { IFabricEnvironmentConnection } from './IFabricEnvironmentConnection';
-import { FabricEnvironment } from './FabricEnvironment';
+import { IFabricEnvironmentConnection, IFabricGatewayConnection, OutputAdapter } from 'ibm-blockchain-platform-common';
 
 export class FabricConnectionFactory {
 
@@ -27,12 +24,12 @@ export class FabricConnectionFactory {
         return new (this.gatewayConnection).FabricGatewayConnection(connection, outputAdapter);
     }
 
-    public static createFabricEnvironmentConnection(environment: FabricEnvironment, outputAdapter?: OutputAdapter): IFabricEnvironmentConnection {
+    public static createFabricEnvironmentConnection(outputAdapter?: OutputAdapter): IFabricEnvironmentConnection {
         if (!this.environmentConnection) {
-            this.environmentConnection = require('./FabricEnvironmentConnection');
+            this.environmentConnection = require('ibm-blockchain-platform-environment-v1');
         }
 
-        return new (this.environmentConnection).FabricEnvironmentConnection(environment, outputAdapter);
+        return new (this.environmentConnection).FabricEnvironmentConnection(outputAdapter);
     }
 
     private static environmentConnection: any;

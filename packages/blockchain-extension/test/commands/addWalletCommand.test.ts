@@ -20,13 +20,10 @@ import * as path from 'path';
 import * as tmp from 'tmp';
 import { TestUtil } from '../TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricWallet } from 'ibm-blockchain-platform-gateway-v1';
-import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
-import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
-import { FileConfigurations } from '../../configurations';
+import { FabricWallet } from 'ibm-blockchain-platform-wallet';
+import { FabricWalletRegistry, FabricWalletRegistryEntry, FileConfigurations, LogType } from 'ibm-blockchain-platform-common';
 
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();

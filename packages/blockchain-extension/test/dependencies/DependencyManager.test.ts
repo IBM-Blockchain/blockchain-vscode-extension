@@ -24,7 +24,7 @@ import { DependencyManager } from '../../extension/dependencies/DependencyManage
 import { CommandUtil } from '../../extension/util/CommandUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { TemporaryCommandRegistry } from '../../extension/dependencies/TemporaryCommandRegistry';
-import { LogType } from '../../extension/logging/OutputAdapter';
+import { LogType } from 'ibm-blockchain-platform-common';
 import Axios from 'axios';
 import { TestUtil } from '../TestUtil';
 import { GlobalState, ExtensionData, DEFAULT_EXTENSION_DATA } from '../../extension/util/GlobalState.js';
@@ -350,8 +350,8 @@ describe('DependencyManager Tests', () => {
             const origPath: string = path.join(basePath, `node-v69-darwin-x64-unknown`);
             const newPath: string = path.join(basePath, `electron-v4.1-darwin-x64-unknown`);
 
-            removeStub.should.have.been.calledTwice;
-            renameStub.should.have.been.calledTwice;
+            removeStub.callCount.should.equal(4);
+            renameStub.callCount.should.equal(4);
             removeStub.should.have.been.calledWith(origPath);
             renameStub.should.have.been.calledWith(newPath, origPath);
             existsStub.should.have.been.called;

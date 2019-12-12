@@ -20,9 +20,8 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { Package } from 'fabric-client';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
+import { LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
 
@@ -154,7 +153,7 @@ describe('packageSmartContract', () => {
             { name: 'typescriptProject', uri: vscode.Uri.file(typescriptPath) },
             { name: 'goProject', uri: vscode.Uri.file(golangPath) },
             { name: 'javaProject', uri: vscode.Uri.file(javaPath) },
-            { name: '  invalid package name! ', uri: vscode.Uri.file(invalidPath)}
+            { name: '  invalid package name! ', uri: vscode.Uri.file(invalidPath) }
         ];
 
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
@@ -261,15 +260,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('javascriptProject');
-            pkg.getVersion().should.equal('0.0.1');
-            pkg.getType().should.equal('node');
-            pkg.getFileNames().should.deep.equal([
-                'src/chaincode.js',
-                'src/package.json'
-            ]);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
@@ -292,15 +283,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('javascriptProject');
-            pkg.getVersion().should.equal('0.0.1');
-            pkg.getType().should.equal('node');
-            pkg.getFileNames().should.deep.equal([
-                'src/chaincode.js',
-                'src/package.json'
-            ]);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
@@ -323,15 +306,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folders[testIndex], 'dogechain');
 
             const pkgFile: string = path.join(fileDest, 'dogechain@0.0.3.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('dogechain');
-            pkg.getVersion().should.equal('0.0.3');
-            pkg.getType().should.equal('node');
-            pkg.getFileNames().should.deep.equal([
-                'src/chaincode.js',
-                'src/package.json'
-            ]);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
@@ -354,15 +329,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folders[testIndex], null, '0.0.3');
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.3.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('javascriptProject');
-            pkg.getVersion().should.equal('0.0.3');
-            pkg.getType().should.equal('node');
-            pkg.getFileNames().should.deep.equal([
-                'src/chaincode.js',
-                'src/package.json'
-            ]);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
@@ -385,15 +352,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folders[testIndex], 'dogechain', '1.2.3');
 
             const pkgFile: string = path.join(fileDest, 'dogechain@1.2.3.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('dogechain');
-            pkg.getVersion().should.equal('1.2.3');
-            pkg.getType().should.equal('node');
-            pkg.getFileNames().should.deep.equal([
-                'src/chaincode.js',
-                'src/package.json'
-            ]);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
@@ -416,18 +375,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('javascriptProject');
-            pkg.getVersion().should.equal('0.0.1');
-            pkg.getType().should.equal('node');
-            pkg.getFileNames().should.deep.equal([
-                // Yes, it gets packaged twice!
-                'META-INF/statedb/couchdb/indexes/indexOwner.json',
-                'src/META-INF/statedb/couchdb/indexes/indexOwner.json',
-                'src/chaincode.js',
-                'src/package.json'
-            ]);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `4 file(s) packaged:`);
@@ -452,16 +400,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('typescriptProject');
-            pkg.getVersion().should.equal('0.0.1');
-            pkg.getType().should.equal('node');
-            pkg.getFileNames().should.deep.equal([
-                'src/chaincode.js',
-                'src/chaincode.ts',
-                'src/package.json'
-            ]);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
@@ -491,14 +430,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('myProject');
-            pkg.getVersion().should.equal('0.0.3');
-            pkg.getType().should.equal('golang');
-            pkg.getFileNames().should.deep.equal([
-                'src/goProject/chaincode.go'
-            ]);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
@@ -525,14 +457,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, 'dogechain');
 
             const pkgFile: string = path.join(fileDest, 'dogechain@0.0.3.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('dogechain');
-            pkg.getVersion().should.equal('0.0.3');
-            pkg.getType().should.equal('golang');
-            pkg.getFileNames().should.deep.equal([
-                'src/goProject/chaincode.go'
-            ]);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
@@ -559,14 +484,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, null, '1.2.3');
 
             const pkgFile: string = path.join(fileDest, 'myProject@1.2.3.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('myProject');
-            pkg.getVersion().should.equal('1.2.3');
-            pkg.getType().should.equal('golang');
-            pkg.getFileNames().should.deep.equal([
-                'src/goProject/chaincode.go'
-            ]);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
@@ -591,14 +509,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, 'dogechain', '1.2.3');
 
             const pkgFile: string = path.join(fileDest, 'dogechain@1.2.3.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('dogechain');
-            pkg.getVersion().should.equal('1.2.3');
-            pkg.getType().should.equal('golang');
-            pkg.getFileNames().should.deep.equal([
-                'src/goProject/chaincode.go'
-            ]);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
@@ -628,14 +539,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('myProject');
-            pkg.getVersion().should.equal('0.0.3');
-            pkg.getType().should.equal('golang');
-            pkg.getFileNames().should.deep.equal([
-                'src/goProject/chaincode.go'
-            ]);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
@@ -661,15 +565,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('myProject');
-            pkg.getVersion().should.equal('0.0.3');
-            pkg.getType().should.equal('java');
-            pkg.getFileNames().should.deep.equal([
-                'src/build.gradle',
-                'src/chaincode.java'
-            ]);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
@@ -695,15 +591,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, 'dogechain');
 
             const pkgFile: string = path.join(fileDest, 'dogechain@0.0.3.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('dogechain');
-            pkg.getVersion().should.equal('0.0.3');
-            pkg.getType().should.equal('java');
-            pkg.getFileNames().should.deep.equal([
-                'src/build.gradle',
-                'src/chaincode.java'
-            ]);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
@@ -729,15 +617,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, null, '1.2.3');
 
             const pkgFile: string = path.join(fileDest, 'myProject@1.2.3.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('myProject');
-            pkg.getVersion().should.equal('1.2.3');
-            pkg.getType().should.equal('java');
-            pkg.getFileNames().should.deep.equal([
-                'src/build.gradle',
-                'src/chaincode.java'
-            ]);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
@@ -764,15 +644,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, 'dogechain', '1.2.3');
 
             const pkgFile: string = path.join(fileDest, 'dogechain@1.2.3.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('dogechain');
-            pkg.getVersion().should.equal('1.2.3');
-            pkg.getType().should.equal('java');
-            pkg.getFileNames().should.deep.equal([
-                'src/build.gradle',
-                'src/chaincode.java'
-            ]);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
@@ -799,15 +671,6 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('myProject');
-            pkg.getVersion().should.equal('0.0.3');
-            pkg.getType().should.equal('java');
-            pkg.getFileNames().should.deep.equal([
-                'src/chaincode.java',
-                'src/pom.xml'
-            ]);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
@@ -1086,15 +949,7 @@ describe('packageSmartContract', () => {
             showWorkspaceQuickPickStub.should.not.have.been.called;
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('javascriptProject');
-            pkg.getVersion().should.equal('0.0.1');
-            pkg.getType().should.equal('node');
-            pkg.getFileNames().should.deep.equal([
-                'src/chaincode.js',
-                'src/package.json'
-            ]);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
@@ -1242,15 +1097,6 @@ describe('packageSmartContract', () => {
             showWorkspaceQuickPickStub.should.not.have.been.called;
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('javascriptProject');
-            pkg.getVersion().should.equal('0.0.1');
-            pkg.getType().should.equal('node');
-            pkg.getFileNames().should.deep.equal([
-                'src/chaincode.js',
-                'src/package.json'
-            ]);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
@@ -1275,7 +1121,7 @@ describe('packageSmartContract', () => {
             });
 
             const uri: vscode.Uri = vscode.Uri.file(path.join(folders[testIndex].uri.fsPath, 'src'));
-            const mockDiagnostics: any = [[uri, [{severity: 0}]]];
+            const mockDiagnostics: any = [[uri, [{ severity: 0 }]]];
             mySandBox.stub(vscode.languages, 'getDiagnostics').returns(mockDiagnostics);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
@@ -1299,21 +1145,13 @@ describe('packageSmartContract', () => {
             });
 
             const uri: vscode.Uri = vscode.Uri.file(path.join(folders[testIndex].uri.fsPath, 'src'));
-            const mockDiagnostics: any = [[uri, [{severity: 1}]]];
+            const mockDiagnostics: any = [[uri, [{ severity: 1 }]]];
             mySandBox.stub(vscode.languages, 'getDiagnostics').returns(mockDiagnostics);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('javascriptProject');
-            pkg.getVersion().should.equal('0.0.1');
-            pkg.getType().should.equal('node');
-            pkg.getFileNames().should.deep.equal([
-                'src/chaincode.js',
-                'src/package.json'
-            ]);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             executeTaskStub.should.have.not.been.called;
@@ -1331,21 +1169,13 @@ describe('packageSmartContract', () => {
             });
 
             const uri: vscode.Uri = vscode.Uri.file('src');
-            const mockDiagnostics: any = [[uri, [{severity: 0}]]];
+            const mockDiagnostics: any = [[uri, [{ severity: 0 }]]];
             mySandBox.stub(vscode.languages, 'getDiagnostics').returns(mockDiagnostics);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
-            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('javascriptProject');
-            pkg.getVersion().should.equal('0.0.1');
-            pkg.getType().should.equal('node');
-            pkg.getFileNames().should.deep.equal([
-                'src/chaincode.js',
-                'src/package.json'
-            ]);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             executeTaskStub.should.have.not.been.called;

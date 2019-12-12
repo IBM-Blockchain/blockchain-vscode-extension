@@ -19,7 +19,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import * as path from 'path';
 import { UserInputUtil, LanguageQuickPickItem, LanguageType } from './UserInputUtil';
 import { ExtensionUtil } from '../util/ExtensionUtil';
-import { LogType } from '../logging/OutputAdapter';
+import { LogType } from 'ibm-blockchain-platform-common';
 import * as GeneratorFabricPackageJSON from 'generator-fabric/package.json';
 import { YeomanUtil } from '../util/YeomanUtil';
 

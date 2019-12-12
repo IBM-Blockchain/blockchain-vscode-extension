@@ -37,7 +37,7 @@ import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { InstantiatedTreeItem } from '../../extension/explorer/model/InstantiatedTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
-import { LogType } from '../../extension/logging/OutputAdapter';
+import { LogType } from 'ibm-blockchain-platform-common';
 import { TransactionView } from '../../extension/webview/TransactionView';
 
 chai.use(sinonChai);

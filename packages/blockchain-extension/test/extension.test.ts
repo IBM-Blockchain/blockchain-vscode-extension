@@ -26,16 +26,16 @@ import { TemporaryCommandRegistry } from '../extension/dependencies/TemporaryCom
 import { TestUtil } from './TestUtil';
 import { Reporter } from '../extension/util/Reporter';
 import { ExtensionCommands } from '../ExtensionCommands';
-import { LogType } from '../extension/logging/OutputAdapter';
+import { LogType } from 'ibm-blockchain-platform-common';
 import { SettingConfigurations } from '../configurations';
 import { UserInputUtil } from '../extension/commands/UserInputUtil';
 import { dependencies } from '../package.json';
 import { GlobalState, DEFAULT_EXTENSION_DATA, ExtensionData } from '../extension/util/GlobalState';
 import { BlockchainGatewayExplorerProvider } from '../extension/explorer/gatewayExplorer';
-import { FabricWalletUtil } from '../extension/fabric/FabricWalletUtil';
 import { FabricGatewayHelper } from '../extension/fabric/FabricGatewayHelper';
 import { FabricGatewayRegistry } from '../extension/registries/FabricGatewayRegistry';
 import { FabricGatewayRegistryEntry } from '../extension/registries/FabricGatewayRegistryEntry';
+import { FabricWalletHelper } from '../extension/fabric/FabricWalletHelper';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -83,7 +83,7 @@ describe('Extension Tests', () => {
         reporterDisposeStub = mySandBox.stub(Reporter.instance(), 'dispose');
         getPackageJSONStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
         migrateSettingConfigurations = mySandBox.stub(ExtensionUtil, 'migrateSettingConfigurations').resolves();
-        tidyWalletSettingsStub = mySandBox.stub(FabricWalletUtil, 'tidyWalletSettings').resolves();
+        tidyWalletSettingsStub = mySandBox.stub(FabricWalletHelper, 'tidyWalletSettings').resolves();
         migrateGatewaysStub = mySandBox.stub(FabricGatewayHelper, 'migrateGateways').resolves();
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         setupCommandsStub = mySandBox.stub(ExtensionUtil, 'setupCommands');

@@ -23,4 +23,5 @@ steps:
     condition: succeededOrFailed()
     inputs:
       testRunner: JUnit
-      testResultsFiles: '$(System.DefaultWorkingDirectory)/packages/blockchain-gateway-v1/unit-tests.xml; $(System.DefaultWorkingDirectory)/packages/blockchain-common/unit-tests.xml'
+      searchFolder: '$(System.DefaultWorkingDirectory)/packages'
+      testResultsFiles: '**/unit-tests.xml'

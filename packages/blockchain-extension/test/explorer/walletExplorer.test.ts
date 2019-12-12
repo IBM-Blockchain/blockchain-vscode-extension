@@ -13,7 +13,6 @@
 */
 'use strict';
 // tslint:disable no-var-requires
-const { Certificate } = require('@fidm/x509');
 import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -21,21 +20,16 @@ import * as sinonChai from 'sinon-chai';
 import { BlockchainWalletExplorerProvider } from '../../extension/explorer/walletExplorer';
 import { TestUtil } from '../TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
 import { WalletTreeItem } from '../../extension/explorer/wallets/WalletTreeItem';
 import { LocalWalletTreeItem } from '../../extension/explorer/wallets/LocalWalletTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
-import { FabricWallet } from 'ibm-blockchain-platform-gateway-v1';
+import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { IdentityTreeItem } from '../../extension/explorer/model/IdentityTreeItem';
 import { FabricWalletGeneratorFactory } from '../../extension/fabric/FabricWalletGeneratorFactory';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { AdminIdentityTreeItem } from '../../extension/explorer/model/AdminIdentityTreeItem';
-import { FabricRuntimeUtil, IFabricWallet } from 'ibm-blockchain-platform-common';
-import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
+import { FabricCertificate, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, IFabricWallet, LogType } from 'ibm-blockchain-platform-common';
 import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
-import { FabricCertificate } from '../../extension/fabric/FabricCertificate';
-import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 chai.use(sinonChai);
@@ -97,31 +91,35 @@ describe('walletExplorer', () => {
         getIdentityNamesStub.onCall(1).resolves(['violetConga', 'purpleConga']);
         getIdentityNamesStub.onCall(2).resolves([]);
 
-        const certObjOne: any = { extensions: [] };
-        const certObjTwo: any = {
-            extensions: [
-                {
-                    id: '1.8.7.6.5.4.3.2.1'
-                },
-                {
-                    id: '1.2.3.4.5.6.7.8.1'
-                }
-            ]
-        };
-
         const certOne: string = `-----BEGIN CERTIFICATE-----
-        certOne
-        -----END CERTIFICATE-----
-        `;
+        MIICGTCCAb+gAwIBAgIQQE5Dc6DHnGXPOqHMG2LG7jAKBggqhkjOPQQDAjBzMQsw
+        CQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy
+        YW5jaXNjbzEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMTY2Eu
+        b3JnMS5leGFtcGxlLmNvbTAeFw0xOTExMjcxMTM0MDBaFw0yOTExMjQxMTM0MDBa
+        MFsxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1T
+        YW4gRnJhbmNpc2NvMR8wHQYDVQQDDBZBZG1pbkBvcmcxLmV4YW1wbGUuY29tMFkw
+        EwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE2yJR/UL+6Jfsa70tg9SO/CtwoKutVa84
+        IUIm7fVB8Og0OPwA/UmBOoCk2r/91ner/otYba1sNUbao/DP34vVZ6NNMEswDgYD
+        VR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwKwYDVR0jBCQwIoAgRwvaD6tNjB3i
+        Kfo7fP6ItgTQxnzT7IgukY+z/6n5UWEwCgYIKoZIzj0EAwIDSAAwRQIhALa8Amos
+        hlfhEnZLdyCEFaumEAIsEnexk1V5lLcwLQ/LAiB9OFexBRlSp+2gBnWhqGU1yfuQ
+        UeCDyF4ZXdodV0l7ww==
+        -----END CERTIFICATE-----`;
 
         const certTwo: string = `-----BEGIN CERTIFICATE-----
-        certTwo
-        -----END CERTIFICATE-----
-        `;
-
-        const fromPEMStub: sinon.SinonStub = mySandBox.stub(Certificate, 'fromPEM');
-        fromPEMStub.withArgs(certOne).returns(certObjOne);
-        fromPEMStub.withArgs(certTwo).returns(certObjTwo);
+        MIICGTCCAb+gAwIBAgIQQE5Dc6DHnGXPOqHMG2LG7jAKBggqhkjOPQQDAjBzMQsw
+        CQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy
+        YW5jaXNjbzEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMTY2Eu
+        b3JnMS5leGFtcGxlLmNvbTAeFw0xOTExMjcxMTM0MDBaFw0yOTExMjQxMTM0MDBa
+        MFsxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1T
+        YW4gRnJhbmNpc2NvMR8wHQYDVQQDDBZBZG1pbkBvcmcxLmV4YW1wbGUuY29tMFkw
+        EwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE2yJR/UL+6Jfsa70tg9SO/CtwoKutVa84
+        IUIm7fVB8Og0OPwA/UmBOoCk2r/91ner/otYba1sNUbao/DP34vVZ6NNMEswDgYD
+        VR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwKwYDVR0jBCQwIoAgRwvaD6tNjB3i
+        Kfo7fP6ItgTQxnzT7IgukY+z/6n5UWEwCgYIKoZIzj0EAwIDSAAwRQIhALa8Amos
+        hlfhEnZLdyCEFaumEAIsEnexk1V5lLcwLQ/LAiB9OFexBRlSp+2gBnWhqGU1yfuQ
+        UeCDyF4ZXdodV0l7ww==
+        -----END CERTIFICATE-----`;
 
         getIdentitiesStub.onCall(1).resolves([
             { name: FabricRuntimeUtil.ADMIN_USER, enrollment: { identity: { certificate: certOne } } },

@@ -19,7 +19,7 @@ import * as sinon from 'sinon';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
-import { IFabricGatewayConnection } from 'ibm-blockchain-platform-common';
+import { IFabricGatewayConnection, IFabricEnvironmentConnection } from 'ibm-blockchain-platform-common';
 
 // tslint:disable no-var-requires
 chai.should();
@@ -50,6 +50,20 @@ describe('FabricConnectionFactory', () => {
             const profilePath: string = path.join(rootPath, '../../test/data/connectionTwo/connection.json');
             FabricConnectionFactory.createFabricGatewayConnection(profilePath);
             const connection: IFabricGatewayConnection = FabricConnectionFactory.createFabricGatewayConnection(profilePath);
+            connection.should.exist;
+        });
+    });
+
+    describe('createFabricEnvironmentConnection', () => {
+
+        it('should create a fabric environment connection', async () => {
+            const connection: IFabricEnvironmentConnection = FabricConnectionFactory.createFabricEnvironmentConnection();
+            connection.should.exist;
+        });
+
+        it('should resuse connection if have one', async () => {
+            FabricConnectionFactory.createFabricEnvironmentConnection();
+            const connection: IFabricEnvironmentConnection = FabricConnectionFactory.createFabricEnvironmentConnection();
             connection.should.exist;
         });
     });

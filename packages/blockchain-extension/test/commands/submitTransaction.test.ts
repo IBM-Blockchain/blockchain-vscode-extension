@@ -30,14 +30,13 @@ import { ChannelTreeItem } from '../../extension/explorer/model/ChannelTreeItem'
 import { TransactionTreeItem } from '../../extension/explorer/model/TransactionTreeItem';
 import { Reporter } from '../../extension/util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
 import { InstantiatedContractTreeItem } from '../../extension/explorer/model/InstantiatedContractTreeItem';
 import { InstantiatedChaincodeTreeItem } from '../../extension/explorer/model/InstantiatedChaincodeTreeItem';
 import { InstantiatedUnknownTreeItem } from '../../extension/explorer/model/InstantiatedUnknownTreeItem';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 
 chai.use(sinonChai);
 chai.should();

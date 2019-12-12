@@ -22,7 +22,7 @@ import * as fs from 'fs-extra';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
+import { LogType } from 'ibm-blockchain-platform-common';
 import { SettingConfigurations } from '../../configurations';
 
 chai.use(sinonChai);

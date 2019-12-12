@@ -20,10 +20,8 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { CommandUtil } from '../util/CommandUtil';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { LogType } from '../logging/OutputAdapter';
 import { SettingConfigurations } from '../../configurations';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
-import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from './FabricEnvironmentManager';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { FileSystemUtil } from '../util/FileSystemUtil';

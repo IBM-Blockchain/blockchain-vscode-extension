@@ -21,19 +21,10 @@ import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { MetadataUtil } from '../util/MetadataUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
-import { FabricCertificate } from '../fabric/FabricCertificate';
-import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
-import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
-import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
-import { FabricChaincode, FabricRuntimeUtil, IFabricGatewayConnection } from 'ibm-blockchain-platform-common';
-import { FabricNode, FabricNodeType } from '../fabric/FabricNode';
-import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
+import { FabricCertificate, FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, IFabricEnvironmentConnection, IFabricGatewayConnection, LogType  } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
-import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
-import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;

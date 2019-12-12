@@ -52,7 +52,8 @@
 	},
 	"dependencies": {
 		"fs-extra": "^7.0.1",
-		"ibm-blockchain-platform-common": "^1.0.17",
+		"ibm-blockchain-platform-common": "1.0.17",
+		"ibm-blockchain-platform-wallet": "1.0.17",
 		"url": "0.11.0"
 	},
 	"optionalDependencies": {

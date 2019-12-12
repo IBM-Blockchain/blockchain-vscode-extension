@@ -14,8 +14,7 @@
 
 import { EventEmitter } from 'events';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
-import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
-import { IFabricGatewayConnection } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistryEntry, IFabricGatewayConnection } from 'ibm-blockchain-platform-common';
 
 export class FabricGatewayConnectionManager extends EventEmitter {
 

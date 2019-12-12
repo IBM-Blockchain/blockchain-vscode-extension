@@ -19,7 +19,7 @@ import * as vscode from 'vscode';
 import { TestUtil } from '../TestUtil';
 import { GlobalState, ExtensionData, DEFAULT_EXTENSION_DATA, EXTENSION_DATA_KEY } from '../../extension/util/GlobalState';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
+import { LogType } from 'ibm-blockchain-platform-common';
 
 chai.use(sinonChai);
 

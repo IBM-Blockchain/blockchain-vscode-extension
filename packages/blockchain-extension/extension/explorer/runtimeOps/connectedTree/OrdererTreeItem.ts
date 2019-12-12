@@ -14,9 +14,8 @@
 'use strict';
 import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
-import { FabricNode } from '../../../fabric/FabricNode';
+import { FabricEnvironmentRegistryEntry, FabricNode } from 'ibm-blockchain-platform-common';
 import { NodeTreeItem } from './NodeTreeItem';
-import { FabricEnvironmentRegistryEntry } from '../../../registries/FabricEnvironmentRegistryEntry';
 
 export class OrdererTreeItem extends NodeTreeItem {
     contextValue: string = 'blockchain-runtime-orderer-item';

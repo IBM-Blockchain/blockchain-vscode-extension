@@ -17,10 +17,9 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { UserInputUtil } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
-import {ChaincodeType} from 'fabric-client';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
+import { LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { SettingConfigurations } from '../../configurations';
 import { FileSystemUtil } from '../util/FileSystemUtil';
@@ -35,7 +34,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
 
     let resolvedPkgDir: string;
     let properties: { workspacePackageName: string, workspacePackageVersion: string };
-    let language: ChaincodeType;
+    let language: string;
     let packageError: string;
 
     try {
@@ -47,7 +46,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
 
         // Choose the workspace directory.
         if (!workspace) {
-            workspace = await UserInputUtil.chooseWorkspace( true );
+            workspace = await UserInputUtil.chooseWorkspace(true);
             if (!workspace) {
                 // User cancelled.
                 return;
@@ -60,7 +59,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
         checkForProjectErrors(workspace);
 
         // Determine the language.
-        language = await UserInputUtil.getLanguage(workspace) as ChaincodeType;
+        language = await UserInputUtil.getLanguage(workspace);
 
         // Determine the package name and version.
         if (language === 'golang') {
@@ -141,28 +140,22 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
             }
 
             // Determine if there is a metadata path.
-            const metadataPath: string = path.join(workspace.uri.fsPath, 'META-INF');
+            let metadataPath: string = path.join(workspace.uri.fsPath, 'META-INF');
             const metadataPathExists: boolean = await fs.pathExists(metadataPath);
+
+            if (!metadataPathExists) {
+                metadataPath = null;
+            }
 
             // Create the package. Need to dynamically load the package class
             // from the Fabric SDK to avoid early native module loading.
-            const { Package } = await import('fabric-client');
-            const pkg: any = await Package.fromDirectory({
-                name: properties.workspacePackageName,
-                version: properties.workspacePackageVersion,
-                path: contractPath,
-                type: language,
-                metadataPath: metadataPathExists ? metadataPath : null
-            });
-            const pkgBuffer: any = await pkg.toBuffer();
-            await fs.writeFile(pkgFile, pkgBuffer);
+            const { PackageSmartContract } = await import('ibm-blockchain-platform-environment-v1');
+            const fileNames: string[] = await PackageSmartContract.packageContract(properties.workspacePackageName, properties.workspacePackageVersion, contractPath, pkgFile, language, metadataPath);
 
             Reporter.instance().sendTelemetryEvent('packageCommand');
 
             await vscode.commands.executeCommand(ExtensionCommands.REFRESH_PACKAGES);
             outputAdapter.log(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-
-            const fileNames: string[] = pkg.fileNames;
 
             outputAdapter.log(LogType.INFO, undefined, `${fileNames.length} file(s) packaged:`);
             for (const file of fileNames) {

@@ -16,16 +16,13 @@ import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { ExtensionUtil } from '../util/ExtensionUtil';
-import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
-import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { FabricEnvironmentManager, ConnectedState } from '../fabric/FabricEnvironmentManager';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, IFabricEnvironmentConnection, FabricNode, LogType } from 'ibm-blockchain-platform-common';
 
 export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -68,9 +65,10 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
             return;
         }
 
-        const connection: IFabricEnvironmentConnection = FabricConnectionFactory.createFabricEnvironmentConnection(fabricEnvironment);
+        const connection: IFabricEnvironmentConnection = FabricConnectionFactory.createFabricEnvironmentConnection();
 
-        await connection.connect();
+        const nodes: FabricNode[] = await fabricEnvironment.getNodes();
+        await connection.connect(nodes);
 
         try {
             await connection.createChannelMap();

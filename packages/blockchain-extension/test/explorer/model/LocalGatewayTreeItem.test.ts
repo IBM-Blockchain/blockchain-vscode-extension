@@ -25,9 +25,7 @@ import { FabricGatewayRegistryEntry } from '../../../extension/registries/Fabric
 import { ExtensionUtil } from '../../../extension/util/ExtensionUtil';
 import { TestUtil } from '../../TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../../extension/logging/OutputAdapter';
-import { FabricWalletUtil } from '../../../extension/fabric/FabricWalletUtil';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../../ExtensionCommands';
 
 const should: Chai.Should = chai.should();

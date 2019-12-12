@@ -16,12 +16,9 @@ import * as vscode from 'vscode';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
-import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
-import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
+import { FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
-import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
 export async function removeWallet(treeItem: WalletTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();

@@ -16,19 +16,15 @@ import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import * as fs from 'fs-extra';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
-import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
 
 chai.should();
@@ -245,7 +241,7 @@ describe('DeleteEnvironmentCommand', () => {
         it('should handle error from deleting environment', async () => {
             const error: Error = new Error('some error');
 
-            mySandBox.stub(fs, 'remove').rejects(error);
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'delete').rejects(error);
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 

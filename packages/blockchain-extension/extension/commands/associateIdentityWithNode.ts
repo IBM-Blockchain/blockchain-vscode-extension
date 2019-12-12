@@ -13,20 +13,12 @@
 */
 'use strict';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
-import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
-import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
+import {  FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
-import { FabricNode, FabricNodeType } from '../fabric/FabricNode';
-import { IFabricWallet } from 'ibm-blockchain-platform-common';
 import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricCertificateAuthorityFactory } from '../fabric/FabricCertificateAuthorityFactory';
-import { IFabricCertificateAuthority } from '../fabric/IFabricCertificateAuthority';
-import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 
 export async function associateIdentityWithNode(replace: boolean = false, environmentRegistryEntry: FabricEnvironmentRegistryEntry, node: FabricNode): Promise<any> {

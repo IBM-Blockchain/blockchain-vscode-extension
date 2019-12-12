@@ -25,17 +25,15 @@ import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTre
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
 import { SmartContractsTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/SmartContractsTreeItem';
 import { InstantiateCommandTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/InstantiateCommandTreeItem';
 import { ChannelsOpsTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/ChannelsOpsTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
-import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
+import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { Reporter } from '../../extension/util/Reporter';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 

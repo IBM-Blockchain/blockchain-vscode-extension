@@ -21,11 +21,8 @@ import { ExtensionUtil } from '../../../extension/util/ExtensionUtil';
 import { TestUtil } from '../../TestUtil';
 import { ExtensionCommands } from '../../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../../extension/logging/OutputAdapter';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 import { BlockchainEnvironmentExplorerProvider } from '../../../extension/explorer/environmentExplorer';
-import { FabricEnvironmentRegistry } from '../../../extension/registries/FabricEnvironmentRegistry';
-import { FabricEnvironmentRegistryEntry } from '../../../extension/registries/FabricEnvironmentRegistryEntry';
 
 describe('RuntimeTreeItem', () => {
 
