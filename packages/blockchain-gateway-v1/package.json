@@ -3,7 +3,7 @@
 	"author": "IBMBlockchain",
 	"homepage": "https://www.ibm.com/blockchain",
 	"license": "Apache-2.0",
-	"version": "1.0.17",
+	"version": "1.0.18",
 	"publisher": "IBMBlockchain",
 	"repository": {
 		"type": "git",
@@ -52,8 +52,8 @@
 	},
 	"dependencies": {
 		"fs-extra": "^7.0.1",
-		"ibm-blockchain-platform-common": "1.0.17",
-		"ibm-blockchain-platform-wallet": "1.0.17",
+		"ibm-blockchain-platform-common": "^1.0.18",
+		"ibm-blockchain-platform-wallet": "^1.0.18",
 		"url": "0.11.0"
 	},
 	"optionalDependencies": {
@@ -76,7 +76,7 @@
 			".DS_Store",
 			"ISSUE_TEMPLATE.md",
 			"LICENSE",
-            "unit-tests.xml"
+			"unit-tests.xml"
 		],
 		"file_type_method": "EXCLUDE",
 		"file_types": [

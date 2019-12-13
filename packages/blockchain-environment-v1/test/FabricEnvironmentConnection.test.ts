@@ -22,7 +22,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { ConsoleOutputAdapter, FabricChaincode, FabricNodeType, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, IFabricWallet, LogType, OutputAdapter } from 'ibm-blockchain-platform-common';
-import { FabricWallet, FabricWalletGenerator, } from 'ibm-blockchain-platform-wallet';
+import { FabricWallet, FabricWalletGenerator } from 'ibm-blockchain-platform-wallet';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
