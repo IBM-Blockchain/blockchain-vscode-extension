@@ -21,10 +21,15 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function addEnvironment(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+    const fabricEnvironmentEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+    const fabricEnvironmentRegistry: FabricEnvironmentRegistry = FabricEnvironmentRegistry.instance();
     try {
         outputAdapter.log(LogType.INFO, undefined, 'Add environment');
 
-        const fabricEnvironmentRegistry: FabricEnvironmentRegistry = FabricEnvironmentRegistry.instance();
+        const createMethod: string = await UserInputUtil.showQuickPick('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]) as string;
+        if (!createMethod) {
+            return;
+        }
 
         const environmentName: string = await UserInputUtil.showInputBox('Enter a name for the environment');
         if (!environmentName) {
@@ -37,10 +42,16 @@ export async function addEnvironment(): Promise<void> {
             throw new Error('An environment with this name already exists.');
         }
 
-        const fabricEnvironmentEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         fabricEnvironmentEntry.name = environmentName;
 
-        const addedAllNodes: boolean = await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, fabricEnvironmentEntry, true) as boolean;
+        let addedAllNodes: boolean;
+
+        if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS) {
+            addedAllNodes = await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, fabricEnvironmentEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+        } else {
+            addedAllNodes = await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, fabricEnvironmentEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
+        }
+
         if (addedAllNodes === undefined) {
             return;
         }
@@ -54,6 +65,7 @@ export async function addEnvironment(): Promise<void> {
         }
         Reporter.instance().sendTelemetryEvent('addEnvironmentCommand');
     } catch (error) {
+        await fabricEnvironmentRegistry.delete(fabricEnvironmentEntry.name, true);
         outputAdapter.log(LogType.ERROR, `Failed to add a new environment: ${error.message}`, `Failed to add a new environment: ${error.toString()}`);
     }
 }

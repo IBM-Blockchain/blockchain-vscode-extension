@@ -35,6 +35,12 @@ export enum LanguageType {
     CONTRACT = 'contract'
 }
 
+export enum EnvironmentType {
+    ALLENV = 'all-environments',
+    OPSTOOLSENV = 'ops-tools',
+    OTHERENV = 'other-environment'
+}
+
 export interface LanguageQuickPickItem extends vscode.QuickPickItem {
     type: LanguageType;
 }
@@ -72,6 +78,10 @@ export class UserInputUtil {
     static readonly ADD_IDENTITY: string = '+ Add identity';
     static readonly ADD_GATEWAY_FROM_ENVIRONMENT: string = 'Create a gateway from a Fabric environment';
     static readonly ADD_GATEWAY_FROM_CCP: string = 'Create a gateway from a connection profile';
+    static readonly ADD_ENVIRONMENT_FROM_NODES: string = 'Add an environment from node definition files';
+    static readonly ADD_ENVIRONMENT_FROM_OPS_TOOLS: string = 'Add an environment from connecting to an ops tools instance';
+    static readonly ADD_CA_CERT_CHAIN: string = 'Provide the CA Certificate Chain file';
+    static readonly CONNECT_NO_CA_CERT_CHAIN: string = 'Proceed without certificate verification';
 
     public static async showQuickPick(prompt: string, items: string[], canPickMany: boolean = false): Promise<string | string[]> {
         const quickPickOptions: vscode.QuickPickOptions = {
@@ -114,7 +124,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(items, quickPickOptions);
     }
 
-    public static async showFabricEnvironmentQuickPickBox(prompt: string, canPickMany: boolean, autoChoose: boolean, showLocalFabric: boolean = false): Promise<Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> | IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
+    public static async showFabricEnvironmentQuickPickBox(prompt: string, canPickMany: boolean, autoChoose: boolean, showLocalFabric: boolean = false, envType: EnvironmentType = EnvironmentType.ALLENV): Promise<Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> | IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
             canPickMany: canPickMany,
@@ -123,12 +133,28 @@ export class UserInputUtil {
 
         const environments: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(showLocalFabric);
 
-        const environmentsQuickPickItems: Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> = environments.map((environment: FabricEnvironmentRegistryEntry) => {
+        let environmentsQuickPickItems: Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>>;
+        let environmentsFiltered: Array<FabricEnvironmentRegistryEntry> = environments;
+
+        switch (envType) {
+            case EnvironmentType.ALLENV: {
+                break;
+            }
+            case EnvironmentType.OPSTOOLSENV: {
+                environmentsFiltered = environments.filter((environment: FabricEnvironmentRegistryEntry) => environment.url);
+                break;
+            }
+            case EnvironmentType.OTHERENV: {
+                environmentsFiltered = environments.filter((environment: FabricEnvironmentRegistryEntry) => !environment.url);
+                break;
+            }
+        }
+
+        environmentsQuickPickItems = environmentsFiltered.map((environment: FabricEnvironmentRegistryEntry) => {
             let label: string = environment.name;
             if (environment.name === FabricRuntimeUtil.LOCAL_FABRIC) {
                 label = FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
             }
-
             return { label: label, data: environment };
         });
 
@@ -895,7 +921,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
     }
 
-    public static async showFabricNodeQuickPick(prompt: string, environmentName: string, nodeTypefilter: FabricNodeType[], showAsociatedIdentity: boolean = false, canPickMany: boolean = false, showUnassociatedNodes: boolean = false): Promise<Array<IBlockchainQuickPickItem<FabricNode>> | IBlockchainQuickPickItem<FabricNode>> {
+    public static async showNodesInEnvironmentQuickPick(prompt: string, environmentName: string, nodeTypefilter: FabricNodeType[], showAsociatedIdentity: boolean = false, canPickMany: boolean = false, showUnassociatedNodes: boolean = false): Promise<Array<IBlockchainQuickPickItem<FabricNode>> | IBlockchainQuickPickItem<FabricNode>> {
         const environment: FabricEnvironment = new FabricEnvironment(environmentName);
         let nodes: FabricNode[] = await environment.getNodes(showUnassociatedNodes);
 
@@ -903,27 +929,7 @@ export class UserInputUtil {
             nodes = nodes.filter((node: FabricNode) => nodeTypefilter.indexOf(node.type) !== -1);
         }
 
-        const quickPickItems: IBlockchainQuickPickItem<FabricNode>[] = [];
-        for (const _node of nodes) {
-            if (_node.type === FabricNodeType.ORDERER && _node.cluster_name) {
-                const foundItem: IBlockchainQuickPickItem<FabricNode> = quickPickItems.find((item: IBlockchainQuickPickItem<FabricNode>) => item.data.cluster_name === _node.cluster_name);
-
-                if (!foundItem) {
-                    const quickPickItem: IBlockchainQuickPickItem<FabricNode> = { label: _node.cluster_name, data: _node };
-                    if (showAsociatedIdentity && _node.wallet && _node.identity) {
-                        quickPickItem.description = `Associated with identity: ${_node.identity} in wallet: ${_node.wallet}`;
-                    }
-
-                    quickPickItems.push(quickPickItem);
-                }
-            } else {
-                const quickPickItem: IBlockchainQuickPickItem<FabricNode> = { label: _node.name, data: _node };
-                if (showAsociatedIdentity && _node.wallet && _node.identity) {
-                    quickPickItem.description = `Associated with identity: ${_node.identity} in wallet: ${_node.wallet}`;
-                }
-                quickPickItems.push(quickPickItem);
-            }
-        }
+        const quickPickItems: IBlockchainQuickPickItem<FabricNode>[] = UserInputUtil.selectNodesOneOrdererPerCluster(nodes, showAsociatedIdentity);
 
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
@@ -1037,6 +1043,22 @@ export class UserInputUtil {
         });
     }
 
+    public static async showNodesQuickPickBox(prompt: string, nodes: FabricNode[], canPickMany: boolean): Promise<Array<IBlockchainQuickPickItem<FabricNode>> | IBlockchainQuickPickItem<FabricNode> | undefined> {
+        if (nodes.length === 0) {
+            throw new Error('Error when importing nodes, no nodes found to choose from.');
+        }
+
+        const quickPickItems: IBlockchainQuickPickItem<FabricNode>[] = UserInputUtil.selectNodesOneOrdererPerCluster(nodes);
+
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: true,
+            canPickMany: canPickMany,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+    }
+
     private static async checkForUnsavedFiles(): Promise<void> {
         const unsavedFiles: vscode.TextDocument = vscode.workspace.textDocuments.find((document: vscode.TextDocument) => {
             return document.isDirty;
@@ -1098,5 +1120,30 @@ export class UserInputUtil {
         }
 
         return tempQuickPickItems;
+    }
+
+    private static selectNodesOneOrdererPerCluster(nodes: FabricNode[], showAsociatedIdentity: boolean = false): IBlockchainQuickPickItem<FabricNode>[] {
+        const quickPickItems: IBlockchainQuickPickItem<FabricNode>[] = [];
+        for (const _node of nodes) {
+            if (_node.type === FabricNodeType.ORDERER && _node.cluster_name) {
+                const foundItem: IBlockchainQuickPickItem<FabricNode> = quickPickItems.find((item: IBlockchainQuickPickItem<FabricNode>) => item.data.cluster_name === _node.cluster_name);
+
+                if (!foundItem) {
+                    const quickPickItem: IBlockchainQuickPickItem<FabricNode> = { label: _node.cluster_name, data: _node };
+                    if (showAsociatedIdentity && _node.wallet && _node.identity) {
+                        quickPickItem.description = `Associated with identity: ${_node.identity} in wallet: ${_node.wallet}`;
+                    }
+
+                    quickPickItems.push(quickPickItem);
+                }
+            } else {
+                const quickPickItem: IBlockchainQuickPickItem<FabricNode> = { label: _node.name, data: _node };
+                if (showAsociatedIdentity && _node.wallet && _node.identity) {
+                    quickPickItem.description = `Associated with identity: ${_node.identity} in wallet: ${_node.wallet}`;
+                }
+                quickPickItems.push(quickPickItem);
+            }
+        }
+        return quickPickItems;
     }
 }
