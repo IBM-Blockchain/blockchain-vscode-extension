@@ -3,24 +3,24 @@
 	"author": "IBMBlockchain",
 	"homepage": "https://www.ibm.com/blockchain",
 	"license": "Apache-2.0",
-	"version": "1.0.17",
+	"version": "1.0.18",
 	"publisher": "IBMBlockchain",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/IBM-Blockchain/blockchain-vscode-extension"
 	},
 	"main": "build/index.js",
-    "scripts": {
-        "compile": "rimraf build && npm run build",
-        "watch": "rimraf build && tsc -watch -p tsconfig.json",
-        "pretest": "npm run compile && npm run lint && npm run licchk",
-        "unit": "npm run pretest && nyc mocha -r ts-node/register --reporter mocha-multi-reporters --reporter-options configFile=mochaConfig.json './test/**/*.test.ts'",
-        "licchk": "license-check-and-add",
-        "tslint": "tslint --project tsconfig.json",
-        "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts'",
-        "build": "tsc -p tsconfig.json",
-        "createModule": "npm pack"
-    },
+	"scripts": {
+		"compile": "rimraf build && npm run build",
+		"watch": "rimraf build && tsc -watch -p tsconfig.json",
+		"pretest": "npm run compile && npm run lint && npm run licchk",
+		"unit": "npm run pretest && nyc mocha -r ts-node/register --reporter mocha-multi-reporters --reporter-options configFile=mochaConfig.json './test/**/*.test.ts'",
+		"licchk": "license-check-and-add",
+		"tslint": "tslint --project tsconfig.json",
+		"lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts'",
+		"build": "tsc -p tsconfig.json",
+		"createModule": "npm pack"
+	},
 	"devDependencies": {
 		"@istanbuljs/nyc-config-typescript": "^0.1.3",
 		"@types/chai": "4.1.4",
@@ -52,8 +52,8 @@
 	},
 	"dependencies": {
 		"fs-extra": "^7.0.1",
-		"ibm-blockchain-platform-common": "1.0.17",
-		"ibm-blockchain-platform-wallet": "1.0.17",
+		"ibm-blockchain-platform-common": "^1.0.18",
+		"ibm-blockchain-platform-wallet": "^1.0.18",
 		"url": "0.11.0"
 	},
 	"optionalDependencies": {
