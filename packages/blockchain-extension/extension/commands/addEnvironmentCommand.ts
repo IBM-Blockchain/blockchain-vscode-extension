@@ -12,12 +12,18 @@
  * limitations under the License.
 */
 'use strict';
+import Axios from 'axios';
+import * as fs from 'fs-extra';
+import * as https from 'https';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { UserInputUtil } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { ModuleUtil } from '../util/ModuleUtil';
+import { FabricEnvironment } from '../fabric/FabricEnvironment';
 
 export async function addEnvironment(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -25,10 +31,79 @@ export async function addEnvironment(): Promise<void> {
     const fabricEnvironmentRegistry: FabricEnvironmentRegistry = FabricEnvironmentRegistry.instance();
     try {
         outputAdapter.log(LogType.INFO, undefined, 'Add environment');
+        let certificatePath: vscode.Uri;
 
         const createMethod: string = await UserInputUtil.showQuickPick('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]) as string;
         if (!createMethod) {
             return;
+        } else if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS) {
+            const keytar: any = ModuleUtil.getCoreNodeModule('keytar');
+            if (!keytar) {
+                throw new Error('Error importing the keytar module');
+            }
+
+            const GET_ALL_COMPONENTS: string = '/ak/api/v1/components';
+            const url: string = await UserInputUtil.showInputBox('Enter the url of the ops tools you want to connect to');
+            if (!url) {
+                return;
+            }
+            const apiKey: string = await UserInputUtil.showInputBox('Enter the api key of the ops tools you want to connect to');
+            if (!apiKey) {
+                return;
+            }
+            const apiSecret: string = await UserInputUtil.showInputBox('Enter the api secret of the ops tools you want to connect to');
+            if (!apiSecret) {
+                return;
+            }
+
+            const api: string = url.replace(/\/$/, '') + GET_ALL_COMPONENTS;
+            const requestOptions: any = {
+                headers: { 'Content-Type': 'application/json' },
+                auth: { username: apiKey, password: apiSecret }
+            };
+            try {
+                await Axios.get(api, requestOptions);
+            } catch (error) {
+                // This needs to be fixed - exactly what codes can we get that will require this behaviour?
+                if (error.code === 'DEPTH_ZERO_SELF_SIGNED_CERT') {
+                    let caCertificate: string;
+                    const certificateUsage: string = await UserInputUtil.showQuickPick('Unable to perform certificate verification. Please choose how to proceed', [UserInputUtil.ADD_CA_CERT_CHAIN, UserInputUtil.CONNECT_NO_CA_CERT_CHAIN]) as string;
+                    if (!certificateUsage) {
+                        return;
+                    } else if (certificateUsage === UserInputUtil.ADD_CA_CERT_CHAIN) {
+                        const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
+                        const browseOptions: vscode.OpenDialogOptions = {
+                            canSelectFiles: true,
+                            canSelectFolders: false,
+                            canSelectMany: false,
+                            openLabel: 'Select',
+                            filters: {
+                                Certificates: ['pem']
+                            }
+                        };
+                        certificatePath = await UserInputUtil.browse('Select CA certificate chain (.pem) file', quickPickItems, browseOptions, true) as vscode.Uri;
+                        if (certificatePath === undefined) {
+                            return;
+                        } else if (Array.isArray(certificatePath)) {
+                            certificatePath = certificatePath[0];
+                        }
+                        caCertificate = await fs.readFile(certificatePath.fsPath, 'utf8');
+                        requestOptions.httpsAgent = new https.Agent({ ca: caCertificate });
+                    } else {
+                        requestOptions.httpsAgent = new https.Agent({ rejectUnauthorized: false });
+                    }
+                    await Axios.get(api, requestOptions);
+                    try {
+                        await keytar.setPassword('blockchain-vscode-ext', url, `${apiKey}:${apiSecret}`);
+                    } catch (error) {
+                        throw new Error(`Unable to store the required credentials: ${error.message}`);
+                    }
+                } else {
+                    throw error;
+                }
+            }
+
+            fabricEnvironmentEntry.url = url;
         }
 
         const environmentName: string = await UserInputUtil.showInputBox('Enter a name for the environment');
@@ -42,7 +117,20 @@ export async function addEnvironment(): Promise<void> {
             throw new Error('An environment with this name already exists.');
         }
 
+        // Create environment
         fabricEnvironmentEntry.name = environmentName;
+        await fabricEnvironmentRegistry.add(fabricEnvironmentEntry);
+
+        if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS && certificatePath) {
+            try {
+                const environment: FabricEnvironment = new FabricEnvironment(fabricEnvironmentEntry.name);
+                const separator: string = process.platform === 'win32' ? '\\' : '/';
+                const caCertificateCopy: string = path.join(path.resolve(environment.getPath()), certificatePath.fsPath.split(separator).pop());
+                await fs.copy(certificatePath.fsPath, caCertificateCopy, { overwrite: true });
+            } catch (error) {
+                throw new Error(`Unable to store the required credentials: ${error.message}`);
+            }
+        }
 
         let addedAllNodes: boolean;
 
@@ -53,10 +141,9 @@ export async function addEnvironment(): Promise<void> {
         }
 
         if (addedAllNodes === undefined) {
+            await fabricEnvironmentRegistry.delete(fabricEnvironmentEntry.name);
             return;
         }
-
-        await fabricEnvironmentRegistry.add(fabricEnvironmentEntry);
 
         if (addedAllNodes) {
             outputAdapter.log(LogType.SUCCESS, 'Successfully added a new environment');
