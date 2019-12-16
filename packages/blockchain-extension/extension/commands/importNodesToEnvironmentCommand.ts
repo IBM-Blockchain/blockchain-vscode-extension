@@ -30,7 +30,7 @@ import {ExtensionCommands} from '../../ExtensionCommands';
 import {FabricEnvironmentManager} from '../fabric/environments/FabricEnvironmentManager';
 import {EnvironmentFactory} from '../fabric/environments/EnvironmentFactory';
 import Axios from 'axios';
-import {ExtensionUtil} from '../util/ExtensionUtil';
+import { ModuleUtil } from '../util/ModuleUtil';
 
 export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false, createMethod?: string): Promise<boolean> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -118,86 +118,56 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                         outputAdapter.log(LogType.ERROR, `Error importing node file ${nodeUri.fsPath}: ${error.message}`, `Error importing node file ${nodeUri.fsPath}: ${error.toString()}`);
                     }
                 }
-            }
-        else
-            {
-                const keytar: any = getCoreNodeModule('keytar');
+        } else {
+            const keytar: any = ModuleUtil.getCoreNodeModule('keytar');
                 if (!keytar) {
                     throw new Error('Error importing the keytar module');
                 }
 
                 const GET_ALL_COMPONENTS: string = '/ak/api/v1/components';
-                const url: string = await UserInputUtil.showInputBox('Enter the url of the ops tools you want to connect to');
-                if (!url) {
-                    return;
-                }
-                const apiKey: string = await UserInputUtil.showInputBox('Enter the api key of the ops tools you want to connect to');
-                if (!apiKey) {
-                    return;
-                }
-                const apiSecret: string = await UserInputUtil.showInputBox('Enter the api secret of the ops tools you want to connect to');
-                if (!apiSecret) {
-                    return;
-                }
-
-                const api: string = url.replace(/\/$/, '') + GET_ALL_COMPONENTS;
+            const api: string = environmentRegistryEntry.url.replace(/\/$/, '') + GET_ALL_COMPONENTS;
                 let response: any;
+
+            try {
+                // establish connection to Ops Tools and retrieve json file
+                const credentials: string = await keytar.getPassword('blockchain-vscode-ext', environmentRegistryEntry.url);
+                const credentialsArray: string[] = credentials.split(':');
+                if (credentialsArray.length !== 2) {
+                    throw new Error(`Unable to retrieve the stored credentials`);
+                }
+                const apiKey: string = credentialsArray[0];
+                const apiSecret: string = credentialsArray[1];
                 const requestOptions: any = {
                     headers: {'Content-Type': 'application/json'},
                     auth: {username: apiKey, password: apiSecret}
                 };
-                try {
                     try {
                         response = await Axios.get(api, requestOptions);
                     } catch (error) {
                         // This needs to be fixed - exactly what codes can we get that will require this behaviour?
                         if (error.code === 'DEPTH_ZERO_SELF_SIGNED_CERT') {
+                        const environmentBaseDirExists: boolean = await fs.pathExists(environmentBaseDir);
                             let caCertificate: string;
-                            let certificatePath: vscode.Uri;
-                            const certificateUsage: string = await UserInputUtil.showQuickPick('Unable to perform certificate verification. Please choose how to proceed', [UserInputUtil.ADD_CA_CERT_CHAIN, UserInputUtil.CONNECT_NO_CA_CERT_CHAIN]) as string;
-                            if (!certificateUsage) {
-                                return;
-                            } else if (certificateUsage === UserInputUtil.ADD_CA_CERT_CHAIN) {
-                                const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
-                                const browseOptions: vscode.OpenDialogOptions = {
-                                    canSelectFiles: true,
-                                    canSelectFolders: false,
-                                    canSelectMany: false,
-                                    openLabel: 'Select',
-                                    filters: {
-                                        Certificates: ['pem']
-                                    }
-                                };
-                                certificatePath = await UserInputUtil.browse('Select CA certificate chain (.pem) file', quickPickItems, browseOptions, true) as vscode.Uri;
-                                if (certificatePath === undefined) {
-                                    return;
-                                } else if (Array.isArray(certificatePath)) {
-                                    certificatePath = certificatePath[0];
-                                }
-                                caCertificate = await fs.readFile(certificatePath.fsPath, 'utf8');
+                        if (environmentBaseDirExists) {
+                            let certificateFiles: string[] = await fs.readdir(environmentBaseDir);
+                            certificateFiles = certificateFiles.filter((fileName: string) => fileName.endsWith('.pem')).map((fileName: string) => path.resolve(environmentBaseDir, fileName));
+
+                            if (certificateFiles.length > 1) {
+                                throw new Error(`Unable to connect: There are multiple certificates in ${environmentBaseDir}`);
+                            } else if (certificateFiles.length === 1) {
+                                caCertificate = await fs.readFile(certificateFiles[0], 'utf8');
                                 requestOptions.httpsAgent = new https.Agent({ca: caCertificate});
-                            } else {
+                            }
+                        }
+                        if (!caCertificate) {
                                 requestOptions.httpsAgent = new https.Agent({rejectUnauthorized: false});
                             }
                             response = await Axios.get(api, requestOptions);
 
-                            try {
-                                await keytar.setPassword('blockchain-vscode-ext', url, `${apiKey}:${apiSecret}`);
-                                if (caCertificate) {
-                                    await fs.ensureDir(environmentBaseDir);
-                                    const separator: string = process.platform === 'win32' ? '\\' : '/';
-                                    const caCertificateCopy: string = path.join(environmentBaseDir, certificatePath.fsPath.split(separator).pop());
-                                    await fs.copy(certificatePath.fsPath, caCertificateCopy, {overwrite: true});
-                                }
-                            } catch (error) {
-                                throw new Error(`Unable to store the required credentials: ${error.message}`);
-                            }
                         } else {
                             throw error;
                         }
                     }
-
-                    environmentRegistryEntry.url = url;
 
                     const data: any = response.data;
                     const filteredData: FabricNode[] = data.filter((_data: any) => _data.api_url)
@@ -234,12 +204,10 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                     });
                     nodesToUpdate.push(...filteredData);
                 } catch (error) {
-                    outputAdapter.log(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${error.message}`, `Failed to acquire nodes from ${url}, with error ${error.toString()}`);
-                    if (fromAddEnvironment) {
+                outputAdapter.log(LogType.ERROR, `Failed to acquire nodes from ${environmentRegistryEntry.url}, with error ${error.message}`, `Failed to acquire nodes from ${environmentRegistryEntry.url}, with error ${error.toString()}`);
                         throw error;
                     }
                 }
-            }
 
             nodesToUpdate.forEach((node: FabricNode) => {
                 if (node.hidden === undefined) {
@@ -299,18 +267,4 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                 throw error;
             }
         }
-    }
-
-    function getCoreNodeModule(moduleName: string): any {
-        try {
-            return ExtensionUtil.getModuleAsar(moduleName);
-        } catch (err) {
-            // do nothing
-        }
-        try {
-            return ExtensionUtil.getModule(moduleName);
-        } catch (err) {
-            // do nothing
-        }
-        return undefined;
     }
