@@ -119,6 +119,9 @@ export class EnvironmentHelper {
             registryEntry = new FabricEnvironmentRegistryEntry();
             registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             registryEntry.managedRuntime = true;
+            registryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+            registryEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
+            registryEntry.associatedWallets = [FabricWalletUtil.LOCAL_WALLET];
         } else {
             registryEntry = await FabricEnvironmentRegistry.instance().get(environment);
         }

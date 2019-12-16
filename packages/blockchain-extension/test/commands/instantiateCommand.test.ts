@@ -36,6 +36,7 @@ import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric
 import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 
 chai.use(sinonChai);
 
@@ -87,6 +88,9 @@ describe('InstantiateCommand', () => {
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             environmentRegistryEntry.managedRuntime = true;
+            environmentRegistryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+            environmentRegistryEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
+            environmentRegistryEntry.associatedWallets = [FabricWalletUtil.LOCAL_WALLET];
 
             environmentRegistryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistryEntry);
 

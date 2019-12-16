@@ -14,40 +14,56 @@
 
 import * as vscode from 'vscode';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { AnsibleEnvironment } from '../fabric/environments/AnsibleEnvironment';
-import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
+import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
+import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
+import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
+import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
+import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 
-export async function restartFabricRuntime(): Promise<void> {
+export async function restartFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'restartFabricRuntime');
-    const runtime: AnsibleEnvironment = LocalEnvironmentManager.instance().getRuntime();
+    let registryEntry: FabricEnvironmentRegistryEntry;
+    if (!runtimeTreeItem) {
+        const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Select an environment to restart', false, true, true, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+        if (!chosenEnvironment) {
+            return;
+        }
+
+        registryEntry = chosenEnvironment.data;
+
+    } else {
+        registryEntry = runtimeTreeItem.environmentRegistryEntry;
+    }
+    const runtime: ManagedAnsibleEnvironment | LocalEnvironment = EnvironmentFactory.getEnvironment(registryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+    const associatedGateways: string[] = registryEntry.associatedGateways ? registryEntry.associatedGateways : [];
 
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
     }, async (progress: vscode.Progress<{ message: string }>) => {
-        progress.report({ message: `Restarting Fabric runtime ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}` });
+        progress.report({ message: `Restarting Fabric runtime ${runtime.getDisplayName()}` });
 
         const connectedGatewayRegistry: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
-        if (connectedGatewayRegistry && connectedGatewayRegistry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+        if (connectedGatewayRegistry && associatedGateways.includes(connectedGatewayRegistry.name)) {
             await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
         }
 
         const connectedEnvironmentRegistry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
-        if (connectedEnvironmentRegistry && connectedEnvironmentRegistry.managedRuntime) {
+        if (connectedEnvironmentRegistry && registryEntry.name === connectedEnvironmentRegistry.name) {
             await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
         }
 
         try {
             await runtime.restart(outputAdapter);
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Failed to restart ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}: ${error.message}`, `Failed to restart ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}: ${error.toString()}`);
+            outputAdapter.log(LogType.ERROR, `Failed to restart ${runtime.getDisplayName()}: ${error.message}`, `Failed to restart ${runtime.getDisplayName()}: ${error.toString()}`);
         }
     });
 }

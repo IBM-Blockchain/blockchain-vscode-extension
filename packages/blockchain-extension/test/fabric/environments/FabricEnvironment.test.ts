@@ -14,11 +14,11 @@
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { TestUtil } from '../TestUtil';
+import { TestUtil } from '../../TestUtil';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { FabricWalletUtil, FabricNode } from 'ibm-blockchain-platform-common';
-import { FabricEnvironment } from '../../extension/fabric/environments/FabricEnvironment';
+import { FabricEnvironment } from '../../../extension/fabric/environments/FabricEnvironment';
 
 chai.should();
 
@@ -26,7 +26,7 @@ chai.should();
 describe('FabricEnvironment', () => {
 
     const rootPath: string = path.dirname(__dirname);
-    const environmentPath: string = path.resolve(rootPath, '..', '..', 'test', 'data', 'environment');
+    const environmentPath: string = path.resolve(rootPath, '..', '..', '..', 'test', 'data', 'environment');
 
     let environment: FabricEnvironment;
     let sandbox: sinon.SinonSandbox;
@@ -43,6 +43,12 @@ describe('FabricEnvironment', () => {
 
     afterEach(async () => {
         sandbox.restore();
+    });
+
+    describe('#getDisplayName', () => {
+        it('should return the display name of the runtime', () => {
+            environment.getDisplayName().should.equal('myFabric');
+        });
     });
 
     describe('#getName', () => {

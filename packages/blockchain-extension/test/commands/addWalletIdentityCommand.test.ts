@@ -33,10 +33,10 @@ import { BlockchainWalletExplorerProvider } from '../../extension/explorer/walle
 import { WalletTreeItem } from '../../extension/explorer/wallets/WalletTreeItem';
 import { LocalWalletTreeItem } from '../../extension/explorer/wallets/LocalWalletTreeItem';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
-import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
 import { Reporter } from '../../extension/util/Reporter';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
+import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -785,7 +785,7 @@ describe('AddWalletIdentityCommand', () => {
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
 
-                const mockRuntime: sinon.SinonStubbedInstance<AnsibleEnvironment> = mySandBox.createStubInstance(AnsibleEnvironment);
+                const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
                 mockRuntime.isRunning.resolves(true);
                 mockRuntime.getWalletNames.resolves([FabricWalletUtil.LOCAL_WALLET]);
                 mockRuntime.getAllOrganizationNames.resolves(['myMSPID']);
@@ -828,7 +828,7 @@ describe('AddWalletIdentityCommand', () => {
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
 
-                const mockRuntime: sinon.SinonStubbedInstance<AnsibleEnvironment> = mySandBox.createStubInstance(AnsibleEnvironment);
+                const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
                 mockRuntime.importWalletsAndIdentities.resolves();
                 mockRuntime.isRunning.onCall(0).resolves(false);
                 mockRuntime.isRunning.onCall(1).resolves(true);
@@ -864,7 +864,7 @@ describe('AddWalletIdentityCommand', () => {
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
 
-                const mockRuntime: sinon.SinonStubbedInstance<AnsibleEnvironment> = mySandBox.createStubInstance(AnsibleEnvironment);
+                const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
                 mockRuntime.importWalletsAndIdentities.resolves();
                 mockRuntime.isRunning.resolves(false);
                 mockRuntime.getAllOrganizationNames.resolves(['myMSPID']);

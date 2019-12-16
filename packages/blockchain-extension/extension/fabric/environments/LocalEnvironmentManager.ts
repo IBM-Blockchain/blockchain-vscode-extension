@@ -13,18 +13,18 @@
 */
 
 import * as vscode from 'vscode';
-import { AnsibleEnvironment} from './AnsibleEnvironment';
 import { FabricRuntimePorts } from '../FabricRuntimePorts';
 import * as semver from 'semver';
 import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOutputAdapter';
 import { CommandUtil } from '../../util/CommandUtil';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { SettingConfigurations } from '../../configurations';
 import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { SettingConfigurations } from '../../../configurations';
 import { FabricEnvironmentManager } from './FabricEnvironmentManager';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../logging/VSCodeBlockchainDockerOutputAdapter';
 import { FileSystemUtil } from '../../util/FileSystemUtil';
+import { LocalEnvironment } from './LocalEnvironment';
 
 export class LocalEnvironmentManager {
 
@@ -36,12 +36,12 @@ export class LocalEnvironmentManager {
 
     private static _instance: LocalEnvironmentManager = new LocalEnvironmentManager();
 
-    private runtime: AnsibleEnvironment;
+    private runtime: LocalEnvironment;
 
     private constructor() {
     }
 
-    public getRuntime(): AnsibleEnvironment {
+    public getRuntime(): LocalEnvironment {
         return this.runtime;
     }
 
@@ -50,14 +50,14 @@ export class LocalEnvironmentManager {
         // only generate a range of ports if it doesn't already exist
         const runtimeObject: any = this.readRuntimeUserSettings();
         if (runtimeObject.ports) {
-            this.runtime = new AnsibleEnvironment();
+            this.runtime = new LocalEnvironment();
             this.runtime.ports = runtimeObject.ports;
         } else {
             // Generate a range of ports for this Fabric runtime.
             const ports: FabricRuntimePorts = await this.generatePortConfiguration();
 
             // Add the Fabric runtime to the internal cache.
-            this.runtime = new AnsibleEnvironment();
+            this.runtime = new LocalEnvironment();
             this.runtime.ports = ports;
             await this.runtime.updateUserSettings();
         }
@@ -78,7 +78,7 @@ export class LocalEnvironmentManager {
 
         FabricEnvironmentManager.instance().on('connected', async () => {
             const registryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
-            if (registryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+            if (registryEntry.managedRuntime && registryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
                 const outputAdapter: VSCodeBlockchainDockerOutputAdapter = VSCodeBlockchainDockerOutputAdapter.instance();
                 await this.runtime.startLogs(outputAdapter);
             }

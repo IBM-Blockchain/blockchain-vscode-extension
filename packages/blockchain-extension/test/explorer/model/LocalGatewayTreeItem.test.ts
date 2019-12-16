@@ -19,7 +19,6 @@ import * as sinonChai from 'sinon-chai';
 import { LocalGatewayTreeItem } from '../../../extension/explorer/model/LocalGatewayTreeItem';
 import { BlockchainGatewayExplorerProvider } from '../../../extension/explorer/gatewayExplorer';
 import { LocalEnvironmentManager } from '../../../extension/fabric/environments/LocalEnvironmentManager';
-import { AnsibleEnvironment } from '../../../extension/fabric/environments/AnsibleEnvironment';
 import { FabricGatewayRegistry } from '../../../extension/registries/FabricGatewayRegistry';
 import { FabricGatewayRegistryEntry } from '../../../extension/registries/FabricGatewayRegistryEntry';
 import { ExtensionUtil } from '../../../extension/util/ExtensionUtil';
@@ -27,6 +26,7 @@ import { TestUtil } from '../../TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { FabricRuntimeUtil, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../../ExtensionCommands';
+import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -36,7 +36,7 @@ describe('LocalGatewayTreeItem', () => {
     const gatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
 
     let gateway: FabricGatewayRegistryEntry;
-    let mockRuntime: sinon.SinonStubbedInstance<AnsibleEnvironment>;
+    let mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment>;
     let onBusyCallback: any;
 
     const sandbox: sinon.SinonSandbox = sinon.createSandbox();
@@ -57,7 +57,7 @@ describe('LocalGatewayTreeItem', () => {
 
         provider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
         const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
-        mockRuntime = sandbox.createStubInstance(AnsibleEnvironment);
+        mockRuntime = sandbox.createStubInstance(LocalEnvironment);
         mockRuntime.on.callsFake((name: string, callback: any) => {
             name.should.equal('busy');
             onBusyCallback = callback;

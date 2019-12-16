@@ -12,40 +12,36 @@
  * limitations under the License.
 */
 
-// import * as path from 'path';
 // import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
-import { AnsibleEnvironment } from './AnsibleEnvironment';
+import * as path from 'path';
+import { ManagedAnsibleEnvironment } from './ManagedAnsibleEnvironment';
 import { OutputAdapter } from '../../logging/OutputAdapter';
-import { FabricRuntimeState } from '../FabricRuntimeState';
 import { FabricEnvironmentRegistry } from '../../registries/FabricEnvironmentRegistry';
-import { FabricEnvironmentRegistryEntry } from '../../registries/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry, EnvironmentType } from '../../registries/FabricEnvironmentRegistryEntry';
 import { YeomanUtil } from '../../util/YeomanUtil';
-import { FabricRuntimeUtil } from '../FabricRuntimeUtil';
-import { SettingConfigurations } from '../../../configurations';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { SettingConfigurations, FileConfigurations } from '../../../configurations';
+import { FabricRuntimePorts } from '../FabricRuntimePorts';
+import { FabricWalletUtil } from '../FabricWalletUtil';
+import { FabricWalletRegistry } from '../../registries/FabricWalletRegistry';
+import { FabricWalletRegistryEntry } from '../../registries/FabricWalletRegistryEntry';
+import { FileSystemUtil } from '../../util/FileSystemUtil';
 
-export class LocalEnvironment extends AnsibleEnvironment {
+export class LocalEnvironment extends ManagedAnsibleEnvironment {
+
+    public ports?: FabricRuntimePorts;
 
     constructor() {
         super(FabricRuntimeUtil.LOCAL_FABRIC);
         this.dockerName = `fabricvscodelocalfabric`;
     }
-    // LocalEnvironment
-    public async generate(outputAdapter?: OutputAdapter): Promise<void> {
-        try {
-            this.setBusy(true);
-            this.setState(FabricRuntimeState.STARTING);
-            await this.execute('generate', [], outputAdapter);
-        } finally {
-            this.setBusy(false);
-            const running: boolean = await this.isRunning();
-            if (running) {
-                this.setState(FabricRuntimeState.STARTED);
-            } else {
-                this.setState(FabricRuntimeState.STOPPED);
-            }
-        }
+
+    public getDisplayName(): string {
+        return FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
     }
+
+    // LocalEnvironment
 
     // LocalEnvironment (pretty certain)
     // Update implementation to generate fabric using ansible (?)
@@ -61,7 +57,10 @@ export class LocalEnvironment extends AnsibleEnvironment {
 
         const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
             name: this.name,
-            managedRuntime: true
+            managedRuntime: true,
+            environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
+            associatedGateways: [FabricRuntimeUtil.LOCAL_FABRIC],
+            associatedWallets: [FabricWalletUtil.LOCAL_WALLET],
         });
 
         await FabricEnvironmentRegistry.instance().add(registryEntry);
@@ -89,16 +88,11 @@ export class LocalEnvironment extends AnsibleEnvironment {
 
     // LocalEnvironment
     public async isGenerated(): Promise<boolean> {
-        try {
-            const created: boolean = await this.isCreated();
-            if (!created) {
-                return false;
-            }
-            await this.execute('is_generated');
-            return true;
-        } catch (error) {
+        const created: boolean = await this.isCreated();
+        if (!created) {
             return false;
         }
+        return await super.isGenerated();
     }
 
     public async teardown(outputAdapter?: OutputAdapter): Promise<void> {
@@ -107,11 +101,36 @@ export class LocalEnvironment extends AnsibleEnvironment {
             await this.create();  // This will only be for local
             await this.importWalletsAndIdentities(); // This will only be for local
             await this.importGateways(); // This will only be for local
-        } catch (err) {
-            // ignore
+        } finally {
+            await super.setTeardownState();
         }
 
-        await super.setTeardownState();
+    }
+
+    public async importGateways(): Promise<void> {
+        await super.importGateways(FabricWalletUtil.LOCAL_WALLET);
+    }
+
+    public async importWalletsAndIdentities(): Promise<void> {
+        await super.importWalletsAndIdentities();
+
+        const walletNames: string[] = await this.getWalletNames();
+        for (const walletName of walletNames) {
+            const exists: boolean = await FabricWalletRegistry.instance().exists(walletName);
+            if (exists) {
+                // Fallback solution if FabricWalletUtil.tidyWalletSettings() fix for "No path for wallet has been provided" doesn't work - https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1593
+                // I think the problem occurred because we weren't setting a walletPath or managedWallet in FabricWalletUtil.tidyWalletSettings().
+                const walletRegistryEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletName);
+                if (!walletRegistryEntry.walletPath || !walletRegistryEntry.managedWallet) {
+                    const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+                    const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
+                    walletRegistryEntry.walletPath = path.join(homeExtDir, FileConfigurations.FABRIC_WALLETS, walletName);
+                    walletRegistryEntry.managedWallet = true;
+                    await FabricWalletRegistry.instance().update(walletRegistryEntry);
+                }
+            }
+
+        }
 
     }
 
@@ -126,6 +145,15 @@ export class LocalEnvironment extends AnsibleEnvironment {
     // LocalEnvironment - used for debug
     public async killChaincode(args?: string[], outputAdapter?: OutputAdapter): Promise<void> {
         await this.killChaincodeInner(args, outputAdapter);
+    }
+
+    protected async isRunningInner(args?: string[]): Promise<boolean> {
+
+        const created: boolean = await this.isCreated();
+        if (!created) {
+            return false;
+        }
+        return await super.isRunningInner(args);
     }
 
     // Both

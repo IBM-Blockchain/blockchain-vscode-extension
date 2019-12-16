@@ -16,19 +16,22 @@ import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironment } from '../fabric/environments/FabricEnvironment';
 import { FabricEnvironmentManager, ConnectedState } from '../fabric/environments/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, IFabricEnvironmentConnection, FabricNode, LogType } from 'ibm-blockchain-platform-common';
+import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
+import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
+import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
+import { AnsibleEnvironment } from '../fabric/environments/AnsibleEnvironment';
 
 export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, `connecting to fabric environment`);
 
-    let fabricEnvironment: FabricEnvironment;
+    let fabricEnvironment: FabricEnvironment | AnsibleEnvironment | ManagedAnsibleEnvironment | LocalEnvironment;
 
     try {
         if (!fabricEnvironmentRegistryEntry) {
@@ -40,26 +43,24 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
             fabricEnvironmentRegistryEntry = chosenEntry.data;
         }
 
+        fabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentRegistryEntry);
         if (fabricEnvironmentRegistryEntry.managedRuntime) {
-            let running: boolean = await LocalEnvironmentManager.instance().getRuntime().isRunning();
+
+            let running: boolean = await (fabricEnvironment as LocalEnvironment | ManagedAnsibleEnvironment).isRunning();
             if (!running) {
-                await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
-                running = await LocalEnvironmentManager.instance().getRuntime().isRunning();
+                await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC, fabricEnvironmentRegistryEntry);
+                running = await (fabricEnvironment as LocalEnvironment | ManagedAnsibleEnvironment).isRunning();
                 if (!running) {
                     // failed to start local fabric so return
                     return;
                 }
             }
-
-            fabricEnvironment = LocalEnvironmentManager.instance().getRuntime();
-        } else {
-            fabricEnvironment = new FabricEnvironment(fabricEnvironmentRegistryEntry.name);
         }
 
         // need to check if the environment is setup
         const requireSetup: boolean = await fabricEnvironment.requireSetup();
 
-        if (requireSetup && fabricEnvironmentRegistryEntry.name !== FabricRuntimeUtil.LOCAL_FABRIC) {
+        if (requireSetup && !(fabricEnvironment instanceof LocalEnvironment || fabricEnvironment instanceof ManagedAnsibleEnvironment)) {
             await FabricEnvironmentManager.instance().connect(undefined, fabricEnvironmentRegistryEntry, ConnectedState.SETUP);
             VSCodeBlockchainOutputAdapter.instance().log(LogType.IMPORTANT, 'You must complete setup for this environment to enable install, instantiate and register identity operations on the nodes. Click each node in the list to perform the required setup steps');
             return;
@@ -73,19 +74,14 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
         try {
             await connection.createChannelMap();
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Error connecting to environment ${fabricEnvironmentRegistryEntry.name}: ${error.message}`, `Error connecting to environment ${fabricEnvironmentRegistryEntry.name}: ${error.toString()}`);
+            outputAdapter.log(LogType.ERROR, `Error connecting to environment ${fabricEnvironment.getDisplayName()}: ${error.message}`, `Error connecting to environment ${fabricEnvironment.getDisplayName()}: ${error.toString()}`);
             await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             return;
         }
 
         FabricEnvironmentManager.instance().connect(connection, fabricEnvironmentRegistryEntry, ConnectedState.CONNECTED);
 
-        let environmentName: string;
-        if (fabricEnvironmentRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
-            environmentName = FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
-        } else {
-            environmentName = fabricEnvironmentRegistryEntry.name;
-        }
+        const environmentName: string = fabricEnvironment.getDisplayName();
 
         outputAdapter.log(LogType.SUCCESS, `Connected to ${environmentName}`);
 

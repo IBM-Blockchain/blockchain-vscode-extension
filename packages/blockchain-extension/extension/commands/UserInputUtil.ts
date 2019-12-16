@@ -114,14 +114,14 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(items, quickPickOptions);
     }
 
-    public static async showFabricEnvironmentQuickPickBox(prompt: string, canPickMany: boolean, autoChoose: boolean, showLocalFabric: boolean = false): Promise<Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> | IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
+    public static async showFabricEnvironmentQuickPickBox(prompt: string, canPickMany: boolean, autoChoose: boolean, showLocalFabric: boolean = false, onlyShowManagedEnvironment: boolean = false): Promise<Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> | IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
             canPickMany: canPickMany,
             placeHolder: prompt
         };
 
-        const environments: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(showLocalFabric);
+        const environments: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(showLocalFabric, onlyShowManagedEnvironment);
 
         const environmentsQuickPickItems: Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> = environments.map((environment: FabricEnvironmentRegistryEntry) => {
             let label: string = environment.name;
@@ -174,8 +174,8 @@ export class UserInputUtil {
         }
 
         const gatewaysQuickPickItems: Array<IBlockchainQuickPickItem<FabricGatewayRegistryEntry>> = allGateways.map((gateway: FabricGatewayRegistryEntry) => {
-            const gatewayDispalyName: string = (gateway.name === FabricRuntimeUtil.LOCAL_FABRIC) ? FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME : gateway.name;
-            return { label: gatewayDispalyName, data: gateway };
+            const gatewayDisplayName: string = (gateway.name === FabricRuntimeUtil.LOCAL_FABRIC) ? FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME : gateway.name;
+            return { label: gatewayDisplayName, data: gateway };
         });
 
         return vscode.window.showQuickPick(gatewaysQuickPickItems, quickPickOptions);

@@ -15,7 +15,6 @@
 import * as vscode from 'vscode';
 import * as semver from 'semver';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
-import { AnsibleEnvironment } from '../fabric/environments/AnsibleEnvironment';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
@@ -24,6 +23,7 @@ import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironme
 import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../util/ExtensionUtil';
+import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 
 export abstract class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
@@ -65,7 +65,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
         return connection;
     }
 
-    private runtime: AnsibleEnvironment;
+    private runtime: LocalEnvironment;
 
     public async resolveDebugConfiguration(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -89,7 +89,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             const isRunning: boolean = await this.runtime.isRunning();
 
             if (!isRunning) {
-                outputAdapter.log(LogType.ERROR, `Please ensure "${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}" is running before trying to debug a smart contract`);
+                outputAdapter.log(LogType.ERROR, `Please ensure "${this.runtime.getDisplayName()}" is running before trying to debug a smart contract`);
                 return;
             }
 

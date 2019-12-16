@@ -63,7 +63,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
     }
 
     let isLocalWallet: boolean;
-    if (walletRegistryEntry && walletRegistryEntry.managedWallet) {
+    if (walletRegistryEntry && walletRegistryEntry.managedWallet && walletRegistryEntry.name === FabricWalletUtil.LOCAL_WALLET) {
         isLocalWallet = true;
     } else {
         isLocalWallet = false;
@@ -148,8 +148,9 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
                 // make sure local_fabric is started
                 let isRunning: boolean = await LocalEnvironmentManager.instance().getRuntime().isRunning();
                 if (!isRunning) {
+                    const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
                     // Start local_fabric to enroll identity
-                    await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
+                    await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC, registryEntry);
                     isRunning = await LocalEnvironmentManager.instance().getRuntime().isRunning();
                     if (!isRunning) {
                         // Start local_fabric failed so return

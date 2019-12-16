@@ -16,11 +16,12 @@
 
 import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
-import { LocalEnvironmentManager } from '../../../fabric/environments/LocalEnvironmentManager';
-import { AnsibleEnvironment } from '../../../fabric/environments/AnsibleEnvironment';
 import { VSCodeBlockchainOutputAdapter } from '../../../logging/VSCodeBlockchainOutputAdapter';
 import { FabricEnvironmentTreeItem } from './FabricEnvironmentTreeItem';
 import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { LocalEnvironment } from '../../../fabric/environments/LocalEnvironment';
+import { ManagedAnsibleEnvironment } from '../../../fabric/environments/ManagedAnsibleEnvironment';
+import { EnvironmentFactory } from '../../../fabric/environments/EnvironmentFactory';
 
 export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
 
@@ -32,15 +33,15 @@ export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
 
     contextValue: string = 'blockchain-runtime-item';
     private name: string;
-    private runtime: AnsibleEnvironment;
+    private runtime: ManagedAnsibleEnvironment | LocalEnvironment;
     private busyTicker: NodeJS.Timer;
     private busyTicks: number = 0;
 
     private constructor(provider: BlockchainExplorerProvider, public readonly label: string, environmentRegistryEntry: FabricEnvironmentRegistryEntry, public readonly command: vscode.Command) {
         super(provider, label, environmentRegistryEntry, command);
-        const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
+        // const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
         this.name = label;
-        this.runtime = runtimeManager.getRuntime();
+        this.runtime = EnvironmentFactory.getEnvironment(environmentRegistryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
         this.runtime.on('busy', () => {
             this.safelyUpdateProperties();
         });
@@ -55,6 +56,7 @@ export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
     }
 
     private async updateProperties(): Promise<void> {
+        // this one
         const busy: boolean = this.runtime.isBusy();
         const running: boolean = await this.runtime.isRunning();
         let newLabel: string = this.name + '  ';

@@ -29,7 +29,7 @@ export class FabricEnvironmentRegistry extends FileRegistry<FabricEnvironmentReg
         super(FileConfigurations.FABRIC_ENVIRONMENTS);
     }
 
-    public async getAll(showLocalFabric: boolean = true): Promise<FabricEnvironmentRegistryEntry[]> {
+    public async getAll(showLocalFabric: boolean = true, onlyShowManagedEnvironment: boolean = false): Promise<FabricEnvironmentRegistryEntry[]> {
         let entries: FabricEnvironmentRegistryEntry[] = await super.getAll();
 
         let local: FabricEnvironmentRegistryEntry;
@@ -37,6 +37,11 @@ export class FabricEnvironmentRegistry extends FileRegistry<FabricEnvironmentReg
         entries = entries.filter((entry: FabricEnvironmentRegistryEntry) => {
             if (entry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
                 local = entry;
+                return false;
+            }
+            if (entry.managedRuntime && onlyShowManagedEnvironment) {
+                return true;
+            } else if (!entry.managedRuntime && onlyShowManagedEnvironment) {
                 return false;
             }
 

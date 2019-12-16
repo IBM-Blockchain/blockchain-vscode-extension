@@ -24,7 +24,6 @@ import { LocalEnvironmentManager } from '../../extension/fabric/environments/Loc
 import { TestUtil } from '../TestUtil';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
 import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
 import { Reporter } from '../../extension/util/Reporter';
 import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
@@ -39,6 +38,7 @@ import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, Fab
 import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
+import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 
 chai.use(sinonChai);
 // tslint:disable-next-line no-var-requires
@@ -56,7 +56,7 @@ describe('GatewayConnectCommand', () => {
 
         let rootPath: string;
         let mockConnection: sinon.SinonStubbedInstance<FabricGatewayConnection>;
-        let mockRuntime: sinon.SinonStubbedInstance<AnsibleEnvironment>;
+        let mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment>;
         let logSpy: sinon.SinonSpy;
         let connectionMultiple: FabricGatewayRegistryEntry;
         let connectionSingle: FabricGatewayRegistryEntry;
@@ -136,7 +136,7 @@ describe('GatewayConnectCommand', () => {
             await FabricWalletRegistry.instance().add(connectionAssociatedWallet);
             await FabricWalletRegistry.instance().add(emptyWallet);
 
-            mockRuntime = mySandBox.createStubInstance(AnsibleEnvironment);
+            mockRuntime = mySandBox.createStubInstance(LocalEnvironment);
             mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(true);

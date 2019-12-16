@@ -25,7 +25,6 @@ import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import { RuntimeTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
-import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
 import { InstantiatedChaincodeTreeItem } from '../../extension/explorer/model/InstantiatedChaincodeTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { SmartContractsTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/SmartContractsTreeItem';
@@ -40,12 +39,13 @@ import { CertificateAuthorityTreeItem } from '../../extension/explorer/runtimeOp
 import { OrdererTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/OrdererTreeItem';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, LogType, EnvironmentType, FabricWalletUtil } from 'ibm-blockchain-platform-common';
 import { FabricEnvironment } from '../../extension/fabric/environments/FabricEnvironment';
 import { EnvironmentConnectedTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/EnvironmentConnectedTreeItem';
 import { ImportNodesTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/ImportNodesTreeItem';
 import { InstalledChainCodeOpsTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/InstalledChainCodeOpsTreeItem';
 import { InstallCommandTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/InstallCommandTreeItem';
+import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -95,7 +95,7 @@ describe('environmentExplorer', () => {
 
                 await LocalEnvironmentManager.instance().getRuntime().create();
 
-                const mockRuntime: sinon.SinonStubbedInstance<AnsibleEnvironment> = mySandBox.createStubInstance(AnsibleEnvironment);
+                const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
                 mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
                 mockRuntime.isRunning.resolves(false);
 
@@ -158,6 +158,9 @@ describe('environmentExplorer', () => {
                 const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
                 environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
                 environmentRegistry.managedRuntime = true;
+                environmentRegistry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+                environmentRegistry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
+                environmentRegistry.associatedWallets = [FabricWalletUtil.LOCAL_WALLET];
 
                 environmentRegistryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry');
                 environmentRegistryStub.returns(environmentRegistry);
@@ -399,6 +402,9 @@ describe('environmentExplorer', () => {
                 const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
                 environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
                 environmentRegistry.managedRuntime = true;
+                environmentRegistry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+                environmentRegistry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
+                environmentRegistry.associatedWallets = [FabricWalletUtil.LOCAL_WALLET];
 
                 environmentStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
 
@@ -906,6 +912,9 @@ describe('environmentExplorer', () => {
             registryEntry = new FabricEnvironmentRegistryEntry();
             registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             registryEntry.managedRuntime = true;
+            registryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+            registryEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
+            registryEntry.associatedWallets = [FabricWalletUtil.LOCAL_WALLET];
             mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(registryEntry);
         });
 

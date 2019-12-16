@@ -18,17 +18,18 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricJavaDebugConfigurationProvider } from '../../extension/debug/FabricJavaDebugConfigurationProvider';
-import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { Reporter } from '../../extension/util/Reporter';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { GlobalState } from '../../extension/util/GlobalState';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
+import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -57,7 +58,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
         let fabricDebugConfig: FabricJavaDebugConfigurationProvider;
         let workspaceFolder: any;
         let debugConfig: any;
-        let runtimeStub: sinon.SinonStubbedInstance<AnsibleEnvironment>;
+        let runtimeStub: sinon.SinonStubbedInstance<LocalEnvironment>;
         let packageEntry: PackageRegistryEntry;
         let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
         let startDebuggingStub: sinon.SinonStub;
@@ -72,7 +73,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
 
             fabricDebugConfig = new FabricJavaDebugConfigurationProvider();
 
-            runtimeStub = mySandbox.createStubInstance(AnsibleEnvironment);
+            runtimeStub = mySandbox.createStubInstance(LocalEnvironment);
             runtimeStub.getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
 
@@ -81,6 +82,9 @@ describe('FabricJavaDebugConfigurationProvider', () => {
             const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             environmentRegistry.managedRuntime = true;
+            environmentRegistry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+            environmentRegistry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
+            environmentRegistry.associatedWallets = [FabricWalletUtil.LOCAL_WALLET];
 
             mySandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
 

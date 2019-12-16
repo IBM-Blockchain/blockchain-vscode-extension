@@ -30,6 +30,7 @@ import { Reporter } from '../../extension/util/Reporter';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, IFabricWallet, LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -82,6 +83,9 @@ describe('createNewIdentityCommand', () => {
         const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         environmentRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
         environmentRegistryEntry.managedRuntime = true;
+        environmentRegistryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+        environmentRegistryEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
+        environmentRegistryEntry.associatedWallets = [FabricWalletUtil.LOCAL_WALLET];
 
         mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistryEntry);
         mySandBox.stub(FabricEnvironmentManager.instance(), 'getState').returns(ConnectedState.CONNECTED);

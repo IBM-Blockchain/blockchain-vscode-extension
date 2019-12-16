@@ -23,8 +23,8 @@ import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGat
 import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 
 import * as vscode from 'vscode';
-import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
+import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -48,7 +48,7 @@ describe('Metadata ConnectionProfileUtil tests', () => {
     let localGateway: FabricGatewayRegistryEntry;
     let otherGateway: FabricGatewayRegistryEntry;
     let debugSessionStub: sinon.SinonStub;
-    let mockRuntime: sinon.SinonStubbedInstance<AnsibleEnvironment>;
+    let mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment>;
 
     beforeEach(() => {
         mySandBox = sinon.createSandbox();
@@ -145,7 +145,7 @@ describe('Metadata ConnectionProfileUtil tests', () => {
 
         debugSessionStub = mySandBox.stub(vscode.debug, 'activeDebugSession');
 
-        mockRuntime = mySandBox.createStubInstance(AnsibleEnvironment);
+        mockRuntime = mySandBox.createStubInstance(LocalEnvironment);
         mockRuntime.isRunning.resolves(true);
         mockRuntime.killChaincode.resolves();
 

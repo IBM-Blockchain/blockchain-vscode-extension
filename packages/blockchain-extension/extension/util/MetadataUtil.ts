@@ -15,10 +15,10 @@
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { FabricRuntimeUtil, IFabricGatewayConnection, LogType } from 'ibm-blockchain-platform-common';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
-import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
-import { AnsibleEnvironment } from '../fabric/environments/AnsibleEnvironment';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import * as vscode from 'vscode';
+import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
+import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 
 // Functions for parsing metadata object
 export class MetadataUtil {
@@ -103,7 +103,7 @@ export class MetadataUtil {
                 // make sure we are debugging the one getting we are getting meta data for
                 if (chaincodeName === name) {
 
-                    const runtime: AnsibleEnvironment = LocalEnvironmentManager.instance().getRuntime();
+                    const runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
                     const isContainerRunning: boolean = await runtime.isRunning([name, version]);
                     if (isContainerRunning) {
                         await runtime.killChaincode([name, version]);

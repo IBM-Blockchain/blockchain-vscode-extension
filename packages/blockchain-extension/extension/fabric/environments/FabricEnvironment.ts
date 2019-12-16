@@ -37,6 +37,10 @@ export class FabricEnvironment extends EventEmitter {
         return this.name;
     }
 
+    public getDisplayName(): string {
+        return this.getName();
+    }
+
     public getPath(): string {
         return this.path;
     }

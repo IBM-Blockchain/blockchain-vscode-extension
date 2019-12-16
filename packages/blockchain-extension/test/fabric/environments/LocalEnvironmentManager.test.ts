@@ -12,24 +12,24 @@
  * limitations under the License.
 */
 
-import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
-import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
-import { AnsibleEnvironment } from '../../extension/fabric/environments/AnsibleEnvironment';
-import { TestUtil } from '../TestUtil';
+import { FabricGatewayRegistry } from '../../../extension/registries/FabricGatewayRegistry';
+import { LocalEnvironmentManager } from '../../../extension/fabric/environments/LocalEnvironmentManager';
+import { TestUtil } from '../../TestUtil';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
-import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
+import { FabricConnectionFactory } from '../../../extension/fabric/FabricConnectionFactory';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
+import { CommandUtil } from '../../../extension/util/CommandUtil';
+import { version } from '../../../package.json';
+import { VSCodeBlockchainOutputAdapter } from '../../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { SettingConfigurations } from '../../../configurations';
+import { FabricEnvironmentManager, ConnectedState } from '../../../extension/fabric/environments/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
-import { CommandUtil } from '../../extension/util/CommandUtil';
-import { version } from '../../package.json';
-import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { SettingConfigurations } from '../../configurations';
-import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
+import { FileSystemUtil } from '../../../extension/util/FileSystemUtil';
+import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';
 
 chai.should();
 
@@ -38,12 +38,12 @@ describe('LocalEnvironmentManager', () => {
 
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
-    let mockRuntime: sinon.SinonStubbedInstance<AnsibleEnvironment>;
+    let mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment>;
     let mockConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
 
     let sandbox: sinon.SinonSandbox;
     let findFreePortStub: sinon.SinonStub;
-    let originalRuntime: AnsibleEnvironment;
+    let originalRuntime: LocalEnvironment;
 
     before(async () => {
         await TestUtil.setupTests(sandbox);
@@ -53,9 +53,9 @@ describe('LocalEnvironmentManager', () => {
     beforeEach(async () => {
         sandbox = sinon.createSandbox();
         await connectionRegistry.clear();
-        mockRuntime = sandbox.createStubInstance(AnsibleEnvironment);
+        mockRuntime = sandbox.createStubInstance(LocalEnvironment);
         runtimeManager['connection'] = runtimeManager['connectingPromise'] = undefined;
-        runtimeManager['runtime'] = ((mockRuntime as any) as AnsibleEnvironment);
+        runtimeManager['runtime'] = ((mockRuntime as any) as LocalEnvironment);
         mockConnection = sandbox.createStubInstance(FabricEnvironmentConnection);
         sandbox.stub(FabricConnectionFactory, 'createFabricEnvironmentConnection').returns(mockConnection);
         findFreePortStub = sandbox.stub().resolves([17050, 17051, 17052, 17053, 17054, 17055, 17056]);
@@ -74,7 +74,7 @@ describe('LocalEnvironmentManager', () => {
         Object.defineProperty(runtimeManager, 'runtime', {
             configurable: true,
             enumerable: true,
-            get: (): AnsibleEnvironment => (originalRuntime as any) as AnsibleEnvironment
+            get: (): LocalEnvironment => (originalRuntime as any) as LocalEnvironment
         });
     });
 
@@ -90,7 +90,7 @@ describe('LocalEnvironmentManager', () => {
             Object.defineProperty(runtimeManager, 'runtime', {
                 configurable: true,
                 enumerable: true,
-                get: (): AnsibleEnvironment => (mockRuntime as any) as AnsibleEnvironment,
+                get: (): LocalEnvironment => (mockRuntime as any) as LocalEnvironment,
                 set: (): void => { /* Ignore the new value */ }
             });
         });

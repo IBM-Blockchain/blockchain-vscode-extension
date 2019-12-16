@@ -32,7 +32,7 @@ import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
-import { FabricCertificate, FabricEnvironmentRegistry, FabricRuntimeUtil, FileConfigurations, FabricWalletRegistry, FabricWalletRegistryEntry, FabricNode, FabricNodeType, FabricWalletUtil, FabricEnvironmentRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
+import { FabricCertificate, FabricEnvironmentRegistry, FabricRuntimeUtil, FileConfigurations, FabricWalletRegistry, FabricWalletRegistryEntry, FabricNode, FabricNodeType, FabricWalletUtil, FabricEnvironmentRegistryEntry, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { FabricEnvironment } from '../../extension/fabric/environments/FabricEnvironment';
 
@@ -188,6 +188,9 @@ describe('UserInputUtil', () => {
             const localFabricEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             localFabricEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             localFabricEntry.managedRuntime = true;
+            localFabricEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+            localFabricEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
+            localFabricEntry.associatedWallets = [FabricWalletUtil.LOCAL_WALLET];
 
             quickPickStub.resolves({ label: environmentEntryOne.name, data: environmentEntryOne });
 
@@ -214,6 +217,9 @@ describe('UserInputUtil', () => {
             const localFabricEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             localFabricEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             localFabricEntry.managedRuntime = true;
+            localFabricEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+            localFabricEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
+            localFabricEntry.associatedWallets = [FabricWalletUtil.LOCAL_WALLET];
 
             await FabricEnvironmentRegistry.instance().clear();
 

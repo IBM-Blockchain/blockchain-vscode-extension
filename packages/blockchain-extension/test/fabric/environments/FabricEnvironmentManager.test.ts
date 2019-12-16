@@ -12,12 +12,13 @@
  * limitations under the License.
 */
 
-import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
+import { FabricEnvironmentManager, ConnectedState } from '../../../extension/fabric/environments/FabricEnvironmentManager';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
+import { TestUtil } from '../../TestUtil';
 
 const should: Chai.Should = chai.should();
 
@@ -37,6 +38,10 @@ describe('FabricEnvironmentManager', () => {
         registryEntry = new FabricEnvironmentRegistryEntry();
         registryEntry.name = 'myConnection';
         registryEntry.managedRuntime = false;
+    });
+
+    before(async () => {
+        await TestUtil.setupTests(sandbox);
     });
 
     afterEach(async () => {

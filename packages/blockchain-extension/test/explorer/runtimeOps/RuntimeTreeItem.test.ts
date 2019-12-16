@@ -16,14 +16,15 @@ import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { RuntimeTreeItem } from '../../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { LocalEnvironmentManager } from '../../../extension/fabric/environments/LocalEnvironmentManager';
-import { AnsibleEnvironment } from '../../../extension/fabric/environments/AnsibleEnvironment';
 import { ExtensionUtil } from '../../../extension/util/ExtensionUtil';
 import { TestUtil } from '../../TestUtil';
 import { ExtensionCommands } from '../../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { BlockchainEnvironmentExplorerProvider } from '../../../extension/explorer/environmentExplorer';
 import { FabricRuntimeState } from '../../../extension/fabric/FabricRuntimeState';
+import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';
+import { FabricWalletUtil } from '../../../extension/fabric/FabricWalletUtil';
 
 describe('RuntimeTreeItem', () => {
 
@@ -33,7 +34,7 @@ describe('RuntimeTreeItem', () => {
     let clock: sinon.SinonFakeTimers;
     let provider: BlockchainEnvironmentExplorerProvider;
     let environmentRegistryEntry: FabricEnvironmentRegistryEntry;
-    let mockRuntime: sinon.SinonStubbedInstance<AnsibleEnvironment>;
+    let mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment>;
     let onBusyCallback: any;
     let command: vscode.Command;
 
@@ -48,10 +49,13 @@ describe('RuntimeTreeItem', () => {
         environmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         environmentRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
         environmentRegistryEntry.managedRuntime = true;
+        environmentRegistryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+        environmentRegistryEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
+        environmentRegistryEntry.associatedWallets = [FabricWalletUtil.LOCAL_WALLET];
 
         provider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
-        mockRuntime = sandbox.createStubInstance(AnsibleEnvironment);
+        mockRuntime = sandbox.createStubInstance(LocalEnvironment);
         mockRuntime.on.callsFake((name: string, callback: any) => {
             name.should.equal('busy');
             onBusyCallback = callback;

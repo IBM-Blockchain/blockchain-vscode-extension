@@ -79,7 +79,6 @@ import { Reporter } from './Reporter';
 import { PreReqView } from '../webview/PreReqView';
 import { BlockchainEnvironmentExplorerProvider } from '../explorer/environmentExplorer';
 import { gatewayConnect } from '../commands/gatewayConnectCommand';
-import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { addEnvironment } from '../commands/addEnvironmentCommand';
 import { FabricEnvironmentTreeItem } from '../explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { deleteEnvironment } from '../commands/deleteEnvironmentCommand';
@@ -90,7 +89,6 @@ import { DependencyManager } from '../dependencies/DependencyManager';
 import { GlobalState, ExtensionData } from './GlobalState';
 import { TemporaryCommandRegistry } from '../dependencies/TemporaryCommandRegistry';
 import { version as currentExtensionVersion, dependencies } from '../../package.json';
-import { AnsibleEnvironment } from '../fabric/environments/AnsibleEnvironment';
 import { UserInputUtil } from '../commands/UserInputUtil';
 import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, FileRegistry, LogType } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
@@ -100,6 +98,8 @@ import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { RepositoryRegistryEntry } from '../registries/RepositoryRegistryEntry';
 import { RepositoryRegistry } from '../registries/RepositoryRegistry';
 import { openTransactionView } from '../commands/openTransactionViewCommand';
+import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
+import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -281,10 +281,10 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, (workspace?: vscode.WorkspaceFolder, overrideName?: string, overrideVersion?: string) => packageSmartContract(workspace, overrideName, overrideVersion)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_PACKAGES, () => blockchainPackageExplorerProvider.refresh()));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_ENVIRONMENTS, (element: BlockchainTreeItem) => blockchainEnvironmentExplorerProvider.refresh(element)));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.START_FABRIC, () => startFabricRuntime()));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.STOP_FABRIC, () => stopFabricRuntime()));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.RESTART_FABRIC, () => restartFabricRuntime()));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEARDOWN_FABRIC, (treeItem: RuntimeTreeItem, force: boolean = false) => teardownFabricRuntime(treeItem, force)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.START_FABRIC, (environmentRegistryEntry?: FabricEnvironmentRegistryEntry) => startFabricRuntime(environmentRegistryEntry)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.STOP_FABRIC, (runtimeTreeItem?: RuntimeTreeItem) => stopFabricRuntime(runtimeTreeItem)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.RESTART_FABRIC, (runtimeTreeItem?: RuntimeTreeItem) => restartFabricRuntime(runtimeTreeItem)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEARDOWN_FABRIC, (runtimeTreeItem?: RuntimeTreeItem, force: boolean = false) => teardownFabricRuntime(runtimeTreeItem, force)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_NEW_TERMINAL, (nodeItem: NodeTreeItem) => openNewTerminal(nodeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, (gatewayItem: GatewayTreeItem, isConnected?: boolean) => exportConnectionProfile(gatewayItem, isConnected)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE_CONNECTED, (gatewayItem: GatewayTreeItem, isConnected: boolean = true) => exportConnectionProfile(gatewayItem, isConnected)));
@@ -378,7 +378,7 @@ export class ExtensionUtil {
                 const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
                 const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
-                const runtime: AnsibleEnvironment = LocalEnvironmentManager.instance().getRuntime();
+                const runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
 
                 let isGenerated: boolean;
 
@@ -572,7 +572,7 @@ export class ExtensionUtil {
         if (generatorVersion !== extensionData.generatorVersion) {
             // If the latest generator version is not equal to the previous used version
 
-            const runtime: AnsibleEnvironment = LocalEnvironmentManager.instance().getRuntime();
+            const runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
             let generated: boolean = false;
             if (runtime) {
                 generated = await runtime.isGenerated();

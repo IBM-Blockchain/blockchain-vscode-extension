@@ -66,4 +66,47 @@ describe('FabricEnvironmentRegistry', () => {
         await registry.add(environmentOne);
         await registry.getAll(false).should.eventually.deep.equal([environmentOne]);
     });
+
+    it(`should get all managed environments including the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`, async () => {
+
+        const environmentOne: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
+            name: 'environmentOne'
+        });
+
+        const environmentTwo: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
+            name: 'environmentTwo',
+            managedRuntime: true
+        });
+
+        await registry.getAll().should.eventually.deep.equal([]);
+
+        await LocalEnvironmentManager.instance().getRuntime().create();
+
+        const localFabricEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+
+        await registry.add(environmentOne);
+        await registry.add(environmentTwo);
+
+        await registry.getAll(true, true).should.eventually.deep.equal([localFabricEntry, environmentTwo]);
+    });
+
+    it(`should get all managed environments excluding the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`, async () => {
+
+        const environmentOne: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
+            name: 'environmentOne'
+        });
+
+        const environmentTwo: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
+            name: 'environmentTwo',
+            managedRuntime: true
+        });
+        await registry.getAll().should.eventually.deep.equal([]);
+
+        await LocalEnvironmentManager.instance().getRuntime().create();
+
+        await registry.add(environmentOne);
+        await registry.add(environmentTwo);
+
+        await registry.getAll(false, true).should.eventually.deep.equal([environmentTwo]);
+    });
 });
