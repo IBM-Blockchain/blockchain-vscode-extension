@@ -25,6 +25,7 @@ import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchain
 import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { PackageRegistry } from '../registries/PackageRegistry';
+import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 
 export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, channelName?: string, peerNames?: Array<string>): Promise<void> {
 
@@ -66,7 +67,11 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
         let data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder };
         let chosenChaincode: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>;
 
-        if (!vscode.debug.activeDebugSession) {
+        if (vscode.debug.activeDebugSession && vscode.debug.activeDebugSession.configuration.debugEvent === FabricDebugConfigurationProvider.debugEvent) {
+            // called from debug session - get the chaincode ID name and folder used to debug
+            smartContractName = vscode.debug.activeDebugSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[0];
+            smartContractVersion = vscode.debug.activeDebugSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
+        } else {
             // Not called during debugging, ask for smart contract to instantiate
             chosenChaincode = await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a smart contract and version to instantiate', channelName, peerNames);
             if (!chosenChaincode) {
@@ -74,11 +79,6 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
             }
             data = chosenChaincode.data;
             packageToInstall = chosenChaincode.data.packageEntry;
-
-        } else {
-            // called from debug session - get the chaincode ID name and folder used to debug
-            smartContractName = vscode.debug.activeDebugSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[0];
-            smartContractVersion = vscode.debug.activeDebugSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
         }
 
         if (chosenChaincode && chosenChaincode.description === 'Open Project') {
@@ -89,7 +89,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
             if (!packageToInstall) {
                 return;
             }
-        } else if (vscode.debug.activeDebugSession) {
+        } else if (vscode.debug.activeDebugSession && vscode.debug.activeDebugSession.configuration.debugEvent === FabricDebugConfigurationProvider.debugEvent) {
             // Called from debug session so override package command parameters with smart contract name and version
             const packageRegistryEntry: PackageRegistryEntry = await PackageRegistry.instance().get(smartContractName, smartContractVersion);
             if (!packageRegistryEntry) {
@@ -103,7 +103,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
         }
         if ((chosenChaincode && chosenChaincode.description === 'Open Project') || (chosenChaincode && chosenChaincode.description === 'Packaged') || vscode.debug.activeDebugSession) {
             let doInstall: boolean = true;
-            if (vscode.debug.activeDebugSession) {
+            if (vscode.debug.activeDebugSession && vscode.debug.activeDebugSession.configuration.debugEvent === FabricDebugConfigurationProvider.debugEvent) {
                 // on local fabric so assume one peer
                 const installedChaincode: Map<string, string[]> = await connection.getInstalledChaincode(peerNames[0]);
                 if (installedChaincode.has(smartContractName)) {

@@ -41,6 +41,8 @@ describe('DebugCommandListCommand', () => {
     let runtimeStub: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
     let connectionManagerGetConnectionStub: sinon.SinonStub;
     let environmentConnectionStub: sinon.SinonStub;
+    let activeDebugSession: any;
+    let activeDebugSessionStub: sinon.SinonStub;
 
     before(async () => {
         mySandBox = sinon.createSandbox();
@@ -65,15 +67,16 @@ describe('DebugCommandListCommand', () => {
         executeCommandStub.withArgs(ExtensionCommands.UPGRADE_SMART_CONTRACT).resolves();
         executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_GATEWAY).resolves();
 
-        const activeDebugSessionStub: any = {
+        activeDebugSession = {
             configuration: {
                 env: {
                     CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-123456'
-                }
+                },
+                debugEvent: 'contractDebugging'
             }
         };
 
-        mySandBox.stub(vscode.debug, 'activeDebugSession').value(activeDebugSessionStub);
+        activeDebugSessionStub = mySandBox.stub(vscode.debug, 'activeDebugSession').value(activeDebugSession);
 
         const channelMap: Map<string, string[]> = new Map<string, string[]>();
         channelMap.set('mychannel', ['peerOne']);
@@ -92,6 +95,18 @@ describe('DebugCommandListCommand', () => {
         await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);
 
         executeCommandStub.should.have.been.calledWith(ExtensionCommands.SUBMIT_TRANSACTION, undefined, 'mychannel', 'mySmartContract');
+    });
+
+    it('should return if not debugging a smart contract', async () => {
+        activeDebugSession.configuration.debugEvent = undefined;
+
+        activeDebugSessionStub.value = activeDebugSession;
+
+        const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+
+        await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);
+
+        logSpy.should.have.been.calledWith(LogType.ERROR, undefined, 'The current debug session is not debugging a smart contract, this command can only be run when debugging a smart contract');
     });
 
     it('should return if no connection', async () => {
@@ -121,7 +136,7 @@ describe('DebugCommandListCommand', () => {
     });
 
     it('should evaluate transaction with channel name and contract name', async () => {
-        showDebugCommandListStub.resolves({ label: 'Evaluate transaction', data: ExtensionCommands.EVALUATE_TRANSACTION});
+        showDebugCommandListStub.resolves({ label: 'Evaluate transaction', data: ExtensionCommands.EVALUATE_TRANSACTION });
 
         await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);
 
@@ -134,7 +149,7 @@ describe('DebugCommandListCommand', () => {
         registryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
         connectionManagerGetConnectionStub.onCall(0).returns(undefined);
         connectionManagerGetConnectionStub.onCall(1).returns(runtimeStub);
-        showDebugCommandListStub.resolves({ label: 'Evaluate transaction', data: ExtensionCommands.EVALUATE_TRANSACTION});
+        showDebugCommandListStub.resolves({ label: 'Evaluate transaction', data: ExtensionCommands.EVALUATE_TRANSACTION });
 
         await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);
 
@@ -143,7 +158,7 @@ describe('DebugCommandListCommand', () => {
     });
 
     it('should handle connect failing', async () => {
-        showDebugCommandListStub.resolves({ label: 'Evaluate transaction', data: ExtensionCommands.EVALUATE_TRANSACTION});
+        showDebugCommandListStub.resolves({ label: 'Evaluate transaction', data: ExtensionCommands.EVALUATE_TRANSACTION });
         connectionManagerGetConnectionStub.returns(undefined);
 
         await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);

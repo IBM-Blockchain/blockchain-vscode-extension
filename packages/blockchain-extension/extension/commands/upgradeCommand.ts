@@ -26,6 +26,7 @@ import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType }
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { PackageRegistry } from '../registries/PackageRegistry';
+import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 
 export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channelName?: string, peerNames?: Array<string>): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -96,7 +97,11 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
         let data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder };
         let chosenChaincode: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>;
 
-        if (!vscode.debug.activeDebugSession) {
+        if (vscode.debug.activeDebugSession && vscode.debug.activeDebugSession.configuration.debugEvent === FabricDebugConfigurationProvider.debugEvent) {
+             // Upgrade command called from debug session - get the chaincode ID name
+             smartContractName = vscode.debug.activeDebugSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[0];
+             smartContractVersion = vscode.debug.activeDebugSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
+        } else {
             // If not called from debug session, ask for smart contract to upgrade with
             chosenChaincode = await UserInputUtil.showChaincodeAndVersionQuickPick('Select the smart contract version to perform an upgrade with', channelName, peerNames, contractName, contractVersion);
             if (!chosenChaincode) {
@@ -105,10 +110,6 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
 
             data = chosenChaincode.data;
             packageToInstall = chosenChaincode.data.packageEntry;
-        } else {
-            // Upgrade command called from debug session - get the chaincode ID name
-            smartContractName = vscode.debug.activeDebugSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[0];
-            smartContractVersion = vscode.debug.activeDebugSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
         }
 
         if ((chosenChaincode && chosenChaincode.description === 'Open Project')) {
@@ -119,7 +120,7 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
             if (!packageToInstall) {
                 return;
             }
-        } else if (vscode.debug.activeDebugSession) {
+        } else if (vscode.debug.activeDebugSession && vscode.debug.activeDebugSession.configuration.debugEvent === FabricDebugConfigurationProvider.debugEvent) {
             // Called from debug session so override package command parameters with smart contract name and version
             const packageRegistryEntry: PackageRegistryEntry = await PackageRegistry.instance().get(smartContractName, smartContractVersion);
             if (!packageRegistryEntry) {
@@ -134,7 +135,7 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
         }
         if ((chosenChaincode && chosenChaincode.description === 'Open Project') || (chosenChaincode && chosenChaincode.description === 'Packaged') || vscode.debug.activeDebugSession) {
             let doInstall: boolean = true;
-            if (vscode.debug.activeDebugSession) {
+            if (vscode.debug.activeDebugSession && vscode.debug.activeDebugSession.configuration.debugEvent === FabricDebugConfigurationProvider.debugEvent) {
                 // on local fabric so assume one peer
                 const installedChaincode: Map<string, string[]> = await connection.getInstalledChaincode(peerNames[0]);
                 if (installedChaincode.has(smartContractName)) {

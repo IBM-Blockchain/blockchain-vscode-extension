@@ -655,6 +655,7 @@ describe('UpgradeCommand', () => {
                     env: {
                         CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-97365870'
                     },
+                    debugEvent: 'contractDebugging'
                 },
                 workspaceFolder: workspaceFolder
             };
@@ -680,6 +681,7 @@ describe('UpgradeCommand', () => {
                     env: {
                         CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-97365870'
                     },
+                    debugEvent: 'contractDebugging'
                 },
                 workspaceFolder: workspaceFolder
             };
@@ -717,6 +719,7 @@ describe('UpgradeCommand', () => {
                     env: {
                         CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-97365870'
                     },
+                    debugEvent: 'contractDebugging'
                 },
                 workspaceFolder: workspaceFolder
             };
@@ -748,7 +751,8 @@ describe('UpgradeCommand', () => {
                 configuration: {
                     env: {
                         CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-97365870'
-                    }
+                    },
+                    debugEvent: 'contractDebugging'
                 },
                 workspaceFolder: workspaceFolder
             };
