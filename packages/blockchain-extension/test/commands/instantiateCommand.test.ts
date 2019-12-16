@@ -647,7 +647,8 @@ describe('InstantiateCommand', () => {
                 configuration: {
                     env: {
                         CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-123456'
-                    }
+                    },
+                    debugEvent: 'contractDebugging'
                 }
             };
 
@@ -675,7 +676,8 @@ describe('InstantiateCommand', () => {
                 configuration: {
                     env: {
                         CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-123456'
-                    }
+                    },
+                    debugEvent: 'contractDebugging'
                 }
             };
 
@@ -716,7 +718,8 @@ describe('InstantiateCommand', () => {
                 configuration: {
                     env: {
                         CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-123456'
-                    }
+                    },
+                    debugEvent: 'contractDebugging'
                 }
             };
 
@@ -751,7 +754,8 @@ describe('InstantiateCommand', () => {
                 configuration: {
                     env: {
                         CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-123456'
-                    }
+                    },
+                    debugEvent: 'contractDebugging'
                 },
                 workspaceFolder: workspaceFolder
             };
