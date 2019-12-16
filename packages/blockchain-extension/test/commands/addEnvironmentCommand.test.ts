@@ -18,11 +18,9 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { TestUtil } from '../TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
-import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
-import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
 
 // tslint:disable no-unused-expression
 chai.should();

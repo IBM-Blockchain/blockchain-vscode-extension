@@ -18,26 +18,21 @@ import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
-import { OutputAdapter } from '../../extension/logging/OutputAdapter';
 import { TestUtil } from '../TestUtil';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { LogType } from '../../extension/logging/OutputAdapter';
 import { CommandUtil } from '../../extension/util/CommandUtil';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
 import { YeomanUtil } from '../../extension/util/YeomanUtil';
-import { IFabricWalletGenerator } from '../../extension/fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../../extension/fabric/FabricWalletGeneratorFactory';
 import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
-import { FabricIdentity, IFabricWallet } from 'ibm-blockchain-platform-common';
-import { FabricWallet } from 'ibm-blockchain-platform-gateway-v1';
-import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
+import { FabricEnvironmentRegistry, FabricIdentity, FabricWalletRegistry, FabricWalletUtil, FabricWalletRegistryEntry, IFabricWallet, IFabricWalletGenerator, LogType, OutputAdapter } from 'ibm-blockchain-platform-common';
+import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { SettingConfigurations } from '../../configurations';
 import { FabricGateway } from '../../extension/fabric/FabricGateway';
 import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
-import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
-import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
-import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
+import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
+import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -213,14 +208,23 @@ describe('FabricRuntime', () => {
         it('should create all gateways', async () => {
             const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
             const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
-            const profileDirPath: string = path.join(homeExtDir, 'gateways', 'yofn');
 
             await runtime.importGateways();
 
             const gateways: FabricGateway[] = await runtime.getGateways();
-            const profilePath: string = path.join(profileDirPath, path.basename(gateways[0].path));
-
-            await fs.pathExists(profilePath).should.eventually.be.true;
+            gateways.should.have.lengthOf(3);
+            for (const gateway of gateways) {
+                const profileDirPath: string = path.join(homeExtDir, 'gateways', gateway.name);
+                const profilePath: string = path.join(profileDirPath, path.basename(gateway.path));
+                await fs.pathExists(profilePath).should.eventually.be.true;
+                const registryEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(gateway.name);
+                const wallet: string = (gateway.connectionProfile as any).wallet;
+                if (!wallet) {
+                    registryEntry.associatedWallet.should.equal(FabricWalletUtil.LOCAL_WALLET);
+                } else {
+                    registryEntry.associatedWallet.should.equal((gateway.connectionProfile as any).wallet);
+                }
+            }
         });
     });
 
@@ -1099,14 +1103,18 @@ describe('FabricRuntime', () => {
         });
 
         it('should return all of the gateways', async () => {
-            await runtime.getGateways().should.eventually.deep.equal([
+            const gateways: FabricGateway[] = await runtime.getGateways();
+            const sortedGateways: FabricGateway[] = gateways.sort((a: FabricGateway, b: FabricGateway) => {
+                return a.name.localeCompare(b.name);
+            });
+            sortedGateways.should.have.lengthOf(3);
+            sortedGateways.should.deep.equal([
                 {
                     name: 'yofn',
                     path: path.resolve(runtimePath, 'gateways', 'yofn.json'),
                     connectionProfile: {
                         name: 'yofn',
                         version: '1.0.0',
-                        wallet: FabricWalletUtil.LOCAL_WALLET,
                         client: {
                             organization: 'Org1',
                             connection: {
@@ -1138,6 +1146,90 @@ describe('FabricRuntime', () => {
                             'ca.org1.example.com': {
                                 url: 'http://localhost:17054',
                                 caName: 'ca.org1.example.com'
+                            }
+                        }
+                    }
+                },
+                {
+                    name: 'yofn-org1',
+                    path: path.resolve(runtimePath, 'gateways', 'org1', 'yofn.json'),
+                    connectionProfile: {
+                        name: 'yofn-org1',
+                        version: '1.0.0',
+                        wallet: 'org1-wallet',
+                        client: {
+                            organization: 'Org1',
+                            connection: {
+                                timeout: {
+                                    peer: {
+                                        endorser: '300'
+                                    },
+                                    orderer: '300'
+                                }
+                            }
+                        },
+                        organizations: {
+                            Org1: {
+                                mspid: 'Org1MSP',
+                                peers: [
+                                    'peer0.org1.example.com'
+                                ],
+                                certificateAuthorities: [
+                                    'ca.org1.example.com'
+                                ]
+                            }
+                        },
+                        peers: {
+                            'peer0.org1.example.com': {
+                                url: 'grpc://localhost:17051'
+                            }
+                        },
+                        certificateAuthorities: {
+                            'ca.org1.example.com': {
+                                url: 'http://localhost:17054',
+                                caName: 'ca.org1.example.com'
+                            }
+                        }
+                    }
+                },
+                {
+                    name: 'yofn-org2',
+                    path: path.resolve(runtimePath, 'gateways', 'org2', 'yofn.json'),
+                    connectionProfile: {
+                        name: 'yofn-org2',
+                        version: '1.0.0',
+                        wallet: 'org2-wallet',
+                        client: {
+                            organization: 'Org2',
+                            connection: {
+                                timeout: {
+                                    peer: {
+                                        endorser: '300'
+                                    },
+                                    orderer: '300'
+                                }
+                            }
+                        },
+                        organizations: {
+                            Org2: {
+                                mspid: 'Org2MSP',
+                                peers: [
+                                    'peer0.org2.example.com'
+                                ],
+                                certificateAuthorities: [
+                                    'ca.org2.example.com'
+                                ]
+                            }
+                        },
+                        peers: {
+                            'peer0.org2.example.com': {
+                                url: 'grpc://localhost:17051'
+                            }
+                        },
+                        certificateAuthorities: {
+                            'ca.org2.example.com': {
+                                url: 'http://localhost:17054',
+                                caName: 'ca.org2.example.com'
                             }
                         }
                     }

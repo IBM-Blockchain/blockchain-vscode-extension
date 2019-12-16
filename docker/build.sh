@@ -12,11 +12,14 @@ node ./node_modules/lerna/cli.js bootstrap
 node ./node_modules/lerna/cli.js run compile
 node ./node_modules/lerna/cli.js run createModule
 cp ./README.md ./packages/blockchain-extension/README.md
+cp ./CHANGELOG.md ./packages/blockchain-extension/CHANGELOG.md
 cp -r ./media ./packages/blockchain-extension/media
 cd ./packages/blockchain-extension
 npm install vsce
 npm install ../blockchain-ui/ibm-blockchain-platform-ui-*.tgz
 npm install ../blockchain-common/ibm-blockchain-platform-common-*.tgz
+npm install ../blockchain-wallet/ibm-blockchain-platform-wallet-*.tgz
+npm install ../blockchain-environment-v1/ibm-blockchain-platform-environment-v1-*.tgz
 npm install ../blockchain-gateway-v1/ibm-blockchain-platform-gateway-v1-*.tgz
 npm run compile
 npm run productionFlag

@@ -22,12 +22,11 @@ import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs-extra';
 import * as yaml from 'js-yaml';
-import { LogType } from '../logging/OutputAdapter';
 import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
-import { ConnectionProfileUtil } from 'ibm-blockchain-platform-common';
+import { ConnectionProfileUtil, LogType } from 'ibm-blockchain-platform-common';
 
 export async function exportConnectionProfile(gatewayTreeItem: GatewayTreeItem, isConnected?: boolean): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();

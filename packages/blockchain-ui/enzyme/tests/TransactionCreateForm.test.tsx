@@ -93,8 +93,15 @@ describe('TransactionCreateForm component', () => {
     it('updates when the user types in the textarea', async () => {
         const component: any = mount(<TransactionCreateForm activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
         component.state().transactionArguments.should.equal('');
-        component.find('textarea').prop('onChange')( { currentTarget: { value: 'hello' } } );
-        component.state().transactionArguments.should.equal('hello');
+        component.find('textarea').prop('onChange')( { currentTarget: { value: 'some arguments' } } );
+        component.state().transactionArguments.should.equal('some arguments');
+    });
+
+    it('updates when the user types in the transient data input box', async () => {
+        const component: any = mount(<TransactionCreateForm activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
+        component.state().transientData.should.equal('');
+        component.find('#transient-data-input').at(0).prop('onChange')( { currentTarget: { value: 'some transient data'} } );
+        component.state().transientData.should.equal('some transient data');
     });
 
     it('should attempt to submit a transaction when the submit button is clicked ', async () => {
@@ -135,6 +142,50 @@ describe('TransactionCreateForm component', () => {
                 smartContract: 'greenContract',
                 transactionName: 'transactionOne',
                 transientData: ''
+            }
+        );
+    });
+
+    it('should attempt to submit a transaction with transient data when the submit button is clicked ', async () => {
+        const component: any = mount(<TransactionCreateForm activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
+        component.setState({
+            activeTransaction: transactionOne,
+            transactionArguments: '[\nname: "Green"\n]',
+            transientData: '{"some": "data"}'
+        });
+        component.find('#submit-button').at(1).simulate('click');
+        postMessageHandlerStub.should.have.been.calledOnceWithExactly(
+            'submit', {
+                args: '["Green"]',
+                channelName: 'mychannel',
+                evaluate: false,
+                namespace: 'GreenContract',
+                peerTargetNames: [],
+                smartContract: 'greenContract',
+                transactionName: 'transactionOne',
+                transientData: '{"some": "data"}'
+            }
+        );
+    });
+
+    it('should attempt to evaluate a transaction with transient data when the evaluate button is clicked', async () => {
+        const component: any = mount(<TransactionCreateForm activeSmartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
+        component.setState({
+            activeTransaction: transactionOne,
+            transactionArguments: '[\nname: "Green"\n]',
+            transientData: '{"some": "data"}'
+        });
+        component.find('#evaluate-button').at(1).simulate('click');
+        postMessageHandlerStub.should.have.been.calledOnceWithExactly(
+            'evaluate', {
+                args: '["Green"]',
+                channelName: 'mychannel',
+                evaluate: true,
+                namespace: 'GreenContract',
+                peerTargetNames: [],
+                smartContract: 'greenContract',
+                transactionName: 'transactionOne',
+                transientData: '{"some": "data"}'
             }
         );
     });

@@ -19,15 +19,10 @@ import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectio
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
-import { IFabricGatewayConnection, IFabricWallet } from 'ibm-blockchain-platform-common';
-import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
+import { IFabricGatewayConnection, IFabricWallet, LogType } from 'ibm-blockchain-platform-common';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
-import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
-import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
-import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricWalletUtil, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWalletGenerator } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { SettingConfigurations } from '../../configurations';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';

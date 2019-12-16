@@ -19,10 +19,8 @@ import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
 import { FabricRuntimeManager } from '../../../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../../fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../../../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../../logging/OutputAdapter';
 import { FabricEnvironmentTreeItem } from './FabricEnvironmentTreeItem';
-import { FabricEnvironmentRegistryEntry } from '../../../registries/FabricEnvironmentRegistryEntry';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 
 export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
 

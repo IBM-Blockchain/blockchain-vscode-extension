@@ -12,10 +12,8 @@
  * limitations under the License.
 */
 
-import { FileRegistry } from './FileRegistry';
 import { FabricGatewayRegistryEntry } from './FabricGatewayRegistryEntry';
-import { FileConfigurations } from '../../configurations';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FileConfigurations, FileRegistry } from 'ibm-blockchain-platform-common';
 
 export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEntry> {
 

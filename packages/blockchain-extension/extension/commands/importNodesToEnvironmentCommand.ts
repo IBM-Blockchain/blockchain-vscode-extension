@@ -15,12 +15,10 @@
 import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
-import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { SettingConfigurations } from '../../configurations';
-import { FabricNode } from '../fabric/FabricNode';
+import { FabricEnvironmentRegistryEntry, FabricNode, LogType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FileSystemUtil } from '../util/FileSystemUtil';

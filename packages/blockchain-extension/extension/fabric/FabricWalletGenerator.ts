@@ -13,10 +13,8 @@
 */
 
 'use strict';
-import { FabricWallet } from 'ibm-blockchain-platform-gateway-v1';
-import { IFabricWalletGenerator } from './IFabricWalletGenerator';
-import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
-import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
+import { FabricWallet } from 'ibm-blockchain-platform-wallet';
+import { IFabricWalletGenerator, FabricWalletRegistry, FabricWalletRegistryEntry } from 'ibm-blockchain-platform-common';
 
 export class FabricWalletGenerator implements IFabricWalletGenerator {
 

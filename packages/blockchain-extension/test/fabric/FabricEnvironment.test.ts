@@ -17,9 +17,8 @@ import * as sinon from 'sinon';
 import { TestUtil } from '../TestUtil';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
+import { FabricWalletUtil, FabricNode } from 'ibm-blockchain-platform-common';
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
-import { FabricNode } from '../../extension/fabric/FabricNode';
 
 chai.should();
 

@@ -24,7 +24,7 @@ import { UserInputUtil, LanguageType, LanguageQuickPickItem } from '../../extens
 import { TestUtil } from '../TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { Reporter } from '../../extension/util/Reporter';
-import { LogType } from '../../extension/logging/OutputAdapter';
+import { LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { YeomanUtil } from '../../extension/util/YeomanUtil';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';

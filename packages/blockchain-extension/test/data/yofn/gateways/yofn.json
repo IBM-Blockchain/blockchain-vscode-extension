@@ -1,7 +1,6 @@
 {
     "name": "yofn",
     "version": "1.0.0",
-    "wallet": "local_fabric_wallet",
     "client": {
         "organization": "Org1",
         "connection": {

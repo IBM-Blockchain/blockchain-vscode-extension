@@ -27,22 +27,14 @@ import { PackageRegistryEntry } from '../../extension/registries/PackageRegistry
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 import * as fs from 'fs-extra';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
-import { FabricCertificate } from '../../extension/fabric/FabricCertificate';
-import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
-import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
-import { FabricGatewayConnection, FabricWallet } from 'ibm-blockchain-platform-gateway-v1';
+import { FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
+import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
-import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
-import { FabricNode, FabricNodeType } from '../../extension/fabric/FabricNode';
-import { FileConfigurations } from '../../configurations';
+import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
+import { FabricCertificate, FabricEnvironmentRegistry, FabricRuntimeUtil, FileConfigurations, FabricWalletRegistry, FabricWalletRegistryEntry, FabricNode, FabricNodeType, FabricWalletUtil, FabricEnvironmentRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
-import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -500,32 +492,32 @@ describe('UserInputUtil', () => {
     });
 
     describe('showPeersQuickPickBox', () => {
-        it('should show the peer names and allows user to only pick one peer', async () => {
+        it('should show the peer names', async () => {
             quickPickStub.resolves(['myPeerOne']);
-            const result: string[] = await UserInputUtil.showPeersQuickPickBox('Choose a peer', undefined, false) as string[];
+            const result: string[] = await UserInputUtil.showPeersQuickPickBox('Choose a peer');
             quickPickStub.should.have.been.calledWith(['myPeerOne', 'myPeerTwo'], {
                 ignoreFocusOut: true,
-                canPickMany: false,
+                canPickMany: true,
                 placeHolder: 'Choose a peer'
             });
             result.should.deep.equal(['myPeerOne']);
         });
 
-        it('should show the peer names passed in and allows user to pick multiple peers', async () => {
-            quickPickStub.resolves(['peerThree', 'peerFour']);
-            const result: string[] = await UserInputUtil.showPeersQuickPickBox('Choose a peer', ['peerThree', 'peerFour']) as string[];
+        it('should show the peer names passed in', async () => {
+            quickPickStub.resolves(['peerThree']);
+            const result: string[] = await UserInputUtil.showPeersQuickPickBox('Choose a peer', ['peerThree', 'peerFour']);
             quickPickStub.should.have.been.calledWith(['peerThree', 'peerFour'], {
                 ignoreFocusOut: true,
                 canPickMany: true,
                 placeHolder: 'Choose a peer'
             });
-            result.should.deep.equal(['peerThree', 'peerFour']);
+            result.should.deep.equal(['peerThree']);
         });
 
         it('should not show quickPick if only one peer', async () => {
             fabricRuntimeConnectionStub.getAllPeerNames.returns(['myPeerOne']);
 
-            const result: string[] = await UserInputUtil.showPeersQuickPickBox('Choose a peer') as string [];
+            const result: string[] = await UserInputUtil.showPeersQuickPickBox('Choose a peer');
             result.should.deep.equal(['myPeerOne']);
             quickPickStub.should.not.have.been.called;
         });
@@ -533,7 +525,7 @@ describe('UserInputUtil', () => {
         it('should give error if no connection', async () => {
             environmentStub.returns(undefined);
 
-            const result: string[] = await UserInputUtil.showPeersQuickPickBox('Choose a peer') as string[];
+            const result: string[] = await UserInputUtil.showPeersQuickPickBox('Choose a peer');
             should.not.exist(result);
             quickPickStub.should.not.have.been.called;
             logSpy.should.have.been.calledWith(LogType.ERROR, undefined, 'No connection to a blockchain found');
@@ -2129,7 +2121,6 @@ describe('UserInputUtil', () => {
         let peerNode2: FabricNode;
         let caNode: FabricNode;
         let ordererNode: FabricNode;
-        let couchdbNode: FabricNode;
 
         let getNodesStub: sinon.SinonStub;
 
@@ -2141,7 +2132,6 @@ describe('UserInputUtil', () => {
             peerNode2 = FabricNode.newPeer('peer0.org2.example.com', 'peer0.org2.example.com', 'grpc://localhost:7051', 'local_fabric_wallet', 'admin', 'Org2MSP');
             caNode = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:7054', 'ca_name', 'local_fabric_wallet', 'admin', 'Org1MSP', 'admin', 'adminpw');
             ordererNode = FabricNode.newOrderer('orderer.example.com', 'orderer.example.com', 'grpc://localhost:7050', 'local_fabric_wallet', 'admin', 'OrdererMSP', undefined);
-            couchdbNode = FabricNode.newCouchDB('newCouchDB', 'couchDB', 'grpc://localhost:2104');
 
             nodes = [];
             nodes.push(peerNode, peerNode1, peerNode2, caNode, ordererNode);
@@ -2149,17 +2139,17 @@ describe('UserInputUtil', () => {
             getNodesStub = mySandBox.stub(FabricEnvironment.prototype, 'getNodes').returns(nodes);
         });
         it('should allow the user to select an org', async () => {
-            quickPickStub.resolves({ label: 'Org1MSP', data: [nodes[0], nodes[1]] });
+            quickPickStub.resolves({ label: 'Org1MSP', data: nodes[0] });
 
-            const result: IBlockchainQuickPickItem<FabricNode[]> = await UserInputUtil.showOrgQuickPick('choose an org', 'myEnv');
-            result.should.deep.equal({ label: 'Org1MSP', data: [nodes[0], nodes[1]] });
+            const result: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showOrgQuickPick('choose an org', 'myEnv');
+            result.should.deep.equal({ label: 'Org1MSP', data: nodes[0] });
 
-            quickPickStub.should.have.been.calledWith([{ label: 'Org1MSP', data: [peerNode, peerNode1] }, { label: 'Org2MSP', data: [peerNode2] }]);
+            quickPickStub.should.have.been.calledWith([{ label: 'Org1MSP', data: peerNode }, { label: 'Org2MSP', data: peerNode2 }]);
         });
 
         it('should throw an error if no orgs', async () => {
             nodes = [];
-            nodes.push(caNode, ordererNode, couchdbNode);
+            nodes.push(caNode, ordererNode);
             getNodesStub.resolves(nodes);
 
             await UserInputUtil.showOrgQuickPick('choose an org', 'myEnv').should.eventually.be.rejectedWith('No organisations found');
@@ -2171,8 +2161,8 @@ describe('UserInputUtil', () => {
 
             getNodesStub.resolves(nodes);
 
-            const result: IBlockchainQuickPickItem<FabricNode[]> = await UserInputUtil.showOrgQuickPick('choose an org', 'myEnv');
-            result.should.deep.equal({ label: 'Org1MSP', data: [nodes[0]] });
+            const result: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showOrgQuickPick('choose an org', 'myEnv');
+            result.should.deep.equal({ label: 'Org1MSP', data: nodes[0] });
 
             quickPickStub.should.not.have.been.called;
 

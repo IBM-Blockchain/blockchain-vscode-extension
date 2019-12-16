@@ -17,13 +17,9 @@ import { Reporter } from '../util/Reporter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { CertificateAuthorityTreeItem } from '../explorer/runtimeOps/connectedTree/CertificateAuthorityTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
 import { UserInputUtil } from './UserInputUtil';
-import { IFabricWallet } from 'ibm-blockchain-platform-common';
-import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
-import { FabricNode } from '../fabric/FabricNode';
+import { Attribute, FabricNode, IFabricEnvironmentConnection, IFabricWallet, LogType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
-import { Attribute } from '../fabric/FabricCertificate';
 
 export async function createNewIdentity(certificateAuthorityTreeItem?: CertificateAuthorityTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();

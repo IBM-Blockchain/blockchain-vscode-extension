@@ -19,10 +19,8 @@ import { FabricGatewayRegistryEntry } from '../../registries/FabricGatewayRegist
 import { FabricRuntimeManager } from '../../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../logging/OutputAdapter';
-import { FabricWalletUtil } from '../../fabric/FabricWalletUtil';
 import { ExtensionCommands } from '../../../ExtensionCommands';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
 
 export class LocalGatewayTreeItem extends BlockchainTreeItem {
 

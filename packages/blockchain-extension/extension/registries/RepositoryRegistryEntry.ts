@@ -12,7 +12,7 @@
  * limitations under the License.
 */
 
-import { RegistryEntry } from './RegistryEntry';
+import { RegistryEntry } from 'ibm-blockchain-platform-common';
 
 export class RepositoryRegistryEntry extends RegistryEntry {
 

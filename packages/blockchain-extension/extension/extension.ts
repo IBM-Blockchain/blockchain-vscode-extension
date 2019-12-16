@@ -26,14 +26,16 @@ import { ExtensionUtil } from './util/ExtensionUtil';
 import { VSCodeBlockchainOutputAdapter } from './logging/VSCodeBlockchainOutputAdapter';
 import { DependencyManager } from './dependencies/DependencyManager';
 import { TemporaryCommandRegistry } from './dependencies/TemporaryCommandRegistry';
-import { LogType } from './logging/OutputAdapter';
 import { ExtensionCommands } from '../ExtensionCommands';
 import { version as currentExtensionVersion } from '../package.json';
 import { SettingConfigurations } from '../configurations';
 import { UserInputUtil } from './commands/UserInputUtil';
 import { GlobalState, ExtensionData } from './util/GlobalState';
-import { FabricWalletUtil } from './fabric/FabricWalletUtil';
 import { FabricGatewayHelper } from './fabric/FabricGatewayHelper';
+import { FabricWalletHelper } from './fabric/FabricWalletHelper';
+import { FabricWalletRegistry, FabricEnvironmentRegistry, LogType } from 'ibm-blockchain-platform-common';
+import { FabricGatewayRegistry } from './registries/FabricGatewayRegistry';
+import { RepositoryRegistry } from './registries/RepositoryRegistry';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
 
@@ -52,6 +54,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         systemRequirements: originalExtensionData.systemRequirements
     };
 
+    const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+    FabricWalletRegistry.instance().setRegistryPath(extDir);
+    FabricGatewayRegistry.instance().setRegistryPath(extDir);
+    FabricEnvironmentRegistry.instance().setRegistryPath(extDir);
+    RepositoryRegistry.instance().setRegistryPath(extDir);
+
     const isIBMer: boolean = ExtensionUtil.checkIfIBMer();
 
     if (originalExtensionData.migrationCheck !== newExtensionData.migrationCheck) {
@@ -61,7 +69,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         // Remove managedWallet boolean from wallets in user settings
         // Ensure wallets are stored correctly
         outputAdapter.log(LogType.INFO, undefined, 'Tidying wallet, gateway, environment and repository settings');
-        await FabricWalletUtil.tidyWalletSettings();
+        await FabricWalletHelper.tidyWalletSettings();
         // Ensure gateways are stored correctly
         await FabricGatewayHelper.migrateGateways();
         await ExtensionUtil.migrateEnvironments();

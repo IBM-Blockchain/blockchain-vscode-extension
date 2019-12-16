@@ -16,7 +16,7 @@
 
 import * as vscode from 'vscode';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
+import { LogType } from 'ibm-blockchain-platform-common';
 
 export class ExtensionData {
     public activationCount: number;

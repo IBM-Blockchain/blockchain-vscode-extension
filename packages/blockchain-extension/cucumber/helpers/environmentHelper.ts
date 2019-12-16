@@ -25,12 +25,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
-import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
-import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
-import { FabricNode } from '../../extension/fabric/FabricNode';
-import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
 

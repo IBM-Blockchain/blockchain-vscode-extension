@@ -21,12 +21,10 @@ import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { Reporter } from '../../extension/util/Reporter';
-import { FabricNode } from '../../extension/fabric/FabricNode';
-import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry, FabricNode, LogType } from 'ibm-blockchain-platform-common';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 
 // tslint:disable no-unused-expression
@@ -194,9 +192,7 @@ describe('AddGatewayCommand', () => {
         let showOrgQuickPickStub: sinon.SinonStub;
         let showFabricNodeQuickPickStub: sinon.SinonStub;
         let generateConnectionProfileStub: sinon.SinonStub;
-        let showPeersQuickPickStub: sinon.SinonStub;
         let peerNode: FabricNode;
-        let peerNode1: FabricNode;
         let caNode: FabricNode;
 
         beforeEach(async () => {
@@ -211,16 +207,12 @@ describe('AddGatewayCommand', () => {
             showEnvironmentQuickPickStub = mySandBox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox').resolves({ label: 'myEnv', data: environmentRegistryEntry });
 
             peerNode = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'local_fabric_wallet', 'admin', 'Org1MSP');
-            showOrgQuickPickStub = mySandBox.stub(UserInputUtil, 'showOrgQuickPick').resolves({ label: 'Org1MSP', data: [peerNode] });
-
-            peerNode1 = FabricNode.newPeer('peer1.org1.example.com', 'peer1.org1.example.com', 'grpc://localhost:7051', 'local_fabric_wallet', 'admin', 'Org1MSP');
+            showOrgQuickPickStub = mySandBox.stub(UserInputUtil, 'showOrgQuickPick').resolves({ label: 'Org1MSP', data: peerNode });
 
             caNode = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:7054', 'ca_name', 'local_fabric_wallet', 'admin', 'Org1MSP', 'admin', 'adminpw');
             showFabricNodeQuickPickStub = mySandBox.stub(UserInputUtil, 'showFabricNodeQuickPick').resolves({ label: 'ca.org1.example.com', data: caNode });
 
             generateConnectionProfileStub = mySandBox.stub(FabricGatewayHelper, 'generateConnectionProfile').resolves(path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'));
-
-            showPeersQuickPickStub = mySandBox.stub(UserInputUtil, 'showPeersQuickPickBox');
 
             showInputBoxStub.resolves('myGateway');
         });
@@ -238,7 +230,6 @@ describe('AddGatewayCommand', () => {
             });
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             generateConnectionProfileStub.should.have.been.calledOnceWith('myGateway', peerNode, caNode);
-            showPeersQuickPickStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new gateway');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addGatewayCommand');
@@ -251,10 +242,6 @@ describe('AddGatewayCommand', () => {
 
             const gateways: Array<FabricGatewayRegistryEntry> = await FabricGatewayRegistry.instance().getAll();
             gateways.length.should.equal(0);
-
-            showOrgQuickPickStub.should.not.have.been.called;
-            showPeersQuickPickStub.should.not.have.been.called;
-            showFabricNodeQuickPickStub.should.not.have.been.called;
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addGateway');
             sendTelemetryEventStub.should.not.have.been.called;
         });
@@ -268,11 +255,6 @@ describe('AddGatewayCommand', () => {
 
             gateways.length.should.equal(0);
 
-            showEnvironmentQuickPickStub.should.not.have.been.called;
-            showInputBoxStub.should.not.have.been.called;
-            showOrgQuickPickStub.should.not.have.been.called;
-            showPeersQuickPickStub.should.not.have.been.called;
-            showFabricNodeQuickPickStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new gateway');
             sendTelemetryEventStub.should.not.have.been.called;
@@ -287,10 +269,6 @@ describe('AddGatewayCommand', () => {
 
             gateways.length.should.equal(0);
 
-            showInputBoxStub.should.not.have.been.called;
-            showOrgQuickPickStub.should.not.have.been.called;
-            showPeersQuickPickStub.should.not.have.been.called;
-            showFabricNodeQuickPickStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new gateway');
             sendTelemetryEventStub.should.not.have.been.called;
@@ -305,45 +283,6 @@ describe('AddGatewayCommand', () => {
 
             gateways.length.should.equal(0);
 
-            showPeersQuickPickStub.should.not.have.been.called;
-            showFabricNodeQuickPickStub.should.not.have.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
-            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new gateway');
-            sendTelemetryEventStub.should.not.have.been.called;
-        });
-
-        it('should allow user to select a single peer to create gateway for when more than one peer available for that org', async () => {
-            showOrgQuickPickStub.resolves({ label: 'Org1MSP', data: [peerNode, peerNode1] });
-
-            showPeersQuickPickStub.resolves(peerNode.name);
-
-            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
-
-            const gateways: Array<FabricGatewayRegistryEntry> = await FabricGatewayRegistry.instance().getAll();
-
-            gateways[0].should.deep.equal({
-                name: 'myGateway',
-                associatedWallet: 'local_fabric_wallet'
-            });
-
-            generateConnectionProfileStub.should.have.been.calledOnceWith('myGateway', peerNode, caNode);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new gateway');
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addGatewayCommand');
-        });
-
-        it('should handle cancel choosing peer for gateway', async () => {
-            showOrgQuickPickStub.resolves({ label: 'Org1MSP', data: [peerNode, peerNode1] });
-
-            showPeersQuickPickStub.resolves();
-
-            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
-
-            const gateways: Array<FabricGatewayRegistryEntry> = await FabricGatewayRegistry.instance().getAll();
-
-            gateways.length.should.equal(0);
-
-            showFabricNodeQuickPickStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new gateway');
             sendTelemetryEventStub.should.not.have.been.called;

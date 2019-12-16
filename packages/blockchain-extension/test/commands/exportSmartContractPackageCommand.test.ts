@@ -27,7 +27,7 @@ import * as sinonChai from 'sinon-chai';
 import { PackageTreeItem } from '../../extension/explorer/model/PackageTreeItem';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
+import { LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
 import { SettingConfigurations } from '../../configurations';

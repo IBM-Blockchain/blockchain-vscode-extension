@@ -18,17 +18,11 @@ import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { WalletTreeItem } from './wallets/WalletTreeItem';
 import { LocalWalletTreeItem } from './wallets/LocalWalletTreeItem';
-import { FabricRuntimeUtil, IFabricWallet } from 'ibm-blockchain-platform-common';
+import { FabricCertificate, Attribute, FabricWalletRegistry, FabricWalletRegistryEntry, FabricRuntimeUtil, FabricWalletUtil, IFabricWalletGenerator, IFabricWallet, LogType } from 'ibm-blockchain-platform-common';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
-import { FabricWalletRegistry } from '../registries/FabricWalletRegistry';
-import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
 import { IdentityTreeItem } from './model/IdentityTreeItem';
-import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { AdminIdentityTreeItem } from './model/AdminIdentityTreeItem';
-import { FabricCertificate, Attribute } from '../fabric/FabricCertificate';
-import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 import { TextTreeItem } from './model/TextTreeItem';
 
 export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvider {

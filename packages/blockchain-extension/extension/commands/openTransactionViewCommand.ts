@@ -17,13 +17,11 @@ import { TransactionView } from '../webview/TransactionView';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
-import { IFabricGatewayConnection, FabricChaincode } from 'ibm-blockchain-platform-common';
+import { IFabricGatewayConnection, FabricChaincode, LogType, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { GlobalState } from '../util/GlobalState';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 export async function openTransactionView(treeItem?: InstantiatedTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();

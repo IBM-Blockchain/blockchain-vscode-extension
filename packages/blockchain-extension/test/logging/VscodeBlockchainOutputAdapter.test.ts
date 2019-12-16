@@ -13,7 +13,7 @@
 */
 
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
+import { LogType } from 'ibm-blockchain-platform-common';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';

@@ -12,9 +12,8 @@
  * limitations under the License.
 */
 
-import { FileRegistry } from './FileRegistry';
 import { RepositoryRegistryEntry } from './RepositoryRegistryEntry';
-import { FileConfigurations } from '../../configurations';
+import { FileConfigurations, FileRegistry } from 'ibm-blockchain-platform-common';
 
 export class RepositoryRegistry extends FileRegistry<RepositoryRegistryEntry> {
 

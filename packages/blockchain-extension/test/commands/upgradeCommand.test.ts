@@ -30,11 +30,9 @@ import { ChannelsOpsTreeItem } from '../../extension/explorer/runtimeOps/connect
 import { InstalledChainCodeOpsTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/InstalledChainCodeOpsTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
-import { FabricEnvironmentConnection } from '../../extension/fabric/FabricEnvironmentConnection';
+import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';

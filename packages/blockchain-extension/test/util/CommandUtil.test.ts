@@ -23,7 +23,7 @@ import * as sinonChai from 'sinon-chai';
 import { CommandUtil } from '../../extension/util/CommandUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { OutputAdapter, LogType } from '../../extension/logging/OutputAdapter';
+import { OutputAdapter, LogType } from 'ibm-blockchain-platform-common';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
 
 chai.should();

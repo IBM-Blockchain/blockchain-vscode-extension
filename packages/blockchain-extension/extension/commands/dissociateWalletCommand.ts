@@ -14,12 +14,10 @@
 'use strict';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { GatewayAssociatedTreeItem } from '../explorer/model/GatewayAssociatedTreeItem';
-import { LogType } from '../logging/OutputAdapter';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
-import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
+import { FabricRuntimeUtil, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
 
 export async function dissociateWallet(associatedGatewayTreeItem: GatewayAssociatedTreeItem): Promise<any> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();

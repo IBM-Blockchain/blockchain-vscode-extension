@@ -32,9 +32,8 @@ import { WalletAndIdentityHelper } from '../helpers/walletAndIdentityHelper';
 import { GatewayHelper } from '../helpers/gatewayHelper';
 import { EnvironmentHelper } from '../helpers/environmentHelper';
 import { SampleHelper } from '../helpers/sampleHelper';
-import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
+import { FabricEnvironmentRegistry, FabricWalletRegistry } from 'ibm-blockchain-platform-common';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
-import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
 import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistry';
 
 // tslint:disable:no-unused-expression

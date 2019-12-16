@@ -24,16 +24,11 @@ import { UserInputUtilHelper } from './userInputUtilHelper';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
-import { FabricWalletRegistryEntry } from '../../extension/registries/FabricWalletRegistryEntry';
-import { FabricWalletRegistry } from '../../extension/registries/FabricWalletRegistry';
-import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
-import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
-import { FabricNode, FabricNodeType } from '../../extension/fabric/FabricNode';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 chai.use(sinonChai);
@@ -75,7 +70,7 @@ export class GatewayHelper {
                     return _node.type === FabricNodeType.PEER;
                 });
 
-                this.userInputUtilHelper.showOrgQuickPickStub.resolves({ label: peerNode.msp_id, data: [peerNode] });
+                this.userInputUtilHelper.showOrgQuickPickStub.resolves({ label: peerNode.msp_id, data: peerNode });
 
                 const caNode: FabricNode = nodes.find((_node: FabricNode) => {
                     return _node.type === FabricNodeType.CERTIFICATE_AUTHORITY;

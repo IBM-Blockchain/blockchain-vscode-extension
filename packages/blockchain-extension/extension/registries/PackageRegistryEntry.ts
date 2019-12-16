@@ -13,7 +13,7 @@
 */
 'use strict';
 
-import { RegistryEntry } from './RegistryEntry';
+import { RegistryEntry } from 'ibm-blockchain-platform-common';
 
 export class PackageRegistryEntry extends RegistryEntry {
 

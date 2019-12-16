@@ -23,7 +23,7 @@ import { TestUtil } from '../TestUtil';
 import { BlockchainPackageExplorerProvider } from '../../extension/explorer/packageExplorer';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../extension/logging/OutputAdapter';
+import { LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 

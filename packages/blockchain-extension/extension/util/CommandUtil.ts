@@ -18,9 +18,7 @@ import * as child_process from 'child_process';
 import stripAnsi = require('strip-ansi');
 
 import * as childProcessPromise from 'child-process-promise';
-import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
-import { OutputAdapter } from '../logging/OutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
+import { ConsoleOutputAdapter, LogType, OutputAdapter } from 'ibm-blockchain-platform-common';
 import * as request from 'request';
 
 const exec: any = childProcessPromise.exec;

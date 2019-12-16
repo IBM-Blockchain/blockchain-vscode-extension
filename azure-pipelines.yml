@@ -119,10 +119,13 @@ stages:
           - bash: |
               set -ev
               cp ./README.md ./packages/blockchain-extension/README.md
+              cp ./CHANGELOG.md ./packages/blockchain-extension/CHANGELOG.md
               cp -r ./media ./packages/blockchain-extension/media
               cd ./packages/blockchain-extension
               npm install ../blockchain-ui/ibm-blockchain-platform-ui-*.tgz
               npm install ../blockchain-common/ibm-blockchain-platform-common-*.tgz
+              npm install ../blockchain-wallet/ibm-blockchain-platform-wallet-*.tgz
+              npm install ../blockchain-environment-v1/ibm-blockchain-platform-environment-v1-*.tgz
               npm install ../blockchain-gateway-v1/ibm-blockchain-platform-gateway-v1-*.tgz
               npm run package
             displayName: package extension
@@ -184,7 +187,7 @@ stages:
               set -ex
               npm install lerna
               git checkout package.json
-              lerna version patch --no-git-tag-version
+              node ./node_modules/lerna/cli.js version patch --no-git-tag-version
             displayName: Use lerna to bump version
             condition: succeeded()
 

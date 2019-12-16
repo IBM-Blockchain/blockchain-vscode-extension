@@ -20,11 +20,9 @@ import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
 import { NodeTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/NodeTreeItem';
-import { FabricNode, FabricNodeType } from '../../extension/fabric/FabricNode';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
-import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 chai.should();
 
 class TestNodeTreeItem extends NodeTreeItem {

@@ -21,8 +21,13 @@ steps:
         mv ./node_modules/grpc/src/node/extension_binary/electron-v${ELECTRON}-linux-x64-glibc ./node_modules/grpc/src/node/extension_binary/node-v${MODULES}-linux-x64-glibc
 
         rm -rf ./node_modules/ibm-blockchain-platform-gateway-v1/node_modules/grpc/src/node/extension_binary/node-v${MODULES}-linux-x64-glibc
+        rm -rf ./node_modules/ibm-blockchain-platform-environment-v1/node_modules/grpc/src/node/extension_binary/node-v${MODULES}-linux-x64-glibc
+        rm -rf ./node_modules/ibm-blockchain-platform-wallet/node_modules/grpc/src/node/extension_binary/node-v${MODULES}-linux-x64-glibc
 
         mv ./node_modules/ibm-blockchain-platform-gateway-v1/node_modules/grpc/src/node/extension_binary/electron-v${ELECTRON}-linux-x64-glibc ./node_modules/ibm-blockchain-platform-gateway-v1/node_modules/grpc/src/node/extension_binary/node-v${MODULES}-linux-x64-glibc
+        mv ./node_modules/ibm-blockchain-platform-environment-v1/node_modules/grpc/src/node/extension_binary/electron-v${ELECTRON}-linux-x64-glibc ./node_modules/ibm-blockchain-platform-environment-v1/node_modules/grpc/src/node/extension_binary/node-v${MODULES}-linux-x64-glibc
+        mv ./node_modules/ibm-blockchain-platform-wallet/node_modules/grpc/src/node/extension_binary/electron-v${ELECTRON}-linux-x64-glibc ./node_modules/ibm-blockchain-platform-wallet/node_modules/grpc/src/node/extension_binary/node-v${MODULES}-linux-x64-glibc
+
       fi
     displayName: Rebuild linux
     env:
@@ -38,7 +43,12 @@ steps:
         mv ./node_modules/grpc/src/node/extension_binary/electron-v${ELECTRON}-darwin-x64-unknown ./node_modules/grpc/src/node/extension_binary/node-v${MODULES}-darwin-x64-unknown
 
         rm -rf ./node_modules/ibm-blockchain-platform-gateway-v1/node_modules/grpc/src/node/extension_binary/node-v${MODULES}-darwin-x64-unknown
+        rm -rf ./node_modules/ibm-blockchain-platform-environment-v1/node_modules/grpc/src/node/extension_binary/node-v${MODULES}-darwin-x64-unknown
+        rm -rf ./node_modules/ibm-blockchain-platform-wallet/node_modules/grpc/src/node/extension_binary/node-v${MODULES}-darwin-x64-unknown
+
         mv ./node_modules/ibm-blockchain-platform-gateway-v1/node_modules/grpc/src/node/extension_binary/electron-v${ELECTRON}-darwin-x64-unknown ./node_modules/ibm-blockchain-platform-gateway-v1/node_modules/grpc/src/node/extension_binary/node-v${MODULES}-darwin-x64-unknown
+        mv ./node_modules/ibm-blockchain-platform-environment-v1/node_modules/grpc/src/node/extension_binary/electron-v${ELECTRON}-darwin-x64-unknown ./node_modules/ibm-blockchain-platform-environment-v1/node_modules/grpc/src/node/extension_binary/node-v${MODULES}-darwin-x64-unknown
+        mv ./node_modules/ibm-blockchain-platform-wallet/node_modules/grpc/src/node/extension_binary/electron-v${ELECTRON}-darwin-x64-unknown ./node_modules/ibm-blockchain-platform-wallet/node_modules/grpc/src/node/extension_binary/node-v${MODULES}-darwin-x64-unknown
 
       fi
     displayName: Rebuild mac
