@@ -16,7 +16,9 @@ import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import * as fs from 'fs-extra';
 import * as path from 'path';
+import Axios from 'axios';
 import { TestUtil } from '../TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
@@ -25,6 +27,7 @@ import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, Env
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { UserInputUtil} from '../../extension/commands/UserInputUtil';
+import { ModuleUtil } from '../../extension/util/ModuleUtil';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -42,6 +45,20 @@ describe('AddEnvironmentCommand', () => {
     let deleteEnvironmentSpy: sinon.SinonSpy;
     let openFileBrowserStub: sinon.SinonStub;
     let environmentDirectoryPath: string;
+    let browseStub: sinon.SinonStub;
+    let axiosGetStub: sinon.SinonStub;
+    let showQuickPickStub: sinon.SinonStub;
+    let chooseCertVerificationStub: sinon.SinonStub;
+    let readFileStub: sinon.SinonStub;
+    let fsCopyStub: sinon.SinonStub;
+    let setPasswordStub: sinon.SinonStub;
+    let getCoreNodeModuleStub: sinon.SinonStub;
+    let deleteEnvironmentSpy: sinon.SinonSpy;
+    let url: string;
+    let key: string;
+    let secret: string;
+    let certVerificationError: any;
+    let caCertChainUri: vscode.Uri;
 
     before(async () => {
         mySandBox = sinon.createSandbox();
@@ -61,7 +78,6 @@ describe('AddEnvironmentCommand', () => {
                 //
             }
             await FabricEnvironmentRegistry.instance().clear();
-
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             showQuickPickItemStub = mySandBox.stub(UserInputUtil, 'showQuickPickItem');
             chooseMethodStub = showQuickPickItemStub.withArgs('Select a method to add an environment');
@@ -74,31 +90,57 @@ describe('AddEnvironmentCommand', () => {
             chooseNameStub.resolves('myEnvironment');
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand').callThrough();
             executeCommandStub.withArgs(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT).resolves(true);
+            executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).resolves(true);
             executeCommandStub.withArgs(ExtensionCommands.REFRESH_ENVIRONMENTS).resolves();
             executeCommandStub.withArgs(ExtensionCommands.REFRESH_GATEWAYS).resolves();
             executeCommandStub.withArgs(ExtensionCommands.REFRESH_WALLETS).resolves();
             sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
             deleteEnvironmentSpy = mySandBox.spy(FabricEnvironmentRegistry.instance(), 'delete');
+
+            // Ops tools requirements
+            browseStub = mySandBox.stub(UserInputUtil, 'browse');
+            fsCopyStub = mySandBox.stub(fs, 'copy').resolves();
+            axiosGetStub = mySandBox.stub(Axios, 'get');
+
+            url = 'my/OpsTool/url';
+            key = 'myOpsToolKey';
+            secret = 'myOpsToolSecret';
+            showInputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves(url);
+            showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').resolves(key);
+            showInputBoxStub.withArgs('Enter the api secret of the ops tools you want to connect to').resolves(secret);
+            chooseCertVerificationStub = showQuickPickStub.withArgs('Unable to perform certificate verification. Please choose how to proceed', [UserInputUtil.ADD_CA_CERT_CHAIN, UserInputUtil.CONNECT_NO_CA_CERT_CHAIN]);
+            chooseCertVerificationStub.resolves(UserInputUtil.ADD_CA_CERT_CHAIN);
+            caCertChainUri = vscode.Uri.file(path.join('myCaCertPath.pem'));
+            browseStub.withArgs('Select CA certificate chain (.pem) file', sinon.match.any, sinon.match.any, sinon.match.any).resolves([caCertChainUri]);
+            readFileStub = mySandBox.stub(fs, 'readFile');
+            readFileStub.withArgs(caCertChainUri.fsPath, 'utf8').resolves('-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----');
+            certVerificationError = new Error('Certificate Verification Error');
+            certVerificationError.code = 'DEPTH_ZERO_SELF_SIGNED_CERT';
+            axiosGetStub.onFirstCall().rejects(certVerificationError);
+            axiosGetStub.onSecondCall().resolves();
+            setPasswordStub = mySandBox.stub().resolves();
+            getCoreNodeModuleStub = mySandBox.stub(ModuleUtil, 'getCoreNodeModule').returns({setPassword: setPasswordStub});
         });
 
         afterEach(async () => {
             mySandBox.restore();
         });
 
-        it('should test an OpsTool environment can be added', async () => {
+        it('should test an Ops Tools environment can be added', async () => {
             chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
-            showInputBoxStub.onFirstCall().resolves('myEnvironment');
-
-            executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).resolves(true);
+            chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
             const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
 
             environments.length.should.equal(1);
             environments[0].should.deep.equal({
-                name: 'myEnvironment'
+                name: 'myOpsToolsEnvironment',
+                url: url
             });
 
+            fsCopyStub.should.have.been.calledOnce;
+            deleteEnvironmentSpy.should.have.not.been.called;
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
 
@@ -115,6 +157,7 @@ describe('AddEnvironmentCommand', () => {
             const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(0);
             showInputBoxStub.should.not.have.been.called;
+            deleteEnvironmentSpy.should.have.not.been.called;
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Add environment');
             sendTelemetryEventStub.should.not.have.been.called;
         });
@@ -196,19 +239,31 @@ describe('AddEnvironmentCommand', () => {
 
         it('should handle errors when adding nodes to an environment', async () => {
             const error: Error = new Error('some error');
-
             executeCommandStub.withArgs(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT).rejects(error);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
             const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
-
             environments.length.should.equal(0);
             logSpy.should.have.been.calledTwice;
             deleteEnvironmentSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${error.message}`, `Failed to add a new environment: ${error.toString()}`);
             sendTelemetryEventStub.should.not.have.been.called;
+        });
+
+        it('should handle errors when adding nodes to an Ops Tools environment', async () => {
+            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
+            const error: Error = new Error('some error');
+            executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).rejects(error);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(0);
+            logSpy.should.have.been.calledTwice;
+            deleteEnvironmentSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${error.message}`, `Failed to add a new environment: ${error.toString()}`);
             sendTelemetryEventStub.should.not.have.been.called;
@@ -223,7 +278,6 @@ describe('AddEnvironmentCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
             const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
-
             environments.length.should.equal(1);
             environments[0].should.deep.equal({
                 name: 'myEnvironmentOne'
@@ -246,7 +300,6 @@ describe('AddEnvironmentCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
             const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
-
             environments.length.should.equal(1);
             environments[0].should.deep.equal({
                 name: 'myEnvironment'
@@ -342,5 +395,183 @@ describe('AddEnvironmentCommand', () => {
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             sendTelemetryEventStub.should.not.have.been.calledOnceWithExactly('addEnvironmentCommand');
         });
+
+        it('should handle user cancelling when asked for url when creating an OpsTool instance', async () => {
+            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
+            showInputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves(undefined);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(0);
+            showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').should.not.have.been.called;
+            showInputBoxStub.withArgs('Enter the api secret of the ops tools you want to connect to').should.not.have.been.called;
+            axiosGetStub.should.not.have.been.called;
+            fsCopyStub.should.not.have.been.called;
+            deleteEnvironmentSpy.should.have.not.been.called;
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Add environment');
+        });
+
+        it('should handle user cancelling when asked for api key when creating an OpsTool instance', async () => {
+            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
+            showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').resolves(undefined);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(0);
+            showInputBoxStub.withArgs('Enter the api secret of the ops tools you want to connect to').should.not.have.been.called;
+            axiosGetStub.should.not.have.been.called;
+            fsCopyStub.should.not.have.been.called;
+            deleteEnvironmentSpy.should.have.not.been.called;
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Add environment');
+        });
+
+        it('should handle when user cancels when asked for api secret when creating an OpsTool instance', async () => {
+            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
+            showInputBoxStub.withArgs('Enter the api secret of the ops tools you want to connect to').resolves(undefined);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(0);
+            axiosGetStub.should.not.have.been.called;
+            fsCopyStub.should.not.have.been.called;
+            deleteEnvironmentSpy.should.have.not.been.called;
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Add environment');
+        });
+
+        it('should handle when the keytar module cannot be imported at all when creating a new OpsTool instance', async () => {
+            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
+            getCoreNodeModuleStub.withArgs('keytar').returns(undefined);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(0);
+
+            getCoreNodeModuleStub.should.have.been.calledOnce;
+            fsCopyStub.should.not.have.been.called;
+            deleteEnvironmentSpy.should.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: Error importing the keytar module`, `Failed to add a new environment: Error: Error importing the keytar module`);
+        });
+
+        it('should handle when the api key and secret cannot be stored saved securely onto the keychain using the setPassword function when creating new OpsTool instance', async () => {
+            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
+            const error: Error = new Error('newError');
+            const caughtError: Error = new Error(`Unable to store the required credentials: ${error.message}`);
+            setPasswordStub.throws(error);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            getCoreNodeModuleStub.should.have.been.calledOnce;
+            fsCopyStub.should.have.not.been.called;
+            deleteEnvironmentSpy.should.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${caughtError.message}`, `Failed to add a new environment: ${caughtError.toString()}`);
+        });
+
+        it('should handle when the ca certificate chain cannot be copied into the environment base directory when creating new OpsTool instance', async () => {
+            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
+            const error: Error = new Error('Unable to copy file');
+            const caughtError: Error = new Error(`Unable to store the required credentials: ${error.message}`);
+            fsCopyStub.rejects(error);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            getCoreNodeModuleStub.should.have.been.calledOnce;
+            fsCopyStub.should.have.been.calledOnce;
+            deleteEnvironmentSpy.should.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${caughtError.message}`, `Failed to add a new environment: ${caughtError.toString()}`);
+        });
+
+        it('should handle user choosing not to perform certificate verification on a new Ops Tool instance', async () => {
+            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
+            chooseCertVerificationStub.onFirstCall().resolves(UserInputUtil.CONNECT_NO_CA_CERT_CHAIN);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            readFileStub.withArgs(caCertChainUri.fsPath, 'utf8').should.have.not.been.called;
+            fsCopyStub.should.not.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
+        });
+
+        it('should handle CA certificate chain browse not returning array, on a new Ops Tool instance (win32)', async () => {
+            mySandBox.stub(process, 'platform').value('win32');
+            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
+            browseStub.withArgs('Select CA certificate chain (.pem) file', sinon.match.any, sinon.match.any, sinon.match.any).resolves(caCertChainUri);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            readFileStub.withArgs(caCertChainUri.fsPath, 'utf8').should.have.been.calledOnce;
+            fsCopyStub.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
+        });
+
+        it('should handle when user cancels when asked to choose certificate verification methtod when creating an OpsTool instance', async () => {
+            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
+            chooseCertVerificationStub.resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            axiosGetStub.should.have.have.been.calledOnce;
+            fsCopyStub.should.not.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+        });
+
+        it('should handle when user cancels after choosing to provide a certificate chain when creating an OpsTool instance', async () => {
+            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
+            browseStub.withArgs('Select CA certificate chain (.pem) file', sinon.match.any, sinon.match.any, sinon.match.any).resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            axiosGetStub.should.have.have.been.calledOnce;
+            fsCopyStub.should.not.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+        });
+
+        it('should handle error connecting to Ops Tool URL when adding environment', async () => {
+            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
+            const error: Error = new Error('some error');
+            axiosGetStub.onFirstCall().rejects(error);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            getCoreNodeModuleStub.should.have.been.calledOnce;
+            fsCopyStub.should.not.have.been.called;
+            deleteEnvironmentSpy.should.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${error.message}`, `Failed to add a new environment: ${error.toString()}`);
+
+        });
+
+        it('should handle user not choosing any nodes from a new Ops Tool instance', async () => {
+            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
+            executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            fsCopyStub.should.have.been.calledOnce;
+            deleteEnvironmentSpy.should.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
+        });
+
     });
 });

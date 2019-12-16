@@ -646,14 +646,6 @@ export class ExtensionUtil {
         }
     }
 
-    public static getModuleAsar(moduleName: string): any {
-        return require(path.join(vscode.env.appRoot, 'node_modules.asar', moduleName));
-    }
-
-    public static getModule(moduleName: string): any {
-        return require(path.join(vscode.env.appRoot, 'node_modules', moduleName));
-      }
-
     /*
  * Needed for testing
  */
