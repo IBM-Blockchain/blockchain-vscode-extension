@@ -749,5 +749,81 @@ describe('SubmitTransactionCommand', () => {
             reporterStub.should.not.have.been.calledWith('submit transaction');
             dockerLogsOutputSpy.should.not.have.been.called;
         });
+
+        it('should submit a transaction through the transaction view with transient data', async () => {
+            const transactionObject: any = {
+                smartContract: 'myContract',
+                transactionName: 'transaction1',
+                channelName: 'myChannel',
+                args: `["arg1", "arg2", "arg3"]`,
+                namespace: 'my-contract',
+                transientData: '{"key": "value"}',
+                peerTargetNames: []
+            };
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', { key: Buffer.from('value') }, false, []);
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
+            dockerLogsOutputSpy.should.not.have.been.called;
+        });
+
+        it('should error when required to give transient data in the transaction view', async () => {
+            const transactionObject: any = {
+                smartContract: 'myContract',
+                transactionName: 'transaction1',
+                channelName: 'myChannel',
+                args: `["arg1", "arg2", "arg3"]`,
+                namespace: 'my-contract',
+                transientData: '{"wrong}',
+                peerTargetNames: []
+            };
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
+            fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction');
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Error with transaction transient data: Unexpected end of JSON input`);
+            reporterStub.should.not.have.been.calledWith('submit transaction');
+            dockerLogsOutputSpy.should.not.have.been.called;
+        });
+
+        it('should error when transient data doesn\'t start with { in the transaction view', async () => {
+            const transactionObject: any = {
+                smartContract: 'myContract',
+                transactionName: 'transaction1',
+                channelName: 'myChannel',
+                args: `["arg1", "arg2", "arg3"]`,
+                namespace: 'my-contract',
+                transientData: '"wrong"}',
+                peerTargetNames: []
+            };
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
+            fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction');
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Error with transaction transient data: transient data should be in the format {"key": "value"}`);
+            reporterStub.should.not.have.been.calledWith('submit transaction');
+            dockerLogsOutputSpy.should.not.have.been.called;
+        });
+
+        it('should error when transient data doesn\'t end with } in the transaction view', async () => {
+            const transactionObject: any = {
+                smartContract: 'myContract',
+                transactionName: 'transaction1',
+                channelName: 'myChannel',
+                args: `["arg1", "arg2", "arg3"]`,
+                namespace: 'my-contract',
+                transientData: '{"wrong"',
+                peerTargetNames: []
+            };
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
+            fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction');
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Error with transaction transient data: transient data should be in the format {"key": "value"}`);
+            reporterStub.should.not.have.been.calledWith('submit transaction');
+            dockerLogsOutputSpy.should.not.have.been.called;
+        });
     });
 });

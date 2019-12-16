@@ -137,8 +137,9 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
             });
         }
     } catch (error) {
-        outputAdapter.log(LogType.ERROR, `Error with transaction transient data: ${error.message}`);
-        return;
+        errorMessage = `Error with transaction transient data: ${error.message}`;
+        outputAdapter.log(LogType.ERROR, errorMessage);
+        return transactionObject ? errorMessage : undefined;
     }
 
     connection = FabricGatewayConnectionManager.instance().getConnection();
