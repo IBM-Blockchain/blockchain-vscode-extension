@@ -24,7 +24,8 @@ export class FabricJavaDebugConfigurationProvider extends FabricDebugConfigurati
             {
                 type: 'fabric:java',
                 request: 'launch',
-                name: 'Launch Smart Contract'
+                name: 'Debug Smart Contract',
+                mainClass: 'org.hyperledger.fabric.contract.ContractRouter'
             }
         ];
     }
