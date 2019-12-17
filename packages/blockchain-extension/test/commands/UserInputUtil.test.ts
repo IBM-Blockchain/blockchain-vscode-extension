@@ -190,7 +190,6 @@ describe('UserInputUtil', () => {
             localFabricEntry.managedRuntime = true;
             localFabricEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
             localFabricEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
-            localFabricEntry.associatedWallets = [FabricWalletUtil.LOCAL_WALLET];
 
             quickPickStub.resolves({ label: environmentEntryOne.name, data: environmentEntryOne });
 
@@ -219,7 +218,6 @@ describe('UserInputUtil', () => {
             localFabricEntry.managedRuntime = true;
             localFabricEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
             localFabricEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
-            localFabricEntry.associatedWallets = [FabricWalletUtil.LOCAL_WALLET];
 
             await FabricEnvironmentRegistry.instance().clear();
 

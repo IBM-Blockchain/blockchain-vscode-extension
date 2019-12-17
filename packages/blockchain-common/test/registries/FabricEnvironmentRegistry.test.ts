@@ -17,7 +17,7 @@ import { FabricEnvironmentRegistry } from '../../src/registries/FabricEnvironmen
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as path from 'path';
-import { FabricEnvironmentRegistryEntry } from '../../src/registries/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry, EnvironmentType } from '../../src/registries/FabricEnvironmentRegistryEntry';
 import { FabricRuntimeUtil } from '../../src/util/FabricRuntimeUtil';
 
 chai.should();
@@ -47,7 +47,12 @@ describe('FabricEnvironmentRegistry', () => {
 
         await registry.getAll().should.eventually.deep.equal([]);
 
-        await FabricEnvironmentRegistry.instance().add(new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC, managedRuntime: true}));
+        await FabricEnvironmentRegistry.instance().add(new FabricEnvironmentRegistryEntry({
+            name: FabricRuntimeUtil.LOCAL_FABRIC,
+            managedRuntime: true,
+            environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
+            associatedGateways: [FabricRuntimeUtil.LOCAL_FABRIC]
+        }));
 
         const localFabricEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
 
@@ -62,7 +67,12 @@ describe('FabricEnvironmentRegistry', () => {
 
         await registry.getAll().should.eventually.deep.equal([]);
 
-        await FabricEnvironmentRegistry.instance().add(new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC, managedRuntime: true}));
+        await FabricEnvironmentRegistry.instance().add(new FabricEnvironmentRegistryEntry({
+            name: FabricRuntimeUtil.LOCAL_FABRIC,
+            managedRuntime: true,
+            environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
+            associatedGateways: [FabricRuntimeUtil.LOCAL_FABRIC]
+        }));
         await registry.add(environmentOne);
         await registry.getAll(false).should.eventually.deep.equal([environmentOne]);
     });
@@ -80,7 +90,12 @@ describe('FabricEnvironmentRegistry', () => {
 
         await registry.getAll().should.eventually.deep.equal([]);
 
-        await LocalEnvironmentManager.instance().getRuntime().create();
+        await FabricEnvironmentRegistry.instance().add(new FabricEnvironmentRegistryEntry({
+            name: FabricRuntimeUtil.LOCAL_FABRIC,
+            managedRuntime: true,
+            environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
+            associatedGateways: [FabricRuntimeUtil.LOCAL_FABRIC]
+        }));
 
         const localFabricEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
 
@@ -98,11 +113,18 @@ describe('FabricEnvironmentRegistry', () => {
 
         const environmentTwo: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
             name: 'environmentTwo',
-            managedRuntime: true
+            managedRuntime: true,
+            environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
+            associatedGateways: [FabricRuntimeUtil.LOCAL_FABRIC]
         });
         await registry.getAll().should.eventually.deep.equal([]);
 
-        await LocalEnvironmentManager.instance().getRuntime().create();
+        await FabricEnvironmentRegistry.instance().add(new FabricEnvironmentRegistryEntry({
+            name: FabricRuntimeUtil.LOCAL_FABRIC,
+            managedRuntime: true,
+            environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
+            associatedGateways: [FabricRuntimeUtil.LOCAL_FABRIC]
+        }));
 
         await registry.add(environmentOne);
         await registry.add(environmentTwo);

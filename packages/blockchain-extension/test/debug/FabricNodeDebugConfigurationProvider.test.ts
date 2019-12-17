@@ -22,7 +22,7 @@ import { FabricNodeDebugConfigurationProvider } from '../../extension/debug/Fabr
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
-import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, EnvironmentType, FabricWalletUtil } from 'ibm-blockchain-platform-common';
+import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { Reporter } from '../../extension/util/Reporter';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { GlobalState } from '../../extension/util/GlobalState';
@@ -121,7 +121,6 @@ describe('FabricNodeDebugConfigurationProvider', () => {
             environmentRegistry.managedRuntime = true;
             environmentRegistry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
             environmentRegistry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
-            environmentRegistry.associatedWallets = [FabricWalletUtil.LOCAL_WALLET];
 
             mySandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
 

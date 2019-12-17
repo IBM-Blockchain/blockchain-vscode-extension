@@ -22,7 +22,7 @@ import { FabricEnvironmentRegistryEntry, FabricNode, LogType } from 'ibm-blockch
 import { FabricEnvironment } from '../fabric/environments/FabricEnvironment';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FileSystemUtil } from '../util/FileSystemUtil';
-import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 
 export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false): Promise<boolean> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();

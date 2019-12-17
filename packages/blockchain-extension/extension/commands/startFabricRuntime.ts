@@ -16,11 +16,10 @@ import * as vscode from 'vscode';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
-import { FabricEnvironmentRegistryEntry } from '../registries/FabricEnvironmentRegistryEntry';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { LogType } from 'ibm-blockchain-platform-common';
+import { LogType, FabricEnvironmentRegistryEntry } from 'ibm-blockchain-platform-common';
 
 export async function startFabricRuntime(registryEntry?: FabricEnvironmentRegistryEntry): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();

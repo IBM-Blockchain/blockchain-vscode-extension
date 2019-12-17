@@ -21,7 +21,7 @@ import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironment } from '../fabric/environments/FabricEnvironment';
 import { FabricEnvironmentManager, ConnectedState } from '../fabric/environments/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, IFabricEnvironmentConnection, FabricNode, LogType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, FabricNode, LogType } from 'ibm-blockchain-platform-common';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';

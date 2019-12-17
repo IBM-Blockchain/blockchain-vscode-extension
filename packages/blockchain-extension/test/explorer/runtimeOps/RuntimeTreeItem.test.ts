@@ -24,7 +24,6 @@ import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntim
 import { BlockchainEnvironmentExplorerProvider } from '../../../extension/explorer/environmentExplorer';
 import { FabricRuntimeState } from '../../../extension/fabric/FabricRuntimeState';
 import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';
-import { FabricWalletUtil } from '../../../extension/fabric/FabricWalletUtil';
 
 describe('RuntimeTreeItem', () => {
 
@@ -51,7 +50,6 @@ describe('RuntimeTreeItem', () => {
         environmentRegistryEntry.managedRuntime = true;
         environmentRegistryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
         environmentRegistryEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
-        environmentRegistryEntry.associatedWallets = [FabricWalletUtil.LOCAL_WALLET];
 
         provider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();

@@ -16,14 +16,13 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
 import { FabricGateway } from '../FabricGateway';
-import { FabricEnvironmentRegistryEntry, FabricIdentity, FabricWalletRegistry, FabricWalletRegistryEntry, FileConfigurations, IFabricWallet, IFabricWalletGenerator } from 'ibm-blockchain-platform-common';
+import { FabricIdentity, FabricWalletRegistry, FabricWalletRegistryEntry, FileConfigurations, IFabricWallet, IFabricWalletGenerator } from 'ibm-blockchain-platform-common';
 import { FabricWalletGeneratorFactory } from '../FabricWalletGeneratorFactory';
 import { SettingConfigurations } from '../../../configurations';
 import { FabricEnvironment } from './FabricEnvironment';
 import { FileSystemUtil } from '../../util/FileSystemUtil';
 import { FabricGatewayRegistryEntry } from '../../registries/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../registries/FabricGatewayRegistry';
-import { FabricRuntimeState } from '../FabricRuntimeState';
 
 export class AnsibleEnvironment extends FabricEnvironment {
 
@@ -31,8 +30,6 @@ export class AnsibleEnvironment extends FabricEnvironment {
         super(name);
     }
 
-    // Both
-    // when they give directory, there will be a wallets directory
     public async importWalletsAndIdentities(): Promise<void> {
 
         // Ensure that all wallets are created and populated with identities.
@@ -63,7 +60,6 @@ export class AnsibleEnvironment extends FabricEnvironment {
         }
     }
 
-    // Both see above
     public async importGateways(fallbackAssociatedWallet?: string): Promise<void> {
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
@@ -83,13 +79,11 @@ export class AnsibleEnvironment extends FabricEnvironment {
         }
     }
 
-    // Both
     public async getGateways(): Promise<FabricGateway[]> {
         const gatewaysPath: string = path.resolve(this.path, FileConfigurations.FABRIC_GATEWAYS);
         return this.loadGateways(gatewaysPath);
     }
 
-    // Both
     public async getWalletNames(): Promise<string[]> {
         const walletsPath: string = path.resolve(this.path, 'wallets');
         const walletsExist: boolean = await fs.pathExists(walletsPath);
@@ -102,7 +96,6 @@ export class AnsibleEnvironment extends FabricEnvironment {
             .filter((walletPath: string) => !walletPath.startsWith('.'));
     }
 
-    // Both
     public async getIdentities(walletName: string): Promise<FabricIdentity[]> {
         const walletPath: string = path.resolve(this.path, 'wallets', walletName);
         const walletExists: boolean = await fs.pathExists(walletPath);

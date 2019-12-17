@@ -13,18 +13,14 @@
 */
 
 import * as vscode from 'vscode';
-import { OutputAdapter } from '../../logging/OutputAdapter';
-import { ConsoleOutputAdapter } from '../../logging/ConsoleOutputAdapter';
 import { CommandUtil } from '../../util/CommandUtil';
 import * as request from 'request';
-import { FabricNode, FabricNodeType } from '../FabricNode';
 import { SettingConfigurations } from '../../../configurations';
-import { FabricWalletRegistry } from '../../registries/FabricWalletRegistry';
 import { FabricRuntimeState } from '../FabricRuntimeState';
 import { AnsibleEnvironment } from './AnsibleEnvironment';
+import { OutputAdapter, FabricNode, FabricNodeType, ConsoleOutputAdapter, FabricWalletRegistry } from 'ibm-blockchain-platform-common';
 
 export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
-    protected dockerName: string;
     protected busy: boolean = false;
     protected state: FabricRuntimeState;
     protected isRunningPromise: Promise<boolean>;
@@ -33,19 +29,12 @@ export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
 
     constructor(name: string) {
         super(name);
-        this.dockerName = `fabricvscodelocalfabric`;
-    }
-
-    // Both (?)
-    public getDockerName(): string {
-        return this.dockerName;
     }
 
     public isBusy(): boolean {
         return this.busy;
     }
 
-    // Both
     public getState(): FabricRuntimeState {
         return this.state;
     }
@@ -115,8 +104,6 @@ export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
         }
     }
 
-    // // Both - see what the ansible generated scripts look like
-    // // I guess it could be possible that we have multiple implementations of the same function for AnsibleEnvironments and LocalEnvironment
     public async teardown(outputAdapter?: OutputAdapter): Promise<void> {
         try {
             await this.teardownInner(outputAdapter);
@@ -126,7 +113,6 @@ export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
 
     }
 
-    // // Both
     public async restart(outputAdapter?: OutputAdapter): Promise<void> {
         try {
             this.setBusy(true);
@@ -165,7 +151,6 @@ export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
         return peer.chaincode_url;
     }
 
-    // // Both - ask simon where logging is implemented (?)
     public async getLogspoutURL(): Promise<string> {
         const nodes: FabricNode[] = await this.getNodes();
         const logspout: FabricNode = nodes.find((node: FabricNode) => node.type === FabricNodeType.LOGSPOUT);

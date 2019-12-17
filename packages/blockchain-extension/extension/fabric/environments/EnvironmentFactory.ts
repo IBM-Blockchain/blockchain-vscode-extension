@@ -12,10 +12,9 @@
  * limitations under the License.
 */
 'use strict';
-import { FabricEnvironmentRegistryEntry, EnvironmentType } from '../../registries/FabricEnvironmentRegistryEntry';
 import { ManagedAnsibleEnvironment } from './ManagedAnsibleEnvironment';
 import { AnsibleEnvironment } from './AnsibleEnvironment';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricEnvironmentRegistryEntry, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from './LocalEnvironment';
 import { LocalEnvironmentManager } from './LocalEnvironmentManager';
 import { FabricEnvironment } from './FabricEnvironment';

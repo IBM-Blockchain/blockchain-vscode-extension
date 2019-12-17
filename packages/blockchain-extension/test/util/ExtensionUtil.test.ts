@@ -34,7 +34,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { TemporaryCommandRegistry } from '../../extension/dependencies/TemporaryCommandRegistry';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FabricWalletRegistryEntry, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FabricWalletRegistryEntry, FabricWalletUtil, LogType, FabricWalletRegistry } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
 import { TestUtil } from '../TestUtil';
 import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistry';

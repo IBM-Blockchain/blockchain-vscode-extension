@@ -16,9 +16,7 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { TestUtil } from '../../TestUtil';
 import { EnvironmentFactory } from '../../../extension/fabric/environments/EnvironmentFactory';
-import { FabricEnvironmentRegistryEntry, EnvironmentType } from '../../../extension/registries/FabricEnvironmentRegistryEntry';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
-import { FabricWalletUtil } from '../../../extension/fabric/FabricWalletUtil';
+import { FabricRuntimeUtil, FabricEnvironmentRegistryEntry, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';
 import { ManagedAnsibleEnvironment } from '../../../extension/fabric/environments/ManagedAnsibleEnvironment';
 import { AnsibleEnvironment } from '../../../extension/fabric/environments/AnsibleEnvironment';
@@ -64,7 +62,6 @@ describe('EnvironmentFactory', () => {
         registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
         registryEntry.managedRuntime = true;
         registryEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
-        registryEntry.associatedWallets = [FabricWalletUtil.LOCAL_WALLET];
         registryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
 
         const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = await EnvironmentFactory.getEnvironment(registryEntry);

@@ -22,7 +22,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
-import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
+import { FabricEnvironment } from '../../extension/fabric/environments/FabricEnvironment';
 import { FabricCertificateAuthority } from 'ibm-blockchain-platform-environment-v1';
 import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
 import { NodeTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/NodeTreeItem';

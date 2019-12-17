@@ -24,10 +24,9 @@ import { TestUtil } from '../TestUtil';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironmentRegistry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricRuntimeUtil, LogType, FabricEnvironmentRegistryEntry } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { FabricEnvironmentRegistryEntry } from '../../extension/registries/FabricEnvironmentRegistryEntry';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
 import { ManagedAnsibleEnvironment } from '../../extension/fabric/environments/ManagedAnsibleEnvironment';
 

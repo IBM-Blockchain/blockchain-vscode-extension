@@ -12,25 +12,18 @@
  * limitations under the License.
 */
 
-// import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { ManagedAnsibleEnvironment } from './ManagedAnsibleEnvironment';
-import { OutputAdapter } from '../../logging/OutputAdapter';
-import { FabricEnvironmentRegistry } from '../../registries/FabricEnvironmentRegistry';
-import { FabricEnvironmentRegistryEntry, EnvironmentType } from '../../registries/FabricEnvironmentRegistryEntry';
 import { YeomanUtil } from '../../util/YeomanUtil';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
-import { SettingConfigurations, FileConfigurations } from '../../../configurations';
+import { FabricRuntimeUtil, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType, FabricWalletUtil, OutputAdapter, FabricWalletRegistryEntry, FabricWalletRegistry, FileConfigurations } from 'ibm-blockchain-platform-common';
+import { SettingConfigurations } from '../../../configurations';
 import { FabricRuntimePorts } from '../FabricRuntimePorts';
-import { FabricWalletUtil } from '../FabricWalletUtil';
-import { FabricWalletRegistry } from '../../registries/FabricWalletRegistry';
-import { FabricWalletRegistryEntry } from '../../registries/FabricWalletRegistryEntry';
 import { FileSystemUtil } from '../../util/FileSystemUtil';
 
 export class LocalEnvironment extends ManagedAnsibleEnvironment {
-
     public ports?: FabricRuntimePorts;
+    private dockerName: string;
 
     constructor() {
         super(FabricRuntimeUtil.LOCAL_FABRIC);
@@ -41,15 +34,6 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
         return FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
     }
 
-    // LocalEnvironment
-
-    // LocalEnvironment (pretty certain)
-    // Update implementation to generate fabric using ansible (?)
-    // Are AnsibleEnvironment's local or IBP? - they are local
-
-    // On IBP how do we stop/start? Surely this would just be a FabricEnvironment?
-    // What does ansible actually generate/do?
-    // ran playbook to generate structure - add environment - dir - imports ansible stuff
     public async create(): Promise<void> {
 
         // Delete any existing runtime directory, and then recreate it.
@@ -59,13 +43,10 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
             name: this.name,
             managedRuntime: true,
             environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
-            associatedGateways: [FabricRuntimeUtil.LOCAL_FABRIC],
-            associatedWallets: [FabricWalletUtil.LOCAL_WALLET],
+            associatedGateways: [FabricRuntimeUtil.LOCAL_FABRIC]
         });
 
         await FabricEnvironmentRegistry.instance().add(registryEntry);
-
-        // This is going to be changed I guess
 
         // Use Yeoman to generate a new network configuration.
         await YeomanUtil.run('fabric:network', {
@@ -81,12 +62,10 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
         });
     }
 
-     // LocalEnvironment
      public async isCreated(): Promise<boolean> {
         return FabricEnvironmentRegistry.instance().exists(this.name);
     }
 
-    // LocalEnvironment
     public async isGenerated(): Promise<boolean> {
         const created: boolean = await this.isCreated();
         if (!created) {
@@ -98,9 +77,9 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
     public async teardown(outputAdapter?: OutputAdapter): Promise<void> {
         try {
             await super.teardownInner(outputAdapter);
-            await this.create();  // This will only be for local
-            await this.importWalletsAndIdentities(); // This will only be for local
-            await this.importGateways(); // This will only be for local
+            await this.create();
+            await this.importWalletsAndIdentities();
+            await this.importGateways();
         } finally {
             await super.setTeardownState();
         }
@@ -134,7 +113,6 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
 
     }
 
-    // LocalEnvironment
     public async updateUserSettings(): Promise<void> {
         const runtimeObject: any = {
             ports: this.ports
@@ -142,7 +120,6 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, runtimeObject, vscode.ConfigurationTarget.Global);
     }
 
-    // LocalEnvironment - used for debug
     public async killChaincode(args?: string[], outputAdapter?: OutputAdapter): Promise<void> {
         await this.killChaincodeInner(args, outputAdapter);
     }
@@ -156,7 +133,6 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
         return await super.isRunningInner(args);
     }
 
-    // Both
     private async killChaincodeInner(args: string[], outputAdapter?: OutputAdapter): Promise<void> {
         await this.execute('kill_chaincode', args, outputAdapter);
     }

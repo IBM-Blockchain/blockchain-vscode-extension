@@ -17,18 +17,14 @@ import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
-import { OutputAdapter } from '../../../extension/logging/OutputAdapter';
 import { TestUtil } from '../../TestUtil';
 import * as path from 'path';
-import { LogType } from '../../../extension/logging/OutputAdapter';
 import { CommandUtil } from '../../../extension/util/CommandUtil';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
-import { FabricWalletUtil } from '../../../extension/fabric/FabricWalletUtil';
 import { SettingConfigurations } from '../../../configurations';
-import { FabricWalletRegistry } from '../../../extension/registries/FabricWalletRegistry';
-import { FabricWalletRegistryEntry } from '../../../extension/registries/FabricWalletRegistryEntry';
 import { FabricRuntimeState } from '../../../extension/fabric/FabricRuntimeState';
 import { ManagedAnsibleEnvironment } from '../../../extension/fabric/environments/ManagedAnsibleEnvironment';
+import { OutputAdapter, FabricWalletRegistry, FabricWalletUtil, FabricWalletRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -86,12 +82,6 @@ describe('ManagedAnsibleEnvironment', () => {
 
     afterEach(async () => {
         sandbox.restore();
-    });
-
-    describe('#getDockerName', () => {
-        it('should return the Docker name of the runtime', () => {
-            environment.getDockerName().should.equal('fabricvscodelocalfabric');
-        });
     });
 
     describe('#isBusy', () => {

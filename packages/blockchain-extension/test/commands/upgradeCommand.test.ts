@@ -36,7 +36,6 @@ import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, Environment
 import { VSCodeBlockchainDockerOutputAdapter } from '../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 
 chai.use(sinonChai);
 
@@ -131,7 +130,6 @@ describe('UpgradeCommand', () => {
             environmentRegistry.managedRuntime = true;
             environmentRegistry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
             environmentRegistry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
-            environmentRegistry.associatedWallets = [FabricWalletUtil.LOCAL_WALLET];
 
             registryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
             mySandBox.stub(FabricEnvironmentManager.instance(), 'getState').returns(ConnectedState.CONNECTED);

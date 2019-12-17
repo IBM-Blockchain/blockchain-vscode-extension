@@ -29,7 +29,6 @@ import { SettingConfigurations } from '../../configurations';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
-import { FabricWalletUtil } from '../../extension/fabric/FabricWalletUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -123,7 +122,6 @@ describe('FabricDebugConfigurationProvider', () => {
             environmentRegistry.managedRuntime = true;
             environmentRegistry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
             environmentRegistry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
-            environmentRegistry.associatedWallets = [FabricWalletUtil.LOCAL_WALLET];
 
             getEnvironmentRegistryStub = mySandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
 

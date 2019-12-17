@@ -26,7 +26,7 @@ import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironment
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
-import { FabricRuntimeUtil, FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType  } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, FabricWalletUtil  } from 'ibm-blockchain-platform-common';
 
 export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalletRegistryEntry, mspid: string): Promise<string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();

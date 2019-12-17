@@ -39,7 +39,6 @@ export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
 
     private constructor(provider: BlockchainExplorerProvider, public readonly label: string, environmentRegistryEntry: FabricEnvironmentRegistryEntry, public readonly command: vscode.Command) {
         super(provider, label, environmentRegistryEntry, command);
-        // const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
         this.name = label;
         this.runtime = EnvironmentFactory.getEnvironment(environmentRegistryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
         this.runtime.on('busy', () => {
@@ -56,7 +55,6 @@ export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
     }
 
     private async updateProperties(): Promise<void> {
-        // this one
         const busy: boolean = this.runtime.isBusy();
         const running: boolean = await this.runtime.isRunning();
         let newLabel: string = this.name + '  ';

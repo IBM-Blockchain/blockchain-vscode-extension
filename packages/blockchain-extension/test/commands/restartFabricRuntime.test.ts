@@ -18,17 +18,15 @@ import { LocalEnvironmentManager } from '../../extension/fabric/environments/Loc
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { TestUtil } from '../TestUtil';
-import { LogType } from '../../extension/logging/OutputAdapter';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { ManagedAnsibleEnvironment } from '../../extension/fabric/environments/ManagedAnsibleEnvironment';
 import { UserInputUtil, IBlockchainQuickPickItem } from '../../extension/commands/UserInputUtil';
-import { FabricEnvironmentRegistry } from '../../extension/registries/FabricEnvironmentRegistry';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
 import { RuntimeTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
