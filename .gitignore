@@ -15,3 +15,4 @@ test/tmp
 *.tgz
 /lerna-debug.log
 /node_modules/
+.scannerwork
