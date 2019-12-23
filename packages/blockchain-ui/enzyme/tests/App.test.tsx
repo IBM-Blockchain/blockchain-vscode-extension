@@ -38,19 +38,9 @@ describe('App', () => {
         namespace: 'GreenContract'
     };
 
-    const blueContract: ISmartContract = {
-        name: 'blueContract',
-        version: '0.0.1',
-        channel: 'mychannel',
-        label: 'blueContract@0.0.1',
-        transactions: [mockTxn],
-        namespace: 'BlueContract'
-    };
-
-    const mockState: { gatewayName: string, smartContracts: Array<ISmartContract>, activeSmartContract: ISmartContract } = {
+    const mockState: { gatewayName: string, smartContract: ISmartContract } = {
         gatewayName: 'myGateway',
-        smartContracts: [greenContract, blueContract],
-        activeSmartContract: greenContract
+        smartContract: greenContract
     };
 
     beforeEach(async () => {
@@ -99,29 +89,11 @@ describe('App', () => {
         });
         dispatchEvent(msg);
         component.state().gatewayName.should.deep.equal(mockState.gatewayName);
-        component.state().activeSmartContract.should.deep.equal(mockState.activeSmartContract);
-        component.state().smartContracts.should.deep.equal(mockState.smartContracts);
+        component.state().smartContract.should.deep.equal(mockState.smartContract);
 
         Utils.changeRoute('/transaction/create');
         component.state().gatewayName.should.deep.equal(mockState.gatewayName);
-        component.state().activeSmartContract.should.deep.equal(mockState.activeSmartContract);
-        component.state().smartContracts.should.deep.equal(mockState.smartContracts);
-    });
-
-    it('updates the state correctly when switching smart contracts', async () => {
-        const component: any = mount(<App/>);
-
-        const msg: MessageEvent = new MessageEvent('message', {
-            data: {
-                path: '/transaction',
-                state: mockState
-            }
-        });
-        dispatchEvent(msg);
-        component.state().activeSmartContract.should.deep.equal(greenContract);
-
-        component.instance().switchSmartContract('blueContract@0.0.1');
-        component.state().activeSmartContract.should.deep.equal(blueContract);
+        component.state().smartContract.should.deep.equal(mockState.smartContract);
     });
 
     it('attempts to post a message to vscode', async () => {
@@ -141,8 +113,7 @@ describe('App', () => {
         });
         dispatchEvent(msg);
         component.state().gatewayName.should.deep.equal(mockState.gatewayName);
-        component.state().activeSmartContract.should.deep.equal(mockState.activeSmartContract);
-        component.state().smartContracts.should.deep.equal(mockState.smartContracts);
+        component.state().smartContract.should.deep.equal(mockState.smartContract);
 
         component.instance().postMessageHandler('some command');
         postToVSCodeStub.should.have.been.calledOnceWithExactly({command: 'some command', data: mockState});

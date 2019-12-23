@@ -1,32 +1,35 @@
 import React, { Component } from 'react';
-import './TransactionCreate.scss';
-import TransactionCreateForm from '../../components/TransactionCreateForm/TransactionCreateForm';
-import TransactionOutput from '../../components/TransactionOutput/TransactionOutput';
+import './TransactionPage.scss';
+import TransactionForm from '../TransactionForm/TransactionForm';
+import TransactionOutput from '../TransactionOutput/TransactionOutput';
 import ISmartContract from '../../interfaces/ISmartContract';
 
-interface CreateProps {
-    activeSmartContract: ISmartContract;
+interface PageProps {
+    gatewayName: string;
+    smartContract: ISmartContract;
     transactionOutput: string;
     postMessageHandler: (command: string, data?: any) => void;
 }
 
-interface CreateState {
-    activeSmartContract: ISmartContract;
+interface PageState {
+    gatewayName: string;
+    smartContract: ISmartContract;
     transactionOutput: string;
     postMessageHandler: (command: string, data?: any) => void;
 }
 
-class TransactionCreate extends Component<CreateProps, CreateState> {
-    constructor(props: Readonly<CreateProps>) {
+class TransactionPage extends Component<PageProps, PageState> {
+    constructor(props: Readonly<PageProps>) {
         super(props);
         this.state = {
-            activeSmartContract: this.props.activeSmartContract,
+            gatewayName: this.props.gatewayName,
+            smartContract: this.props.smartContract,
             transactionOutput: this.props.transactionOutput,
             postMessageHandler: this.props.postMessageHandler
         };
     }
 
-    componentDidUpdate(prevProps: CreateProps): void {
+    componentDidUpdate(prevProps: PageProps): void {
         if (prevProps.transactionOutput !== this.props.transactionOutput) {
             this.setState({
                 transactionOutput: this.props.transactionOutput
@@ -40,12 +43,12 @@ class TransactionCreate extends Component<CreateProps, CreateState> {
                 <div className='inner-container bx--row'>
                     <div className='page-contents bx--col'>
                         <div className='titles-container'>
-                            <span className='home-link' onClick={(): void => this.state.postMessageHandler('home')}>Transactions webview home</span>
+                            <span className='home-link'>Transacting with: {this.state.gatewayName} > {this.state.smartContract.channel} > {this.state.smartContract.label}</span>
                             <h2>Create a new transaction</h2>
                         </div>
                         <div className='contents-container bx--row'>
                             <div className='bx--col'>
-                                <TransactionCreateForm activeSmartContract={this.state.activeSmartContract} postMessageHandler={this.state.postMessageHandler}/>
+                                <TransactionForm smartContract={this.state.smartContract} postMessageHandler={this.state.postMessageHandler}/>
                             </div>
                         </div>
                     </div>
@@ -59,4 +62,4 @@ class TransactionCreate extends Component<CreateProps, CreateState> {
 
 }
 
-export default TransactionCreate;
+export default TransactionPage;

@@ -2,17 +2,16 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
 import { mount } from 'enzyme';
-import TransactionCreate from '../../src/components/TransactionCreate/TransactionCreate';
+import TransactionPage from '../../src/components/TransactionPage/TransactionPage';
 import chai from 'chai';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import ITransaction from '../../src/interfaces/ITransaction';
 import ISmartContract from '../../src/interfaces/ISmartContract';
-import TransactionCreateForm from '../../src/components/TransactionCreateForm/TransactionCreateForm';
 chai.should();
 chai.use(sinonChai);
 
-describe('TransactionCreate component', () => {
+describe('TransactionPage component', () => {
     let mySandBox: sinon.SinonSandbox;
     let postMessageHandlerStub: sinon.SinonStub;
 
@@ -61,20 +60,14 @@ describe('TransactionCreate component', () => {
 
     it('should render the expected snapshot', async () => {
         const component: any = renderer
-            .create(<TransactionCreate activeSmartContract={greenContract} transactionOutput={mockTransactionOutput} postMessageHandler={postMessageHandlerStub}/>)
+            .create(<TransactionPage gatewayName={'my gateway'} smartContract={greenContract} transactionOutput={mockTransactionOutput} postMessageHandler={postMessageHandlerStub}/>)
             .toJSON();
         expect(component).toMatchSnapshot();
     });
 
-    it('redirects back to the home page when the appropriate link is clicked on', async () => {
-        const component: any = mount(<TransactionCreate activeSmartContract={greenContract} transactionOutput={mockTransactionOutput} postMessageHandler={postMessageHandlerStub}/>);
-        component.find('.titles-container > span').simulate('click');
-        postMessageHandlerStub.should.have.been.calledOnceWithExactly('home');
-    });
-
     it('should update the transaction output when something new is passed down through props', async () => {
-        const componentDidUpdateSpy: sinon.SinonSpy = mySandBox.spy(TransactionCreate.prototype, 'componentDidUpdate');
-        const component: any = mount(<TransactionCreate activeSmartContract={greenContract} transactionOutput={mockTransactionOutput} postMessageHandler={postMessageHandlerStub}/>);
+        const componentDidUpdateSpy: sinon.SinonSpy = mySandBox.spy(TransactionPage.prototype, 'componentDidUpdate');
+        const component: any = mount(<TransactionPage gatewayName={'my gateway'} smartContract={greenContract} transactionOutput={mockTransactionOutput} postMessageHandler={postMessageHandlerStub}/>);
         component.state().transactionOutput.should.equal(mockTransactionOutput);
 
         component.setProps({
