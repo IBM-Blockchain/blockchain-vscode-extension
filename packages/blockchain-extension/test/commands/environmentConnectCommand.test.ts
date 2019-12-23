@@ -27,7 +27,7 @@ import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, FabricNode } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { RuntimeTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
@@ -62,7 +62,14 @@ describe('EnvironmentConnectCommand', () => {
         let connectExplorerStub: sinon.SinonStub;
         let connectManagerSpy: sinon.SinonSpy;
 
+        let caNode: FabricNode;
+        let ordererNode: FabricNode;
+        let getNodesStub: sinon.SinonStub;
+
         beforeEach(async () => {
+
+            caNode = FabricNode.newCertificateAuthority('caNodeWithCreds', 'ca.org1.example.com', 'http://localhost:17054', 'ca.org1.example.com', undefined, undefined, undefined, 'admin', 'adminpw');
+            ordererNode = FabricNode.newOrderer('ordererNode', 'orderer.example.com', 'http://localhost:17056', undefined, undefined, 'osmsp', undefined);
 
             connectExplorerStub = mySandBox.stub(ExtensionUtil.getBlockchainEnvironmentExplorerProvider(), 'connect');
             connectManagerSpy = mySandBox.spy(FabricEnvironmentManager.instance(), 'connect');
@@ -89,6 +96,7 @@ describe('EnvironmentConnectCommand', () => {
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(true);
             mockRuntime.start.resolves();
+            mockRuntime.getNodes.resolves([ordererNode, caNode]);
             mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
 
             requireSetupStub = mySandBox.stub(FabricEnvironment.prototype, 'requireSetup').resolves(false);
@@ -102,6 +110,8 @@ describe('EnvironmentConnectCommand', () => {
             });
 
             sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+
+            getNodesStub = mySandBox.stub(FabricEnvironment.prototype, 'getNodes').resolves([ordererNode, caNode]);
 
         });
 
@@ -121,6 +131,19 @@ describe('EnvironmentConnectCommand', () => {
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'user environment', connectEnvironmentIBM: sinon.match.string });
                 logSpy.calledWith(LogType.SUCCESS, 'Connected to myFabric');
+            });
+
+            it('should test an error is shown if the user tries to connect to an environment that doesnt have any valid nodes', async () => {
+                getNodesStub.resolves([]);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+
+                mockRuntime.isRunning.should.not.have.been.called;
+                connectManagerSpy.should.not.have.been.called;
+                logSpy.should.have.been.calledTwice;
+                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `connecting to fabric environment`);
+                logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Cannot connect to environment: No nodes available`);
+                connectExplorerStub.should.not.have.been.called;
+                sendTelemetryEventStub.should.not.have.been.called;
             });
 
             it('should do nothing if the user cancels choosing a environment', async () => {
@@ -167,7 +190,7 @@ describe('EnvironmentConnectCommand', () => {
                 connectManagerSpy.should.not.have.been.called;
                 logSpy.should.have.been.calledTwice;
                 logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `connecting to fabric environment`);
-                logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `${error.message}`, `${error.toString()}`);
+                logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Cannot connect to environment: ${error.message}`, `Cannot connect to environment: ${error.toString()}`);
                 sendTelemetryEventStub.should.not.have.been.called;
             });
 
@@ -196,6 +219,8 @@ describe('EnvironmentConnectCommand', () => {
                     label: FabricRuntimeUtil.LOCAL_FABRIC,
                     data: localFabricRegistryEntry
                 });
+
+                getNodesStub.resolves([ordererNode, caNode]);
             });
 
             it('should connect to a managed runtime using a quick pick', async () => {

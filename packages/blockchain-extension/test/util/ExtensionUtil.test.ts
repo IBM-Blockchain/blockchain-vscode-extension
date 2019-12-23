@@ -556,6 +556,7 @@ describe('ExtensionUtil Tests', () => {
                 ExtensionCommands.EDIT_NODE_FILTERS,
                 ExtensionCommands.REPLACE_ASSOCIATED_IDENTITY,
                 ExtensionCommands.DELETE_NODE,
+                ExtensionCommands.HIDE_NODE,
                 ExtensionCommands.CONNECT_TO_ENVIRONMENT,
                 ExtensionCommands.DISCONNECT_ENVIRONMENT,
                 ExtensionCommands.INSTALL_SMART_CONTRACT,
