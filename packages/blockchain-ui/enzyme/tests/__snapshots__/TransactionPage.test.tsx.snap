@@ -267,7 +267,7 @@ exports[`TransactionPage component should render the expected snapshot 1`] = `
                   className="bx--label"
                   htmlFor="arguments-text-area"
                 >
-                  Arguments*
+                  Arguments
                 </label>
                 <div
                   className="bx--text-area__wrapper"
@@ -369,11 +369,51 @@ exports[`TransactionPage component should render the expected snapshot 1`] = `
         >
           Output for untitled transaction
         </p>
-        <p
+        <div
           className="output-body"
         >
-          here is some transaction output
-        </p>
+          <div
+            className="output-object"
+          >
+            <p>
+              myTransaction
+               
+              submitted
+               [
+              1/7/2020, 9:21:34 AM
+              ]
+            </p>
+            <p>
+              Result: 
+              SUCCESS
+               [
+              1/7/2020, 9:21:35 AM
+              ]
+            </p>
+            <div
+              className="output-object-io"
+            >
+              <p
+                className="output-io-heading"
+              >
+                Input:
+              </p>
+              <p>
+                Args: [
+                myID
+                ]
+              </p>
+              <p
+                className="output-io-heading"
+              >
+                Output:
+              </p>
+              <p>
+                No output returned from myTransaction
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

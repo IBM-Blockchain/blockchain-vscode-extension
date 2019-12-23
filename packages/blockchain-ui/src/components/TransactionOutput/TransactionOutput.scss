@@ -7,6 +7,7 @@
     width: 52%;
     background-color: #F4F4F4;
     padding: $spacing-07;
+    overflow-y: scroll;
 
     .output-title {
         font-size: 0.875rem;
@@ -14,9 +15,34 @@
     }
 
     .output-body {
-        @include carbon--font-face-mono;
-        font-family: 'IBM Plex Mono';
-        font-size: 0.875rem;
-        color: inherit;
+        display: flex;
+        flex-direction: column-reverse;
+
+        p {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        .output-object {
+            @include carbon--font-face-mono;
+            font-family: 'IBM Plex Mono';
+            color: inherit;
+            margin-bottom: $spacing-06;
+
+            .output-object-io {
+                border-left: 1px solid;
+                border-color: inherit;
+                padding-left: $spacing-05;
+                margin-top: $spacing-02;
+
+                p {
+                    margin-left: $spacing-05;
+                }
+
+                .output-io-heading {
+                    margin-left: 0px;
+                }
+            }
+        }
     }
 }

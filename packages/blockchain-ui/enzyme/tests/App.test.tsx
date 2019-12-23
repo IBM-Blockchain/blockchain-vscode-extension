@@ -7,6 +7,7 @@ import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import ISmartContract from '../../src/interfaces/ISmartContract';
 import ITransaction from '../../src/interfaces/ITransaction';
+import IOutputObject from '../../src/interfaces/IOutputObject';
 import Utils from '../../src/Utils';
 chai.should();
 chai.use(sinonChai);
@@ -41,6 +42,16 @@ describe('App', () => {
     const mockState: { gatewayName: string, smartContract: ISmartContract } = {
         gatewayName: 'myGateway',
         smartContract: greenContract
+    };
+
+    const mockOutput: IOutputObject = {
+        transactionName: 'myTransaction',
+        action: 'submitted',
+        startTime: '1/7/2020, 9:21:34 AM',
+        result: 'SUCCESS',
+        endTime: '1/7/2020, 9:21:35 AM',
+        args: ['myID'],
+        output: 'No output returned from myTransaction'
     };
 
     beforeEach(async () => {
@@ -124,10 +135,10 @@ describe('App', () => {
 
         const msg: MessageEvent = new MessageEvent('message', {
             data: {
-                output: 'here is some transaction output'
+                output: mockOutput
             }
         });
         dispatchEvent(msg);
-        component.state().transactionOutput.should.deep.equal('here is some transaction output');
+        component.state().transactionOutput.should.deep.equal(mockOutput);
     });
 });

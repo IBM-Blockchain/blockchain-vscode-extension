@@ -68,6 +68,8 @@ describe('SubmitTransactionCommand', () => {
         let peerNames: string[];
         let mspIDs: string[];
 
+        let transactionObject: any = {};
+
         beforeEach(async () => {
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
             executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_GATEWAY).resolves();
@@ -147,6 +149,16 @@ describe('SubmitTransactionCommand', () => {
             allChildren = await blockchainGatewayExplorerProvider.getChildren();
 
             reporterStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+
+            transactionObject = {
+                smartContract: 'myContract',
+                transactionName: 'transaction1',
+                channelName: 'myChannel',
+                args: `["arg1", "arg2", "arg3"]`,
+                namespace: 'my-contract',
+                transientData: '',
+                peerTargetNames: []
+            };
         });
 
         afterEach(async () => {
@@ -639,16 +651,6 @@ describe('SubmitTransactionCommand', () => {
         });
 
         it('should submit a transaction through the transaction view', async () => {
-            const transactionObject: any = {
-                smartContract: 'myContract',
-                transactionName: 'transaction1',
-                channelName: 'myChannel',
-                args: `["arg1", "arg2", "arg3"]`,
-                namespace: 'my-contract',
-                transientData: '',
-                peerTargetNames: []
-            };
-
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
             dockerLogsOutputSpy.should.not.have.been.called;
@@ -658,16 +660,6 @@ describe('SubmitTransactionCommand', () => {
         });
 
         it('should evaluate a transaction through the transaction view', async () => {
-            const transactionObject: any = {
-                smartContract: 'myContract',
-                transactionName: 'transaction1',
-                channelName: 'myChannel',
-                args: `["arg1", "arg2", "arg3"]`,
-                namespace: 'my-contract',
-                transientData: '',
-                peerTargetNames: []
-            };
-
             await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION, undefined, undefined, undefined, transactionObject);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
             dockerLogsOutputSpy.should.not.have.been.called;
@@ -676,19 +668,8 @@ describe('SubmitTransactionCommand', () => {
             reporterStub.should.have.been.calledWith('evaluate transaction');
         });
 
-        it('should handle error from submitting a transaction through the transaction view', async () => {
+        it('should handle an error from submitting a transaction through the transaction view', async () => {
             fabricClientConnectionMock.submitTransaction.rejects({ message: 'some error' });
-
-            const transactionObject: any = {
-                smartContract: 'myContract',
-                transactionName: 'transaction1',
-                channelName: 'myChannel',
-                args: `["arg1", "arg2", "arg3"]`,
-                namespace: 'my-contract',
-                transientData: '',
-                peerTargetNames: []
-            };
-
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Error submitting transaction: some error');
@@ -696,19 +677,8 @@ describe('SubmitTransactionCommand', () => {
             dockerLogsOutputSpy.should.not.have.been.called;
         });
 
-        it('should handle error from submitting transaction through the transaction view and output further errors', async () => {
+        it('should handle an error from submitting transaction through the transaction view and output further errors', async () => {
             fabricClientConnectionMock.submitTransaction.rejects({ message: 'some error', endorsements: [{message: 'another error'}, {message: 'more error'}]});
-
-            const transactionObject: any = {
-                smartContract: 'myContract',
-                transactionName: 'transaction1',
-                channelName: 'myChannel',
-                args: `["arg1", "arg2", "arg3"]`,
-                namespace: 'my-contract',
-                transientData: '',
-                peerTargetNames: []
-            };
-
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
@@ -719,19 +689,8 @@ describe('SubmitTransactionCommand', () => {
             dockerLogsOutputSpy.should.not.have.been.called;
         });
 
-        it('should handle error from evaluating a transaction through the transaction view', async () => {
+        it('should handle an error from evaluating a transaction through the transaction view', async () => {
             fabricClientConnectionMock.submitTransaction.rejects({ message: 'some error' });
-
-            const transactionObject: any = {
-                smartContract: 'myContract',
-                transactionName: 'transaction1',
-                channelName: 'myChannel',
-                args: `["arg1", "arg2", "arg3"]`,
-                namespace: 'my-contract',
-                transientData: '',
-                peerTargetNames: []
-            };
-
             await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION, undefined, undefined, undefined, transactionObject);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Error evaluating transaction: some error');
@@ -739,19 +698,8 @@ describe('SubmitTransactionCommand', () => {
             dockerLogsOutputSpy.should.not.have.been.called;
         });
 
-        it('should handle error from evaluating transaction through the transaction view and output further errors', async () => {
+        it('should handle an error from evaluating transaction through the transaction view and output further errors', async () => {
             fabricClientConnectionMock.submitTransaction.rejects({ message: 'some error', endorsements: [{message: 'another error'}, {message: 'more error'}]});
-
-            const transactionObject: any = {
-                smartContract: 'myContract',
-                transactionName: 'transaction1',
-                channelName: 'myChannel',
-                args: `["arg1", "arg2", "arg3"]`,
-                namespace: 'my-contract',
-                transientData: '',
-                peerTargetNames: []
-            };
-
             await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION, undefined, undefined, undefined, transactionObject);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, `evaluating transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
@@ -763,16 +711,7 @@ describe('SubmitTransactionCommand', () => {
         });
 
         it(`should handle error when given incorrect args in the transaction view`, async () => {
-            const transactionObject: any = {
-                smartContract: 'myContract',
-                transactionName: 'transaction1',
-                channelName: 'myChannel',
-                args: `["arg1", "arg2", "arg3]`,
-                namespace: 'my-contract',
-                transientData: '',
-                peerTargetNames: []
-            };
-
+            transactionObject.args = `["arg1", "arg2", "arg3]`;
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
             logSpy.should.have.been.calledTwice;
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Error with transaction arguments: Unexpected end of JSON input');
@@ -782,16 +721,7 @@ describe('SubmitTransactionCommand', () => {
         });
 
         it('should submit a transaction through the transaction view with transient data', async () => {
-            const transactionObject: any = {
-                smartContract: 'myContract',
-                transactionName: 'transaction1',
-                channelName: 'myChannel',
-                args: `["arg1", "arg2", "arg3"]`,
-                namespace: 'my-contract',
-                transientData: '{"key": "value"}',
-                peerTargetNames: []
-            };
-
+            transactionObject.transientData = '{"key": "value"}';
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', { key: Buffer.from('value') }, false, []);
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
@@ -801,16 +731,7 @@ describe('SubmitTransactionCommand', () => {
         });
 
         it('should error when required to give transient data in the transaction view', async () => {
-            const transactionObject: any = {
-                smartContract: 'myContract',
-                transactionName: 'transaction1',
-                channelName: 'myChannel',
-                args: `["arg1", "arg2", "arg3"]`,
-                namespace: 'my-contract',
-                transientData: '{"wrong}',
-                peerTargetNames: []
-            };
-
+            transactionObject.transientData = '{"wrong}';
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
             fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction');
@@ -820,16 +741,7 @@ describe('SubmitTransactionCommand', () => {
         });
 
         it('should error when transient data doesn\'t start with { in the transaction view', async () => {
-            const transactionObject: any = {
-                smartContract: 'myContract',
-                transactionName: 'transaction1',
-                channelName: 'myChannel',
-                args: `["arg1", "arg2", "arg3"]`,
-                namespace: 'my-contract',
-                transientData: '"wrong"}',
-                peerTargetNames: []
-            };
-
+            transactionObject.transientData = '"wrong"}';
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
             fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction');
@@ -839,22 +751,55 @@ describe('SubmitTransactionCommand', () => {
         });
 
         it('should error when transient data doesn\'t end with } in the transaction view', async () => {
-            const transactionObject: any = {
-                smartContract: 'myContract',
-                transactionName: 'transaction1',
-                channelName: 'myChannel',
-                args: `["arg1", "arg2", "arg3"]`,
-                namespace: 'my-contract',
-                transientData: '{"wrong"',
-                peerTargetNames: []
-            };
-
+            transactionObject.transientData = '{"wrong"';
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
             fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction');
             logSpy.should.have.been.calledWith(LogType.ERROR, `Error with transaction transient data: transient data should be in the format {"key": "value"}`);
             reporterStub.should.not.have.been.calledWith('submit transaction');
             dockerLogsOutputSpy.should.not.have.been.called;
+        });
+
+        it('should return the appropriate output when submitted through the transaction view', async () => {
+            const outputObject: any = await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
+            outputObject.transactionName.should.deep.equal('transaction1');
+            outputObject.action.should.deep.equal('submitted');
+            outputObject.args.should.deep.equal(['arg1', 'arg2', 'arg3']);
+            outputObject.transientData.should.deep.equal('');
+            outputObject.result.should.deep.equal('[SUCCESS]');
+            outputObject.output.should.deep.equal('No value returned from transaction1');
+        });
+
+        it('should return the appropriate output when evaluated through the transaction view', async () => {
+            const outputObject: any = await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION, undefined, undefined, undefined, transactionObject);
+            outputObject.transactionName.should.deep.equal('transaction1');
+            outputObject.action.should.deep.equal('evaluated');
+            outputObject.args.should.deep.equal(['arg1', 'arg2', 'arg3']);
+            outputObject.transientData.should.deep.equal('');
+            outputObject.result.should.deep.equal('[SUCCESS]');
+            outputObject.output.should.deep.equal('No value returned from transaction1');
+        });
+
+        it('should return the appropriate output when submitted with transient data through the transaction view', async () => {
+            transactionObject.transientData = '{"key": "value"}';
+            const outputObject: any = await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
+            outputObject.transactionName.should.deep.equal('transaction1');
+            outputObject.action.should.deep.equal('submitted');
+            outputObject.args.should.deep.equal(['arg1', 'arg2', 'arg3']);
+            outputObject.transientData.should.deep.equal('{"key": "value"}');
+            outputObject.result.should.deep.equal('[SUCCESS]');
+            outputObject.output.should.deep.equal('No value returned from transaction1');
+        });
+
+        it('should return the appropriate output when an error occurs when submitted through the transaction view', async () => {
+            fabricClientConnectionMock.submitTransaction.rejects({ message: 'some error' });
+            const outputObject: any = await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
+            outputObject.transactionName.should.deep.equal('transaction1');
+            outputObject.action.should.deep.equal('submitted');
+            outputObject.args.should.deep.equal(['arg1', 'arg2', 'arg3']);
+            outputObject.transientData.should.deep.equal('');
+            outputObject.result.should.deep.equal('[ERROR]');
+            outputObject.output.should.deep.equal('Error submitting transaction: some error');
         });
     });
 });

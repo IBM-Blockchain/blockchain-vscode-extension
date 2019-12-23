@@ -16,6 +16,7 @@
 import * as vscode from 'vscode';
 import { ReactView } from './ReactView';
 import { ExtensionCommands } from '../../ExtensionCommands';
+type IOutputObject = any;
 
 export class TransactionView extends ReactView {
     protected appState: any;
@@ -28,12 +29,12 @@ export class TransactionView extends ReactView {
     async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
         panel.webview.onDidReceiveMessage(async (message: {command: string, data: any}) => {
             if (message.command === 'submit') {
-                const response: string = await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, message.data) as string;
+                const response: IOutputObject = await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, message.data);
                 panel.webview.postMessage({
                     output: response
                 });
             } else if (message.command === 'evaluate') {
-                const response: string = await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION, undefined, undefined, undefined, message.data);
+                const response: IOutputObject = await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION, undefined, undefined, undefined, message.data);
                 panel.webview.postMessage({
                     output: response
                 });

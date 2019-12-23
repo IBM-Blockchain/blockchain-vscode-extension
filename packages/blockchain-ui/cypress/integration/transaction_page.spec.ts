@@ -1,6 +1,7 @@
 /// <reference types="Cypress" />
 import ITransaction from '../../src/interfaces/ITransaction';
 import ISmartContract from '../../src/interfaces/ISmartContract';
+import IOutputObject from '../../src/interfaces/IOutputObject';
 chai.should();
 
 describe('Transaction page', () => {
@@ -21,7 +22,7 @@ describe('Transaction page', () => {
         name: 'transactionTwo',
         parameters: [{
             description: '',
-            name: 'size',
+            name: 'colour',
             schema: {}
         }],
         returns: {
@@ -47,8 +48,25 @@ describe('Transaction page', () => {
         }
     };
 
-    const mockOutput: {output: string} = {
-        output: 'some transaction output'
+    const mockOutput: IOutputObject = {
+        transactionName: 'transactionOne',
+        action: 'submitted',
+        startTime: '1/7/2020, 9:21:34 AM',
+        result: 'SUCCESS',
+        endTime: '1/7/2020, 9:21:35 AM',
+        args: ['penguin'],
+        output: 'No output returned from transactionOne'
+    };
+
+    const moreMockOutput: IOutputObject = {
+        transactionName: 'transactionTwo',
+        action: 'evaluated',
+        startTime: '1/7/2020, 9:22:11 AM',
+        result: 'SUCCESS',
+        endTime: '1/7/2020, 9:22:12 AM',
+        args: ['blue'],
+        transientData: '{"some": "data"}',
+        output: 'No output returned from transactionTwo'
     };
 
     beforeEach(() => {
@@ -63,40 +81,15 @@ describe('Transaction page', () => {
             });
     });
 
-    it('generates appropriate arguments when a transaction is selected', () => {
+    it(`can submit a transaction with the user's input via the submit button`, () => {
         cy.get('#transaction-name-select').select('transactionOne');
-        cy.get('#arguments-text-area')
-            .invoke('val')
-            .then((text: JQuery<HTMLElement>): void => {
-                expect(text).to.equal('[\n  name: ""\n]');
-            });
-    });
-
-    it('replaces generated arguments when a new transaction is selected', () => {
-        cy.get('#transaction-name-select').select('transactionOne');
-        cy.get('#arguments-text-area')
-            .invoke('val')
-            .then((text: JQuery<HTMLElement>): void => {
-                expect(text).to.equal('[\n  name: ""\n]');
-            });
-
-        cy.get('#transaction-name-select').select('transactionTwo');
-        cy.get('#arguments-text-area')
-            .invoke('val')
-            .then((text: JQuery<HTMLElement>): void => {
-                expect(text).to.equal('[\n  size: ""\n]');
-            });
-    });
-
-    it(`can submit a transaction with the user's input`, () => {
-        cy.get('#transaction-name-select').select('transactionOne');
-        cy.get('#arguments-text-area').type('{leftarrow}{leftarrow}{leftarrow}penguin');
+        cy.get('#arguments-text-area').type('["penguin"]');
 
         cy.get('#submit-button').click();
 
         cy.get('@postMessageStub').should('be.calledWith',
             'submit', {
-                args: '[  "penguin"]',
+                args: '["penguin"]',
                 channelName: 'mychannel',
                 evaluate: false,
                 namespace: 'GreenContract',
@@ -106,24 +99,18 @@ describe('Transaction page', () => {
                 transientData: ''
             }
         );
-
-        cy.window().then((window: Window) => {
-            window.postMessage(mockOutput, '*');
-        });
-
-        cy.get('.output-body').contains(mockOutput.output);
     });
 
-    it(`can submit a transaction with transient data`, () => {
+    it(`can submit a transaction with transient data via the submit button`, () => {
         cy.get('#transaction-name-select').select('transactionOne');
-        cy.get('#arguments-text-area').type('{leftarrow}{leftarrow}{leftarrow}penguin');
+        cy.get('#arguments-text-area').type('["penguin"]');
         cy.get('#transient-data-input').type('{"some": "data"}', {parseSpecialCharSequences: false});
 
         cy.get('#submit-button').click();
 
         cy.get('@postMessageStub').should('be.calledWith',
             'submit', {
-                args: '[  "penguin"]',
+                args: '["penguin"]',
                 channelName: 'mychannel',
                 evaluate: false,
                 namespace: 'GreenContract',
@@ -133,23 +120,17 @@ describe('Transaction page', () => {
                 transientData: '{"some": "data"}'
             }
         );
-
-        cy.window().then((window: Window) => {
-            window.postMessage(mockOutput, '*');
-        });
-
-        cy.get('.output-body').contains(mockOutput.output);
     });
 
-    it(`can evaluate a transaction with the user's input`, () => {
+    it(`can evaluate a transaction with the user's input via the evaluate button`, () => {
         cy.get('#transaction-name-select').select('transactionTwo');
-        cy.get('#arguments-text-area').type('{leftarrow}{leftarrow}{leftarrow}big');
+        cy.get('#arguments-text-area').type('["blue"]');
 
         cy.get('#evaluate-button').click();
 
         cy.get('@postMessageStub').should('be.calledWith',
             'evaluate', {
-                args: '[  "big"]',
+                args: '["blue"]',
                 channelName: 'mychannel',
                 evaluate: true,
                 namespace: 'GreenContract',
@@ -159,24 +140,18 @@ describe('Transaction page', () => {
                 transientData: ''
             }
         );
-
-        cy.window().then((window: Window) => {
-            window.postMessage(mockOutput, '*');
-        });
-
-        cy.get('.output-body').contains(mockOutput.output);
     });
 
-    it(`can evaluate a transaction with transient data`, () => {
+    it(`can evaluate a transaction with transient data via the evaluate button`, () => {
         cy.get('#transaction-name-select').select('transactionTwo');
-        cy.get('#arguments-text-area').type('{leftarrow}{leftarrow}{leftarrow}big');
+        cy.get('#arguments-text-area').type('["blue"]');
         cy.get('#transient-data-input').type('{"some": "data"}', {parseSpecialCharSequences: false});
 
         cy.get('#evaluate-button').click();
 
         cy.get('@postMessageStub').should('be.calledWith',
             'evaluate', {
-                args: '[  "big"]',
+                args: '["blue"]',
                 channelName: 'mychannel',
                 evaluate: true,
                 namespace: 'GreenContract',
@@ -186,11 +161,51 @@ describe('Transaction page', () => {
                 transientData: '{"some": "data"}'
             }
         );
+    });
+
+    it('displays received output in the output panel', () => {
+        cy.get('.output-body').contains('No transaction output available. Submit/evaluate to produce an output.');
 
         cy.window().then((window: Window) => {
-            window.postMessage(mockOutput, '*');
+            window.postMessage({
+                output: mockOutput
+            }, '*');
         });
 
-        cy.get('.output-body').contains(mockOutput.output);
+        cy.get('.output-body').should('not.contain', 'No transaction output available. Submit/evaluate to produce an output.');
+        cy.get('.output-body').contains(`${mockOutput.transactionName} ${mockOutput.action} [${mockOutput.startTime}]`);
+        cy.get('.output-body').contains(`Result: ${mockOutput.result} [${mockOutput.endTime}]`);
+        cy.get('.output-body').contains(`Args: [${mockOutput.args}]`);
+        cy.get('.output-body').contains(`${mockOutput.output}`);
     });
+
+    it('appends new output to the existing information in the output panel', () => {
+        cy.get('.output-body').contains('No transaction output available. Submit/evaluate to produce an output.');
+
+        cy.window().then((window: Window) => {
+            window.postMessage({
+                output: mockOutput
+            }, '*');
+        });
+
+        cy.get('.output-body').should('not.contain', 'No transaction output available. Submit/evaluate to produce an output.');
+
+        cy.get('.output-body > :nth-child(1)').contains(`${mockOutput.transactionName} ${mockOutput.action} [${mockOutput.startTime}]`);
+        cy.get('.output-body > :nth-child(1)').contains(`Result: ${mockOutput.result} [${mockOutput.endTime}]`);
+        cy.get('.output-body > :nth-child(1)').contains(`Args: [${mockOutput.args}]`);
+        cy.get('.output-body > :nth-child(1)').contains(`${mockOutput.output}`);
+
+        cy.window().then((window: Window) => {
+            window.postMessage({
+                output: moreMockOutput
+            }, '*');
+        });
+
+        cy.get('.output-body > :nth-child(2)').contains(`${moreMockOutput.transactionName} ${moreMockOutput.action} [${moreMockOutput.startTime}]`);
+        cy.get('.output-body > :nth-child(2)').contains(`Result: ${moreMockOutput.result} [${moreMockOutput.endTime}]`);
+        cy.get('.output-body > :nth-child(2)').contains(`Args: [${moreMockOutput.args}]`);
+        cy.get('.output-body > :nth-child(2)').contains(`${moreMockOutput.output}`);
+
+    });
+
 });

@@ -234,7 +234,7 @@ exports[`TransactionForm component should render the expected snapshot 1`] = `
         className="bx--label"
         htmlFor="arguments-text-area"
       >
-        Arguments*
+        Arguments
       </label>
       <div
         className="bx--text-area__wrapper"

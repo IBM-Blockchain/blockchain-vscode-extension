@@ -23,8 +23,9 @@ import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchain
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { IFabricGatewayConnection, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+type IOutputObject = any;
 
-export async function submitTransaction(evaluate: boolean, treeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string, transactionObject?: any): Promise<void | string> {
+export async function submitTransaction(evaluate: boolean, treeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string, transactionObject?: any): Promise<void | IOutputObject> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     let action: string;
     let actioning: string;
@@ -47,7 +48,9 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
     let peerTargetNames: string[] = [];
     let peerTargetMessage: string = '';
     let connection: IFabricGatewayConnection;
-    let errorMessage: string;
+
+    const outputToView: IOutputObject = {};
+    let errorMessage: string = '';
 
     if (transactionObject) {
         channelName = transactionObject.channelName;
@@ -109,9 +112,8 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
             }
             args = JSON.parse(argsString);
         } catch (error) {
-            errorMessage = `Error with transaction arguments: ${error.message}`;
-            outputAdapter.log(LogType.ERROR, errorMessage);
-            return transactionObject ? errorMessage : undefined;
+            outputAdapter.log(LogType.ERROR, `Error with transaction arguments: ${error.message}`);
+            return;
         }
     }
 
@@ -139,9 +141,8 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
             });
         }
     } catch (error) {
-        errorMessage = `Error with transaction transient data: ${error.message}`;
-        outputAdapter.log(LogType.ERROR, errorMessage);
-        return transactionObject ? errorMessage : undefined;
+        outputAdapter.log(LogType.ERROR, `Error with transaction transient data: ${error.message}`);
+        return;
     }
 
     connection = FabricGatewayConnectionManager.instance().getConnection();
@@ -194,17 +195,28 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
                 outputAdapter.log(LogType.INFO, undefined, `${actioning} transaction ${transactionName} with args ${args} on channel ${channelName}${peerTargetMessage}`);
             }
 
-            const gatewayRegistyrEntry: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
-            if (gatewayRegistyrEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+            const gatewayRegistryEntry: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
+            if (gatewayRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
                 VSCodeBlockchainDockerOutputAdapter.instance().show();
             }
 
             let result: string | undefined;
+            if (transactionObject) {
+                outputToView.transactionName = transactionName;
+                outputToView.args = args;
+                outputToView.transientData = transactionObject.transientData;
+                outputToView.action = actioned;
+                outputToView.startTime = new Date().toLocaleString();
+            }
             if (evaluate) {
                 result = await connection.submitTransaction(smartContract, transactionName, channelName, args, namespace, transientData, true, peerTargetNames);
 
             } else {
                 result = await connection.submitTransaction(smartContract, transactionName, channelName, args, namespace, transientData, false, peerTargetNames);
+            }
+
+            if (transactionObject) {
+                outputToView.endTime = new Date().toLocaleString();
             }
 
             Reporter.instance().sendTelemetryEvent(`${action} transaction`);
@@ -220,9 +232,10 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
             outputAdapter.show(); // Bring the 'Blockchain' output channel into focus.
 
             if (transactionObject) {
-                return message;
+                outputToView.result = '[SUCCESS]';
+                outputToView.output = message;
+                return outputToView;
             }
-
         } catch (error) {
             errorMessage = `Error ${actioning} transaction: ${error.message}`;
             outputAdapter.log(LogType.ERROR, errorMessage);
@@ -234,8 +247,12 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
                 }
             }
             if (transactionObject) {
-                return errorMessage;
+                outputToView.endTime = new Date().toLocaleString();
+                outputToView.result = '[ERROR]';
+                outputToView.output = errorMessage;
+                return outputToView;
             }
         }
+
     });
 }

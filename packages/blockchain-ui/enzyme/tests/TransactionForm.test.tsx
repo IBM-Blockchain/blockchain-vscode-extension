@@ -13,7 +13,6 @@ chai.use(sinonChai);
 
 describe('TransactionForm component', () => {
     let mySandbox: sinon.SinonSandbox;
-    let getTransactionArgumentsSpy: sinon.SinonSpy;
     let postMessageHandlerStub: sinon.SinonStub;
 
     const transactionOne: ITransaction = {
@@ -49,7 +48,6 @@ describe('TransactionForm component', () => {
 
     beforeEach(async () => {
         mySandbox = sinon.createSandbox();
-        getTransactionArgumentsSpy = mySandbox.spy(TransactionForm.prototype, 'generateTransactionArguments');
         postMessageHandlerStub = mySandbox.stub();
     });
 
@@ -64,30 +62,12 @@ describe('TransactionForm component', () => {
         expect(component).toMatchSnapshot();
     });
 
-    it('generates transaction arguments when an option from the transaction select is chosen', async () => {
+    it('updates the currently selected transaction through the transaction select', async () => {
         const component: any = mount(<TransactionForm smartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
-        component.state().transactionArguments.should.equal('');
+        const oldTxnValue: ITransaction | undefined = component.state().activeTransaction; // value will be undefined until a transaction is selected
         component.find('select').at(0).prop('onChange')( { currentTarget: { value: 'transactionOne' } } );
-        getTransactionArgumentsSpy.should.have.been.called;
+        component.state().activeTransaction.should.not.deep.equal(oldTxnValue);
         component.state().activeTransaction.should.deep.equal(transactionOne);
-        component.state().transactionArguments.should.equal('[\n  name: ""\n]');
-    });
-
-    it('does not generate arguments in the event that the chosen transaction doesn\'t have any parameters', async () => {
-        const component: any = mount(<TransactionForm smartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
-        component.state().transactionArguments.should.equal('');
-        component.find('select').at(0).prop('onChange')( { currentTarget: { value: 'transactionTwo' } } );
-        getTransactionArgumentsSpy.should.have.been.called;
-        component.state().activeTransaction.should.deep.equal(transactionTwo);
-        component.state().transactionArguments.should.equal('');
-    });
-
-    it('does not generate arguments in the event that the chosen transaction doesn\'t exist', async () => {
-        const component: any = mount(<TransactionForm smartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
-        component.state().transactionArguments.should.equal('');
-        component.find('select').at(0).prop('onChange')( { currentTarget: { value: 'anotherTransaction' } } );
-        getTransactionArgumentsSpy.should.have.been.called;
-        component.state().transactionArguments.should.equal('');
     });
 
     it('updates when the user types in the textarea', async () => {
@@ -108,7 +88,7 @@ describe('TransactionForm component', () => {
         const component: any = mount(<TransactionForm smartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
         component.setState({
             activeTransaction: transactionOne,
-            transactionArguments: '[\nname: "Green"\n]'
+            transactionArguments: '["Green"]'
         });
         component.find('#submit-button').at(1).simulate('click');
         postMessageHandlerStub.should.have.been.calledOnceWithExactly(
@@ -129,7 +109,7 @@ describe('TransactionForm component', () => {
         const component: any = mount(<TransactionForm smartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
         component.setState({
             activeTransaction: transactionOne,
-            transactionArguments: '[\nname: "Green"\n]'
+            transactionArguments: '["Green"]'
         });
         component.find('#evaluate-button').at(1).simulate('click');
         postMessageHandlerStub.should.have.been.calledOnceWithExactly(
@@ -150,7 +130,7 @@ describe('TransactionForm component', () => {
         const component: any = mount(<TransactionForm smartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
         component.setState({
             activeTransaction: transactionOne,
-            transactionArguments: '[\nname: "Green"\n]',
+            transactionArguments: '["Green"]',
             transientData: '{"some": "data"}'
         });
         component.find('#submit-button').at(1).simulate('click');
@@ -172,7 +152,7 @@ describe('TransactionForm component', () => {
         const component: any = mount(<TransactionForm smartContract={greenContract} postMessageHandler={postMessageHandlerStub}/>);
         component.setState({
             activeTransaction: transactionOne,
-            transactionArguments: '[\nname: "Green"\n]',
+            transactionArguments: '["Green"]',
             transientData: '{"some": "data"}'
         });
         component.find('#evaluate-button').at(1).simulate('click');

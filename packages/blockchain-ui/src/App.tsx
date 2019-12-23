@@ -3,13 +3,14 @@ import './App.scss';
 import { HashRouter as Router, Route, Redirect } from 'react-router-dom';
 import TransactionPage from './components/TransactionPage/TransactionPage';
 import ISmartContract from './interfaces/ISmartContract';
+import IOutputObject from './interfaces/IOutputObject';
 import Utils from './Utils';
 
 interface AppState {
     redirectPath: string;
     gatewayName: string;
     smartContract: ISmartContract;
-    transactionOutput: string;
+    transactionOutput: IOutputObject | undefined;
 }
 
 class App extends React.Component<{}, AppState> {
@@ -26,7 +27,7 @@ class App extends React.Component<{}, AppState> {
                 transactions: [],
                 namespace: ''
             },
-            transactionOutput: ''
+            transactionOutput: undefined
         };
         this.postMessageHandler = this.postMessageHandler.bind(this);
     }

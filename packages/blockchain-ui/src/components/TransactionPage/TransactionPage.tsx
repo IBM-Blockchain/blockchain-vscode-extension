@@ -3,18 +3,19 @@ import './TransactionPage.scss';
 import TransactionForm from '../TransactionForm/TransactionForm';
 import TransactionOutput from '../TransactionOutput/TransactionOutput';
 import ISmartContract from '../../interfaces/ISmartContract';
+import IOutputObject from '../../interfaces/IOutputObject';
 
 interface PageProps {
     gatewayName: string;
     smartContract: ISmartContract;
-    transactionOutput: string;
+    transactionOutput: IOutputObject | undefined;
     postMessageHandler: (command: string, data?: any) => void;
 }
 
 interface PageState {
     gatewayName: string;
     smartContract: ISmartContract;
-    transactionOutput: string;
+    transactionOutput: IOutputObject | undefined;
     postMessageHandler: (command: string, data?: any) => void;
 }
 

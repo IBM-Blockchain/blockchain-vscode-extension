@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TransactionOutput component should render the expected snapshot 1`] = `
+exports[`TransactionOutput component should render the expected snapshot when there is no provided output 1`] = `
 <div
   className="output-panel"
   id="output-panel"
@@ -10,10 +10,70 @@ exports[`TransactionOutput component should render the expected snapshot 1`] = `
   >
     Output for untitled transaction
   </p>
-  <p
+  <div
     className="output-body"
   >
-    some output
+    <p>
+      No transaction output available. Submit/evaluate to produce an output.
+    </p>
+  </div>
+</div>
+`;
+
+exports[`TransactionOutput component should render the expected snapshot when there is output to display 1`] = `
+<div
+  className="output-panel"
+  id="output-panel"
+>
+  <p
+    className="output-title"
+  >
+    Output for untitled transaction
   </p>
+  <div
+    className="output-body"
+  >
+    <div
+      className="output-object"
+    >
+      <p>
+        myTransaction
+         
+        submitted
+         [
+        1/7/2020, 9:21:34 AM
+        ]
+      </p>
+      <p>
+        Result: 
+        SUCCESS
+         [
+        1/7/2020, 9:21:35 AM
+        ]
+      </p>
+      <div
+        className="output-object-io"
+      >
+        <p
+          className="output-io-heading"
+        >
+          Input:
+        </p>
+        <p>
+          Args: [
+          myID
+          ]
+        </p>
+        <p
+          className="output-io-heading"
+        >
+          Output:
+        </p>
+        <p>
+          No output returned from myTransaction
+        </p>
+      </div>
+    </div>
+  </div>
 </div>
 `;

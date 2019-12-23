@@ -27,7 +27,7 @@ class TransactionForm extends Component<CreateFormProps, CreateFormState> {
             transientData: '',
             postMessageHandler: this.props.postMessageHandler
         };
-        this.generateTransactionArguments = this.generateTransactionArguments.bind(this);
+        this.updateActiveTransaction = this.updateActiveTransaction.bind(this);
         this.updateTransactionArguments = this.updateTransactionArguments.bind(this);
         this.updateTransientData = this.updateTransientData.bind(this);
         this.submitTxn = this.submitTxn.bind(this);
@@ -44,28 +44,11 @@ class TransactionForm extends Component<CreateFormProps, CreateFormState> {
         return options;
     }
 
-    generateTransactionArguments(event: React.FormEvent<HTMLSelectElement>): void {
+    updateActiveTransaction(event: React.FormEvent<HTMLSelectElement>): void {
         const transactionArray: Array<ITransaction> = this.state.smartContract.transactions;
         const transaction: ITransaction | undefined = transactionArray.find((txn: ITransaction) => txn.name === event.currentTarget.value);
-        if (transaction !== undefined) {
-            let transactionArguments: string = '';
-            if (transaction.parameters.length) {
-                transactionArguments += '[\n';
-                for (const param of transaction.parameters) {
-                    transactionArguments += (`  ${param.name}: "",\n`);
-                }
-                transactionArguments = transactionArguments.substring(0, transactionArguments.length - 2);
-                transactionArguments += '\n]';
-            }
-
-            this.updateActiveTransaction(transaction, transactionArguments);
-        }
-    }
-
-    updateActiveTransaction(transaction: ITransaction, transactionArguments: string): void {
         this.setState({
-            activeTransaction: transaction,
-            transactionArguments: transactionArguments
+            activeTransaction: transaction
         });
     }
 
@@ -81,25 +64,16 @@ class TransactionForm extends Component<CreateFormProps, CreateFormState> {
         });
     }
 
-    parseArgs(activeTransaction: ITransaction, transactionArguments: string): string {
-        let parsedArguments: string = transactionArguments.replace(/\n/g, '');
-        for (const param of activeTransaction.parameters) {
-            parsedArguments = parsedArguments.replace(`${param.name}: `, '');
-        }
-        return parsedArguments;
-    }
-
     submitTxn(evaluate: boolean): void {
         const activeTransaction: ITransaction = this.state.activeTransaction as ITransaction;
 
         const command: string = evaluate ? 'evaluate' : 'submit';
-        const args: string = this.parseArgs(activeTransaction, this.state.transactionArguments);
 
         const transactionData: any = {
             smartContract: this.state.smartContract.name,
             transactionName: activeTransaction.name,
             channelName: this.state.smartContract.channel,
-            args: args,
+            args: this.state.transactionArguments,
             namespace: this.state.smartContract.namespace,
             transientData: this.state.transientData,
             evaluate: evaluate,
@@ -121,7 +95,7 @@ class TransactionForm extends Component<CreateFormProps, CreateFormState> {
                     </div>
                 </FormGroup>
                 <FormGroup legendText='Transaction name'>
-                    <Select id='transaction-name-select' labelText='Transaction name*' className='select-width' onChange={this.generateTransactionArguments}>
+                    <Select id='transaction-name-select' labelText='Transaction name*' className='select-width' onChange={this.updateActiveTransaction}>
                         {this.populateTransactionSelect()}
                     </Select>
                 </FormGroup>
@@ -132,7 +106,7 @@ class TransactionForm extends Component<CreateFormProps, CreateFormState> {
                     </Select>
                 </FormGroup>
                 <FormGroup legendText='Arguments'>
-                    <TextArea labelText='Arguments*' id='arguments-text-area' onChange={this.updateTransactionArguments} value={this.state.transactionArguments}/>
+                    <TextArea labelText='Arguments' id='arguments-text-area' onChange={this.updateTransactionArguments} value={this.state.transactionArguments}/>
                 </FormGroup>
                 <FormGroup legendText='Transient data'>
                     <TextInput id='transient-data-input' labelText='Transient data (optional) - e.g. {"key": "value"}' hideLabel={false} onChange={this.updateTransientData} value={this.state.transientData}></TextInput>
