@@ -163,6 +163,26 @@ describe('SubmitTransactionCommand', () => {
             reporterStub.should.have.been.calledWith('submit transaction');
         });
 
+        it('should submit the smart contract transaction through the command and get rid of any trailing/leading whitespace', async () => {
+            showInputBoxStub.onFirstCall().resolves('    ["arg1", "arg2", "arg3"]    ');
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
+        });
+
+        it('should evaluate the smart contract transaction through the command and get rid of any trailing/leading whitespace', async () => {
+            showInputBoxStub.onFirstCall().resolves('    ["arg1", "arg2", "arg3"]    ');
+            await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', undefined, true);
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `evaluating transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully evaluated transaction');
+            reporterStub.should.have.been.calledWith('evaluate transaction');
+        });
+
         it('should evaluate the smart contract transaction through the command', async () => {
             await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', undefined, true);
@@ -369,6 +389,17 @@ describe('SubmitTransactionCommand', () => {
 
         it('should submit the smart contract through the command with transient data', async () => {
             showInputBoxStub.onSecondCall().resolves('{ "key" : "value"}');
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', { key: Buffer.from('value') }, false, []);
+            showInputBoxStub.should.have.been.calledTwice;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
+            dockerLogsOutputSpy.should.not.have.been.called;
+        });
+
+        it('should submit the smart contract through the command with transient data even if there is trailing/leading whitespace', async () => {
+            showInputBoxStub.onSecondCall().resolves('    { "key" : "value"}    ');
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', { key: Buffer.from('value') }, false, []);
             showInputBoxStub.should.have.been.calledTwice;
