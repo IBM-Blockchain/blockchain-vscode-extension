@@ -47,7 +47,7 @@ export async function deleteNode(nodeTreeItem: NodeTreeItem): Promise<void> {
 
             environmentRegistryEntry = chosenEnvironment.data;
 
-            const chosenNodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showFabricNodeQuickPick('Choose a node to delete', environmentRegistryEntry.name, [], false, true) as IBlockchainQuickPickItem<FabricNode>[];
+            const chosenNodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showFabricNodeQuickPick('Choose the node(s) you wish to delete', environmentRegistryEntry.name, [], false, true) as IBlockchainQuickPickItem<FabricNode>[];
             if (!chosenNodes || chosenNodes.length === 0) {
                 return;
             }
