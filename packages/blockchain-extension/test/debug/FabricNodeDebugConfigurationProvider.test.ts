@@ -37,16 +37,56 @@ describe('FabricNodeDebugConfigurationProvider', () => {
 
     describe('provideDebugConfigurations', () => {
 
-        it('should provide a debug configuration', async () => {
+        let mySandbox: sinon.SinonSandbox;
+
+        beforeEach(async () => {
+
+            mySandbox = sinon.createSandbox();
+        });
+
+        afterEach(() => {
+            mySandbox.restore();
+        });
+
+        it('should provide a debug configuration for javascript', async () => {
             const provider: FabricNodeDebugConfigurationProvider = new FabricNodeDebugConfigurationProvider();
-            const config: any = await provider.provideDebugConfigurations();
+            const workspaceFolder: vscode.WorkspaceFolder = {
+                name: 'myFolder',
+                index: 1,
+                uri: vscode.Uri.file('myPath')
+            };
+
+            mySandbox.stub(fs, 'readdir').resolves(['myFile.js']);
+
+            const config: any = await provider.provideDebugConfigurations(workspaceFolder);
             config.should.deep.equal([{
                 type: 'fabric:node',
                 request: 'launch',
-                name: 'Launch Smart Contract'
+                name: 'Debug Smart Contract'
             }]);
         });
 
+        it('should provide a debug configuration for typscript', async () => {
+            const provider: FabricNodeDebugConfigurationProvider = new FabricNodeDebugConfigurationProvider();
+            const workspaceFolder: vscode.WorkspaceFolder = {
+                name: 'myFolder',
+                index: 1,
+                uri: vscode.Uri.file('myPath')
+            };
+
+            mySandbox.stub(fs, 'readdir').resolves(['tsconfig.json', 'myFile.ts']);
+
+            const config: any = await provider.provideDebugConfigurations(workspaceFolder);
+            config.should.deep.equal([{
+                type: 'fabric:node',
+                request: 'launch',
+                name: 'Debug Smart Contract',
+                preLaunchTask: 'tsc: build - tsconfig.json',
+                outFiles: [
+                    '${workspaceFolder}/dist/**/*.js'
+                ]
+            }]);
+        });
     });
 
     describe('resolveDebugConfiguration', () => {
