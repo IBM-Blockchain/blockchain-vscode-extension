@@ -160,12 +160,30 @@ stages:
 
           - bash: |
               set -ev
+              export tag=$(git tag --sort=-creatordate | head -n 1)
+              echo "##vso[task.setvariable variable=github_tag] $tag"
+            displayName: Get github tag
+
+          - task: GitHubRelease@1
+            inputs:
+              gitHubConnection: 'github.com_cazfletch'
+              repositoryName: '$(Build.Repository.Name)'
+              action: 'edit'
+              tag: '$(github_tag)'
+              target: '$(Build.SourceVersion)'
+              assetUploadMode: 'replace'
+              isPreRelease: true
+              addChangeLog: false
+              assets: '$(Build.SourcesDirectory)/*.vsix'
+
+          - bash: |
+              set -ev
               npm install vsce
               git checkout package.json
               node ./node_modules/vsce/out/vsce publish -p $(VSCETOKEN) --packagePath ibm-blockchain-platform-*
             displayName: Publish extension
             condition: succeeded()
-            
+
 
           - script: |
               set -ex
@@ -174,7 +192,7 @@ stages:
               cd ./packages/blockchain-extension
               npm run checkReleaseNotes
             displayName: Check release notes
-            condition: succeeded() 
+            condition: succeeded()
 
           - script: |
               set -ex
