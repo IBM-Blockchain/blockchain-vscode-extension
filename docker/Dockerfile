@@ -1,7 +1,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-FROM codercom/code-server:v2
+FROM codercom/code-server:2.1699-vsc1.41.0
 # Revert back to root
 USER root
 # Add essential build dependencies
@@ -34,9 +34,9 @@ RUN mkdir /usr/local/java && \
 ENV PATH /usr/local/java/bin:${PATH}
 # Install Node.js
 RUN mkdir /usr/local/node && \
-    wget -qO node-v10.17.0-linux-x64.tar.xz https://nodejs.org/dist/latest-v10.x/node-v10.17.0-linux-x64.tar.xz && \
-    tar xJvf node-v10.17.0-linux-x64.tar.xz --strip 1 -C /usr/local/node && \
-    rm node-v10.17.0-linux-x64.tar.xz
+    wget -qO node-v10.18.0-linux-x64.tar.xz https://nodejs.org/dist/latest-v10.x/node-v10.18.0-linux-x64.tar.xz && \
+    tar xJvf node-v10.18.0-linux-x64.tar.xz --strip 1 -C /usr/local/node && \
+    rm node-v10.18.0-linux-x64.tar.xz
 ENV PATH /usr/local/node/bin:${PATH}
 # Install other extensions for Visual Studio Code
 RUN code-server --extensions-dir /usr/local/extensions --install-extension ms-vscode.go && \
