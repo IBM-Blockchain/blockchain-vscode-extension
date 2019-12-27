@@ -22,6 +22,7 @@ import { FabricEnvironmentRegistryEntry, FabricNode, LogType } from 'ibm-blockch
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FileSystemUtil } from '../util/FileSystemUtil';
+import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 
 export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false): Promise<boolean> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -129,8 +130,9 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             outputAdapter.log(LogType.WARNING, 'Finished importing nodes but some nodes could not be added');
         }
 
-        if (!fromAddEnvironment && environmentRegistryEntry) {
-            // only do this if we run the command from the tree as need to refresh the tree to do setup
+        const connectedRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+        if (connectedRegistryEntry && connectedRegistryEntry.name === environmentRegistryEntry.name) {
+            // only do this if we run the command if we are connected to the one we are updating
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
         }
 
