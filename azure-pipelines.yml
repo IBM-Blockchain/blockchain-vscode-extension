@@ -182,7 +182,7 @@ stages:
               git checkout package.json
               node ./node_modules/vsce/out/vsce publish -p $(VSCETOKEN) --packagePath ibm-blockchain-platform-*
             displayName: Publish extension
-            condition: succeeded()
+            condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v1'))
 
 
           - script: |
@@ -218,7 +218,14 @@ stages:
 
           - script: |
               set -ex
-              git -c http.extraheader="Authorization: Basic $(GITHUB_BASIC_AUTH)" push $(Build.Repository.Uri) HEAD:master -f
+
+              if [[ $(Build.SourceBranchName) == v1* ]]; then
+                export branch_name=master
+              else
+                export branch_name=v2
+              fi
+
+              git -c http.extraheader="Authorization: Basic $(GITHUB_BASIC_AUTH)" push $(Build.Repository.Uri) HEAD:$branch_name -f
             displayName: Push commit to GitHub
             condition: succeeded()
 
