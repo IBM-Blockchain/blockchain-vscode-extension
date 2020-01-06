@@ -38,6 +38,7 @@ export async function addEnvironment(): Promise<void> {
     try {
         outputAdapter.log(LogType.INFO, undefined, 'Add environment');
         let certificatePath: vscode.Uri;
+        const separator: string = process.platform === 'win32' ? '\\' : '/';
 
         const createMethod: string = await UserInputUtil.showQuickPick('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]) as string;
 
@@ -147,7 +148,6 @@ export async function addEnvironment(): Promise<void> {
         if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS && certificatePath) {
             try {
                 const environment: FabricEnvironment = new FabricEnvironment(fabricEnvironmentEntry.name);
-                const separator: string = process.platform === 'win32' ? '\\' : '/';
                 const caCertificateCopy: string = path.join(path.resolve(environment.getPath()), certificatePath.fsPath.split(separator).pop());
                 await fs.copy(certificatePath.fsPath, caCertificateCopy, {overwrite: true});
             } catch (error) {
@@ -172,18 +172,21 @@ export async function addEnvironment(): Promise<void> {
             let addedAllNodes: boolean;
 
             if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS) {
-                addedAllNodes = await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, fabricEnvironmentEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            addedAllNodes = await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, fabricEnvironmentEntry, true, createMethod);
             } else {
-                addedAllNodes = await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, fabricEnvironmentEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
+            addedAllNodes = await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, fabricEnvironmentEntry, true, createMethod);
             }
-
             if (addedAllNodes === undefined) {
                 await fabricEnvironmentRegistry.delete(fabricEnvironmentEntry.name);
                 return;
-            }
-
-            if (addedAllNodes) {
+        } else if (addedAllNodes) {
+            const environment: FabricEnvironment = new FabricEnvironment(fabricEnvironmentEntry.name);
+            const nodes: FabricNode[] = await environment.getNodes();
+            if (nodes.length === 0) {
+                outputAdapter.log(LogType.SUCCESS, `Successfully added a new environment. No available nodes included in current filters, click ${fabricEnvironmentEntry.name} to edit filters`);
+            } else {
                 outputAdapter.log(LogType.SUCCESS, 'Successfully added a new environment');
+            }
             } else {
                 outputAdapter.log(LogType.WARNING, 'Added a new environment, but some nodes could not be added');
             }
