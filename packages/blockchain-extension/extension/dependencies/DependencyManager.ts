@@ -250,13 +250,19 @@ export class DependencyManager {
                 dependencies.openssl = { name: 'OpenSSL', required: true, version: undefined, url: 'http://slproweb.com/products/Win32OpenSSL.html', requiredVersion: Dependencies.OPENSSL_REQUIRED, requiredLabel: 'for Node 8.x and Node 10.x respectively' };
                 dependencies.buildTools = { name: 'C++ Build Tools', required: true, version: undefined, url: 'https://github.com/felixrieseberg/windows-build-tools#windows-build-tools', requiredVersion: undefined, requiredLabel: undefined };
                 try {
-                    const opensslResult: string = await CommandUtil.sendCommand('openssl version -v'); // Format: OpenSSL 1.0.2k  26 Jan 2017
-                    if (this.isCommandFound(opensslResult)) {
-                        const opensslMatchedVersion: string = opensslResult.match(/OpenSSL (\S*)/)[1]; // Format: 1.0.2k
-                        const opensslVersionCoerced: semver.SemVer = semver.coerce(opensslMatchedVersion); // Format: X.Y.Z
-                        const opensslVersion: string = semver.valid(opensslVersionCoerced); // Returns version
-                        if (opensslVersion) {
-                            dependencies.openssl.version = opensslVersion;
+                    const win32: boolean = await fs.pathExists(`C:\\OpenSSL-Win32`);
+                    const win64: boolean = await fs.pathExists(`C:\\OpenSSL-Win64`);
+                    if (win32 || win64) {
+                        const arch: string = (win32) ? '32' : '64';
+                        const binPath: string = path.win32.join(`C:\\OpenSSL-Win${arch}`, 'bin', 'openssl.exe');
+                        const opensslResult: string = await CommandUtil.sendCommand(`${binPath} version`); // Format: OpenSSL 1.0.2k  26 Jan 2017
+                        if (this.isCommandFound(opensslResult)) {
+                            const opensslMatchedVersion: string = opensslResult.match(/OpenSSL (\S*)/)[1]; // Format: 1.0.2k
+                            const opensslVersionCoerced: semver.SemVer = semver.coerce(opensslMatchedVersion); // Format: X.Y.Z
+                            const opensslVersion: string = semver.valid(opensslVersionCoerced); // Returns version
+                            if (opensslVersion) {
+                                dependencies.openssl.version = opensslVersion;
+                            }
                         }
                     }
                 } catch (error) {
