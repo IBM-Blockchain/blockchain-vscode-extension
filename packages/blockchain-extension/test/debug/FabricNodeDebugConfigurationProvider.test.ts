@@ -19,15 +19,15 @@ import * as sinonChai from 'sinon-chai';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { FabricNodeDebugConfigurationProvider } from '../../extension/debug/FabricNodeDebugConfigurationProvider';
-import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
-import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { Reporter } from '../../extension/util/Reporter';
-import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { GlobalState } from '../../extension/util/GlobalState';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -95,7 +95,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
         let fabricDebugConfig: FabricNodeDebugConfigurationProvider;
         let workspaceFolder: any;
         let debugConfig: any;
-        let runtimeStub: sinon.SinonStubbedInstance<FabricRuntime>;
+        let runtimeStub: sinon.SinonStubbedInstance<LocalEnvironment>;
         let packageEntry: PackageRegistryEntry;
         let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
         let startDebuggingStub: sinon.SinonStub;
@@ -110,15 +110,17 @@ describe('FabricNodeDebugConfigurationProvider', () => {
 
             fabricDebugConfig = new FabricNodeDebugConfigurationProvider();
 
-            runtimeStub = mySandbox.createStubInstance(FabricRuntime);
+            runtimeStub = mySandbox.createStubInstance(LocalEnvironment);
             runtimeStub.getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
 
-            mySandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(runtimeStub);
+            mySandbox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(runtimeStub);
 
             const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             environmentRegistry.managedRuntime = true;
+            environmentRegistry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+            environmentRegistry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
 
             mySandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
 

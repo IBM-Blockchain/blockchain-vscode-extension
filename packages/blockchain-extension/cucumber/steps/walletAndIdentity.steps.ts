@@ -35,7 +35,7 @@ module.exports = function(): any {
         if (wallet === FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME) {
             wallet = FabricWalletUtil.LOCAL_WALLET;
         }
-        // Might want to detect if 'Local Fabric', then use FabricRuntime/WalletUtil
+        // Might want to detect if 'Local Fabric', then use AnsibleEnvironment/WalletUtil
         this.wallet = wallet;
     });
 

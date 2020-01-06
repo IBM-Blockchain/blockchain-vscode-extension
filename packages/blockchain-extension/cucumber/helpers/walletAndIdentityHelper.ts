@@ -50,6 +50,7 @@ export class WalletAndIdentityHelper {
         if (walletName === FabricWalletUtil.LOCAL_WALLET) {
             walletEntry = new FabricWalletRegistryEntry();
             walletEntry.name = FabricWalletUtil.LOCAL_WALLET;
+            walletEntry.managedWallet = true;
             walletEntry.walletPath = WalletAndIdentityHelper.localWalletPath;
         } else {
             walletEntry = await FabricWalletRegistry.instance().get(walletName);
@@ -78,6 +79,7 @@ export class WalletAndIdentityHelper {
     public async deleteCAIdentity(name: string): Promise<void> {
         const walletEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
         walletEntry.name = FabricWalletUtil.LOCAL_WALLET;
+        walletEntry.managedWallet = true;
         walletEntry.walletPath = WalletAndIdentityHelper.localWalletPath;
 
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();

@@ -20,11 +20,10 @@ import * as sinonChai from 'sinon-chai';
 import { FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { TestUtil } from '../TestUtil';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
 import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
 import { Reporter } from '../../extension/util/Reporter';
 import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
@@ -39,6 +38,7 @@ import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, Fab
 import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
+import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 
 chai.use(sinonChai);
 // tslint:disable-next-line no-var-requires
@@ -56,7 +56,7 @@ describe('GatewayConnectCommand', () => {
 
         let rootPath: string;
         let mockConnection: sinon.SinonStubbedInstance<FabricGatewayConnection>;
-        let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
+        let mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment>;
         let logSpy: sinon.SinonSpy;
         let connectionMultiple: FabricGatewayRegistryEntry;
         let connectionSingle: FabricGatewayRegistryEntry;
@@ -106,7 +106,7 @@ describe('GatewayConnectCommand', () => {
             await FabricGatewayRegistry.instance().add(connectionMultiple);
             await FabricGatewayRegistry.instance().add(connectionAssociated);
 
-            await FabricRuntimeManager.instance().getRuntime().importGateways();
+            await LocalEnvironmentManager.instance().getRuntime().importGateways();
 
             mySandBox.stub(FabricGatewayHelper, 'getConnectionProfilePath').resolves(path.join('myPath'));
 
@@ -136,12 +136,12 @@ describe('GatewayConnectCommand', () => {
             await FabricWalletRegistry.instance().add(connectionAssociatedWallet);
             await FabricWalletRegistry.instance().add(emptyWallet);
 
-            mockRuntime = mySandBox.createStubInstance(FabricRuntime);
+            mockRuntime = mySandBox.createStubInstance(LocalEnvironment);
             mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(true);
             mockRuntime.start.resolves();
-            mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+            mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             walletGenerator = await FabricWalletGenerator.instance();

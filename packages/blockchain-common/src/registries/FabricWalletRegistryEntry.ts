@@ -18,6 +18,7 @@ import { RegistryEntry } from './RegistryEntry';
 export class FabricWalletRegistryEntry extends RegistryEntry {
 
     public walletPath: string;
+    // For ManagedAnsibleEnvironments and LocalEnvironments
     public managedWallet?: boolean;
 
     constructor(fields?: FabricWalletRegistryEntry) {

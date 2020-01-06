@@ -17,7 +17,7 @@ import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayR
 import * as chai from 'chai';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { TestUtil } from '../TestUtil';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 chai.should();
@@ -28,7 +28,7 @@ describe('FabricGatewayRegistry', () => {
 
     before(async () => {
         await TestUtil.setupTests();
-        await FabricRuntimeManager.instance().getRuntime().create();
+        await LocalEnvironmentManager.instance().getRuntime().create();
     });
 
     beforeEach(async () => {
@@ -47,7 +47,7 @@ describe('FabricGatewayRegistry', () => {
 
         await registry.getAll().should.eventually.deep.equal([]);
 
-        await FabricRuntimeManager.instance().getRuntime().importGateways();
+        await LocalEnvironmentManager.instance().getRuntime().importGateways();
 
         const localFabricEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
 
@@ -63,7 +63,7 @@ describe('FabricGatewayRegistry', () => {
 
         await registry.getAll().should.eventually.deep.equal([]);
 
-        await FabricRuntimeManager.instance().getRuntime().importGateways();
+        await LocalEnvironmentManager.instance().getRuntime().importGateways();
         await registry.add(gatewayOne);
         await registry.getAll(false).should.eventually.deep.equal([gatewayOne]);
     });
