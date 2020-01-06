@@ -2026,6 +2026,23 @@ describe('UserInputUtil', () => {
             });
         });
 
+        it('should show all nodes if type not specified', async () => {
+            quickPickStub.resolves({ data: nodes[0] });
+            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Gimme a node', FabricRuntimeUtil.LOCAL_FABRIC, [] ) as IBlockchainQuickPickItem<FabricNode>;
+            node.data.should.equal(nodes[0]);
+            quickPickStub.should.have.been.calledOnceWithExactly([
+                { label: 'peer0.org1.example.com', data: nodes[0] },
+                { label: 'ca.org1.example.com', data: nodes[1] },
+                { label: 'orderer.example.com', data: nodes[2] },
+                { label: 'orderer1.example.com', data: nodes[3] },
+                { label: 'couchdb', data: nodes[4] }
+            ], {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Gimme a node'
+            });
+        });
+
         it('should allow the user to select a node with associated identity', async () => {
             quickPickStub.resolves({ data: nodes[0] });
             const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Gimme a node', FabricRuntimeUtil.LOCAL_FABRIC, [FabricNodeType.PEER, FabricNodeType.ORDERER], true) as IBlockchainQuickPickItem<FabricNode>;
