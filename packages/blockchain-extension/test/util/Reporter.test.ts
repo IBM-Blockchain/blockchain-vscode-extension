@@ -40,7 +40,7 @@ describe('Reporter Tests', () => {
         const sendSpy: sinon.SinonSpy = mySandBox.stub(reporter['telemetryReporter'], 'sendTelemetryEvent');
         mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
 
-        await reporter.sendTelemetryEvent('testEvent', {test: 'testdata'});
+        reporter.sendTelemetryEvent('testEvent', {test: 'testdata'});
 
         sendSpy.should.have.been.calledWith('testEvent', {test: 'testdata'});
     });
@@ -51,7 +51,7 @@ describe('Reporter Tests', () => {
         const sendSpy: sinon.SinonSpy = mySandBox.stub(reporter['telemetryReporter'], 'sendTelemetryEvent');
         mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: false});
 
-        await reporter.sendTelemetryEvent('testEvent', {test: 'testdata'});
+        reporter.sendTelemetryEvent('testEvent', {test: 'testdata'});
 
         sendSpy.should.not.have.been.called;
     });

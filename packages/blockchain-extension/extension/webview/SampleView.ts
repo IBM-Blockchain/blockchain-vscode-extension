@@ -263,7 +263,6 @@ export class SampleView extends View {
                 if (_language.type === language) {
                     samplePath = _language.remote.path;
                     branch = _language.remote.branch;
-                    language = language;
                     workspaceLabel = _language.workspaceLabel;
                     onOpen = _language.onOpen;
                     return true;
@@ -278,7 +277,6 @@ export class SampleView extends View {
             const download: any = this.getApplication(sample, fileName, language);
             samplePath = download.remote.path;
             branch = download.remote.branch;
-            language = download.language;
             workspaceLabel = download.workspaceLabel;
             onOpen = download.onOpen;
         } else {

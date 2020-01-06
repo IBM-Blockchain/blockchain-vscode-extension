@@ -219,7 +219,7 @@ describe('FabricEnvironmentConnection', () => {
                 'Org2MSP'
             );
             node.ssl_target_name_override = 'peer0.org2.example.com';
-            await connection.disconnect();
+            connection.disconnect();
             await connection.connect([node]);
             const peerNames: string[] = Array.from(connection['peers'].keys());
             const peerValues: Client.Peer[] = Array.from(connection['peers'].values());
@@ -266,7 +266,7 @@ describe('FabricEnvironmentConnection', () => {
                 'myCluster'
             );
             node.ssl_target_name_override = 'orderer2.example.com';
-            await connection.disconnect();
+            connection.disconnect();
             await connection.connect([node]);
             const ordererNames: string[] = Array.from(connection['orderers'].keys());
             const ordererValues: Client.Orderer[] = Array.from(connection['orderers'].values());

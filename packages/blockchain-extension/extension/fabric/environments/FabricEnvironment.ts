@@ -17,8 +17,7 @@ import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
 import { EventEmitter } from 'events';
 import { SettingConfigurations } from '../../../configurations';
-import { FabricNode, FabricNodeType, FileConfigurations } from 'ibm-blockchain-platform-common';
-import { FileSystemUtil } from '../../util/FileSystemUtil';
+import { FabricNode, FabricNodeType, FileConfigurations, FileSystemUtil } from 'ibm-blockchain-platform-common';
 
 export class FabricEnvironment extends EventEmitter {
 
@@ -114,8 +113,8 @@ export class FabricEnvironment extends EventEmitter {
             return [];
         }
         let nodePaths: string[] = await fs.readdir(nodesPath);
+        nodePaths.sort();
         nodePaths = nodePaths
-            .sort()
             .filter((nodePath: string) => !nodePath.startsWith('.'))
             .map((nodePath: string) => path.resolve(nodesPath, nodePath));
         const nodes: FabricNode[] = [];

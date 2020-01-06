@@ -97,7 +97,7 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
         }
 
         if (!chosenWallet.data) {
-            walletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET, false) as FabricWalletRegistryEntry;
+            walletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET, false);
             if (!walletRegistryEntry) {
                 return;
             }

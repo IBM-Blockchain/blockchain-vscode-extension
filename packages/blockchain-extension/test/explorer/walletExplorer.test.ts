@@ -139,7 +139,7 @@ describe('walletExplorer', () => {
 
         getIdentitiesStub.onCall(2).resolves([]);
 
-        const wallets: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<BlockchainTreeItem>;
+        const wallets: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
         wallets.length.should.equal(3);
         wallets[0].label.should.equal(FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME);
         wallets[1].label.should.equal(blueWalletEntry.name);
@@ -174,7 +174,7 @@ describe('walletExplorer', () => {
 
     it('should say that there are no wallets', async () => {
         await FabricWalletRegistry.instance().clear();
-        const wallets: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<BlockchainTreeItem>;
+        const wallets: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
         wallets.length.should.equal(1);
         wallets[0].label.should.equal(`No wallets found`);
     });
@@ -217,7 +217,7 @@ describe('walletExplorer', () => {
     it('should handle errors when populating the BlockchainWalletExplorer view', async () => {
         getIdentityNamesStub.rejects({ message: 'something bad has happened' });
 
-        await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
+        await blockchainWalletExplorerProvider.getChildren();
         logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Error displaying Fabric Wallets: something bad has happened', 'Error displaying Fabric Wallets: something bad has happened');
     });
 

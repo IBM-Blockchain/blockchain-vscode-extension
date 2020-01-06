@@ -50,8 +50,9 @@ describe('packageSmartContract', () => {
             if (createWrongPlace) {
                 folders[2].uri = vscode.Uri.file(wrongGolangPath);
                 projectDir = path.join(testWorkspace, packageName);
+            } else {
+                projectDir = path.join(testWorkspace, 'src', packageName);
             }
-            projectDir = path.join(testWorkspace, 'src', packageName);
         } else {
             const replaceRegex: RegExp = /@.*?\//;
             if (replaceRegex.test(packageName)) {

@@ -19,10 +19,9 @@ import { UserInputUtil } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from 'ibm-blockchain-platform-common';
+import { LogType, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { SettingConfigurations } from '../../configurations';
-import { FileSystemUtil } from '../util/FileSystemUtil';
 
 /**
  * Main function which calls the methods and refreshes the blockchain explorer box each time that it runs successfully.
