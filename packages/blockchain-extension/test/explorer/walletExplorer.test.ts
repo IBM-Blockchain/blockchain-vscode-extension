@@ -29,7 +29,7 @@ import { FabricWalletGeneratorFactory } from '../../extension/fabric/FabricWalle
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { AdminIdentityTreeItem } from '../../extension/explorer/model/AdminIdentityTreeItem';
 import { FabricCertificate, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, IFabricWallet, LogType } from 'ibm-blockchain-platform-common';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 chai.use(sinonChai);
@@ -48,7 +48,7 @@ describe('walletExplorer', () => {
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-        await FabricRuntimeManager.instance().getRuntime().create();
+        await LocalEnvironmentManager.instance().getRuntime().create();
     });
 
     beforeEach(async () => {
@@ -68,7 +68,7 @@ describe('walletExplorer', () => {
         await FabricWalletRegistry.instance().clear();
 
         // add local fabric back in
-        await FabricRuntimeManager.instance().getRuntime().importWalletsAndIdentities();
+        await LocalEnvironmentManager.instance().getRuntime().importWalletsAndIdentities();
         await FabricWalletRegistry.instance().add(blueWalletEntry);
         await FabricWalletRegistry.instance().add(greenWalletEntry);
 
@@ -181,7 +181,7 @@ describe('walletExplorer', () => {
 
     it('should handle no identities in the local wallet', async () => {
         await FabricWalletRegistry.instance().clear();
-        await FabricRuntimeManager.instance().getRuntime().importWalletsAndIdentities();
+        await LocalEnvironmentManager.instance().getRuntime().importWalletsAndIdentities();
         getIdentityNamesStub.onCall(0).resolves([]);
         const wallets: Array<LocalWalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<LocalWalletTreeItem>;
 
@@ -204,7 +204,7 @@ describe('walletExplorer', () => {
 
         await FabricWalletRegistry.instance().clear();
 
-        await FabricRuntimeManager.instance().getRuntime().importWalletsAndIdentities();
+        await LocalEnvironmentManager.instance().getRuntime().importWalletsAndIdentities();
         await FabricWalletRegistry.instance().add(blueWalletEntry);
         await FabricWalletRegistry.instance().add(greenWalletEntry);
 
@@ -230,7 +230,7 @@ describe('walletExplorer', () => {
 
         await FabricWalletRegistry.instance().clear();
 
-        await FabricRuntimeManager.instance().getRuntime().importWalletsAndIdentities();
+        await LocalEnvironmentManager.instance().getRuntime().importWalletsAndIdentities();
         await FabricWalletRegistry.instance().add(blueWalletEntry);
         await FabricWalletRegistry.instance().add(greenWalletEntry);
         await FabricWalletRegistry.instance().add(purpleWallet);

@@ -14,9 +14,8 @@
 
 import * as vscode from 'vscode';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { TestUtil } from '../TestUtil';
 import * as chai from 'chai';
@@ -24,8 +23,14 @@ import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
-import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
+import { ManagedAnsibleEnvironment } from '../../extension/fabric/environments/ManagedAnsibleEnvironment';
+import { UserInputUtil, IBlockchainQuickPickItem } from '../../extension/commands/UserInputUtil';
+import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
+import { RuntimeTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
+import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
+import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -33,14 +38,16 @@ describe('stopFabricRuntime', () => {
 
     const sandbox: sinon.SinonSandbox = sinon.createSandbox();
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
-    const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-    let runtime: FabricRuntime;
-    let gatewayRegistyEntry: FabricGatewayRegistryEntry;
-    let getRegistryEntryStub: sinon.SinonStub;
+    const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
+    let getGatewayRegistryEntryStub: sinon.SinonStub;
+    let getEnvironmentRegistryEntryStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
     let stopStub: sinon.SinonStub;
     let executeCommandSpy: sinon.SinonSpy;
 
+    let showFabricEnvironmentQuickPickBoxStub: sinon.SinonStub;
+    let getEnvironmentStub: sinon.SinonStub;
+    let localRegistryEntry: FabricEnvironmentRegistryEntry;
     before(async () => {
         await TestUtil.setupTests(sandbox);
     });
@@ -49,16 +56,24 @@ describe('stopFabricRuntime', () => {
         await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
         await runtimeManager.initialize();
-        runtime = runtimeManager.getRuntime();
 
-        gatewayRegistyEntry = new FabricGatewayRegistryEntry();
-        gatewayRegistyEntry.name = 'myGateway';
+        const localGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
 
-        getRegistryEntryStub = sandbox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistyEntry);
+        getGatewayRegistryEntryStub = sandbox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry');
+        getGatewayRegistryEntryStub.returns(localGateway);
+
+        getEnvironmentRegistryEntryStub = sandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry');
+
+        const localEnvironment: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+        getEnvironmentRegistryEntryStub.returns(localEnvironment);
 
         logSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-        stopStub = sandbox.stub(runtime, 'stop').resolves();
         executeCommandSpy = sandbox.spy(vscode.commands, 'executeCommand');
+
+        localRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+        showFabricEnvironmentQuickPickBoxStub = sandbox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox');
+        showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, data: localRegistryEntry});
+        getEnvironmentStub = sandbox.stub(EnvironmentFactory, 'getEnvironment');
     });
 
     afterEach(async () => {
@@ -66,46 +81,200 @@ describe('stopFabricRuntime', () => {
         await connectionRegistry.clear();
     });
 
-    it('should stop a Fabric runtime and refresh the view', async () => {
-        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
+    it('should stop a Fabric environment from the tree', async () => {
+        getEnvironmentStub.callThrough();
+        const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        stopStub = sandbox.stub(environment, 'stop').resolves();
+        const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+        const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainEnvironmentExplorerProvider,
+            environment.getName(),
+            localRegistryEntry,
+            {
+                command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                title: '',
+                arguments: [localRegistryEntry]
+            }
+        );
+
+        getEnvironmentStub.returns(environment);
+        getGatewayRegistryEntryStub.returns(undefined);
+        getEnvironmentRegistryEntryStub.returns(undefined);
+
+        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC, treeItem);
 
         stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-        executeCommandSpy.getCall(1).should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'stopFabricRuntime');
     });
 
     it('should stop a Fabric runtime, disconnect from gateway and refresh the view', async () => {
-        gatewayRegistyEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
-        getRegistryEntryStub.returns(gatewayRegistyEntry);
+        getEnvironmentStub.callThrough();
+        const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        stopStub = sandbox.stub(environment, 'stop').resolves();
+        const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+        const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainEnvironmentExplorerProvider,
+            environment.getName(),
+            localRegistryEntry,
+            {
+                command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                title: '',
+                arguments: [localRegistryEntry]
+            }
+        );
 
-        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
+        getEnvironmentStub.returns(environment);
+        getEnvironmentRegistryEntryStub.returns(undefined);
+
+        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC, treeItem);
+
         stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'stopFabricRuntime');
     });
 
     it('should stop a Fabric runtime, disconnect from environment and refresh the view', async () => {
-        const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
-        environmentRegistryEntry.name = FabricRuntimeUtil.name;
-        environmentRegistryEntry.managedRuntime = true;
-        sandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistryEntry);
+        getEnvironmentStub.callThrough();
+        const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        stopStub = sandbox.stub(environment, 'stop').resolves();
+        const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+        const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainEnvironmentExplorerProvider,
+            environment.getName(),
+            localRegistryEntry,
+            {
+                command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                title: '',
+                arguments: [localRegistryEntry]
+            }
+        );
 
-        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
+        getEnvironmentStub.returns(environment);
+        getGatewayRegistryEntryStub.returns(undefined);
+
+        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC, treeItem);
+
         stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'stopFabricRuntime');
     });
 
     it('should display an error if stopping Fabric Runtime fails', async () => {
         const error: Error = new Error('what the fabric has happened');
-        stopStub.rejects(error);
+
+        getEnvironmentStub.callThrough();
+        const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        stopStub = sandbox.stub(environment, 'stop').throws(error);
+        const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+        const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainEnvironmentExplorerProvider,
+            environment.getName(),
+            localRegistryEntry,
+            {
+                command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                title: '',
+                arguments: [localRegistryEntry]
+            }
+        );
+
+        getEnvironmentStub.returns(environment);
+        getGatewayRegistryEntryStub.returns(undefined);
+        getEnvironmentRegistryEntryStub.returns(undefined);
+
+        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC, treeItem);
+
+        stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+
+        logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'stopFabricRuntime');
+        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to stop ${environment.getDisplayName()}: ${error.message}`, `Failed to stop ${environment.getDisplayName()}: ${error.toString()}`);
+    });
+
+    it('should be able to stop the an environment from the command', async () => {
+        showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, data: localRegistryEntry} as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>);
+        getEnvironmentStub.callThrough();
+        const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        stopStub = sandbox.stub(environment, 'stop').resolves();
+        getEnvironmentStub.returns(environment);
+        getGatewayRegistryEntryStub.returns(undefined);
+        getEnvironmentRegistryEntryStub.returns(undefined);
 
         await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
+
+        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to stop', false, true, true, true);
+        getEnvironmentStub.should.have.been.calledWith(localRegistryEntry);
+
         stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-        logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'stopFabricRuntime');
-        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to stop ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}: ${error.message}`, `Failed to stop ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}: ${error.toString()}`);
+
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+
+        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'stopFabricRuntime');
+    });
+
+    it('should be able to cancel choosing an environment to stop', async () => {
+        showFabricEnvironmentQuickPickBoxStub.resolves(undefined);
+
+        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
+
+        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to stop', false, true, true, true);
+        getEnvironmentStub.should.not.have.been.called;
+
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+
+        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'stopFabricRuntime');
+    });
+
+    it(`shouldn't disconnect from the connected gateway if the environment isn't associated`, async () => {
+        const managedAnsibleEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+        managedAnsibleEntry.name = 'managedAnsibleEntry';
+        managedAnsibleEntry.managedRuntime = true;
+        managedAnsibleEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+
+        await FabricEnvironmentRegistry.instance().add(managedAnsibleEntry);
+
+        showFabricEnvironmentQuickPickBoxStub.resolves({label: 'managedAnsibleEntry', data: managedAnsibleEntry});
+        getEnvironmentStub.callThrough();
+
+        const environment: ManagedAnsibleEnvironment = EnvironmentFactory.getEnvironment(managedAnsibleEntry) as ManagedAnsibleEnvironment;
+        stopStub = sandbox.stub(environment, 'stop').resolves();
+        getEnvironmentStub.withArgs(managedAnsibleEntry).returns(environment);
+
+        getEnvironmentRegistryEntryStub.returns(undefined);
+
+        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
+
+        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to stop', false, true, true, true);
+        getEnvironmentStub.should.have.been.calledWith(managedAnsibleEntry);
+
+        stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+
+        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'stopFabricRuntime');
     });
 });

@@ -16,19 +16,19 @@ import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { FabricRuntime } from '../../extension/fabric/FabricRuntime';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
-import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
-import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
+import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { GlobalState } from '../../extension/util/GlobalState';
 import { TestUtil } from '../TestUtil';
 import { SettingConfigurations } from '../../configurations';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -64,14 +64,14 @@ describe('FabricDebugConfigurationProvider', () => {
     before(async () => {
         mySandbox = sinon.createSandbox();
         await TestUtil.setupTests(mySandbox);
-        await FabricRuntimeManager.instance().getRuntime().create();
+        await LocalEnvironmentManager.instance().getRuntime().create();
     });
 
     describe('resolveDebugConfiguration', () => {
         let fabricDebugConfig: TestFabricDebugConfigurationProvider;
         let workspaceFolder: any;
         let debugConfig: any;
-        let runtimeStub: sinon.SinonStubbedInstance<FabricRuntime>;
+        let runtimeStub: sinon.SinonStubbedInstance<LocalEnvironment>;
         let commandStub: sinon.SinonStub;
         let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
         let getConnectionStub: sinon.SinonStub;
@@ -87,14 +87,15 @@ describe('FabricDebugConfigurationProvider', () => {
 
             fabricDebugConfig = new TestFabricDebugConfigurationProvider();
 
-            runtimeStub = mySandbox.createStubInstance(FabricRuntime);
+            runtimeStub = mySandbox.createStubInstance(LocalEnvironment);
             runtimeStub.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
+            runtimeStub.getDisplayName.returns(FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME);
             runtimeStub.getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
             runtimeStub.killChaincode.resolves();
             runtimeStub.getGateways.resolves([{name: 'myGateway', path: 'myPath'}]);
 
-            mySandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(runtimeStub);
+            mySandbox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(runtimeStub);
 
             workspaceFolder = {
                 name: 'myFolder',
@@ -119,6 +120,8 @@ describe('FabricDebugConfigurationProvider', () => {
             environmentRegistry = new FabricEnvironmentRegistryEntry();
             environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             environmentRegistry.managedRuntime = true;
+            environmentRegistry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+            environmentRegistry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
 
             getEnvironmentRegistryStub = mySandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
 

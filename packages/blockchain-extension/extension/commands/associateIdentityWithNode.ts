@@ -15,11 +15,11 @@
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import {  FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType } from 'ibm-blockchain-platform-common';
-import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricCertificateAuthorityFactory } from '../fabric/FabricCertificateAuthorityFactory';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
+import { FabricEnvironment } from '../fabric/environments/FabricEnvironment';
 
 export async function associateIdentityWithNode(replace: boolean = false, environmentRegistryEntry: FabricEnvironmentRegistryEntry, node: FabricNode): Promise<any> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();

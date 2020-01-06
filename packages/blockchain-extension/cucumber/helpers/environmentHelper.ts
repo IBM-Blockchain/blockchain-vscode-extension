@@ -25,9 +25,9 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
+import { FabricEnvironment } from '../../extension/fabric/environments/FabricEnvironment';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -119,6 +119,8 @@ export class EnvironmentHelper {
             registryEntry = new FabricEnvironmentRegistryEntry();
             registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             registryEntry.managedRuntime = true;
+            registryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+            registryEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
         } else {
             registryEntry = await FabricEnvironmentRegistry.instance().get(environment);
         }

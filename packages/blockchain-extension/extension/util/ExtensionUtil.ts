@@ -68,7 +68,7 @@ import { BlockchainWalletExplorerProvider } from '../explorer/walletExplorer';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { HomeView } from '../webview/HomeView';
@@ -79,18 +79,16 @@ import { Reporter } from './Reporter';
 import { PreReqView } from '../webview/PreReqView';
 import { BlockchainEnvironmentExplorerProvider } from '../explorer/environmentExplorer';
 import { gatewayConnect } from '../commands/gatewayConnectCommand';
-import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { addEnvironment } from '../commands/addEnvironmentCommand';
 import { FabricEnvironmentTreeItem } from '../explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { deleteEnvironment } from '../commands/deleteEnvironmentCommand';
 import { associateIdentityWithNode } from '../commands/associateIdentityWithNode';
 import { fabricEnvironmentConnect } from '../commands/environmentConnectCommand';
-import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { DependencyManager } from '../dependencies/DependencyManager';
 import { GlobalState, ExtensionData } from './GlobalState';
 import { TemporaryCommandRegistry } from '../dependencies/TemporaryCommandRegistry';
 import { version as currentExtensionVersion, dependencies } from '../../package.json';
-import { FabricRuntime } from '../fabric/FabricRuntime';
 import { UserInputUtil } from '../commands/UserInputUtil';
 import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, FileRegistry, LogType } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
@@ -100,6 +98,8 @@ import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { RepositoryRegistryEntry } from '../registries/RepositoryRegistryEntry';
 import { RepositoryRegistry } from '../registries/RepositoryRegistry';
 import { openTransactionView } from '../commands/openTransactionViewCommand';
+import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
+import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -152,7 +152,7 @@ export class ExtensionUtil {
 
     // Migrate user setting configurations
     public static async migrateSettingConfigurations(): Promise<any> {
-        // No need to handle migrating 'fabric.runtime' to the new configuration as this is handled in FabricRuntimeManager
+        // No need to handle migrating 'fabric.runtime' to the new configuration as this is handled in LocalEnvironmentManager
 
         // Migrate Fabric gateways
         const oldGateways: any = vscode.workspace.getConfiguration().get('fabric.gateways');
@@ -281,10 +281,10 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, (workspace?: vscode.WorkspaceFolder, overrideName?: string, overrideVersion?: string) => packageSmartContract(workspace, overrideName, overrideVersion)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_PACKAGES, () => blockchainPackageExplorerProvider.refresh()));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_ENVIRONMENTS, (element: BlockchainTreeItem) => blockchainEnvironmentExplorerProvider.refresh(element)));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.START_FABRIC, () => startFabricRuntime()));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.STOP_FABRIC, () => stopFabricRuntime()));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.RESTART_FABRIC, () => restartFabricRuntime()));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEARDOWN_FABRIC, (treeItem: RuntimeTreeItem, force: boolean = false) => teardownFabricRuntime(treeItem, force)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.START_FABRIC, (environmentRegistryEntry?: FabricEnvironmentRegistryEntry) => startFabricRuntime(environmentRegistryEntry)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.STOP_FABRIC, (runtimeTreeItem?: RuntimeTreeItem) => stopFabricRuntime(runtimeTreeItem)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.RESTART_FABRIC, (runtimeTreeItem?: RuntimeTreeItem) => restartFabricRuntime(runtimeTreeItem)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEARDOWN_FABRIC, (runtimeTreeItem?: RuntimeTreeItem, force: boolean = false) => teardownFabricRuntime(runtimeTreeItem, force)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_NEW_TERMINAL, (nodeItem: NodeTreeItem) => openNewTerminal(nodeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, (gatewayItem: GatewayTreeItem, isConnected?: boolean) => exportConnectionProfile(gatewayItem, isConnected)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE_CONNECTED, (gatewayItem: GatewayTreeItem, isConnected: boolean = true) => exportConnectionProfile(gatewayItem, isConnected)));
@@ -378,7 +378,7 @@ export class ExtensionUtil {
                 const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
                 const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
-                const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+                const runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
 
                 let isGenerated: boolean;
 
@@ -395,7 +395,7 @@ export class ExtensionUtil {
                         // If Local Fabric is running, warn the user that it will be torndown
                         let isRunning: boolean = false;
                         if (runtime) {
-                            isRunning = await FabricRuntimeManager.instance().getRuntime().isRunning();
+                            isRunning = await LocalEnvironmentManager.instance().getRuntime().isRunning();
                         }
                         if (isRunning || isGenerated) {
                             const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`Toggling this feature will remove the world state and ledger data for the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime. Do you want to continue?`);
@@ -444,7 +444,7 @@ export class ExtensionUtil {
 
                         if (!isGenerated && dependenciesInstalled) {
                             outputAdapter.log(LogType.INFO, undefined, 'Initializing local runtime manager');
-                            await FabricRuntimeManager.instance().initialize();
+                            await LocalEnvironmentManager.instance().initialize();
                         }
                         await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', true);
                     } catch (error) {
@@ -496,10 +496,10 @@ export class ExtensionUtil {
     public static async setupLocalRuntime(version: string): Promise<void> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         outputAdapter.log(LogType.INFO, undefined, 'Migrating local runtime manager');
-        await FabricRuntimeManager.instance().migrate(version);
+        await LocalEnvironmentManager.instance().migrate(version);
 
         outputAdapter.log(LogType.INFO, undefined, 'Initializing local runtime manager');
-        await FabricRuntimeManager.instance().initialize();
+        await LocalEnvironmentManager.instance().initialize();
     }
 
     public static async setupCommands(): Promise<void> {
@@ -572,7 +572,7 @@ export class ExtensionUtil {
         if (generatorVersion !== extensionData.generatorVersion) {
             // If the latest generator version is not equal to the previous used version
 
-            const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+            const runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
             let generated: boolean = false;
             if (runtime) {
                 generated = await runtime.isGenerated();

@@ -22,7 +22,7 @@ import { Reporter } from '../../extension/util/Reporter';
 import { NodeTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, EnvironmentType } from 'ibm-blockchain-platform-common';
 chai.should();
 
 class TestNodeTreeItem extends NodeTreeItem {
@@ -52,6 +52,8 @@ describe('openNewTerminal', () => {
         const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         fabricEnvironmentRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
         fabricEnvironmentRegistryEntry.managedRuntime = true;
+        fabricEnvironmentRegistryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+        fabricEnvironmentRegistryEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
 
         const tooltip: string = `Name: ${node.name} \n MSPID: ${node.msp_id} \n Associated Identity: \n ${node.identity}`;
         nodeItem = new TestNodeTreeItem(provider, node.name, tooltip, fabricEnvironmentRegistryEntry, node);
