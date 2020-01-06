@@ -187,7 +187,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                     // Ask user to chose which nodes to add to the environemnt.
                     let chosenNodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesQuickPickBox('Which nodes would you like to import?', filteredData, true) as IBlockchainQuickPickItem<FabricNode>[];
                     if (!chosenNodes || chosenNodes.length === 0) {
-                        return;
+                    return true;
                     } else if (!Array.isArray(chosenNodes)) {
                         chosenNodes = [chosenNodes];
                     }
