@@ -899,7 +899,7 @@ export class UserInputUtil {
         const environment: FabricEnvironment = new FabricEnvironment(environmentName);
         let nodes: FabricNode[] = await environment.getNodes(showUnassociatedNodes);
 
-        if (nodeTypefilter.length > 1) {
+        if (nodeTypefilter.length > 0) {
             nodes = nodes.filter((node: FabricNode) => nodeTypefilter.indexOf(node.type) !== -1);
         }
 
