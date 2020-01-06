@@ -1043,12 +1043,23 @@ export class UserInputUtil {
         });
     }
 
-    public static async showNodesQuickPickBox(prompt: string, nodes: FabricNode[], canPickMany: boolean): Promise<Array<IBlockchainQuickPickItem<FabricNode>> | IBlockchainQuickPickItem<FabricNode> | undefined> {
+    public static async showNodesQuickPickBox(prompt: string, nodes: FabricNode[], canPickMany: boolean, nonHiddenNodes?: FabricNode[]): Promise<Array<IBlockchainQuickPickItem<FabricNode>> | IBlockchainQuickPickItem<FabricNode> | undefined> {
         if (nodes.length === 0) {
             throw new Error('Error when importing nodes, no nodes found to choose from.');
         }
 
         const quickPickItems: IBlockchainQuickPickItem<FabricNode>[] = UserInputUtil.selectNodesOneOrdererPerCluster(nodes);
+
+        if (nonHiddenNodes) {
+            quickPickItems.map((quickPickItem: IBlockchainQuickPickItem<FabricNode>) => {
+                nonHiddenNodes.forEach((node: FabricNode) => {
+                    if (node.api_url === quickPickItem.data.api_url) {
+                        quickPickItem.picked = true;
+                    }
+                    return quickPickItem;
+                });
+            });
+        }
 
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
