@@ -28,6 +28,7 @@ import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvir
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { UserInputUtil} from '../../extension/commands/UserInputUtil';
 import { ModuleUtil } from '../../extension/util/ModuleUtil';
+import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -54,6 +55,7 @@ describe('AddEnvironmentCommand', () => {
     let setPasswordStub: sinon.SinonStub;
     let getCoreNodeModuleStub: sinon.SinonStub;
     let deleteEnvironmentSpy: sinon.SinonSpy;
+    let getNodesStub: sinon.SinonStub;
     let url: string;
     let key: string;
     let secret: string;
@@ -96,6 +98,8 @@ describe('AddEnvironmentCommand', () => {
             executeCommandStub.withArgs(ExtensionCommands.REFRESH_WALLETS).resolves();
             sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
             deleteEnvironmentSpy = mySandBox.spy(FabricEnvironmentRegistry.instance(), 'delete');
+            getNodesStub = mySandBox.stub(FabricEnvironment.prototype, 'getNodes');
+            getNodesStub.resolves([{nodeOneData: {}}, {nodeTwoData: {}}]);
 
             // Ops tools requirements
             browseStub = mySandBox.stub(UserInputUtil, 'browse');
@@ -129,6 +133,7 @@ describe('AddEnvironmentCommand', () => {
         it('should test an Ops Tools environment can be added', async () => {
             chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
+
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
             const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
@@ -560,17 +565,18 @@ describe('AddEnvironmentCommand', () => {
 
         });
 
-        it('should handle user not choosing any nodes from a new Ops Tool instance', async () => {
+        it('should create environment without nodes if user does not choose any nodes from a new Ops Tool instance', async () => {
             chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
-            executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).resolves(true);
+            getNodesStub.onFirstCall().resolves([]);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
             fsCopyStub.should.have.been.calledOnce;
-            deleteEnvironmentSpy.should.have.been.called;
+            deleteEnvironmentSpy.should.have.not.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
-            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment. No available nodes included in current filters, click myOpsToolsEnvironment to edit filters');
         });
 
     });
