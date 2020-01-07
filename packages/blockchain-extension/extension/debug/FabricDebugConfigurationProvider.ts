@@ -19,7 +19,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, IFabricGatewayConnection, FabricGatewayRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { URL } from 'url';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../configurations';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { UserInputUtil, IBlockchainQuickPickItem } from '../commands/UserInputUtil';

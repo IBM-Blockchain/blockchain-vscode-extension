@@ -20,7 +20,7 @@ import { UserInputUtil } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../configurations';
 
 export async function importSmartContractPackageCommand(): Promise<void> {
 
@@ -41,7 +41,7 @@ export async function importSmartContractPackageCommand(): Promise<void> {
     }
 
     try {
-        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const extDir: string = SettingConfigurations.getExtensionDir();
         const pkgDir: string = path.join(extDir, 'packages');
         let resolvedPkgDir: string = FileSystemUtil.getDirPath(pkgDir);
         await fs.ensureDir(resolvedPkgDir);

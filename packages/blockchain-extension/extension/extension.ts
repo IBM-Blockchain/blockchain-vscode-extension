@@ -26,7 +26,7 @@ import { DependencyManager } from './dependencies/DependencyManager';
 import { TemporaryCommandRegistry } from './dependencies/TemporaryCommandRegistry';
 import { ExtensionCommands } from '../ExtensionCommands';
 import { version as currentExtensionVersion } from '../package.json';
-import { SettingConfigurations } from '../configurations';
+import { SettingConfigurations } from './configurations';
 import { UserInputUtil } from './commands/UserInputUtil';
 import { GlobalState, ExtensionData } from './util/GlobalState';
 import { FabricWalletRegistry, FabricEnvironmentRegistry, LogType, FabricGatewayRegistry, FileSystemUtil } from 'ibm-blockchain-platform-common';
@@ -60,7 +60,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         deletedOneOrgLocalFabric: originalExtensionData.deletedOneOrgLocalFabric
     };
 
-    let extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+    let extDir: string = SettingConfigurations.getExtensionDir();
     extDir = FileSystemUtil.getDirPath(extDir);
     FabricWalletRegistry.instance().setRegistryPath(extDir);
     FabricGatewayRegistry.instance().setRegistryPath(extDir);

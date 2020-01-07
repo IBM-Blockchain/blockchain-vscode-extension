@@ -33,7 +33,7 @@ describe('packageSmartContract', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     const rootPath: string = path.dirname(__dirname);
     const extDir: string = TestUtil.EXTENSION_TEST_DIR;
-    const fileDest: string = path.join(extDir, 'packages');
+    const fileDest: string = path.join(extDir, 'v2', 'packages');
     const testWorkspace: string = path.join(rootPath, '..', '..', 'test', 'data', 'testWorkspace');
     const javascriptPath: string = path.join(testWorkspace, 'javascriptProject');
     const typescriptPath: string = path.join(testWorkspace, 'typescriptProject');
@@ -748,7 +748,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'javascriptProject@0.0.1.cds')}`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'v2', 'packages', 'javascriptProject@0.0.1.cds')}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
@@ -780,7 +780,7 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'myProject@0.0.3.cds')}`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'v2', 'packages', 'myProject@0.0.3.cds')}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
@@ -809,7 +809,7 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'myProject@0.0.3.cds')}`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'v2', 'packages', 'myProject@0.0.3.cds')}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
@@ -931,7 +931,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_PACKAGES);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'javascriptProject@0.0.1.cds')}`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'v2', 'packages', 'javascriptProject@0.0.1.cds')}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);

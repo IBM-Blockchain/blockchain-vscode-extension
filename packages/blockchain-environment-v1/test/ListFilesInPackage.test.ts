@@ -25,7 +25,7 @@ chai.use(chaiAsPromised);
 
 describe('ListFilesInPackage', () => {
     let sandbox: sinon.SinonSandbox;
-    const PACKAGE_TEST_DIR: string = path.join(__dirname, '..', '..', 'blockchain-extension', 'test', 'data', 'packageDir', 'packages');
+    const PACKAGE_TEST_DIR: string = path.join(__dirname, 'data', 'packages');
     const PACKAGE_PATH: string = path.join(PACKAGE_TEST_DIR, 'vscode-pkg-3@1.2.3.cds');
     let expectedFileNames: string[];
     let readFileStub: sinon.SinonStub;

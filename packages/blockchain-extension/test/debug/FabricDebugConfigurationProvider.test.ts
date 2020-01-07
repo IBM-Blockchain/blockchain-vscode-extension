@@ -24,7 +24,7 @@ import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, Log
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { TestUtil } from '../TestUtil';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../../extension/configurations';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';

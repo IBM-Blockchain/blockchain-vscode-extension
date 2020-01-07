@@ -25,7 +25,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { ModuleUtil } from '../util/ModuleUtil';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../../extension/configurations';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
 

@@ -22,6 +22,7 @@ import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { UserInputUtilHelper } from './userInputUtilHelper';
 import { SmartContractHelper } from './smartContractHelper';
 import { SampleView } from '../../extension/webview/SampleView';
+import { FileConfigurations} from 'ibm-blockchain-platform-common';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -45,7 +46,7 @@ export class SampleHelper {
     }
 
     public async cloneSample(repositoryName: string, sampleName: string): Promise<SampleView> {
-        const repositoryPath: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'repositories', repositoryName);
+        const repositoryPath: string = path.join(this.userInputUtilHelper.cucumberDir, 'tmp', FileConfigurations.REPOSITORIES, repositoryName);
         this.userInputUtilHelper.showSaveDialogStub.withArgs({defaultUri: sinon.match.any,
             saveLabel: 'Clone Repository'}).resolves(vscode.Uri.file(repositoryPath));
         const sampleView: SampleView = new SampleView(null, repositoryName, sampleName);

@@ -17,4 +17,5 @@ export class FileConfigurations {
     static readonly FABRIC_GATEWAYS: string = 'gateways';
     static readonly FABRIC_ENVIRONMENTS: string = 'environments';
     static readonly REPOSITORIES: string = 'repositories';
+    static readonly PACKAGES: string = 'packages';
 }

@@ -26,7 +26,7 @@ import { LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { Reporter } from '../../extension/util/Reporter';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../../extension/configurations';
 
 chai.use(sinonChai);
 
@@ -69,7 +69,7 @@ describe('importSmartContractPackageCommand', () => {
     it('should import a package', async () => {
         await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
 
-        const endPackage: string = path.join(TEST_PACKAGE_DIRECTORY, 'packages', 'test.cds');
+        const endPackage: string = path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages', 'test.cds');
         copyStub.should.have.been.calledWith(srcPackage, endPackage);
         logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
         logSpy.secondCall.should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported smart contract package', 'Successfully imported smart contract package test.cds');
@@ -92,7 +92,7 @@ describe('importSmartContractPackageCommand', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
 
-        const endPackage: string = path.join(TEST_PACKAGE_DIRECTORY, 'packages', 'test.cds');
+        const endPackage: string = path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages', 'test.cds');
         copyStub.should.have.been.calledWith(srcPackage, endPackage);
         logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
         logSpy.secondCall.should.have.been.calledWith(LogType.ERROR, `Failed to import smart contract package: ${error.message}`, `Failed to import smart contract package: ${error.toString()}`);

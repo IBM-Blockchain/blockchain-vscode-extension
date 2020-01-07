@@ -12,8 +12,7 @@
  * limitations under the License.
 */
 'use strict';
-import * as vscode from 'vscode';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../configurations';
 import { FileConfigurations, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import * as path from 'path';
 
@@ -21,7 +20,7 @@ export class FabricWalletHelper {
     static readonly LOCAL_WALLET_DISPLAY_NAME: string = 'Local Fabric Wallet';
 
     public static getWalletPath(walletName: string): string {
-        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const extDir: string = SettingConfigurations.getExtensionDir();
         const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
         return path.join(homeExtDir, FileConfigurations.FABRIC_WALLETS, walletName);
     }
