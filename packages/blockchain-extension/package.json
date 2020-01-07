@@ -324,6 +324,11 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "environmentExplorer.hideNodeEntry",
+                "title": "Hide Node",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "environmentExplorer.connectEntry",
                 "title": "Connect to a Fabric Environment",
                 "category": "IBM Blockchain Platform"
@@ -675,15 +680,11 @@
                 },
                 {
                     "command": "environmentExplorer.deleteNodeEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item && !blockchain-runtime-connected && !blockchain-ansible-connected"
+                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item || viewItem == blockchain-runtime-certificate-authority-item || viewItem == blockchain-runtime-orderer-item && !blockchain-runtime-connected && !blockchain-opstool-connected && !blockchain-ansible-connected"
                 },
                 {
-                    "command": "environmentExplorer.deleteNodeEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item && !blockchain-runtime-connected && !blockchain-ansible-connected"
-                },
-                {
-                    "command": "environmentExplorer.deleteNodeEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item && !blockchain-runtime-connected && !blockchain-ansible-connected"
+                    "command": "environmentExplorer.hideNodeEntry",
+                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item || viewItem == blockchain-runtime-certificate-authority-item || viewItem == blockchain-runtime-orderer-item && !blockchain-runtime-connected && blockchain-opstool-connected && !blockchain-ansible-connected"
                 },
                 {
                     "command": "environmentExplorer.installSmartContractEntry",
