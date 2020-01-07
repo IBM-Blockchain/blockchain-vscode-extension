@@ -74,6 +74,11 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
         const connection: IFabricEnvironmentConnection = FabricConnectionFactory.createFabricEnvironmentConnection(fabricEnvironmentRegistryEntry.name);
 
         const nodes: FabricNode[] = await fabricEnvironment.getNodes();
+
+        if (nodes.length === 0) {
+            throw new Error('No nodes available');
+        }
+
         await connection.connect(nodes);
 
         try {
@@ -98,7 +103,7 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
         const isIBMer: boolean = ExtensionUtil.checkIfIBMer();
         Reporter.instance().sendTelemetryEvent('fabricEnvironmentConnectCommand', { environmentData: environmentData, connectEnvironmentIBM: isIBMer + '' });
     } catch (error) {
-        outputAdapter.log(LogType.ERROR, error.message, error.toString());
+        outputAdapter.log(LogType.ERROR, `Cannot connect to environment: ${error.message}`, `Cannot connect to environment: ${error.toString()}`);
         return;
     }
 }
