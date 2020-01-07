@@ -1,27 +1,27 @@
 import React, { Component } from 'react';
-import './TransactionCreateForm.scss';
+import './TransactionForm.scss';
 import { Button, Form, FormGroup, TextInput, Select, SelectItem, Checkbox, TextArea } from 'carbon-components-react';
 import ITransaction from '../../interfaces/ITransaction';
 import ISmartContract from '../../interfaces/ISmartContract';
 
 interface CreateFormProps {
-    activeSmartContract: ISmartContract;
+    smartContract: ISmartContract;
     postMessageHandler: (command: string, data?: any) => void;
 }
 
 interface CreateFormState {
-    activeSmartContract: ISmartContract;
+    smartContract: ISmartContract;
     postMessageHandler: (command: string, data?: any) => void;
     activeTransaction: ITransaction | undefined;
     transactionArguments: string;
     transientData: string;
 }
 
-class TransactionCreateForm extends Component<CreateFormProps, CreateFormState> {
+class TransactionForm extends Component<CreateFormProps, CreateFormState> {
     constructor(props: Readonly<CreateFormProps>) {
         super(props);
         this.state = {
-            activeSmartContract: this.props.activeSmartContract,
+            smartContract: this.props.smartContract,
             activeTransaction: undefined,
             transactionArguments: '',
             transientData: '',
@@ -37,7 +37,7 @@ class TransactionCreateForm extends Component<CreateFormProps, CreateFormState> 
         const options: Array<JSX.Element> = [];
         options.push(<SelectItem disabled={false} hidden={true} text='Select the transaction name' value='placeholder-item'/>);
 
-        for (const txn of this.state.activeSmartContract.transactions) {
+        for (const txn of this.state.smartContract.transactions) {
             options.push(<SelectItem disabled={false} hidden={false} text={txn.name} value={txn.name}/>);
         }
 
@@ -45,7 +45,7 @@ class TransactionCreateForm extends Component<CreateFormProps, CreateFormState> 
     }
 
     generateTransactionArguments(event: React.FormEvent<HTMLSelectElement>): void {
-        const transactionArray: Array<ITransaction> = this.state.activeSmartContract.transactions;
+        const transactionArray: Array<ITransaction> = this.state.smartContract.transactions;
         const transaction: ITransaction | undefined = transactionArray.find((txn: ITransaction) => txn.name === event.currentTarget.value);
         if (transaction !== undefined) {
             let transactionArguments: string = '';
@@ -96,11 +96,11 @@ class TransactionCreateForm extends Component<CreateFormProps, CreateFormState> 
         const args: string = this.parseArgs(activeTransaction, this.state.transactionArguments);
 
         const transactionData: any = {
-            smartContract: this.state.activeSmartContract.name,
+            smartContract: this.state.smartContract.name,
             transactionName: activeTransaction.name,
-            channelName: this.state.activeSmartContract.channel,
+            channelName: this.state.smartContract.channel,
             args: args,
-            namespace: this.state.activeSmartContract.namespace,
+            namespace: this.state.smartContract.namespace,
             transientData: this.state.transientData,
             evaluate: evaluate,
             peerTargetNames: []
@@ -146,4 +146,4 @@ class TransactionCreateForm extends Component<CreateFormProps, CreateFormState> 
     }
 }
 
-export default TransactionCreateForm;
+export default TransactionForm;

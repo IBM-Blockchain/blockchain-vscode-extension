@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TransactionCreate component should render the expected snapshot 1`] = `
+exports[`TransactionPage component should render the expected snapshot 1`] = `
 <div
   className="page-container bx--grid"
   data-test-id="txn-page"
@@ -16,9 +16,13 @@ exports[`TransactionCreate component should render the expected snapshot 1`] = `
       >
         <span
           className="home-link"
-          onClick={[Function]}
         >
-          Transactions webview home
+          Transacting with: 
+          my gateway
+           &gt; 
+          mychannel
+           &gt; 
+          greenContract@0.0.1
         </span>
         <h2>
           Create a new transaction

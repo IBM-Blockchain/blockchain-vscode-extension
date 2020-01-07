@@ -15,7 +15,6 @@
 // tslint:disable no-unused-expression
 
 import * as vscode from 'vscode';
-import * as path from 'path';
 import * as sinon from 'sinon';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
@@ -70,25 +69,16 @@ describe('TransactionView', () => {
         namespace: 'GreenContract'
     };
 
-    const blueContract: ISmartContract = {
-        name: 'blueContract',
-        version: '0.0.1',
-        channel: 'mychannel',
-        label: 'blueContract@0.0.1',
-        transactions: [transactionOne, transactionTwo],
-        namespace: 'BlueContract'
-    };
-
-    const mockAppState: {smartContracts: Array<ISmartContract>, activeSmartContract: ISmartContract} = {
-        smartContracts: [greenContract, blueContract],
-        activeSmartContract: greenContract
+    const mockAppState: {gatewayName: string, selectedSmartContract: ISmartContract} = {
+        gatewayName: 'my gateway',
+        selectedSmartContract: greenContract
     };
 
     const transactionObject: any = {
         smartContract: 'greenContract',
         transactionName: 'transactionOne',
         channelName: 'mychannel',
-        args: ['arg1', 'arg2', 'arg3'],
+        args: '["arg1", "arg2", "arg3"]',
         namespace: 'GreenContract',
         transientData: undefined,
         peerTargetNames: undefined
@@ -103,6 +93,7 @@ describe('TransactionView', () => {
         executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
         executeCommandStub.callThrough();
         executeCommandStub.withArgs(ExtensionCommands.SUBMIT_TRANSACTION).resolves();
+        executeCommandStub.withArgs(ExtensionCommands.EVALUATE_TRANSACTION).resolves();
 
         createWebviewPanelStub = mySandBox.stub(vscode.window, 'createWebviewPanel');
 
@@ -137,17 +128,16 @@ describe('TransactionView', () => {
         });
     });
 
-    it(`should open the TransactionCreateView when it receives a 'create' message`, async () => {
+    it(`should handle a 'submit' message`, async () => {
         const onDidReceiveMessagePromises: any[] = [];
 
         onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
             createWebviewPanelStub.returns({
-                title: 'Transaction Page',
                 webview: {
-                    postMessage: postMessageStub,
+                    postMessage: mySandBox.stub(),
                     onDidReceiveMessage: async (callback: any): Promise<void> => {
                         await callback({
-                            command: 'create',
+                            command: 'submit',
                             data: transactionObject
                         });
                         resolve();
@@ -156,31 +146,46 @@ describe('TransactionView', () => {
                 reveal: (): void => {
                     return;
                 },
-                dispose: mySandBox.stub(),
                 onDidDispose: mySandBox.stub(),
                 onDidChangeViewState: mySandBox.stub()
             });
         }));
 
-        const transactionView: TransactionView = new TransactionView(context, mockAppState);
-        await transactionView.openView(false);
+        const transactionCreateView: TransactionView = new TransactionView(context, mockAppState);
+        await transactionCreateView.openView(false);
         await Promise.all(onDidReceiveMessagePromises);
 
-        createWebviewPanelStub.should.have.been.calledTwice;
-        createWebviewPanelStub.should.have.been.calledWith(
-            'transactionCreateView',
-            'Create Transaction Page',
-            vscode.ViewColumn.Beside,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                enableCommandUris: true,
-                localResourceRoots: [
-                    vscode.Uri.file(path.join(context.extensionPath, 'resources')),
-                    vscode.Uri.file(path.join(context.extensionPath, 'build'))
-                ]
-            }
-        );
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
+    });
+
+    it(`should handle an 'evaluate' message`, async () => {
+        const onDidReceiveMessagePromises: any[] = [];
+
+        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
+            createWebviewPanelStub.returns({
+                webview: {
+                    postMessage: mySandBox.stub(),
+                    onDidReceiveMessage: async (callback: any): Promise<void> => {
+                        await callback({
+                            command: 'evaluate',
+                            data: transactionObject
+                        });
+                        resolve();
+                    }
+                },
+                reveal: (): void => {
+                    return;
+                },
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
+            });
+        }));
+
+        const transactionCreateView: TransactionView = new TransactionView(context, mockAppState);
+        await transactionCreateView.openView(false);
+        await Promise.all(onDidReceiveMessagePromises);
+
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.EVALUATE_TRANSACTION, undefined, undefined, undefined, transactionObject);
     });
 
     it('should not do anything if it receives an invalid message', async () => {

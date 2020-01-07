@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TransactionCreateForm component should render the expected snapshot 1`] = `
+exports[`TransactionForm component should render the expected snapshot 1`] = `
 <form
   className="bx--form"
   id="create-txn-form"

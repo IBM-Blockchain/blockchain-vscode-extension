@@ -3,7 +3,7 @@ import ITransaction from '../../src/interfaces/ITransaction';
 import ISmartContract from '../../src/interfaces/ISmartContract';
 chai.should();
 
-describe('Transaction create screen', () => {
+describe('Transaction page', () => {
     const transactionOne: ITransaction = {
         name: 'transactionOne',
         parameters: [{
@@ -39,21 +39,11 @@ describe('Transaction create screen', () => {
         namespace: 'GreenContract'
     };
 
-    const blueContract: ISmartContract = {
-        name: 'blueContract',
-        version: '0.0.1',
-        channel: 'mychannel',
-        label: 'blueContract@0.0.1',
-        transactions: [transactionOne, transactionTwo],
-        namespace: 'BlueContract'
-    };
-
-    const mockMessage: {path: string, state: {gatewayName: string, smartContracts: Array<ISmartContract>, activeSmartContract: ISmartContract}} = {
-        path: 'transaction/create',
+    const mockMessage: {path: string, state: {gatewayName: string, smartContract: ISmartContract}} = {
+        path: 'transaction',
         state: {
             gatewayName: 'myGateway',
-            smartContracts: [greenContract, blueContract],
-            activeSmartContract: greenContract
+            smartContract: greenContract
         }
     };
 
@@ -71,11 +61,6 @@ describe('Transaction create screen', () => {
             .then((app: any) => {
                 cy.stub(app, 'postMessageHandler').as('postMessageStub');
             });
-    });
-
-    it('should navigate back to the home screen', () => {
-        cy.get('.home-link').click();
-        cy.get('@postMessageStub').should('be.calledWith', 'home');
     });
 
     it('generates appropriate arguments when a transaction is selected', () => {
