@@ -5,7 +5,7 @@ import './index.scss';
 
 const app: any = ReactDOM.render(
     <App/>,
-    document.getElementById('root') as HTMLElement
+    document.getElementById('root')
 );
 
 // @ts-ignore

@@ -21,8 +21,7 @@ import * as yaml from 'js-yaml';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
 import * as vscode from 'vscode';
 import { SettingConfigurations } from '../../configurations';
-import { FabricNode, FileConfigurations } from 'ibm-blockchain-platform-common';
-import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
+import { FabricNode, FileConfigurations, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { TestUtil } from '../TestUtil';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 

@@ -16,10 +16,9 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { ManagedAnsibleEnvironment } from './ManagedAnsibleEnvironment';
 import { YeomanUtil } from '../../util/YeomanUtil';
-import { FabricRuntimeUtil, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType, FabricWalletUtil, OutputAdapter, FabricWalletRegistryEntry, FabricWalletRegistry, FileConfigurations } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType, FabricWalletUtil, OutputAdapter, FabricWalletRegistryEntry, FabricWalletRegistry, FileConfigurations, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { SettingConfigurations } from '../../../configurations';
 import { FabricRuntimePorts } from '../FabricRuntimePorts';
-import { FileSystemUtil } from '../../util/FileSystemUtil';
 
 export class LocalEnvironment extends ManagedAnsibleEnvironment {
     public ports?: FabricRuntimePorts;

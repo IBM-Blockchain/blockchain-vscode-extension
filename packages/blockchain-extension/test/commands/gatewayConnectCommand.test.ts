@@ -144,7 +144,7 @@ describe('GatewayConnectCommand', () => {
             mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            walletGenerator = await FabricWalletGenerator.instance();
+            walletGenerator = FabricWalletGenerator.instance();
 
             identity = {
                 label: FabricRuntimeUtil.ADMIN_USER,

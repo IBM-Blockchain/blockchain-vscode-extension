@@ -14,10 +14,9 @@
 'use strict';
 import * as vscode from 'vscode';
 import { SettingConfigurations } from '../../configurations';
-import { FabricWalletRegistry, FabricWalletRegistryEntry, FileConfigurations } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistry, FabricWalletRegistryEntry, FileConfigurations, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { FileSystemUtil } from '../util/FileSystemUtil';
 
 export class FabricWalletHelper {
     static readonly LOCAL_WALLET: string = 'local_fabric_wallet';

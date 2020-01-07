@@ -439,10 +439,12 @@ export class UserInputUtil {
             ignoreFocusOut: true,
             matchOnDetail: true
         };
+
+        chaincodeLanguages.sort();
+
         const chaincodeQuickPickItems: Array<LanguageQuickPickItem> =
             chaincodeLanguages
                 .filter((chaincodeLanguage: string) => contractLanguages.indexOf(chaincodeLanguage) === -1)
-                .sort()
                 .map((chaincodeLanguage: string) => {
                     return {
                         label: chaincodeLanguage,
@@ -450,9 +452,11 @@ export class UserInputUtil {
                         type: LanguageType.CHAINCODE
                     };
                 });
+
+        contractLanguages.sort();
+
         const contractQuickPickItems: Array<LanguageQuickPickItem> =
             contractLanguages
-                .sort()
                 .map((contractLanguage: string) => {
                     return {
                         label: contractLanguage,

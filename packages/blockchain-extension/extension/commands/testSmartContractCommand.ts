@@ -136,7 +136,6 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
             languagesToSuffixes['Java'] = 'java';
             testLang = 'Java';
             functionalTestsDirectory = path.join(chosenPackageFolder.uri.fsPath, 'src', 'test', 'java', 'org', 'example');
-            workspaceProjectName = chaincodeName;
         } else {
             // Node smart contract: package.json must exist, chaincode and project names must match.
             const packageJsonFile: string = path.join(chosenPackageFolder.uri.fsPath, 'package.json');

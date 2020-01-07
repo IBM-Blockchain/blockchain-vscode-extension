@@ -20,7 +20,7 @@ import * as path from 'path';
 import { TestUtil } from '../TestUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from 'ibm-blockchain-platform-common';
+import { LogType, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil } from 'ibm-blockchain-platform-common';
 import { BlockchainWalletExplorerProvider } from '../../extension/explorer/walletExplorer';
@@ -28,7 +28,6 @@ import { WalletTreeItem } from '../../extension/explorer/wallets/WalletTreeItem'
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FileSystemUtil } from '../../extension/util/FileSystemUtil';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 
 chai.should();

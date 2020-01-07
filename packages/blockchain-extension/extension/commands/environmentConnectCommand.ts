@@ -61,7 +61,7 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
         const requireSetup: boolean = await fabricEnvironment.requireSetup();
 
         if (requireSetup && !(fabricEnvironment instanceof LocalEnvironment || fabricEnvironment instanceof ManagedAnsibleEnvironment)) {
-            await FabricEnvironmentManager.instance().connect(undefined, fabricEnvironmentRegistryEntry, ConnectedState.SETUP);
+            FabricEnvironmentManager.instance().connect(undefined, fabricEnvironmentRegistryEntry, ConnectedState.SETUP);
             VSCodeBlockchainOutputAdapter.instance().log(LogType.IMPORTANT, 'You must complete setup for this environment to enable install, instantiate and register identity operations on the nodes. Click each node in the list to perform the required setup steps');
             return;
         }

@@ -13,7 +13,6 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import * as path from 'path';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -46,8 +45,6 @@ const should: Chai.Should = chai.should();
 
 // tslint:disable no-unused-expression
 describe('gatewayExplorer', () => {
-
-    const rootPath: string = path.dirname(__dirname);
 
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let logSpy: sinon.SinonSpy;
@@ -170,14 +167,6 @@ describe('gatewayExplorer', () => {
             });
 
             it('should handle error with tree', async () => {
-                const gateways: Array<any> = [];
-
-                const myGateway: any = {
-                    name: 'myGateway',
-                    connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json')
-                };
-
-                gateways.push(myGateway);
 
                 const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
 
@@ -559,7 +548,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 channels.length.should.equal(2);
                 logSpy.should.have.been.calledWith(LogType.ERROR, 'Error getting instantiated smart contracts for channel channelOne some error');
 
-                const channelOne: ChannelTreeItem = channels[0] as ChannelTreeItem;
+                const channelOne: ChannelTreeItem = channels[0];
                 channelOne.tooltip.should.equal('Associated peers: peerOne');
 
                 channelOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
@@ -577,7 +566,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
                 channels.length.should.equal(2);
 
-                const channelOne: ChannelTreeItem = channels[0] as ChannelTreeItem;
+                const channelOne: ChannelTreeItem = channels[0];
                 channelOne.tooltip.should.equal('Associated peers: peerOne');
                 channelOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 channelOne.contextValue.should.equal('blockchain-channel-item');
@@ -643,7 +632,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 instantiatedUnknownChainCodes.length.should.equal(1);
                 await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);
 
-                const channelOne: ChannelTreeItem = channels[0] as ChannelTreeItem;
+                const channelOne: ChannelTreeItem = channels[0];
                 channelOne.tooltip.should.equal('Associated peers: peerOne');
 
                 const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelOne);
@@ -659,7 +648,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 instantiatedChaincodeItemOne.version.should.equal('0.7');
                 instantiatedChaincodeItemOne.contracts.should.deep.equal(['my-contract', 'someOtherContract']);
 
-                const channelTwo: ChannelTreeItem = channels[1] as ChannelTreeItem;
+                const channelTwo: ChannelTreeItem = channels[1];
                 channelTwo.tooltip.should.equal('Associated peers: peerOne, peerTwo');
 
                 instantiatedUnknownChainCodes = await blockchainGatewayExplorerProvider.getChildren(channels[1]) as Array<InstantiatedUnknownTreeItem>;
@@ -709,7 +698,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
 
                 const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
 
-                const channelOne: ChannelTreeItem = channels[0] as ChannelTreeItem;
+                const channelOne: ChannelTreeItem = channels[0];
                 channelOne.tooltip.should.equal('Associated peers: peerOne');
 
                 let instantiatedUnknownChainCodes: Array<InstantiatedUnknownTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelOne) as Array<InstantiatedUnknownTreeItem>;
@@ -734,7 +723,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 contractsOne[1].instantiatedChaincode.channels.length.should.equal(1);
                 contractsOne[1].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
 
-                const channelTwo: ChannelTreeItem = channels[1] as ChannelTreeItem;
+                const channelTwo: ChannelTreeItem = channels[1];
                 channelTwo.tooltip.should.equal('Associated peers: peerOne, peerTwo');
 
                 instantiatedUnknownChainCodes = await blockchainGatewayExplorerProvider.getChildren(channelTwo) as Array<InstantiatedUnknownTreeItem>;
@@ -776,7 +765,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
 
                 const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
 
-                const channelOne: ChannelTreeItem = channels[0] as ChannelTreeItem;
+                const channelOne: ChannelTreeItem = channels[0];
                 channelOne.tooltip.should.equal('Associated peers: peerOne');
 
                 const instantiatedUnknownChainCodes: Array<InstantiatedUnknownTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelOne) as Array<InstantiatedUnknownTreeItem>;
@@ -859,7 +848,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
 
                 const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
 
-                const channelOne: ChannelTreeItem = channels[0] as ChannelTreeItem;
+                const channelOne: ChannelTreeItem = channels[0];
                 channelOne.tooltip.should.equal('Associated peers: peerOne');
 
                 let instantiatedUnknownChainCodes: Array<InstantiatedUnknownTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelOne) as Array<InstantiatedUnknownTreeItem>;
@@ -900,7 +889,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 transactionsOneSomeOtherContract[1].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 transactionsOneSomeOtherContract[1].contractName.should.equal('someOtherContract');
 
-                const channelTwo: ChannelTreeItem = channels[1] as ChannelTreeItem;
+                const channelTwo: ChannelTreeItem = channels[1];
                 channelTwo.tooltip.should.equal('Associated peers: peerOne, peerTwo');
 
                 instantiatedUnknownChainCodes = await blockchainGatewayExplorerProvider.getChildren(channelTwo) as Array<InstantiatedUnknownTreeItem>;

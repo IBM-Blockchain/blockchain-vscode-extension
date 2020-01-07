@@ -347,7 +347,7 @@ describe('FabricGatewayConnection', () => {
             const buffer: Buffer = Buffer.from([]);
             fabricTransactionStub.submit.resolves(buffer);
 
-            const result: string | undefined = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract', undefined, undefined, undefined);
+            const result: string = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract', undefined, undefined, undefined);
             fabricContractStub.createTransaction.should.have.been.calledWith('transaction1');
             fabricTransactionStub.setEndorsingPeers.should.not.have.been.called;
             fabricTransactionStub.setTransient.should.not.have.been.called;

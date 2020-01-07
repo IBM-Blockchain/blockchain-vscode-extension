@@ -386,7 +386,7 @@ describe('FabricConnection', () => {
 
             await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
 
-            const peerNames: Array<string> = await fabricConnection.getAllPeerNames();
+            const peerNames: Array<string> = fabricConnection.getAllPeerNames();
             peerNames.should.deep.equal(['peerOne', 'peerTwo']);
         });
     });
@@ -563,7 +563,7 @@ describe('FabricConnection', () => {
 
     describe('disconnect', () => {
         it('should disconnect from gateway', async () => {
-            await fabricConnection.disconnect();
+            fabricConnection.disconnect();
             fabricGatewayStub.disconnect.should.have.been.called;
         });
     });

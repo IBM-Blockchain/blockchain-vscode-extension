@@ -164,7 +164,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
             return;
         } else if (selectPeers === UserInputUtil.CUSTOM) {
 
-            const peerTargets: Array<IBlockchainQuickPickItem<string>> = await UserInputUtil.showChannelPeersQuickPick(channelPeerInfo) as Array<IBlockchainQuickPickItem<string>>;
+            const peerTargets: Array<IBlockchainQuickPickItem<string>> = await UserInputUtil.showChannelPeersQuickPick(channelPeerInfo);
 
             if (!peerTargets || peerTargets.length === 0) {
                 return;

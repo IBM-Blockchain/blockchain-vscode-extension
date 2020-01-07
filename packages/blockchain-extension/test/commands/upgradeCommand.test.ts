@@ -616,7 +616,7 @@ describe('UpgradeCommand', () => {
                 }
             });
 
-            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT) as PackageRegistryEntry;
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
 
             fabricRuntimeMock.upgradeChaincode.should.not.been.called;
             dockerLogSpy.should.not.have.been.called;
