@@ -102,8 +102,8 @@ export class AnsibleEnvironment extends FabricEnvironment {
             return [];
         }
         let identityPaths: string[] = await fs.readdir(walletPath);
+        identityPaths.sort();
         identityPaths = identityPaths
-            .sort()
             .filter((identityPath: string) => !identityPath.startsWith('.') && identityPath.endsWith('.json'))
             .map((identityPath: string) => path.resolve(this.path, 'wallets', walletName, identityPath));
         const identities: FabricIdentity[] = [];
@@ -124,8 +124,8 @@ export class AnsibleEnvironment extends FabricEnvironment {
             return [];
         }
         let gatewayPaths: string[] = await fs.readdir(gatewaysPath);
+        gatewayPaths.sort();
         gatewayPaths = gatewayPaths
-            .sort()
             .filter((gatewayPath: string) => !gatewayPath.startsWith('.'))
             .map((gatewayPath: string) => path.resolve(gatewaysPath, gatewayPath));
         const gateways: FabricGateway[] = [];

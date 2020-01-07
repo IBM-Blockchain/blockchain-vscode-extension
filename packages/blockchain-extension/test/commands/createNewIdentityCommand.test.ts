@@ -172,7 +172,7 @@ describe('createNewIdentityCommand', () => {
 
     it('should return if cannot make connection', async () => {
         identityName = 'orangeConga';
-        connectionStub.resolves();
+        connectionStub.returns(undefined);
         inputBoxStub.resolves(identityName);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY, certificateAuthorityTreeItem);
 

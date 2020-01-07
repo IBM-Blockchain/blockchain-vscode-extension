@@ -29,10 +29,10 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
     outputAdapter.log(LogType.INFO, undefined, 'installSmartContract');
 
     try {
-        let connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+        let connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
         if (!connection) {
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
-            connection = await FabricEnvironmentManager.instance().getConnection();
+            connection = FabricEnvironmentManager.instance().getConnection();
             if (!connection) {
                 // something went wrong with connecting so return
                 return;
@@ -63,7 +63,7 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
             const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = chosenInstallable.data;
             if (chosenInstallable.description === 'Open Project') {
                 // Project needs packaging, using the given 'open workspace'
-                const _package: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, data.workspace) as PackageRegistryEntry;
+                const _package: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, data.workspace);
                 if (!_package) {
                     return;
                 }

@@ -175,7 +175,8 @@ export class FabricGatewayHelper {
             return profilePath;
 
         } catch (error) {
-            throw error;
+            const newError: Error = new Error(`Unable to copy connection profile: ${error.message}`);
+            throw newError;
         }
     }
 

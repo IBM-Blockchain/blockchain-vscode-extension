@@ -278,7 +278,7 @@ describe('FabricGatewayHelper', () => {
             const error: Error = new Error('Errored for some reason');
             writeFileStub.throws(error);
 
-            await FabricGatewayHelper.copyConnectionProfile(gatewayName, tlsPathLocation).should.be.rejectedWith(error);
+            await FabricGatewayHelper.copyConnectionProfile(gatewayName, tlsPathLocation).should.be.rejectedWith(`Unable to copy connection profile: ${error.message}`);
 
             readFileStub.getCall(0).should.have.been.calledWithExactly(tlsPathLocation, 'utf8');
             readFileStub.getCalls().length.should.equal(4);

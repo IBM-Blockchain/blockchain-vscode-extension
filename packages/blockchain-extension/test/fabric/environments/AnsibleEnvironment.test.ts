@@ -138,11 +138,11 @@ describe('AnsibleEnvironment', () => {
 
         it('should return all of the gateways', async () => {
             const gateways: FabricGateway[] = await environment.getGateways();
-            const sortedGateways: FabricGateway[] = gateways.sort((a: FabricGateway, b: FabricGateway) => {
+            gateways.sort((a: FabricGateway, b: FabricGateway) => {
                 return a.name.localeCompare(b.name);
             });
-            sortedGateways.should.have.lengthOf(3);
-            sortedGateways.should.deep.equal([
+            gateways.should.have.lengthOf(3);
+            gateways.should.deep.equal([
                 {
                     name: 'myGateway',
                     path: path.resolve(environmentPath, 'gateways', 'yofn.json'),

@@ -165,7 +165,7 @@ describe('AddWalletIdentityCommand', () => {
             getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
             enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
 
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             result.should.equal('greenConga');
 
             inputBoxStub.should.have.been.calledTwice;
@@ -209,7 +209,7 @@ describe('AddWalletIdentityCommand', () => {
             getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
             enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
 
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, undefined, 'myMSPID') as string;
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, undefined, 'myMSPID');
             result.should.equal('greyConga');
 
             inputBoxStub.should.have.been.calledOnce;
@@ -249,7 +249,7 @@ describe('AddWalletIdentityCommand', () => {
             getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
             enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
 
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             result.should.equal('greenConga');
 
             inputBoxStub.should.have.been.calledTwice;
@@ -291,7 +291,7 @@ describe('AddWalletIdentityCommand', () => {
             getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
             enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
 
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             result.should.equal('greenConga');
 
             inputBoxStub.should.have.been.calledTwice;
@@ -339,7 +339,7 @@ describe('AddWalletIdentityCommand', () => {
             getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
             enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
 
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
 
             inputBoxStub.should.have.been.calledTwice;
@@ -387,7 +387,7 @@ describe('AddWalletIdentityCommand', () => {
             getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
             enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
 
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             result.should.equal('greenConga');
 
             inputBoxStub.should.have.been.calledTwice;
@@ -407,7 +407,7 @@ describe('AddWalletIdentityCommand', () => {
 
         it('should test adding an identity can be cancelled when choosing a wallet', async () => {
             showWalletsQuickPickStub.resolves();
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
             inputBoxStub.should.not.have.been.called;
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
@@ -423,7 +423,7 @@ describe('AddWalletIdentityCommand', () => {
 
             inputBoxStub.resolves();
 
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
             inputBoxStub.should.have.been.calledOnce;
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
@@ -441,7 +441,7 @@ describe('AddWalletIdentityCommand', () => {
             inputBoxStub.onSecondCall().resolves('myMSPID');
             addIdentityMethodStub.resolves();
 
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
             inputBoxStub.should.have.been.calledTwice;
             addIdentityMethodStub.should.have.been.calledOnce;
@@ -459,7 +459,7 @@ describe('AddWalletIdentityCommand', () => {
             inputBoxStub.onFirstCall().resolves('greenConga');
             inputBoxStub.onSecondCall().resolves();
 
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
             inputBoxStub.should.have.been.calledTwice;
             addIdentityMethodStub.should.not.have.been.called;
@@ -478,7 +478,7 @@ describe('AddWalletIdentityCommand', () => {
             addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
             showGatewayQuickPickBoxStub.resolves();
 
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
             inputBoxStub.should.have.been.calledTwice;
             getEnrollIdSecretStub.should.not.have.been.called;
@@ -502,7 +502,7 @@ describe('AddWalletIdentityCommand', () => {
             });
             getEnrollIdSecretStub.resolves();
 
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
             inputBoxStub.should.have.been.calledTwice;
             fsReadFile.should.not.have.been.called;
@@ -527,7 +527,7 @@ describe('AddWalletIdentityCommand', () => {
             fsReadFile.onFirstCall().resolves('---CERT---');
             fsReadFile.onSecondCall().resolves('---KEY---');
 
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             result.should.equal('blueConga');
             inputBoxStub.should.have.been.calledTwice;
             fsReadFile.should.have.been.calledTwice;
@@ -551,7 +551,7 @@ describe('AddWalletIdentityCommand', () => {
             addIdentityMethodStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
             getCertKeyStub.resolves();
 
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
             fsReadFile.should.not.have.been.called;
             getCertKeyStub.should.have.been.calledOnce;
@@ -571,7 +571,7 @@ describe('AddWalletIdentityCommand', () => {
             const error: Error = new Error('certificate invalid');
             getCertKeyStub.throws(error);
 
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
             fsReadFile.should.not.have.been.called;
             getCertKeyStub.should.have.been.calledOnce;
@@ -612,7 +612,7 @@ describe('AddWalletIdentityCommand', () => {
             const error: Error = new Error('Already exists');
             importIdentityStub.throws(error);
 
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
 
             inputBoxStub.should.have.been.calledTwice;
@@ -647,7 +647,7 @@ describe('AddWalletIdentityCommand', () => {
 
             getEnrollIdSecretStub.resolves();
 
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
             inputBoxStub.should.have.been.calledTwice;
             fsReadFile.should.not.have.been.called;
@@ -669,7 +669,7 @@ describe('AddWalletIdentityCommand', () => {
             browseStub.resolves('myTestPath');
             fsReadFile.resolves('{"name": "purpleConga","cert": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0", "private_key": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0"}');
 
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             result.should.equal('purpleConga');
             inputBoxStub.should.have.been.calledTwice;
             browseStub.should.have.been.calledOnce;
@@ -694,7 +694,7 @@ describe('AddWalletIdentityCommand', () => {
             addIdentityMethodStub.resolves(UserInputUtil.ADD_JSON_ID_OPTION);
             browseStub.resolves();
 
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
             inputBoxStub.should.have.been.calledTwice;
             browseStub.should.have.been.calledOnce;
@@ -716,7 +716,7 @@ describe('AddWalletIdentityCommand', () => {
             browseStub.resolves('myTestPath');
             fsReadFile.resolves('{"name": "purpleConga","certificate": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0", "privateKEy": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0"}');
 
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY) as string;
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
             inputBoxStub.should.have.been.calledTwice;
             browseStub.should.have.been.calledOnce;
@@ -757,7 +757,7 @@ describe('AddWalletIdentityCommand', () => {
                 const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
                 const walletItem: WalletTreeItem = walletItems[2] as WalletTreeItem;
 
-                const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem) as string;
+                const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
                 result.should.equal('greenConga');
                 showWalletsQuickPickStub.should.not.have.been.called;
                 inputBoxStub.should.have.been.calledTwice;
@@ -798,7 +798,7 @@ describe('AddWalletIdentityCommand', () => {
                 const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
                 const walletItem: WalletTreeItem = walletItems[0] as LocalWalletTreeItem;
 
-                const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem) as string;
+                const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
                 result.should.equal('greenConga');
 
                 showWalletsQuickPickStub.should.not.have.been.called;
@@ -844,7 +844,7 @@ describe('AddWalletIdentityCommand', () => {
                 const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
                 const walletItem: WalletTreeItem = walletItems[0] as LocalWalletTreeItem;
 
-                const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem) as string;
+                const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
                 result.should.equal('greenConga');
 
                 showWalletsQuickPickStub.should.not.have.been.called;
@@ -876,7 +876,7 @@ describe('AddWalletIdentityCommand', () => {
                 const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
                 const walletItem: WalletTreeItem = walletItems[0] as LocalWalletTreeItem;
 
-                const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem) as string;
+                const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
                 should.not.exist(result);
                 showWalletsQuickPickStub.should.not.have.been.called;
                 inputBoxStub.should.have.been.calledOnce;
@@ -914,7 +914,7 @@ describe('AddWalletIdentityCommand', () => {
                 getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
                 enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
 
-                const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, emptyWalletRegistryEntry) as string;
+                const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, emptyWalletRegistryEntry);
                 result.should.equal('greenConga');
 
                 showWalletsQuickPickStub.should.not.have.been.called;

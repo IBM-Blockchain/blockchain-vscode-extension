@@ -35,7 +35,7 @@ export async function debugCommandList(commandName?: string): Promise<void> {
     const smartContractName: string = chaincodeContainerName.split(':')[0];
 
     // Determine whether to show Instantiate or Upgrade command
-    const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+    const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
     if (!connection) {
         VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, undefined, 'No connection to a blockchain found');
         return;

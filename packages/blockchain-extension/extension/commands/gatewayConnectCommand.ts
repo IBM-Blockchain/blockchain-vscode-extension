@@ -123,7 +123,7 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
     const connection: IFabricGatewayConnection = FabricConnectionFactory.createFabricGatewayConnection(connectionProfilePath);
 
     try {
-        const timeout: number = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_CLIENT_TIMEOUT) as number;
+        const timeout: number = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_CLIENT_TIMEOUT);
 
         await connection.connect(wallet, identityName, timeout);
         connection.identityName = identityName;

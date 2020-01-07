@@ -15,7 +15,7 @@
 
     .output-body {
         @include carbon--font-face-mono;
-        font-family: 'IBM Plex Mono';
+        font-family: 'IBM Plex Mono', 'IBM Plex Sans', 'IBMPlexSans', Arial, Helvetica, sans-serif;
         font-size: 0.875rem;
         color: inherit;
     }

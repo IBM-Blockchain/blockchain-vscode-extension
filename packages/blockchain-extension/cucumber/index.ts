@@ -146,8 +146,8 @@ export async function run(testsRoot: string, clb: (error: any, failures?: number
 
         await fs.remove(path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'contracts'));
 
-        await fs.ensureFileSync(path.join(__dirname, '..', '..', 'cucumber', 'cucumber-report.json'));
-        await fs.writeFileSync(path.join(__dirname, '..', '..', 'cucumber', 'cucumber-report.json'), jsonResult);
+        fs.ensureFileSync(path.join(__dirname, '..', '..', 'cucumber', 'cucumber-report.json'));
+        fs.writeFileSync(path.join(__dirname, '..', '..', 'cucumber', 'cucumber-report.json'), jsonResult);
 
         await reporter.generate({
             theme: 'bootstrap',
