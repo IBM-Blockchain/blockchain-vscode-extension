@@ -30,6 +30,7 @@ export class ExtensionCommands {
     static readonly ASSOCIATE_IDENTITY_NODE: string = 'environmentExplorer.associateIdentityNodeEntry';
     static readonly REPLACE_ASSOCIATED_IDENTITY: string = 'environmentExplorer.replaceAssociatedIdentityEntry';
     static readonly DELETE_NODE: string = 'environmentExplorer.deleteNodeEntry';
+    static readonly HIDE_NODE: string = 'environmentExplorer.hideNodeEntry';
     static readonly CONNECT_TO_ENVIRONMENT: string = 'environmentExplorer.connectEntry';
     static readonly DISCONNECT_ENVIRONMENT: string = 'environmentExplorer.disconnectEntry';
     static readonly INSTALL_SMART_CONTRACT: string = 'environmentExplorer.installSmartContractEntry';
