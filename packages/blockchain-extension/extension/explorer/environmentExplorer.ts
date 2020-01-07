@@ -123,6 +123,10 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
                 await vscode.commands.executeCommand('setContext', 'blockchain-ansible-connected', true);
             } else {
+                if (environmentRegistryEntry.url) {
+                    await vscode.commands.executeCommand('setContext', 'blockchain-opstool-connected', true);
+                }
+
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
                 await vscode.commands.executeCommand('setContext', 'blockchain-ansible-connected', false);
             }
@@ -130,6 +134,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
             this.tree = await this.createConnectedTree(environmentRegistryEntry);
         } else {
+            await vscode.commands.executeCommand('setContext', 'blockchain-opstool-connected', false);
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
             await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', false);
