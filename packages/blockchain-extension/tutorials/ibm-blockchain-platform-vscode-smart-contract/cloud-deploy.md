@@ -29,9 +29,9 @@ The same smart contract package you deployed to the local runtime in Tutorial 1 
 
 1. In this extension, go the IBM Blockchain Platform view
 
-2. Under `SMART CONTRACTS`, locate your contract (named `demoContract@0.0.1` if you followed tutorial 1) and right-click it. Choose `Export Package` then select a location to save the .cds file.
+2. Under `SMART CONTRACTS`, locate your contract (you could use either `demoContract@0.0.1` or `demoContract@0.0.2` if you followed tutorial 1 - for this tutorial we'll assume you use the original generated contract, v0.0.1) and right-click it. Choose `Export Package` then select a location to save the .cds file.
 
-> Command Palette alternative: `Export Package`
+   > Command Palette alternative: `Export Package`
 
 3. Head to the cloud service's operational tooling console (it's a good idea to keep the ops console open in a browser alongside this VS Code extension - if you're lucky enough to have dual monitors, this is a good time to use them!). First, we will install your smart contract...
    * Click the `Smart contracts` tab.
@@ -105,7 +105,7 @@ Ok, we've got both pieces we needed from the operational tooling console. Now, w
 
 1. In the `IBM Blockchain Platform` view, hover over `FABRIC GATEWAYS` and click the `+` button.
 
-> Command Palette alternative: `Add Gateway`
+   > Command Palette alternative: `Add Gateway`
 
 2. Name your gateway e.g. `ibm_cloud`.
 
@@ -115,7 +115,7 @@ You should see a new gateway named `ibm_cloud` in your gateways list. If you cli
 
 1. Hover over `FABRIC WALLETS` and click the `+`.
 
-> Command Palette alternative: `Add Wallet`
+   > Command Palette alternative: `Add Wallet`
 
 2. Choose `Create a new wallet and add an identity` from the options to create our new wallet.
 
@@ -139,7 +139,7 @@ If you tried clicking the `ibm_cloud` gateway after you added it, you'll recall 
 
 1. Right-click on `ibm_cloud` on the `FABRIC GATEWAYS` list and select `Associate A Wallet`.
 
-> Command Palette alternative: `Associate A Wallet`
+   > Command Palette alternative: `Associate A Wallet`
 
 2. Pick `ibm_cloud_wallet`.
 
@@ -160,7 +160,7 @@ Everything is set! Let's submit a transaction from VS Code and make sure it gets
 
 3. Right-click `myAssetExists` and choose `Evaluate Transaction`. Enter `["001"]` as the key, and hit Enter again confirm the optional transient data. (Don't worry about "transient data", this will be explained in a later tutorial.)
  
-Check the Output. You should see:
+   Check the Output. You should see:
 
    ```
    [5/1/2019 6:35:36 PM] [SUCCESS] Returned value from myAssetExists: false
@@ -171,7 +171,7 @@ Check the Output. You should see:
 
 4. Right-click `createMyAsset`, choose `Submit Transaction` then enter `["001", "hello ibm cloud"]` as the arguments.
 
-> Command Palette alternative: `Submit Transaction`
+   > Command Palette alternative: `Submit Transaction`
 
 5. We can prove that worked by choosing `Evaluate Transaction` on `readMyAsset` and entering `["001"]` as the argument. You should see the following output:
 
