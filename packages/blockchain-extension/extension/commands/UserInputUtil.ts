@@ -23,8 +23,8 @@ import { MetadataUtil } from '../util/MetadataUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { FabricCertificate, FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, IFabricEnvironmentConnection, IFabricGatewayConnection, LogType  } from 'ibm-blockchain-platform-common';
-import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
-import { FabricEnvironment } from '../fabric/FabricEnvironment';
+import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
+import { FabricEnvironment } from '../fabric/environments/FabricEnvironment';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -114,14 +114,14 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(items, quickPickOptions);
     }
 
-    public static async showFabricEnvironmentQuickPickBox(prompt: string, canPickMany: boolean, autoChoose: boolean, showLocalFabric: boolean = false): Promise<Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> | IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
+    public static async showFabricEnvironmentQuickPickBox(prompt: string, canPickMany: boolean, autoChoose: boolean, showLocalFabric: boolean = false, onlyShowManagedEnvironment: boolean = false): Promise<Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> | IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
             canPickMany: canPickMany,
             placeHolder: prompt
         };
 
-        const environments: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(showLocalFabric);
+        const environments: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(showLocalFabric, onlyShowManagedEnvironment);
 
         const environmentsQuickPickItems: Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> = environments.map((environment: FabricEnvironmentRegistryEntry) => {
             let label: string = environment.name;
@@ -174,8 +174,8 @@ export class UserInputUtil {
         }
 
         const gatewaysQuickPickItems: Array<IBlockchainQuickPickItem<FabricGatewayRegistryEntry>> = allGateways.map((gateway: FabricGatewayRegistryEntry) => {
-            const gatewayDispalyName: string = (gateway.name === FabricRuntimeUtil.LOCAL_FABRIC) ? FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME : gateway.name;
-            return { label: gatewayDispalyName, data: gateway };
+            const gatewayDisplayName: string = (gateway.name === FabricRuntimeUtil.LOCAL_FABRIC) ? FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME : gateway.name;
+            return { label: gatewayDisplayName, data: gateway };
         });
 
         return vscode.window.showQuickPick(gatewaysQuickPickItems, quickPickOptions);
@@ -899,7 +899,7 @@ export class UserInputUtil {
         const environment: FabricEnvironment = new FabricEnvironment(environmentName);
         let nodes: FabricNode[] = await environment.getNodes(showUnassociatedNodes);
 
-        if (nodeTypefilter.length > 1) {
+        if (nodeTypefilter.length > 0) {
             nodes = nodes.filter((node: FabricNode) => nodeTypefilter.indexOf(node.type) !== -1);
         }
 

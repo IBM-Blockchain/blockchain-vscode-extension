@@ -19,7 +19,7 @@ import { CertificateAuthorityTreeItem } from '../explorer/runtimeOps/connectedTr
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { UserInputUtil } from './UserInputUtil';
 import { Attribute, FabricNode, IFabricEnvironmentConnection, IFabricWallet, LogType } from 'ibm-blockchain-platform-common';
-import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 
 export async function createNewIdentity(certificateAuthorityTreeItem?: CertificateAuthorityTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();

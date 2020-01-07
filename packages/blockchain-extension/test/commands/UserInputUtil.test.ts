@@ -18,7 +18,7 @@ import { TestUtil } from '../TestUtil';
 import { UserInputUtil, IBlockchainQuickPickItem, LanguageQuickPickItem, LanguageType } from '../../extension/commands/UserInputUtil';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -32,9 +32,9 @@ import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
-import { FabricCertificate, FabricEnvironmentRegistry, FabricRuntimeUtil, FileConfigurations, FabricWalletRegistry, FabricWalletRegistryEntry, FabricNode, FabricNodeType, FabricWalletUtil, FabricEnvironmentRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
-import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
-import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
+import { FabricCertificate, FabricEnvironmentRegistry, FabricRuntimeUtil, FileConfigurations, FabricWalletRegistry, FabricWalletRegistryEntry, FabricNode, FabricNodeType, FabricWalletUtil, FabricEnvironmentRegistryEntry, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
+import { FabricEnvironment } from '../../extension/fabric/environments/FabricEnvironment';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -84,7 +84,7 @@ describe('UserInputUtil', () => {
 
         await FabricEnvironmentRegistry.instance().add(environmentEntryTwo);
 
-        await FabricRuntimeManager.instance().getRuntime().create();
+        await LocalEnvironmentManager.instance().getRuntime().create();
 
         gatewayEntryOne = new FabricGatewayRegistryEntry();
         gatewayEntryOne.name = 'myGatewayA';
@@ -100,7 +100,7 @@ describe('UserInputUtil', () => {
         await gatewayRegistry.add(gatewayEntryTwo);
 
         // add the local gateway back in
-        await FabricRuntimeManager.instance().getRuntime().importGateways();
+        await LocalEnvironmentManager.instance().getRuntime().importGateways();
 
         walletEntryOne = new FabricWalletRegistryEntry({
             name: 'purpleWallet',
@@ -115,7 +115,7 @@ describe('UserInputUtil', () => {
         await walletRegistry.clear();
 
         // add the local fabric wallet back in
-        await FabricRuntimeManager.instance().getRuntime().importWalletsAndIdentities();
+        await LocalEnvironmentManager.instance().getRuntime().importWalletsAndIdentities();
 
         await walletRegistry.add(walletEntryOne);
         await walletRegistry.add(walletEntryTwo);
@@ -188,6 +188,8 @@ describe('UserInputUtil', () => {
             const localFabricEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             localFabricEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             localFabricEntry.managedRuntime = true;
+            localFabricEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+            localFabricEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
 
             quickPickStub.resolves({ label: environmentEntryOne.name, data: environmentEntryOne });
 
@@ -214,10 +216,12 @@ describe('UserInputUtil', () => {
             const localFabricEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             localFabricEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             localFabricEntry.managedRuntime = true;
+            localFabricEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+            localFabricEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
 
             await FabricEnvironmentRegistry.instance().clear();
 
-            await FabricRuntimeManager.instance().getRuntime().create();
+            await LocalEnvironmentManager.instance().getRuntime().create();
 
             const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false, true, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             result.data.name.should.equal(localFabricEntry.name);
@@ -2019,6 +2023,23 @@ describe('UserInputUtil', () => {
                 { label: 'peer0.org1.example.com', data: nodes[0] },
                 { label: 'orderer.example.com', data: nodes[2] },
                 { label: 'orderer1.example.com', data: nodes[3] }
+            ], {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Gimme a node'
+            });
+        });
+
+        it('should show all nodes if type not specified', async () => {
+            quickPickStub.resolves({ data: nodes[0] });
+            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Gimme a node', FabricRuntimeUtil.LOCAL_FABRIC, [] ) as IBlockchainQuickPickItem<FabricNode>;
+            node.data.should.equal(nodes[0]);
+            quickPickStub.should.have.been.calledOnceWithExactly([
+                { label: 'peer0.org1.example.com', data: nodes[0] },
+                { label: 'ca.org1.example.com', data: nodes[1] },
+                { label: 'orderer.example.com', data: nodes[2] },
+                { label: 'orderer1.example.com', data: nodes[3] },
+                { label: 'couchdb', data: nodes[4] }
             ], {
                 ignoreFocusOut: true,
                 canPickMany: false,

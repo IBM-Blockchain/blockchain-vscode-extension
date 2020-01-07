@@ -24,9 +24,9 @@ import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGat
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { FabricRuntimeUtil, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 
 // tslint:disable no-unused-expression
@@ -47,13 +47,13 @@ describe('DebugCommandListCommand', () => {
     before(async () => {
         mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
-        await FabricRuntimeManager.instance().getRuntime().create();
+        await LocalEnvironmentManager.instance().getRuntime().create();
     });
 
     beforeEach(async () => {
 
         await FabricGatewayRegistry.instance().clear();
-        await FabricRuntimeManager.instance().getRuntime().importGateways();
+        await LocalEnvironmentManager.instance().getRuntime().importGateways();
 
         runtimeStub = mySandBox.createStubInstance(FabricEnvironmentConnection);
 

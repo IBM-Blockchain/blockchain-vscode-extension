@@ -56,7 +56,7 @@ export async function openTransactionView(treeItem?: InstantiatedTreeItem): Prom
 
     const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
 
-    const instantiatedChaincodes: Array<{ label: string, channel: string }> = [];
+    let selectedSmartContract: {label: string, channel: string};
 
     let metadataObj: any = {
         contracts: {
@@ -74,25 +74,27 @@ export async function openTransactionView(treeItem?: InstantiatedTreeItem): Prom
             const contractsObject: any = metadataObj.contracts;
             Object.keys(contractsObject).forEach((key: string) => {
                 if (key !== 'org.hyperledger.fabric' && (contractsObject[key].transactions.length > 0)) {
-                    contract = metadataObj.contracts[key];
-                    data = {
-                        name: chaincode.name,
-                        version: chaincode.version,
-                        channel: thisChannelName,
-                        label: chaincode.name + '@' + chaincode.version,
-                        transactions: contract.transactions,
-                        namespace: contract.name
-                    };
-                    instantiatedChaincodes.push(data);
+                    if ((chaincode.name + '@' + chaincode.version) === smartContractLabel) {
+                        contract = metadataObj.contracts[key];
+                        data = {
+                            name: chaincode.name,
+                            version: chaincode.version,
+                            channel: thisChannelName,
+                            label: chaincode.name + '@' + chaincode.version,
+                            transactions: contract.transactions,
+                            namespace: contract.name
+                        };
+                        selectedSmartContract = data;
+                        return;
+                    }
                 }
             });
         }
     }
 
-    const appState: {} = {
+    const appState: {gatewayName: string, smartContract: {label: string, channel: string}} = {
         gatewayName,
-        smartContracts: instantiatedChaincodes,
-        activeSmartContract: instantiatedChaincodes.find((obj: any) => obj.label === smartContractLabel)
+        smartContract: selectedSmartContract
     };
 
     const context: vscode.ExtensionContext = GlobalState.getExtensionContext();

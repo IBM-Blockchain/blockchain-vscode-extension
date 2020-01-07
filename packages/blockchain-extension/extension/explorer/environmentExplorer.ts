@@ -19,10 +19,8 @@ import { PeerTreeItem } from './runtimeOps/connectedTree/PeerTreeItem';
 import { ChannelTreeItem } from './model/ChannelTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { ImportNodesTreeItem } from './runtimeOps/connectedTree/ImportNodesTreeItem';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { RuntimeTreeItem } from './runtimeOps/disconnectedTree/RuntimeTreeItem';
-import { FabricRuntime } from '../fabric/FabricRuntime';
 import { InstantiatedChaincodeTreeItem } from './model/InstantiatedChaincodeTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { SmartContractsTreeItem } from './runtimeOps/connectedTree/SmartContractsTreeItem';
@@ -38,13 +36,15 @@ import { OrgTreeItem } from './runtimeOps/connectedTree/OrgTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { CertificateAuthorityTreeItem } from './runtimeOps/connectedTree/CertificateAuthorityTreeItem';
 import { OrdererTreeItem } from './runtimeOps/connectedTree/OrdererTreeItem';
-import { FabricEnvironmentManager, ConnectedState } from '../fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager, ConnectedState } from '../fabric/environments/FabricEnvironmentManager';
 import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, IFabricEnvironmentConnection, LogType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentTreeItem } from './runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { SetupTreeItem } from './runtimeOps/identitySetupTree/SetupTreeItem';
-import { FabricEnvironment } from '../fabric/FabricEnvironment';
+import { FabricEnvironment } from '../fabric/environments/FabricEnvironment';
 import { EnvironmentConnectedTreeItem } from './runtimeOps/connectedTree/EnvironmentConnectedTreeItem';
 import { TextTreeItem } from './model/TextTreeItem';
+import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
+import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 
 export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorerProvider {
 
@@ -114,7 +114,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             this.tree = await this.setupIdentities(environmentRegistryEntry);
         } else if (FabricEnvironmentManager.instance().getState() === ConnectedState.CONNECTED) {
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
-            if (environmentRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+            if (environmentRegistryEntry.managedRuntime) {
                 await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', true);
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', true);
             } else {
@@ -189,8 +189,8 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 tree.push(new TextTreeItem(this, 'No environments found'));
             } else {
                 for (const environmentEntry of environmentEntries) {
-                    if (environmentEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
-                        const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+                    if (environmentEntry.managedRuntime) {
+                        const runtime: ManagedAnsibleEnvironment = EnvironmentFactory.getEnvironment(environmentEntry) as ManagedAnsibleEnvironment;
                         const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
                             runtime.getName(),
                             environmentEntry,

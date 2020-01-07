@@ -24,8 +24,8 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FabricEnvironmentManager } from '../../extension/fabric/FabricEnvironmentManager';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 
 chai.should();
 chai.use(sinonChai);
@@ -70,7 +70,7 @@ describe('DeleteEnvironmentCommand', () => {
 
             await FabricEnvironmentRegistry.instance().add(myEnvironmentB);
 
-            await FabricRuntimeManager.instance().getRuntime().create();
+            await LocalEnvironmentManager.instance().getRuntime().create();
 
             showFabricEnvironmentQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox').resolves([{
                 label: 'myEnvironmentB',

@@ -234,7 +234,7 @@
             },
             {
                 "command": "transactionPage.open",
-                "title": "Open Transaction View",
+                "title": "Transact with Smart Contract",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -971,7 +971,7 @@
                             "name": "Debug Smart Contract"
                         }
                     }
-                ]        
+                ]
             },
             {
                 "type": "fabric:java",
@@ -1147,7 +1147,7 @@
                             "name": "Debug Smart Contract"
                         }
                     }
-                ]        
+                ]
             },
             {
                 "type": "fabric:node",

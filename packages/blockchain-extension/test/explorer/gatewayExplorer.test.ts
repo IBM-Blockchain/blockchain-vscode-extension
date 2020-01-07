@@ -24,7 +24,7 @@ import { ChannelTreeItem } from '../../extension/explorer/model/ChannelTreeItem'
 import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
-import { FabricRuntimeManager } from '../../extension/fabric/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { TransactionTreeItem } from '../../extension/explorer/model/TransactionTreeItem';
 import { InstantiatedContractTreeItem } from '../../extension/explorer/model/InstantiatedContractTreeItem';
@@ -138,7 +138,7 @@ describe('gatewayExplorer', () => {
 
                 await FabricGatewayRegistry.instance().clear();
 
-                await FabricRuntimeManager.instance().getRuntime().importGateways();
+                await LocalEnvironmentManager.instance().getRuntime().importGateways();
                 await FabricGatewayRegistry.instance().add(gatewayB);
                 await FabricGatewayRegistry.instance().add(gatewayC);
                 await FabricGatewayRegistry.instance().add(gatewayA);
@@ -191,9 +191,9 @@ describe('gatewayExplorer', () => {
 
             it('should display the managed runtime', async () => {
                 await FabricGatewayRegistry.instance().clear();
-                await FabricRuntimeManager.instance().getRuntime().importGateways();
+                await LocalEnvironmentManager.instance().getRuntime().importGateways();
 
-                mySandBox.stub(FabricRuntimeManager.instance().getRuntime(), 'isRunning').resolves(true);
+                mySandBox.stub(LocalEnvironmentManager.instance().getRuntime(), 'isRunning').resolves(true);
                 const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
 

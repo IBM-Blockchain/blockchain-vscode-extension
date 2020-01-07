@@ -13,25 +13,37 @@
 */
 
 import * as vscode from 'vscode';
-import { UserInputUtil } from './UserInputUtil';
+import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricRuntime } from '../fabric/FabricRuntime';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
-import { FabricEnvironmentRegistryEntry } from 'ibm-blockchain-platform-common';
-import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
+import { FabricEnvironmentRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
+import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
+import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
+import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
-import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 
-export async function teardownFabricRuntime(_treeItem?: RuntimeTreeItem, force: boolean = false): Promise<void> {
+export async function teardownFabricRuntime(runtimeTreeItem: RuntimeTreeItem, force: boolean = false): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'teardownFabricRuntime');
-    const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+    let registryEntry: FabricEnvironmentRegistryEntry;
+    if (!runtimeTreeItem) {
+        const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Select an environment to teardown', false, true, true, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+        if (!chosenEnvironment) {
+            return;
+        }
 
+        registryEntry = chosenEnvironment.data;
+
+    } else {
+        registryEntry = runtimeTreeItem.environmentRegistryEntry;
+    }
+    const runtime: ManagedAnsibleEnvironment | LocalEnvironment = EnvironmentFactory.getEnvironment(registryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+    const associatedGateways: string[] = registryEntry.associatedGateways ? registryEntry.associatedGateways : [];
     if (!force) {
-        const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`All world state and ledger data for the Fabric runtime ${runtime.getName()} will be destroyed. Do you want to continue?`);
+        const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`All world state and ledger data for the Fabric runtime ${runtime.getDisplayName()} will be destroyed. Do you want to continue?`);
         if (!reallyDoIt) {
             return;
         }
@@ -42,14 +54,15 @@ export async function teardownFabricRuntime(_treeItem?: RuntimeTreeItem, force: 
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
     }, async (progress: vscode.Progress<{ message: string }>) => {
-        progress.report({ message: `Tearing down Fabric runtime ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}` });
+        progress.report({ message: `Tearing down Fabric environment ${runtime.getDisplayName()}` });
+
         const connectedGatewayRegistry: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
-        if (connectedGatewayRegistry && connectedGatewayRegistry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+        if (connectedGatewayRegistry && associatedGateways.includes(connectedGatewayRegistry.name)) {
             await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
         }
 
         const connectedEnvironmentRegistry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
-        if (connectedEnvironmentRegistry && connectedEnvironmentRegistry.managedRuntime) {
+        if (connectedEnvironmentRegistry && registryEntry.name === connectedEnvironmentRegistry.name) {
             await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
         }
 
@@ -57,7 +70,7 @@ export async function teardownFabricRuntime(_treeItem?: RuntimeTreeItem, force: 
             await runtime.teardown(outputAdapter);
             await runtime.deleteWalletsAndIdentities();
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Failed to teardown ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}: ${error.message}`, `Failed to teardown ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}: ${error.toString()}`);
+            outputAdapter.log(LogType.ERROR, `Failed to teardown ${runtime.getDisplayName()}: ${error.message}`, `Failed to teardown ${runtime.getDisplayName()}: ${error.toString()}`);
         }
     });
 

@@ -22,11 +22,11 @@ import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFac
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricCertificateAuthorityFactory } from '../fabric/FabricCertificateAuthorityFactory';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
-import { FabricRuntimeUtil, FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType  } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, FabricWalletUtil  } from 'ibm-blockchain-platform-common';
 
 export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalletRegistryEntry, mspid: string): Promise<string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -63,7 +63,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
     }
 
     let isLocalWallet: boolean;
-    if (walletRegistryEntry && walletRegistryEntry.managedWallet) {
+    if (walletRegistryEntry && walletRegistryEntry.managedWallet && walletRegistryEntry.name === FabricWalletUtil.LOCAL_WALLET) {
         isLocalWallet = true;
     } else {
         isLocalWallet = false;
@@ -71,7 +71,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
 
     if (isLocalWallet) {
         // using local_fabric_wallet
-        const orgsArray: Array<string> = await FabricRuntimeManager.instance().getRuntime().getAllOrganizationNames();
+        const orgsArray: Array<string> = await LocalEnvironmentManager.instance().getRuntime().getAllOrganizationNames();
         // only one mspID currently, if multiple we'll need to add a dropdown
         mspid = orgsArray[0];
     } else if (!mspid) {
@@ -146,11 +146,12 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
                 gatewayRegistryEntry = await FabricGatewayRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
 
                 // make sure local_fabric is started
-                let isRunning: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
+                let isRunning: boolean = await LocalEnvironmentManager.instance().getRuntime().isRunning();
                 if (!isRunning) {
+                    const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
                     // Start local_fabric to enroll identity
-                    await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
-                    isRunning = await FabricRuntimeManager.instance().getRuntime().isRunning();
+                    await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC, registryEntry);
+                    isRunning = await LocalEnvironmentManager.instance().getRuntime().isRunning();
                     if (!isRunning) {
                         // Start local_fabric failed so return
                         return;

@@ -15,21 +15,28 @@
 'use strict';
 import * as vscode from 'vscode';
 import { ReactView } from './ReactView';
-import { TransactionCreateView } from './TransactionCreateView';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 export class TransactionView extends ReactView {
     protected appState: any;
 
-    constructor(context: vscode.ExtensionContext, appState: any, viewColumn: vscode.ViewColumn = vscode.ViewColumn.One) {
-        super(context, 'transactionView', 'Transaction View', viewColumn);
+    constructor(context: vscode.ExtensionContext, appState: any) {
+        super(context, 'transactionView', 'Transaction View');
         this.appState = appState;
     }
 
     async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
         panel.webview.onDidReceiveMessage(async (message: {command: string, data: any}) => {
-            if (message.command === 'create') {
-                const transactionCreateView: TransactionCreateView = new TransactionCreateView(this.context, message.data);
-                await transactionCreateView.openView(true);
+            if (message.command === 'submit') {
+                const response: string = await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, message.data) as string;
+                panel.webview.postMessage({
+                    output: response
+                });
+            } else if (message.command === 'evaluate') {
+                const response: string = await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION, undefined, undefined, undefined, message.data);
+                panel.webview.postMessage({
+                    output: response
+                });
             }
         });
         this.loadComponent(panel);

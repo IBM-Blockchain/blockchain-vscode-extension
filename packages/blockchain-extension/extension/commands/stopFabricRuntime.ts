@@ -14,41 +14,56 @@
 
 import * as vscode from 'vscode';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricRuntime } from '../fabric/FabricRuntime';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricEnvironmentRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
-import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
+import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
+import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
+import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
+import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
+import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 
-export async function stopFabricRuntime(): Promise<void> {
+export async function stopFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'stopFabricRuntime');
-    const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+    let registryEntry: FabricEnvironmentRegistryEntry;
+    if (!runtimeTreeItem) {
+        const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Select an environment to stop', false, true, true, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+        if (!chosenEnvironment) {
+            return;
+        }
+
+        registryEntry = chosenEnvironment.data;
+
+    } else {
+        registryEntry = runtimeTreeItem.environmentRegistryEntry;
+    }
+    const runtime: ManagedAnsibleEnvironment | LocalEnvironment = EnvironmentFactory.getEnvironment(registryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+    const associatedGateways: string[] = registryEntry.associatedGateways ? registryEntry.associatedGateways : [];
 
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
     }, async (progress: vscode.Progress<{ message: string }>) => {
-        progress.report({ message: `Stopping Fabric runtime ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}` });
+        progress.report({ message: `Stopping Fabric runtime ${runtime.getDisplayName()}` });
 
         const connectedGatewayRegistry: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
-        if (connectedGatewayRegistry && connectedGatewayRegistry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+        if (connectedGatewayRegistry && associatedGateways.includes(connectedGatewayRegistry.name)) {
             await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
         }
 
         const connectedEnvironmentRegistry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
-        if (connectedEnvironmentRegistry && connectedEnvironmentRegistry.managedRuntime) {
+        if (connectedEnvironmentRegistry && registryEntry.name === connectedEnvironmentRegistry.name) {
             await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
         }
 
         try {
             await runtime.stop(outputAdapter);
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Failed to stop ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}: ${error.message}`, `Failed to stop ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}: ${error.toString()}`);
+            outputAdapter.log(LogType.ERROR, `Failed to stop ${runtime.getDisplayName()}: ${error.message}`, `Failed to stop ${runtime.getDisplayName()}: ${error.toString()}`);
         }
 
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);

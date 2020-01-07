@@ -25,11 +25,10 @@ const manifest: any = require('ibm-blockchain-platform-ui/build/asset-manifest.j
 export abstract class ReactView extends View {
     protected panelTitle: string;
     protected panelID: string;
-    protected viewColumn: vscode.ViewColumn;
     private readonly _extensionPath: string;
 
-    constructor(context: vscode.ExtensionContext, panelID: string, panelTitle: string, viewColumn: vscode.ViewColumn = vscode.ViewColumn.One) {
-        super(context, panelID,  panelTitle, viewColumn);
+    constructor(context: vscode.ExtensionContext, panelID: string, panelTitle: string) {
+        super(context, panelID,  panelTitle);
         this._extensionPath = path.join(ExtensionUtil.getExtensionPath(), 'node_modules', 'ibm-blockchain-platform-ui');
     }
 

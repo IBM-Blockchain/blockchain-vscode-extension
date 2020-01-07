@@ -17,6 +17,8 @@ import { RegistryEntry } from 'ibm-blockchain-platform-common';
 export class FabricGatewayRegistryEntry extends RegistryEntry {
 
     public associatedWallet: string;
+    public managedGateway?: boolean;
+
     constructor(fields?: FabricGatewayRegistryEntry) {
         super();
         Object.assign(this, fields);
