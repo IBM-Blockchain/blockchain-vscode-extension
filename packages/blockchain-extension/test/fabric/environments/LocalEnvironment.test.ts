@@ -24,13 +24,10 @@ import { YeomanUtil } from '../../../extension/util/YeomanUtil';
 import { SettingConfigurations } from '../../../configurations';
 import { FabricRuntimeState } from '../../../extension/fabric/FabricRuntimeState';
 import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';
-import { FabricRuntimeUtil, IFabricWallet, OutputAdapter, LogType, FabricWalletUtil, FabricEnvironmentRegistry, IFabricWalletGenerator, FabricWalletRegistry, FabricWalletRegistryEntry, FileSystemUtil } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, OutputAdapter, LogType, FabricWalletUtil, FabricEnvironmentRegistry, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { FabricGateway } from '../../../extension/fabric/FabricGateway';
 import { FabricGatewayRegistryEntry } from '../../../extension/registries/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../../extension/registries/FabricGatewayRegistry';
-import { FabricWalletGeneratorFactory } from '../../../extension/fabric/FabricWalletGeneratorFactory';
-import { FabricWalletGenerator } from '../../../extension/fabric/FabricWalletGenerator';
-import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -552,50 +549,6 @@ describe('LocalEnvironment', () => {
                 }
             }
         });
-    });
-
-    describe('#importWalletsAndIdentities', () => {
-
-        it(`should include a walletPath and managedRuntime options if not present for ${FabricWalletUtil.LOCAL_WALLET}`, async () => {
-            const mockFabricWalletGenerator: sinon.SinonStubbedInstance<IFabricWalletGenerator> = sandbox.createStubInstance(FabricWalletGenerator);
-            sandbox.stub(FabricWalletGeneratorFactory, 'createFabricWalletGenerator').returns(mockFabricWalletGenerator);
-            const mockFabricWallet: sinon.SinonStubbedInstance<IFabricWallet> = sandbox.createStubInstance(FabricWallet);
-            mockFabricWalletGenerator.getWallet.returns(mockFabricWallet);
-            sandbox.stub(FabricWalletRegistry.instance(), 'exists').withArgs(FabricWalletUtil.LOCAL_WALLET).resolves(true);
-            sandbox.stub(FabricWalletRegistry.instance(), 'get').withArgs(FabricWalletUtil.LOCAL_WALLET).resolves(
-                {
-                    name: FabricWalletUtil.LOCAL_WALLET
-
-                } as FabricWalletRegistryEntry
-            );
-            const updateStub: sinon.SinonStub = sandbox.stub(FabricWalletRegistry.instance(), 'update').resolves();
-            await environment.importWalletsAndIdentities();
-            updateStub.should.have.been.calledWith({
-                name: FabricWalletUtil.LOCAL_WALLET,
-                walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, 'wallets', FabricWalletUtil.LOCAL_WALLET),
-                managedWallet: true
-            });
-            mockFabricWalletGenerator.getWallet.should.have.been.calledOnceWithExactly(FabricWalletUtil.LOCAL_WALLET);
-            mockFabricWallet.importIdentity.should.have.been.calledOnceWithExactly(sinon.match.string, sinon.match.string, 'admin', 'Org1MSP');
-
-        });
-
-        it(`should not include a walletPath and managedRuntime if the ${FabricWalletUtil.LOCAL_WALLET} doesn't exist`, async () => {
-            const mockFabricWalletGenerator: sinon.SinonStubbedInstance<IFabricWalletGenerator> = sandbox.createStubInstance(FabricWalletGenerator);
-            sandbox.stub(FabricWalletGeneratorFactory, 'createFabricWalletGenerator').returns(mockFabricWalletGenerator);
-            const mockFabricWallet: sinon.SinonStubbedInstance<IFabricWallet> = sandbox.createStubInstance(FabricWallet);
-            mockFabricWalletGenerator.getWallet.returns(mockFabricWallet);
-            sandbox.stub(FabricWalletRegistry.instance(), 'exists').withArgs(FabricWalletUtil.LOCAL_WALLET).resolves(false);
-            const getWalletSpy: sinon.SinonSpy = sandbox.spy(FabricWalletRegistry.instance(), 'get');
-
-            const updateSpy: sinon.SinonSpy = sandbox.spy(FabricWalletRegistry.instance(), 'update');
-            await environment.importWalletsAndIdentities();
-            getWalletSpy.should.not.have.been.calledWith(FabricWalletUtil.LOCAL_WALLET);
-            updateSpy.should.not.have.been.called;
-            mockFabricWalletGenerator.getWallet.should.have.been.calledOnceWithExactly(FabricWalletUtil.LOCAL_WALLET);
-            mockFabricWallet.importIdentity.should.have.been.calledOnceWithExactly(sinon.match.string, sinon.match.string, 'admin', 'Org1MSP');
-        });
-
     });
 
     describe('#isGenerated', () => {

@@ -14,12 +14,7 @@
 
 import * as vscode from 'vscode';
 import { FabricRuntimePorts } from '../FabricRuntimePorts';
-import * as semver from 'semver';
-import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOutputAdapter';
-import { CommandUtil } from '../../util/CommandUtil';
-import * as path from 'path';
-import * as fs from 'fs-extra';
-import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, FileSystemUtil } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { SettingConfigurations } from '../../../configurations';
 import { FabricEnvironmentManager } from './FabricEnvironmentManager';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../logging/VSCodeBlockchainDockerOutputAdapter';
@@ -88,13 +83,6 @@ export class LocalEnvironmentManager {
         });
     }
 
-    public async migrate(oldVersion: string): Promise<void> {
-        const runtimeSetting: any = await this.migrateRuntimesConfiguration();
-        await this.migrateRuntimeConfiguration(runtimeSetting);
-        await this.migrateRuntimeContainers(oldVersion);
-        await this.migrateRuntimeFolder();
-    }
-
     private readRuntimeUserSettings(): any {
         const runtimeSettings: any = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME) as {
             ports: {
@@ -123,128 +111,6 @@ export class LocalEnvironmentManager {
         } else {
             return {};
         }
-    }
-
-    private async migrateRuntimesConfiguration(): Promise<any> {
-        const oldRuntimeSettings: any[] = vscode.workspace.getConfiguration().get('fabric.runtimes');
-        let runtimeObj: any = vscode.workspace.getConfiguration().get('fabric.runtime');
-        if (!runtimeObj) { // If the user has no fabric.runtime setting
-            runtimeObj = {};
-        }
-        if (oldRuntimeSettings && !runtimeObj.ports) {
-            const runtimeToCopy: any = {
-                ports: {}
-            };
-            for (const oldRuntime of oldRuntimeSettings) {
-                if (oldRuntime.name === FabricRuntimeUtil.LOCAL_FABRIC) {
-                    runtimeToCopy.ports = oldRuntime.ports;
-
-                    // Generate a logs port
-                    const highestPort: number = this.getHighestPort(runtimeToCopy.ports);
-                    runtimeToCopy.ports.logs = await this.generateLogsPort(highestPort);
-
-                }
-            }
-
-            return runtimeToCopy;
-
-        } else {
-            return runtimeObj;
-        }
-
-    }
-
-    private async migrateRuntimeFolder(): Promise<void> {
-        // Move runtime folder under environments
-        let extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-        extDir = FileSystemUtil.getDirPath(extDir);
-        const runtimesExtDir: string = path.join(extDir, 'runtime');
-        const exists: boolean = await fs.pathExists(runtimesExtDir);
-        if (exists) {
-            try {
-                const newPath: string = path.join(extDir, 'environments', FabricRuntimeUtil.LOCAL_FABRIC);
-                const newPathExists: boolean = await fs.pathExists(newPath);
-                if (!newPathExists) {
-                    await fs.move(runtimesExtDir, newPath);
-                }
-            } catch (error) {
-                throw new Error(`Issue migrating runtime folder ${error.message}`);
-            }
-        }
-    }
-
-    private async migrateRuntimeConfiguration(oldRuntimeSetting: any): Promise<void> {
-        const runtimeObj: any = await this.readRuntimeUserSettings();
-        if (oldRuntimeSetting && !runtimeObj.ports) {
-            const runtimeToCopy: any = {
-                ports: {}
-            };
-
-            runtimeToCopy.ports = oldRuntimeSetting.ports;
-
-            // If either fabric.runtimes and fabric.runtime existed and has ports
-            if (runtimeToCopy.ports) {
-
-                // If previous settings didn't have 'logs' property
-                if (!runtimeToCopy.ports.logs) {
-                    // Generate a logs port
-                    const highestPort: number = this.getHighestPort(runtimeToCopy.ports);
-                    runtimeToCopy.ports.logs = await this.generateLogsPort(highestPort);
-                }
-
-                // Update new property with old settings values
-                await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, runtimeToCopy, vscode.ConfigurationTarget.Global);
-
-            }
-
-            // Else fabric.runtimes/fabric.runtime didn't exist, hence no migration is required
-
-        }
-    }
-
-    private async migrateRuntimeContainers(oldVersion: string): Promise<void> {
-
-        // Determine if we need to try to teardown the old "basic-network" version of local_fabric.
-        if (!oldVersion) {
-            // New install, or version before we tracked which version was last used.
-        } else if (semver.lte(oldVersion, '0.3.3')) {
-            // Upgrade from version that has the old "basic-network" version of local_fabric.
-        } else {
-            return;
-        }
-
-        // Execute the teardown scripts.
-        const basicNetworkPath: string = path.resolve(__dirname, '..', '..', '..', 'basic-network');
-        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-        outputAdapter.log(LogType.WARNING, null, `Attempting to teardown old ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} from version <= 0.3.3`);
-        outputAdapter.log(LogType.WARNING, null, 'Any error messages from this process can be safely ignored (for example, container does not exist');
-        if (process.platform === 'win32') {
-            await CommandUtil.sendCommandWithOutput('cmd', ['/c', 'teardown.cmd'], basicNetworkPath, null, outputAdapter);
-        } else {
-            await CommandUtil.sendCommandWithOutput('/bin/sh', ['teardown.sh'], basicNetworkPath, null, outputAdapter);
-        }
-        outputAdapter.log(LogType.WARNING, null, `Finished attempting to teardown old ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} from version <= 0.3.3`);
-
-    }
-
-    private async generateLogsPort(highestPort: number): Promise<number> {
-
-        const freep: number[] = await LocalEnvironmentManager.findFreePort(highestPort + 1, null, null, 1);
-
-        return freep[0];
-
-    }
-
-    private getHighestPort(ports: FabricRuntimePorts): number {
-        let port: number = 17050;
-        const portNames: string[] = Object.keys(ports);
-        for (const portName of portNames) {
-            const thisPort: number = ports[portName];
-            if (thisPort > port) {
-                port = thisPort;
-            }
-        }
-        return port;
     }
 
     private async generatePortConfiguration(): Promise<FabricRuntimePorts> {

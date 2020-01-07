@@ -23,7 +23,6 @@ import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDe
 import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { GlobalState } from '../../extension/util/GlobalState';
 import { TestUtil } from '../TestUtil';
 import { SettingConfigurations } from '../../configurations';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
@@ -77,7 +76,6 @@ describe('FabricDebugConfigurationProvider', () => {
         let getConnectionStub: sinon.SinonStub;
         let startDebuggingStub: sinon.SinonStub;
         let logSpy: sinon.SinonSpy;
-        let generatorVersionStub: sinon.SinonStub;
         let getEnvironmentRegistryStub: sinon.SinonStub;
         let environmentRegistry: FabricEnvironmentRegistryEntry;
 
@@ -127,10 +125,6 @@ describe('FabricDebugConfigurationProvider', () => {
 
             startDebuggingStub = mySandbox.stub(vscode.debug, 'startDebugging');
             logSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-
-            generatorVersionStub = mySandbox.stub(GlobalState, 'get').returns({
-                generatorVersion: '0.0.36'
-            });
         });
 
         afterEach(() => {
@@ -287,38 +281,6 @@ describe('FabricDebugConfigurationProvider', () => {
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.not.exist(config);
             commandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistry);
-        });
-
-        it('should give an error if generator version is too old', async () => {
-            generatorVersionStub.returns({
-                globalState: {
-                    get: mySandbox.stub().returns({
-                        generatorVersion: '0.0.34'
-                    })
-                }
-            });
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            should.equal(config, undefined);
-            startDebuggingStub.should.not.have.been.called;
-            commandStub.should.not.have.been.called;
-            logSpy.should.have.been.calledWith(LogType.ERROR, `To debug a smart contract, you must update the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime. Teardown and start the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime, and try again.`);
-        });
-
-        it('should give an error if generator version is unknown', async () => {
-            generatorVersionStub.returns({
-                globalState: {
-                    get: mySandbox.stub().returns({
-                        generatorVersion: undefined
-                    })
-                }
-            });
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            should.equal(config, undefined);
-            startDebuggingStub.should.not.have.been.called;
-            commandStub.should.not.have.been.called;
-            logSpy.should.have.been.calledWith(LogType.ERROR, `To debug a smart contract, you must update the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime. Teardown and start the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime, and try again.`);
         });
 
         it('should not run if the chaincode name is not provided', async () => {

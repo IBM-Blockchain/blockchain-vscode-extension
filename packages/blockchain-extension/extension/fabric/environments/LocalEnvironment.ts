@@ -13,7 +13,6 @@
 */
 
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { ManagedAnsibleEnvironment } from './ManagedAnsibleEnvironment';
 import { YeomanUtil } from '../../util/YeomanUtil';
 import { FabricRuntimeUtil, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType, FabricWalletUtil, OutputAdapter, FabricWalletRegistryEntry, FabricWalletRegistry, FileConfigurations, FileSystemUtil } from 'ibm-blockchain-platform-common';
@@ -87,29 +86,6 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
 
     public async importGateways(): Promise<void> {
         await super.importGateways(FabricWalletUtil.LOCAL_WALLET);
-    }
-
-    public async importWalletsAndIdentities(): Promise<void> {
-        await super.importWalletsAndIdentities();
-
-        const walletNames: string[] = await this.getWalletNames();
-        for (const walletName of walletNames) {
-            const exists: boolean = await FabricWalletRegistry.instance().exists(walletName);
-            if (exists) {
-                // Fallback solution if FabricWalletUtil.tidyWalletSettings() fix for "No path for wallet has been provided" doesn't work - https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1593
-                // I think the problem occurred because we weren't setting a walletPath or managedWallet in FabricWalletUtil.tidyWalletSettings().
-                const walletRegistryEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletName);
-                if (!walletRegistryEntry.walletPath || !walletRegistryEntry.managedWallet) {
-                    const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-                    const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
-                    walletRegistryEntry.walletPath = path.join(homeExtDir, FileConfigurations.FABRIC_WALLETS, walletName);
-                    walletRegistryEntry.managedWallet = true;
-                    await FabricWalletRegistry.instance().update(walletRegistryEntry);
-                }
-            }
-
-        }
-
     }
 
     public async updateUserSettings(): Promise<void> {
