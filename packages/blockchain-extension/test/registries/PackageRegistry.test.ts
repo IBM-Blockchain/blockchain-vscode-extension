@@ -23,7 +23,7 @@ import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from 'ibm-blockchain-platform-common';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../../extension/configurations';
 
 chai.use(sinonChai);
 
@@ -37,8 +37,8 @@ describe('PackageRegistry', () => {
 
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     const rootPath: string = path.dirname(__dirname);
-    const testDir: string = path.join(rootPath, '../../test/data/packageDir/packages');
-    const packageDir: string = path.join(TestUtil.EXTENSION_TEST_DIR, 'packages');
+    const testDir: string = path.join(rootPath, '../../test/data/packageDir/v2/packages');
+    const packageDir: string = path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', 'packages');
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
@@ -61,17 +61,17 @@ describe('PackageRegistry', () => {
                 {
                     name: 'vscode-pkg-1',
                     version: '0.0.1',
-                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-1@0.0.1.cds')
+                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', 'packages', 'vscode-pkg-1@0.0.1.cds')
                 },
                 {
                     name: 'vscode-pkg-2',
                     version: '0.0.2',
-                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-2@0.0.2.cds')
+                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', 'packages', 'vscode-pkg-2@0.0.2.cds')
                 },
                 {
                     name: 'vscode-pkg-3',
                     version: '1.2.3',
-                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-3@1.2.3.cds')
+                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', 'packages', 'vscode-pkg-3@1.2.3.cds')
                 }
             ]);
         });
@@ -83,17 +83,17 @@ describe('PackageRegistry', () => {
                 {
                     name: 'vscode-pkg-1',
                     version: '0.0.1',
-                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-1@0.0.1.cds')
+                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'v2', 'packages', 'vscode-pkg-1@0.0.1.cds')
                 },
                 {
                     name: 'vscode-pkg-2',
                     version: '0.0.2',
-                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-2@0.0.2.cds')
+                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'v2', 'packages', 'vscode-pkg-2@0.0.2.cds')
                 },
                 {
                     name: 'vscode-pkg-3',
                     version: '1.2.3',
-                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-3@1.2.3.cds')
+                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'v2', 'packages', 'vscode-pkg-3@1.2.3.cds')
                 }
             ]);
         });

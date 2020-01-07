@@ -19,7 +19,7 @@ import { FabricConnectionFactory } from '../../../extension/fabric/FabricConnect
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { SettingConfigurations } from '../../../configurations';
+import { SettingConfigurations } from '../../../extension/configurations';
 import { FabricEnvironmentManager, ConnectedState } from '../../../extension/fabric/environments/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FabricEnvironmentRegistry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';

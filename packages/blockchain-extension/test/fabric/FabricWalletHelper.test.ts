@@ -35,7 +35,7 @@ describe('FabricWalletHelper', () => {
         it('should get the wallet path', () => {
             const result: string = FabricWalletHelper.getWalletPath('myWallet');
 
-            result.should.equal(path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, 'myWallet'));
+            result.should.equal(path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', FileConfigurations.FABRIC_WALLETS, 'myWallet'));
         });
     });
 });

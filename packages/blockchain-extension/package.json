@@ -147,7 +147,7 @@
                     "default": [],
                     "description": "Wallets for connecting to a Blockchain network"
                 },
-                "ibm-blockchain-platform.fabric.runtime": {
+                "ibm-blockchain-platform.v2.fabric.runtime": {
                     "type": "object",
                     "default": {},
                     "description": "Configurations for the local Blockchain managed runtime"

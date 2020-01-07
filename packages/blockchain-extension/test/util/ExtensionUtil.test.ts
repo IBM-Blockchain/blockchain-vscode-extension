@@ -20,7 +20,7 @@ import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import * as fs from 'fs-extra';
 import * as chaiAsPromised from 'chai-as-promised';
 import { dependencies, version as currentExtensionVersion } from '../../package.json';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../../extension/configurations';
 import { GlobalState } from '../../extension/util/GlobalState';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { TutorialGalleryView } from '../../extension/webview/TutorialGalleryView';

@@ -68,13 +68,13 @@ export class EnvironmentHelper {
                 this.userInputUtilHelper.opsToolsNodeQuickPickStub.resolves([]);
             } else if (process.env.ANSIBLE_FABRIC) {
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR});
-                this.userInputUtilHelper.openFileBrowserStub.resolves(vscode.Uri.file(path.join(__dirname, '..', '..', '..', 'cucumber', 'ansible')));
+                this.userInputUtilHelper.openFileBrowserStub.resolves(vscode.Uri.file(path.join(this.userInputUtilHelper.cucumberDir, 'ansible')));
             } else {
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES});
 
-                const caUri: vscode.Uri = vscode.Uri.file(path.join(__dirname, '../../../cucumber/hlfv1/nodes/ca.example.com.json'));
-                const ordererUri: vscode.Uri = vscode.Uri.file(path.join(__dirname, '../../../cucumber/hlfv1/nodes/orderer.example.com.json'));
-                const peerUri: vscode.Uri = vscode.Uri.file(path.join(__dirname, '../../../cucumber/hlfv1/nodes/peer0.org1.example.com.json'));
+                const caUri: vscode.Uri = vscode.Uri.file(path.join(this.userInputUtilHelper.cucumberDir, 'hlfv1', 'nodes', 'ca.example.com.json'));
+                const ordererUri: vscode.Uri = vscode.Uri.file(path.join(this.userInputUtilHelper.cucumberDir, 'hlfv1', 'nodes', 'orderer.example.com.json'));
+                const peerUri: vscode.Uri = vscode.Uri.file(path.join(this.userInputUtilHelper.cucumberDir, 'hlfv1', 'nodes', 'peer0.org1.example.com.json'));
                 const nodes: vscode.Uri[] = [caUri, ordererUri, peerUri];
                 this.userInputUtilHelper.browseStub.withArgs('Select all the Fabric node (JSON) files you want to import').resolves(nodes);
 
@@ -160,7 +160,7 @@ export class EnvironmentHelper {
         this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(identityName);
         this.userInputUtilHelper.inputBoxStub.withArgs('Enter MSPID').resolves(mspId);
 
-        const nodePath: string = path.join(__dirname, `../../../cucumber/tmp/environments/${environmentName}/nodes/${nodeName}.json`);
+        const nodePath: string = path.join(this.userInputUtilHelper.cucumberDir, 'tmp', 'v2', FileConfigurations.FABRIC_ENVIRONMENTS, environmentName, 'nodes', `${nodeName}.json`);
         const node: FabricNode = await fs.readJson(nodePath);
 
         if (node.identity && node.wallet) {

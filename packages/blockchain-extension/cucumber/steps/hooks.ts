@@ -24,7 +24,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../../test/TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../../extension/configurations';
 import { UserInputUtilHelper } from '../helpers/userInputUtilHelper';
 import { SmartContractHelper } from '../helpers/smartContractHelper';
 import { GeneratedTestsHelper } from '../helpers/generatedTestsHelper';
@@ -50,6 +50,7 @@ let firstTime: boolean = true; // Flag used for making sure we do some setup onc
 module.exports = function(): any {
 
     this.timeout = { timeout: 120000 * 1000 }; // Global timeout - 2 minutes
+    this.cucumberDir = path.join(__dirname, '..', '..', '..', 'cucumber');
 
     this.Before(this.timeout, async () => {
         if (firstTime) {

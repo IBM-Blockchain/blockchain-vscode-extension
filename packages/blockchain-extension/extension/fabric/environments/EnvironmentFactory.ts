@@ -16,9 +16,8 @@ import { ManagedAnsibleEnvironment } from './ManagedAnsibleEnvironment';
 import { FabricRuntimeUtil, FabricEnvironmentRegistryEntry, EnvironmentType, FabricEnvironment, FileSystemUtil, AnsibleEnvironment, FileConfigurations } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from './LocalEnvironment';
 import { LocalEnvironmentManager } from './LocalEnvironmentManager';
-import * as vscode from 'vscode';
 import * as path from 'path';
-import { SettingConfigurations } from '../../../configurations';
+import { SettingConfigurations } from '../../configurations';
 import { ManagedAnsibleEnvironmentManager } from './ManagedAnsibleEnvironmentManager';
 
 export class EnvironmentFactory {
@@ -44,7 +43,7 @@ export class EnvironmentFactory {
             return new AnsibleEnvironment(name, environmentRegistryEntry.environmentDirectory);
         } else {
             // Safest to assume that it's a non-managed remote environment
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const extDir: string = SettingConfigurations.getExtensionDir();
             const resolvedExtDir: string = FileSystemUtil.getDirPath(extDir);
             const envDir: string = path.join(resolvedExtDir, FileConfigurations.FABRIC_ENVIRONMENTS, name);
             return new FabricEnvironment(name, envDir);

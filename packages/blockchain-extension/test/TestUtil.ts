@@ -19,7 +19,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as sinon from 'sinon';
 import * as path from 'path';
-import { SettingConfigurations } from '../configurations';
+import { SettingConfigurations } from '../extension/configurations';
 import { SinonSandbox, SinonStub } from 'sinon';
 import { FabricRuntimeUtil, FileConfigurations, FabricEnvironmentRegistryEntry } from 'ibm-blockchain-platform-common';
 import { GlobalState, ExtensionData } from '../extension/util/GlobalState';
@@ -59,7 +59,7 @@ export class TestUtil {
         await fs.ensureDir(this.EXTENSION_TEST_DIR);
 
         // Ensure the environments directory exists first
-        const environmentDir: string = path.join(this.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_ENVIRONMENTS, FabricRuntimeUtil.LOCAL_FABRIC);
+        const environmentDir: string = path.join(this.EXTENSION_TEST_DIR, 'v2', FileConfigurations.FABRIC_ENVIRONMENTS, FabricRuntimeUtil.LOCAL_FABRIC);
         await fs.ensureDir(environmentDir);
 
         // Copy the generated 'Local Fabric' directory into the environments directory.

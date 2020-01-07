@@ -20,7 +20,7 @@ import * as sinon from 'sinon';
 import { TestUtil } from '../../TestUtil';
 import * as path from 'path';
 import { YeomanUtil } from '../../../extension/util/YeomanUtil';
-import { SettingConfigurations } from '../../../configurations';
+import { SettingConfigurations } from '../../../extension/configurations';
 import { FabricRuntimeState } from '../../../extension/fabric/FabricRuntimeState';
 import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';
 import { OutputAdapter, LogType, FabricEnvironmentRegistry, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';

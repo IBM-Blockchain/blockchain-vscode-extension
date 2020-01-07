@@ -28,7 +28,7 @@ import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../../extension/configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 chai.should();

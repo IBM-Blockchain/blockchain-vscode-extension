@@ -54,7 +54,7 @@ export class GatewayHelper {
             this.userInputUtilHelper.inputBoxStub.withArgs('Enter a name for the gateway').resolves(name);
             if (!fromEnvironment) {
                 this.userInputUtilHelper.showQuickPickStub.resolves(UserInputUtil.ADD_GATEWAY_FROM_CCP);
-                this.userInputUtilHelper.browseStub.withArgs('Enter a file path to a connection profile file').resolves(path.join(__dirname, '../../../cucumber/hlfv1/connection.json'));
+                this.userInputUtilHelper.browseStub.withArgs('Enter a file path to a connection profile file').resolves(path.join(this.userInputUtilHelper.cucumberDir, 'hlfv1', 'connection.json'));
             } else {
                 this.userInputUtilHelper.showQuickPickStub.resolves(UserInputUtil.ADD_GATEWAY_FROM_ENVIRONMENT);
 
@@ -160,7 +160,7 @@ export class GatewayHelper {
     public async exportConnectionProfile(gatewayName: string): Promise<void> {
         const gatewayEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(gatewayName);
 
-        const profilePath: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'profiles');
+        const profilePath: string = path.join(this.userInputUtilHelper.cucumberDir, 'tmp', 'profiles');
         await fs.ensureDir(profilePath);
         const profileFile: string = path.join(profilePath, `${gatewayEntry.name}_connection.json`);
         const profileUri: vscode.Uri = vscode.Uri.file(profileFile);

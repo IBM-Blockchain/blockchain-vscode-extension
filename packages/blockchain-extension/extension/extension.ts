@@ -27,13 +27,15 @@ import { DependencyManager } from './dependencies/DependencyManager';
 import { TemporaryCommandRegistry } from './dependencies/TemporaryCommandRegistry';
 import { ExtensionCommands } from '../ExtensionCommands';
 import { version as currentExtensionVersion } from '../package.json';
-import { SettingConfigurations } from '../configurations';
+import { SettingConfigurations } from './configurations';
 import { UserInputUtil } from './commands/UserInputUtil';
 import { GlobalState, ExtensionData } from './util/GlobalState';
 import { FabricWalletRegistry, FabricEnvironmentRegistry, LogType, FabricGatewayRegistry, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { RepositoryRegistry } from './registries/RepositoryRegistry';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+    // tslint:disable-next-line: no-console
+    console.log('RABBIT');
 
     GlobalState.setExtensionContext(context);
 
@@ -50,7 +52,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         systemRequirements: originalExtensionData.systemRequirements
     };
 
-    let extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+    let extDir: string = SettingConfigurations.getExtensionDir();
+    // tslint:disable-next-line: no-console
+    console.log('DEER', extDir);
     extDir = FileSystemUtil.getDirPath(extDir);
     FabricWalletRegistry.instance().setRegistryPath(extDir);
     FabricGatewayRegistry.instance().setRegistryPath(extDir);
@@ -103,6 +107,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     outputAdapter.log(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true); // Let users know how to get the log file
 
     outputAdapter.log(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
+    // tslint:disable-next-line: no-console
+    console.log('CAKE');
 
     try {
         const dependencyManager: DependencyManager = DependencyManager.instance();
@@ -113,15 +119,24 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             dependenciesInstalled = await dependencyManager.hasPreReqsInstalled();
         }
 
+        // tslint:disable-next-line: no-console
+        console.log('LION');
+
         const tempCommandRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
 
         // Register the 'Open Pre Req' command
         context = await ExtensionUtil.registerOpenPreReqsCommand(context);
 
+        console.log('PENGUIN');
+
         if (dependenciesInstalled || bypassPreReqs) {
 
             tempCommandRegistry.createTempCommands(true);
+            // tslint:disable-next-line: no-console
+            console.log('ELEPHANT');
             await ExtensionUtil.setupCommands();
+            // tslint:disable-next-line: no-console
+            console.log('FISH');
 
         } else {
             tempCommandRegistry.createTempCommands(false, ExtensionCommands.OPEN_PRE_REQ_PAGE);
@@ -149,6 +164,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
         // We only want to do this stuff if the extension has all the required dependencies
         if (dependenciesInstalled || bypassPreReqs) {
+            // tslint:disable-next-line: no-console
+            console.log('BANANA');
             await ExtensionUtil.completeActivation(extensionUpdated);
 
         }

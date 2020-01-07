@@ -17,7 +17,7 @@ import * as path from 'path';
 import { ManagedAnsibleEnvironment } from './ManagedAnsibleEnvironment';
 import { YeomanUtil } from '../../util/YeomanUtil';
 import { FabricRuntimeUtil, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType, OutputAdapter, FileSystemUtil, FileConfigurations } from 'ibm-blockchain-platform-common';
-import { SettingConfigurations } from '../../../configurations';
+import { SettingConfigurations } from '../../configurations';
 import { FabricRuntimePorts } from '../FabricRuntimePorts';
 
 export class LocalEnvironment extends ManagedAnsibleEnvironment {
@@ -25,7 +25,7 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
     private dockerName: string;
 
     constructor() {
-        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const extDir: string = SettingConfigurations.getExtensionDir();
         const resolvedExtDir: string = FileSystemUtil.getDirPath(extDir);
         const envPath: string = path.join(resolvedExtDir, FileConfigurations.FABRIC_ENVIRONMENTS, FabricRuntimeUtil.LOCAL_FABRIC);
         super(FabricRuntimeUtil.LOCAL_FABRIC, envPath);

@@ -27,7 +27,7 @@ import { TestUtil } from './TestUtil';
 import { Reporter } from '../extension/util/Reporter';
 import { ExtensionCommands } from '../ExtensionCommands';
 import { LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry } from 'ibm-blockchain-platform-common';
-import { SettingConfigurations } from '../configurations';
+import { SettingConfigurations } from '../extension/configurations';
 import { UserInputUtil } from '../extension/commands/UserInputUtil';
 import { dependencies } from '../package.json';
 import { GlobalState, DEFAULT_EXTENSION_DATA, ExtensionData } from '../extension/util/GlobalState';

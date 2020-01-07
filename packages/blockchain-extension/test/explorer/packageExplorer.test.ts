@@ -36,8 +36,8 @@ describe('packageExplorer', () => {
     let logSpy: sinon.SinonSpy;
     let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
     const rootPath: string = path.dirname(__dirname);
-    const testDir: string = path.join(rootPath, '../../test/data/packageDir/packages');
-    const packageDir: string = path.join(TestUtil.EXTENSION_TEST_DIR, 'packages');
+    const testDir: string = path.join(rootPath, '../../test/data/packageDir/v2/packages');
+    const packageDir: string = path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', 'packages');
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);

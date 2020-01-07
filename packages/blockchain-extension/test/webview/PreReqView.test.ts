@@ -28,7 +28,7 @@ import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import { DependencyManager } from '../../extension/dependencies/DependencyManager';
 import { GlobalState, DEFAULT_EXTENSION_DATA, ExtensionData } from '../../extension/util/GlobalState';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../../extension/configurations';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { Dependencies } from '../../extension/dependencies/Dependencies';
 import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
