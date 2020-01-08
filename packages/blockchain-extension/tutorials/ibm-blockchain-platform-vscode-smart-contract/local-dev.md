@@ -32,7 +32,7 @@ For the purposes of this tutorial, we'll use TypeScript as the main example lang
 
 3. Choose a smart contract language. JavaScript, TypeScript, Java and Go are all available. This tutorial will be easiest to follow if you choose `TypeScript` or `Java` (please remember to expand the Java sections if you choose Java).
 
-4. The extension will ask you if you want to name the asset in the generated contract. This will default to `MyAsset`, but you're welcome to change it.  What do you intend to use your blockchain for? This will determine what type of asset you create, update and read from the ledger: `Radish`? `Pineapple`? `Penguin`? Pick whatever you like! For the sake of this tutorial, we'll be boring and stick with `MyAsset`.
+4. The extension will ask you if you want to name the asset in the generated contract. This will default to `MyAsset`, but you're welcome to change it.  What do you intend to use your blockchain for? This will determine what type of asset you create, update and read from the ledger: `Radish`? `Pineapple`? `Penguin`? Pick whatever you like! For this tutorial, we'll stick with `MyAsset`.
 
    > __Pro Tip:__ If you decide to change the name of your asset, remember to swap out `MyAsset` for whatever you named it in future steps!
 
@@ -183,7 +183,7 @@ There are 3 necessary steps to go from a smart contract project (like the one we
 2. Use the package to install the smart contract on Fabric peers
 3. Instantiate the smart contract on a Fabric channel
 
-Using this extension, developers can complete all 3 steps in a single action (on a simple environment like _Local Fabric_). Alternatively, you could perform each step individually - this is a little slower, but may help you understand the steps better. We'll _instantiate_ the contract using the "1-step method", them make a small change and _upgrade_ it using the "3-step method" - once you've tried both, you can pick which one you prefer to use going forward.
+Using this extension, developers can complete all 3 steps in a single action (on a simple environment like _Local Fabric_). Alternatively, you could perform each step individually - this is a little slower, but may help you understand the steps better. We'll _instantiate_ the contract using the "1-step method", then make a small change and _upgrade_ it using the "3-step method" - once you've tried both, you can pick which one you prefer to use going forward.
 
 Here is how to package, install and instantiate from your open smart contract project:
 
