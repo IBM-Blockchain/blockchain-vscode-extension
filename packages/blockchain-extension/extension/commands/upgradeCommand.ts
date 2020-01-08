@@ -54,9 +54,9 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
         contractVersion = treeItem.version;
 
         const channelMap: Map<string, Array<string>> = new Map<string, Array<string>>();
-        treeItem.channels.map((channelTreeItem: ChannelTreeItem) => {
+        for (const channelTreeItem of treeItem.channels) {
             channelMap.set(channelTreeItem.label, channelTreeItem.peers);
-        });
+        }
 
         const chosenChannel: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to upgrade the smart contract on', channelMap);
         if (!chosenChannel) {

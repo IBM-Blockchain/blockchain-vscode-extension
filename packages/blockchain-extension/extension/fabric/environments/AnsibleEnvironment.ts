@@ -16,11 +16,10 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
 import { FabricGateway } from '../FabricGateway';
-import { FabricIdentity, FabricWalletRegistry, FabricWalletRegistryEntry, FileConfigurations, IFabricWallet, IFabricWalletGenerator } from 'ibm-blockchain-platform-common';
+import { FabricIdentity, FabricWalletRegistry, FabricWalletRegistryEntry, FileConfigurations, IFabricWallet, IFabricWalletGenerator, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { FabricWalletGeneratorFactory } from '../FabricWalletGeneratorFactory';
 import { SettingConfigurations } from '../../../configurations';
 import { FabricEnvironment } from './FabricEnvironment';
-import { FileSystemUtil } from '../../util/FileSystemUtil';
 import { FabricGatewayRegistryEntry } from '../../registries/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../registries/FabricGatewayRegistry';
 

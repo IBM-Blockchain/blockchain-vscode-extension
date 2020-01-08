@@ -1055,7 +1055,7 @@ describe('UserInputUtil', () => {
                 filters: undefined
             };
 
-            await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions) as string;
+            await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions);
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL], { placeHolder });
 
@@ -2347,7 +2347,7 @@ describe('UserInputUtil', () => {
             const channelPeers: {name: string, mspID: string}[] = [{name: 'peerOne', mspID: 'Org1MSP'}, {name: 'peerTwo', mspID: 'Org2MSP'}];
             quickPickStub.resolves([{label: channelPeers[0].name, description: channelPeers[0].mspID, data: channelPeers[0].name}]);
 
-            const result: IBlockchainQuickPickItem<string>[] = await UserInputUtil.showChannelPeersQuickPick(channelPeers) as IBlockchainQuickPickItem<string>[];
+            const result: IBlockchainQuickPickItem<string>[] = await UserInputUtil.showChannelPeersQuickPick(channelPeers);
             result.should.deep.equal([{label: channelPeers[0].name, description: channelPeers[0].mspID, data: channelPeers[0].name}]);
 
             quickPickStub.should.have.been.calledWith([
@@ -2367,7 +2367,7 @@ describe('UserInputUtil', () => {
                 {label: channelPeers[1].name, description: channelPeers[1].mspID, data: channelPeers[1].name}
             ]);
 
-            const result: IBlockchainQuickPickItem<string>[] = await UserInputUtil.showChannelPeersQuickPick(channelPeers) as IBlockchainQuickPickItem<string>[];
+            const result: IBlockchainQuickPickItem<string>[] = await UserInputUtil.showChannelPeersQuickPick(channelPeers);
             result.should.deep.equal([
                 {label: channelPeers[0].name, description: channelPeers[0].mspID, data: channelPeers[0].name},
                 {label: channelPeers[1].name, description: channelPeers[1].mspID, data: channelPeers[1].name}

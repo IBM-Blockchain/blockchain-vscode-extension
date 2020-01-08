@@ -41,8 +41,8 @@ export class FabricWallet extends FileSystemWallet implements IFabricWallet {
     public async getIdentities(): Promise<FabricIdentity[]> {
         const walletPath: string = this.getWalletPath();
         let identityPaths: string[] = await fs.readdir(walletPath);
+        identityPaths.sort();
         identityPaths = identityPaths
-            .sort()
             .filter((identityPath: string) => !identityPath.startsWith('.'))
             .map((identityPath: string) => {
                 const identityName: string = path.basename(identityPath);

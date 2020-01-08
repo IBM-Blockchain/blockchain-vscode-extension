@@ -101,10 +101,10 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
                 // This won't be called before connecting to a gatewawy
                 if (element instanceof ChannelTreeItem) {
                     this.tree = [];
-                    const channelElement: ChannelTreeItem = element as ChannelTreeItem;
+                    const channelElement: ChannelTreeItem = element;
 
                     if (channelElement.chaincodes.length > 0) {
-                        this.tree = await this.createInstantiatedChaincodeTree(element as ChannelTreeItem);
+                        this.tree = await this.createInstantiatedChaincodeTree(element);
                     }
                 }
 
@@ -130,12 +130,12 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
 
                 // This won't be called before connecting to a gateway
                 if (element instanceof InstantiatedContractTreeItem) {
-                    this.tree = await this.createContractTree(element as InstantiatedContractTreeItem);
+                    this.tree = await this.createContractTree(element);
                 }
 
                 // This won't be called before connecting to a gatewawy
                 if (element instanceof ContractTreeItem) {
-                    this.tree = await this.createTransactionsChaincodeTree(element as ContractTreeItem);
+                    this.tree = await this.createTransactionsChaincodeTree(element);
                 }
 
                 return this.tree;

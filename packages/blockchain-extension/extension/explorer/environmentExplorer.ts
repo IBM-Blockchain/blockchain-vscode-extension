@@ -103,7 +103,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 this.tree = await this.createInstantiatedTree();
             }
             if (element instanceof InstalledTreeItem) {
-                this.tree = await this.createInstalledTree(element as InstalledTreeItem);
+                this.tree = await this.createInstalledTree(element);
             }
 
         } else if (FabricEnvironmentManager.instance().getState() === ConnectedState.SETUP) {

@@ -25,10 +25,9 @@ import { version } from '../../../package.json';
 import { VSCodeBlockchainOutputAdapter } from '../../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { SettingConfigurations } from '../../../configurations';
 import { FabricEnvironmentManager, ConnectedState } from '../../../extension/fabric/environments/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { FileSystemUtil } from '../../../extension/util/FileSystemUtil';
 import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';
 
 chai.should();
@@ -446,9 +445,6 @@ describe('LocalEnvironmentManager', () => {
         });
 
         it('should not move if does not exist', async () => {
-            let extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            extDir = FileSystemUtil.getDirPath(extDir);
-
             sandbox.stub(fs, 'pathExists').resolves(false);
             const moveStub: sinon.SinonStub = sandbox.stub(fs, 'move').resolves();
 
@@ -457,9 +453,6 @@ describe('LocalEnvironmentManager', () => {
         });
 
         it ('should not move if environment folder already exists', async () => {
-            let extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            extDir = FileSystemUtil.getDirPath(extDir);
-
             sandbox.stub(fs, 'pathExists').resolves(true);
             const moveStub: sinon.SinonStub = sandbox.stub(fs, 'move').resolves();
 

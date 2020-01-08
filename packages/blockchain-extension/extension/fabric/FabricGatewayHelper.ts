@@ -18,8 +18,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as yaml from 'js-yaml';
 import { SettingConfigurations } from '../../configurations';
-import { FabricNode, FileConfigurations } from 'ibm-blockchain-platform-common';
-import { FileSystemUtil } from '../util/FileSystemUtil';
+import { FabricNode, FileConfigurations, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 

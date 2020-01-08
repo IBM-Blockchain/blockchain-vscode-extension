@@ -58,7 +58,7 @@ export async function debugCommandList(commandName?: string): Promise<void> {
             }
         ];
 
-        const chosenCommand: IBlockchainQuickPickItem<string> = await UserInputUtil.showDebugCommandList(commands, 'Choose a command to execute') as IBlockchainQuickPickItem<string>;
+        const chosenCommand: IBlockchainQuickPickItem<string> = await UserInputUtil.showDebugCommandList(commands, 'Choose a command to execute');
         if (!chosenCommand) {
             return;
         }

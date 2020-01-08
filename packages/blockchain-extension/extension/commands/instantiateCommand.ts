@@ -48,9 +48,8 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
 
     if (treeItem instanceof ChannelTreeItem) {
         // If clicked on runtime channel
-        const channelTreeItem: ChannelTreeItem = treeItem as ChannelTreeItem;
-        channelName = channelTreeItem.label;
-        peerNames = channelTreeItem.peers;
+        channelName = treeItem.label;
+        peerNames = treeItem.peers;
     } else if (!channelName && !peerNames) {
 
         const chosenChannel: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to instantiate the smart contract on');

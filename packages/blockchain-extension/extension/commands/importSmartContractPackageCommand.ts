@@ -18,10 +18,9 @@ import * as path from 'path';
 import { Reporter } from '../util/Reporter';
 import { UserInputUtil } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from 'ibm-blockchain-platform-common';
+import { LogType, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { SettingConfigurations } from '../../configurations';
-import { FileSystemUtil } from '../util/FileSystemUtil';
 
 export async function importSmartContractPackageCommand(): Promise<void> {
 
