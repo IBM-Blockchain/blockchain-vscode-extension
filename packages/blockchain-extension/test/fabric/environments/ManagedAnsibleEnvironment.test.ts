@@ -21,7 +21,7 @@ import { TestUtil } from '../../TestUtil';
 import * as path from 'path';
 import { CommandUtil } from '../../../extension/util/CommandUtil';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
-import { SettingConfigurations } from '../../../configurations';
+import { SettingConfigurations } from '../../../extension/configurations';
 import { FabricRuntimeState } from '../../../extension/fabric/FabricRuntimeState';
 import { ManagedAnsibleEnvironment } from '../../../extension/fabric/environments/ManagedAnsibleEnvironment';
 import { OutputAdapter, FabricWalletRegistry, FabricWalletUtil, FabricWalletRegistryEntry, LogType } from 'ibm-blockchain-platform-common';

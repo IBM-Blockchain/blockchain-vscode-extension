@@ -85,7 +85,7 @@ describe('AnsibleEnvironment', () => {
 
     describe('#importGateways', () => {
         it('should create all gateways', async () => {
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const extDir: string = SettingConfigurations.getExtensionDir();
             const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
 
             await environment.importGateways();
@@ -107,7 +107,7 @@ describe('AnsibleEnvironment', () => {
         });
 
         it('should be able to pass a fallback wallet if desired', async () => {
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const extDir: string = SettingConfigurations.getExtensionDir();
             const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
 
             await environment.importGateways('fallbackWallet');

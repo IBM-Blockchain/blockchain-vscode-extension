@@ -19,7 +19,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as sinon from 'sinon';
 import * as path from 'path';
-import { SettingConfigurations } from '../configurations';
+import { SettingConfigurations } from '../extension/configurations';
 import { SinonSandbox, SinonStub } from 'sinon';
 import { UserInputUtil } from '../extension/commands/UserInputUtil';
 import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
@@ -74,7 +74,7 @@ export class TestUtil {
     }
 
     static async storeExtensionDirectoryConfig(): Promise<void> {
-        this.USER_PACKAGE_DIR_CONFIG = await vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        this.USER_PACKAGE_DIR_CONFIG = await SettingConfigurations.getExtensionDir();
         console.log('Storing user extension directory:', this.USER_PACKAGE_DIR_CONFIG);
     }
     static async restoreExtensionDirectoryConfig(): Promise<void> {

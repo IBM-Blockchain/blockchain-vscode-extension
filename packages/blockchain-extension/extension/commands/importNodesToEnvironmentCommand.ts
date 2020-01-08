@@ -17,7 +17,7 @@ import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../configurations';
 import { FabricEnvironmentRegistryEntry, FabricNode, LogType, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { FabricEnvironment } from '../fabric/environments/FabricEnvironment';
 import { ExtensionCommands } from '../../ExtensionCommands';
@@ -77,7 +77,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             }
         } while (addMore);
 
-        const dirPath: string = await vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY) as string;
+        const dirPath: string = await SettingConfigurations.getExtensionDir() as string;
         const homeExtDir: string = FileSystemUtil.getDirPath(dirPath);
         const environmentPath: string = path.join(homeExtDir, 'environments', environmentRegistryEntry.name, 'nodes');
 

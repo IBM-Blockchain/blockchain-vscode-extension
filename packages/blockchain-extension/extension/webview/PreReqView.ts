@@ -20,7 +20,7 @@ import { View } from './View';
 import { Reporter } from '../util/Reporter';
 import { DependencyManager } from '../dependencies/DependencyManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../configurations';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';

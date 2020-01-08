@@ -67,7 +67,7 @@ describe('removeWalletCommand', () => {
             walletPath: '/some/bluer/path'
         });
 
-        const extensionDirectory: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const extensionDirectory: string = SettingConfigurations.getExtensionDir();
         const directoryPath: string = FileSystemUtil.getDirPath(extensionDirectory);
 
         createdWallet = new FabricWalletRegistryEntry({

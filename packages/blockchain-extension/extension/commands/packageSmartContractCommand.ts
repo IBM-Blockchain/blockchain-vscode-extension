@@ -21,7 +21,7 @@ import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../configurations';
 
 /**
  * Main function which calls the methods and refreshes the blockchain explorer box each time that it runs successfully.
@@ -38,7 +38,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
 
     try {
         // Determine the directory that will contain the packages and ensure it exists.
-        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const extDir: string = SettingConfigurations.getExtensionDir();
         const pkgDir: string = path.join(extDir, 'packages');
         resolvedPkgDir = FileSystemUtil.getDirPath(pkgDir);
         await fs.ensureDir(resolvedPkgDir);

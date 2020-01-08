@@ -21,7 +21,7 @@ import { TestUtil } from '../../TestUtil';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { YeomanUtil } from '../../../extension/util/YeomanUtil';
-import { SettingConfigurations } from '../../../configurations';
+import { SettingConfigurations } from '../../../extension/configurations';
 import { FabricRuntimeState } from '../../../extension/fabric/FabricRuntimeState';
 import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';
 import { FabricRuntimeUtil, OutputAdapter, LogType, FabricWalletUtil, FabricEnvironmentRegistry, FileSystemUtil } from 'ibm-blockchain-platform-common';
@@ -529,7 +529,7 @@ describe('LocalEnvironment', () => {
     describe('#importGateways', () => {
 
         it(`should be pass the ${FabricWalletUtil.LOCAL_WALLET} as the fallback wallet`, async () => {
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const extDir: string = SettingConfigurations.getExtensionDir();
             const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
 
             await environment.importGateways();

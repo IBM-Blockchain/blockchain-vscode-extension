@@ -17,7 +17,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../configurations';
 import { addGateway } from '../commands/addGatewayCommand';
 import { addWallet } from '../commands/addWalletCommand';
 import { addWalletIdentity } from '../commands/addWalletIdentityCommand';

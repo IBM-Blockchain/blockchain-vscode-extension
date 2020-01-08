@@ -18,7 +18,7 @@ import * as vscode from 'vscode';
 import { FabricGateway } from '../FabricGateway';
 import { FabricIdentity, FabricWalletRegistry, FabricWalletRegistryEntry, FileConfigurations, IFabricWallet, IFabricWalletGenerator, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { FabricWalletGeneratorFactory } from '../FabricWalletGeneratorFactory';
-import { SettingConfigurations } from '../../../configurations';
+import { SettingConfigurations } from '../../configurations';
 import { FabricEnvironment } from './FabricEnvironment';
 import { FabricGatewayRegistryEntry } from '../../registries/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../registries/FabricGatewayRegistry';
@@ -37,7 +37,7 @@ export class AnsibleEnvironment extends FabricEnvironment {
         for (const walletName of walletNames) {
             const exists: boolean = await FabricWalletRegistry.instance().exists(walletName);
             if (!exists) {
-                const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+                const extDir: string = SettingConfigurations.getExtensionDir();
                 const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
                 const walletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
                 walletRegistryEntry.name = walletName;
@@ -60,7 +60,7 @@ export class AnsibleEnvironment extends FabricEnvironment {
     }
 
     public async importGateways(fallbackAssociatedWallet?: string): Promise<void> {
-        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const extDir: string = SettingConfigurations.getExtensionDir();
         const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
 
         const fabricGateways: FabricGateway[] = await this.getGateways();

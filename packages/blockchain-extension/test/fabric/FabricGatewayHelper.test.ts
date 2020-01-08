@@ -44,7 +44,7 @@ describe('FabricGatewayHelper', () => {
         it('should get the connection profile path', async () => {
             mySandBox.stub(fs, 'readdir').resolves(['.', '..', '.bob.json', 'connection.json']);
 
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const extDir: string = SettingConfigurations.getExtensionDir();
             const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
 
@@ -56,7 +56,7 @@ describe('FabricGatewayHelper', () => {
         it('should get the connection profile path yml file', async () => {
             mySandBox.stub(fs, 'readdir').resolves(['.', '..', '.bob.json', 'connection.yml']);
 
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const extDir: string = SettingConfigurations.getExtensionDir();
             const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
 
@@ -68,7 +68,7 @@ describe('FabricGatewayHelper', () => {
         it('should throw an error if no files found', async () => {
             mySandBox.stub(fs, 'readdir').resolves(['.', '..', '.bob.json']);
 
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const extDir: string = SettingConfigurations.getExtensionDir();
             const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
 
@@ -100,7 +100,7 @@ describe('FabricGatewayHelper', () => {
         it('should generate the connection profile', async () => {
             const connectionProfilePath: string = await FabricGatewayHelper.generateConnectionProfile('myGateway', peerNode, caNode);
 
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const extDir: string = SettingConfigurations.getExtensionDir();
             const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
             const profileFilePath: string = path.join(profileDirPath, 'connection.json');
@@ -124,7 +124,7 @@ describe('FabricGatewayHelper', () => {
         it('should generate the connection profile with nodes using tls', async () => {
             const connectionProfilePath: string = await FabricGatewayHelper.generateConnectionProfile('myGateway', securePeerNode, secureCANode);
 
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const extDir: string = SettingConfigurations.getExtensionDir();
             const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
             const profileFilePath: string = path.join(profileDirPath, 'connection.json');
@@ -153,7 +153,7 @@ describe('FabricGatewayHelper', () => {
         it('should generate the connection profile with no ca info', async () => {
             const connectionProfilePath: string = await FabricGatewayHelper.generateConnectionProfile('myGateway', peerNode, undefined);
 
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const extDir: string = SettingConfigurations.getExtensionDir();
             const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
             const profileFilePath: string = path.join(profileDirPath, 'connection.json');

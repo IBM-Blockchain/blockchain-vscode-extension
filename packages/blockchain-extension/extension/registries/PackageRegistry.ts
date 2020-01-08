@@ -18,7 +18,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType, FileSystemUtil } from 'ibm-blockchain-platform-common';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../configurations';
 
 export class PackageRegistry {
 
@@ -49,7 +49,7 @@ export class PackageRegistry {
     }
 
     public async clear(): Promise<void> {
-        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const extDir: string = SettingConfigurations.getExtensionDir();
         const pkgDir: string = path.join(extDir, 'packages');
         const resolvedPkgDir: string = FileSystemUtil.getDirPath(pkgDir);
         await fs.emptyDir(resolvedPkgDir);
@@ -57,7 +57,7 @@ export class PackageRegistry {
 
     private async getEntries(): Promise<PackageRegistryEntry[]> {
         // Determine the directory that will contain the packages and ensure it exists.
-        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const extDir: string = SettingConfigurations.getExtensionDir();
         const pkgDir: string = path.join(extDir, 'packages');
         const resolvedPkgDir: string = FileSystemUtil.getDirPath(pkgDir);
         await fs.ensureDir(resolvedPkgDir);

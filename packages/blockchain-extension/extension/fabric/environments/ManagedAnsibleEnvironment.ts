@@ -15,7 +15,7 @@
 import * as vscode from 'vscode';
 import { CommandUtil } from '../../util/CommandUtil';
 import * as request from 'request';
-import { SettingConfigurations } from '../../../configurations';
+import { SettingConfigurations } from '../../configurations';
 import { FabricRuntimeState } from '../FabricRuntimeState';
 import { AnsibleEnvironment } from './AnsibleEnvironment';
 import { OutputAdapter, FabricNode, FabricNodeType, ConsoleOutputAdapter, FabricWalletRegistry } from 'ibm-blockchain-platform-common';

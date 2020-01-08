@@ -12,11 +12,14 @@
  * limitations under the License.
 */
 
+import * as vscode from 'vscode';
+import * as path from 'path';
+
 // tslint:disable max-classes-per-file
 export class SettingConfigurations {
 
     // FABRIC CONFIGURATIONS
-    static readonly FABRIC_RUNTIME: string = 'ibm-blockchain-platform.fabric.runtime';
+    static readonly FABRIC_RUNTIME: string = 'ibm-blockchain-platform.v2.fabric.runtime';
     static readonly FABRIC_CLIENT_TIMEOUT: string = 'ibm-blockchain-platform.fabric.client.timeout';
     static readonly FABRIC_CHAINCODE_TIMEOUT: string = 'ibm-blockchain-platform.fabric.chaincode.timeout';
 
@@ -28,4 +31,9 @@ export class SettingConfigurations {
     // HOME CONFIGURATIONS
     static readonly HOME_SHOW_ON_STARTUP: string = 'ibm-blockchain-platform.home.showOnStartup';
     static readonly HOME_SHOW_ON_NEXT_ACTIVATION: string = 'ibm-blockchain-platform.home.showOnNextActivation';
+
+    static getExtensionDir(): string {
+        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        return path.join(extDir, 'v2');
+    }
 }

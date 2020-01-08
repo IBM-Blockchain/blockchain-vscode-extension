@@ -16,7 +16,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
 import { EventEmitter } from 'events';
-import { SettingConfigurations } from '../../../configurations';
+import { SettingConfigurations } from '../../configurations';
 import { FabricNode, FabricNodeType, FileConfigurations, FileSystemUtil } from 'ibm-blockchain-platform-common';
 
 export class FabricEnvironment extends EventEmitter {
@@ -26,7 +26,7 @@ export class FabricEnvironment extends EventEmitter {
 
     constructor(name: string) {
         super();
-        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const extDir: string = SettingConfigurations.getExtensionDir();
         const resolvedExtDir: string = FileSystemUtil.getDirPath(extDir);
         this.name = name;
         this.path = path.join(resolvedExtDir, FileConfigurations.FABRIC_ENVIRONMENTS, name);
