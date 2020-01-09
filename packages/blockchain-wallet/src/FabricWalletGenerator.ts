@@ -25,6 +25,6 @@ export class FabricWalletGenerator implements IFabricWalletGenerator {
     private static _instance: FabricWalletGenerator = new FabricWalletGenerator();
 
     public async getWallet(walletRegistryEntry: FabricWalletRegistryEntry): Promise<FabricWallet> {
-        return new FabricWallet(walletRegistryEntry.walletPath);
+        return FabricWallet.newFabricWallet(walletRegistryEntry.walletPath);
     }
 }

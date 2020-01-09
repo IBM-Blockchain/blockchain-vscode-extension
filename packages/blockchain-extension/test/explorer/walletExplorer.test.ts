@@ -16,6 +16,7 @@
 import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import * as path from 'path';
 import * as sinonChai from 'sinon-chai';
 import { BlockchainWalletExplorerProvider } from '../../extension/explorer/walletExplorer';
 import { TestUtil } from '../TestUtil';
@@ -26,7 +27,7 @@ import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { IdentityTreeItem } from '../../extension/explorer/model/IdentityTreeItem';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { AdminIdentityTreeItem } from '../../extension/explorer/model/AdminIdentityTreeItem';
-import { FabricCertificate, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWallet, LogType, FabricWalletGeneratorFactory, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
+import { FabricCertificate, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, LogType, FabricWalletGeneratorFactory, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 chai.use(sinonChai);
@@ -57,11 +58,11 @@ describe('walletExplorer', () => {
 
         blueWalletEntry = new FabricWalletRegistryEntry({
             name: 'blueWallet',
-            walletPath: '/some/path'
+            walletPath: path.join(__dirname, '../../test/tmp/v2/wallets/otherWallet')
         });
         greenWalletEntry = new FabricWalletRegistryEntry({
             name: 'greenWallet',
-            walletPath: '/some/other/path'
+            walletPath: path.join(__dirname, '../../test/tmp/v2/wallets/wallet')
         });
 
         await FabricWalletRegistry.instance().clear();
@@ -70,8 +71,9 @@ describe('walletExplorer', () => {
         await FabricWalletRegistry.instance().add(blueWalletEntry);
         await FabricWalletRegistry.instance().add(greenWalletEntry);
 
-        const greenWallet: IFabricWallet = new FabricWallet('some/path');
-        const blueWallet: IFabricWallet = new FabricWallet('/some/other/path');
+        const greenWallet: FabricWallet = await FabricWallet.newFabricWallet(greenWalletEntry.walletPath);
+        const blueWallet: FabricWallet = await FabricWallet.newFabricWallet(blueWalletEntry.walletPath);
+
         const getNewWalletStub: sinon.SinonStub = mySandBox.stub(FabricWalletGeneratorFactory.getFabricWalletGenerator(), 'getWallet');
         getNewWalletStub.callThrough();
         getNewWalletStub.withArgs(greenWalletEntry).returns(greenWallet);
@@ -81,8 +83,6 @@ describe('walletExplorer', () => {
         getBlueWalletIdentityNamesStub = mySandBox.stub(blueWallet, 'getIdentityNames');
         getGreenWalletIdentitiesStub = mySandBox.stub(greenWallet, 'getIdentities');
         getBlueWalletIdentitiesStub = mySandBox.stub(blueWallet, 'getIdentities');
-        mySandBox.stub(greenWallet, 'importIdentity').resolves();
-        mySandBox.stub(blueWallet, 'importIdentity').resolves();
     });
 
     afterEach(async () => {
@@ -109,8 +109,8 @@ describe('walletExplorer', () => {
         -----END CERTIFICATE-----`;
 
         getBlueWalletIdentitiesStub.resolves([
-            { name: 'violetConga', enrollment: { identity: { certificate: certOne } } },
-            { name: 'purpleConga', enrollment: { identity: { certificate: certOne } } }
+            { name: 'violetConga', cert: certOne },
+            { name: 'purpleConga', cert: certOne }
         ]);
 
         getGreenWalletIdentitiesStub.resolves([]);

@@ -12,9 +12,8 @@
  * limitations under the License.
 */
 'use strict';
-import * as fs from 'fs-extra';
+
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { IdentityTreeItem } from '../explorer/model/IdentityTreeItem';
@@ -26,8 +25,9 @@ export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> 
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, `deleteIdentity`);
 
-    let walletPath: string;
+    let wallet: IFabricWallet;
     let identitiesToDelete: string[];
+    const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
     if (!treeItem) {
         // Called from command palette
         const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose the wallet containing the identity that you want to delete', false, true) as IBlockchainQuickPickItem<FabricWalletRegistryEntry>;
@@ -36,9 +36,7 @@ export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> 
         }
 
         // Get identities in that wallet
-        const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
-        const wallet: IFabricWallet = await walletGenerator.getWallet(chosenWallet.data);
-        walletPath = wallet.getWalletPath();
+        wallet = await walletGenerator.getWallet(chosenWallet.data);
         let identityNames: string[] = await wallet.getIdentityNames();
 
         const walletName: string = (chosenWallet.data.displayName) ? chosenWallet.data.displayName : chosenWallet.data.name;
@@ -51,10 +49,10 @@ export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> 
         }
 
         if (walletName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `) && identityNames.length === 0) {
-            outputAdapter.log(LogType.ERROR, `No identities to delete in wallet: ${walletName}. The ${FabricRuntimeUtil.ADMIN_USER} identity cannot be deleted.`, `No identities to delete in wallet: ${walletName}. The ${FabricRuntimeUtil.ADMIN_USER} identity cannot be deleted.`);
+            outputAdapter.log(LogType.ERROR, `No identities to delete in wallet: ${walletName}. The ${FabricRuntimeUtil.ADMIN_USER} identity cannot be deleted.`);
             return;
         } else if (identityNames.length === 0) {
-            outputAdapter.log(LogType.ERROR, `No identities in wallet: ${walletPath}`, `No identities in wallet: ${walletPath}`);
+            outputAdapter.log(LogType.ERROR, `No identities in wallet: ${wallet.getWalletPath()}`);
             return;
         }
 
@@ -66,7 +64,7 @@ export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> 
     } else {
         // Called from the tree
         const registryEntry: FabricWalletRegistryEntry = treeItem.registryEntry;
-        walletPath = registryEntry.walletPath;
+        wallet = await walletGenerator.getWallet(registryEntry);
 
         identitiesToDelete = [treeItem.label];
     }
@@ -83,7 +81,7 @@ export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> 
         return;
     }
     for (const _identity of identitiesToDelete) {
-        await fs.remove(path.join(walletPath, _identity));
+        await wallet.removeIdentity(_identity);
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
     }
 

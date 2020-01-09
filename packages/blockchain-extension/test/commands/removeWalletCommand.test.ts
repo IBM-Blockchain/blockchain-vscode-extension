@@ -59,11 +59,11 @@ describe('removeWalletCommand', () => {
         // Add wallets to the registry
         purpleWallet = new FabricWalletRegistryEntry({
             name: 'purpleWallet',
-            walletPath: '/some/path'
+            walletPath: path.join(__dirname, '../../test/tmp/v2/wallets/purpleWallet')
         });
         blueWallet = new FabricWalletRegistryEntry({
             name: 'blueWallet',
-            walletPath: '/some/bluer/path'
+            walletPath: path.join(__dirname, '../../test/tmp/v2/wallets/blueWallet')
         });
 
         const extensionDirectory: string = SettingConfigurations.getExtensionDir();

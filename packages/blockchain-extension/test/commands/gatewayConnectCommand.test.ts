@@ -346,7 +346,7 @@ describe('GatewayConnectCommand', () => {
 
                 const walletRegistryEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Org1', FabricRuntimeUtil.LOCAL_FABRIC);
 
-                testFabricWallet = new FabricWallet(walletRegistryEntry.walletPath);
+                testFabricWallet = await FabricWallet.newFabricWallet(walletRegistryEntry.walletPath);
 
                 chosenGatewayQuickPick.resolves({
                     label: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`,
@@ -420,7 +420,7 @@ describe('GatewayConnectCommand', () => {
                 mySandBox.stub(managedAnsible, 'isRunning').resolves(true);
                 getEnvironmentStub.returns(managedAnsible);
 
-                testFabricWallet = new FabricWallet(managedWallet.walletPath);
+                testFabricWallet = await FabricWallet.newFabricWallet(managedWallet.walletPath);
 
                 const blockchainNetworkExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
@@ -449,7 +449,6 @@ describe('GatewayConnectCommand', () => {
 
                 logSpy.should.have.been.calledWith(LogType.ERROR, `${FabricRuntimeUtil.LOCAL_FABRIC} has not been started, please start it before connecting.`);
             });
-
         });
 
         describe('wallet associated and non-local fabric', () => {
@@ -471,7 +470,7 @@ describe('GatewayConnectCommand', () => {
                     data: wallet
                 });
 
-                testFabricWallet = new FabricWallet('some/new/wallet/path');
+                testFabricWallet = await FabricWallet.newFabricWallet(path.join(__dirname, '../../tmp/v2/wallets/testWallet'));
                 const getWalletStub: sinon.SinonStub = mySandBox.stub(walletGenerator, 'getWallet');
                 getWalletStub.callThrough();
                 getWalletStub.withArgs(wallet).returns(testFabricWallet);

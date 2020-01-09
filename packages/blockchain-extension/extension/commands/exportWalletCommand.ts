@@ -72,20 +72,9 @@ export async function exportWallet(walletTreeItem?: WalletTreeItem): Promise<voi
         if (walletContents.length) {
             for (const walletItem of walletContents) {
                 const walletItemPath: string = path.join(exportedWalletRegistryEntry.walletPath, walletItem);
-                // looking for directories that will contain identity information
-                if ((await fs.lstat(walletItemPath)).isDirectory()) {
-                    await fs.ensureDir(path.join(walletUri.fsPath, walletItem));
-                    const identityName: string = walletItem;
-                    const itemContents: string[] = await fs.readdir(walletItemPath);
-                    for (const itemFile of itemContents) {
-                        if (itemFile === identityName || itemFile.endsWith('-priv') || itemFile.endsWith('-pub')) {
-                            await fs.copy(path.join(walletItemPath, itemFile), path.join(walletUri.fsPath, walletItem, itemFile));
-                        }
-                    }
-                    // delete the directory if no relevant identity files were copied
-                    if ((await fs.readdir(path.join(walletUri.fsPath, walletItem))).length === 0) {
-                        await fs.remove(path.join(walletUri.fsPath, walletItem));
-                    }
+
+                if (walletItemPath.endsWith('.id')) {
+                    await fs.copy(walletItemPath, path.join(walletUri.fsPath, walletItem));
                 }
             }
         }
