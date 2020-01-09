@@ -18,11 +18,48 @@ steps:
     displayName: Setup Fabric
     condition: and(succeeded(), eq(variables['OTHER_FABRIC'], 'true'))
 
+  - task: DownloadSecureFile@1
+    name: OrderingServiceCAAdmin
+    inputs:
+      secureFile: OrderingServiceCAAdmin.json
+    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+
+  - task: DownloadSecureFile@1
+    name: OrderingServiceMSPAdmin
+    inputs:
+      secureFile: OrderingServiceMSPAdmin.json
+    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+
+  - task: DownloadSecureFile@1
+    name: Org1CAAdmin
+    inputs:
+      secureFile: Org1CAAdmin.json
+    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+
+  - task: DownloadSecureFile@1
+    name: Org1MSPAdmin
+    inputs:
+      secureFile: Org1MSPAdmin.json
+    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+
+  - task: DownloadSecureFile@1
+    name: Org2CAAdmin
+    inputs:
+      secureFile: Org2CAAdmin.json
+    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+    
+  - task: DownloadSecureFile@1
+    name: Org2MSPAdmin
+    inputs:
+      secureFile: Org2MSPAdmin.json
+    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+
   - bash: |
       set -ev
       cd ./packages/blockchain-extension
-      npm run cucumber
+      npm run cucumber -- $(opsTools_url) $(opsTools_key) $(opsTools_secret)
     env:
       DISPLAY: ':99.0'
+      JSON_DIR: $(Agent.TempDirectory)
     displayName: Run cucumber tests
     condition: succeeded()
