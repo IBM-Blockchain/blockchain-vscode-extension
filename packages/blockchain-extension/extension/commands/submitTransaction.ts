@@ -102,6 +102,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
     } else if (argsString === '') {
         args = [];
     } else {
+        argsString = argsString.trim();
         try {
             if (!argsString.startsWith('[') || !argsString.endsWith(']')) {
                 throw new Error('transaction arguments should be in the format ["arg1", {"key" : "value"}]');
@@ -126,6 +127,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
         if (transientDataString === undefined) {
             return;
         } else if (transientDataString !== '' && transientDataString !== '{}') {
+            transientDataString = transientDataString.trim();
             if (!transientDataString.startsWith('{') || !transientDataString.endsWith('}')) {
                 throw new Error('transient data should be in the format {"key": "value"}');
             }

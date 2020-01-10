@@ -284,29 +284,29 @@ stages:
         steps:
           - template: azure-templates/setup-steps.yml
           - template: azure-templates/cucumber-steps.yml
-  - stage: docker
-    dependsOn:
-      - unitTest
-      - cucumberTest
-      - cypressTest
-    jobs:
-      - job: docker
-        pool:
-          vmImage: ubuntu-16.04
-        steps:
-          - script: docker/build.sh
-            displayName: Build Docker image
-          - script: |
-              set -ex
-              VERSION=$(jq -r ".version" ./packages/blockchain-extension/package.json)
-              docker tag ibmblockchain/vscode:latest ibmblockchain/vscode:${VERSION}
-              echo docker push ibmblockchain/vscode:${VERSION}
-              echo docker push ibmblockchain/vscode:latest
-            condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
-            displayName: Push Docker image to Docker Hub (release build)
-          - script: |
-              set -ex
-              docker tag ibmblockchain/vscode:latest ibmblockchain/vscode:unstable
-              echo docker push ibmblockchain/vscode:unstable
-            condition: eq(variables['Build.Reason'], 'Schedule')
-            displayName: Push Docker image to Docker Hub (nightly build)
+  # - stage: docker
+  #   dependsOn:
+  #     - unitTest
+  #     - cucumberTest
+  #     - cypressTest
+  #   jobs:
+  #     - job: docker
+  #       pool:
+  #         vmImage: ubuntu-16.04
+  #       steps:
+  #         - script: docker/build.sh
+  #           displayName: Build Docker image
+  #         - script: |
+  #             set -ex
+  #             VERSION=$(jq -r ".version" ./packages/blockchain-extension/package.json)
+  #             docker tag ibmblockchain/vscode:latest ibmblockchain/vscode:${VERSION}
+  #             echo docker push ibmblockchain/vscode:${VERSION}
+  #             echo docker push ibmblockchain/vscode:latest
+  #           condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
+  #           displayName: Push Docker image to Docker Hub (release build)
+  #         - script: |
+  #             set -ex
+  #             docker tag ibmblockchain/vscode:latest ibmblockchain/vscode:unstable
+  #             echo docker push ibmblockchain/vscode:unstable
+  #           condition: eq(variables['Build.Reason'], 'Schedule')
+  #           displayName: Push Docker image to Docker Hub (nightly build)
