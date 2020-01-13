@@ -12,6 +12,8 @@
  * limitations under the License.
 */
 
+import * as fs from 'fs-extra';
+import * as path from 'path';
 import { FabricGatewayRegistryEntry } from './FabricGatewayRegistryEntry';
 import { AnsibleEnvironment } from '../environments/AnsibleEnvironment';
 import { FabricRuntimeUtil } from '../util/FabricRuntimeUtil';
@@ -81,5 +83,15 @@ export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEnt
                 return -1;
             }
         });
+    }
+
+    public async update(newEntry: FabricGatewayRegistryEntry): Promise<void> {
+        if (newEntry.fromEnvironment) {
+            const connectionProfilePath: string = newEntry.connectionProfilePath;
+            const gatewayFolderPath: string = connectionProfilePath.substr(0, connectionProfilePath.lastIndexOf('/'));
+            await fs.writeJson(path.join(gatewayFolderPath, '.config.json'), newEntry);
+        } else {
+            await super.update(newEntry);
+        }
     }
 }

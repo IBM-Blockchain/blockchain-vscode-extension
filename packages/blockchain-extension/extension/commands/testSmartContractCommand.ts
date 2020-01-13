@@ -162,7 +162,7 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
     }
 
     const fabricConnectionManager: FabricGatewayConnectionManager = FabricGatewayConnectionManager.instance();
-    const fabricGatewayRegistryEntry: FabricGatewayRegistryEntry = fabricConnectionManager.getGatewayRegistryEntry();
+    const fabricGatewayRegistryEntry: FabricGatewayRegistryEntry = await fabricConnectionManager.getGatewayRegistryEntry();
     const fabricWalletRegistryEntry: FabricWalletRegistryEntry = fabricConnectionManager.getConnectionWallet();
     const connectionIdentityName: string = fabricConnectionManager.getConnectionIdentity();
 

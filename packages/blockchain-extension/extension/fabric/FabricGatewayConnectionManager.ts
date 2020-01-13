@@ -12,6 +12,8 @@
  * limitations under the License.
 */
 
+import * as fs from 'fs-extra';
+import * as path from 'path';
 import { EventEmitter } from 'events';
 import { FabricWalletRegistryEntry, IFabricGatewayConnection, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 
@@ -35,8 +37,26 @@ export class FabricGatewayConnectionManager extends EventEmitter {
         return this.connection;
     }
 
-    public getGatewayRegistryEntry(): FabricGatewayRegistryEntry {
-        return this.gatewayRegistryEntry;
+    public async getGatewayRegistryEntry(): Promise<FabricGatewayRegistryEntry> {
+        if (this.gatewayRegistryEntry === undefined) {
+            return this.gatewayRegistryEntry;
+        } else {
+            if (this.gatewayRegistryEntry.fromEnvironment) {
+                const connectionProfilePath: string = this.gatewayRegistryEntry.connectionProfilePath;
+                const gatewayFolderPath: string = connectionProfilePath.substr(0, connectionProfilePath.lastIndexOf('/'));
+                const configPath: string = path.join(gatewayFolderPath, '.config.json');
+
+                try {
+                    const gatewayConfigRegistryEntry: FabricGatewayRegistryEntry = await fs.readJSON(configPath);
+                    return gatewayConfigRegistryEntry;
+                } catch (error) {
+                    return this.gatewayRegistryEntry;
+                }
+
+            } else {
+                return this.gatewayRegistryEntry;
+            }
+        }
     }
 
     public connect(connection: IFabricGatewayConnection, gatewayRegistryEntry: FabricGatewayRegistryEntry, walletRegistryEntry: FabricWalletRegistryEntry): void {

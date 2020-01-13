@@ -90,7 +90,7 @@ export class MetadataUtil {
     }
 
     private static async killChaincodeContainer(chaincodeName: string): Promise<void> {
-        const gatewayRegistryEntry: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
+        const gatewayRegistryEntry: FabricGatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
         if (gatewayRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
             // make sure there is a debug session and its from a smart contract
             const activeSession: vscode.DebugSession = vscode.debug.activeDebugSession;

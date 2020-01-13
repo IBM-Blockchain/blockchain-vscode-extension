@@ -14,6 +14,8 @@
 'use strict';
 // tslint:disable no-unused-expression
 import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs-extra';
 import { FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
 
 import * as chai from 'chai';
@@ -58,6 +60,7 @@ describe('SubmitTransactionCommand', () => {
         let showTransactionQuickPickStub: sinon.SinonStub;
         let showInputBoxStub: sinon.SinonStub;
         let showQuickPickStub: sinon.SinonStub;
+        let showQuickPickItemStub: sinon.SinonStub;
         let showChannelPeersQuickPickStub: sinon.SinonStub;
         let reporterStub: sinon.SinonStub;
 
@@ -66,6 +69,10 @@ describe('SubmitTransactionCommand', () => {
         let registryStub: sinon.SinonStub;
         let peerNames: string[];
         let mspIDs: string[];
+        let rootPath: string;
+        let transactionDataPath: string;
+        let badTransactionDataPath: string;
+        let notTransactionDataPath: string;
 
         beforeEach(async () => {
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
@@ -92,7 +99,25 @@ describe('SubmitTransactionCommand', () => {
             showInputBoxStub.onSecondCall().resolves('');
 
             showQuickPickStub = mySandBox.stub(UserInputUtil, 'showQuickPick');
-            showQuickPickStub.onFirstCall().resolves(UserInputUtil.DEFAULT);
+
+            showQuickPickItemStub = mySandBox.stub(UserInputUtil, 'showQuickPickItem');
+            showQuickPickItemStub.onFirstCall().resolves(UserInputUtil.DEFAULT);
+            showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves({
+                label: 'My Transaction',
+                description: 'My Transaction',
+                data: {
+                    transactionName: 'transaction1',
+                    transactionLabel: 'My Transaction',
+                    arguments: [
+                        'arg1',
+                        'arg2',
+                        'arg3'
+                    ],
+                    transientData: {
+                        key: 'value'
+                    }
+                }
+            });
 
             showChannelPeersQuickPickStub = mySandBox.stub(UserInputUtil, 'showChannelPeersQuickPick');
 
@@ -146,6 +171,11 @@ describe('SubmitTransactionCommand', () => {
             allChildren = await blockchainGatewayExplorerProvider.getChildren();
 
             reporterStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+
+            rootPath = path.dirname(__dirname);
+            transactionDataPath = path.join(rootPath, '../../test/data/transactionData/goodTransactionData');
+            badTransactionDataPath = path.join(rootPath, '../../test/data/transactionData/badTransactionData');
+            notTransactionDataPath = path.join(rootPath, '../../test/data/transactionData/notTransactionData');
         });
 
         afterEach(async () => {
@@ -180,6 +210,16 @@ describe('SubmitTransactionCommand', () => {
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, `evaluating transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully evaluated transaction');
             reporterStub.should.have.been.calledWith('evaluate transaction');
+        });
+
+        it('should handle an argument passed in as an object', async () => {
+            showInputBoxStub.onFirstCall().resolves('[{"key": "value"}]');
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['{"key":"value"}'], 'my-contract');
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args {"key":"value"} on channel myChannel`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
         });
 
         it('should evaluate the smart contract transaction through the command', async () => {
@@ -854,6 +894,321 @@ describe('SubmitTransactionCommand', () => {
             logSpy.should.have.been.calledWith(LogType.ERROR, `Error with transaction transient data: transient data should be in the format {"key": "value"}`);
             reporterStub.should.not.have.been.calledWith('submit transaction');
             dockerLogsOutputSpy.should.not.have.been.called;
+        });
+
+        it('should let a user submit a file in their associated transaction data directory', async () => {
+            const gatewayWithTestData: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gatewayWithTestData.name = 'myConnection';
+            gatewayWithTestData.transactionDataDirectories = [
+                {
+                    chaincodeName: 'myContract',
+                    channelName: 'myChannel',
+                    transactionDataPath
+                }
+            ];
+            registryStub.returns(gatewayWithTestData);
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
+        });
+
+        it('should allow a user to manually input transaction arguments if they choose not to submit a file', async () => {
+            const gatewayWithTestData: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gatewayWithTestData.name = 'myConnection';
+            gatewayWithTestData.transactionDataDirectories = [
+                {
+                    chaincodeName: 'myContract',
+                    channelName: 'myChannel',
+                    transactionDataPath
+                }
+            ];
+            registryStub.returns(gatewayWithTestData);
+
+            showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves({
+                label: 'None (manual entry)',
+                description: '',
+                data: undefined
+            });
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
+        });
+
+        it('should handle cancellation when asking for a file to submit', async () => {
+            const gatewayWithTestData: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gatewayWithTestData.name = 'myConnection';
+            gatewayWithTestData.transactionDataDirectories = [
+                {
+                    chaincodeName: 'myContract',
+                    channelName: 'myChannel',
+                    transactionDataPath
+                }
+            ];
+            registryStub.returns(gatewayWithTestData);
+
+            showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves(undefined);
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+
+            fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.not.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.not.have.been.calledWith('submit transaction');
+        });
+
+        it('should handle cancellation when choosing a transaction after not submitting a file', async () => {
+            const gatewayWithTestData: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gatewayWithTestData.name = 'myConnection';
+            gatewayWithTestData.transactionDataDirectories = [
+                {
+                    chaincodeName: 'myContract',
+                    channelName: 'myChannel',
+                    transactionDataPath
+                }
+            ];
+            registryStub.returns(gatewayWithTestData);
+
+            showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves({
+                label: 'None (manual entry)',
+                description: '',
+                data: undefined
+            });
+            showTransactionQuickPickStub.resolves(undefined);
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+
+            fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.not.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.not.have.been.calledWith('submit transaction');
+        });
+
+        it('should submit a transaction data file correctly when no transaction label is provided', async () => {
+            const gatewayWithTestData: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gatewayWithTestData.name = 'myConnection';
+            gatewayWithTestData.transactionDataDirectories = [
+                {
+                    chaincodeName: 'myContract',
+                    channelName: 'myChannel',
+                    transactionDataPath
+                }
+            ];
+            registryStub.returns(gatewayWithTestData);
+
+            showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves({
+                label: 'transaction1',
+                description: '',
+                data: {
+                    transactionName: 'transaction1',
+                    arguments: [
+                        'arg1',
+                        'arg2',
+                        'arg3'
+                    ],
+                    transientData: {
+                        key: 'value'
+                    }
+                }
+            });
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
+        });
+
+        it('should submit a transaction data file correctly when no args or transient data are provided', async () => {
+            const gatewayWithTestData: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gatewayWithTestData.name = 'myConnection';
+            gatewayWithTestData.transactionDataDirectories = [
+                {
+                    chaincodeName: 'myContract',
+                    channelName: 'myChannel',
+                    transactionDataPath
+                }
+            ];
+            registryStub.returns(gatewayWithTestData);
+
+            showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves({
+                label: 'transaction1',
+                description: 'My Transaction - no args or transient',
+                data: {
+                    transactionName: 'transaction1',
+                    transactionLabel: 'My Transaction - no args or transient'
+                }
+            });
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', [], 'my-contract');
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with no args on channel myChannel`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
+        });
+
+        it('should handle an argument passed in as an object', async () => {
+            const gatewayWithTestData: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gatewayWithTestData.name = 'myConnection';
+            gatewayWithTestData.transactionDataDirectories = [
+                {
+                    chaincodeName: 'myContract',
+                    channelName: 'myChannel',
+                    transactionDataPath
+                }
+            ];
+            registryStub.returns(gatewayWithTestData);
+
+            showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves({
+                label: 'transaction1',
+                description: 'My Transaction - object as args',
+                data: {
+                    transactionName: 'transaction1',
+                    transactionLabel: 'My Transaction - object as args',
+                    arguments: [
+                        {
+                            key: 'value'
+                        }
+                    ]
+                }
+            });
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['{"key":"value"}'], 'my-contract');
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args {"key":"value"} on channel myChannel`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
+        });
+
+        it('should default to manual argument entry if the associated transaction data directory has no submittable files', async () => {
+            const gatewayWithTestData: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gatewayWithTestData.name = 'myConnection';
+            gatewayWithTestData.transactionDataDirectories = [
+                {
+                    chaincodeName: 'myContract',
+                    channelName: 'myChannel',
+                    transactionDataPath: notTransactionDataPath
+                }
+            ];
+            registryStub.returns(gatewayWithTestData);
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+
+            showInputBoxStub.withArgs('optional: What are the arguments to the transaction, (e.g. ["arg1", "arg2"])').should.have.been.called;
+            showInputBoxStub.withArgs('optional: What is the transient data for the transaction, e.g. {"key": "value"}').should.have.been.called;
+
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
+        });
+
+        it('should only show submittable transaction files if they are the same type as the selected transaction', async () => {
+            const gatewayWithTestData: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gatewayWithTestData.name = 'myConnection';
+            gatewayWithTestData.transactionDataDirectories = [
+                {
+                    chaincodeName: 'myContract',
+                    channelName: 'myChannel',
+                    transactionDataPath
+                }
+            ];
+            registryStub.returns(gatewayWithTestData);
+
+            showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves(undefined);
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+
+            const txnOptions: any = showQuickPickItemStub.getCall(0).args[1];
+            txnOptions.should.not.contain({
+                label: 'My Other Transaction',
+                description: 'transaction2',
+                data: {
+                    transactionName: 'transaction2',
+                    transactionLabel: 'My Other Transaction',
+                    arguments: [
+                        'arg1',
+                        'arg2',
+                        'arg3'
+                    ],
+                    transientData: {
+                        key: 'value'
+                    }
+                }
+            });
+        });
+
+        it('should handle an error if a transaction data file cannot be parsed and continue', async () => {
+            const gatewayWithTestData: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gatewayWithTestData.name = 'myConnection';
+            gatewayWithTestData.transactionDataDirectories = [
+                {
+                    chaincodeName: 'myContract',
+                    channelName: 'myChannel',
+                    transactionDataPath: badTransactionDataPath
+                }
+            ];
+
+            registryStub.returns(gatewayWithTestData);
+
+            const error: Error = new Error('nah');
+            mySandBox.stub(fs, 'readJSON').onFirstCall().rejects(error);
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Error with transaction file badTransactionData.txdata: ${error.message}`);
+
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
+        });
+
+        it('should not show the transaction data quick pick if there is no valid data to submit', async () => {
+            const gatewayWithTestData: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gatewayWithTestData.name = 'myConnection';
+            gatewayWithTestData.transactionDataDirectories = [
+                {
+                    chaincodeName: 'myContract',
+                    channelName: 'myChannel',
+                    transactionDataPath
+                }
+            ];
+            registryStub.returns(gatewayWithTestData);
+
+            showTransactionQuickPickStub.withArgs(sinon.match.any, 'myContract', 'myChannel').resolves({
+                label: 'my-contract - instantiate',
+                data: { name: 'instantiate', contract: 'my-contract' }
+            });
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+
+            showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').should.not.have.been.called;
+
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'instantiate', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction instantiate with args arg1,arg2,arg3 on channel myChannel`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
         });
     });
 });

@@ -40,7 +40,7 @@ export async function openTransactionView(treeItem?: InstantiatedTreeItem): Prom
         }
     }
 
-    const gatewayRegistryEntry: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
+    const gatewayRegistryEntry: FabricGatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
     const gatewayName: string = gatewayRegistryEntry.name;
 
     if (treeItem) {

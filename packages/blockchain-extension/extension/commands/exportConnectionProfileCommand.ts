@@ -33,7 +33,7 @@ export async function exportConnectionProfile(gatewayTreeItem: GatewayTreeItem, 
 
     let gatewayEntry: FabricGatewayRegistryEntry;
     if (isConnected) {
-        const connectedGateway: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
+        const connectedGateway: FabricGatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
         gatewayEntry = connectedGateway;
 
     } else if (!gatewayTreeItem) {
