@@ -49,7 +49,7 @@ RUN code-server --extensions-dir /usr/local/extensions --install-extension ms-vs
 COPY ibm-blockchain-platform-docker.vsix /tmp/
 RUN code-server --extensions-dir /usr/local/extensions --install-extension /tmp/ibm-blockchain-platform-docker.vsix && \
     cd /usr/local/extensions/ibmblockchain.ibm-blockchain-platform-* && \
-    npm rebuild --runtime=node --target=12.0.0 --arch=x64
+    npm rebuild --update-binary --runtime=node --target=12.0.0
 # Install our settings for Visual Studio Code
 COPY settings.json /etc/skel/.local/share/code-server/User/
 RUN for i in environments gateways packages wallets; do \
