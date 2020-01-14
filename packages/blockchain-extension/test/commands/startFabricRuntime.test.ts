@@ -97,7 +97,7 @@ describe('startFabricRuntime', () => {
     it('should start a Local environment from the command palette if created and generated', async () => {
         mockLocalRuntime.isCreated.resolves(true);
         mockLocalRuntime.isGenerated.resolves(true);
-        getEnvironmentStub.returns(mockLocalRuntime);
+        getEnvironmentStub.resolves(mockLocalRuntime);
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
         showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to start', false, true, true, true);
         mockLocalRuntime.create.should.not.have.been.called;
@@ -121,7 +121,7 @@ describe('startFabricRuntime', () => {
     it('should create, generate and start a Local environment', async () => {
         mockLocalRuntime.isCreated.resolves(false);
         mockLocalRuntime.isGenerated.resolves(false);
-        getEnvironmentStub.returns(mockLocalRuntime);
+        getEnvironmentStub.resolves(mockLocalRuntime);
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
         showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to start', false, true, true, true);
         mockLocalRuntime.create.should.have.been.calledOnce;
@@ -137,7 +137,7 @@ describe('startFabricRuntime', () => {
     it('should be able to pass in an environment registry', async () => {
         mockLocalRuntime.isCreated.resolves(false);
         mockLocalRuntime.isGenerated.resolves(false);
-        getEnvironmentStub.returns(mockLocalRuntime);
+        getEnvironmentStub.resolves(mockLocalRuntime);
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC, localRegistryEntry);
         showFabricEnvironmentQuickPickBoxStub.should.not.have.been.called;
         mockLocalRuntime.create.should.have.been.calledOnce;
@@ -152,7 +152,7 @@ describe('startFabricRuntime', () => {
 
     it('should generate and start a managed environment', async () => {
         mockManagedEnvironment.isGenerated.resolves(false);
-        getEnvironmentStub.returns(mockManagedEnvironment);
+        getEnvironmentStub.resolves(mockManagedEnvironment);
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
         showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to start', false, true, true, true);
         mockManagedEnvironment.generate.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
@@ -168,7 +168,7 @@ describe('startFabricRuntime', () => {
         mockLocalRuntime.isGenerated.resolves(true);
         const error: Error = new Error('who ate all the cakes?');
         mockLocalRuntime.start.rejects(error);
-        getEnvironmentStub.returns(mockLocalRuntime);
+        getEnvironmentStub.resolves(mockLocalRuntime);
 
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
         mockLocalRuntime.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());

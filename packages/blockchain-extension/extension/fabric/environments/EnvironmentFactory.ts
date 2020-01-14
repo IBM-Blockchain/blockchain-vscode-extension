@@ -14,14 +14,14 @@
 'use strict';
 import { ManagedAnsibleEnvironment } from './ManagedAnsibleEnvironment';
 import { AnsibleEnvironment } from './AnsibleEnvironment';
-import { FabricRuntimeUtil, FabricEnvironmentRegistryEntry, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricEnvironmentRegistryEntry, EnvironmentType, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from './LocalEnvironment';
 import { LocalEnvironmentManager } from './LocalEnvironmentManager';
 import { FabricEnvironment } from './FabricEnvironment';
 
 export class EnvironmentFactory {
 
-    public static getEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry): FabricEnvironment | AnsibleEnvironment | ManagedAnsibleEnvironment | LocalEnvironment {
+    public static async getEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry): Promise<FabricEnvironment | AnsibleEnvironment | ManagedAnsibleEnvironment | LocalEnvironment> {
         const name: string = environmentRegistryEntry.name;
         if (!name) {
             throw new Error('Unable to get environment, a name must be provided');
@@ -30,6 +30,13 @@ export class EnvironmentFactory {
         let managedRuntime: boolean = environmentRegistryEntry.managedRuntime;
         if (managedRuntime === undefined) {
             managedRuntime = false;
+        }
+
+        if ((!environmentRegistryEntry.associatedGateways || !environmentRegistryEntry.environmentType) && managedRuntime && name === FabricRuntimeUtil.LOCAL_FABRIC) {
+            // This will update a generated Local Fabric instance which doesn't have the environment type or associated gateways flags
+            environmentRegistryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+            environmentRegistryEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
+            await FabricEnvironmentRegistry.instance().update(environmentRegistryEntry);
         }
 
         const type: EnvironmentType = environmentRegistryEntry.environmentType;

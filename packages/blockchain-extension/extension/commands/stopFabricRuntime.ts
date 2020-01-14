@@ -40,7 +40,7 @@ export async function stopFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Prom
     } else {
         registryEntry = runtimeTreeItem.environmentRegistryEntry;
     }
-    const runtime: ManagedAnsibleEnvironment | LocalEnvironment = EnvironmentFactory.getEnvironment(registryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+    const runtime: ManagedAnsibleEnvironment | LocalEnvironment = await EnvironmentFactory.getEnvironment(registryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
     const associatedGateways: string[] = registryEntry.associatedGateways ? registryEntry.associatedGateways : [];
 
     await vscode.window.withProgress({
