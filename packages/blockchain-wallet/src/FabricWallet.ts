@@ -14,8 +14,8 @@
 'use strict';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { FileSystemWallet, X509WalletMixin, IdentityInfo} from 'fabric-network';
-import { FabricIdentity, IFabricWallet} from 'ibm-blockchain-platform-common';
+import { FileSystemWallet, X509WalletMixin, IdentityInfo } from 'fabric-network';
+import { FabricIdentity, IFabricWallet } from 'ibm-blockchain-platform-common';
 
 export class FabricWallet extends FileSystemWallet implements IFabricWallet {
     public walletPath: string;
@@ -43,15 +43,22 @@ export class FabricWallet extends FileSystemWallet implements IFabricWallet {
         let identityPaths: string[] = await fs.readdir(walletPath);
         identityPaths.sort();
         identityPaths = identityPaths
-            .filter((identityPath: string) => !identityPath.startsWith('.'))
+            .filter((identityPath: string) => {
+                const stats: fs.Stats = fs.lstatSync(path.join(walletPath, identityPath));
+                return !identityPath.startsWith('.') && stats.isDirectory();
+            })
             .map((identityPath: string) => {
                 const identityName: string = path.basename(identityPath);
                 return path.resolve(walletPath, identityPath, identityName);
             });
         const identities: FabricIdentity[] = [];
         for (const identityPath of identityPaths) {
-            const identity: FabricIdentity = await fs.readJson(identityPath);
-            identities.push(identity);
+            const exists: boolean = await fs.pathExists(identityPath);
+            // ignore ones where there is no actual identity
+            if (exists) {
+                const identity: FabricIdentity = await fs.readJson(identityPath);
+                identities.push(identity);
+            }
         }
         return identities;
     }

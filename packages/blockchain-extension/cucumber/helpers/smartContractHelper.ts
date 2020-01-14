@@ -54,7 +54,7 @@ export class SmartContractHelper {
         let type: LanguageType;
         if (language === 'Go') {
             type = LanguageType.CHAINCODE;
-        } else if (language === 'JavaScript' || language === 'TypeScript'  || language === 'Java') {
+        } else if (language === 'JavaScript' || language === 'TypeScript' || language === 'Java') {
             type = LanguageType.CONTRACT;
         } else {
             throw new Error(`You must update this test to support the ${language} language`);
@@ -130,14 +130,19 @@ export class SmartContractHelper {
         const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
         const smartContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[0]);
-        const installedContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(smartContracts[0]); // Installed smart contracts
+        const installedLabel: any[] = await blockchainRuntimeExplorerProvider.getChildren(smartContracts[1]); // Smart contracts
+        const installedContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(installedLabel[0]); // installed smart contracts
         const installedContract: any = installedContracts.find((contract: any) => {
             return contract.label === `${name}@${version}`;
         });
 
         if (!installedContract) {
-            // We'll probably want this back when we have multi-org/peer
-            // this.userInputUtilHelper.showPeersQuickPickStub.resolves(['peer0.org1.example.com']);
+            if (process.env.ANSIBLE_FABRIC) {
+                this.userInputUtilHelper.showPeersQuickPickStub.resolves(['Org1Peer1', 'Org1Peer2', 'Org2Peer1', 'Org2Peer2']);
+            }
+
+            // TODO: when local fabric multi-org need to add here which peers
+
             const _package: PackageRegistryEntry = await PackageRegistry.instance().get(name, version);
 
             should.exist(_package);
@@ -153,14 +158,15 @@ export class SmartContractHelper {
         }
     }
 
-    public async instantiateSmartContract(name: string, version: string, transaction: string, args: string, privateData: boolean): Promise<void> {
+    public async instantiateSmartContract(name: string, version: string, transaction: string, args: string, privateData: boolean, channel: string): Promise<void> {
         // Check if instantiated contract exists
         const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
         const smartContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[0]);
-        const instantiatedContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(smartContracts[1]); // Installed smart contracts
+        const instantiatedLabel: any[] = await blockchainRuntimeExplorerProvider.getChildren(smartContracts[1]); // smart contracts
+        const instantiatedContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(instantiatedLabel[1]); // instantiated contracts
         const instantiatedContract: any = instantiatedContracts.find((contract: any) => {
-            return contract.label === `${name}@${version}`;
+            return contract.name === name;
         });
 
         if (!instantiatedContract) {
@@ -175,7 +181,7 @@ export class SmartContractHelper {
             }
 
             this.userInputUtilHelper.showChannelStub.resolves({
-                label: 'mychannel',
+                label: channel,
                 data: [peer]
             });
 
@@ -209,7 +215,7 @@ export class SmartContractHelper {
         }
     }
 
-    public async upgradeSmartContract(name: string, version: string, transaction: string, args: string, privateData: boolean): Promise<void> {
+    public async upgradeSmartContract(name: string, version: string, transaction: string, args: string, privateData: boolean, channel: string): Promise<void> {
 
         let peer: string;
         if (process.env.OTHER_FABRIC) {
@@ -221,7 +227,7 @@ export class SmartContractHelper {
         }
 
         this.userInputUtilHelper.showChannelStub.resolves({
-            label: 'mychannel',
+            label: channel,
             data: [peer]
         });
 

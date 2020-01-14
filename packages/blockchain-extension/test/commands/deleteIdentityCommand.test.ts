@@ -24,9 +24,8 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { BlockchainWalletExplorerProvider } from '../../extension/explorer/walletExplorer';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
-import { FabricWalletGeneratorFactory } from '../../extension/fabric/FabricWalletGeneratorFactory';
 import { IdentityTreeItem } from '../../extension/explorer/model/IdentityTreeItem';
-import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, LogType, FabricWalletGeneratorFactory } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 chai.should();
@@ -81,7 +80,7 @@ describe('deleteIdentityCommand', () => {
 
         testWallet = new FabricWallet('/some/path');
         walletIdentitiesStub = mySandBox.stub(testWallet, 'getIdentityNames');
-        getWalletStub = mySandBox.stub(FabricWalletGeneratorFactory.createFabricWalletGenerator(), 'getWallet').resolves(testWallet);
+        getWalletStub = mySandBox.stub(FabricWalletGeneratorFactory.getFabricWalletGenerator(), 'getWallet').resolves(testWallet);
 
         executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
     });
@@ -207,12 +206,12 @@ describe('deleteIdentityCommand', () => {
     });
 
     it('should handle the user cancelling selecting an identity to delete', async () => {
-        identityName = ['greenConga'];
+        identityName = ['greenConga', 'yellowConga'];
         showWalletsQuickPickStub.resolves({
             label: purpleWallet.name,
             data: purpleWallet
         });
-        walletIdentitiesStub.resolves([identityName, 'yellowConga']);
+        walletIdentitiesStub.resolves(identityName);
         showIdentitiesQuickPickStub.resolves();
 
         await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY);
@@ -244,7 +243,7 @@ describe('deleteIdentityCommand', () => {
     });
 
     it('should delete an identity and filter admin id from local wallet', async () => {
-        identityName = ['bob'];
+        identityName = [FabricRuntimeUtil.ADMIN_USER, 'bob'];
 
         const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
 
@@ -257,13 +256,12 @@ describe('deleteIdentityCommand', () => {
             label: runtimeWalletRegistryEntry.displayName,
             data: runtimeWalletRegistryEntry
         });
-        walletIdentitiesStub.resolves([FabricRuntimeUtil.ADMIN_USER, identityName]);
-        showIdentitiesQuickPickStub.resolves(identityName);
+        walletIdentitiesStub.resolves(identityName);
+        showIdentitiesQuickPickStub.resolves([identityName[1]]);
 
         await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY);
 
-        showIdentitiesQuickPickStub.should.have.been.calledOnceWithExactly('Choose the identities to delete', true, [identityName]);
-
+        showIdentitiesQuickPickStub.should.have.been.calledOnceWithExactly('Choose the identities to delete', true, [identityName[1]]);
     });
 
     describe('called from the tree', () => {
@@ -295,7 +293,7 @@ describe('deleteIdentityCommand', () => {
                 name: `Org1`,
                 displayName: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`,
                 managedWallet: true,
-                walletPath: '/some/path'
+                walletPath: testFabricWallet.getWalletPath()
             };
 
             const treeItem: IdentityTreeItem = new IdentityTreeItem(blockchainWalletExplorerProvider, identityName[0], localWalletEntry.displayName, [], localWalletEntry);

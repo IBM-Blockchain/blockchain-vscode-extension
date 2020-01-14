@@ -18,21 +18,19 @@ import * as fs from 'fs-extra';
 import { Reporter } from '../util/Reporter';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricCertificateAuthorityFactory } from '../fabric/FabricCertificateAuthorityFactory';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
-import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
-import { FabricRuntimeUtil, FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry  } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, FabricGatewayRegistryEntry, FabricGatewayRegistry, FabricWalletGeneratorFactory } from 'ibm-blockchain-platform-common';
+import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 
 export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalletRegistryEntry, mspid: string): Promise<string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'addWalletIdentity');
 
-    const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
+    const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
     let wallet: IFabricWallet;
     let walletRegistryEntry: FabricWalletRegistryEntry;
 
@@ -45,14 +43,14 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
             walletRegistryEntry = walletItem;
         }
 
-        wallet = await fabricWalletGenerator.getWallet(walletRegistryEntry.name);
+        wallet = await fabricWalletGenerator.getWallet(walletRegistryEntry);
     } else {
         // Called from the command palette
         const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet to add identity to', false, true) as IBlockchainQuickPickItem<FabricWalletRegistryEntry>;
         if (!chosenWallet) {
             return;
         }
-        wallet = await fabricWalletGenerator.getWallet(chosenWallet.data.name);
+        wallet = await fabricWalletGenerator.getWallet(chosenWallet.data);
         walletRegistryEntry = chosenWallet.data;
     }
 
@@ -153,7 +151,8 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
 
                 // TODO JAKE: Update this to handle add identity to managed wallet
                 // make sure local_fabric is started
-                let isRunning: boolean = await LocalEnvironmentManager.instance().getRuntime().isRunning();
+                const environment: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
+                let isRunning: boolean = await environment.isRunning();
                 if (!isRunning) {
                     const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
                     // Start local_fabric to enroll identity
@@ -167,7 +166,8 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
 
                 // TODO JAKE: This logic will need to be changed - we need to be able to get the gateway entry somehow
                 // assume there is only one
-                gatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${walletRegistryEntry.name}`);
+                const gateways: FabricGatewayRegistryEntry[] = await environment.getGateways();
+                gatewayRegistryEntry = gateways[0];
 
             } else {
                 // select from other gateways
@@ -197,7 +197,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
             const certificateAuthority: IFabricCertificateAuthority = FabricCertificateAuthorityFactory.createCertificateAuthority();
 
             // Read connection profile
-            const connectionProfilePath: string = await FabricGatewayHelper.getConnectionProfilePath(gatewayRegistryEntry.name);
+            const connectionProfilePath: string = await FabricGatewayHelper.getConnectionProfilePath(gatewayRegistryEntry);
             const connectionProfileFile: string = await fs.readFile(connectionProfilePath, 'utf8');
             let connectionProfile: any;
 

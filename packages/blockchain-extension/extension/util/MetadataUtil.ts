@@ -13,8 +13,7 @@
 */
 'use strict';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricRuntimeUtil, IFabricGatewayConnection, LogType } from 'ibm-blockchain-platform-common';
-import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
+import { FabricRuntimeUtil, IFabricGatewayConnection, LogType, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import * as vscode from 'vscode';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';

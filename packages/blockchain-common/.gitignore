@@ -27,3 +27,4 @@ coverage
 /cucumber/tmp/
 /unit-tests.xml
 /.nyc_output
+/test/registries/tmp/

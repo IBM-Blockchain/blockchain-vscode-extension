@@ -43,7 +43,7 @@ module.exports = function(): any {
     });
 
     this.Given(/the identity '(\S*?)'(?: with attributes )?'?(\S*?)?'? exists$/, this.timeout, async (identity: string, attributes: string) => {
-        await this.walletAndIdentityHelper.createCAIdentity(this.wallet, identity, attributes);
+        await this.walletAndIdentityHelper.createCAIdentity(this.wallet, identity, this.environmentName, attributes);
         this.identity = identity;
     });
 
@@ -84,10 +84,10 @@ module.exports = function(): any {
     });
 
     this.When(/I register a new identity '(.*?)' (?:with the attributes)? '(.*?)'?$/, this.timeout, async (identity: string, attributes: string) => {
-        await this.walletAndIdentityHelper.createCAIdentity(this.wallet, identity, attributes);
+        await this.walletAndIdentityHelper.createCAIdentity(this.wallet, identity, this.environmentName, attributes);
     });
 
     this.When(/I delete the identity '(.*?)'$/, this.timeout, async (identity: string) => {
-        await this.walletAndIdentityHelper.deleteCAIdentity(identity);
+        await this.walletAndIdentityHelper.deleteCAIdentity(identity, this.wallet, this.environmentName);
     });
 };

@@ -13,8 +13,6 @@
 */
 
 import * as vscode from 'vscode';
-import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
-import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
@@ -24,7 +22,7 @@ import { TestUtil } from '../TestUtil';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironmentRegistry, FabricRuntimeUtil, LogType, FabricEnvironmentRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricRuntimeUtil, LogType, FabricEnvironmentRegistryEntry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
@@ -37,7 +35,6 @@ describe('startFabricRuntime', () => {
 
     const sandbox: sinon.SinonSandbox = sinon.createSandbox();
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
-    const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
     let mockLocalRuntime: sinon.SinonStubbedInstance<LocalEnvironment>;
     let mockManagedEnvironment: sinon.SinonStubbedInstance<ManagedAnsibleEnvironment>;
     let runtimeTreeItem: RuntimeTreeItem;
@@ -55,20 +52,15 @@ describe('startFabricRuntime', () => {
         await connectionRegistry.clear();
         await FabricEnvironmentRegistry.instance().clear();
         await TestUtil.setupLocalFabric();
-        const localRuntime: LocalEnvironment = runtimeManager.getRuntime();
-        await localRuntime.importWalletsAndIdentities();
-        await localRuntime.importGateways();
 
         mockLocalRuntime = sandbox.createStubInstance(LocalEnvironment);
         mockLocalRuntime.isCreated.resolves(true);
         mockLocalRuntime.create.resolves();
         mockLocalRuntime.start.resolves();
         mockLocalRuntime.startLogs.resolves();
-        mockLocalRuntime.importWalletsAndIdentities.resolves();
 
         mockManagedEnvironment = sandbox.createStubInstance(ManagedAnsibleEnvironment);
         mockManagedEnvironment.start.resolves();
-        mockManagedEnvironment.importWalletsAndIdentities.resolves();
 
         blockchainLogsOutputSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'show');
 

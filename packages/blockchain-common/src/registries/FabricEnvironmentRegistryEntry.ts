@@ -23,7 +23,7 @@ export class FabricEnvironmentRegistryEntry extends RegistryEntry {
 
     public managedRuntime?: boolean; // True if the Local environment or a managed Ansible environment
     public environmentType?: EnvironmentType;
-    public associatedGateways?: string[];
+    public environmentDirectory?: string; // the dir where the ansible output is
     constructor(fields?: FabricEnvironmentRegistryEntry) {
         super();
         Object.assign(this, fields);

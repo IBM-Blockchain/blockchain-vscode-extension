@@ -25,10 +25,9 @@ import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, EnvironmentType, FabricEnvironment } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { RuntimeTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
-import { FabricEnvironment } from '../../extension/fabric/environments/FabricEnvironment';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
@@ -110,10 +109,10 @@ describe('EnvironmentConnectCommand', () => {
 
             beforeEach(async () => {
 
-                fabricEnvironment = await EnvironmentFactory.getEnvironment(environmentRegistryEntry);
+                fabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
                 getEnvironmentStub = mySandBox.stub(EnvironmentFactory, 'getEnvironment');
                 getEnvironmentStub.callThrough();
-                getEnvironmentStub.withArgs(environmentRegistryEntry).resolves(fabricEnvironment);
+                getEnvironmentStub.withArgs(environmentRegistryEntry).returns(fabricEnvironment);
                 requireSetupStub = mySandBox.stub(fabricEnvironment, 'requireSetup').resolves(false);
             });
 
@@ -203,14 +202,14 @@ describe('EnvironmentConnectCommand', () => {
                     data: localFabricRegistryEntry
                 });
 
-                localEnvironment = await EnvironmentFactory.getEnvironment(localFabricRegistryEntry) as LocalEnvironment;
+                localEnvironment = EnvironmentFactory.getEnvironment(localFabricRegistryEntry) as LocalEnvironment;
 
                 isRunningStub = mySandBox.stub(localEnvironment, 'isRunning').resolves(true);
                 mySandBox.stub(localEnvironment, 'startLogs').resolves();
 
                 getEnvironmentStub = mySandBox.stub(EnvironmentFactory, 'getEnvironment');
                 getEnvironmentStub.callThrough();
-                getEnvironmentStub.withArgs(localFabricRegistryEntry).resolves(localEnvironment);
+                getEnvironmentStub.withArgs(localFabricRegistryEntry).returns(localEnvironment);
                 requireSetupStub = mySandBox.stub(localEnvironment, 'requireSetup').resolves(false);
             });
 

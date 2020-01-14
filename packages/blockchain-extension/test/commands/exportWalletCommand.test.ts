@@ -24,10 +24,8 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { Reporter } from '../../extension/util/Reporter';
-import { LogType, FabricWalletRegistryEntry, FabricWalletRegistry } from 'ibm-blockchain-platform-common';
+import { LogType, FabricWalletRegistryEntry, FabricWalletRegistry, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
-import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 
 // tslint:disable no-unused-expression
 describe('exportWalletCommand', () => {
@@ -131,10 +129,8 @@ describe('exportWalletCommand', () => {
     it('should be able to export local wallet', async () => {
 
         await TestUtil.setupLocalFabric();
-        const localEnvironment: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
-        await localEnvironment.importWalletsAndIdentities();
 
-        const localWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Org1');
+        const localWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Org1', FabricRuntimeUtil.LOCAL_FABRIC);
 
         showWalletsQuickPickBoxStub.resolves({
             label: localWallet.displayName,

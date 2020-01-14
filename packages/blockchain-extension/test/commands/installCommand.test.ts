@@ -90,7 +90,6 @@ describe('InstallCommand', () => {
             environmentRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             environmentRegistryEntry.managedRuntime = true;
             environmentRegistryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-            environmentRegistryEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
 
             environmentRegistryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistryEntry);
 

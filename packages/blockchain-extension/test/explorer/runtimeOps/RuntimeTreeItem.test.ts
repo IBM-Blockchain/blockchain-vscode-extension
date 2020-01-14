@@ -49,7 +49,6 @@ describe('RuntimeTreeItem', () => {
         environmentRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
         environmentRegistryEntry.managedRuntime = true;
         environmentRegistryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-        environmentRegistryEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
 
         provider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();

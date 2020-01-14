@@ -6,11 +6,11 @@ Feature: Evaluate transaction
         And the Local Fabric is running
         And the 'Local Fabric Admin' identity
         And the 'Local Fabric' environment is connected
-        And I'm connected to the 'Org1' gateway
+        And I'm connected to the 'Local Fabric - Org1' gateway
         And the contract has been created
         And the contract has been packaged
         And the package has been installed
-        And the contract has been instantiated with the transaction '' and args '', not using private data
+        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
         And the transaction 'createConga' has been submitted with args '["Conga_001", "Big Conga"]'
         When I evaluate the transaction 'readConga' with args '["Conga_001"]'
         Then the logger should have been called with 'SUCCESS', 'Successfully evaluated transaction' and 'Returned value from readConga: {"value":"Big Conga"}'
@@ -31,7 +31,7 @@ Feature: Evaluate transaction
         And the contract has been created
         And the contract has been packaged
         And the package has been installed
-        And the contract has been instantiated with the transaction '' and args '', not using private data
+        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
         And the gateway 'myGateway' is created
         And I'm connected to the 'myGateway' gateway without association
         And the transaction 'createConga' has been submitted with args '["Conga_001", "Big Conga"]'

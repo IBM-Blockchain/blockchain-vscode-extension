@@ -12,7 +12,7 @@
  * limitations under the License.
 */
 'use strict';
-import { IFabricEnvironmentConnection, IFabricGatewayConnection, OutputAdapter } from 'ibm-blockchain-platform-common';
+import { IFabricEnvironmentConnection, IFabricGatewayConnection, OutputAdapter, IFabricWalletGenerator, FabricWalletGeneratorFactory } from 'ibm-blockchain-platform-common';
 
 export class FabricConnectionFactory {
 
@@ -24,15 +24,25 @@ export class FabricConnectionFactory {
         return new (this.gatewayConnection).FabricGatewayConnection(connection, outputAdapter);
     }
 
-    public static createFabricEnvironmentConnection(outputAdapter?: OutputAdapter): IFabricEnvironmentConnection {
+    public static createFabricEnvironmentConnection(environmentName: string, outputAdapter?: OutputAdapter): IFabricEnvironmentConnection {
         if (!this.environmentConnection) {
             this.environmentConnection = require('ibm-blockchain-platform-environment-v1');
         }
 
-        return new (this.environmentConnection).FabricEnvironmentConnection(outputAdapter);
+        return new (this.environmentConnection).FabricEnvironmentConnection(environmentName, outputAdapter);
+    }
+
+    public static createFabricWallet(): void {
+        if (!this.walletConnection) {
+            this.walletConnection = require('ibm-blockchain-platform-wallet');
+            const walletGenerator: IFabricWalletGenerator = (this.walletConnection).FabricWalletGenerator.instance();
+            FabricWalletGeneratorFactory.setFabricWalletGenerator(walletGenerator);
+        }
     }
 
     private static environmentConnection: any;
 
     private static gatewayConnection: any;
+
+    private static walletConnection: any;
 }

@@ -23,10 +23,9 @@ import * as os from 'os';
 import * as fs from 'fs-extra';
 import * as yaml from 'js-yaml';
 import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
-import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
-import { ConnectionProfileUtil, LogType } from 'ibm-blockchain-platform-common';
+import { ConnectionProfileUtil, LogType, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 
 export async function exportConnectionProfile(gatewayTreeItem: GatewayTreeItem, isConnected?: boolean): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -70,7 +69,7 @@ export async function exportConnectionProfile(gatewayTreeItem: GatewayTreeItem, 
     }
 
     try {
-        const connectionProfilePath: string = await FabricGatewayHelper.getConnectionProfilePath(gatewayEntry.name);
+        const connectionProfilePath: string = await FabricGatewayHelper.getConnectionProfilePath(gatewayEntry);
 
         const connectionProfile: any = await ConnectionProfileUtil.readConnectionProfile(connectionProfilePath);
         delete connectionProfile.wallet;

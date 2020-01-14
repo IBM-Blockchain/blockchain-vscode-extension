@@ -39,8 +39,7 @@ import { CertificateAuthorityTreeItem } from '../../extension/explorer/runtimeOp
 import { OrdererTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/OrdererTreeItem';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
-import { FabricEnvironment } from '../../extension/fabric/environments/FabricEnvironment';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, LogType, EnvironmentType, FabricEnvironment } from 'ibm-blockchain-platform-common';
 import { EnvironmentConnectedTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/EnvironmentConnectedTreeItem';
 import { ImportNodesTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/ImportNodesTreeItem';
 import { InstalledChainCodeOpsTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/InstalledChainCodeOpsTreeItem';
@@ -114,6 +113,7 @@ describe('environmentExplorer', () => {
 
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-environment-connected', false);
+                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', false);
             });
 
             it('should say that there are no environments', async () => {
@@ -161,7 +161,6 @@ describe('environmentExplorer', () => {
                 environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
                 environmentRegistry.managedRuntime = true;
                 environmentRegistry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-                environmentRegistry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
 
                 environmentRegistryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry');
                 environmentRegistryStub.returns(environmentRegistry);
@@ -404,7 +403,6 @@ describe('environmentExplorer', () => {
                 environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
                 environmentRegistry.managedRuntime = true;
                 environmentRegistry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-                environmentRegistry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
 
                 environmentStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
 
@@ -453,12 +451,14 @@ describe('environmentExplorer', () => {
 
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', true);
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
+                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', true);
             });
 
-            it('should set correct context if not local runtime', async () => {
+            it('should set correct context if not local runtime and not ansible', async () => {
                 const otherEnvironmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
                 otherEnvironmentRegistry.name = 'myFabric';
                 otherEnvironmentRegistry.managedRuntime = false;
+                otherEnvironmentRegistry.environmentType = EnvironmentType.ENVIRONMENT;
 
                 environmentStub.returns(otherEnvironmentRegistry);
 
@@ -469,6 +469,25 @@ describe('environmentExplorer', () => {
 
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
+                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', false);
+            });
+
+            it('should set correct context if ansible', async () => {
+                const otherEnvironmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                otherEnvironmentRegistry.name = 'myAnsibleFabric';
+                otherEnvironmentRegistry.managedRuntime = false;
+                otherEnvironmentRegistry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+
+                environmentStub.returns(otherEnvironmentRegistry);
+
+                allChildren = await blockchainRuntimeExplorerProvider.getChildren();
+
+                const connectedTo: EnvironmentConnectedTreeItem = allChildren[0] as EnvironmentConnectedTreeItem;
+                connectedTo.label.should.equal(`Connected to environment: myAnsibleFabric`);
+
+                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
+                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
+                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', true);
             });
 
             it('should create channels children correctly', async () => {
@@ -913,7 +932,6 @@ describe('environmentExplorer', () => {
             registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             registryEntry.managedRuntime = true;
             registryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-            registryEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
             mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(registryEntry);
 
             const fabricRuntimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();

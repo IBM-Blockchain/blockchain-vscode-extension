@@ -22,14 +22,12 @@ import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { UserInputUtilHelper } from './userInputUtilHelper';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { FabricEnvironment } from '../../extension/fabric/environments/FabricEnvironment';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistry, FabricWalletRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistry, FabricWalletRegistryEntry, FabricEnvironment, FabricGatewayRegistryEntry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -63,7 +61,7 @@ export class GatewayHelper {
                 const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
                 this.userInputUtilHelper.showEnvironmentQuickPickStub.resolves({ label: environmentName, data: fabricEnvironmentRegistryEntry });
 
-                const environment: FabricEnvironment = new FabricEnvironment(environmentName);
+                const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentRegistryEntry);
                 const nodes: FabricNode[] = await environment.getNodes();
 
                 const peerNode: FabricNode = nodes.find((_node: FabricNode) => {
@@ -89,7 +87,7 @@ export class GatewayHelper {
         gatewayEntry = await FabricGatewayRegistry.instance().get(name);
 
         if (!expectAssociated) {
-            const walletEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletName);
+            const walletEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletName, gatewayEntry.fromEnvironment);
 
             this.userInputUtilHelper.showWalletsQuickPickStub.resolves({
                 name: walletEntry.name,
@@ -160,7 +158,7 @@ export class GatewayHelper {
     }
 
     public async exportConnectionProfile(gatewayName: string): Promise<void> {
-        const gatewayEntry: FabricGatewayRegistryEntry =  await FabricGatewayRegistry.instance().get(gatewayName);
+        const gatewayEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(gatewayName);
 
         const profilePath: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'profiles');
         await fs.ensureDir(profilePath);

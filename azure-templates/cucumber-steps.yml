@@ -21,6 +21,13 @@ steps:
   - bash: |
       set -ev
       cd ./packages/blockchain-extension
+      ./cucumber/ansibleScripts/start.sh
+    displayName: Setup Ansible Fabric
+    condition: and(succeeded(), eq(variables['ANSIBLE_FABRIC'], 'true'))
+
+  - bash: |
+      set -ev
+      cd ./packages/blockchain-extension
       npm run cucumber
     env:
       DISPLAY: ':99.0'

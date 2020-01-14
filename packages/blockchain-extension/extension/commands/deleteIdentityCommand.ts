@@ -18,10 +18,8 @@ import * as path from 'path';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { IdentityTreeItem } from '../explorer/model/IdentityTreeItem';
-import { FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWallet, IFabricWalletGenerator, LogType } from 'ibm-blockchain-platform-common';
-import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
+import { FabricWalletRegistryEntry, IFabricWallet, IFabricWalletGenerator, LogType, FabricWalletGeneratorFactory, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> {
 
@@ -38,8 +36,8 @@ export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> 
         }
 
         // Get identities in that wallet
-        const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-        const wallet: IFabricWallet = await walletGenerator.getWallet(chosenWallet.data.name);
+        const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
+        const wallet: IFabricWallet = await walletGenerator.getWallet(chosenWallet.data);
         walletPath = wallet.getWalletPath();
         let identityNames: string[] = await wallet.getIdentityNames();
 
@@ -68,15 +66,7 @@ export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> 
     } else {
         // Called from the tree
         const registryEntry: FabricWalletRegistryEntry = treeItem.registryEntry;
-        const walletName: string = (registryEntry.displayName) ? registryEntry.displayName : registryEntry.name;
-        if (walletName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
-           const _wallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().getWallet(registryEntry.name);
-           walletPath = _wallet.getWalletPath();
-
-        } else {
-            const walletRegistryEntry: FabricWalletRegistryEntry =  await FabricWalletRegistry.instance().get(registryEntry.name);
-            walletPath = walletRegistryEntry.walletPath;
-        }
+        walletPath = registryEntry.walletPath;
 
         identitiesToDelete = [treeItem.label];
     }

@@ -15,7 +15,6 @@
 // tslint:disable no-unused-expression
 import * as vscode from 'vscode';
 import { FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
-import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -36,7 +35,7 @@ import { InstantiatedContractTreeItem } from '../../extension/explorer/model/Ins
 import { InstantiatedChaincodeTreeItem } from '../../extension/explorer/model/InstantiatedChaincodeTreeItem';
 import { InstantiatedUnknownTreeItem } from '../../extension/explorer/model/InstantiatedUnknownTreeItem';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, LogType, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 
 chai.use(sinonChai);
 chai.should();

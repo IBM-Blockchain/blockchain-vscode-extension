@@ -17,10 +17,7 @@ import { CommandUtil } from '../../util/CommandUtil';
 import * as request from 'request';
 import { SettingConfigurations } from '../../../configurations';
 import { FabricRuntimeState } from '../FabricRuntimeState';
-import { AnsibleEnvironment } from './AnsibleEnvironment';
-import { FabricGateway } from '../FabricGateway';
-import { FabricGatewayRegistry } from '../../registries/FabricGatewayRegistry';
-import { OutputAdapter, FabricNode, FabricNodeType, ConsoleOutputAdapter, FabricWalletRegistry, LogType } from 'ibm-blockchain-platform-common';
+import { AnsibleEnvironment, OutputAdapter, FabricNode, FabricNodeType, ConsoleOutputAdapter, LogType } from 'ibm-blockchain-platform-common';
 import * as loghose from 'docker-loghose';
 import * as through from 'through2';
 import stripAnsi = require('strip-ansi');
@@ -34,8 +31,8 @@ export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
     protected logsRequest: request.Request;
     protected lh: any = null;
 
-    constructor(name: string) {
-        super(name);
+    constructor(name: string, environmentPath: string) {
+        super(name, environmentPath);
     }
 
     public isBusy(): boolean {
@@ -44,22 +41,6 @@ export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
 
     public getState(): FabricRuntimeState {
         return this.state;
-    }
-
-    public async deleteGateways(): Promise<void> {
-        // Ensure that all known gateways are deleted.
-        const fabricGateways: FabricGateway[] = await this.getGateways();
-        for (const gateway of fabricGateways) {
-            await FabricGatewayRegistry.instance().delete(gateway.name, true);
-        }
-    }
-
-    public async deleteWalletsAndIdentities(): Promise<void> {
-        // Ensure that all known wallets (and their identities) are deleted.
-        const walletNames: string[] = await this.getWalletNames();
-        for (const walletName of walletNames) {
-            await FabricWalletRegistry.instance().delete(walletName, true);
-        }
     }
 
     public async isGenerated(): Promise<boolean> {
@@ -93,9 +74,8 @@ export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
             const generated: boolean = await this.isGenerated();
             if (!generated) {
                 await this.generate(outputAdapter);
-                await this.importWalletsAndIdentities();
-                await this.importGateways();
             }
+
             this.setBusy(true);
             this.setState(FabricRuntimeState.STARTING);
             await this.startInner(outputAdapter);

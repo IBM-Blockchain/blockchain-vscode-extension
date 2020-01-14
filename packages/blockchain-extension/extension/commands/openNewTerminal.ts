@@ -16,7 +16,7 @@ import * as vscode from 'vscode';
 import { Reporter } from '../util/Reporter';
 import { NodeTreeItem } from '../explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
-import { FabricNode, FabricNodeType, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricNode, FabricNodeType, FabricEnvironmentRegistry, FabricRuntimeUtil, FabricEnvironmentRegistryEntry } from 'ibm-blockchain-platform-common';
 
 export async function openNewTerminal(nodeItem: NodeTreeItem): Promise<void> {
 
@@ -25,8 +25,9 @@ export async function openNewTerminal(nodeItem: NodeTreeItem): Promise<void> {
     if (nodeItem) {
         node = nodeItem.node;
     } else {
+        const environmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
         const chosenNode: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick(
-            'Select a Fabric runtime node to open a new terminal for', FabricRuntimeUtil.LOCAL_FABRIC,
+            'Select a Fabric runtime node to open a new terminal for', environmentRegistryEntry,
             [FabricNodeType.PEER, FabricNodeType.CERTIFICATE_AUTHORITY, FabricNodeType.ORDERER]
         ) as IBlockchainQuickPickItem<FabricNode>;
 

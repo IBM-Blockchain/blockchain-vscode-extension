@@ -12,7 +12,6 @@
  * limitations under the License.
 */
 
-import { FabricGatewayRegistry } from '../../../extension/registries/FabricGatewayRegistry';
 import { LocalEnvironmentManager } from '../../../extension/fabric/environments/LocalEnvironmentManager';
 import { TestUtil } from '../../TestUtil';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
@@ -25,7 +24,7 @@ import { version } from '../../../package.json';
 import { VSCodeBlockchainOutputAdapter } from '../../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { SettingConfigurations } from '../../../configurations';
 import { FabricEnvironmentManager, ConnectedState } from '../../../extension/fabric/environments/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FileSystemUtil, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FileSystemUtil, FabricEnvironmentRegistry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';

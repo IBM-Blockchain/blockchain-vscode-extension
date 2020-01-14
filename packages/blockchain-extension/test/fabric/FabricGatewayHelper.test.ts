@@ -21,9 +21,8 @@ import * as yaml from 'js-yaml';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
 import * as vscode from 'vscode';
 import { SettingConfigurations } from '../../configurations';
-import { FabricNode, FileConfigurations, FileSystemUtil } from 'ibm-blockchain-platform-common';
+import { FabricNode, FileConfigurations, FileSystemUtil, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { TestUtil } from '../TestUtil';
-import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 
 chai.use(chaiAsPromised);
 const should: Chai.Should = chai.should();
@@ -49,7 +48,7 @@ describe('FabricGatewayHelper', () => {
             const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
 
-            const result: string = await FabricGatewayHelper.getConnectionProfilePath('myGateway');
+            const result: string = await FabricGatewayHelper.getConnectionProfilePath(new FabricGatewayRegistryEntry({name: 'myGateway', associatedWallet: ''}));
 
             result.should.equal(path.join(profileDirPath, 'connection.json'));
         });
@@ -61,9 +60,15 @@ describe('FabricGatewayHelper', () => {
             const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
 
-            const result: string = await FabricGatewayHelper.getConnectionProfilePath('myGateway');
+            const result: string = await FabricGatewayHelper.getConnectionProfilePath(new FabricGatewayRegistryEntry({name: 'myGateway', associatedWallet: ''}));
 
             result.should.equal(path.join(profileDirPath, 'connection.yml'));
+        });
+
+        it('should get the connection profile from the registry entry if set', async () => {
+            const result: string = await FabricGatewayHelper.getConnectionProfilePath(new FabricGatewayRegistryEntry({name: 'myGateway', associatedWallet: '', connectionProfilePath: path.join('myPath', 'connection.json')}));
+
+            result.should.equal(path.join('myPath', 'connection.json'));
         });
 
         it('should throw an error if no files found', async () => {
@@ -73,7 +78,7 @@ describe('FabricGatewayHelper', () => {
             const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
 
-            await FabricGatewayHelper.getConnectionProfilePath('myGateway').should.eventually.be.rejectedWith(`Failed to find a connection profile file in folder ${profileDirPath}`);
+            await FabricGatewayHelper.getConnectionProfilePath(new FabricGatewayRegistryEntry({name: 'myGateway', associatedWallet: ''})).should.eventually.be.rejectedWith(`Failed to find a connection profile file in folder ${profileDirPath}`);
         });
     });
 

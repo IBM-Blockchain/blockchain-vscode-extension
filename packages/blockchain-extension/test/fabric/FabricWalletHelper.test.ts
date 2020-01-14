@@ -17,7 +17,7 @@ import * as sinon from 'sinon';
 import { TestUtil } from '../TestUtil';
 import * as vscode from 'vscode';
 import { SettingConfigurations } from '../../configurations';
-import { FabricWalletRegistry, FileConfigurations } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistry, FileConfigurations, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { FabricWalletHelper } from '../../extension/fabric/FabricWalletHelper';
@@ -45,6 +45,7 @@ describe('FabricWalletHelper', () => {
 
         beforeEach(async () => {
 
+            await FabricEnvironmentRegistry.instance().clear();
             await FabricWalletRegistry.instance().clear();
             await fs.remove(path.join(TestUtil.EXTENSION_TEST_DIR, 'Org1'));
 

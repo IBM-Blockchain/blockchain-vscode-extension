@@ -1,0 +1,109 @@
+#
+# Copyright IBM Corp All Rights Reserved
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+version: '2.1'
+
+volumes:
+  orderer.example.com:
+  ca.org1.example.com:
+  peer0.org1.example.com:
+  couchdb:
+
+networks:
+  basic:
+
+services:
+  orderer.example.com:
+    container_name: yofn_orderer.example.com
+    image: hyperledger/fabric-orderer:1.4.0
+    environment:
+      - ORDERER_GENERAL_LOGLEVEL=info
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LISTENPORT=17050
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/msp/orderer/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/orderer
+    command: orderer
+    ports:
+      - 17050:17050
+    volumes:
+      - ./configtx/:/etc/hyperledger/configtx
+      - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/:/etc/hyperledger/msp/orderer
+      - ./crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/:/etc/hyperledger/msp/peerOrg1
+      - orderer.example.com:/var/hyperledger/production/orderer
+    networks:
+      - basic
+  peer0.org1.example.com:
+    container_name: yofn_peer0.org1.example.com
+    image: hyperledger/fabric-peer:1.4.0
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_PEER_ID=peer0.org1.example.com
+      - CORE_LOGGING_PEER=info
+      - CORE_CHAINCODE_LOGGING_LEVEL=info
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/peer/
+      - CORE_PEER_ADDRESS=peer0.org1.example.com:17051
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=yofn_basic
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
+      - CORE_CHAINCODE_MODE=${CORE_CHAINCODE_MODE:-net}
+      - CORE_PEER_NETWORKID=yofn
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:17051
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:17052
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org1.example.com:17051
+      - CORE_CHAINCODE_BUILDER=hyperledger/fabric-ccenv:1.4.0
+      - CORE_CHAINCODE_GOLANG_RUNTIME=hyperledger/fabric-baseos:0.4.14
+      - CORE_CHAINCODE_JAVA_RUNTIME=hyperledger/fabric-javaenv:1.4.0
+      - CORE_CHAINCODE_NODE_RUNTIME=hyperledger/fabric-baseimage:0.4.14
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: peer node start
+    ports:
+      - 17051:17051
+      - 17052:17052
+    volumes:
+      - /var/run/:/host/var/run/
+      - ./crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp:/etc/hyperledger/msp/peer
+      - ./crypto-config/peerOrganizations/org1.example.com/users:/etc/hyperledger/msp/users
+      - ./configtx:/etc/hyperledger/configtx
+      - peer0.org1.example.com:/var/hyperledger/production
+    depends_on:
+      - orderer.example.com
+      - couchdb
+    networks:
+      - basic
+  ca.org1.example.com:
+    image: hyperledger/fabric-ca:1.4.0
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca.org1.example.com
+      - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.org1.example.com-cert.pem
+      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/ca.org1.example.com-key.pem
+      - FABRIC_CA_SERVER_PORT=17054
+    ports:
+      - 17054:17054
+    command: sh -c 'fabric-ca-server start -b admin:adminpw'
+    volumes:
+      - ./crypto-config/peerOrganizations/org1.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
+      - ca.org1.example.com:/etc/hyperledger/fabric-ca-server
+    container_name: yofn_ca.org1.example.com
+    networks:
+      - basic
+  couchdb:
+    container_name: yofn_couchdb
+    image: hyperledger/fabric-couchdb:0.4.14
+    environment:
+      - COUCHDB_USER=
+      - COUCHDB_PASSWORD=
+    ports:
+      - 17055:5984
+    volumes:
+      - couchdb:/opt/couchdb/data
+    networks:
+      - basic

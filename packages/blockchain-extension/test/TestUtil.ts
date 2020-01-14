@@ -22,7 +22,7 @@ import * as path from 'path';
 import { SettingConfigurations } from '../configurations';
 import { SinonSandbox, SinonStub } from 'sinon';
 import { UserInputUtil } from '../extension/commands/UserInputUtil';
-import { FabricRuntimeUtil, FileConfigurations } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FileConfigurations, FabricEnvironmentRegistryEntry } from 'ibm-blockchain-platform-common';
 import { GlobalState, ExtensionData } from '../extension/util/GlobalState';
 import { LocalEnvironment } from '../extension/fabric/environments/LocalEnvironment';
 // import { YeomanUtil } from '../extension/util/YeomanUtil';
@@ -65,6 +65,9 @@ export class TestUtil {
         // Copy the generated 'Local Fabric' directory into the environments directory.
         const localFabricDir: string = path.join(this.EXTENSION_TEST_DIR, '..', 'data', FabricRuntimeUtil.LOCAL_FABRIC);
         await fs.copy(localFabricDir, environmentDir);
+        const envReg: FabricEnvironmentRegistryEntry = await fs.readJSON(path.join(environmentDir, '.config.json'));
+        envReg.environmentDirectory = environmentDir;
+        await fs.writeJSON(path.join(environmentDir, '.config.json'), envReg);
     }
 
     static async storeAll(): Promise<void> {

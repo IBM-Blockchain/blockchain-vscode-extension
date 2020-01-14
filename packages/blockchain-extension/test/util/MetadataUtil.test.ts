@@ -19,8 +19,7 @@ import {  FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
 import { MetadataUtil } from '../../extension/util/MetadataUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
-import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, LogType, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 
 import * as vscode from 'vscode';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';

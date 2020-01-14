@@ -15,7 +15,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { ConnectedTreeItem } from '../../../extension/explorer/model/ConnectedTreeItem';
-import { FabricGatewayRegistryEntry } from '../../../extension/registries/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';

@@ -13,8 +13,9 @@
 */
 'use strict';
 import { IFabricWallet } from './IFabricWallet';
+import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 
 export interface IFabricWalletGenerator {
 
-    getWallet(walletName: string): Promise<IFabricWallet>;
+    getWallet(walletRegistryEntry: FabricWalletRegistryEntry): Promise<IFabricWallet>;
 }

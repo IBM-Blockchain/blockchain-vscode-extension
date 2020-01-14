@@ -57,13 +57,13 @@ describe('FabricConnectionFactory', () => {
     describe('createFabricEnvironmentConnection', () => {
 
         it('should create a fabric environment connection', async () => {
-            const connection: IFabricEnvironmentConnection = FabricConnectionFactory.createFabricEnvironmentConnection();
+            const connection: IFabricEnvironmentConnection = FabricConnectionFactory.createFabricEnvironmentConnection('myEnvironment');
             connection.should.exist;
         });
 
         it('should resuse connection if have one', async () => {
-            FabricConnectionFactory.createFabricEnvironmentConnection();
-            const connection: IFabricEnvironmentConnection = FabricConnectionFactory.createFabricEnvironmentConnection();
+            FabricConnectionFactory.createFabricEnvironmentConnection('myEnvironment');
+            const connection: IFabricEnvironmentConnection = FabricConnectionFactory.createFabricEnvironmentConnection('myEnvironment');
             connection.should.exist;
         });
     });

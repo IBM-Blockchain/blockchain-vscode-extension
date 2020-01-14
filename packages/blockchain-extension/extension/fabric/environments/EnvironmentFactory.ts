@@ -13,15 +13,16 @@
 */
 'use strict';
 import { ManagedAnsibleEnvironment } from './ManagedAnsibleEnvironment';
-import { AnsibleEnvironment } from './AnsibleEnvironment';
-import { FabricRuntimeUtil, FabricEnvironmentRegistryEntry, EnvironmentType, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricEnvironmentRegistryEntry, EnvironmentType, FabricEnvironment, FileSystemUtil, AnsibleEnvironment, FileConfigurations } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from './LocalEnvironment';
 import { LocalEnvironmentManager } from './LocalEnvironmentManager';
-import { FabricEnvironment } from './FabricEnvironment';
+import * as vscode from 'vscode';
+import * as path from 'path';
+import { SettingConfigurations } from '../../../configurations';
 
 export class EnvironmentFactory {
 
-    public static async getEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry): Promise<FabricEnvironment | AnsibleEnvironment | ManagedAnsibleEnvironment | LocalEnvironment> {
+    public static getEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry): FabricEnvironment | AnsibleEnvironment | ManagedAnsibleEnvironment | LocalEnvironment {
         const name: string = environmentRegistryEntry.name;
         if (!name) {
             throw new Error('Unable to get environment, a name must be provided');
@@ -32,24 +33,20 @@ export class EnvironmentFactory {
             managedRuntime = false;
         }
 
-        if ((!environmentRegistryEntry.associatedGateways || !environmentRegistryEntry.environmentType) && managedRuntime && name === FabricRuntimeUtil.LOCAL_FABRIC) {
-            // This will update a generated Local Fabric instance which doesn't have the environment type or associated gateways flags
-            environmentRegistryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-            environmentRegistryEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
-            await FabricEnvironmentRegistry.instance().update(environmentRegistryEntry);
-        }
-
         const type: EnvironmentType = environmentRegistryEntry.environmentType;
 
         if (managedRuntime && type === EnvironmentType.ANSIBLE_ENVIRONMENT && name === FabricRuntimeUtil.LOCAL_FABRIC) {
             return LocalEnvironmentManager.instance().getRuntime();
         } else if (managedRuntime && type === EnvironmentType.ANSIBLE_ENVIRONMENT) {
-            return new ManagedAnsibleEnvironment(name);
+            return new ManagedAnsibleEnvironment(name, environmentRegistryEntry.environmentDirectory);
         } else if (!managedRuntime && type === EnvironmentType.ANSIBLE_ENVIRONMENT) {
-            return new AnsibleEnvironment(name);
+            return new AnsibleEnvironment(name, environmentRegistryEntry.environmentDirectory);
         } else {
             // Safest to assume that it's a non-managed remote environment
-            return new FabricEnvironment(name);
+            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const resolvedExtDir: string = FileSystemUtil.getDirPath(extDir);
+            const envDir: string = path.join(resolvedExtDir, FileConfigurations.FABRIC_ENVIRONMENTS, name);
+            return new FabricEnvironment(name, envDir);
         }
     }
 }

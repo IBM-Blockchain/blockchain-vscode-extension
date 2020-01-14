@@ -14,7 +14,7 @@
 'use strict';
 import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
-import { FabricGatewayRegistryEntry } from '../../registries/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { GatewayTreeItem } from './GatewayTreeItem';
 
 export class GatewayDissociatedTreeItem extends GatewayTreeItem {
