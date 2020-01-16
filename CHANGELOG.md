@@ -1,6 +1,6 @@
 # IBM Blockchain Platform Extension Change Log
 
-## 1.0.18: December 16th 2020
+## 1.0.18: January 16th 2020
 
 Announcements
 ---
