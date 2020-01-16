@@ -17,7 +17,7 @@ import * as sinon from 'sinon';
 import { TestUtil } from '../TestUtil';
 import * as vscode from 'vscode';
 import { SettingConfigurations } from '../../configurations';
-import { FabricWalletRegistry, FabricWalletUtil, FileConfigurations } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistry, FileConfigurations } from 'ibm-blockchain-platform-common';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { FabricWalletHelper } from '../../extension/fabric/FabricWalletHelper';
@@ -46,7 +46,7 @@ describe('FabricWalletHelper', () => {
         beforeEach(async () => {
 
             await FabricWalletRegistry.instance().clear();
-            await fs.remove(path.join(TestUtil.EXTENSION_TEST_DIR, FabricWalletUtil.LOCAL_WALLET));
+            await fs.remove(path.join(TestUtil.EXTENSION_TEST_DIR, 'Org1'));
 
             walletA = {
                 name: 'walletA',
@@ -129,24 +129,24 @@ describe('FabricWalletHelper', () => {
             fsRemoveStub.should.not.have.been.called;
         });
 
-        it(`should migrate ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME} to the correct directory`, async () => {
-            await fs.ensureDir(path.join(TestUtil.EXTENSION_TEST_DIR, FabricWalletUtil.LOCAL_WALLET));
+        it(`should migrate 'Org1' to the correct directory`, async () => {
+            await fs.ensureDir(path.join(TestUtil.EXTENSION_TEST_DIR, 'Org1'));
             getSettingsStub.withArgs(SettingConfigurations.OLD_FABRIC_WALLETS).returns([]);
             await FabricWalletHelper.tidyWalletSettings();
-            addSpy.getCall(0).should.have.been.calledWithExactly({name: FabricWalletUtil.LOCAL_WALLET, walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, FabricWalletUtil.LOCAL_WALLET), managedWallet: true});
+            addSpy.getCall(0).should.have.been.calledWithExactly({name: 'Org1', walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, 'Org1'), managedWallet: true});
 
-            fsCopyStub.should.have.been.calledOnceWithExactly(path.join(TestUtil.EXTENSION_TEST_DIR, FabricWalletUtil.LOCAL_WALLET), path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, FabricWalletUtil.LOCAL_WALLET));
-            fsRemoveStub.should.have.been.calledOnceWithExactly(path.join(TestUtil.EXTENSION_TEST_DIR, FabricWalletUtil.LOCAL_WALLET));
+            fsCopyStub.should.have.been.calledOnceWithExactly(path.join(TestUtil.EXTENSION_TEST_DIR, 'Org1'), path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, 'Org1'));
+            fsRemoveStub.should.have.been.calledOnceWithExactly(path.join(TestUtil.EXTENSION_TEST_DIR, 'Org1'));
         });
 
-        it(`should not migrate ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME} if there is an issue migrating it`, async () => {
-            await fs.ensureDir(path.join(TestUtil.EXTENSION_TEST_DIR, FabricWalletUtil.LOCAL_WALLET));
+        it(`should not migrate 'Org1' if there is an issue migrating it`, async () => {
+            await fs.ensureDir(path.join(TestUtil.EXTENSION_TEST_DIR, 'Org1'));
             getSettingsStub.withArgs(SettingConfigurations.OLD_FABRIC_WALLETS).returns([]);
             const error: Error = new Error('a problem');
             fsCopyStub.rejects(error);
-            await FabricWalletHelper.tidyWalletSettings().should.be.rejectedWith(`Issue copying ${path.join(TestUtil.EXTENSION_TEST_DIR, FabricWalletUtil.LOCAL_WALLET)} to ${path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, FabricWalletUtil.LOCAL_WALLET)}: ${error.message}`);
-            addSpy.getCall(0).should.have.been.calledWithExactly({name: FabricWalletUtil.LOCAL_WALLET, walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, FabricWalletUtil.LOCAL_WALLET), managedWallet: true});
-            fsCopyStub.should.have.been.calledOnceWithExactly(path.join(TestUtil.EXTENSION_TEST_DIR, FabricWalletUtil.LOCAL_WALLET), path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, FabricWalletUtil.LOCAL_WALLET));
+            await FabricWalletHelper.tidyWalletSettings().should.be.rejectedWith(`Issue copying ${path.join(TestUtil.EXTENSION_TEST_DIR, 'Org1')} to ${path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, 'Org1')}: ${error.message}`);
+            addSpy.getCall(0).should.have.been.calledWithExactly({name: 'Org1', walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, 'Org1'), managedWallet: true});
+            fsCopyStub.should.have.been.calledOnceWithExactly(path.join(TestUtil.EXTENSION_TEST_DIR, 'Org1'), path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, 'Org1'));
 
             fsRemoveStub.should.not.have.been.called;
         });

@@ -16,7 +16,7 @@ import * as vscode from 'vscode';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistry, FabricWalletRegistryEntry, LogType, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 
@@ -33,7 +33,7 @@ export async function removeWallet(treeItem: WalletTreeItem): Promise<void> {
         let wallets: Array<FabricWalletRegistryEntry> = [];
         wallets = await FabricWalletRegistry.instance().getAll(false);
         if (wallets.length === 0) {
-            outputAdapter.log(LogType.ERROR, `No wallets to remove. ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME} cannot be removed.`, `No wallets to remove. ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME} cannot be removed.`);
+            outputAdapter.log(LogType.ERROR, `No wallets to remove. ${FabricRuntimeUtil.LOCAL_FABRIC} wallets cannot be removed.`, `No wallets to remove. ${FabricRuntimeUtil.LOCAL_FABRIC} wallets cannot be removed.`);
             return;
         }
 

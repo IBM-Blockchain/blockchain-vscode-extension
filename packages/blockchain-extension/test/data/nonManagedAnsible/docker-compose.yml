@@ -107,12 +107,3 @@ services:
       - couchdb:/opt/couchdb/data
     networks:
       - basic
-  logspout:
-    container_name: yofn_logspout
-    image: gliderlabs/logspout
-    networks:
-      - basic
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-    - 17056:80

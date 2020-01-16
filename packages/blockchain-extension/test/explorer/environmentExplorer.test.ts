@@ -93,17 +93,18 @@ describe('environmentExplorer', () => {
                 await FabricEnvironmentRegistry.instance().add(registryEntryOne);
                 await FabricEnvironmentRegistry.instance().add(registryEntryTwo);
 
-                await LocalEnvironmentManager.instance().getRuntime().create();
+                await TestUtil.setupLocalFabric();
 
                 const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
                 mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
                 mockRuntime.isRunning.resolves(false);
+                mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
 
                 const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
 
                 allChildren.length.should.equal(3);
-                allChildren[0].label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ○ (click to start)`);
+                allChildren[0].label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○ (click to start)`);
                 allChildren[0].tooltip.should.equal('Creates a local development runtime using Hyperledger Fabric Docker images');
                 allChildren[1].label.should.equal('myFabric');
                 allChildren[1].tooltip.should.equal('myFabric');
@@ -128,7 +129,7 @@ describe('environmentExplorer', () => {
                 registryEntryOne.managedRuntime = false;
 
                 await FabricEnvironmentRegistry.instance().clear();
-                await LocalEnvironmentManager.instance().getRuntime().create();
+                await TestUtil.setupLocalFabric();
 
                 const error: Error = new Error('some error');
                 mySandBox.stub(RuntimeTreeItem, 'newRuntimeTreeItem').rejects(error);
@@ -427,7 +428,7 @@ describe('environmentExplorer', () => {
                 allChildren.length.should.equal(5);
 
                 const connectedTo: EnvironmentConnectedTreeItem = allChildren[0] as EnvironmentConnectedTreeItem;
-                connectedTo.label.should.equal(`Connected to environment: ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`);
+                connectedTo.label.should.equal(`Connected to environment: ${FabricRuntimeUtil.LOCAL_FABRIC}`);
 
                 const smartContracts: SmartContractsTreeItem = allChildren[1] as SmartContractsTreeItem;
                 smartContracts.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
@@ -1016,7 +1017,7 @@ describe('environmentExplorer', () => {
 
         it('should get a tree item', async () => {
 
-            await LocalEnvironmentManager.instance().getRuntime().create();
+            await TestUtil.setupLocalFabric();
 
             mySandBox.stub(LocalEnvironmentManager.instance().getRuntime(), 'isRunning').resolves(false);
             const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -1024,7 +1025,7 @@ describe('environmentExplorer', () => {
 
             const result: RuntimeTreeItem = blockchainRuntimeExplorerProvider.getTreeItem(allChildren[0]) as RuntimeTreeItem;
 
-            result.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ○ (click to start)`);
+            result.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○ (click to start)`);
         });
     });
 });

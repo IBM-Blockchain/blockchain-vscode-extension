@@ -32,7 +32,7 @@ import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
-import { FabricCertificate, FabricEnvironmentRegistry, FabricRuntimeUtil, FileConfigurations, FabricWalletRegistry, FabricWalletRegistryEntry, FabricNode, FabricNodeType, FabricWalletUtil, FabricEnvironmentRegistryEntry, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricCertificate, FabricEnvironmentRegistry, FabricRuntimeUtil, FileConfigurations, FabricWalletRegistry, FabricWalletRegistryEntry, FabricNode, FabricNodeType, FabricEnvironmentRegistryEntry, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { FabricEnvironment } from '../../extension/fabric/environments/FabricEnvironment';
 
@@ -84,7 +84,7 @@ describe('UserInputUtil', () => {
 
         await FabricEnvironmentRegistry.instance().add(environmentEntryTwo);
 
-        await LocalEnvironmentManager.instance().getRuntime().create();
+        await TestUtil.setupLocalFabric();
 
         gatewayEntryOne = new FabricGatewayRegistryEntry();
         gatewayEntryOne.name = 'myGatewayA';
@@ -189,7 +189,7 @@ describe('UserInputUtil', () => {
             localFabricEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             localFabricEntry.managedRuntime = true;
             localFabricEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-            localFabricEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
+            localFabricEntry.associatedGateways = ['Org1'];
 
             quickPickStub.resolves({ label: environmentEntryOne.name, data: environmentEntryOne });
 
@@ -197,7 +197,7 @@ describe('UserInputUtil', () => {
 
             result.data.name.should.equal(environmentEntryOne.name);
 
-            quickPickStub.should.have.been.calledWith([{ label: FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, data: localFabricEntry }, { label: environmentEntryOne.name, data: environmentEntryOne }, { label: environmentEntryTwo.name, data: environmentEntryTwo }], {
+            quickPickStub.should.have.been.calledWith([{ label: FabricRuntimeUtil.LOCAL_FABRIC, data: localFabricEntry }, { label: environmentEntryOne.name, data: environmentEntryOne }, { label: environmentEntryTwo.name, data: environmentEntryTwo }], {
                 ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'choose an environment'
@@ -217,11 +217,11 @@ describe('UserInputUtil', () => {
             localFabricEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             localFabricEntry.managedRuntime = true;
             localFabricEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-            localFabricEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
+            localFabricEntry.associatedGateways = ['Org1'];
 
             await FabricEnvironmentRegistry.instance().clear();
 
-            await LocalEnvironmentManager.instance().getRuntime().create();
+            await TestUtil.setupLocalFabric();
 
             const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false, true, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             result.data.name.should.equal(localFabricEntry.name);
@@ -283,13 +283,14 @@ describe('UserInputUtil', () => {
         });
 
         it('should show managed runtime if argument passed', async () => {
-            const managedRuntime: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-            managedRuntime.name = FabricRuntimeUtil.LOCAL_FABRIC;
-            managedRuntime.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+            const managedGateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            managedGateway.name = 'Org1';
+            managedGateway.associatedWallet = 'Org1';
+            managedGateway.displayName = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`;
 
             quickPickStub.resolves();
             await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', false, true);
-            quickPickStub.should.have.been.calledWith([{ label: FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, data: managedRuntime }, { label: gatewayEntryOne.name, data: gatewayEntryOne }, { label: gatewayEntryTwo.name, data: gatewayEntryTwo }]);
+            quickPickStub.should.have.been.calledWith([{ label: managedGateway.displayName, data: managedGateway }, { label: gatewayEntryOne.name, data: gatewayEntryOne }, { label: gatewayEntryTwo.name, data: gatewayEntryTwo }]);
         });
 
         it('should show any gateways with an associated wallet (associated gateway)', async () => {
@@ -1740,20 +1741,29 @@ describe('UserInputUtil', () => {
             });
         });
 
-        it('should allow the user to select the in house wallet', async () => {
+        it('should allow the user to select the local wallet', async () => {
             const testFabricWallet: FabricWallet = new FabricWallet('some/local/path');
             mySandBox.stub(FabricWalletGenerator.instance(), 'getWallet').resolves(testFabricWallet);
 
             const localWalletEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
-                name: FabricWalletUtil.LOCAL_WALLET,
-                walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, FabricWalletUtil.LOCAL_WALLET),
-                managedWallet: true
+                name: 'Org1',
+                walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, 'Org1'),
+                managedWallet: true,
+                displayName: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`
+            });
+
+            const ordererWalletEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+                name: 'Orderer',
+                walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, 'Orderer'),
+                managedWallet: true,
+                displayName: `${FabricRuntimeUtil.LOCAL_FABRIC} - Orderer Wallet`
             });
 
             quickPickStub.resolves();
             await UserInputUtil.showWalletsQuickPickBox('Choose a wallet', false, true);
             quickPickStub.should.have.been.calledWith([
-                { label: FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME, data: localWalletEntry },
+                { label: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`, data: localWalletEntry },
+                { label: `${FabricRuntimeUtil.LOCAL_FABRIC} - Orderer Wallet`, data: ordererWalletEntry },
                 { label: walletEntryTwo.name, data: walletEntryTwo },
                 { label: walletEntryOne.name, data: walletEntryOne }]);
         });

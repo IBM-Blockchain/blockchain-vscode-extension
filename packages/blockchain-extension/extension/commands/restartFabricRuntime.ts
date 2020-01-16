@@ -48,7 +48,7 @@ export async function restartFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): P
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
     }, async (progress: vscode.Progress<{ message: string }>) => {
-        progress.report({ message: `Restarting Fabric runtime ${runtime.getDisplayName()}` });
+        progress.report({ message: `Restarting Fabric runtime ${runtime.getName()}` });
 
         const connectedGatewayRegistry: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
         if (connectedGatewayRegistry && associatedGateways.includes(connectedGatewayRegistry.name)) {
@@ -63,7 +63,7 @@ export async function restartFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): P
         try {
             await runtime.restart(outputAdapter);
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Failed to restart ${runtime.getDisplayName()}: ${error.message}`, `Failed to restart ${runtime.getDisplayName()}: ${error.toString()}`);
+            outputAdapter.log(LogType.ERROR, `Failed to restart ${runtime.getName()}: ${error.message}`, `Failed to restart ${runtime.getName()}: ${error.toString()}`);
         }
     });
 }

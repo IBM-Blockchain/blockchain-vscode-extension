@@ -19,7 +19,7 @@ import { FabricGatewayRegistryEntry } from '../../registries/FabricGatewayRegist
 import { LocalEnvironmentManager } from '../../fabric/environments/LocalEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../../ExtensionCommands';
-import { FabricRuntimeUtil, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
+import { LogType } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../fabric/environments/LocalEnvironment';
 
 export class LocalGatewayTreeItem extends BlockchainTreeItem {
@@ -67,17 +67,17 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
             const busyStates: string[] = ['◐', '◓', '◑', '◒'];
             const currentBusyState: string = busyStates[this.busyTicks % 4];
             newLabel += currentBusyState;
-            newTooltip = `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ${currentBusyState}
+            newTooltip = `${this.name}  ${currentBusyState}
 ⓘ Associated wallet:
-${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`;
+${this.name} Wallet`;
             newCommand = null;
         } else if (running) {
             // Running!
             this.disableBusyTicker();
             newLabel += '●';
-            newTooltip = `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is running
+            newTooltip = `${this.name} is running
 ⓘ Associated wallet:
-${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`;
+${this.name} Wallet`;
             newCommand = {
                 command: ExtensionCommands.CONNECT_TO_GATEWAY,
                 title: '',
@@ -87,9 +87,9 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`;
             // Not running!
             this.disableBusyTicker();
             newLabel += '○';
-            newTooltip = `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is not running
+            newTooltip = `${this.name} is not running
 ⓘ Associated wallet:
-${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`;
+${this.name} Wallet`;
             newCommand = {
                 command: ExtensionCommands.CONNECT_TO_GATEWAY,
                 title: '',

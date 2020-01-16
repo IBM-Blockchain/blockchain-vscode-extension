@@ -115,7 +115,7 @@ export class EnvironmentHelper {
 
     public async connectToEnvironment(environment: string): Promise<void> {
         let registryEntry: FabricEnvironmentRegistryEntry;
-        if (environment === FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME) {
+        if (environment === FabricRuntimeUtil.LOCAL_FABRIC) {
             registryEntry = new FabricEnvironmentRegistryEntry();
             registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             registryEntry.managedRuntime = true;

@@ -25,7 +25,6 @@ import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntim
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
-import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 
 chai.should();
 chai.use(sinonChai);
@@ -70,7 +69,7 @@ describe('DeleteEnvironmentCommand', () => {
 
             await FabricEnvironmentRegistry.instance().add(myEnvironmentB);
 
-            await LocalEnvironmentManager.instance().getRuntime().create();
+            await TestUtil.setupLocalFabric();
 
             showFabricEnvironmentQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox').resolves([{
                 label: 'myEnvironmentB',
@@ -221,7 +220,7 @@ describe('DeleteEnvironmentCommand', () => {
 
             showFabricEnvironmentQuickPickBoxStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
-            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No environments to delete. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} cannot be deleted.`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No environments to delete. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be deleted.`);
         });
 
         it('should handle no from confirmation message', async () => {

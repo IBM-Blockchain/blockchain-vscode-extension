@@ -53,8 +53,8 @@ describe('EnvironmentFactory', () => {
         }
     });
 
-    it(`should return the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} environment`, async () => {
-        await LocalEnvironmentManager.instance().initialize();
+    it(`should return the ${FabricRuntimeUtil.LOCAL_FABRIC} environment`, async () => {
+        await TestUtil.setupLocalFabric();
 
         const getRuntimeSpy: sinon.SinonSpy = sandbox.spy(LocalEnvironmentManager.instance(), 'getRuntime');
 

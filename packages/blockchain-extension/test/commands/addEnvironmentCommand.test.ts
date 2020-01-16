@@ -43,7 +43,7 @@ describe('AddEnvironmentCommand', () => {
 
         beforeEach(async () => {
             await FabricEnvironmentRegistry.instance().clear();
-
+            // await TestUtil.setupLocalFabric();
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
 

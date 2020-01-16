@@ -19,7 +19,7 @@ import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectio
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricRuntimeUtil, IFabricEnvironmentConnection, LogType } from 'ibm-blockchain-platform-common';
+import { IFabricEnvironmentConnection, LogType } from 'ibm-blockchain-platform-common';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 
@@ -70,7 +70,8 @@ export async function debugCommandList(commandName?: string): Promise<void> {
 
         if (!FabricGatewayConnectionManager.instance().getConnection()) {
             // Connect to local_fabric gateway before submitting/evaluating transaction
-            const runtimeGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+            // TODO JAKE: For multi-org, get all managed gateways and ask the user to select the gateway
+            const runtimeGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('Org1');
             // Assume one runtime gateway registry entry
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY, runtimeGateway);
             if (!FabricGatewayConnectionManager.instance().getConnection()) {

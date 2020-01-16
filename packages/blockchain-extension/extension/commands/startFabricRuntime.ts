@@ -43,7 +43,7 @@ export async function startFabricRuntime(registryEntry?: FabricEnvironmentRegist
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
     }, async (progress: vscode.Progress<{ message: string }>) => {
-        progress.report({ message: `Starting Fabric runtime ${runtime.getDisplayName()}` });
+        progress.report({ message: `Starting Fabric runtime ${runtime.getName()}` });
         try {
 
             if (runtime instanceof LocalEnvironment) {
@@ -51,16 +51,19 @@ export async function startFabricRuntime(registryEntry?: FabricEnvironmentRegist
                 if (!isCreated) {
                     await runtime.create();
                 }
-            }
 
-            const generated: boolean = await runtime.isGenerated();
-            if (!generated) {
-                await runtime.generate(outputAdapter);
+                const isGenerated: boolean = await runtime.isGenerated();
+                if (!isGenerated) {
+                    await runtime.generate(outputAdapter);
+                    await runtime.importWalletsAndIdentities();
+                    await runtime.importGateways();
+                }
             }
             await runtime.start(outputAdapter);
-            await runtime.importWalletsAndIdentities();
+            // await runtime.importWalletsAndIdentities();
+            // await runtime.importGateways();
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Failed to start ${runtime.getDisplayName()}: ${error.message}`, `Failed to start ${runtime.getDisplayName()}: ${error.toString()}`);
+            outputAdapter.log(LogType.ERROR, `Failed to start ${runtime.getName()}: ${error.message}`, `Failed to start ${runtime.getName()}: ${error.toString()}`);
         }
 
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);

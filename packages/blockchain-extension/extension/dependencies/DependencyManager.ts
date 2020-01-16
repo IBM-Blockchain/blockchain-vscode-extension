@@ -224,8 +224,8 @@ export class DependencyManager {
 
         const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
         if (localFabricEnabled) {
-            dependencies.docker = { name: 'Docker', required: true, version: undefined, url: 'https://docs.docker.com/install/#supported-platforms', requiredVersion: Dependencies.DOCKER_REQUIRED, requiredLabel: '', tooltip: `Used to download Hyperledger Fabric images and manage containers for the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}.` };
-            dependencies.dockerCompose = { name: 'Docker Compose', required: true, version: undefined, url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '', tooltip: `Used for managing and operating the individual ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} components.` };
+            dependencies.docker = { name: 'Docker', required: true, version: undefined, url: 'https://docs.docker.com/install/#supported-platforms', requiredVersion: Dependencies.DOCKER_REQUIRED, requiredLabel: '', tooltip: `Used to download Hyperledger Fabric images and manage containers for the ${FabricRuntimeUtil.LOCAL_FABRIC}.` };
+            dependencies.dockerCompose = { name: 'Docker Compose', required: true, version: undefined, url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '', tooltip: `Used for managing and operating the individual ${FabricRuntimeUtil.LOCAL_FABRIC} components.` };
 
             // Docker
             const dockerVersion: string = await this.getDockerVersion();

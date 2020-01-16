@@ -19,7 +19,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
-import { FabricRuntimeUtil, IFabricGatewayConnection } from 'ibm-blockchain-platform-common';
+import { IFabricGatewayConnection } from 'ibm-blockchain-platform-common';
 import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { MetadataUtil } from '../../extension/util/MetadataUtil';
 
@@ -34,19 +34,12 @@ module.exports = function(): any {
      */
 
     this.Given("the gateway '{string}' is created", this.timeout, async (gateway: string) => {
-        if (gateway === FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME) {
-            gateway = FabricRuntimeUtil.LOCAL_FABRIC;
-        }
-
         this.gateway = gateway;
 
         await this.gatewayHelper.createGateway(gateway);
     });
 
     this.Given(/I'm connected to the '(.*?)' gateway( without association)?/, this.timeout, async (gateway: string, withoutAssociation: string) => {
-        if (gateway === FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME) {
-            gateway = FabricRuntimeUtil.LOCAL_FABRIC;
-        }
 
         this.gateway = gateway;
 
@@ -80,9 +73,6 @@ module.exports = function(): any {
     });
 
     this.When(/connecting to the '(.*?)' gateway( without association)?/, this.timeout, async (gateway: string, withoutAssociation: string) => {
-        if (gateway === FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME) {
-            gateway = FabricRuntimeUtil.LOCAL_FABRIC;
-        }
 
         this.gateway = gateway;
 
@@ -182,11 +172,7 @@ module.exports = function(): any {
     this.Then('a connection profile exists', this.timeout, async () => {
         const profilePath: string = path.join(__dirname, '../../../cucumber/tmp/profiles');
 
-        let name: string = this.gateway;
-
-        if (name === FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME) {
-            name = FabricRuntimeUtil.LOCAL_FABRIC;
-        }
+        const name: string = this.gateway;
 
         const exists: boolean = await fs.pathExists(path.join(profilePath, `${name}_connection.json`));
 

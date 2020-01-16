@@ -18,7 +18,7 @@ export class FabricGatewayRegistryEntry extends RegistryEntry {
 
     public associatedWallet: string;
     public managedGateway?: boolean;
-
+    public displayName?: string;
     constructor(fields?: FabricGatewayRegistryEntry) {
         super();
         Object.assign(this, fields);

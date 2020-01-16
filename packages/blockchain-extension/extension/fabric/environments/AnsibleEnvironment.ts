@@ -16,7 +16,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
 import { FabricGateway } from '../FabricGateway';
-import { FabricIdentity, FabricWalletRegistry, FabricWalletRegistryEntry, FileConfigurations, IFabricWallet, IFabricWalletGenerator, FileSystemUtil } from 'ibm-blockchain-platform-common';
+import { FabricIdentity, FabricWalletRegistry, FabricWalletRegistryEntry, FileConfigurations, IFabricWallet, IFabricWalletGenerator, FileSystemUtil, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry } from 'ibm-blockchain-platform-common';
 import { FabricWalletGeneratorFactory } from '../FabricWalletGeneratorFactory';
 import { SettingConfigurations } from '../../../configurations';
 import { FabricEnvironment } from './FabricEnvironment';
@@ -43,6 +43,7 @@ export class AnsibleEnvironment extends FabricEnvironment {
                 walletRegistryEntry.name = walletName;
                 walletRegistryEntry.walletPath = path.join(homeExtDir, FileConfigurations.FABRIC_WALLETS, walletName);
                 walletRegistryEntry.managedWallet = true;
+                walletRegistryEntry.displayName = `${this.name} - ${walletName} Wallet`;
                 await FabricWalletRegistry.instance().add(walletRegistryEntry);
             }
 
@@ -59,12 +60,20 @@ export class AnsibleEnvironment extends FabricEnvironment {
         }
     }
 
-    public async importGateways(fallbackAssociatedWallet?: string): Promise<void> {
+    public async importGateways(): Promise<void> {
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
 
         const fabricGateways: FabricGateway[] = await this.getGateways();
         for (const gateway of fabricGateways) {
+            // I think we'll probably need this code!
+            // Ensure there's the association between this gateway and the environment it's for
+            const environmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(this.name);
+            if (!environmentRegistryEntry.associatedGateways.includes(gateway.name)) {
+                environmentRegistryEntry.associatedGateways.push(gateway.name);
+                await FabricEnvironmentRegistry.instance().update(environmentRegistryEntry);
+            }
+
             await FabricGatewayRegistry.instance().delete(gateway.name, true);
 
             const profileDirPath: string = path.join(homeExtDir, FileConfigurations.FABRIC_GATEWAYS, gateway.name);
@@ -73,8 +82,10 @@ export class AnsibleEnvironment extends FabricEnvironment {
             await fs.copy(gateway.path, profilePath);
             const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             gatewayRegistryEntry.name = gateway.name;
-            gatewayRegistryEntry.associatedWallet = (gateway.connectionProfile as any).wallet || fallbackAssociatedWallet;
+            gatewayRegistryEntry.associatedWallet = (gateway.connectionProfile as any).wallet;
+            gatewayRegistryEntry.displayName = `${this.name} - ${gateway.name}`;
             await FabricGatewayRegistry.instance().add(gatewayRegistryEntry);
+
         }
     }
 

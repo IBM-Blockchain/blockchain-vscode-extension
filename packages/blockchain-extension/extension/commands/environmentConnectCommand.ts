@@ -74,14 +74,14 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
         try {
             await connection.createChannelMap();
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Error connecting to environment ${fabricEnvironment.getDisplayName()}: ${error.message}`, `Error connecting to environment ${fabricEnvironment.getDisplayName()}: ${error.toString()}`);
+            outputAdapter.log(LogType.ERROR, `Error connecting to environment ${fabricEnvironment.getName()}: ${error.message}`, `Error connecting to environment ${fabricEnvironment.getName()}: ${error.toString()}`);
             await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             return;
         }
 
         FabricEnvironmentManager.instance().connect(connection, fabricEnvironmentRegistryEntry, ConnectedState.CONNECTED);
 
-        const environmentName: string = fabricEnvironment.getDisplayName();
+        const environmentName: string = fabricEnvironment.getName();
 
         outputAdapter.log(LogType.SUCCESS, `Connected to ${environmentName}`);
 

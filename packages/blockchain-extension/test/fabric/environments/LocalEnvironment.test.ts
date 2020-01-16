@@ -19,18 +19,15 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import { TestUtil } from '../../TestUtil';
 import * as path from 'path';
-import * as fs from 'fs-extra';
 import { YeomanUtil } from '../../../extension/util/YeomanUtil';
 import { SettingConfigurations } from '../../../configurations';
 import { FabricRuntimeState } from '../../../extension/fabric/FabricRuntimeState';
 import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';
-import { FabricRuntimeUtil, IFabricWallet, OutputAdapter, LogType, FabricWalletUtil, FabricEnvironmentRegistry, IFabricWalletGenerator, FabricWalletRegistry, FabricWalletRegistryEntry, FileSystemUtil } from 'ibm-blockchain-platform-common';
-import { FabricGateway } from '../../../extension/fabric/FabricGateway';
-import { FabricGatewayRegistryEntry } from '../../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricGatewayRegistry } from '../../../extension/registries/FabricGatewayRegistry';
+import { IFabricWallet, OutputAdapter, LogType, FabricEnvironmentRegistry, IFabricWalletGenerator, FabricWalletRegistry, FabricWalletRegistryEntry, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricWalletGeneratorFactory } from '../../../extension/fabric/FabricWalletGeneratorFactory';
 import { FabricWalletGenerator } from '../../../extension/fabric/FabricWalletGenerator';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
+import { LocalEnvironmentManager } from '../../../extension/fabric/environments/LocalEnvironmentManager';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -80,48 +77,36 @@ describe('LocalEnvironment', () => {
     });
 
     beforeEach(async () => {
+        sandbox = sinon.createSandbox();
+
         environment = new LocalEnvironment();
         environment.ports = {
-            orderer: 12347,
-            peerRequest: 12345,
-            peerChaincode: 54321,
-            peerEventHub: 12346,
-            certificateAuthority: 12348,
-            couchDB: 12349,
-            logs: 12387
+            startPort: 17050,
+            endPort: 17070
         };
 
-        await environment.create();
+        await TestUtil.setupLocalFabric();
+        await LocalEnvironmentManager.instance().initialize();
 
         environment['path'] = environmentPath;
-        sandbox = sinon.createSandbox();
     });
 
     afterEach(async () => {
         sandbox.restore();
     });
 
-    describe('#getDisplayName', () => {
-        it('should return the display name of the Local environment', () => {
-            environment.getDisplayName().should.equal(FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME);
-        });
-    });
-
     describe('#create', () => {
         it('should create a new network', async () => {
-            const runStub: sinon.SinonStub = sandbox.stub(YeomanUtil, 'run');
+            const runStub: sinon.SinonStub = sandbox.stub(YeomanUtil, 'run').resolves();
             await environment.create();
 
             runStub.should.have.been.calledOnceWithExactly('fabric:network', {
-                certificateAuthority: 12348,
-                couchDB: 12349,
                 destination: environment.getPath(),
                 dockerName: 'fabricvscodelocalfabric',
-                logspout: 12387,
-                name: 'local_fabric',
-                orderer: 12347,
-                peerChaincode: 54321,
-                peerRequest: 12345
+                name: FabricRuntimeUtil.LOCAL_FABRIC,
+                numOrganizations: 1,
+                startPort: 17050,
+                endPort: 17070
             });
         });
 
@@ -132,8 +117,8 @@ describe('LocalEnvironment', () => {
         describe(`#${verb}`, () => {
 
             let createStub: sinon.SinonStub;
-            let importWalletsAndIdentitiesStub: sinon.SinonStub;
-            let importGatewaysStub: sinon.SinonStub;
+            // let importWalletsAndIdentitiesStub: sinon.SinonStub;
+            // let importGatewaysStub: sinon.SinonStub;
             let isRunningStub: sinon.SinonStub;
             let setStateSpy: sinon.SinonSpy;
             let stopLogsStub: sinon.SinonStub;
@@ -142,8 +127,9 @@ describe('LocalEnvironment', () => {
 
             beforeEach(() => {
                 createStub = sandbox.stub(environment, 'create');
-                importWalletsAndIdentitiesStub = sandbox.stub(environment, 'importWalletsAndIdentities');
-                importGatewaysStub = sandbox.stub(environment, 'importGateways');
+                // importWalletsAndIdentitiesStub = sandbox.stub(environment, 'importWalletsAndIdentities');
+                // importGatewaysStub = sandbox.stub(environment, 'importGateways');
+                sandbox.stub(environment, 'isGenerated').resolves(true);
                 isRunningStub = sandbox.stub(environment, 'isRunning').resolves(false);
                 setStateSpy = sandbox.spy(environment, 'setState');
                 stopLogsStub = sandbox.stub(environment, 'stopLogs');
@@ -509,8 +495,6 @@ describe('LocalEnvironment', () => {
                     });
                     await environment.teardown();
                     createStub.should.have.been.calledOnce;
-                    importWalletsAndIdentitiesStub.should.have.been.calledOnce;
-                    importGatewaysStub.should.have.been.calledOnce;
                 });
             }
         });
@@ -529,70 +513,70 @@ describe('LocalEnvironment', () => {
 
     });
 
-    describe('#importGateways', () => {
+    // describe('#importGateways', () => {
+            // Not sure we need this test looking at the name of it
+    //     it.only(`should be pass the ${FabricWalletUtil.LOCAL_WALLET} as the fallback wallet`, async () => {
+    //         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+    //         const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
 
-        it(`should be pass the ${FabricWalletUtil.LOCAL_WALLET} as the fallback wallet`, async () => {
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
+    //         await environment.importGateways();
 
-            await environment.importGateways();
-
-            const gateways: FabricGateway[] = await environment.getGateways();
-            gateways.should.have.lengthOf(3);
-            for (const gateway of gateways) {
-                const profileDirPath: string = path.join(homeExtDir, 'gateways', gateway.name);
-                const profilePath: string = path.join(profileDirPath, path.basename(gateway.path));
-                await fs.pathExists(profilePath).should.eventually.be.true;
-                const registryEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(gateway.name);
-                const wallet: string = (gateway.connectionProfile as any).wallet;
-                if (!wallet) {
-                    registryEntry.associatedWallet.should.equal(FabricWalletUtil.LOCAL_WALLET);
-                } else {
-                    registryEntry.associatedWallet.should.equal((gateway.connectionProfile as any).wallet);
-                }
-            }
-        });
-    });
+    //         const gateways: FabricGateway[] = await environment.getGateways();
+    //         gateways.should.have.lengthOf(3);
+    //         for (const gateway of gateways) {
+    //             const profileDirPath: string = path.join(homeExtDir, 'gateways', gateway.name);
+    //             const profilePath: string = path.join(profileDirPath, path.basename(gateway.path));
+    //             await fs.pathExists(profilePath).should.eventually.be.true;
+    //             const registryEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(gateway.name);
+    //             const wallet: string = (gateway.connectionProfile as any).wallet;
+    //             if (!wallet) {
+    //                 registryEntry.associatedWallet.should.equal(FabricWalletUtil.LOCAL_WALLET);
+    //             } else {
+    //                 registryEntry.associatedWallet.should.equal((gateway.connectionProfile as any).wallet);
+    //             }
+    //         }
+    //     });
+    // });
 
     describe('#importWalletsAndIdentities', () => {
 
-        it(`should include a walletPath and managedRuntime options if not present for ${FabricWalletUtil.LOCAL_WALLET}`, async () => {
+        it(`should include a walletPath and managedRuntime options if not present for 'Org1'`, async () => {
             const mockFabricWalletGenerator: sinon.SinonStubbedInstance<IFabricWalletGenerator> = sandbox.createStubInstance(FabricWalletGenerator);
             sandbox.stub(FabricWalletGeneratorFactory, 'createFabricWalletGenerator').returns(mockFabricWalletGenerator);
             const mockFabricWallet: sinon.SinonStubbedInstance<IFabricWallet> = sandbox.createStubInstance(FabricWallet);
             mockFabricWalletGenerator.getWallet.returns(mockFabricWallet);
-            sandbox.stub(FabricWalletRegistry.instance(), 'exists').withArgs(FabricWalletUtil.LOCAL_WALLET).resolves(true);
-            sandbox.stub(FabricWalletRegistry.instance(), 'get').withArgs(FabricWalletUtil.LOCAL_WALLET).resolves(
+            sandbox.stub(FabricWalletRegistry.instance(), 'exists').withArgs('Org1').resolves(true);
+            sandbox.stub(FabricWalletRegistry.instance(), 'get').withArgs('Org1').resolves(
                 {
-                    name: FabricWalletUtil.LOCAL_WALLET
+                    name: 'Org1'
 
                 } as FabricWalletRegistryEntry
             );
             const updateStub: sinon.SinonStub = sandbox.stub(FabricWalletRegistry.instance(), 'update').resolves();
             await environment.importWalletsAndIdentities();
             updateStub.should.have.been.calledWith({
-                name: FabricWalletUtil.LOCAL_WALLET,
-                walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, 'wallets', FabricWalletUtil.LOCAL_WALLET),
+                name: 'Org1',
+                walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, 'wallets', 'Org1'),
                 managedWallet: true
             });
-            mockFabricWalletGenerator.getWallet.should.have.been.calledOnceWithExactly(FabricWalletUtil.LOCAL_WALLET);
+            mockFabricWalletGenerator.getWallet.should.have.been.calledOnceWithExactly('Org1');
             mockFabricWallet.importIdentity.should.have.been.calledOnceWithExactly(sinon.match.string, sinon.match.string, 'admin', 'Org1MSP');
 
         });
 
-        it(`should not include a walletPath and managedRuntime if the ${FabricWalletUtil.LOCAL_WALLET} doesn't exist`, async () => {
+        it(`should not include a walletPath and managedRuntime if the 'Org1' doesn't exist`, async () => {
             const mockFabricWalletGenerator: sinon.SinonStubbedInstance<IFabricWalletGenerator> = sandbox.createStubInstance(FabricWalletGenerator);
             sandbox.stub(FabricWalletGeneratorFactory, 'createFabricWalletGenerator').returns(mockFabricWalletGenerator);
             const mockFabricWallet: sinon.SinonStubbedInstance<IFabricWallet> = sandbox.createStubInstance(FabricWallet);
             mockFabricWalletGenerator.getWallet.returns(mockFabricWallet);
-            sandbox.stub(FabricWalletRegistry.instance(), 'exists').withArgs(FabricWalletUtil.LOCAL_WALLET).resolves(false);
+            sandbox.stub(FabricWalletRegistry.instance(), 'exists').withArgs('Org1').resolves(false);
             const getWalletSpy: sinon.SinonSpy = sandbox.spy(FabricWalletRegistry.instance(), 'get');
 
             const updateSpy: sinon.SinonSpy = sandbox.spy(FabricWalletRegistry.instance(), 'update');
             await environment.importWalletsAndIdentities();
-            getWalletSpy.should.not.have.been.calledWith(FabricWalletUtil.LOCAL_WALLET);
+            getWalletSpy.should.not.have.been.calledWith('Org1');
             updateSpy.should.not.have.been.called;
-            mockFabricWalletGenerator.getWallet.should.have.been.calledOnceWithExactly(FabricWalletUtil.LOCAL_WALLET);
+            mockFabricWalletGenerator.getWallet.should.have.been.calledOnceWithExactly('Org1');
             mockFabricWallet.importIdentity.should.have.been.calledOnceWithExactly(sinon.match.string, sinon.match.string, 'admin', 'Org1MSP');
         });
 
@@ -672,13 +656,8 @@ describe('LocalEnvironment', () => {
             updateStub.should.have.been.calledWith(SettingConfigurations.FABRIC_RUNTIME,
                 {
                     ports: {
-                        certificateAuthority: 12348,
-                        couchDB: 12349,
-                        logs: 12387,
-                        orderer: 12347,
-                        peerChaincode: 54321,
-                        peerEventHub: 12346,
-                        peerRequest: 12345
+                        startPort: 17050,
+                        endPort: 17070
                     }
                 });
         });

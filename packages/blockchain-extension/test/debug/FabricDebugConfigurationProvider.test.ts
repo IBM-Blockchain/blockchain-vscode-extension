@@ -64,14 +64,12 @@ describe('FabricDebugConfigurationProvider', () => {
     before(async () => {
         mySandbox = sinon.createSandbox();
         await TestUtil.setupTests(mySandbox);
-        await LocalEnvironmentManager.instance().getRuntime().create();
+        await TestUtil.setupLocalFabric();
     });
-
     describe('resolveDebugConfiguration', () => {
         let fabricDebugConfig: TestFabricDebugConfigurationProvider;
         let workspaceFolder: any;
         let debugConfig: any;
-        let runtimeStub: sinon.SinonStubbedInstance<LocalEnvironment>;
         let commandStub: sinon.SinonStub;
         let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
         let getConnectionStub: sinon.SinonStub;
@@ -80,22 +78,34 @@ describe('FabricDebugConfigurationProvider', () => {
         let generatorVersionStub: sinon.SinonStub;
         let getEnvironmentRegistryStub: sinon.SinonStub;
         let environmentRegistry: FabricEnvironmentRegistryEntry;
-
+        let getName: sinon.SinonStub;
+        let getPeerChaincodeURL: sinon.SinonStub;
+        let isRunning: sinon.SinonStub;
+        let killChaincode: sinon.SinonStub;
+        let getGateways: sinon.SinonStub;
         beforeEach(async () => {
             getExtensionLocalFabricSetting = mySandbox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting');
             getExtensionLocalFabricSetting.returns(true);
 
             fabricDebugConfig = new TestFabricDebugConfigurationProvider();
 
-            runtimeStub = mySandbox.createStubInstance(LocalEnvironment);
-            runtimeStub.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
-            runtimeStub.getDisplayName.returns(FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME);
-            runtimeStub.getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
-            runtimeStub.isRunning.resolves(true);
-            runtimeStub.killChaincode.resolves();
-            runtimeStub.getGateways.resolves([{name: 'myGateway', path: 'myPath'}]);
-
-            mySandbox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(runtimeStub);
+            getName = mySandbox.stub(LocalEnvironment.prototype, 'getName');
+            getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
+            getPeerChaincodeURL = mySandbox.stub(LocalEnvironment.prototype, 'getPeerChaincodeURL');
+            getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
+            isRunning = mySandbox.stub(LocalEnvironment.prototype, 'isRunning');
+            isRunning.resolves(true);
+            killChaincode = mySandbox.stub(LocalEnvironment.prototype, 'killChaincode');
+            killChaincode.resolves();
+            getGateways = mySandbox.stub(LocalEnvironment.prototype, 'getGateways');
+            getGateways.resolves([{name: 'myGateway', path: 'myPath'}]);
+            mySandbox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns({
+                getName,
+                getPeerChaincodeURL,
+                isRunning,
+                killChaincode,
+                getGateways
+            });
 
             workspaceFolder = {
                 name: 'myFolder',
@@ -121,7 +131,7 @@ describe('FabricDebugConfigurationProvider', () => {
             environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             environmentRegistry.managedRuntime = true;
             environmentRegistry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-            environmentRegistry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
+            environmentRegistry.associatedGateways = ['Org1'];
 
             getEnvironmentRegistryStub = mySandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
 
@@ -302,7 +312,7 @@ describe('FabricDebugConfigurationProvider', () => {
             should.equal(config, undefined);
             startDebuggingStub.should.not.have.been.called;
             commandStub.should.not.have.been.called;
-            logSpy.should.have.been.calledWith(LogType.ERROR, `To debug a smart contract, you must update the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime. Teardown and start the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime, and try again.`);
+            logSpy.should.have.been.calledWith(LogType.ERROR, `To debug a smart contract, you must update the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime. Teardown and start the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime, and try again.`);
         });
 
         it('should give an error if generator version is unknown', async () => {
@@ -318,7 +328,7 @@ describe('FabricDebugConfigurationProvider', () => {
             should.equal(config, undefined);
             startDebuggingStub.should.not.have.been.called;
             commandStub.should.not.have.been.called;
-            logSpy.should.have.been.calledWith(LogType.ERROR, `To debug a smart contract, you must update the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime. Teardown and start the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime, and try again.`);
+            logSpy.should.have.been.calledWith(LogType.ERROR, `To debug a smart contract, you must update the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime. Teardown and start the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime, and try again.`);
         });
 
         it('should not run if the chaincode name is not provided', async () => {
@@ -331,21 +341,21 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should give an error if runtime isnt running', async () => {
-            runtimeStub.isRunning.returns(false);
+            isRunning.returns(false);
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
 
             should.not.exist(config);
 
-            logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Please ensure "${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}" is running before trying to debug a smart contract`);
+            logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Please ensure "${FabricRuntimeUtil.LOCAL_FABRIC}" is running before trying to debug a smart contract`);
         });
 
         it('should restore from a previous debug session and use the last instantiated package of the same name', async () => {
             const instantiatedChaincodes: FabricChaincode[] = [{ name: 'mySmartContract', version: '0.0.1' }, { name: 'cake-network', version: '0.0.2' }];
             mockRuntimeConnection.getAllInstantiatedChaincodes.resolves(instantiatedChaincodes);
 
-            runtimeStub.isRunning.onFirstCall().resolves(true);
-            runtimeStub.isRunning.onSecondCall().resolves(false);
+            isRunning.onFirstCall().resolves(true);
+            isRunning.onSecondCall().resolves(false);
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
@@ -358,8 +368,8 @@ describe('FabricDebugConfigurationProvider', () => {
                 debugEvent: FabricDebugConfigurationProvider.debugEvent
             });
 
-            runtimeStub.isRunning.should.have.been.calledWith(['mySmartContract', '0.0.1']);
-            runtimeStub.killChaincode.should.not.have.been.called;
+            isRunning.should.have.been.calledWith(['mySmartContract', '0.0.1']);
+            killChaincode.should.not.have.been.called;
             commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
         });
 
@@ -367,7 +377,7 @@ describe('FabricDebugConfigurationProvider', () => {
             const instantiatedChaincodes: FabricChaincode[] = [{ name: 'mySmartContract', version: '0.0.1' }, { name: 'cake-network', version: '0.0.2' }];
             mockRuntimeConnection.getAllInstantiatedChaincodes.resolves(instantiatedChaincodes);
 
-            runtimeStub.isRunning.resolves(true);
+            isRunning.resolves(true);
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
@@ -380,7 +390,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 debugEvent: FabricDebugConfigurationProvider.debugEvent
             });
 
-            runtimeStub.killChaincode.should.have.been.called;
+            killChaincode.should.have.been.called;
 
             commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
         });
@@ -395,8 +405,8 @@ describe('FabricDebugConfigurationProvider', () => {
             logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Failed to launch debug: ${error.message}`);
         });
 
-        it(`should error if ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is not enabled`, async () => {
-            mySandbox.stub(UserInputUtil, 'showConfirmationWarningMessage').withArgs(`Toggling this feature will remove the world state and ledger data for the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime. Do you want to continue?`).resolves(true);
+        it(`should error if ${FabricRuntimeUtil.LOCAL_FABRIC} is not enabled`, async () => {
+            mySandbox.stub(UserInputUtil, 'showConfirmationWarningMessage').withArgs(`Toggling this feature will remove the world state and ledger data for the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime. Do you want to continue?`).resolves(true);
             getExtensionLocalFabricSetting.returns(false);
             await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
 

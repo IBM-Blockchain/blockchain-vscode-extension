@@ -105,7 +105,7 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
             walletRegistryEntry = chosenWallet.data;
         }
 
-        walletName = walletRegistryEntry.name;
+        walletName = walletRegistryEntry.displayName ? walletRegistryEntry.displayName : walletRegistryEntry.name;
 
         const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
         const wallet: IFabricWallet = await walletGenerator.getWallet(walletRegistryEntry.name);

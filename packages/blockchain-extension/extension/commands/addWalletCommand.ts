@@ -18,7 +18,7 @@ import * as vscode from 'vscode';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { UserInputUtil } from './UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil , IFabricWallet, IFabricWalletGenerator, LogType } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWallet, IFabricWalletGenerator, LogType } from 'ibm-blockchain-platform-common';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import {FabricWalletHelper} from '../fabric/FabricWalletHelper';
 
@@ -60,7 +60,7 @@ export async function addWallet(createIdentity: boolean = true): Promise<FabricW
 
             // Check if a wallet with the same name already exists
             const exists: boolean = await fabricWalletRegistry.exists(walletName);
-            if (exists || walletName === FabricWalletUtil.LOCAL_WALLET) {
+            if (exists) {
                 throw new Error('A wallet with this name already exists.');
             }
 
@@ -88,7 +88,7 @@ export async function addWallet(createIdentity: boolean = true): Promise<FabricW
 
             // Check if a wallet with the same name already exists
             const exists: boolean = await fabricWalletRegistry.exists(walletName);
-            if (exists || walletName === FabricWalletUtil.LOCAL_WALLET) {
+            if (exists) {
                 throw new Error('A wallet with this name already exists.');
             }
 

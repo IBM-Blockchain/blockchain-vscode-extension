@@ -77,7 +77,7 @@ describe('FabricEnvironmentRegistry', () => {
         await registry.getAll(false).should.eventually.deep.equal([environmentOne]);
     });
 
-    it(`should get all managed environments including the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`, async () => {
+    it(`should get all managed environments including the ${FabricRuntimeUtil.LOCAL_FABRIC}`, async () => {
 
         const environmentOne: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
             name: 'environmentOne'
@@ -105,7 +105,7 @@ describe('FabricEnvironmentRegistry', () => {
         await registry.getAll(true, true).should.eventually.deep.equal([localFabricEntry, environmentTwo]);
     });
 
-    it(`should get all managed environments excluding the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`, async () => {
+    it(`should get all managed environments excluding the ${FabricRuntimeUtil.LOCAL_FABRIC}`, async () => {
 
         const environmentOne: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
             name: 'environmentOne'

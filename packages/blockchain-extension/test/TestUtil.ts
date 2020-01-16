@@ -22,8 +22,10 @@ import * as path from 'path';
 import { SettingConfigurations } from '../configurations';
 import { SinonSandbox, SinonStub } from 'sinon';
 import { UserInputUtil } from '../extension/commands/UserInputUtil';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FileConfigurations } from 'ibm-blockchain-platform-common';
 import { GlobalState, ExtensionData } from '../extension/util/GlobalState';
+import { LocalEnvironment } from '../extension/fabric/environments/LocalEnvironment';
+// import { YeomanUtil } from '../extension/util/YeomanUtil';
 
 export class TestUtil {
 
@@ -42,10 +44,38 @@ export class TestUtil {
             }
 
             const showConfirmationWarningMessage: SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage');
-            showConfirmationWarningMessage.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} now?`).resolves(false);
+            showConfirmationWarningMessage.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`).resolves(false);
+            // const runStub: SinonStub = sandbox.stub(YeomanUtil, 'run').resolves();
+            const createStub: SinonStub = sandbox.stub(LocalEnvironment.prototype, 'create').resolves();
+            await this.setupLocalFabric();
             await ExtensionUtil.activateExtension();
+            // runStub.restore();
+            createStub.restore();
+            showConfirmationWarningMessage.restore(); // Should we keep this - or should I delete?
         }
     }
+
+    static async setupLocalFabric(): Promise<void> {
+        // Stub generate, so when create (initialize) is called, it doesn't actually run the playbook.
+        // sandbox.stub(ManagedAnsibleEnvironment.prototype, 'generate').resolves();
+
+        // if (sandbox) {
+        //     // sandbox.stub(YeomanUtil, 'run').resolves();
+        //     sandbox.stub(LocalEnvironment.prototype, 'create').resolves();
+        // }
+
+        await fs.ensureDir(this.EXTENSION_TEST_DIR);
+
+        // Ensure the environments directory exists first
+        const environmentDir: string = path.join(this.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_ENVIRONMENTS, FabricRuntimeUtil.LOCAL_FABRIC);
+        await fs.ensureDir(environmentDir);
+
+        // Copy the generated 'Local Fabric' directory into the environments directory.
+        const localFabricDir: string = path.join(this.EXTENSION_TEST_DIR, '..', 'data', FabricRuntimeUtil.LOCAL_FABRIC);
+        await fs.copy(localFabricDir, environmentDir);
+    }
+    // copy generated into environment
+    // stub localfabric.generate
 
     static async storeAll(): Promise<void> {
         await this.storeExtensionDirectoryConfig();

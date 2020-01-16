@@ -175,10 +175,12 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
                     arguments: [gateway]
                 };
 
-                if (gateway.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+                const gatewayName: string = gateway.displayName ? gateway.displayName : gateway.name;
+
+                if (gatewayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
                     const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(
                         this,
-                        FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME,
+                        gatewayName,
                         gateway,
                         vscode.TreeItemCollapsibleState.None,
                         command
@@ -187,14 +189,14 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
                     tree.push(treeItem);
                 } else if (gateway.associatedWallet) {
                     tree.push(new GatewayAssociatedTreeItem(this,
-                        gateway.name,
+                        gatewayName,
                         gateway,
                         vscode.TreeItemCollapsibleState.None,
                         command)
                     );
                 } else {
                     tree.push(new GatewayDissociatedTreeItem(this,
-                        gateway.name,
+                        gatewayName,
                         gateway,
                         vscode.TreeItemCollapsibleState.None,
                         command)
@@ -277,14 +279,12 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
             const tree: Array<BlockchainTreeItem> = [];
 
             const connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
-            const gatewayRegistryEntry: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
-            let gatewayName: string = gatewayRegistryEntry.name;
-            if (gatewayRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
-                gatewayName = FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
-            }
-            tree.push(new ConnectedTreeItem(this, `Connected via gateway: ${gatewayName}`, gatewayRegistryEntry, 0));
-            tree.push(new ConnectedTreeItem(this, `Using ID: ${connection.identityName}`, gatewayRegistryEntry, 0));
-            tree.push(new ConnectedTreeItem(this, `Channels`, gatewayRegistryEntry, vscode.TreeItemCollapsibleState.Expanded));
+            const gateway: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
+            const gatewayName: string = gateway.displayName ? gateway.displayName : gateway.name;
+
+            tree.push(new ConnectedTreeItem(this, `Connected via gateway: ${gatewayName}`, gateway, 0));
+            tree.push(new ConnectedTreeItem(this, `Using ID: ${connection.identityName}`, gateway, 0));
+            tree.push(new ConnectedTreeItem(this, `Channels`, gateway, vscode.TreeItemCollapsibleState.Expanded));
 
             return tree;
         } catch (error) {

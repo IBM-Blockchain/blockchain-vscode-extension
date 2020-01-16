@@ -17,14 +17,15 @@ import { AdminIdentityTreeItem } from '../../../extension/explorer/model/AdminId
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionUtil } from '../../../extension/util/ExtensionUtil';
+import { FabricWalletRegistryEntry } from 'ibm-blockchain-platform-common';
 
 chai.should();
 
 describe('AdminIdentityTreeItem', () => {
 
     class TestAdminIdentityTreeItem extends AdminIdentityTreeItem {
-        constructor(label: string, walletName: string, attributes?: any) {
-            super(ExtensionUtil.getBlockchainWalletExplorerProvider(), label, walletName, attributes);
+        constructor(label: string, walletName: string, attributes: any, registryEntry: FabricWalletRegistryEntry) {
+            super(ExtensionUtil.getBlockchainWalletExplorerProvider(), label, walletName, attributes, registryEntry);
         }
     }
 
@@ -42,13 +43,13 @@ describe('AdminIdentityTreeItem', () => {
     describe('constructor', () => {
 
         it('should create tree item', () => {
-            treeItem = new TestAdminIdentityTreeItem('admin', 'myWallet');
+            treeItem = new TestAdminIdentityTreeItem('admin', 'myWallet', undefined, {} as FabricWalletRegistryEntry);
             treeItem.label.should.equal('admin ⭑');
             treeItem.tooltip.should.equal(`Attributes:\n\nNone`);
         });
 
         it('should create tree item and set tooltip if there are attributes', () => {
-            treeItem = new TestAdminIdentityTreeItem('admin', 'myWallet', {attr1: 'hello', attr2: 'world'});
+            treeItem = new TestAdminIdentityTreeItem('admin', 'myWallet', {attr1: 'hello', attr2: 'world'}, {} as FabricWalletRegistryEntry);
             treeItem.label.should.equal('admin ⭑');
             treeItem.tooltip.should.deep.equal(`Attributes:\n\nattr1:hello\nattr2:world`);
         });

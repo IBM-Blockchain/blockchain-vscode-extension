@@ -60,11 +60,6 @@ describe('FabricNode', () => {
         couchNode.should.exist;
     });
 
-    it('should create a logspout', () => {
-        const logsputNode: FabricNode = FabricNode.newLogspout('couchdb.example.com', 'couchdb.example.com', 'grpc://localhost:7064');
-        logsputNode.should.exist;
-    });
-
     it('should create a ca', () => {
         caNode.should.exist;
     });

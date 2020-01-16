@@ -16,6 +16,7 @@ import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as semver from 'semver';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { SettingConfigurations } from '../../configurations';
 import { addGateway } from '../commands/addGatewayCommand';
@@ -90,7 +91,7 @@ import { GlobalState, ExtensionData } from './GlobalState';
 import { TemporaryCommandRegistry } from '../dependencies/TemporaryCommandRegistry';
 import { version as currentExtensionVersion, dependencies } from '../../package.json';
 import { UserInputUtil } from '../commands/UserInputUtil';
-import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, FileRegistry, LogType } from 'ibm-blockchain-platform-common';
+import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FileRegistry, LogType, FabricWalletUtil } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 import { importNodesToEnvironment } from '../commands/importNodesToEnvironmentCommand';
 import { deleteNode } from '../commands/deleteNodeCommand';
@@ -390,7 +391,7 @@ export class ExtensionUtil {
 
                 if (!localFabricEnabled) {
                     // Just got set to false
-                    outputAdapter.log(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality set to 'false'.`);
+                    outputAdapter.log(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'false'.`);
                     try {
                         // If Local Fabric is running, warn the user that it will be torndown
                         let isRunning: boolean = false;
@@ -398,10 +399,10 @@ export class ExtensionUtil {
                             isRunning = await LocalEnvironmentManager.instance().getRuntime().isRunning();
                         }
                         if (isRunning || isGenerated) {
-                            const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`Toggling this feature will remove the world state and ledger data for the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime. Do you want to continue?`);
+                            const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`Toggling this feature will remove the world state and ledger data for the ${runtime.getName()} runtime. Do you want to continue?`);
                             if (!reallyDoIt) {
                                 // log setting variable back
-                                outputAdapter.log(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality back to 'true'.`);
+                                outputAdapter.log(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC} functionality back to 'true'.`);
                                 await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
                                 return;
                             }
@@ -410,17 +411,32 @@ export class ExtensionUtil {
 
                         // If disabled, delete the local environment, gateway and wallet
                         await FabricEnvironmentRegistry.instance().delete(FabricRuntimeUtil.LOCAL_FABRIC, true);
-                        await FabricGatewayRegistry.instance().delete(FabricRuntimeUtil.LOCAL_FABRIC, true);
-                        await FabricWalletRegistry.instance().delete(FabricWalletUtil.LOCAL_WALLET, true);
+
+                        // Find and delete all local gateways
+                        const allGateways: FabricGatewayRegistryEntry[] = await FabricGatewayRegistry.instance().getAll(true);
+                        for (const gateway of allGateways) {
+                            if (gateway.displayName && gateway.displayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
+                                await FabricGatewayRegistry.instance().delete(gateway.name, true);
+                            }
+                        }
+
+                        // Find and delete all local wallets
+                        const allWallets: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll(true);
+                        for (const wallet of allWallets) {
+                            if (wallet.displayName && wallet.displayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
+                                await FabricWalletRegistry.instance().delete(wallet.name, true);
+                            }
+                        }
+
                         await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', false);
 
                     } catch (error) {
-                        outputAdapter.log(LogType.ERROR, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality to false: ${error.message}`, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality to false: ${error.toString()}`);
+                        outputAdapter.log(LogType.ERROR, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC} functionality to false: ${error.message}`, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC} functionality to false: ${error.toString()}`);
                     }
 
                 } else {
                     // Just got set to true
-                    outputAdapter.log(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality set to 'true'.`);
+                    outputAdapter.log(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'true'.`);
                     try {
                         const bypassPreReqs: boolean = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_BYPASS_PREREQS);
                         let dependenciesInstalled: boolean = true;
@@ -448,7 +464,7 @@ export class ExtensionUtil {
                         }
                         await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', true);
                     } catch (error) {
-                        outputAdapter.log(LogType.ERROR, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality to true: ${error.message}`, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} functionality to true: ${error.toString()}`);
+                        outputAdapter.log(LogType.ERROR, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC} functionality to true: ${error.message}`, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC} functionality to true: ${error.toString()}`);
                     }
                 }
 
@@ -519,8 +535,22 @@ export class ExtensionUtil {
             await ExtensionUtil.setupLocalRuntime(extensionData.version);
         } else {
             await FabricEnvironmentRegistry.instance().delete(FabricRuntimeUtil.LOCAL_FABRIC, true);
-            await FabricGatewayRegistry.instance().delete(FabricRuntimeUtil.LOCAL_FABRIC, true);
-            await FabricWalletRegistry.instance().delete(FabricWalletUtil.LOCAL_WALLET, true);
+
+            // Find and delete all local gateways
+            const allGateways: FabricGatewayRegistryEntry[] = await FabricGatewayRegistry.instance().getAll(true);
+            for (const gateway of allGateways) {
+                if (gateway.displayName && gateway.displayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
+                    await FabricGatewayRegistry.instance().delete(gateway.name, true);
+                }
+            }
+
+            // Find and delete all local wallets
+            const allWallets: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll(true);
+            for (const wallet of allWallets) {
+                if (wallet.displayName && wallet.displayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
+                    await FabricWalletRegistry.instance().delete(wallet.name, true);
+                }
+            }
         }
 
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -572,32 +602,45 @@ export class ExtensionUtil {
         if (generatorVersion !== extensionData.generatorVersion) {
             // If the latest generator version is not equal to the previous used version
 
-            const runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
-            let generated: boolean = false;
-            if (runtime) {
-                generated = await runtime.isGenerated();
-            }
-
+            const storedMinor: number = semver.minor(extensionData.generatorVersion);
+            const latestMinor: number = semver.minor(generatorVersion);
             let updateGeneratorVersion: boolean = true;
-            if (generated) {
-                // We know the user has a generated Fabric using an older version, so we should give the user the option to teardown either now or later
-                const response: boolean = await UserInputUtil.showConfirmationWarningMessage(`The ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} now?`);
-                if (response) {
-                    const isRunning: boolean = await runtime.isRunning();
 
-                    // Teardown and remove generated Fabric
-                    await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
+            if (latestMinor > storedMinor) {
+                // Delete old environments, wallets and gateways
 
-                    if (isRunning) {
-                        // Start the Fabric again
-                        await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
-                    }
-                } else {
-                    // Assume they will teardown later
-                    updateGeneratorVersion = false;
+                await FabricEnvironmentRegistry.instance().delete(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
+                await FabricGatewayRegistry.instance().delete(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
+                await FabricWalletRegistry.instance().delete(FabricWalletUtil.OLD_LOCAL_WALLET, true);
+
+            } else {
+                const runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
+                let generated: boolean = false;
+
+                if (runtime) {
+                    generated = await runtime.isGenerated();
                 }
+
+                if (generated) {
+                    // We know the user has a generated Fabric using an older version, so we should give the user the option to teardown either now or later
+                    const response: boolean = await UserInputUtil.showConfirmationWarningMessage(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`);
+                    if (response) {
+                        const isRunning: boolean = await runtime.isRunning();
+
+                        // Teardown and remove generated Fabric
+                        await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
+
+                        if (isRunning) {
+                            // Start the Fabric again
+                            await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
+                        }
+                    } else {
+                        // Assume they will teardown later
+                        updateGeneratorVersion = false;
+                    }
+                }
+                // If they don't have a Fabric generated, we can update the version immediately
             }
-            // If they don't have a Fabric generated, we can update the version immediately
 
             // Update the generator version
             if (updateGeneratorVersion) {

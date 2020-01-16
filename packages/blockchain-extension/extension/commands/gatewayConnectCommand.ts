@@ -21,7 +21,7 @@ import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { IFabricGatewayConnection, IFabricWallet, LogType } from 'ibm-blockchain-platform-common';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
-import { FabricRuntimeUtil, FabricWalletUtil, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWalletGenerator } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWalletGenerator } from 'ibm-blockchain-platform-common';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { SettingConfigurations } from '../../configurations';
@@ -42,12 +42,15 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
         gatewayRegistryEntry = chosenEntry.data;
     }
 
+    const gatewayName: string = gatewayRegistryEntry.displayName ? gatewayRegistryEntry.displayName : gatewayRegistryEntry.name;
+
     // How do I get the environment name if I have the gateway name?
     // Ideally we want to check if the ManagedAnsibleEnvironment is running as well and start it if not.
-    if (gatewayRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+    // TODO JAKE: Update this so it works for managed ansible environments
+    if (gatewayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
         const running: boolean = await LocalEnvironmentManager.instance().getRuntime().isRunning();
         if (!running) {
-            outputAdapter.log(LogType.ERROR, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} has not been started, please start it before connecting.`);
+            outputAdapter.log(LogType.ERROR, `${FabricRuntimeUtil.LOCAL_FABRIC} has not been started, please start it before connecting.`);
             return;
         }
 
@@ -59,7 +62,7 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
     let walletData: FabricWalletRegistryEntry;
 
     // If the user is trying to connect to the local_fabric, we should always use the local_fabric_wallet
-    if (!gatewayRegistryEntry.associatedWallet && gatewayRegistryEntry.name !== FabricRuntimeUtil.LOCAL_FABRIC) {
+    if (!gatewayRegistryEntry.associatedWallet && !gatewayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
         // If there is no wallet associated with the gateway, we should ask for a wallet to connect with
         // First check there is at least one that isn't local_fabric_wallet
         const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll(false);
@@ -78,15 +81,18 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
     } else {
         walletName = gatewayRegistryEntry.associatedWallet;
 
-        if (walletName === FabricWalletUtil.LOCAL_WALLET) {
+        if (gatewayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
+
             // We don't want to attempt to get it from the wallet registry
-            wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().getWallet(FabricWalletUtil.LOCAL_WALLET);
+            wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().getWallet(walletName);
 
             const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
 
-            runtimeWalletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET;
+            runtimeWalletRegistryEntry.name = walletName;
             runtimeWalletRegistryEntry.walletPath = wallet.getWalletPath();
             runtimeWalletRegistryEntry.managedWallet = true;
+            // Assume that for managed wallets, the display name will be the gateway name with 'Wallet' appended
+            runtimeWalletRegistryEntry.displayName = `${gatewayName} Wallet`;
 
             walletData = runtimeWalletRegistryEntry;
 
@@ -128,13 +134,6 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
         await connection.connect(wallet, identityName, timeout);
         connection.identityName = identityName;
         FabricGatewayConnectionManager.instance().connect(connection, gatewayRegistryEntry, walletData);
-
-        let gatewayName: string;
-        if (gatewayRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
-            gatewayName = FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
-        } else {
-            gatewayName = gatewayRegistryEntry.name;
-        }
 
         outputAdapter.log(LogType.SUCCESS, `Connecting to ${gatewayName}`);
         if (!runtimeData) {

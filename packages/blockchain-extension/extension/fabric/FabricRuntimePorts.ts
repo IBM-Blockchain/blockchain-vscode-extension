@@ -13,11 +13,6 @@
 */
 
 export class FabricRuntimePorts {
-    public orderer: number;
-    public peerRequest: number;
-    public peerChaincode: number;
-    public peerEventHub: number;
-    public certificateAuthority: number;
-    public couchDB: number;
-    public logs: number;
+    public startPort: number;
+    public endPort: number;
 }

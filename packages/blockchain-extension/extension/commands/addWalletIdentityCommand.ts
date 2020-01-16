@@ -26,7 +26,7 @@ import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironment
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
-import { FabricRuntimeUtil, FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, FabricWalletUtil  } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry  } from 'ibm-blockchain-platform-common';
 
 export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalletRegistryEntry, mspid: string): Promise<string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -63,7 +63,8 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
     }
 
     let isLocalWallet: boolean;
-    if (walletRegistryEntry && walletRegistryEntry.managedWallet && walletRegistryEntry.name === FabricWalletUtil.LOCAL_WALLET) {
+    const walletName: string = (walletRegistryEntry.displayName) ? walletRegistryEntry.displayName : walletRegistryEntry.name;
+    if (walletRegistryEntry && walletRegistryEntry.managedWallet && walletName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
         isLocalWallet = true;
     } else {
         isLocalWallet = false;
@@ -72,7 +73,11 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
     if (isLocalWallet) {
         // using local_fabric_wallet
         const orgsArray: Array<string> = await LocalEnvironmentManager.instance().getRuntime().getAllOrganizationNames();
+
+        // I think we'll need that dropdown here now!
+
         // only one mspID currently, if multiple we'll need to add a dropdown
+        // TODO JAKE: We will need to change this as there will eventually be multi-orgs
         mspid = orgsArray[0];
     } else if (!mspid) {
         mspid = await UserInputUtil.showInputBox('Enter MSPID');
@@ -142,8 +147,6 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
             // Limit the user to use local_fabric for local_fabric_wallet identities
             if (isLocalWallet) {
                 // wallet is managed so use local_fabric as the gateway
-                // assume there is only one
-                gatewayRegistryEntry = await FabricGatewayRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
 
                 // make sure local_fabric is started
                 let isRunning: boolean = await LocalEnvironmentManager.instance().getRuntime().isRunning();
@@ -157,6 +160,9 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
                         return;
                     }
                 }
+
+                // assume there is only one
+                gatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${walletRegistryEntry.name}`);
 
             } else {
                 // select from other gateways

@@ -18,20 +18,27 @@ import * as chai from 'chai';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { TestUtil } from '../TestUtil';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import * as sinon from 'sinon';
+import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 
 chai.should();
 
 describe('FabricGatewayRegistry', () => {
 
     const registry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
+    let sandbox: sinon.SinonSandbox;
 
     before(async () => {
-        await TestUtil.setupTests();
-        await LocalEnvironmentManager.instance().getRuntime().create();
+        sandbox = sinon.createSandbox();
+        await TestUtil.setupTests(sandbox);
+
     });
 
     beforeEach(async () => {
+        await TestUtil.setupLocalFabric();
+
+        const localRuntime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
+        await localRuntime.importGateways();
         await registry.clear();
     });
 
@@ -49,10 +56,11 @@ describe('FabricGatewayRegistry', () => {
 
         await LocalEnvironmentManager.instance().getRuntime().importGateways();
 
-        const localFabricEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+        const localFabricEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('Org1');
 
         await registry.add(gatewayOne);
-        await registry.getAll().should.eventually.deep.equal([localFabricEntry, gatewayOne]);
+        const gateways: FabricGatewayRegistryEntry[] = await registry.getAll();
+        gateways.should.deep.equal([localFabricEntry, gatewayOne]);
     });
 
     it('should get all gateways but not show local fabric', async () => {

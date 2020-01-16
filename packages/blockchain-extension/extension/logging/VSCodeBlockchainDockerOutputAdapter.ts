@@ -21,7 +21,7 @@ export class VSCodeBlockchainDockerOutputAdapter extends VSCodeOutputAdapter {
         return VSCodeBlockchainDockerOutputAdapter._instance;
     }
 
-    private static _instance: VSCodeBlockchainDockerOutputAdapter = new VSCodeBlockchainDockerOutputAdapter(FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME);
+    private static _instance: VSCodeBlockchainDockerOutputAdapter = new VSCodeBlockchainDockerOutputAdapter(FabricRuntimeUtil.LOCAL_FABRIC);
 
     private constructor(channelName: string) {
         super(channelName);

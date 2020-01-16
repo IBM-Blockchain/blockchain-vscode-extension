@@ -16,7 +16,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { ManagedAnsibleEnvironment } from './ManagedAnsibleEnvironment';
 import { YeomanUtil } from '../../util/YeomanUtil';
-import { FabricRuntimeUtil, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType, FabricWalletUtil, OutputAdapter, FabricWalletRegistryEntry, FabricWalletRegistry, FileConfigurations, FileSystemUtil } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType, OutputAdapter, FabricWalletRegistryEntry, FabricWalletRegistry, FileConfigurations, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { SettingConfigurations } from '../../../configurations';
 import { FabricRuntimePorts } from '../FabricRuntimePorts';
 
@@ -29,10 +29,6 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
         this.dockerName = `fabricvscodelocalfabric`;
     }
 
-    public getDisplayName(): string {
-        return FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
-    }
-
     public async create(): Promise<void> {
 
         // Delete any existing runtime directory, and then recreate it.
@@ -42,7 +38,7 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
             name: this.name,
             managedRuntime: true,
             environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
-            associatedGateways: [FabricRuntimeUtil.LOCAL_FABRIC]
+            associatedGateways: ['Org1']
         });
 
         await FabricEnvironmentRegistry.instance().add(registryEntry);
@@ -52,12 +48,9 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
             destination: this.path,
             name: this.name,
             dockerName: this.dockerName,
-            orderer: this.ports.orderer,
-            peerRequest: this.ports.peerRequest,
-            peerChaincode: this.ports.peerChaincode,
-            certificateAuthority: this.ports.certificateAuthority,
-            couchDB: this.ports.couchDB,
-            logspout: this.ports.logs
+            numOrganizations: 1,
+            startPort: this.ports.startPort,
+            endPort: this.ports.endPort
         });
     }
 
@@ -77,16 +70,10 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
         try {
             await super.teardownInner(outputAdapter);
             await this.create();
-            await this.importWalletsAndIdentities();
-            await this.importGateways();
         } finally {
             await super.setTeardownState();
         }
 
-    }
-
-    public async importGateways(): Promise<void> {
-        await super.importGateways(FabricWalletUtil.LOCAL_WALLET);
     }
 
     public async importWalletsAndIdentities(): Promise<void> {

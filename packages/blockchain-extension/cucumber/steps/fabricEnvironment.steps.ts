@@ -35,7 +35,7 @@ module.exports = function(): any {
      * Given
      */
 
-    this.Given(`the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is running`, this.timeout, async () => {
+    this.Given(`the ${FabricRuntimeUtil.LOCAL_FABRIC} is running`, this.timeout, async () => {
 
         const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
         const runtime: LocalEnvironment = runtimeManager.getRuntime();
@@ -97,7 +97,7 @@ module.exports = function(): any {
         await this.fabricEnvironmentHelper.deleteEnvironment(environmentName);
     });
 
-    this.When(`I stop the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`, this.timeout, async () => {
+    this.When(`I stop the ${FabricRuntimeUtil.LOCAL_FABRIC}`, this.timeout, async () => {
         const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
         const runtime: LocalEnvironment = runtimeManager.getRuntime();
 
@@ -106,7 +106,7 @@ module.exports = function(): any {
         isRunning.should.equal(false);
     });
 
-    this.When(`I start the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`, this.timeout, async () => {
+    this.When(`I start the ${FabricRuntimeUtil.LOCAL_FABRIC}`, this.timeout, async () => {
         const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
         const runtime: LocalEnvironment = runtimeManager.getRuntime();
 
@@ -115,7 +115,7 @@ module.exports = function(): any {
         isRunning.should.equal(true);
     });
 
-    this.When(`I teardown the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`, this.timeout, async () => {
+    this.When(`I teardown the ${FabricRuntimeUtil.LOCAL_FABRIC}`, this.timeout, async () => {
         const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
         const runtime: LocalEnvironment = runtimeManager.getRuntime();
 

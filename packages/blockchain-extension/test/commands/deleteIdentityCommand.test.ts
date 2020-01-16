@@ -26,7 +26,7 @@ import { BlockchainWalletExplorerProvider } from '../../extension/explorer/walle
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { FabricWalletGeneratorFactory } from '../../extension/fabric/FabricWalletGeneratorFactory';
 import { IdentityTreeItem } from '../../extension/explorer/model/IdentityTreeItem';
-import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 chai.should();
@@ -186,9 +186,10 @@ describe('deleteIdentityCommand', () => {
 
         const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
 
-        runtimeWalletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME;
+        runtimeWalletRegistryEntry.name = 'Org1';
         runtimeWalletRegistryEntry.walletPath = 'wallet_path';
         runtimeWalletRegistryEntry.managedWallet = true;
+        runtimeWalletRegistryEntry.displayName = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`;
 
         showWalletsQuickPickStub.resolves({
             label: runtimeWalletRegistryEntry.name,
@@ -202,7 +203,7 @@ describe('deleteIdentityCommand', () => {
         fsRemoveStub.should.not.have.been.called;
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `deleteIdentity`);
-        logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `No identities to delete in wallet: ${runtimeWalletRegistryEntry.name}. The ${FabricRuntimeUtil.ADMIN_USER} identity cannot be deleted.`, `No identities to delete in wallet: ${runtimeWalletRegistryEntry.name}. The ${FabricRuntimeUtil.ADMIN_USER} identity cannot be deleted.`);
+        logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `No identities to delete in wallet: ${runtimeWalletRegistryEntry.displayName}. The ${FabricRuntimeUtil.ADMIN_USER} identity cannot be deleted.`, `No identities to delete in wallet: ${runtimeWalletRegistryEntry.displayName}. The ${FabricRuntimeUtil.ADMIN_USER} identity cannot be deleted.`);
     });
 
     it('should handle the user cancelling selecting an identity to delete', async () => {
@@ -247,12 +248,13 @@ describe('deleteIdentityCommand', () => {
 
         const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
 
-        runtimeWalletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET;
+        runtimeWalletRegistryEntry.name = 'Org1';
         runtimeWalletRegistryEntry.walletPath = 'wallet_path';
         runtimeWalletRegistryEntry.managedWallet = true;
+        runtimeWalletRegistryEntry.displayName = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`;
 
         showWalletsQuickPickStub.resolves({
-            label: FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME,
+            label: runtimeWalletRegistryEntry.displayName,
             data: runtimeWalletRegistryEntry
         });
         walletIdentitiesStub.resolves([FabricRuntimeUtil.ADMIN_USER, identityName]);
@@ -269,7 +271,7 @@ describe('deleteIdentityCommand', () => {
         it('should delete an identity when called from the wallet tree', async () => {
             identityName = ['blueConga'];
             const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
-            const treeItem: IdentityTreeItem = new IdentityTreeItem(blockchainWalletExplorerProvider, identityName[0], blueWalletEntry.name, []);
+            const treeItem: IdentityTreeItem = new IdentityTreeItem(blockchainWalletExplorerProvider, identityName[0], blueWalletEntry.name, [], blueWalletEntry);
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY, treeItem);
 
@@ -288,7 +290,15 @@ describe('deleteIdentityCommand', () => {
             getWalletStub.returns(testFabricWallet);
 
             const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
-            const treeItem: IdentityTreeItem = new IdentityTreeItem(blockchainWalletExplorerProvider, identityName[0], FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME, []);
+
+            const localWalletEntry: FabricWalletRegistryEntry = {
+                name: `Org1`,
+                displayName: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`,
+                managedWallet: true,
+                walletPath: '/some/path'
+            };
+
+            const treeItem: IdentityTreeItem = new IdentityTreeItem(blockchainWalletExplorerProvider, identityName[0], localWalletEntry.displayName, [], localWalletEntry);
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY, treeItem);
 

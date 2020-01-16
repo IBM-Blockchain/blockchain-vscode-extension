@@ -18,7 +18,6 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
-import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { TestUtil } from '../TestUtil';
 import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
 import { Reporter } from '../../extension/util/Reporter';
@@ -86,7 +85,7 @@ describe('EnvironmentConnectCommand', () => {
             await FabricEnvironmentRegistry.instance().clear();
             await FabricEnvironmentRegistry.instance().add(environmentRegistryEntry);
 
-            await LocalEnvironmentManager.instance().getRuntime().create();
+            await TestUtil.setupLocalFabric();
 
             localFabricRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
 
@@ -200,7 +199,7 @@ describe('EnvironmentConnectCommand', () => {
 
             beforeEach(async () => {
                 chooseEnvironmentQuickPick.resolves({
-                    label: FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME,
+                    label: FabricRuntimeUtil.LOCAL_FABRIC,
                     data: localFabricRegistryEntry
                 });
 
@@ -222,7 +221,7 @@ describe('EnvironmentConnectCommand', () => {
                 mockConnection.connect.should.have.been.calledOnce;
                 connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTED);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'managed environment', connectEnvironmentIBM: sinon.match.string });
-                logSpy.calledWith(LogType.SUCCESS, `Connected to ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`);
+                logSpy.calledWith(LogType.SUCCESS, `Connected to ${FabricRuntimeUtil.LOCAL_FABRIC}`);
             });
 
             it('should connect to a managed runtime from the tree', async () => {

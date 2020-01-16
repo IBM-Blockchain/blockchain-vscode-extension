@@ -31,7 +31,7 @@ export async function deleteGateway(gatewayTreeItem: GatewayTreeItem): Promise<v
         let gateways: Array<FabricGatewayRegistryEntry> = [];
         gateways = await FabricGatewayRegistry.instance().getAll(false);
         if (gateways.length === 0) {
-            outputAdapter.log(LogType.ERROR, `No gateways to delete. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} cannot be deleted.`, `No gateways to delete. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} cannot be deleted.`);
+            outputAdapter.log(LogType.ERROR, `No gateways to delete. ${FabricRuntimeUtil.LOCAL_FABRIC} gateways cannot be deleted.`, `No gateways to delete. ${FabricRuntimeUtil.LOCAL_FABRIC} gateways cannot be deleted.`);
             return;
         }
 

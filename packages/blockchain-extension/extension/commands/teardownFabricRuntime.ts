@@ -43,7 +43,7 @@ export async function teardownFabricRuntime(runtimeTreeItem: RuntimeTreeItem, fo
     const runtime: ManagedAnsibleEnvironment | LocalEnvironment = await EnvironmentFactory.getEnvironment(registryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
     const associatedGateways: string[] = registryEntry.associatedGateways ? registryEntry.associatedGateways : [];
     if (!force) {
-        const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`All world state and ledger data for the Fabric runtime ${runtime.getDisplayName()} will be destroyed. Do you want to continue?`);
+        const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`All world state and ledger data for the Fabric runtime ${runtime.getName()} will be destroyed. Do you want to continue?`);
         if (!reallyDoIt) {
             return;
         }
@@ -54,7 +54,7 @@ export async function teardownFabricRuntime(runtimeTreeItem: RuntimeTreeItem, fo
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
     }, async (progress: vscode.Progress<{ message: string }>) => {
-        progress.report({ message: `Tearing down Fabric environment ${runtime.getDisplayName()}` });
+        progress.report({ message: `Tearing down Fabric environment ${runtime.getName()}` });
 
         const connectedGatewayRegistry: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
         if (connectedGatewayRegistry && associatedGateways.includes(connectedGatewayRegistry.name)) {
@@ -67,10 +67,11 @@ export async function teardownFabricRuntime(runtimeTreeItem: RuntimeTreeItem, fo
         }
 
         try {
-            await runtime.teardown(outputAdapter);
+            await runtime.deleteGateways();
             await runtime.deleteWalletsAndIdentities();
+            await runtime.teardown(outputAdapter);
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Failed to teardown ${runtime.getDisplayName()}: ${error.message}`, `Failed to teardown ${runtime.getDisplayName()}: ${error.toString()}`);
+            outputAdapter.log(LogType.ERROR, `Failed to teardown ${runtime.getName()}: ${error.message}`, `Failed to teardown ${runtime.getName()}: ${error.toString()}`);
         }
     });
 

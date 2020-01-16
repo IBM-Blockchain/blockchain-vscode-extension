@@ -27,7 +27,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { FabricCertificateAuthorityFactory } from '../../extension/fabric/FabricCertificateAuthorityFactory';
-import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, IFabricWallet, LogType } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWallet, LogType } from 'ibm-blockchain-platform-common';
 import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
 import { BlockchainWalletExplorerProvider } from '../../extension/explorer/walletExplorer';
 import { WalletTreeItem } from '../../extension/explorer/wallets/WalletTreeItem';
@@ -47,7 +47,6 @@ describe('AddWalletIdentityCommand', () => {
     before(async () => {
         mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
-        await LocalEnvironmentManager.instance().getRuntime().create();
     });
 
     describe('addWalletIdentity', () => {
@@ -95,7 +94,7 @@ describe('AddWalletIdentityCommand', () => {
             connectionProfilePathStub = mySandBox.stub(FabricGatewayHelper, 'getConnectionProfilePath').resolves(path.join('myPath', 'connection.json'));
 
             await FabricWalletRegistry.instance().clear();
-
+            await TestUtil.setupLocalFabric();
             // add the local fabric one back in
             await LocalEnvironmentManager.instance().getRuntime().importWalletsAndIdentities();
             await LocalEnvironmentManager.instance().getRuntime().importGateways();
@@ -772,7 +771,7 @@ describe('AddWalletIdentityCommand', () => {
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addWalletIdentityCommand', { method: 'enrollmentID' });
             });
 
-            it(`should test an identity can be enrolled to ${FabricWalletUtil.LOCAL_WALLET} using ${FabricRuntimeUtil.LOCAL_FABRIC}`, async () => {
+            it(`should test an identity can be enrolled to ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet using ${FabricRuntimeUtil.LOCAL_FABRIC}`, async () => {
 
                 fsReadFile.resolves(`{
                     "certificateAuthorities": {
@@ -785,11 +784,14 @@ describe('AddWalletIdentityCommand', () => {
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
 
-                const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
-                mockRuntime.isRunning.resolves(true);
-                mockRuntime.getWalletNames.resolves([FabricWalletUtil.LOCAL_WALLET]);
-                mockRuntime.getAllOrganizationNames.resolves(['myMSPID']);
-                mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
+                const isRunning: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isRunning').resolves(true);
+                const getWalletNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getWalletNames').resolves(['Org1']);
+                const getAllOrganizationNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getAllOrganizationNames').resolves(['myMSPID']);
+                mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns({
+                    isRunning,
+                    getWalletNames,
+                    getAllOrganizationNames
+                });
                 getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
                 enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
                 importIdentityStub.resolves();
@@ -828,13 +830,19 @@ describe('AddWalletIdentityCommand', () => {
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
 
-                const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
-                mockRuntime.importWalletsAndIdentities.resolves();
-                mockRuntime.isRunning.onCall(0).resolves(false);
-                mockRuntime.isRunning.onCall(1).resolves(true);
-                mockRuntime.getAllOrganizationNames.resolves(['myMSPID']);
-                mockRuntime.getWalletNames.resolves([FabricWalletUtil.LOCAL_WALLET]);
-                mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
+                const isRunning: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isRunning');
+                isRunning.onCall(0).resolves(false);
+                isRunning.onCall(1).resolves(true);
+                const importWalletsAndIdentities: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'importWalletsAndIdentities').resolves();
+                const getWalletNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getWalletNames').resolves(['Org1']);
+                const getAllOrganizationNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getAllOrganizationNames').resolves(['myMSPID']);
+                mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns({
+                    isRunning,
+                    importWalletsAndIdentities,
+                    getWalletNames,
+                    getAllOrganizationNames
+                });
+
                 executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
                 getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
                 enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
@@ -864,12 +872,17 @@ describe('AddWalletIdentityCommand', () => {
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
 
-                const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
-                mockRuntime.importWalletsAndIdentities.resolves();
-                mockRuntime.isRunning.resolves(false);
-                mockRuntime.getAllOrganizationNames.resolves(['myMSPID']);
-                mockRuntime.getWalletNames.resolves([FabricWalletUtil.LOCAL_WALLET]);
-                mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
+                const isRunning: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isRunning').resolves(false);
+                const importWalletsAndIdentities: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'importWalletsAndIdentities').resolves();
+                const getWalletNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getWalletNames').resolves(['Org1']);
+                const getAllOrganizationNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getAllOrganizationNames').resolves(['myMSPID']);
+                mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns({
+                    isRunning,
+                    importWalletsAndIdentities,
+                    getWalletNames,
+                    getAllOrganizationNames
+                });
+
                 executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
 
                 const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();

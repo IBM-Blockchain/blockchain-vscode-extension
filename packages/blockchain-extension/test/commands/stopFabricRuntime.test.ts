@@ -38,7 +38,6 @@ describe('stopFabricRuntime', () => {
 
     const sandbox: sinon.SinonSandbox = sinon.createSandbox();
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
-    const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
     let getGatewayRegistryEntryStub: sinon.SinonStub;
     let getEnvironmentRegistryEntryStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
@@ -55,9 +54,12 @@ describe('stopFabricRuntime', () => {
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
-        await runtimeManager.initialize();
+        await TestUtil.setupLocalFabric();
+        const runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
+        await runtime.importGateways();
+        await runtime.importWalletsAndIdentities();
 
-        const localGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+        const localGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('Org1');
 
         getGatewayRegistryEntryStub = sandbox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry');
         getGatewayRegistryEntryStub.returns(localGateway);
@@ -72,7 +74,7 @@ describe('stopFabricRuntime', () => {
 
         localRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
         showFabricEnvironmentQuickPickBoxStub = sandbox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox');
-        showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, data: localRegistryEntry});
+        showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localRegistryEntry});
         getEnvironmentStub = sandbox.stub(EnvironmentFactory, 'getEnvironment');
     });
 
@@ -203,11 +205,11 @@ describe('stopFabricRuntime', () => {
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
 
         logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'stopFabricRuntime');
-        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to stop ${environment.getDisplayName()}: ${error.message}`, `Failed to stop ${environment.getDisplayName()}: ${error.toString()}`);
+        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to stop ${environment.getName()}: ${error.message}`, `Failed to stop ${environment.getName()}: ${error.toString()}`);
     });
 
     it('should be able to stop the an environment from the command', async () => {
-        showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, data: localRegistryEntry} as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>);
+        showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localRegistryEntry} as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>);
         getEnvironmentStub.callThrough();
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         stopStub = sandbox.stub(environment, 'stop').resolves();
