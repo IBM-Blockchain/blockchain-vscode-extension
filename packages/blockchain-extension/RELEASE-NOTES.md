@@ -1,5 +1,5 @@
-# IBM Blockchain Platform Extension updated to v1.0.17
-_Release date: December 12th 2019_
+# IBM Blockchain Platform Extension updated to v1.0.18
+_Release date: January 16th 2020_
 
 Announcements
 ---
@@ -8,21 +8,29 @@ Announcements
 
 Features & Enhancements
 ---
-* Instantiate/Upgrade with a smart contract endorsement policy [#1603](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1603).
-   > When instantiating/upgrading a smart contract, you are now able to use the 'Default' smart contract endorsement policy (1 endorsement from any organisation), or to choose a 'Custom' endorsement policy.
-   >
-   > Selecting Custom will allow you to provide a JSON file containing the custom smart contract endorsement policy.
-   >
-   > For more information about writing endorsement policies in JSON, see [Hyperledger Fabric Node SDK documentation](https://fabric-sdk-node.github.io/global.html#ChaincodeInstantiateUpgradeRequest).
 
-* Updated README to add compatibility notes, restructure prerequisites section and included current Local Fabric version [#1708](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1708), [#1709](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1709), [#1710](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1710).
+* Updated Local Smart Contract Development tutorial [#1806](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/1806).
 
-* Added setting for showing the Home page on next activation [#1578](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1578).
-   > By setting `"ibm-blockchain-platform.home.showOnNextActivation": true`, the Home page will open when VS Code is reloaded and the extension is activated.  
+Fixes
+---
+* Updated deleting nodes prompt message [#1752](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1752)
+
+* Fixed error instantiating when running a non-smart contract debugging session [#1614](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1614)
+
+* Updated generated debug configuration [#1079](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1079)
+
+* Fixed environment refreshing view when importing nodes bug [#1762](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1762)
+
+* Fixed bug when creating an environment from a gateway which showed peers in the CA list [#1733](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1733)
+
+* Updated OpenSSL prerequisites installation check [#1654](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1654).
+
+* Strip leading/trailing whitespace for transaction arguments [#1752](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1752)
+
 
 
 This release's Conga Comic:
 ---
-<img src="https://congacomic.github.io/assets/img/blockheight-64.jpg" width="800">
+<img src="https://congacomic.github.io/assets/img/blockheight-65.jpg" width="800">
 
 For the full history of all releases, see the [change log](https://marketplace.visualstudio.com/items/IBMBlockchain.ibm-blockchain-platform/changelog).
