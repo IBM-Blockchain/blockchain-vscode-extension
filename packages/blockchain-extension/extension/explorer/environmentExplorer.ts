@@ -190,7 +190,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             } else {
                 for (const environmentEntry of environmentEntries) {
                     if (environmentEntry.managedRuntime) {
-                        const runtime: ManagedAnsibleEnvironment = EnvironmentFactory.getEnvironment(environmentEntry) as ManagedAnsibleEnvironment;
+                        const runtime: ManagedAnsibleEnvironment = await EnvironmentFactory.getEnvironment(environmentEntry) as ManagedAnsibleEnvironment;
                         const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
                             runtime.getName(),
                             environmentEntry,

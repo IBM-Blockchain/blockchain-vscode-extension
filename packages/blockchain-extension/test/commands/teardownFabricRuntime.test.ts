@@ -88,7 +88,7 @@ describe('teardownFabricRuntime', () => {
 
     it('should teardown a Fabric environment from the tree', async () => {
         getEnvironmentStub.callThrough();
-        const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         teardownStub = sandbox.stub(environment, 'teardown').resolves();
         deleteWalletsAndIdentitiesStub = sandbox.stub(environment, 'deleteWalletsAndIdentities').resolves();
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -102,7 +102,7 @@ describe('teardownFabricRuntime', () => {
             }
         );
 
-        getEnvironmentStub.returns(environment);
+        getEnvironmentStub.resolves(environment);
         getGatewayRegistryEntryStub.returns(undefined);
         getEnvironmentRegistryEntryStub.returns(undefined);
 
@@ -123,7 +123,7 @@ describe('teardownFabricRuntime', () => {
 
     it('should teardown a Fabric runtime, disconnect from gateway and refresh the view', async () => {
         getEnvironmentStub.callThrough();
-        const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         teardownStub = sandbox.stub(environment, 'teardown').resolves();
         deleteWalletsAndIdentitiesStub = sandbox.stub(environment, 'deleteWalletsAndIdentities').resolves();
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -137,7 +137,7 @@ describe('teardownFabricRuntime', () => {
             }
         );
 
-        getEnvironmentStub.returns(environment);
+        getEnvironmentStub.resolves(environment);
         getEnvironmentRegistryEntryStub.returns(undefined);
 
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, treeItem);
@@ -158,7 +158,7 @@ describe('teardownFabricRuntime', () => {
 
     it('should teardown a Fabric runtime, disconnect from environment and refresh the view', async () => {
         getEnvironmentStub.callThrough();
-        const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         teardownStub = sandbox.stub(environment, 'teardown').resolves();
         deleteWalletsAndIdentitiesStub = sandbox.stub(environment, 'deleteWalletsAndIdentities').resolves();
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -172,7 +172,7 @@ describe('teardownFabricRuntime', () => {
             }
         );
 
-        getEnvironmentStub.returns(environment);
+        getEnvironmentStub.resolves(environment);
         getGatewayRegistryEntryStub.returns(undefined);
 
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, treeItem);
@@ -195,7 +195,7 @@ describe('teardownFabricRuntime', () => {
         const error: Error = new Error('what the fabric has happened');
 
         getEnvironmentStub.callThrough();
-        const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         teardownStub = sandbox.stub(environment, 'teardown').throws(error);
         deleteWalletsAndIdentitiesStub = sandbox.stub(environment, 'deleteWalletsAndIdentities').resolves();
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -209,7 +209,7 @@ describe('teardownFabricRuntime', () => {
             }
         );
 
-        getEnvironmentStub.returns(environment);
+        getEnvironmentStub.resolves(environment);
         getGatewayRegistryEntryStub.returns(undefined);
         getEnvironmentRegistryEntryStub.returns(undefined);
 
@@ -233,10 +233,10 @@ describe('teardownFabricRuntime', () => {
     it('should be able to teardown the an environment from the command', async () => {
         showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, data: localRegistryEntry} as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>);
         getEnvironmentStub.callThrough();
-        const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         teardownStub = sandbox.stub(environment, 'teardown').resolves();
         deleteWalletsAndIdentitiesStub = sandbox.stub(environment, 'deleteWalletsAndIdentities').resolves();
-        getEnvironmentStub.returns(environment);
+        getEnvironmentStub.resolves(environment);
         getGatewayRegistryEntryStub.returns(undefined);
         getEnvironmentRegistryEntryStub.returns(undefined);
 
@@ -281,10 +281,10 @@ describe('teardownFabricRuntime', () => {
     it('should be able to cancel when asked if you want to teardown the selected environment', async () => {
         showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, data: localRegistryEntry} as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>);
         getEnvironmentStub.callThrough();
-        const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         teardownStub = sandbox.stub(environment, 'teardown').resolves();
         deleteWalletsAndIdentitiesStub = sandbox.stub(environment, 'deleteWalletsAndIdentities').resolves();
-        getEnvironmentStub.returns(environment);
+        getEnvironmentStub.resolves(environment);
         getGatewayRegistryEntryStub.returns(undefined);
         getEnvironmentRegistryEntryStub.returns(undefined);
 
@@ -320,7 +320,7 @@ describe('teardownFabricRuntime', () => {
         showFabricEnvironmentQuickPickBoxStub.resolves({label: 'managedAnsibleEntry', data: managedAnsibleEntry});
         getEnvironmentStub.callThrough();
 
-        const environment: ManagedAnsibleEnvironment = EnvironmentFactory.getEnvironment(managedAnsibleEntry) as ManagedAnsibleEnvironment;
+        const environment: ManagedAnsibleEnvironment = await EnvironmentFactory.getEnvironment(managedAnsibleEntry) as ManagedAnsibleEnvironment;
         teardownStub = sandbox.stub(environment, 'teardown').resolves();
         deleteWalletsAndIdentitiesStub = sandbox.stub(environment, 'deleteWalletsAndIdentities').resolves();
         getEnvironmentStub.withArgs(managedAnsibleEntry).returns(environment);
@@ -349,10 +349,10 @@ describe('teardownFabricRuntime', () => {
     it('should be able to force teardown', async () => {
         showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, data: localRegistryEntry} as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>);
         getEnvironmentStub.callThrough();
-        const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         teardownStub = sandbox.stub(environment, 'teardown').resolves();
         deleteWalletsAndIdentitiesStub = sandbox.stub(environment, 'deleteWalletsAndIdentities').resolves();
-        getEnvironmentStub.returns(environment);
+        getEnvironmentStub.resolves(environment);
         getGatewayRegistryEntryStub.returns(undefined);
         getEnvironmentRegistryEntryStub.returns(undefined);
 

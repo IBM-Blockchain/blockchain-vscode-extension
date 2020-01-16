@@ -35,7 +35,7 @@ export async function startFabricRuntime(registryEntry?: FabricEnvironmentRegist
 
     }
 
-    const runtime: ManagedAnsibleEnvironment | LocalEnvironment = EnvironmentFactory.getEnvironment(registryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+    const runtime: ManagedAnsibleEnvironment | LocalEnvironment = await EnvironmentFactory.getEnvironment(registryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
     VSCodeBlockchainOutputAdapter.instance().show();
 
     await vscode.window.withProgress({
