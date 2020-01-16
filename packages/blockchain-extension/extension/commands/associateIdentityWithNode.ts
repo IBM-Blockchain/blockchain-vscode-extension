@@ -132,7 +132,7 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
             }
 
             if (chosenIdentity === UserInputUtil.ADD_IDENTITY) {
-                chosenIdentity = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletRegistryEntry, node.msp_id) as string;
+                chosenIdentity = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletRegistryEntry, node.msp_id);
                 if (!chosenIdentity) {
                     return;
                 }

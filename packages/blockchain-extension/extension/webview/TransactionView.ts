@@ -28,7 +28,7 @@ export class TransactionView extends ReactView {
     async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
         panel.webview.onDidReceiveMessage(async (message: {command: string, data: any}) => {
             if (message.command === 'submit') {
-                const response: string = await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, message.data) as string;
+                const response: string = await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, message.data);
                 panel.webview.postMessage({
                     output: response
                 });

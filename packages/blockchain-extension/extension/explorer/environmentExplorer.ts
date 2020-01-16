@@ -261,7 +261,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
     private async createChannelsTree(): Promise<Array<BlockchainTreeItem>> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         const tree: Array<BlockchainTreeItem> = [];
-        const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+        const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
 
         try {
             const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
@@ -339,8 +339,8 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
     }
 
     private async createOrganizationsTree(): Promise<Array<BlockchainTreeItem>> {
-        const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
-        const orgNames: string[] = await connection.getAllOrganizationNames();
+        const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
+        const orgNames: string[] = connection.getAllOrganizationNames();
         return orgNames.map((organizationName: string) => new OrgTreeItem(this, organizationName));
     }
 
@@ -356,7 +356,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
         };
 
         try {
-            const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+            const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
             const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
             for (const [channelName, peerNames] of channelMap) {
                 const chaincodes: FabricChaincode[] = await connection.getInstantiatedChaincode(peerNames, channelName);
@@ -396,7 +396,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
         const tempTree: InstalledChainCodeOpsTreeItem[] = [];
         let command: vscode.Command;
         try {
-            const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+            const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
             const allPeerNames: Array<string> = connection.getAllPeerNames();
             for (const peer of allPeerNames) {
                 const chaincodes: Map<string, Array<string>> = await connection.getInstalledChaincode(peer);

@@ -162,7 +162,7 @@ describe('AddWalletCommand', () => {
             executeCommandStub.callThrough();
             getIdentitiesStub.resolves(['someName', 'anotherName']);
 
-            const result: FabricWalletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET, false) as FabricWalletRegistryEntry;
+            const result: FabricWalletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET, false);
             result.name.should.equal('someWalletName');
 
             browseStub.should.not.have.been.called;

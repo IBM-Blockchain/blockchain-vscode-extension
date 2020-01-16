@@ -77,7 +77,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             }
         } while (addMore);
 
-        const dirPath: string = await vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY) as string;
+        const dirPath: string = await vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const homeExtDir: string = FileSystemUtil.getDirPath(dirPath);
         const environmentPath: string = path.join(homeExtDir, 'environments', environmentRegistryEntry.name, 'nodes');
 
@@ -100,7 +100,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                         if (alreadyExists) {
                             throw new Error(`Node with name ${node.name} already exists`);
                         }
-                        await FabricNode.validateNode(node);
+                        FabricNode.validateNode(node);
                         await environment.updateNode(node);
                     } catch (error) {
                         addedAllNodes = false;

@@ -279,7 +279,7 @@ export class UserInputUtil {
     }
 
     public static async showPeersQuickPickBox(prompt: string, peerNames?: string[]): Promise<string[] | undefined> {
-        const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+        const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
         if (!connection) {
             VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, undefined, 'No connection to a blockchain found');
             return;
@@ -301,7 +301,7 @@ export class UserInputUtil {
     }
 
     public static async showChaincodeAndVersionQuickPick(prompt: string, channel: string, peers: Array<string>, contractName?: string, contractVersion?: string): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> | undefined> {
-        const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+        const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
         if (!connection) {
             VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, undefined, 'No connection to a blockchain found');
             return;
@@ -381,7 +381,7 @@ export class UserInputUtil {
     }
 
     public static async showChannelQuickPickBox(prompt: string, channelMap?: Map<string, Array<string>>): Promise<IBlockchainQuickPickItem<Array<string>>> {
-        const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+        const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
         if (!connection) {
             VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, undefined, 'No connection to a blockchain found');
             return;
@@ -541,7 +541,7 @@ export class UserInputUtil {
 
     public static async showRuntimeInstantiatedSmartContractsQuickPick(prompt: string, channelName?: string): Promise<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> | undefined> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-        const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+        const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
         if (!connection) {
             VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, undefined, 'No connection to a blockchain found');
             return;
@@ -654,7 +654,7 @@ export class UserInputUtil {
 
     public static async showInstallableSmartContractsQuickPick(prompt: string, peers: Set<string>): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> | undefined> {
         // Get connection
-        const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+        const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
         if (!connection) {
             VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, undefined, 'No connection to a blockchain found');
             return;
@@ -771,7 +771,7 @@ export class UserInputUtil {
     }
 
     public static async showCertificateAuthorityQuickPickBox(prompt: string): Promise<string | undefined> {
-        const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+        const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
         if (!connection) {
             VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, undefined, 'No connection to a blockchain found');
             return;

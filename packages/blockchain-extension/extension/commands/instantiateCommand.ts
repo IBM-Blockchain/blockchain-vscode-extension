@@ -36,10 +36,10 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'instantiateSmartContract');
 
-    let connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+    let connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
     if (!connection) {
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
-        connection = await FabricEnvironmentManager.instance().getConnection();
+        connection = FabricEnvironmentManager.instance().getConnection();
         if (!connection) {
             // something went wrong with connecting so return
             return;
@@ -84,7 +84,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
             // Project needs packaging and installing
 
             // Package smart contract project using the given 'open workspace'
-            packageToInstall = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, data.workspace) as PackageRegistryEntry;
+            packageToInstall = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, data.workspace);
             if (!packageToInstall) {
                 return;
             }
@@ -92,7 +92,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
             // Called from debug session so override package command parameters with smart contract name and version
             const packageRegistryEntry: PackageRegistryEntry = await PackageRegistry.instance().get(smartContractName, smartContractVersion);
             if (!packageRegistryEntry) {
-                packageToInstall = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, vscode.debug.activeDebugSession.workspaceFolder, smartContractName, smartContractVersion) as PackageRegistryEntry;
+                packageToInstall = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, vscode.debug.activeDebugSession.workspaceFolder, smartContractName, smartContractVersion);
                 if (!packageToInstall) {
                     return;
                 }
@@ -115,7 +115,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
 
             if (doInstall) {
                 // Install smart contract package
-                packageEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peerNames, packageToInstall) as PackageRegistryEntry;
+                packageEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peerNames, packageToInstall);
                 if (!packageEntry) {
                     // Either a package wasn't selected or the package didnt successfully install on all peers and an error was thrown
                     return;

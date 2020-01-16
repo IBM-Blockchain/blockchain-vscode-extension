@@ -259,14 +259,14 @@ function checkForProjectErrors(workspaceDir: vscode.WorkspaceFolder): void {
     for (const collection of collections) {
         for (const thing of collection) {
             if (thing instanceof vscode.Uri) {
-                const uri: vscode.Uri = thing as vscode.Uri;
+                const uri: vscode.Uri = thing;
                 const relativePath: string = path.relative(workspaceDir.uri.fsPath, uri.fsPath);
                 if (!relativePath || relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
                     // not in this project must have another project open in the workspace
                     break;
                 }
             } else {
-                const diagnostics: vscode.Diagnostic[] = thing as vscode.Diagnostic[];
+                const diagnostics: vscode.Diagnostic[] = thing;
                 for (const diagnostic of diagnostics) {
                     // only check for errors
                     if (diagnostic.severity === 0) {

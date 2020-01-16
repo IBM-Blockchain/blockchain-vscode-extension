@@ -245,6 +245,6 @@ export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
     }
 
     private getChaincodeTimeout(): number {
-        return vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_CHAINCODE_TIMEOUT) as number;
+        return vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_CHAINCODE_TIMEOUT);
     }
 }

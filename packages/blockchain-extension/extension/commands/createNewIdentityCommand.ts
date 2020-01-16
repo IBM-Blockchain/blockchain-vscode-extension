@@ -26,10 +26,10 @@ export async function createNewIdentity(certificateAuthorityTreeItem?: Certifica
     outputAdapter.log(LogType.INFO, undefined, 'createNewIdentity');
 
     let certificateAuthorityName: string;
-    let connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+    let connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
     if (!connection) {
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
-        connection = await FabricEnvironmentManager.instance().getConnection();
+        connection = FabricEnvironmentManager.instance().getConnection();
         if (!connection) {
             // something went wrong with connecting so return
             return;

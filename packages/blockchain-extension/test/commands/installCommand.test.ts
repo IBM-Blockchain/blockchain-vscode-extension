@@ -139,7 +139,7 @@ describe('InstallCommand', () => {
         });
 
         it('should install the smart contract through the command', async () => {
-            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT) as PackageRegistryEntry;
+            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
             result.name.should.equal('vscode-pkg-1@0.0.1');
             fabricRuntimeMock.installChaincode.should.have.been.calledWith(packageRegistryEntry.path, 'peerOne');
 
@@ -151,7 +151,7 @@ describe('InstallCommand', () => {
         it('should install the smart contract through the command on multiple peers', async () => {
             showPeersQuickPickStub.resolves(['peerOne', 'peerTwo']);
 
-            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT) as PackageRegistryEntry;
+            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
             result.name.should.equal('vscode-pkg-1@0.0.1');
             fabricRuntimeMock.installChaincode.should.have.been.calledWith(packageRegistryEntry.path, 'peerOne');
             fabricRuntimeMock.installChaincode.should.have.been.calledWith(packageRegistryEntry.path, 'peerTwo');
@@ -167,7 +167,7 @@ describe('InstallCommand', () => {
             const peerSet: Set<string> = new Set<string>();
             peerSet.add('peerThree');
             peerSet.add('peerOne');
-            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peerSet) as PackageRegistryEntry;
+            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peerSet);
             result.name.should.equal('vscode-pkg-1@0.0.1');
 
             showPeersQuickPickStub.should.have.been.calledWith('Choose which peers to install the smart contract on', ['peerThree', 'peerOne']);
@@ -179,7 +179,7 @@ describe('InstallCommand', () => {
         });
 
         it('should install the smart contract with specific package', async () => {
-            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, null, null, packageRegistryEntry) as PackageRegistryEntry;
+            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, null, null, packageRegistryEntry);
             result.name.should.equal(packageRegistryEntry.name);
 
             fabricRuntimeMock.installChaincode.should.have.been.calledWith(packageRegistryEntry.path, 'peerOne');
@@ -192,7 +192,7 @@ describe('InstallCommand', () => {
         it('should install the smart contract through the command and connect if no connection', async () => {
             getRuntimeConnectionStub.resetHistory();
             getRuntimeConnectionStub.onFirstCall().returns(undefined);
-            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT) as PackageRegistryEntry;
+            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
             result.name.should.equal('vscode-pkg-1@0.0.1');
             fabricRuntimeMock.installChaincode.should.have.been.calledWith(packageRegistryEntry.path, 'peerOne');
 
@@ -214,7 +214,7 @@ describe('InstallCommand', () => {
             const packageCommandStub: sinon.SinonStub = executeCommandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             packageCommandStub.resolves(packageRegistryEntry);
 
-            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT) as PackageRegistryEntry;
+            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
             result.name.should.equal('vscode-pkg-1@0.0.1');
 
             packageCommandStub.should.have.been.calledOnce;
@@ -229,7 +229,7 @@ describe('InstallCommand', () => {
             registryEntry.name = 'myFabric';
             registryEntry.managedRuntime = false;
             environmentRegistryStub.returns(registryEntry);
-            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT) as PackageRegistryEntry;
+            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
             result.name.should.equal('vscode-pkg-1@0.0.1');
             fabricRuntimeMock.installChaincode.should.have.been.calledWith(packageRegistryEntry.path, 'peerOne');
 
@@ -240,7 +240,7 @@ describe('InstallCommand', () => {
 
         it('should return if cannot make connection', async () => {
             getRuntimeConnectionStub.returns(undefined);
-            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT) as PackageRegistryEntry;
+            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
             should.not.exist(result);
             fabricRuntimeMock.installChaincode.should.not.have.been.called;
 
@@ -250,7 +250,7 @@ describe('InstallCommand', () => {
         it('should handle choosing peer being cancelled', async () => {
             showPeersQuickPickStub.resolves();
 
-            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT) as PackageRegistryEntry;
+            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
             should.not.exist(result);
 
             fabricRuntimeMock.installChaincode.should.not.have.been.called;
@@ -261,7 +261,7 @@ describe('InstallCommand', () => {
             const error: Error = new Error('some error');
             showInstallableSmartContractsQuickPickStub.rejects(error);
 
-            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT) as PackageRegistryEntry;
+            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
             should.not.exist(result);
 
             fabricRuntimeMock.installChaincode.should.not.have.been.called;
@@ -274,7 +274,7 @@ describe('InstallCommand', () => {
             const error: Error = new Error('some error');
             fabricRuntimeMock.installChaincode.rejects(error);
 
-            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT) as PackageRegistryEntry;
+            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
             should.not.exist(result);
 
             fabricRuntimeMock.installChaincode.should.have.been.calledWith(packageRegistryEntry.path, 'peerOne');
@@ -289,7 +289,7 @@ describe('InstallCommand', () => {
             const error: Error = new Error('some error');
             fabricRuntimeMock.installChaincode.onFirstCall().rejects(error);
 
-            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT) as PackageRegistryEntry;
+            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
             should.not.exist(result);
 
             fabricRuntimeMock.installChaincode.should.have.been.calledWith(packageRegistryEntry.path, 'peerOne');
@@ -316,7 +316,7 @@ describe('InstallCommand', () => {
             const packageCommandStub: sinon.SinonStub = executeCommandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             packageCommandStub.resolves();
 
-            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT) as PackageRegistryEntry;
+            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
             should.not.exist(result);
 
             packageCommandStub.should.have.been.calledOnce;
@@ -328,7 +328,7 @@ describe('InstallCommand', () => {
         it('should handle cancel when choosing package', async () => {
             showInstallableSmartContractsQuickPickStub.resolves();
 
-            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT) as PackageRegistryEntry;
+            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
             should.not.exist(result);
 
             fabricRuntimeMock.installChaincode.should.not.have.been.called;
@@ -336,7 +336,7 @@ describe('InstallCommand', () => {
         });
 
         it('should install smart contract through the tree by clicking on + Install in runtime ops view', async () => {
-            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, installCommandTreeItem) as PackageRegistryEntry;
+            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, installCommandTreeItem);
             result.name.should.equal(packageRegistryEntry.name);
 
             fabricRuntimeMock.installChaincode.should.have.been.calledWith(packageRegistryEntry.path, 'peerOne');
@@ -346,7 +346,7 @@ describe('InstallCommand', () => {
         });
 
         it('should install smart contract through the tree by right-clicking on Installed in runtime ops view', async () => {
-            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, smartContractsChildren[1]) as PackageRegistryEntry;
+            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, smartContractsChildren[1]);
             result.name.should.equal(packageRegistryEntry.name);
 
             fabricRuntimeMock.installChaincode.should.have.been.calledWith(packageRegistryEntry.path, 'peerOne');
@@ -356,7 +356,7 @@ describe('InstallCommand', () => {
         });
 
         it('should install smart contract through the tree by right-clicking on a peer in runtime ops view', async () => {
-            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, peerTreeItem) as PackageRegistryEntry;
+            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, peerTreeItem);
             result.name.should.equal(packageRegistryEntry.name);
 
             fabricRuntimeMock.installChaincode.should.have.been.calledWith(packageRegistryEntry.path, 'peerOne');
@@ -368,7 +368,7 @@ describe('InstallCommand', () => {
         it('should handle peer failing to install', async () => {
             fabricRuntimeMock.installChaincode.onFirstCall().rejects({ message: 'failed to install for some reason' });
 
-            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT) as PackageRegistryEntry;
+            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
             should.not.exist(result);
 
             dockerLogsOutputSpy.should.have.been.called;

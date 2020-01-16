@@ -407,7 +407,7 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
 
     // If TypeScript, update JavaScript Test Runner user settings and create tsconfig.json
     if (testLang === 'TypeScript') {
-        const runnerArgs: string = vscode.workspace.getConfiguration().get('javascript-test-runner.additionalArgs') as string;
+        const runnerArgs: string = vscode.workspace.getConfiguration().get('javascript-test-runner.additionalArgs');
         if (!runnerArgs || !runnerArgs.includes('-r ts-node/register')) {
             // If the user has removed JavaScript Test Runner since generating tests, this update will silently fail
             await vscode.workspace.getConfiguration().update('javascript-test-runner.additionalArgs', '-r ts-node/register', vscode.ConfigurationTarget.Global);

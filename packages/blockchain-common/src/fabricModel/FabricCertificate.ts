@@ -44,7 +44,7 @@ export class FabricCertificate {
     }
 
     public static loadFileFromDisk(path: string): string {
-        return fs.readFileSync(path, ENCODING) as string;
+        return fs.readFileSync(path, ENCODING);
     }
 
     private certificate: any;

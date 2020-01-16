@@ -42,20 +42,20 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
     }
     private static async getConnection(): Promise<IFabricEnvironmentConnection> {
         // check we are connected to the local fabric
-        let connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+        let connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
         if (connection) {
             let environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
             if (!environmentRegistryEntry.managedRuntime) {
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
                 environmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
-                connection = await FabricEnvironmentManager.instance().getConnection();
+                connection = FabricEnvironmentManager.instance().getConnection();
 
             }
         } else {
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
-            connection = await FabricEnvironmentManager.instance().getConnection();
+            connection = FabricEnvironmentManager.instance().getConnection();
         }
 
         if (!connection) {

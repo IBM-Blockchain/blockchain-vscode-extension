@@ -84,7 +84,7 @@ export class LocalEnvironmentManager {
         });
 
         FabricEnvironmentManager.instance().on('disconnected', async () => {
-            await this.runtime.stopLogs();
+            this.runtime.stopLogs();
         });
     }
 
