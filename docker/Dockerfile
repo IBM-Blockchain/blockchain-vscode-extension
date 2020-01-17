@@ -1,7 +1,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-FROM codercom/code-server:2.1704-vsc1.41.1
+FROM codercom/code-server:2.1698
 # Revert back to root
 USER root
 # Add essential build dependencies
