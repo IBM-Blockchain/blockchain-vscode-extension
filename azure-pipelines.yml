@@ -133,13 +133,38 @@ stages:
           - task: CopyFiles@2
             inputs:
               sourceFolder: '$(Build.SourcesDirectory)/packages/blockchain-extension'
-              contents: '*.vsix'
+              contents: |
+                ibm-blockchain-platform-*.vsix
               targetFolder: '$(Build.ArtifactStagingDirectory)'
 
           - task: PublishBuildArtifacts@1
             inputs:
               pathtoPublish: '$(Build.ArtifactStagingDirectory)'
               artifactName: vscode-package
+
+  - stage: buildChePackage
+    dependsOn:
+      - unitTest
+      - cucumberTest
+      - cypressTest
+    jobs:
+      - job: buildChePackage
+        pool:
+          vmImage: ubuntu-16.04
+        steps:
+          - script: che/build.sh
+            displayName: Build Che package
+          - task: CopyFiles@2
+            inputs:
+              sourceFolder: '$(Build.SourcesDirectory)/che'
+              contents: |
+                ibm-blockchain-platform-*.vsix
+                ibm-blockchain-platform-*.yaml
+              targetFolder: '$(Build.ArtifactStagingDirectory)'
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+              artifactName: vscode-che-package
 
   - stage: deploy
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
@@ -148,6 +173,7 @@ stages:
       - cucumberTest
       - cypressTest
       - buildPackage
+      - buildChePackage
     jobs:
       - job:
         pool:
@@ -156,6 +182,11 @@ stages:
           - task: DownloadPipelineArtifact@2
             inputs:
               artifact: vscode-package
+              path: $(Build.SourcesDirectory)
+
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifact: vscode-che-package
               path: $(Build.SourcesDirectory)
 
           - bash: |
@@ -174,7 +205,9 @@ stages:
               assetUploadMode: 'replace'
               isPreRelease: true
               addChangeLog: false
-              assets: '$(Build.SourcesDirectory)/*.vsix'
+              assets: |
+                $(Build.SourcesDirectory)/ibm-blockchain-platform-*.vsix
+                $(Build.SourcesDirectory)/ibm-blockchain-platform-*.yaml
 
           - bash: |
               set -ev
