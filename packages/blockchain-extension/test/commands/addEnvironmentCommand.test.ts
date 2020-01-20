@@ -486,7 +486,7 @@ describe('AddEnvironmentCommand', () => {
             chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
             const error: Error = new Error('Unable to copy file');
-            const caughtError: Error = new Error(`Unable to store the required credentials: ${error.message}`);
+            const caughtError: Error = new Error(`Unable to store the CA certificate chain file: ${error.message}`);
             fsCopyStub.rejects(error);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);

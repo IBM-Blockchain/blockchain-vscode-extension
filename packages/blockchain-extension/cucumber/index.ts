@@ -51,8 +51,10 @@ async function runCucumberTest(): Promise<any> {
         tags = '@otherFabric';
     } else if (process.env.ANSIBLE_FABRIC) {
         tags = '@ansibleFabric';
+    } else if (process.env.OPSTOOLS_FABRIC) {
+        tags = '@opsToolsFabric';
     } else {
-        tags = 'not @otherFabric and not @ansibleFabric';
+        tags = 'not @otherFabric and not @ansibleFabric and not @opsToolsFabric';
     }
 
     for (const file of featureFiles) {
