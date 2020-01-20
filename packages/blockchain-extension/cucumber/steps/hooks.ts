@@ -35,6 +35,7 @@ import { SampleHelper } from '../helpers/sampleHelper';
 import { FabricEnvironmentRegistry, FabricWalletRegistry } from 'ibm-blockchain-platform-common';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistry';
+import { ModuleUtilHelper } from '../helpers/moduleUtilHelper';
 
 // tslint:disable:no-unused-expression
 
@@ -57,11 +58,12 @@ module.exports = function(): any {
             if (firstTime) {
                 this.mySandBox = sinon.createSandbox();
                 this.userInputUtilHelper = new UserInputUtilHelper(this.mySandBox);
+                this.moduleUtilHelper = new ModuleUtilHelper(this.mySandBox);
                 this.smartContractHelper = new SmartContractHelper(this.mySandBox, this.userInputUtilHelper);
                 this.generatedTestsHelper = new GeneratedTestsHelper(this.mySandBox, this.userInputUtilHelper, this.smartContractHelper);
                 this.walletAndIdentityHelper = new WalletAndIdentityHelper(this.mySandBox, this.userInputUtilHelper);
                 this.gatewayHelper = new GatewayHelper(this.mySandBox, this.userInputUtilHelper);
-                this.fabricEnvironmentHelper = new EnvironmentHelper(this.mySandbox, this.userInputUtilHelper);
+                this.fabricEnvironmentHelper = new EnvironmentHelper(this.mySandbox, this.userInputUtilHelper, this.moduleUtilHelper);
                 this.sampleHelper = new SampleHelper(this.mySandBox, this.userInputUtilHelper, this.smartContractHelper);
 
                 VSCodeBlockchainOutputAdapter.instance().setConsole(true);

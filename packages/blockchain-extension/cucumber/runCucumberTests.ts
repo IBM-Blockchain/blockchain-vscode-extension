@@ -24,6 +24,10 @@ async function main(): Promise<void> {
         if (process.env.VERSION) {
             version = process.env.VERSION;
         }
+        process.env.MAP_OPSTOOLS_URL = process.argv[2];
+        process.env.MAP_OPSTOOLS_KEY = process.argv[3];
+        process.env.MAP_OPSTOOLS_SECRET = process.argv[4];
+
         // The folder containing the Extension Manifest package.json
         // Passed to `--extensionDevelopmentPath`
         const extensionDevelopmentPath: string = path.resolve(__dirname, '..', '..');

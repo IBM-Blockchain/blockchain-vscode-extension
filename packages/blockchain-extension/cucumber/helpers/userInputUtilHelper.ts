@@ -54,6 +54,8 @@ export class UserInputUtilHelper {
     showWorkspaceQuickPickBoxStub: sinon.SinonStub;
     showSaveDialogStub: sinon.SinonStub;
     showWarningMessageStub: sinon.SinonStub;
+    vscodeWindowShowQuickPickStub: sinon.SinonStub;
+    opsToolsNodeQuickPickStub: sinon.SinonStub;
 
     constructor(sandbox: sinon.SinonSandbox) {
         this.mySandBox = sandbox;
@@ -92,6 +94,7 @@ export class UserInputUtilHelper {
         this.showNodesInEnvironmentQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showNodesInEnvironmentQuickPick').callThrough();
         this.showWorkspaceQuickPickBoxStub = this.mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox').callThrough();
         this.showWarningMessageStub = this.mySandBox.stub(vscode.window, 'showWarningMessage').callThrough();
-
+        this.vscodeWindowShowQuickPickStub = this.mySandBox.stub(vscode.window, 'showQuickPick').callThrough();
+        this.opsToolsNodeQuickPickStub = this.vscodeWindowShowQuickPickStub.withArgs(sinon.match.any, {ignoreFocusOut: true, canPickMany: true, placeHolder: 'Which nodes would you like to import?'});
     }
 }

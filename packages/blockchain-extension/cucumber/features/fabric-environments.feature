@@ -76,6 +76,58 @@ Feature: Fabric Environments
          Then there should be a tree item with a label 'myFabric' in the 'Fabric Environments' panel
          And the tree item should have a tooltip equal to 'myFabric'
 
+     @opsToolsFabric
+     Scenario: It should create an environment without nodes
+         When I create an environment 'myOpsToolsFabric'
+         And the wallet 'opsToolsWallet' with identity 'Org1CAAdmin' and mspid 'org1msp' exists
+         Then there should be a tree item with a label 'myOpsToolsFabric' in the 'Fabric Environments' panel
+         And the tree item should have a tooltip equal to 'myOpsToolsFabric'
+         And there should be a tree item with a label 'opsToolsWallet' in the 'Fabric Wallets' panel
+
+
+     @opsToolsFabric
+     Scenario: It should edit filters, add all nodes and connect automatically
+         Given an environment 'myOpsToolsFabric' exists
+         When I edit filters and import all nodes to environment 'myOpsToolsFabric'
+         Then there should be a tree item with a label 'Setting up: myOpsToolsFabric' in the 'Fabric Environments' panel
+         And the tree item should have a tooltip equal to 'Setting up: myOpsToolsFabric'
+         And the 'myOpsToolsFabric' environment is connected
+
+
+     @opsToolsFabric
+     Scenario Outline: It should setup environment
+         Given an environment 'myOpsToolsFabric' exists
+         And the 'myOpsToolsFabric' environment is connected
+         Then there should be a tree item with a label '<label>' in the 'Fabric Environments' panel
+         And the tree item should have a tooltip equal to '<tooltip>'
+         Examples:
+         | label                              | tooltip                            |
+         | Setting up: myOpsToolsFabric       | Setting up: myOpsToolsFabric       |
+         | (Click each node to perform setup) | (Click each node to perform setup) |
+         | Ordering Service CA   ⚠            | Ordering Service CA                |
+         | Ordering Service   ⚠               | Ordering Service                   |
+         | Org1 CA   ⚠                        | Org1 CA                            |
+         | Org2 CA   ⚠                        | Org2 CA                            |
+         | Peer Org1   ⚠                      | Peer Org1                          |
+         | Peer Org2   ⚠                      | Peer Org2                          |
+
+     @opsToolsFabric
+     Scenario Outline: It should associate nodes with identities
+         Given an environment 'myOpsToolsFabric' exists
+         And the 'myOpsToolsFabric' environment is connected
+         And the wallet 'opsToolsWallet' with identity 'Org1CAAdmin' and mspid 'org1msp' exists
+         When I create an identity using JSON file with identity name '<identity>' and mspid '<mspid>' in wallet '<wallet>'
+         And I associate identity '<identity>' in wallet '<wallet>' with node '<nodeName>'
+         Then the log should have been called with 'SUCCESS' and 'Successfully added identity'
+         Examples:
+         | nodeName              | wallet           | identity                  | mspid   |
+         | Ordering Service CA   | opsToolsWallet   | OrderingServiceCAAdmin    | osmsp   |
+         | Ordering Service_1    | opsToolsWallet   | OrderingServiceMSPAdmin   | osmsp   |
+         | Org1 CA               | opsToolsWallet   | Org1CAAdmin               | org1msp |
+         | Org2 CA               | opsToolsWallet   | Org2CAAdmin               | org2msp |
+         | Peer Org1             | opsToolsWallet   | Org1MSPAdmin              | org1msp |
+         | Peer Org2             | opsToolsWallet   | Org2MSPAdmin              | org2msp |
+
      @otherFabric
      Scenario Outline: It should setup environment
          Given an environment 'myFabric' exists
