@@ -86,14 +86,18 @@ export class UserInputUtil {
     static readonly ADD_CA_CERT_CHAIN: string = 'Provide the CA Certificate Chain file';
     static readonly CONNECT_NO_CA_CERT_CHAIN: string = 'Proceed without certificate verification';
 
-    public static async showQuickPick(prompt: string, items: string[], canPickMany: boolean = false): Promise<string | string[]> {
-        const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: true,
-            canPickMany: canPickMany,
-            placeHolder: prompt
-        };
+    public static async showQuickPick(prompt: string, items: string[] | {label: string, description: string}, canPickMany: boolean = false): Promise<string | string[]> {
 
-        return vscode.window.showQuickPick(items, quickPickOptions);
+        if (items instanceof Array) {
+            const quickPickOptions: vscode.QuickPickOptions = {
+                ignoreFocusOut: true,
+                canPickMany: canPickMany,
+                placeHolder: prompt
+            };
+            return vscode.window.showQuickPick(items, quickPickOptions);
+        } else {
+            const someString: string = 'someString';
+        }
     }
 
     public static async showQuickPickItem<T>(prompt: string, items: IBlockchainQuickPickItem<T>[], canPickMany: boolean = false): Promise<IBlockchainQuickPickItem<T> | IBlockchainQuickPickItem<T>[]> {
