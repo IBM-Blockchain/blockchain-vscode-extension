@@ -35,10 +35,10 @@ cat package.json.orig \
 npm rebuild --update-binary --runtime=node --target=10.0.0 --target_platform=linux --target_arch=x64 --target_libc=musl
 npm run package
 cd ${ROOT}
-mv ./packages/blockchain-extension/ibm-blockchain-platform-*.vsix che/ibm-blockchain-platform-che.vsix
 export VERSION=$(jq -r .version lerna.json)
+mv ./packages/blockchain-extension/ibm-blockchain-platform-${VERSION}.vsix che/ibm-blockchain-platform-che-${VERSION}.vsix
 cd che
-cat > ibm-blockchain-platform-che.yaml <<EOF
+cat > ibm-blockchain-platform-che-${VERSION}.yaml <<EOF
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -57,5 +57,5 @@ category: Other
 firstPublicationDate: 2019-04-19
 spec:
   extensions:
-  - https://github.com/IBM-Blockchain/blockchain-vscode-extension/releases/download/v${VERSION}/ibm-blockchain-platform-che.vsix
+  - https://github.com/IBM-Blockchain/blockchain-vscode-extension/releases/download/v${VERSION}/ibm-blockchain-platform-che-${VERSION}.vsix
 EOF
