@@ -15,8 +15,8 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as sinon from 'sinon';
-import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import {UserInputUtil} from '../../extension/commands/UserInputUtil';
+import {VSCodeBlockchainOutputAdapter} from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 
 export class UserInputUtilHelper {
 
@@ -55,6 +55,8 @@ export class UserInputUtilHelper {
     showWorkspaceQuickPickBoxStub: sinon.SinonStub;
     showSaveDialogStub: sinon.SinonStub;
     showWarningMessageStub: sinon.SinonStub;
+    vscodeWindowShowQuickPickStub: sinon.SinonStub;
+    opsToolsNodeQuickPickStub: sinon.SinonStub;
     openFileBrowserStub: sinon.SinonStub;
 
     constructor(sandbox: sinon.SinonSandbox) {
@@ -96,5 +98,7 @@ export class UserInputUtilHelper {
         this.showWorkspaceQuickPickBoxStub = this.mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox').callThrough();
         this.showWarningMessageStub = this.mySandBox.stub(vscode.window, 'showWarningMessage').callThrough();
         this.openFileBrowserStub = this.mySandBox.stub(UserInputUtil, 'openFileBrowser').callThrough();
+        this.vscodeWindowShowQuickPickStub = this.mySandBox.stub(vscode.window, 'showQuickPick').callThrough();
+        this.opsToolsNodeQuickPickStub = this.vscodeWindowShowQuickPickStub.withArgs(sinon.match.any, {ignoreFocusOut: true, canPickMany: true, placeHolder: 'Which nodes would you like to import?'});
     }
 }
