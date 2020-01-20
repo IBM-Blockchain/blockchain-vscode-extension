@@ -32,6 +32,7 @@ import {WalletAndIdentityHelper} from '../helpers/walletAndIdentityHelper';
 import {GatewayHelper} from '../helpers/gatewayHelper';
 import {EnvironmentHelper} from '../helpers/environmentHelper';
 import {SampleHelper} from '../helpers/sampleHelper';
+import { ModuleUtilHelper } from '../helpers/moduleUtilHelper';
 
 // tslint:disable:no-unused-expression
 
@@ -54,11 +55,12 @@ module.exports = function(): any {
             if (firstTime) {
                 this.mySandBox = sinon.createSandbox();
                 this.userInputUtilHelper = new UserInputUtilHelper(this.mySandBox);
+                this.moduleUtilHelper = new ModuleUtilHelper(this.mySandBox);
                 this.smartContractHelper = new SmartContractHelper(this.mySandBox, this.userInputUtilHelper);
                 this.generatedTestsHelper = new GeneratedTestsHelper(this.mySandBox, this.userInputUtilHelper, this.smartContractHelper);
                 this.walletAndIdentityHelper = new WalletAndIdentityHelper(this.mySandBox, this.userInputUtilHelper);
                 this.gatewayHelper = new GatewayHelper(this.mySandBox, this.userInputUtilHelper);
-                this.fabricEnvironmentHelper = new EnvironmentHelper(this.mySandbox, this.userInputUtilHelper);
+                this.fabricEnvironmentHelper = new EnvironmentHelper(this.mySandbox, this.userInputUtilHelper, this.moduleUtilHelper);
                 this.sampleHelper = new SampleHelper(this.mySandBox, this.userInputUtilHelper, this.smartContractHelper);
 
                 VSCodeBlockchainOutputAdapter.instance().setConsole(true);
