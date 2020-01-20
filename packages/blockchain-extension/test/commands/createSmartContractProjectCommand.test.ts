@@ -38,6 +38,9 @@ describe('CreateSmartContractProjectCommand', () => {
     let mySandBox: sinon.SinonSandbox;
     let logSpy: sinon.SinonSpy;
     let quickPickStub: sinon.SinonStub;
+    let showLanguagesQuickPickStub: sinon.SinonStub;
+    let showFolderOptionsStub: sinon.SinonStub;
+    let showYesNoQuickPickStub: sinon.SinonStub;
     let showInputBoxStub: sinon.SinonStub;
     let browseStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
@@ -54,7 +57,10 @@ describe('CreateSmartContractProjectCommand', () => {
     beforeEach(async () => {
         mySandBox.stub(CommandUtil, 'sendCommandWithOutputAndProgress');
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-        quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
+        quickPickStub = mySandBox.stub(UserInputUtil, 'showQuickPick');
+        showLanguagesQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick');
+        showFolderOptionsStub = mySandBox.stub(UserInputUtil, 'showFolderOptions');
+        showYesNoQuickPickStub = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo');
         showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
         mySandBox.stub(vscode.window, 'showOpenDialog');
         browseStub = mySandBox.stub(UserInputUtil, 'browse');
@@ -142,46 +148,49 @@ describe('CreateSmartContractProjectCommand', () => {
         }
 
         it(`should start a ${testLanguageItem.label} smart contract project, in a new window`, async () => {
-            quickPickStub.onFirstCall().resolves(testLanguageItem);
+            quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+            showLanguagesQuickPickStub.resolves(testLanguageItem);
             if (testLanguageItem.type === LanguageType.CONTRACT) {
                 showInputBoxStub.onFirstCall().resolves('Conga');
             }
-            quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
+            showFolderOptionsStub.resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
             browseStub.resolves(uri);
 
             await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
             executeCommandStub.should.have.been.calledThrice;
             executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
             executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, true);
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Smart Contract Project');
             await checkSmartContract();
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label });
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in current window`, async () => {
-            quickPickStub.onFirstCall().resolves(testLanguageItem);
+            quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+            showLanguagesQuickPickStub.resolves(testLanguageItem);
             if (testLanguageItem.type === LanguageType.CONTRACT) {
                 showInputBoxStub.onFirstCall().resolves('Conga');
             }
-            quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
+            showFolderOptionsStub.resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
 
             browseStub.resolves(uri);
             await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
             executeCommandStub.should.have.been.calledThrice;
             executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
             executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, false);
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Smart Contract Project');
             await checkSmartContract();
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label });
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in current window with unsaved files and save`, async () => {
-            quickPickStub.onFirstCall().resolves(testLanguageItem);
+            quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+            showLanguagesQuickPickStub.resolves(testLanguageItem);
             if (testLanguageItem.type === LanguageType.CONTRACT) {
                 showInputBoxStub.onFirstCall().resolves('Conga');
             }
-            quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
-            quickPickStub.onThirdCall().resolves(UserInputUtil.YES);
+            showFolderOptionsStub.resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
+            showYesNoQuickPickStub.resolves(UserInputUtil.YES);
 
             browseStub.resolves(uri);
             const saveDialogStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'saveAll').resolves(true);
@@ -193,18 +202,19 @@ describe('CreateSmartContractProjectCommand', () => {
             executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
             executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, false);
             saveDialogStub.should.have.been.calledWith(true);
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Smart Contract Project');
             await checkSmartContract();
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label });
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in current window with unsaved files and not save`, async () => {
-            quickPickStub.onFirstCall().resolves(testLanguageItem);
+            quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+            showLanguagesQuickPickStub.resolves(testLanguageItem);
             if (testLanguageItem.type === LanguageType.CONTRACT) {
                 showInputBoxStub.onFirstCall().resolves('Conga');
             }
-            quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
-            quickPickStub.onThirdCall().resolves(UserInputUtil.NO);
+            showFolderOptionsStub.resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
+            showYesNoQuickPickStub.resolves(UserInputUtil.NO);
 
             browseStub.resolves(uri);
             const saveDialogStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'saveAll');
@@ -216,17 +226,18 @@ describe('CreateSmartContractProjectCommand', () => {
             executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
             executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, false);
             saveDialogStub.should.not.have.been.called;
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Smart Contract Project');
             await checkSmartContract();
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label });
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in a new workspace with no folders`, async () => {
-            quickPickStub.onFirstCall().resolves(testLanguageItem);
+            quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+            showLanguagesQuickPickStub.resolves(testLanguageItem);
             if (testLanguageItem.type === LanguageType.CONTRACT) {
                 showInputBoxStub.onFirstCall().resolves('Conga');
             }
-            quickPickStub.onSecondCall().resolves(UserInputUtil.ADD_TO_WORKSPACE);
+            showFolderOptionsStub.resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
             browseStub.resolves(uri);
             mySandBox.stub(vscode.workspace, 'workspaceFolders').value(undefined);
@@ -235,44 +246,71 @@ describe('CreateSmartContractProjectCommand', () => {
             executeCommandStub.should.have.been.calledTwice;
             executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
             updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, { uri: uri });
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Smart Contract Project');
             await checkSmartContract();
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label });
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in a new workspace with folders`, async () => {
-            quickPickStub.onFirstCall().resolves(testLanguageItem);
+            quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+            showLanguagesQuickPickStub.resolves(testLanguageItem);
             if (testLanguageItem.type === LanguageType.CONTRACT) {
                 showInputBoxStub.onFirstCall().resolves('Conga');
             }
-            quickPickStub.onSecondCall().resolves(UserInputUtil.ADD_TO_WORKSPACE);
+            showFolderOptionsStub.resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
             browseStub.resolves(uri);
             await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
             executeCommandStub.should.have.been.calledTwice;
             executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
             updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, { uri: uri });
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Smart Contract Project');
             await checkSmartContract();
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label });
         });
 
     }
 
-    it('should show error message if we fail to create a smart contract', async () => {
-        mySandBox.stub(YeomanUtil, 'run').rejects(new Error('such error'));
-        quickPickStub.onCall(0).resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
+    it('should start a typescript private data smart contract project, in a new window', async () => {
+        quickPickStub.onFirstCall().resolves('Private Data Smart Contract');
+        showLanguagesQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
         showInputBoxStub.onFirstCall().resolves('Conga');
-        quickPickStub.onCall(1).resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
+        showFolderOptionsStub.resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
+        browseStub.resolves(uri);
+
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
+        executeCommandStub.should.have.been.calledThrice;
+        executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
+        executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, true);
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Private Data Smart Contract Project');
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createPrivateDataSmartContractProject', { contractLanguage: 'typescript' });
+    });
+
+    it('should not do anything if the user cancels the type of smart contract', async () => {
+        quickPickStub.onFirstCall().resolves(undefined);
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
+        browseStub.should.not.have.been.called;
+        showLanguagesQuickPickStub.should.not.have.been.called;
+        showInputBoxStub.should.not.have.been.called;
+        sendTelemetryEventStub.should.not.have.been.called;
+    });
+
+    it('should show error message if we fail to create a smart contract', async () => {
+        quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+        mySandBox.stub(YeomanUtil, 'run').rejects(new Error('such error'));
+        showLanguagesQuickPickStub.resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
+        showInputBoxStub.onFirstCall().resolves('Conga');
+        showFolderOptionsStub.resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
 
         browseStub.resolves(uri);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        logSpy.should.have.been.calledWith(LogType.ERROR, 'Issue creating smart contract project: such error');
+        logSpy.should.have.been.calledWith(LogType.ERROR, 'Issue creating Smart Contract Project: such error');
         sendTelemetryEventStub.should.not.have.been.called;
     });
 
     it('should not do anything if the user cancels the open dialog', async () => {
-        quickPickStub.onCall(0).resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
+        quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+        showLanguagesQuickPickStub.resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
         showInputBoxStub.onFirstCall().resolves('Conga');
 
         browseStub.resolves();
@@ -283,7 +321,8 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should throw an error if the chosen folder has an invalid name', async () => {
-        quickPickStub.onCall(0).resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
+        quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+        showLanguagesQuickPickStub.resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
         showInputBoxStub.onFirstCall().resolves('Conga');
         const badUri: vscode.Uri = vscode.Uri.file(' Invalid Directory! ');
         browseStub.resolves(badUri);
@@ -295,9 +334,10 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should not do anything if the user cancels the open project ', async () => {
-        quickPickStub.onCall(0).resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
+        quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+        showLanguagesQuickPickStub.resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
         showInputBoxStub.onFirstCall().resolves('Conga');
-        quickPickStub.onCall(1).resolves();
+        showFolderOptionsStub.resolves();
         browseStub.resolves(uri);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         browseStub.should.have.been.calledOnce;
@@ -306,23 +346,28 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should not do anything if the user cancels chosing a smart contract language', async () => {
-        quickPickStub.resolves(undefined);
+        quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+        showLanguagesQuickPickStub.resolves(undefined);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
+        showLanguagesQuickPickStub.should.have.been.calledOnce;
         quickPickStub.should.have.been.calledOnce;
         showInputBoxStub.should.not.have.been.called;
         browseStub.should.not.have.been.called;
     });
 
     it('should not do anything if the user cancels specifying an asset type', async () => {
-        quickPickStub.onCall(0).resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
+        quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+        showLanguagesQuickPickStub.resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
         showInputBoxStub.onCall(0).resolves(undefined);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
+        showInputBoxStub.should.have.been.calledOnce;
         quickPickStub.should.have.been.calledOnce;
         browseStub.should.not.have.been.called;
     });
 
     it('should throw an error if the user specifies an invalid asset type', async () => {
-        quickPickStub.onCall(0).resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
+        quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+        showLanguagesQuickPickStub.resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
         showInputBoxStub.onCall(0).resolves('@xyz/myAsset');
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         quickPickStub.should.have.been.calledOnce;

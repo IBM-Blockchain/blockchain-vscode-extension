@@ -31,6 +31,21 @@ export async function createSmartContractProject(): Promise<void> {
 
     const chaincodeLanguageOptions: string[] = getChaincodeLanguageOptions();
     const smartContractLanguageOptions: string[] = getSmartContractLanguageOptions();
+    let contractType: string;
+    let privateOrDefault: string;
+
+    contractType = await UserInputUtil.showQuickPick('Choose the type of contract you wish to generate', ['Default Smart Contract', 'Private Data Smart Contract']) as string;
+
+    if (contractType === 'Default Smart Contract') {
+        contractType = 'standard';
+        privateOrDefault = ' ';
+    } else if (contractType === 'Private Data Smart Contract') {
+        contractType = 'private';
+        privateOrDefault = ' Private Data ';
+    } else {
+        // User has cancelled the QuickPick box
+        return;
+    }
 
     const smartContractLanguagePrompt: string = localize('smartContractLanguage.prompt', 'Choose smart contract language (Esc to cancel)');
     const smartContractLanguageItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick(smartContractLanguagePrompt, chaincodeLanguageOptions, smartContractLanguageOptions);
@@ -92,10 +107,11 @@ export async function createSmartContractProject(): Promise<void> {
 
         const runOptions: any = {
             'destination': folderPath,
+            'contractType': contractType,
             'language': smartContractLanguage,
             'name': folderName,
             'version': '0.0.1',
-            'description': 'My Smart Contract',
+            'description': `My${privateOrDefault}Smart Contract`,
             'author': 'John Doe',
             'license': 'Apache-2.0',
             'skip-install': skipInstall,
@@ -107,18 +123,22 @@ export async function createSmartContractProject(): Promise<void> {
             title: 'IBM Blockchain Platform Extension',
             cancellable: false
         }, async (progress: vscode.Progress<{message: string}>): Promise<void> => {
-            progress.report({message: 'Generating smart contract project'});
+            progress.report({message: `Generating${privateOrDefault}Smart Contract Project`});
             await YeomanUtil.run(generator, runOptions);
         });
 
-        outputAdapter.log(LogType.SUCCESS, 'Successfully generated smart contract project');
+        outputAdapter.log(LogType.SUCCESS, `Successfully generated${privateOrDefault}Smart Contract Project`);
 
-        Reporter.instance().sendTelemetryEvent('createSmartContractProject', {contractLanguage: smartContractLanguage});
+        if (contractType === 'standard') {
+            Reporter.instance().sendTelemetryEvent('createSmartContractProject', {contractLanguage: smartContractLanguage});
+        } else {
+            Reporter.instance().sendTelemetryEvent('createPrivateDataSmartContractProject', {contractLanguage: smartContractLanguage});
+        }
         // Open the returned folder in explorer, in a new window
         await UserInputUtil.openNewProject(openMethod, folderUri);
         await vscode.commands.executeCommand('workbench.files.action.focusFilesExplorer');
     } catch (error) {
-        outputAdapter.log(LogType.ERROR, `Issue creating smart contract project: ${error.message}`, `Issue creating smart contract project: ${error.toString()}`);
+        outputAdapter.log(LogType.ERROR, `Issue creating${privateOrDefault}Smart Contract Project: ${error.message}`, `Issue creating${privateOrDefault}Smart Contract Project: ${error.toString()}`);
         return;
     }
 

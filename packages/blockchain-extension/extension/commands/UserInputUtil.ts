@@ -73,14 +73,18 @@ export class UserInputUtil {
     static readonly ADD_GATEWAY_FROM_ENVIRONMENT: string = 'Create a gateway from a Fabric environment';
     static readonly ADD_GATEWAY_FROM_CCP: string = 'Create a gateway from a connection profile';
 
-    public static async showQuickPick(prompt: string, items: string[], canPickMany: boolean = false): Promise<string | string[]> {
-        const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: true,
-            canPickMany: canPickMany,
-            placeHolder: prompt
-        };
+    public static async showQuickPick(prompt: string, items: string[] | {label: string, description: string}, canPickMany: boolean = false): Promise<string | string[]> {
 
-        return vscode.window.showQuickPick(items, quickPickOptions);
+        if (items instanceof Array) {
+            const quickPickOptions: vscode.QuickPickOptions = {
+                ignoreFocusOut: true,
+                canPickMany: canPickMany,
+                placeHolder: prompt
+            };
+            return vscode.window.showQuickPick(items, quickPickOptions);
+        } else {
+            const someString: string = 'someString';
+        }
     }
 
     public static async showOrgQuickPick(prompt: string, environmentName: string): Promise<IBlockchainQuickPickItem<FabricNode>> {
