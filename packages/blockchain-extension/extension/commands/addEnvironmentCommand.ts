@@ -151,7 +151,7 @@ export async function addEnvironment(): Promise<void> {
                 const caCertificateCopy: string = path.join(path.resolve(environment.getPath()), certificatePath.fsPath.split(separator).pop());
                 await fs.copy(certificatePath.fsPath, caCertificateCopy, {overwrite: true});
             } catch (error) {
-                throw new Error(`Unable to store the required credentials: ${error.message}`);
+                throw new Error(`Unable to store the CA certificate chain file: ${error.message}`);
             }
         }
 

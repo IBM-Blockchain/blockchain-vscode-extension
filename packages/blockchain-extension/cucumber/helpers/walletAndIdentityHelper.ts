@@ -130,8 +130,9 @@ export class WalletAndIdentityHelper {
             this.userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
             this.userInputUtilHelper.showGetCertKeyStub.resolves({ certificatePath: WalletAndIdentityHelper.certPath, privateKeyPath: WalletAndIdentityHelper.keyPath });
         } else if (method === 'JSON file') {
+            const jsonPath: string = process.env.OPSTOOLS_FABRIC ? path.join(process.env.JSON_DIR, `${identityName}.json`) : WalletAndIdentityHelper.jsonFilePath;
             this.userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_JSON_ID_OPTION);
-            this.userInputUtilHelper.browseStub.resolves(vscode.Uri.file(WalletAndIdentityHelper.jsonFilePath));
+            this.userInputUtilHelper.browseStub.resolves(vscode.Uri.file(jsonPath));
         } else {
             // use enroll id and secret
             this.userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
