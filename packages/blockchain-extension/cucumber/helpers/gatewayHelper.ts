@@ -176,7 +176,10 @@ export class GatewayHelper {
         if (!transientData) {
             transientData = '';
         }
-        this.userInputUtilHelper.inputBoxStub.withArgs('optional: What is the transient data for the transaction, e.g. {"key": "value"}', '{}').resolves(transientData);
+
+        const transientDataWithoutQuotes: string = transientData.slice(1, -1);
+
+        this.userInputUtilHelper.inputBoxStub.withArgs('optional: What is the transient data for the transaction, e.g. {"key": "value"}', '{}').resolves(transientDataWithoutQuotes);
 
         this.userInputUtilHelper.showQuickPickStub.withArgs('Select a peer-targeting policy for this transaction', [UserInputUtil.DEFAULT, UserInputUtil.CUSTOM]).resolves(UserInputUtil.DEFAULT);
 

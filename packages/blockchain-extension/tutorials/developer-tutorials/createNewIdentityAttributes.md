@@ -48,17 +48,19 @@ As an example, suppose we have a smart contract which allows participants to rec
 
 > Command Palette alternative: `Create New Project`
 
-3. You will first be asked to choose a smart contract language, choose `Typescript`
+3. For this tutorial, choose the `Default Contract` option.
 
-4. The extension will ask you if you want to name the asset in the generated contract. Next the extension will ask you for an asset name, for this tutorial enter `Car`.
+4. You will now be asked to choose a smart contract language, choose `Typescript`.
 
-5. Choose a location to save the project.  Click `Browse`, then click `New Folder`, and give the project a name, for example `carContract`.
+5. The extension will ask you if you want to name the asset in the generated contract. Next the extension will ask you for an asset name, for this tutorial enter `Car`.
+
+6. Choose a location to save the project.  Click `Browse`, then click `New Folder`, and give the project a name, for example `carContract`.
 
 > __Pro Tip:__ Avoid using spaces when naming the project!
 
-6. Click `Create` and then select the new folder you just created and click `Save`.
+7. Click `Create` and then select the new folder you just created and click `Save`.
 
-7. Finally you will be asked how you want to open the project, choose `Add to workspace` from the list of options.
+8. Finally you will be asked how you want to open the project, choose `Add to workspace` from the list of options.
 
 </details>
 
