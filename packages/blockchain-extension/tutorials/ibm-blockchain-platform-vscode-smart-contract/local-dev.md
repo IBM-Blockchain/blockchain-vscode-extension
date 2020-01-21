@@ -2,12 +2,12 @@
 ## **Local Smart Contract Development**
 `20-30 mins`
 
-Follow the typical workflow from generating a new smart contract project, deploying code to the _Local Fabric_ environment, and testing out your transactions via an application gateway.
+Follow the typical workflow from generating a new default smart contract project, deploying code to the _Local Fabric_ environment, and testing out your transactions via an application gateway.
 
 
 ## Learning Objectives
 
-* Create a new smart contract project
+* Create a new default smart contract project
 * Package a smart contract
 * Start and use the local, pre-configured Hyperledger Fabric environment
 * Deploy the smart contract on _Local Fabric_
@@ -16,7 +16,7 @@ Follow the typical workflow from generating a new smart contract project, deploy
 
 ---
 <details>
-<summary><b>1. Create a new smart contract project</b></summary>
+<summary><b>1. Create a new default smart contract project</b></summary>
 
 The extension can generate a smart contract skeleton in your chosen Hyperledger Fabric supported programming language. This means you start with a basic but useful smart contract rather than a blank-sheet.
 
@@ -30,19 +30,21 @@ For the purposes of this tutorial, we'll use TypeScript as the main example lang
 
    > Command Palette alternative: `Create New Project`
 
-3. Choose a smart contract language. JavaScript, TypeScript, Java and Go are all available. This tutorial will be easiest to follow if you choose `TypeScript` or `Java` (please remember to expand the Java sections if you choose Java).
+3. For this tutorial, choose the `Default Contract` option. The `Private Data Contract` will be covered in a future tutorial.
 
-4. The extension will ask you if you want to name the asset in the generated contract. This will default to `MyAsset`, but you're welcome to change it.  What do you intend to use your blockchain for? This will determine what type of asset you create, update and read from the ledger: `Radish`? `Pineapple`? `Penguin`? Pick whatever you like! For this tutorial, we'll stick with `MyAsset`.
+4. Choose a smart contract language. JavaScript, TypeScript, Java and Go are all available. This tutorial will be easiest to follow if you choose `TypeScript` or `Java` (please remember to expand the Java sections if you choose Java).
+
+5. The extension will ask you if you want to name the asset in the generated contract. This will default to `MyAsset`, but you're welcome to change it.  What do you intend to use your blockchain for? This will determine what type of asset you create, update and read from the ledger: `Radish`? `Pineapple`? `Penguin`? Pick whatever you like! For this tutorial, we'll stick with `MyAsset`.
 
    > __Pro Tip:__ If you decide to change the name of your asset, remember to swap out `MyAsset` for whatever you named it in future steps!
 
-5. Choose a location to save the project.  Click `Browse`, then click `New Folder`, and name the project what you want e.g. `demoContract`.
+6. Choose a location to save the project.  Click `Browse`, then click `New Folder`, and name the project what you want e.g. `demoContract`.
 
    > __Pro Tip:__ Avoid using spaces when naming the project!
 
-6. Click `Create` and then select the new folder you just created and click `Save`.
+7. Click `Create` and then select the new folder you just created and click `Save`.
 
-7. Finally, select `Add to workspace` from the list of options.
+8. Finally, select `Add to workspace` from the list of options.
 
 The extension will generate you a skeleton contract based on your selected language and asset name. Once it's done, you can navigate to the __Explorer__ view (most-likely the top icon in the left sidebar, which looks like a "document" icon) and open the `src/my-asset-contract.ts` (alternatively, Java contracts are in `src/main/java` directory, but being a Java developer you might already have guessed that). Congratulations, you've got yourself a smart contract project.
 

@@ -23,25 +23,27 @@ For the purposes of this tutorial, we'll use TypeScript as the example language.
 
 1. In the left sidebar, click on the __IBM Blockchain Platform__ icon (it looks like a square, and will probably be at the bottom of the set of icons if this was the latest extension you installed!)
 
-2. Mouse-over the `SMART CONTRACT PACKAGES` panel, click the `...` menu, and select `Create Smart Contract Project` from the dropdown.
+2. Mouse-over the `SMART CONTRACT PACKAGES` panel, click the `...` menu, and select `Create New Project` from the dropdown.
 
-> Command Palette alternative: `Create Smart Contract Project`
+> Command Palette alternative: `Create New Project`
 
-3. Choose a smart contract language. JavaScript, TypeScript, Java and Go are all available. For the purpose of this tutorial, please choose `TypeScript`.
+3. For this tutorial, choose the `Default Contract` option.
 
-4. The extension will ask you if you want to name the asset in the generated contract. For this tutorial we’ll stick with the default of MyAsset.
+4. Choose a smart contract language. JavaScript, TypeScript, Java and Go are all available. For the purpose of this tutorial, please choose `TypeScript`.
 
-5. Choose a location to save the project.  Click `Browse`, then click `New Folder`, and name the project what you want e.g. `demoContract`.
+5. The extension will ask you if you want to name the asset in the generated contract. For this tutorial we’ll stick with the default of MyAsset.
+
+6. Choose a location to save the project.  Click `Browse`, then click `New Folder`, and name the project what you want e.g. `demoContract`.
 
 > __Pro Tip:__ Avoid using spaces when naming the project!
 
-6. Click `Create` and then select the new folder you just created and click `Save`.
+7. Click `Create` and then select the new folder you just created and click `Save`.
 
-7. Select `Add to workspace` from the list of options.
+8. Select `Add to workspace` from the list of options.
 
-8. The extension will generate you a skeleton contract based on your selected language and asset name. Once it's done, you can navigate to the __Explorer__ view (most-likely the top icon in the left sidebar, which looks like a "document" icon) and open the `src/my-asset-contract.ts` file to see your smart contract code scaffold.
+9. The extension will generate you a skeleton contract based on your selected language and asset name. Once it's done, you can navigate to the __Explorer__ view (most-likely the top icon in the left sidebar, which looks like a "document" icon) and open the `src/my-asset-contract.ts` file to see your smart contract code scaffold.
 
-9. Add a new function with the following code. This function creates an asset and added it to the world state.
+10. Add a new function with the following code. This function creates an asset and added it to the world state.
 
 ```
     @Transaction()
@@ -53,7 +55,7 @@ For the purposes of this tutorial, we'll use TypeScript as the example language.
     }
 ```  
 
-10. Save the file.
+11. Save the file.
 
 </details>
 

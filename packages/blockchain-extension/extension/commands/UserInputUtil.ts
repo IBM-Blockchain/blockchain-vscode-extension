@@ -85,19 +85,19 @@ export class UserInputUtil {
     static readonly ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION: string = '(connect to Ops Console)';
     static readonly ADD_CA_CERT_CHAIN: string = 'Provide the CA Certificate Chain file';
     static readonly CONNECT_NO_CA_CERT_CHAIN: string = 'Proceed without certificate verification';
+    static readonly GENERATE_DEFAULT_CONTRACT: string = 'Default Contract';
+    static readonly GENERATE_DEFAULT_CONTRACT_DESCRIPTION: string = 'CRUD operations to a ledger shared by all network members';
+    static readonly GENERATE_PD_CONTRACT: string = 'Private Data Contract';
+    static readonly GENERATE_PD_CONTRACT_DESCRIPTION: string = 'CRUD and verify operations to a collection, private to a single network member';
 
-    public static async showQuickPick(prompt: string, items: string[] | {label: string, description: string}, canPickMany: boolean = false): Promise<string | string[]> {
+    public static async showQuickPick(prompt: string, items: string[], canPickMany: boolean = false): Promise<string | string[]> {
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: true,
+            canPickMany: canPickMany,
+            placeHolder: prompt
+        };
 
-        if (items instanceof Array) {
-            const quickPickOptions: vscode.QuickPickOptions = {
-                ignoreFocusOut: true,
-                canPickMany: canPickMany,
-                placeHolder: prompt
-            };
-            return vscode.window.showQuickPick(items, quickPickOptions);
-        } else {
-            const someString: string = 'someString';
-        }
+        return vscode.window.showQuickPick(items, quickPickOptions);
     }
 
     public static async showQuickPickItem<T>(prompt: string, items: IBlockchainQuickPickItem<T>[], canPickMany: boolean = false): Promise<IBlockchainQuickPickItem<T> | IBlockchainQuickPickItem<T>[]> {

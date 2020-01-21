@@ -17,7 +17,7 @@ import * as nls from 'vscode-nls';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import * as path from 'path';
-import { UserInputUtil, LanguageQuickPickItem, LanguageType } from './UserInputUtil';
+import { UserInputUtil, LanguageQuickPickItem, LanguageType, IBlockchainQuickPickItem } from './UserInputUtil';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { LogType } from 'ibm-blockchain-platform-common';
 import * as GeneratorFabricPackageJSON from 'generator-fabric/package.json';
@@ -31,20 +31,30 @@ export async function createSmartContractProject(): Promise<void> {
 
     const chaincodeLanguageOptions: string[] = getChaincodeLanguageOptions();
     const smartContractLanguageOptions: string[] = getSmartContractLanguageOptions();
-    let contractType: string;
+    let contractType: IBlockchainQuickPickItem<string>;
     let privateOrDefault: string;
+    let mspID: string;
+    const pdContract: string = ' Private Data ';
+    const defaultContract: string = ' ';
+    const typeDefault: string = 'default';
+    const defaultAsset: string = 'MyAsset';
+    const privateAsset: string = 'MyPrivateAsset';
 
-    contractType = await UserInputUtil.showQuickPick('Choose the type of contract you wish to generate', ['Default Smart Contract', 'Private Data Smart Contract']) as string;
+    contractType = await UserInputUtil.showQuickPickItem('Choose a contract type to generate:', [{label: UserInputUtil.GENERATE_DEFAULT_CONTRACT, description: UserInputUtil.GENERATE_DEFAULT_CONTRACT_DESCRIPTION, data: 'default'}, {label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private'}] as IBlockchainQuickPickItem<string>[]) as IBlockchainQuickPickItem<string>;
 
-    if (contractType === 'Default Smart Contract') {
-        contractType = 'standard';
-        privateOrDefault = ' ';
-    } else if (contractType === 'Private Data Smart Contract') {
-        contractType = 'private';
-        privateOrDefault = ' Private Data ';
-    } else {
-        // User has cancelled the QuickPick box
+    if (!contractType) {
         return;
+        // User has cancelled the QuickPick box
+    }
+    if (contractType.data === typeDefault) {
+        privateOrDefault = defaultContract;
+    } else {
+        mspID = await UserInputUtil.showInputBox('Please provide an mspID for the private data collection', 'Org1MSP');
+        if (!mspID) {
+            return;
+        }
+
+        privateOrDefault = pdContract;
     }
 
     const smartContractLanguagePrompt: string = localize('smartContractLanguage.prompt', 'Choose smart contract language (Esc to cancel)');
@@ -59,7 +69,7 @@ export async function createSmartContractProject(): Promise<void> {
 
     let assetType: string;
     if (smartContractLanguageItem.type === LanguageType.CONTRACT) {
-        assetType = await UserInputUtil.showInputBox('Name the type of asset managed by this smart contract', 'MyAsset');
+        assetType = await UserInputUtil.showInputBox('Name the type of asset managed by this smart contract', contractType.data === typeDefault ? defaultAsset : privateAsset);
         const regexForAssetType: RegExp = /^[A-Z]+$/i;
         const validAssetType: boolean = regexForAssetType.test(assetType);
         if (!assetType) {
@@ -107,7 +117,7 @@ export async function createSmartContractProject(): Promise<void> {
 
         const runOptions: any = {
             'destination': folderPath,
-            'contractType': contractType,
+            'contractType': contractType.data,
             'language': smartContractLanguage,
             'name': folderName,
             'version': '0.0.1',
@@ -117,6 +127,10 @@ export async function createSmartContractProject(): Promise<void> {
             'skip-install': skipInstall,
             'asset': assetType
         };
+
+        if (contractType.data === 'private') {
+            runOptions.mspId = mspID;
+        }
 
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
@@ -129,7 +143,7 @@ export async function createSmartContractProject(): Promise<void> {
 
         outputAdapter.log(LogType.SUCCESS, `Successfully generated${privateOrDefault}Smart Contract Project`);
 
-        if (contractType === 'standard') {
+        if (contractType.data === typeDefault) {
             Reporter.instance().sendTelemetryEvent('createSmartContractProject', {contractLanguage: smartContractLanguage});
         } else {
             Reporter.instance().sendTelemetryEvent('createPrivateDataSmartContractProject', {contractLanguage: smartContractLanguage});

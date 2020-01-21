@@ -49,7 +49,7 @@ export class SmartContractHelper {
         this.userInputUtilHelper = userInputUtilHelper;
     }
 
-    public async createSmartContract(language: string, assetType: string, contractName: string): Promise<string> {
+    public async createSmartContract(language: string, assetType: string, contractName: string, mspid?: string): Promise<string> {
 
         let type: LanguageType;
         if (language === 'Go') {
@@ -60,9 +60,16 @@ export class SmartContractHelper {
             throw new Error(`You must update this test to support the ${language} language`);
         }
 
-        this.userInputUtilHelper.showLanguagesQuickPickStub.resolves({ label: language, type });
+        if (contractName.includes('Private')) {
+            this.userInputUtilHelper.showQuickPickItemStub.resolves({label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private'});
+            this.userInputUtilHelper.inputBoxStub.withArgs('Name the type of asset managed by this smart contract', 'MyPrivateAsset').resolves(assetType);
+            this.userInputUtilHelper.inputBoxStub.withArgs('Please provide an mspID for the private data collection', 'Org1MSP').resolves(mspid);
+        } else {
+            this.userInputUtilHelper.showQuickPickItemStub.resolves({label: UserInputUtil.GENERATE_DEFAULT_CONTRACT, description: UserInputUtil.GENERATE_DEFAULT_CONTRACT_DESCRIPTION, data: 'default'});
+            this.userInputUtilHelper.inputBoxStub.withArgs('Name the type of asset managed by this smart contract', 'MyAsset').resolves(assetType);
+        }
 
-        this.userInputUtilHelper.inputBoxStub.withArgs('Name the type of asset managed by this smart contract', 'MyAsset').resolves(assetType);
+        this.userInputUtilHelper.showLanguagesQuickPickStub.resolves({ label: language, type });
 
         this.userInputUtilHelper.showFolderOptionsStub.withArgs('Choose how to open your new project').resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
@@ -206,7 +213,8 @@ export class SmartContractHelper {
             this.userInputUtilHelper.showYesNoQuickPick.resolves(UserInputUtil.NO);
             if (privateData) {
                 this.userInputUtilHelper.showYesNoQuickPick.resolves(UserInputUtil.YES);
-                const collectionPath: string = path.join(__dirname, '../../integrationTest/data/collection.json');
+                this.userInputUtilHelper.getWorkspaceFoldersStub.callThrough();
+                const collectionPath: string = path.join(__dirname, '../../../cucumber/data/collection.json');
                 this.userInputUtilHelper.browseStub.resolves(collectionPath);
             }
 
@@ -258,7 +266,7 @@ export class SmartContractHelper {
         this.userInputUtilHelper.showYesNoQuickPick.resolves(UserInputUtil.NO);
         if (privateData) {
             this.userInputUtilHelper.showYesNoQuickPick.resolves(UserInputUtil.YES);
-            const collectionPath: string = path.join(__dirname, '../../integrationTest/data/collection.json');
+            const collectionPath: string = path.join(__dirname, '../../../cucumber/data/collection.json');
             this.userInputUtilHelper.browseStub.resolves(collectionPath);
         }
 
