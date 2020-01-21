@@ -39,6 +39,7 @@ import { GatewayAssociatedTreeItem } from '../../extension/explorer/model/Gatewa
 import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 import { InstantiatedUnknownTreeItem } from '../../extension/explorer/model/InstantiatedUnknownTreeItem';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
+import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -437,14 +438,18 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
             });
 
             it('should update connected to context value if managed runtime', async () => {
-                registryEntry.name = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`;
+                await TestUtil.setupLocalFabric();
+                const localEnvironment: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
+                await localEnvironment.importGateways();
+
+                registryEntry = await FabricGatewayRegistry.instance().get('Org1');
                 getGatewayRegistryEntryStub.returns(registryEntry);
                 allChildren = await ExtensionUtil.getBlockchainGatewayExplorerProvider().getChildren();
 
                 allChildren.length.should.equal(3);
 
                 const connectedItem: ConnectedTreeItem = allChildren[0] as ConnectedTreeItem;
-                connectedItem.label.should.equal(`Connected via gateway: ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
+                connectedItem.label.should.equal(`Connected via gateway: ${registryEntry.displayName}`);
                 connectedItem.contextValue.should.equal('blockchain-connected-runtime-item');
                 connectedItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 connectedItem.connection.name.should.equal(registryEntry.name);

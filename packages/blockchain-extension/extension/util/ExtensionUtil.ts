@@ -598,49 +598,68 @@ export class ExtensionUtil {
 
         // Check if there is a newer version of the generator available
         // This needs to be done as a seperate call to make sure the dependencies have been installed
-        const generatorVersion: string = dependencies['generator-fabric'];
+        const generatorVersion: string = dependencies['generator-fabric']; // Change this back
+        // const generatorVersion: string = '1.'; // Change this back
         if (generatorVersion !== extensionData.generatorVersion) {
             // If the latest generator version is not equal to the previous used version
 
-            const storedMinor: number = semver.minor(extensionData.generatorVersion);
-            const latestMinor: number = semver.minor(generatorVersion);
+            // TODO JAKE: Wrap these with try/catch - it could be possible that some of these values are undefined, so can't be coerced.
+
+            let storedMinor: number;
+            let latestMinor: number;
+            let gotVersions: boolean = false; // State whether coercing and getting the minor version was successful.
+            try {
+                const storedVersion: semver.SemVer = semver.coerce(extensionData.generatorVersion);
+
+                const latestVersion: semver.SemVer = semver.coerce(generatorVersion);
+
+                storedMinor = semver.minor(storedVersion);
+                latestMinor = semver.minor(latestVersion);
+                gotVersions = true;
+
+            } catch (error) {
+                //
+            }
+
             let updateGeneratorVersion: boolean = true;
 
-            if (latestMinor > storedMinor) {
+            // Tidy up if minor version has been updated.
+            if (gotVersions && latestMinor > storedMinor) {
                 // Delete old environments, wallets and gateways
 
                 await FabricEnvironmentRegistry.instance().delete(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
                 await FabricGatewayRegistry.instance().delete(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
                 await FabricWalletRegistry.instance().delete(FabricWalletUtil.OLD_LOCAL_WALLET, true);
 
-            } else {
-                const runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
-                let generated: boolean = false;
-
-                if (runtime) {
-                    generated = await runtime.isGenerated();
-                }
-
-                if (generated) {
-                    // We know the user has a generated Fabric using an older version, so we should give the user the option to teardown either now or later
-                    const response: boolean = await UserInputUtil.showConfirmationWarningMessage(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`);
-                    if (response) {
-                        const isRunning: boolean = await runtime.isRunning();
-
-                        // Teardown and remove generated Fabric
-                        await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
-
-                        if (isRunning) {
-                            // Start the Fabric again
-                            await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
-                        }
-                    } else {
-                        // Assume they will teardown later
-                        updateGeneratorVersion = false;
-                    }
-                }
-                // If they don't have a Fabric generated, we can update the version immediately
             }
+
+            const runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
+            let generated: boolean = false;
+
+            if (runtime) {
+                generated = await runtime.isGenerated();
+            }
+
+            if (generated) {
+                // We know the user has a generated Fabric using an older version, so we should give the user the option to teardown either now or later
+                const response: boolean = await UserInputUtil.showConfirmationWarningMessage(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`);
+                if (response) {
+                    const isRunning: boolean = await runtime.isRunning();
+
+                    // Teardown and remove generated Fabric
+                    await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
+
+                    // TODO JAKE: Do we want to remove starting it?
+                    if (isRunning) {
+                        // Start the Fabric again
+                        await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
+                    }
+                } else {
+                    // Assume they will teardown later
+                    updateGeneratorVersion = false;
+                }
+            }
+            // If they don't have a Fabric generated, we can update the version immediately
 
             // Update the generator version
             if (updateGeneratorVersion) {

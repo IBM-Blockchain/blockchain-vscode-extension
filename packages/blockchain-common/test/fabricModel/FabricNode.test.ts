@@ -28,9 +28,9 @@ describe('FabricNode', () => {
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
 
-        peerNode = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'local_fabric_wallet', 'admin', 'Org1MSP');
-        caNode = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:7054', 'ca_name', 'local_fabric_wallet', 'admin', 'Org1MSP', 'admin', 'adminpw');
-        ordererNode = FabricNode.newOrderer('orderer.example.com', 'orderer.example.com', 'grpc://localhost:7050', 'local_fabric_wallet', 'admin', 'OrdererMSP', 'myCluster');
+        peerNode = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'Org1', 'admin', 'Org1MSP');
+        caNode = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:7054', 'ca_name', 'Org1', 'admin', 'Org1MSP', 'admin', 'adminpw');
+        ordererNode = FabricNode.newOrderer('orderer.example.com', 'orderer.example.com', 'grpc://localhost:7050', 'Org1', 'admin', 'OrdererMSP', 'myCluster');
     });
 
     afterEach(() => {
@@ -42,7 +42,7 @@ describe('FabricNode', () => {
     });
 
     it('should create a secure peer', () => {
-        const securePeerNode: FabricNode = FabricNode.newSecurePeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'myPem', 'local_fabric_wallet', 'admin', 'Org1MSP');
+        const securePeerNode: FabricNode = FabricNode.newSecurePeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'myPem', 'Org1', 'admin', 'Org1MSP');
         securePeerNode.should.exist;
     });
 
@@ -51,7 +51,7 @@ describe('FabricNode', () => {
     });
 
     it('should create a secure orderer', () => {
-        const secureOrdererNode: FabricNode = FabricNode.newSecureOrderer('orderer.example.com', 'orderer.example.com', 'grpc://localhost:7050', 'myPem', 'local_fabric_wallet', 'admin', 'OrdererMSP', 'myCluster');
+        const secureOrdererNode: FabricNode = FabricNode.newSecureOrderer('orderer.example.com', 'orderer.example.com', 'grpc://localhost:7050', 'myPem', 'Org1', 'admin', 'OrdererMSP', 'myCluster');
         secureOrdererNode.should.exist;
     });
 
@@ -65,7 +65,7 @@ describe('FabricNode', () => {
     });
 
     it('should create a secure ca', () => {
-        const secureCaNode: FabricNode = FabricNode.newSecureCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:7054', 'ca_name', 'myPem', 'local_fabric_wallet', 'admin', 'Org1MSP', 'admin', 'adminpw');
+        const secureCaNode: FabricNode = FabricNode.newSecureCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:7054', 'ca_name', 'myPem', 'Org1', 'admin', 'Org1MSP', 'admin', 'adminpw');
         secureCaNode.should.exist;
     });
 

@@ -33,7 +33,7 @@ import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEn
 chai.should();
 
 // tslint:disable no-unused-expression
-describe.only('LocalEnvironmentManager', () => {
+describe('LocalEnvironmentManager', () => {
 
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
@@ -169,6 +169,26 @@ describe.only('LocalEnvironmentManager', () => {
             FabricEnvironmentManager.instance().disconnect();
 
             mockRuntime.stopLogs.should.have.been.called;
+        });
+
+        it('should migrate if old style-ports are used and need to be updated to a start and end port range', async () => {
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {
+                ports: {
+                    orderer: 8,
+                    peerRequest: 6,
+                    peerChaincode: 1,
+                    peerEventHub: 3,
+                    certificateAuthority: 2,
+                    couchDB: 4,
+                    otherRandomVariable: 12
+                }
+            }, vscode.ConfigurationTarget.Global);
+            await runtimeManager.initialize();
+            mockRuntime.ports.should.deep.equal({
+                startPort: 1,
+                endPort: 21
+            });
+            mockRuntime.updateUserSettings.should.have.been.calledOnce;
         });
     });
 

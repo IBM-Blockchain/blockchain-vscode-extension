@@ -49,25 +49,17 @@ export class LocalEnvironmentManager {
         // only generate a range of ports if it doesn't already exist
         const runtimeObject: any = this.readRuntimeUserSettings();
 
+        let updatedPorts: boolean = false;
         if (runtimeObject.ports) {
             // TODO JAKE: Check to see if ports.orderer, ports.peer, etc.
             // If so, then we'll need to migrate.
 
-            this.runtime = new LocalEnvironment();
-            this.runtime.ports = runtimeObject.ports;
-
             if (runtimeObject.ports.orderer || runtimeObject.ports.peerRequest || runtimeObject.ports.peerChaincode ||
                 runtimeObject.ports.peerEventHub || runtimeObject.ports.certificateAuthority || runtimeObject.ports.couchDB) {
-                    // They have the old style ports
+                    // Assume they have the old style ports
                     const portList: number[] = Object.values(runtimeObject.ports);
 
-                    let startPort: number = portList[0];
-                    // Get the smallest port
-                    for (let x: number = 1; x < portList.length; x++) {
-                        if (portList[x] < startPort) {
-                            startPort = x;
-                        }
-                    }
+                    const startPort: number = Math.min(...portList);
 
                     // Decide on end port
                     const endPort: number = startPort + 20;
@@ -76,18 +68,25 @@ export class LocalEnvironmentManager {
                         endPort
                     };
 
-                    // Update ports in setting
-                    await this.runtime.updateUserSettings();
+                    updatedPorts = true;
 
             }
 
+            this.runtime = new LocalEnvironment();
+            this.runtime.ports = runtimeObject.ports;
+
         } else {
+            updatedPorts = true;
+
             // Generate a range of ports for this Fabric runtime.
             const ports: FabricRuntimePorts = await this.generatePortConfiguration();
 
             // Add the Fabric runtime to the internal cache.
             this.runtime = new LocalEnvironment();
             this.runtime.ports = ports;
+        }
+
+        if (updatedPorts) {
             await this.runtime.updateUserSettings();
         }
 

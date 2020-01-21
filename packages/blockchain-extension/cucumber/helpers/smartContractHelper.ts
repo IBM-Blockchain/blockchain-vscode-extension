@@ -136,7 +136,8 @@ export class SmartContractHelper {
         });
 
         if (!installedContract) {
-            this.userInputUtilHelper.showPeersQuickPickStub.resolves(['peer0.org1.example.com']);
+            // We'll probably want this back when we have multi-org/peer
+            // this.userInputUtilHelper.showPeersQuickPickStub.resolves(['peer0.org1.example.com']);
             const _package: PackageRegistryEntry = await PackageRegistry.instance().get(name, version);
 
             should.exist(_package);
@@ -165,7 +166,7 @@ export class SmartContractHelper {
         if (!instantiatedContract) {
             this.userInputUtilHelper.showChannelStub.resolves({
                 label: 'mychannel',
-                data: ['peer0.org1.example.com']
+                data: ['Org1Peer1']
             });
 
             const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
@@ -201,7 +202,7 @@ export class SmartContractHelper {
     public async upgradeSmartContract(name: string, version: string, transaction: string, args: string, privateData: boolean): Promise<void> {
         this.userInputUtilHelper.showChannelStub.resolves({
             label: 'mychannel',
-            data: ['peer0.org1.example.com']
+            data: ['Org1Peer1']
         });
 
         const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();

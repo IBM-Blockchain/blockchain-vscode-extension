@@ -71,7 +71,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
     }
 
     if (isLocalWallet) {
-        // using local_fabric_wallet
+        // using a local wallet
         const orgsArray: Array<string> = await LocalEnvironmentManager.instance().getRuntime().getAllOrganizationNames();
 
         // I think we'll need that dropdown here now!
@@ -148,6 +148,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
             if (isLocalWallet) {
                 // wallet is managed so use local_fabric as the gateway
 
+                // TODO JAKE: Update this to handle add identity to managed wallet
                 // make sure local_fabric is started
                 let isRunning: boolean = await LocalEnvironmentManager.instance().getRuntime().isRunning();
                 if (!isRunning) {

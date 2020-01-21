@@ -51,13 +51,6 @@ export async function startFabricRuntime(registryEntry?: FabricEnvironmentRegist
                 if (!isCreated) {
                     await runtime.create();
                 }
-
-                const isGenerated: boolean = await runtime.isGenerated();
-                if (!isGenerated) {
-                    await runtime.generate(outputAdapter);
-                    await runtime.importWalletsAndIdentities();
-                    await runtime.importGateways();
-                }
             }
             await runtime.start(outputAdapter);
             // await runtime.importWalletsAndIdentities();

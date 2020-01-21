@@ -46,14 +46,14 @@ describe('openNewTerminal', () => {
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
         const provider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
-        node = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'local_fabric_wallet', 'admin', 'Org1MSP');
+        node = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'Org1', 'admin', 'Org1MSP');
         node.container_name = 'fabricvscodelocalfabric_peer0.org1.example.com';
 
         const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         fabricEnvironmentRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
         fabricEnvironmentRegistryEntry.managedRuntime = true;
         fabricEnvironmentRegistryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-        fabricEnvironmentRegistryEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
+        fabricEnvironmentRegistryEntry.associatedGateways = ['Org1'];
 
         const tooltip: string = `Name: ${node.name} \n MSPID: ${node.msp_id} \n Associated Identity: \n ${node.identity}`;
         nodeItem = new TestNodeTreeItem(provider, node.name, tooltip, fabricEnvironmentRegistryEntry, node);

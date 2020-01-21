@@ -35,7 +35,7 @@ describe('ManagedAnsibleEnvironment', () => {
     const originalPlatform: string = process.platform;
     const originalSpawn: any = child_process.spawn;
     const rootPath: string = path.dirname(__dirname);
-    const environmentPath: string = path.resolve(rootPath, '..', '..', '..', 'test', 'data', 'yofn');
+    const environmentPath: string = path.resolve(rootPath, '..', '..', '..', 'test', 'data', 'yofn2');
 
     let environment: ManagedAnsibleEnvironment;
     let sandbox: sinon.SinonSandbox;
@@ -125,11 +125,13 @@ describe('ManagedAnsibleEnvironment', () => {
     describe('#deleteWalletsAndIdentities', () => {
         it('should delete all known identities that exist', async () => {
             await FabricWalletRegistry.instance().clear();
+            await TestUtil.setupLocalFabric();
             await environment.importWalletsAndIdentities();
 
             let results: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
-            results.length.should.equal(1);
-            results[0].name.should.equal('Org1');
+            results.length.should.equal(2);
+            results[0].name.should.equal('Orderer');
+            results[1].name.should.equal('Org1');
             await environment.deleteWalletsAndIdentities();
 
             results = await FabricWalletRegistry.instance().getAll();
@@ -422,6 +424,36 @@ describe('ManagedAnsibleEnvironment', () => {
                     stopLogsStub.should.have.been.called;
                 }
             });
+        });
+    });
+
+    describe('#start', () => {
+        let isGeneratedStub: sinon.SinonStub;
+        let isRunningStub: sinon.SinonStub;
+        let generateStub: sinon.SinonStub;
+        let importWalletsAndIdentitiesStub: sinon.SinonStub;
+        let importGatewaysStub: sinon.SinonStub;
+        beforeEach(async () => {
+            isGeneratedStub = sandbox.stub(environment, 'isGenerated').resolves(false);
+            isRunningStub = sandbox.stub(environment, 'isRunning').resolves(false);
+            generateStub = sandbox.stub(environment, 'generate').resolves();
+            importWalletsAndIdentitiesStub = sandbox.stub(environment, 'importWalletsAndIdentities').resolves();
+            importGatewaysStub = sandbox.stub(environment, 'importGateways').resolves();
+        });
+
+        it('should start if not generated', async () => {
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+
+            spawnStub.withArgs('/bin/sh', [`start.sh`], sinon.match.any).callsFake(() => {
+                return mockSuccessCommand();
+            });
+
+            await environment['start']();
+
+            isGeneratedStub.should.have.been.calledOnce;
+            generateStub.should.have.been.calledOnce;
+            importWalletsAndIdentitiesStub.should.have.been.calledOnce;
+            importGatewaysStub.should.have.been.calledOnce;
         });
     });
 
@@ -798,7 +830,7 @@ describe('ManagedAnsibleEnvironment', () => {
     describe('#getPeerContainerName', () => {
 
         it('should get the peer container name', async () => {
-            await environment.getPeerContainerName().should.eventually.equal('yofn_peer0.org1.example.com');
+            await environment.getPeerContainerName().should.eventually.equal('fabricvscodelocalfabric_peer0.org1.example.com');
         });
 
         it('should throw an error if there are no peer nodes', async () => {

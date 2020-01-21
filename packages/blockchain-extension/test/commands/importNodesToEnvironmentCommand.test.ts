@@ -67,7 +67,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 api_url: 'grpc://localhost:17051',
                 chaincode_url: 'grpc://localhost:17052',
                 type: 'fabric-peer',
-                wallet: 'local_fabric_wallet',
+                wallet: 'Org1',
                 identity: 'admin',
                 msp_id: 'Org1MSP',
                 container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
@@ -79,7 +79,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 api_url: 'grpc://localhost:17051',
                 chaincode_url: 'grpc://localhost:17052',
                 type: 'fabric-peer',
-                wallet: 'local_fabric_wallet',
+                wallet: 'Org1',
                 identity: 'admin',
                 msp_id: 'Org1MSP',
                 container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
@@ -188,7 +188,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 api_url: 'grpc://localhost:17051',
                 chaincode_url: 'grpc://localhost:17052',
                 type: 'fabric-peer',
-                wallet: 'local_fabric_wallet',
+                wallet: 'Org1',
                 identity: 'admin',
                 msp_id: 'Org1MSP',
                 container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
@@ -199,7 +199,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 api_url: 'http://localhost:17054',
                 type: 'fabric-ca',
                 ca_name: 'ca.org1.example.com',
-                wallet: 'local_fabric_wallet',
+                wallet: 'Org1',
                 identity: 'admin',
                 msp_id: 'Org1MSP',
                 container_name: 'fabricvscodelocalfabric_ca.org1.example.com'
@@ -227,7 +227,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 api_url: 'grpc://localhost:17051',
                 chaincode_url: 'grpc://localhost:17052',
                 type: 'fabric-peer',
-                wallet: 'local_fabric_wallet',
+                wallet: 'Org1',
                 identity: 'admin',
                 msp_id: 'Org1MSP',
                 container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
@@ -238,7 +238,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 api_url: 'http://localhost:17054',
                 type: 'fabric-ca',
                 ca_name: 'ca.org1.example.com',
-                wallet: 'local_fabric_wallet',
+                wallet: 'Org1',
                 identity: 'admin',
                 msp_id: 'Org1MSP',
                 container_name: 'fabricvscodelocalfabric_ca.org1.example.com'
@@ -387,7 +387,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 api_url: 'grpc://localhost:17051',
                 chaincode_url: 'grpc://localhost:17052',
                 type: 'fabric-peer',
-                wallet: 'local_fabric_wallet',
+                wallet: 'Org1',
                 identity: 'admin',
                 msp_id: 'Org1MSP',
                 container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
@@ -418,7 +418,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 api_url: 'grpc://localhost:17051',
                 chaincode_url: 'grpc://localhost:17052',
                 type: 'fabric-peer',
-                wallet: 'local_fabric_wallet',
+                wallet: 'Org1',
                 identity: 'admin',
                 msp_id: 'Org1MSP',
                 container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
@@ -449,7 +449,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 api_url: 'grpc://localhost:17051',
                 chaincode_url: 'grpc://localhost:17052',
                 type: 'fabric-peer',
-                wallet: 'local_fabric_wallet',
+                wallet: 'Org1',
                 identity: 'admin',
                 msp_id: 'Org1MSP',
                 container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
@@ -459,7 +459,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 api_url: 'grpc://localhost:17051',
                 chaincode_url: 'grpc://localhost:17052',
                 type: 'fabric-peer',
-                wallet: 'local_fabric_wallet',
+                wallet: 'Org1',
                 identity: 'admin',
                 msp_id: 'Org1MSP',
                 container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'

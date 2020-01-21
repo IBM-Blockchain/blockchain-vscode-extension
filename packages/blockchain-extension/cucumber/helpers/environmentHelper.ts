@@ -114,16 +114,7 @@ export class EnvironmentHelper {
     }
 
     public async connectToEnvironment(environment: string): Promise<void> {
-        let registryEntry: FabricEnvironmentRegistryEntry;
-        if (environment === FabricRuntimeUtil.LOCAL_FABRIC) {
-            registryEntry = new FabricEnvironmentRegistryEntry();
-            registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
-            registryEntry.managedRuntime = true;
-            registryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-            registryEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
-        } else {
-            registryEntry = await FabricEnvironmentRegistry.instance().get(environment);
-        }
+        const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environment);
 
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, registryEntry);
     }

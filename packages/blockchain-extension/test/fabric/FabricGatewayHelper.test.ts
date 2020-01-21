@@ -89,10 +89,10 @@ describe('FabricGatewayHelper', () => {
         beforeEach(() => {
             writeFileStub = mySandBox.stub(fs, 'writeFile').resolves();
             mySandBox.stub(fs, 'ensureDir').resolves();
-            const TLS_CA_CERTIFICATE: string = fs.readFileSync(path.resolve(__dirname, '..', '..', '..', 'test', 'data', 'yofn', 'admin-msp', 'cacerts', 'ca-org1-example-com-17054.pem')).toString('base64');
+            const TLS_CA_CERTIFICATE: string = 'c29tZV9jZXJ0';
 
-            peerNode = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'local_fabric_wallet', 'admin', 'Org1MSP');
-            caNode = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:7054', 'ca_name', 'local_fabric_wallet', 'admin', 'Org1MSP', 'admin', 'adminpw');
+            peerNode = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'Org1', 'admin', 'Org1MSP');
+            caNode = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:7054', 'ca_name', 'Org1', 'admin', 'Org1MSP', 'admin', 'adminpw');
             securePeerNode = FabricNode.newSecurePeer('peer0.org2.example.com', 'peer0.org2.example.com', `grpcs://localhost:8051`, TLS_CA_CERTIFICATE, 'myWallet', 'myIdentity', 'Org2MSP');
             securePeerNode.ssl_target_name_override = 'peer0.org2.example.com';
             secureCANode = FabricNode.newSecureCertificateAuthority('ca2.example.com', 'ca2.example.com', `https://localhost:8054`, 'ca_name', TLS_CA_CERTIFICATE, 'myWallet', 'myIdentity', 'Org2MSP', 'admin', 'adminpw');

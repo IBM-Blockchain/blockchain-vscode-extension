@@ -94,7 +94,7 @@ describe('FabricEnvironment', () => {
                     name: 'orderer.example.com',
                     api_url: 'grpc://localhost:17050',
                     type: 'fabric-orderer',
-                    wallet: 'Org1',
+                    wallet: 'Orderer',
                     identity: 'admin',
                     msp_id: 'OrdererMSP',
                     container_name: 'yofn_orderer.example.com'
