@@ -37,6 +37,7 @@ describe('CreateSmartContractProjectCommand', () => {
     // suite variables
     let mySandBox: sinon.SinonSandbox;
     let logSpy: sinon.SinonSpy;
+    let inputBoxSpy: sinon.SinonSpy;
     let quickPickStub: sinon.SinonStub;
     let showLanguagesQuickPickStub: sinon.SinonStub;
     let showFolderOptionsStub: sinon.SinonStub;
@@ -57,6 +58,7 @@ describe('CreateSmartContractProjectCommand', () => {
     beforeEach(async () => {
         mySandBox.stub(CommandUtil, 'sendCommandWithOutputAndProgress');
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+        inputBoxSpy = mySandBox.spy(UserInputUtil, 'showInputBox');
         quickPickStub = mySandBox.stub(UserInputUtil, 'showQuickPick');
         showLanguagesQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick');
         showFolderOptionsStub = mySandBox.stub(UserInputUtil, 'showFolderOptions');
@@ -148,7 +150,7 @@ describe('CreateSmartContractProjectCommand', () => {
         }
 
         it(`should start a ${testLanguageItem.label} smart contract project, in a new window`, async () => {
-            quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+            quickPickStub.onFirstCall().resolves({label: 'Default Contract', description: 'Demonstrates CRUD operations to a ledger shared by all network members'});
             showLanguagesQuickPickStub.resolves(testLanguageItem);
             if (testLanguageItem.type === LanguageType.CONTRACT) {
                 showInputBoxStub.onFirstCall().resolves('Conga');
@@ -166,7 +168,7 @@ describe('CreateSmartContractProjectCommand', () => {
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in current window`, async () => {
-            quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+            quickPickStub.onFirstCall().resolves({label: 'Default Contract', description: 'Demonstrates CRUD operations to a ledger shared by all network members'});
             showLanguagesQuickPickStub.resolves(testLanguageItem);
             if (testLanguageItem.type === LanguageType.CONTRACT) {
                 showInputBoxStub.onFirstCall().resolves('Conga');
@@ -184,7 +186,7 @@ describe('CreateSmartContractProjectCommand', () => {
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in current window with unsaved files and save`, async () => {
-            quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+            quickPickStub.onFirstCall().resolves({label: 'Default Contract', description: 'Demonstrates CRUD operations to a ledger shared by all network members'});
             showLanguagesQuickPickStub.resolves(testLanguageItem);
             if (testLanguageItem.type === LanguageType.CONTRACT) {
                 showInputBoxStub.onFirstCall().resolves('Conga');
@@ -208,7 +210,7 @@ describe('CreateSmartContractProjectCommand', () => {
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in current window with unsaved files and not save`, async () => {
-            quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+            quickPickStub.onFirstCall().resolves({label: 'Default Contract', description: 'Demonstrates CRUD operations to a ledger shared by all network members'});
             showLanguagesQuickPickStub.resolves(testLanguageItem);
             if (testLanguageItem.type === LanguageType.CONTRACT) {
                 showInputBoxStub.onFirstCall().resolves('Conga');
@@ -232,7 +234,7 @@ describe('CreateSmartContractProjectCommand', () => {
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in a new workspace with no folders`, async () => {
-            quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+            quickPickStub.onFirstCall().resolves({label: 'Default Contract', description: 'Demonstrates CRUD operations to a ledger shared by all network members'});
             showLanguagesQuickPickStub.resolves(testLanguageItem);
             if (testLanguageItem.type === LanguageType.CONTRACT) {
                 showInputBoxStub.onFirstCall().resolves('Conga');
@@ -252,7 +254,7 @@ describe('CreateSmartContractProjectCommand', () => {
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in a new workspace with folders`, async () => {
-            quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+            quickPickStub.onFirstCall().resolves({label: 'Default Contract', description: 'Demonstrates CRUD operations to a ledger shared by all network members'});
             showLanguagesQuickPickStub.resolves(testLanguageItem);
             if (testLanguageItem.type === LanguageType.CONTRACT) {
                 showInputBoxStub.onFirstCall().resolves('Conga');
@@ -272,9 +274,10 @@ describe('CreateSmartContractProjectCommand', () => {
     }
 
     it('should start a typescript private data smart contract project, in a new window', async () => {
-        quickPickStub.onFirstCall().resolves('Private Data Smart Contract');
+        quickPickStub.onFirstCall().resolves({label: 'Private Data Contract', description: 'Demonstrates CRUD + verify operations to a private data collection'});
+        showInputBoxStub.onFirstCall().resolves('Org1MSP');
         showLanguagesQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
-        showInputBoxStub.onFirstCall().resolves('Conga');
+        showInputBoxStub.onSecondCall().resolves('Conga');
         showFolderOptionsStub.resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
         browseStub.resolves(uri);
 
@@ -284,6 +287,32 @@ describe('CreateSmartContractProjectCommand', () => {
         executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, true);
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Private Data Smart Contract Project');
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createPrivateDataSmartContractProject', { contractLanguage: 'typescript' });
+    });
+
+    it('should have the correct default asset name when user selects private data smart contract', async () => {
+        quickPickStub.onFirstCall().resolves({label: 'Private Data Contract', description: 'Demonstrates CRUD + verify operations to a private data collection'});
+        showInputBoxStub.onFirstCall().resolves('Org1MSP');
+        showLanguagesQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
+        showInputBoxStub.onSecondCall().resolves('MyPrivateAsset');
+        showFolderOptionsStub.resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
+        browseStub.resolves(uri);
+
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
+        inputBoxSpy.should.have.been.calledWith('Name the type of asset managed by this smart contract', 'MyPrivateAsset');
+        executeCommandStub.should.have.been.calledThrice;
+        executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
+        executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, true);
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Private Data Smart Contract Project');
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createPrivateDataSmartContractProject', { contractLanguage: 'typescript' });
+    });
+
+    it('should not do anything if the user cancels when asked for the mspID', async () => {
+        quickPickStub.onFirstCall().resolves({label: 'Private Data Contract', description: 'Demonstrates CRUD + verify operations to a private data collection'});
+        showInputBoxStub.onFirstCall().resolves(undefined);
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
+        browseStub.should.not.have.been.called;
+        showLanguagesQuickPickStub.should.not.have.been.called;
+        sendTelemetryEventStub.should.not.have.been.called;
     });
 
     it('should not do anything if the user cancels the type of smart contract', async () => {
@@ -296,7 +325,7 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should show error message if we fail to create a smart contract', async () => {
-        quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+        quickPickStub.onFirstCall().resolves({label: 'Default Contract', description: 'Demonstrates CRUD operations to a ledger shared by all network members'});
         mySandBox.stub(YeomanUtil, 'run').rejects(new Error('such error'));
         showLanguagesQuickPickStub.resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
         showInputBoxStub.onFirstCall().resolves('Conga');
@@ -309,7 +338,7 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should not do anything if the user cancels the open dialog', async () => {
-        quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+        quickPickStub.onFirstCall().resolves({label: 'Default Contract', description: 'Demonstrates CRUD operations to a ledger shared by all network members'});
         showLanguagesQuickPickStub.resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
         showInputBoxStub.onFirstCall().resolves('Conga');
 
@@ -321,7 +350,7 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should throw an error if the chosen folder has an invalid name', async () => {
-        quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+        quickPickStub.onFirstCall().resolves({label: 'Default Contract', description: 'Demonstrates CRUD operations to a ledger shared by all network members'});
         showLanguagesQuickPickStub.resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
         showInputBoxStub.onFirstCall().resolves('Conga');
         const badUri: vscode.Uri = vscode.Uri.file(' Invalid Directory! ');
@@ -334,7 +363,7 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should not do anything if the user cancels the open project ', async () => {
-        quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+        quickPickStub.onFirstCall().resolves({label: 'Default Contract', description: 'Demonstrates CRUD operations to a ledger shared by all network members'});
         showLanguagesQuickPickStub.resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
         showInputBoxStub.onFirstCall().resolves('Conga');
         showFolderOptionsStub.resolves();
@@ -346,7 +375,7 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should not do anything if the user cancels chosing a smart contract language', async () => {
-        quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+        quickPickStub.onFirstCall().resolves({label: 'Default Contract', description: 'Demonstrates CRUD operations to a ledger shared by all network members'});
         showLanguagesQuickPickStub.resolves(undefined);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         showLanguagesQuickPickStub.should.have.been.calledOnce;
@@ -356,7 +385,7 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should not do anything if the user cancels specifying an asset type', async () => {
-        quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+        quickPickStub.onFirstCall().resolves({label: 'Default Contract', description: 'Demonstrates CRUD operations to a ledger shared by all network members'});
         showLanguagesQuickPickStub.resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
         showInputBoxStub.onCall(0).resolves(undefined);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
@@ -366,7 +395,7 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should throw an error if the user specifies an invalid asset type', async () => {
-        quickPickStub.onFirstCall().resolves('Defualt Smart Contract');
+        quickPickStub.onFirstCall().resolves({label: 'Default Contract', description: 'Demonstrates CRUD operations to a ledger shared by all network members'});
         showLanguagesQuickPickStub.resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
         showInputBoxStub.onCall(0).resolves('@xyz/myAsset');
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);

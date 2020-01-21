@@ -2230,6 +2230,23 @@ describe('UserInputUtil', () => {
             quickPickStub.should.have.been.calledWith(items, {ignoreFocusOut: true, canPickMany: false, placeHolder: prompt});
         });
 
+        it('should be able to pick an item with a description', async () => {
+            const items: {label: string, description: string}[] = [{label: 'someLabel', description: 'someDescription'}, {label: 'someOtherLabel', description: 'someOtherDescription'}];
+            quickPickStub.resolves({label: 'someLabel', description: 'someDescription'});
+
+            const itemwithData: IBlockchainQuickPickItem<string>[] = [];
+            for (const item of items as {label: string, description: string}[] ) {
+                itemwithData.push({label: item.label, description: item.description, data: item.label});
+            }
+
+            const prompt: string = 'choose an item';
+
+            const result: {label: string, description: string} = await UserInputUtil.showQuickPick(prompt, items) as {label: string, description: string};
+            result.should.deep.equal({label: 'someLabel', description: 'someDescription'});
+
+            quickPickStub.should.have.been.calledWith(itemwithData, {ignoreFocusOut: true, canPickMany: false, placeHolder: prompt});
+        });
+
         it('should be able to pick multiple items', async () => {
             const items: string[] = ['itemOne', 'itemTwo'];
             quickPickStub.resolves(items);
@@ -2240,6 +2257,13 @@ describe('UserInputUtil', () => {
             result.should.deep.equal(items);
 
             quickPickStub.should.have.been.calledWith(items, {ignoreFocusOut: true, canPickMany: true, placeHolder: prompt});
+        });
+
+        it('should throw an error if no items provided', async () => {
+            quickPickStub.resolves([]);
+            const prompt: string = 'choose an item';
+
+            await UserInputUtil.showQuickPick(prompt, [], true).should.eventually.be.rejectedWith('No items provided');
         });
     });
 

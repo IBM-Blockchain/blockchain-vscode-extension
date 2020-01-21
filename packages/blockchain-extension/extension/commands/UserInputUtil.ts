@@ -73,17 +73,28 @@ export class UserInputUtil {
     static readonly ADD_GATEWAY_FROM_ENVIRONMENT: string = 'Create a gateway from a Fabric environment';
     static readonly ADD_GATEWAY_FROM_CCP: string = 'Create a gateway from a connection profile';
 
-    public static async showQuickPick(prompt: string, items: string[] | {label: string, description: string}, canPickMany: boolean = false): Promise<string | string[]> {
+    public static async showQuickPick(prompt: string, items: string[] | {label: string, description: string}[], canPickMany: boolean = false): Promise<string | string[] |  IBlockchainQuickPickItem<string>> {
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: true,
+            canPickMany: canPickMany,
+            placeHolder: prompt
+        };
 
-        if (items instanceof Array) {
-            const quickPickOptions: vscode.QuickPickOptions = {
-                ignoreFocusOut: true,
-                canPickMany: canPickMany,
-                placeHolder: prompt
-            };
-            return vscode.window.showQuickPick(items, quickPickOptions);
+        if (items.length === 0) {
+            throw new Error('No items provided');
+        }
+
+        if (typeof items[0] === 'string') {
+            return vscode.window.showQuickPick(items as string[], quickPickOptions);
+
         } else {
-            const someString: string = 'someString';
+            // assume its an object
+            const itemsWithDescription: IBlockchainQuickPickItem<string>[] = [];
+            for (const item of items as {label: string, description: string}[] ) {
+                itemsWithDescription.push({label: item.label, description: item.description, data: item.label});
+            }
+            return vscode.window.showQuickPick(itemsWithDescription, quickPickOptions);
+
         }
     }
 

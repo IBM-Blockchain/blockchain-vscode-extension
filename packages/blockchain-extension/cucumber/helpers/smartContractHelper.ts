@@ -60,6 +60,8 @@ export class SmartContractHelper {
             throw new Error(`You must update this test to support the ${language} language`);
         }
 
+        this.userInputUtilHelper.showQuickPickStub.resolves({label: 'Default Contract', description: 'Demonstrates CRUD operations to a ledger shared by all network members'});
+
         this.userInputUtilHelper.showLanguagesQuickPickStub.resolves({ label: language, type });
 
         this.userInputUtilHelper.inputBoxStub.withArgs('Name the type of asset managed by this smart contract', 'MyAsset').resolves(assetType);
