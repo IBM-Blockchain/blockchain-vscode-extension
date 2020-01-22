@@ -69,12 +69,20 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
 
         const nodes: FabricNode[] = await fabricEnvironment.getNodes();
 
-        if (fabricEnvironmentRegistryEntry.url && nodes.length < 1) {
-            const importNodes: string = await vscode.window.showWarningMessage(`Error connecting to environment ${fabricEnvironmentRegistryEntry.name}: no visible nodes. Would you like to filter nodes?`, 'Yes', 'No');
-            if (importNodes === 'Yes') {
-                await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, fabricEnvironmentRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+        if (nodes.length === 0) {
+            if (fabricEnvironmentRegistryEntry.url) {
+                const importNodes: string = await vscode.window.showWarningMessage(`Error connecting to environment ${fabricEnvironmentRegistryEntry.name}: no visible nodes. Would you like to filter nodes?`, 'Yes', 'No');
+                if (importNodes === 'Yes') {
+                    await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, fabricEnvironmentRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+                    const newNodes: FabricNode[] = await fabricEnvironment.getNodes();
+                    if (newNodes.length === 0) {
+                        return;
+                    }
+                } else {
+                    return;
+                }
             } else {
-                return;
+                throw new Error('No nodes available');
             }
         }
 
