@@ -112,8 +112,6 @@ describe('LocalEnvironment', () => {
         describe(`#${verb}`, () => {
 
             let createStub: sinon.SinonStub;
-            // let importWalletsAndIdentitiesStub: sinon.SinonStub;
-            // let importGatewaysStub: sinon.SinonStub;
             let isRunningStub: sinon.SinonStub;
             let setStateSpy: sinon.SinonSpy;
             let stopLogsStub: sinon.SinonStub;
@@ -122,8 +120,6 @@ describe('LocalEnvironment', () => {
 
             beforeEach(() => {
                 createStub = sandbox.stub(environment, 'create');
-                // importWalletsAndIdentitiesStub = sandbox.stub(environment, 'importWalletsAndIdentities');
-                // importGatewaysStub = sandbox.stub(environment, 'importGateways');
                 sandbox.stub(environment, 'isGenerated').resolves(true);
                 isRunningStub = sandbox.stub(environment, 'isRunning').resolves(false);
                 setStateSpy = sandbox.spy(environment, 'setState');
@@ -507,31 +503,6 @@ describe('LocalEnvironment', () => {
         });
 
     });
-
-    // describe('#importGateways', () => {
-            // Not sure we need this test looking at the name of it
-    //     it.only(`should be pass the ${FabricWalletUtil.LOCAL_WALLET} as the fallback wallet`, async () => {
-    //         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-    //         const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
-
-    //         await environment.importGateways();
-
-    //         const gateways: FabricGateway[] = await environment.getGateways();
-    //         gateways.should.have.lengthOf(3);
-    //         for (const gateway of gateways) {
-    //             const profileDirPath: string = path.join(homeExtDir, 'gateways', gateway.name);
-    //             const profilePath: string = path.join(profileDirPath, path.basename(gateway.path));
-    //             await fs.pathExists(profilePath).should.eventually.be.true;
-    //             const registryEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(gateway.name);
-    //             const wallet: string = (gateway.connectionProfile as any).wallet;
-    //             if (!wallet) {
-    //                 registryEntry.associatedWallet.should.equal(FabricWalletUtil.LOCAL_WALLET);
-    //             } else {
-    //                 registryEntry.associatedWallet.should.equal((gateway.connectionProfile as any).wallet);
-    //             }
-    //         }
-    //     });
-    // });
 
     describe('#isGenerated', () => {
 

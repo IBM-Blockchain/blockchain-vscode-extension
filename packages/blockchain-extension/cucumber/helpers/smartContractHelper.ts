@@ -164,9 +164,19 @@ export class SmartContractHelper {
         });
 
         if (!instantiatedContract) {
+
+            let peer: string;
+            if (process.env.OTHER_FABRIC) {
+                // Using old Fabric
+                peer = 'peer0.org1.example.com';
+            } else {
+                // Using new Ansible Fabric
+                peer = 'Org1Peer1';
+            }
+
             this.userInputUtilHelper.showChannelStub.resolves({
                 label: 'mychannel',
-                data: ['Org1Peer1']
+                data: [peer]
             });
 
             const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
@@ -200,9 +210,19 @@ export class SmartContractHelper {
     }
 
     public async upgradeSmartContract(name: string, version: string, transaction: string, args: string, privateData: boolean): Promise<void> {
+
+        let peer: string;
+        if (process.env.OTHER_FABRIC) {
+            // Using old Fabric
+            peer = 'peer0.org1.example.com';
+        } else {
+            // Using new Ansible Fabric
+            peer = 'Org1Peer1';
+        }
+
         this.userInputUtilHelper.showChannelStub.resolves({
             label: 'mychannel',
-            data: ['Org1Peer1']
+            data: [peer]
         });
 
         const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();

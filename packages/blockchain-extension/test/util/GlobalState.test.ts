@@ -76,7 +76,6 @@ describe('GlobalState', () => {
         it('should update global state', async () => {
             const updateStateSpy: sinon.SinonSpy = mySandBox.spy(context.globalState, 'update');
 
-            // TODO JAKE: Update values of 'something_has_changed' to be a valid version
             const newExtensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
             newExtensionData.generatorVersion = '0.0.0';
 

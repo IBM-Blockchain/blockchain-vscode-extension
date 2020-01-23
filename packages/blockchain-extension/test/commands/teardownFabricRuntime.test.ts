@@ -92,6 +92,7 @@ describe('teardownFabricRuntime', () => {
         getEnvironmentStub.callThrough();
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         teardownStub = sandbox.stub(environment, 'teardown').resolves();
+        sandbox.stub(environment, 'startLogs').resolves();
         deleteWalletsAndIdentitiesStub = sandbox.stub(environment, 'deleteWalletsAndIdentities').resolves();
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainEnvironmentExplorerProvider,
@@ -127,6 +128,7 @@ describe('teardownFabricRuntime', () => {
         getEnvironmentStub.callThrough();
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         teardownStub = sandbox.stub(environment, 'teardown').resolves();
+        sandbox.stub(environment, 'startLogs').resolves();
         deleteWalletsAndIdentitiesStub = sandbox.stub(environment, 'deleteWalletsAndIdentities').resolves();
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainEnvironmentExplorerProvider,
@@ -162,6 +164,7 @@ describe('teardownFabricRuntime', () => {
         getEnvironmentStub.callThrough();
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         teardownStub = sandbox.stub(environment, 'teardown').resolves();
+        sandbox.stub(environment, 'startLogs').resolves();
         deleteWalletsAndIdentitiesStub = sandbox.stub(environment, 'deleteWalletsAndIdentities').resolves();
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainEnvironmentExplorerProvider,

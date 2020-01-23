@@ -54,7 +54,7 @@ If you wish to control which files in the project are packaged, you can create a
 The extension is compatible with connecting to and interacting with any Fabric 1.4.x network.
 
 #### Local Fabric
-The extension contains a pre-configured local instance of Hyperledger Fabric named `Local Fabric`, which the extension will automatically pull and use the correct Docker images for. It is a pre-configured network with one organization, one peer and one channel. It can be enabled and operated under the `Fabric Environments` panel. The first time it is started, Fabric 1.4.4 images will be installed and an admin identity created in the `Local Fabric Wallet` wallet.
+The extension contains a pre-configured local instance of Hyperledger Fabric named `Local Fabric`, which the extension will automatically pull and use the correct Docker images for. It is a pre-configured network with one organization, one peer and one channel. It can be enabled and operated under the `Fabric Environments` panel. The first time it is started, Fabric 1.4.4 images will be installed and an admin identity created in the `Local Fabric - Org1 Wallet` wallet.
 
 For `Local Fabric` management tasks such as restart and teardown, right click on `Local Fabric` in the `Fabric Environments` panel.
 
@@ -290,7 +290,7 @@ All functional tests will be created in `<yourProject>/src/test/java/org/example
 
 
 ### Wallet Management
-The extension creates a `Local Fabric Wallet` file system wallet when it is installed, which is used to connect to the `Local Fabric` runtime instance and is automatically associated with that gateway. When `Local Fabric` is started, an admin identity is added to the `Local Fabric Wallet` and cannot be deleted unless the `Local Fabric` runtime is torn down.
+The extension creates a `Local Fabric - Org1 Wallet` file system wallet when the `Local Fabric` runtime instance is started and is automatically associated with the `Local Fabric - Org1` gateway. When `Local Fabric` is started, an admin identity is added to the `Local Fabric - Org1 Wallet` and cannot be deleted unless the `Local Fabric` runtime is torn down.
 
 The `Add Identity to Wallet` command will ask for a name, MSPID and a method to add an identity. These methods include providing a certificate and private key, a JSON identity file, or a gateway, enrollment id and secret.
 
@@ -322,6 +322,39 @@ The following settings can be changed in the user settings to increase or decrea
 ***Note: If the value of `ibm-blockchain-platform.fabric.client.timeout` is changed, you must disconnect from a connected gateway before the new value takes affect***
 
 ***Note: If the value of `ibm-blockchain-platform.fabric.chaincode.timeout` is changed, you must restart the Local Fabric before the new value takes affect***
+
+### Local Fabric Runtime ports
+
+As of `v1.0.19` the `ibm-blockchain-platform.fabric.runtime` user setting has changed format from:
+
+```
+"ibm-blockchain-platform.fabric.runtime": {
+    "ports": {
+        "orderer": 17050,
+        "peerRequest": 17051,
+        "peerChaincode": 17052,
+        "peerEventHub": 17053,
+        "certificateAuthority": 17054,
+        "couchDB": 17055,
+        "logs": 17056
+    }
+}
+```
+
+to
+
+```
+"ibm-blockchain-platform.fabric.runtime": {
+    "ports": {
+        "startPort": 17050,
+        "endPort": 17069
+    }
+}
+```
+
+The `startPort` and `endPort` are used when attempting to start the Local Fabric, to determine which ports to try and run the Docker containers on.
+
+If you decide to change these ports, you will need to run the `Teardown Fabric Runtime` command before starting it again. This is required in order to regenerate the files containing the new port range.
 
 ## Useful Commands
 The IBM Blockchain Platform extension provides an explorer and commands accessible from the Command Palette, for developing smart contracts quickly:

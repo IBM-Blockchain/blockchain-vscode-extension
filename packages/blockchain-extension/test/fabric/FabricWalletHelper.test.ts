@@ -21,8 +21,6 @@ import { FabricWalletRegistry, FileConfigurations } from 'ibm-blockchain-platfor
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { FabricWalletHelper } from '../../extension/fabric/FabricWalletHelper';
-import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
-import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 
 chai.use(sinonChai);
 // tslint:disable no-unused-expression

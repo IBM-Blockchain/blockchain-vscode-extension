@@ -68,9 +68,9 @@ describe('EnvironmentConnectCommand', () => {
 
         beforeEach(async () => {
 
-            connectExplorerStub = mySandBox.stub(ExtensionUtil.getBlockchainEnvironmentExplorerProvider(), 'connect');
+            connectExplorerStub = mySandBox.stub(ExtensionUtil.getBlockchainEnvironmentExplorerProvider(), 'connect').resolves();
             connectManagerSpy = mySandBox.spy(FabricEnvironmentManager.instance(), 'connect');
-
+            mySandBox.stub(ExtensionUtil.getBlockchainEnvironmentExplorerProvider(), 'refresh').resolves();
             mockConnection = mySandBox.createStubInstance(FabricEnvironmentConnection);
             mockConnection.connect.resolves();
             mockConnection.createChannelMap.resolves();
@@ -206,6 +206,7 @@ describe('EnvironmentConnectCommand', () => {
                 localEnvironment = await EnvironmentFactory.getEnvironment(localFabricRegistryEntry) as LocalEnvironment;
 
                 isRunningStub = mySandBox.stub(localEnvironment, 'isRunning').resolves(true);
+                mySandBox.stub(localEnvironment, 'startLogs').resolves();
 
                 getEnvironmentStub = mySandBox.stub(EnvironmentFactory, 'getEnvironment');
                 getEnvironmentStub.callThrough();

@@ -44,9 +44,8 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
 
     const gatewayName: string = gatewayRegistryEntry.displayName ? gatewayRegistryEntry.displayName : gatewayRegistryEntry.name;
 
-    // How do I get the environment name if I have the gateway name?
-    // Ideally we want to check if the ManagedAnsibleEnvironment is running as well and start it if not.
-    // TODO JAKE: Update this so it works for managed ansible environments
+    // TODO JAKE: Update this so it supports managed ansible environments
+    // Maybe we'll want to use the 'managedGateway' property here. We'll need to find out which environment this gateway is for as well.
     if (gatewayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
         const running: boolean = await LocalEnvironmentManager.instance().getRuntime().isRunning();
         if (!running) {

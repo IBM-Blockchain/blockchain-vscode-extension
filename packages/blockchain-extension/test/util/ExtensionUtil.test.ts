@@ -42,8 +42,6 @@ import { RepositoryRegistryEntry } from '../../extension/registries/RepositoryRe
 import * as openTransactionViewCommand from '../../extension/commands/openTransactionViewCommand';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
-import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import * as semver from 'semver';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -1558,12 +1556,10 @@ describe('ExtensionUtil Tests', () => {
                 await ExtensionUtil.activateExtension();
             }
 
-            // TODO JAKE: Added this recently, do we need it?
             await TestUtil.setupLocalFabric();
             const localEnvironment: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
             await localEnvironment.importGateways();
             await localEnvironment.importWalletsAndIdentities();
-            // END
 
             mockRuntime = mySandBox.createStubInstance(LocalEnvironment);
             mockRuntime.isGenerated.resolves(true);

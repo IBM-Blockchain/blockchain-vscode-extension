@@ -98,6 +98,7 @@ describe('environmentExplorer', () => {
                 const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
                 mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
                 mockRuntime.isRunning.resolves(false);
+                mockRuntime.startLogs.resolves();
                 mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
 
                 const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -914,6 +915,10 @@ describe('environmentExplorer', () => {
             registryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
             registryEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
             mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(registryEntry);
+
+            const fabricRuntimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
+            mySandBox.stub(fabricRuntimeManager.getRuntime(), 'startLogs').resolves();
+            mySandBox.stub(fabricRuntimeManager.getRuntime(), 'stopLogs').returns(undefined);
         });
 
         afterEach(() => {

@@ -46,21 +46,22 @@ export class WalletAndIdentityHelper {
     }
 
     public async createCAIdentity(walletName: string, identityName: string, attributes: string = '[]'): Promise<void> {
-        let walletEntry: FabricWalletRegistryEntry;
-        if (walletName === 'Org1') {
-            walletEntry = new FabricWalletRegistryEntry();
-            walletEntry.name = 'Org1';
-            walletEntry.managedWallet = true;
-            walletEntry.displayName = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`;
-            walletEntry.walletPath = WalletAndIdentityHelper.localWalletPath;
-        } else {
-            walletEntry = await FabricWalletRegistry.instance().get(walletName);
-        }
+        const walletEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletName);
 
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
         const wallet: IFabricWallet = await fabricWalletGenerator.getWallet(walletEntry.name);
         const identityExists: boolean = await wallet.exists(identityName);
 
+        let ca: string;
+        if (process.env.OTHER_FABRIC) {
+            // Using old Fabric
+            ca = 'ca.example.com';
+        } else {
+            // Using new Ansible Fabric
+            ca = 'Org1CA';
+        }
+
+        this.userInputUtilHelper.showCertificateAuthorityQuickPickStub.withArgs('Choose certificate authority to create a new identity with').resolves(ca);
         if (!identityExists) {
             this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(identityName);
 

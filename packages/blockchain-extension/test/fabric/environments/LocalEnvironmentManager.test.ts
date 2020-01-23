@@ -108,8 +108,6 @@ describe('LocalEnvironmentManager', () => {
                 endPort: 17070
             });
             mockRuntime.updateUserSettings.should.not.have.been.called;
-            // mockRuntime.importWalletsAndIdentities.should.have.been.calledOnce;
-            // mockRuntime.importGateways.should.have.been.calledOnce;
         });
 
         it('should generate new configuration', async () => {

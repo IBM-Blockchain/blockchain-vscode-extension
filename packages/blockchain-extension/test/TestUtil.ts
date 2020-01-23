@@ -45,24 +45,16 @@ export class TestUtil {
 
             const showConfirmationWarningMessage: SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage');
             showConfirmationWarningMessage.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`).resolves(false);
-            // const runStub: SinonStub = sandbox.stub(YeomanUtil, 'run').resolves();
             const createStub: SinonStub = sandbox.stub(LocalEnvironment.prototype, 'create').resolves();
             await this.setupLocalFabric();
             await ExtensionUtil.activateExtension();
-            // runStub.restore();
+
             createStub.restore();
-            showConfirmationWarningMessage.restore(); // Should we keep this - or should I delete?
+            showConfirmationWarningMessage.restore();
         }
     }
 
     static async setupLocalFabric(): Promise<void> {
-        // Stub generate, so when create (initialize) is called, it doesn't actually run the playbook.
-        // sandbox.stub(ManagedAnsibleEnvironment.prototype, 'generate').resolves();
-
-        // if (sandbox) {
-        //     // sandbox.stub(YeomanUtil, 'run').resolves();
-        //     sandbox.stub(LocalEnvironment.prototype, 'create').resolves();
-        // }
 
         await fs.ensureDir(this.EXTENSION_TEST_DIR);
 
@@ -74,8 +66,6 @@ export class TestUtil {
         const localFabricDir: string = path.join(this.EXTENSION_TEST_DIR, '..', 'data', FabricRuntimeUtil.LOCAL_FABRIC);
         await fs.copy(localFabricDir, environmentDir);
     }
-    // copy generated into environment
-    // stub localfabric.generate
 
     static async storeAll(): Promise<void> {
         await this.storeExtensionDirectoryConfig();

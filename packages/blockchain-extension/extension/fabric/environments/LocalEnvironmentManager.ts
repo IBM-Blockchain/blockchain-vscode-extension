@@ -51,8 +51,8 @@ export class LocalEnvironmentManager {
 
         let updatedPorts: boolean = false;
         if (runtimeObject.ports) {
-            // TODO JAKE: Check to see if ports.orderer, ports.peer, etc.
-            // If so, then we'll need to migrate.
+            // Check to see if ports.orderer, ports.peer, etc.
+            // If so, then we'll need to migrate to use startPoor and endPort.
 
             if (runtimeObject.ports.orderer || runtimeObject.ports.peerRequest || runtimeObject.ports.peerChaincode ||
                 runtimeObject.ports.peerEventHub || runtimeObject.ports.certificateAuthority || runtimeObject.ports.couchDB) {
@@ -93,16 +93,7 @@ export class LocalEnvironmentManager {
         // Check to see if the runtime has been created.
         const created: boolean = await this.runtime.isCreated();
         if (!created) {
-            // Nope - create it now.
             await this.runtime.create();
-            // await this.runtime.teardown(); // Trying this to get tests to work - does it break the code?
-            // await this.runtime.generate(); // ??
-            // Import all of the wallets and identities as well.
-            // await this.runtime.importWalletsAndIdentities(); // this doesnt do anything
-
-            // Import all of the gateways
-            // await this.runtime.importGateways(); // this doesnt do anything
-
         }
 
         FabricEnvironmentManager.instance().on('connected', async () => {

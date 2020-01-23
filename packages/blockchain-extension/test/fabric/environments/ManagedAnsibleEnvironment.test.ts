@@ -429,13 +429,12 @@ describe('ManagedAnsibleEnvironment', () => {
 
     describe('#start', () => {
         let isGeneratedStub: sinon.SinonStub;
-        let isRunningStub: sinon.SinonStub;
         let generateStub: sinon.SinonStub;
         let importWalletsAndIdentitiesStub: sinon.SinonStub;
         let importGatewaysStub: sinon.SinonStub;
         beforeEach(async () => {
             isGeneratedStub = sandbox.stub(environment, 'isGenerated').resolves(false);
-            isRunningStub = sandbox.stub(environment, 'isRunning').resolves(false);
+            sandbox.stub(environment, 'isRunning').resolves(false);
             generateStub = sandbox.stub(environment, 'generate').resolves();
             importWalletsAndIdentitiesStub = sandbox.stub(environment, 'importWalletsAndIdentities').resolves();
             importGatewaysStub = sandbox.stub(environment, 'importGateways').resolves();

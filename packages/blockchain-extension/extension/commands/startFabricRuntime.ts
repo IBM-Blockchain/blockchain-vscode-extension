@@ -53,8 +53,6 @@ export async function startFabricRuntime(registryEntry?: FabricEnvironmentRegist
                 }
             }
             await runtime.start(outputAdapter);
-            // await runtime.importWalletsAndIdentities();
-            // await runtime.importGateways();
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Failed to start ${runtime.getName()}: ${error.message}`, `Failed to start ${runtime.getName()}: ${error.toString()}`);
         }

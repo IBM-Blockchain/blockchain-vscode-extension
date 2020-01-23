@@ -66,7 +66,7 @@ export class AnsibleEnvironment extends FabricEnvironment {
 
         const fabricGateways: FabricGateway[] = await this.getGateways();
         for (const gateway of fabricGateways) {
-            // I think we'll probably need this code!
+
             // Ensure there's the association between this gateway and the environment it's for
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(this.name);
             if (!environmentRegistryEntry.associatedGateways.includes(gateway.name)) {

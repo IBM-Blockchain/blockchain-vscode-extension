@@ -599,11 +599,8 @@ export class ExtensionUtil {
         // Check if there is a newer version of the generator available
         // This needs to be done as a seperate call to make sure the dependencies have been installed
         const generatorVersion: string = dependencies['generator-fabric']; // Change this back
-        // const generatorVersion: string = '1.'; // Change this back
         if (generatorVersion !== extensionData.generatorVersion) {
             // If the latest generator version is not equal to the previous used version
-
-            // TODO JAKE: Wrap these with try/catch - it could be possible that some of these values are undefined, so can't be coerced.
 
             let storedMinor: number;
             let latestMinor: number;
@@ -649,7 +646,6 @@ export class ExtensionUtil {
                     // Teardown and remove generated Fabric
                     await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
 
-                    // TODO JAKE: Do we want to remove starting it?
                     if (isRunning) {
                         // Start the Fabric again
                         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);

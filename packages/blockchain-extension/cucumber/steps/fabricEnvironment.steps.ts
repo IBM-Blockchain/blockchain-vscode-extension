@@ -50,6 +50,7 @@ module.exports = function(): any {
     });
 
     this.Given("the '{string}' environment is connected", this.timeout, async (environment: string) => {
+        await new Promise((resolve: any): any => setTimeout(resolve, 3000));
         await this.fabricEnvironmentHelper.connectToEnvironment(environment);
     });
 

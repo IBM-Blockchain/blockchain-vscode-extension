@@ -786,7 +786,7 @@ describe('AddWalletIdentityCommand', () => {
 
                 const isRunning: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isRunning').resolves(true);
                 const getWalletNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getWalletNames').resolves(['Org1']);
-                const getAllOrganizationNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getAllOrganizationNames').resolves(['myMSPID']);
+                const getAllOrganizationNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getAllOrganizationNames').resolves(['Orderer', 'Org1MSP']);
                 mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns({
                     isRunning,
                     getWalletNames,
@@ -808,7 +808,7 @@ describe('AddWalletIdentityCommand', () => {
                 fsReadFile.should.have.been.called;
                 getEnrollIdSecretStub.should.have.been.calledOnce;
                 enrollStub.should.have.been.calledOnceWith('http://ca0url', 'enrollID', 'enrollSecret');
-                importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
+                importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'Org1MSP');
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
                 executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
 
@@ -835,7 +835,7 @@ describe('AddWalletIdentityCommand', () => {
                 isRunning.onCall(1).resolves(true);
                 const importWalletsAndIdentities: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'importWalletsAndIdentities').resolves();
                 const getWalletNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getWalletNames').resolves(['Org1']);
-                const getAllOrganizationNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getAllOrganizationNames').resolves(['myMSPID']);
+                const getAllOrganizationNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getAllOrganizationNames').resolves(['Orderer', 'Org1MSP']);
                 mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns({
                     isRunning,
                     importWalletsAndIdentities,
@@ -860,7 +860,7 @@ describe('AddWalletIdentityCommand', () => {
                 fsReadFile.should.have.been.called;
                 getEnrollIdSecretStub.should.have.been.calledOnce;
                 enrollStub.should.have.been.calledOnceWith('http://ca0url', 'enrollID', 'enrollSecret');
-                importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
+                importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'Org1MSP');
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
                 logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');

@@ -63,6 +63,7 @@ describe('startFabricRuntime', () => {
         mockLocalRuntime.isCreated.resolves(true);
         mockLocalRuntime.create.resolves();
         mockLocalRuntime.start.resolves();
+        mockLocalRuntime.startLogs.resolves();
         mockLocalRuntime.importWalletsAndIdentities.resolves();
 
         mockManagedEnvironment = sandbox.createStubInstance(ManagedAnsibleEnvironment);

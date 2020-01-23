@@ -89,6 +89,8 @@ describe('restartFabricRuntime', () => {
         getEnvironmentStub.callThrough();
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         restartStub = sandbox.stub(environment, 'restart').resolves();
+        sandbox.stub(environment, 'startLogs').resolves();
+        sandbox.stub(environment, 'stopLogs').returns(undefined);
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainEnvironmentExplorerProvider,
             environment.getName(),
@@ -118,6 +120,8 @@ describe('restartFabricRuntime', () => {
         getEnvironmentStub.callThrough();
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         restartStub = sandbox.stub(environment, 'restart').resolves();
+        sandbox.stub(environment, 'startLogs').resolves();
+        sandbox.stub(environment, 'stopLogs').returns(undefined);
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainEnvironmentExplorerProvider,
             environment.getName(),
@@ -146,6 +150,8 @@ describe('restartFabricRuntime', () => {
         getEnvironmentStub.callThrough();
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         restartStub = sandbox.stub(environment, 'restart').resolves();
+        sandbox.stub(environment, 'startLogs').resolves();
+        sandbox.stub(environment, 'stopLogs').returns(undefined);
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainEnvironmentExplorerProvider,
             environment.getName(),
@@ -176,6 +182,8 @@ describe('restartFabricRuntime', () => {
         getEnvironmentStub.callThrough();
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         restartStub = sandbox.stub(environment, 'restart').throws(error);
+        sandbox.stub(environment, 'startLogs').resolves();
+        sandbox.stub(environment, 'stopLogs').returns(undefined);
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainEnvironmentExplorerProvider,
             environment.getName(),
@@ -207,6 +215,8 @@ describe('restartFabricRuntime', () => {
         getEnvironmentStub.callThrough();
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         restartStub = sandbox.stub(environment, 'restart').resolves();
+        sandbox.stub(environment, 'startLogs').resolves();
+        sandbox.stub(environment, 'stopLogs').returns(undefined);
         getEnvironmentStub.resolves(environment);
         getGatewayRegistryEntryStub.returns(undefined);
         getEnvironmentRegistryEntryStub.returns(undefined);

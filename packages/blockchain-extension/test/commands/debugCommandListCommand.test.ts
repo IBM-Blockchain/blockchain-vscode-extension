@@ -148,7 +148,7 @@ describe('DebugCommandListCommand', () => {
         const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
         registryEntry.name = 'Org1';
         registryEntry.associatedWallet = 'Org1';
-        registryEntry.displayName = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`,
+        registryEntry.displayName = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`;
         connectionManagerGetConnectionStub.onCall(0).returns(undefined);
         connectionManagerGetConnectionStub.onCall(1).returns(runtimeStub);
         showDebugCommandListStub.resolves({ label: 'Evaluate transaction', data: ExtensionCommands.EVALUATE_TRANSACTION });

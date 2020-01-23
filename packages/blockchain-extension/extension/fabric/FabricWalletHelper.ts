@@ -61,12 +61,10 @@ export class FabricWalletHelper {
         // Rewrite the updated wallets to the user settings
         await vscode.workspace.getConfiguration().update(SettingConfigurations.OLD_FABRIC_WALLETS, [], vscode.ConfigurationTarget.Global);
 
-        // I think this is fine.
-        // Migrate local_fabric_wallet if it exists
+        // Delete local_fabric_wallet if it exists
         const localFabricWalletPath: string = path.join(resolvedExtDir, FabricWalletHelper.OLD_LOCAL_WALLET);
         const localWalletExists: boolean = await fs.pathExists(localFabricWalletPath);
         if (localWalletExists) {
-            // We should probably just try to delete it. Might be deleted already.
             await fs.remove(localFabricWalletPath);
         }
     }

@@ -82,7 +82,7 @@ describe('walletExplorer', () => {
         getNewWalletStub.withArgs('Orderer').returns(new FabricWallet('some/local/path'));
         getIdentityNamesStub = mySandBox.stub(FabricWallet.prototype, 'getIdentityNames');
         getIdentitiesStub = mySandBox.stub(FabricWallet.prototype, 'getIdentities');
-        mySandBox.stub(FabricWallet.prototype, 'importIdentity').resolves(); // everything works when I add this, as obviously some/local/path causes an importIdentity to fail
+        mySandBox.stub(FabricWallet.prototype, 'importIdentity').resolves();
     });
 
     afterEach(async () => {
@@ -193,21 +193,6 @@ describe('walletExplorer', () => {
         wallets.length.should.equal(1);
         wallets[0].label.should.equal(`No wallets found`);
     });
-
-    // I don't think we'll ever be in this situation, hence commenting & removal
-    // it.only('should handle no identities in the local wallet', async () => {
-    //     await FabricWalletRegistry.instance().delete('greenWallet');
-    //     await FabricWalletRegistry.instance().delete('blueWallet');
-    //     // await LocalEnvironmentManager.instance().getRuntime().importWalletsAndIdentities();
-    //     getIdentityNamesStub.onCall(0).resolves([]);
-    //     getIdentityNamesStub.onCall(1).resolves([]);
-    //     const wallets: Array<LocalWalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<LocalWalletTreeItem>;
-
-    //     wallets.length.should.equal(2);
-    //     wallets[0].label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
-    //     wallets[0].identities.should.deep.equal([]);
-    //     logSpy.should.not.have.been.calledWith(LogType.ERROR);
-    // });
 
     it('should refresh the BlockchainWalletExplorer view when refresh is called', async () => {
         const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainWalletExplorerProvider['_onDidChangeTreeData'], 'fire');

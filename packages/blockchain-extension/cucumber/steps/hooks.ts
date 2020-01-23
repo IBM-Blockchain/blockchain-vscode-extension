@@ -111,7 +111,7 @@ module.exports = function(): any {
                     await FabricEnvironmentRegistry.instance().clear();
                     await RepositoryRegistry.instance().clear();
                 } catch (error) {
-                    console.log(error);
+                    // Should we be activating before clearing - we keep erroring here!
                 }
                 await ExtensionUtil.activateExtension();
 

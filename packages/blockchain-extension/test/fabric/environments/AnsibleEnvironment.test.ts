@@ -117,28 +117,6 @@ describe('AnsibleEnvironment', () => {
                 }
             }
         });
-
-        // it('should be able to pass a fallback wallet if desired', async () => {
-        //     const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-        //     const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
-
-        //     await environment.importGateways('fallbackWallet');
-
-        //     const gateways: FabricGateway[] = await environment.getGateways();
-        //     gateways.should.have.lengthOf(3);
-        //     for (const gateway of gateways) {
-        //         const profileDirPath: string = path.join(homeExtDir, 'gateways', gateway.name);
-        //         const profilePath: string = path.join(profileDirPath, path.basename(gateway.path));
-        //         await fs.pathExists(profilePath).should.eventually.be.true;
-        //         const registryEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(gateway.name);
-        //         const wallet: string = (gateway.connectionProfile as any).wallet;
-        //         if (!wallet) {
-        //             registryEntry.associatedWallet.should.equal('fallbackWallet');
-        //         } else {
-        //             registryEntry.associatedWallet.should.equal((gateway.connectionProfile as any).wallet);
-        //         }
-        //     }
-        // });
     });
 
     describe('#getGateways', () => {
