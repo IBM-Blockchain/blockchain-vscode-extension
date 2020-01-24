@@ -34,6 +34,7 @@ import { ModuleUtil } from '../util/ModuleUtil';
 
 export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false, createMethod?: string): Promise<boolean> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+    const methodMessageString: string = createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS ? 'import' : 'filter';
     outputAdapter.log(LogType.INFO, undefined, 'Import nodes to environment');
 
     try {
@@ -63,6 +64,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
 
         const environment: FabricEnvironment = new FabricEnvironment(environmentRegistryEntry.name);
         const environmentBaseDir: string = path.resolve(environment.getPath());
+        const oldNodes: FabricNode[] = await environment.getNodes(false, true);
 
         const nodesToUpdate: FabricNode[] = [];
         let addedAllNodes: boolean = true;
@@ -184,8 +186,9 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                             }
                         );
 
-                    // Ask user to chose which nodes to add to the environemnt.
-                    let chosenNodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesQuickPickBox('Which nodes would you like to import?', filteredData, true) as IBlockchainQuickPickItem<FabricNode>[];
+                let chosenNodes: IBlockchainQuickPickItem<FabricNode>[];
+                chosenNodes = await UserInputUtil.showNodesQuickPickBox(`Which nodes would you like to ${methodMessageString}?`, filteredData, true, oldNodes) as IBlockchainQuickPickItem<FabricNode>[];
+
                     if (!chosenNodes || chosenNodes.length === 0) {
                     return true;
                     } else if (!Array.isArray(chosenNodes)) {
@@ -219,21 +222,20 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             const environmentNodesPath: string = path.join(environmentBaseDir, 'nodes');
             await fs.ensureDir(environmentNodesPath);
 
-            const oldNodes: FabricNode[] = await environment.getNodes();
             for (const node of nodesToUpdate) {
                 try {
-                    const alreadyExists: boolean = oldNodes.some((_node: FabricNode) => _node.name === node.name);
+                const alreadyExists: boolean = oldNodes.some((_node: FabricNode) => _node.name === node.name && ( _node.hidden === false || _node.hidden === undefined ));
                     if (alreadyExists && createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_NODES) {
                         throw new Error(`Node with name ${node.name} already exists`);
                     }
                     FabricNode.validateNode(node);
-                    await environment.updateNode(node);
+                await environment.updateNode(node, createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
                 } catch (error) {
                     addedAllNodes = false;
                     if (!node.name) {
-                        outputAdapter.log(LogType.ERROR, `Error importing node: ${error.message}`, `Error importing node: ${error.toString()}`);
+                    outputAdapter.log(LogType.ERROR, `Error ${methodMessageString}ing node: ${error.message}`, `Error ${methodMessageString}ing node: ${error.toString()}`);
                     } else {
-                        outputAdapter.log(LogType.ERROR, `Error importing node ${node.name}: ${error.message}`, `Error importing node ${node.name}: ${error.toString()}`);
+                    outputAdapter.log(LogType.ERROR, `Error ${methodMessageString}ing node ${node.name}: ${error.message}`, `Error ${methodMessageString}ing node ${node.name}: ${error.toString()}`);
                     }
                 }
             }
@@ -241,14 +243,14 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             // check if any nodes were added
             const newEnvironment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
             const newNodes: FabricNode[] = await newEnvironment.getNodes();
-            if (newNodes.length === oldNodes.length) {
+            if (newNodes.length === oldNodes.length && createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS) {
                 throw new Error('no nodes were added');
             }
 
             if (addedAllNodes) {
-                outputAdapter.log(LogType.SUCCESS, 'Successfully imported all nodes');
+            outputAdapter.log(LogType.SUCCESS, `Successfully ${methodMessageString}ed all nodes`);
             } else {
-                outputAdapter.log(LogType.WARNING, 'Finished importing nodes but some nodes could not be added');
+            outputAdapter.log(LogType.WARNING, `Finished ${methodMessageString}ing nodes but some nodes could not be ${methodMessageString}ed`);
             }
 
             const connectedRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
@@ -259,11 +261,8 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
 
             return addedAllNodes;
 
-        }
-    catch
-        (error);
-        {
-            outputAdapter.log(LogType.ERROR, `Error importing nodes: ${error.message}`);
+    } catch (error) {
+        outputAdapter.log(LogType.ERROR, `Error ${methodMessageString}ing nodes: ${error.message}`);
             if (fromAddEnvironment) {
                 throw error;
             }
