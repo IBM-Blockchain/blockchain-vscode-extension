@@ -196,7 +196,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
         });
 
         // Update this test when doing issue for filtering nodes
@@ -212,7 +212,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, true, false, EnvironmentType.OPSTOOLSENV);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, OpsToolRegistryEntry);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
         });
 
         it('should test nodes can be added to an existing OpsTool environment', async () => {
@@ -226,7 +226,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, OpsToolRegistryEntry);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
         });
 
         it('should test nodes can be added to an existing OpsTool environment (on windows)', async () => {
@@ -241,7 +241,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, OpsToolRegistryEntry);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
         });
 
         it('should handle when the keytar module cannot be imported at all when creating a new OpsTool instance', async () => {
@@ -252,9 +252,9 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getCoreNodeModuleStub.should.have.been.calledOnce;
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.not.have.been.called;
-            getNodesStub.should.not.have.been.called;
+            getNodesStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error importing nodes: Error importing the keytar module`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: Error importing the keytar module`);
         });
 
         it('should handle when the api key and secret cannot be retrieved when creating new OpsTool instance', async () => {
@@ -266,7 +266,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getCoreNodeModuleStub.should.have.been.calledOnce;
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.not.have.been.called;
-            getNodesStub.should.not.have.been.called;
+            getNodesStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${error.message}`, `Failed to acquire nodes from ${url}, with error ${error.toString()}`);
         });
@@ -280,10 +280,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getCoreNodeModuleStub.should.have.been.calledOnce;
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.not.have.been.called;
-            getNodesStub.should.not.have.been.called;
+            getNodesStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${error.message}`, `Failed to acquire nodes from ${url}, with error ${error.toString()}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error importing nodes: ${error.message}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: ${error.message}`);
 
         });
 
@@ -331,7 +331,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
         });
 
         it('should handle no certificate verification on a new Ops Tool instance', async () => {
@@ -346,7 +346,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
             readFileStub.should.have.not.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
         });
 
         it('should handle no certificate verification on an existing Ops Tool instance', async () => {
@@ -361,7 +361,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
             readFileStub.should.have.not.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
         });
 
         it('should throw error when multiple certificates present when editing filters on an existing Ops Tool instance', async () => {
@@ -375,11 +375,11 @@ describe('ImportNodesToEnvironmentCommand', () => {
             readFileStub.should.have.not.been.called;
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.have.not.been.called;
-            getNodesStub.should.have.not.been.called;
+            getNodesStub.should.have.been.calledOnce;
             readFileStub.should.have.not.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${expectedError.message}`, `Failed to acquire nodes from ${url}, with error ${expectedError.toString()}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error importing nodes: ${expectedError.message}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: ${expectedError.message}`);
         });
 
         it('should test nodes can be added with environment chosen', async () => {
@@ -493,7 +493,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error importing node: ${error.message}`, `Error importing node: ${error.toString()}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.WARNING, 'Finished importing nodes but some nodes could not be added');
+            logSpy.getCall(2).should.have.been.calledWith(LogType.WARNING, 'Finished importing nodes but some nodes could not be imported');
         });
 
         it('should nodes can be imported in muliple goes', async () => {
@@ -593,7 +593,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.should.have.been.calledThrice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error importing node file ${uri.fsPath}: ${error.message}`, `Error importing node file ${uri.fsPath}: ${error.toString()}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.WARNING, 'Finished importing nodes but some nodes could not be added');
+            logSpy.getCall(2).should.have.been.calledWith(LogType.WARNING, 'Finished importing nodes but some nodes could not be imported');
         });
 
         it('should throw error when failing to connect to Ops Tool URL when edditing nodes in existing environment', async () => {
@@ -606,10 +606,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getCoreNodeModuleStub.should.have.been.calledOnce;
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.not.have.been.called;
-            getNodesStub.should.have.not.been.called;
+            getNodesStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${connectionError.message}`, `Failed to acquire nodes from ${url}, with error ${connectionError.toString()}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error importing nodes: ${connectionError.message}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: ${connectionError.message}`);
         });
 
         it('should throw error when failing to connect to Ops Tool URL when adding nodes via add environment', async () => {
@@ -621,10 +621,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getCoreNodeModuleStub.should.have.been.calledOnce;
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.not.have.been.called;
-            getNodesStub.should.not.have.been.called;
+            getNodesStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${error.message}`, `Failed to acquire nodes from ${url}, with error ${error.toString()}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error importing nodes: ${error.message}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: ${error.message}`);
         });
 
         it('should handle when user does not select any nodes when editting nodes on an existing Ops Tool instance', async () => {
@@ -634,7 +634,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.have.not.been.called;
-            getNodesStub.should.have.not.been.called;
+            getNodesStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
         });
 
@@ -648,7 +648,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
         });
 
         it('should add all nodes from the orderer cluster if user chooses any of those nodes, when adding nodes from Ops Tool', async () => {
@@ -705,7 +705,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
         });
 
         it('should handle errors when copying node files', async () => {
@@ -721,7 +721,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.should.have.been.calledThrice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error importing node peer0.org1.example.com: ${error.message}`, `Error importing node peer0.org1.example.com: ${error.toString()}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.WARNING, 'Finished importing nodes but some nodes could not be added');
+            logSpy.getCall(2).should.have.been.calledWith(LogType.WARNING, 'Finished importing nodes but some nodes could not be imported');
         });
 
         it('should error if a node with the same name already exists', async () => {
@@ -844,7 +844,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.should.have.been.calledWith(LogType.ERROR, `Error importing node: A node should have a name property`, `Error importing node: Error: A node should have a name property`);
-            logSpy.should.have.been.calledWith(LogType.WARNING, 'Finished importing nodes but some nodes could not be added');
+            logSpy.should.have.been.calledWith(LogType.WARNING, 'Finished importing nodes but some nodes could not be imported');
         });
     });
 });

@@ -65,15 +65,15 @@ export class FabricEnvironment extends EventEmitter {
         }
     }
 
-    public async updateNode(node: FabricNode): Promise<void> {
+    public async updateNode(node: FabricNode, isOpsTools: boolean = false): Promise<void> {
         const nodesPath: string = path.resolve(this.path, 'nodes');
 
         const nodesToUpdate: FabricNode[] = [];
+        const allNodes: FabricNode[] = await this.getNodes(false, true);
 
         if (node.type === FabricNodeType.ORDERER) {
             // need to also update all the nodes in the same cluster
-            let allNodes: FabricNode[] = await this.getNodes();
-            allNodes = allNodes.filter((_node: FabricNode) => {
+            const ordererNodes: FabricNode[] = allNodes.filter((_node: FabricNode) => {
                 return _node.type === FabricNodeType.ORDERER && _node.cluster_name && _node.cluster_name === node.cluster_name && _node.name !== node.name;
             }).map((_node: FabricNode) => {
                 _node.wallet = node.wallet;
@@ -81,9 +81,28 @@ export class FabricEnvironment extends EventEmitter {
                 return _node;
             });
 
-            nodesToUpdate.push(...allNodes);
+            nodesToUpdate.push(...ordererNodes);
         }
 
+        if (isOpsTools) {
+            // If this node already exists keep wallet and identity properties.
+            // Check name matches, if not rename the node JSON file.
+            const allUrls: string[] = allNodes.map((_node: FabricNode) => _node.api_url);
+            const index: number = allUrls.indexOf(node.api_url);
+            if (index > -1) {
+                if (allNodes[index].wallet) {
+                    node.wallet = allNodes[index].wallet;
+                }
+                if (allNodes[index].identity) {
+                    node.identity = allNodes[index].identity;
+                }
+                if (node.name !== allNodes[index].name) {
+                    const newNodePath: string = path.resolve(nodesPath, `${node.name}.json`);
+                    const oldNodePath: string = path.resolve(nodesPath, `${allNodes[index].name}.json`);
+                    await fs.move(oldNodePath, newNodePath);
+                }
+            }
+        }
         // always needs to update itself
         nodesToUpdate.push(node);
 

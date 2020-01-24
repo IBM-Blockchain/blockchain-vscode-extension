@@ -143,6 +143,7 @@ export class EnvironmentHelper {
             registryEntry.managedRuntime = true;
         } else {
             registryEntry = await FabricEnvironmentRegistry.instance().get(environment);
+            this.userInputUtilHelper.showEnvironmentQuickPickStub.withArgs('Choose an environment to connect with', false, true, true).resolves({label: registryEntry.name, data: registryEntry});
         }
 
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, registryEntry);

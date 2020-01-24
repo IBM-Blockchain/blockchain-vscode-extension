@@ -226,11 +226,11 @@ describe('FabricEnvironment', () => {
         it('should update all orderer nodes in same cluster', async () => {
             const node: FabricNode = FabricNode.newOrderer('order', 'orderer.example.com', 'http://localhost:17056', 'myWallet', 'myIdentity', 'osmsp', 'myCluster');
 
-            const otherNode: FabricNode = FabricNode.newOrderer('order1', 'orderer1.example.com', 'http://localhost:17056', undefined, undefined, 'osmsp', 'myCluster');
-            const differentNode: FabricNode = FabricNode.newOrderer('order2', 'orderer2.example.com', 'http://localhost:17056', undefined, undefined, 'osmsp', undefined);
-            const differnet2Node: FabricNode = FabricNode.newOrderer('order3', 'orderer3.example.com', 'http://localhost:17056', undefined, undefined, 'osmsp', 'otherCluster');
+            const otherNode: FabricNode = FabricNode.newOrderer('order1', 'orderer1.example.com', 'http://localhost:17057', undefined, undefined, 'osmsp', 'myCluster');
+            const differentNode: FabricNode = FabricNode.newOrderer('order2', 'orderer2.example.com', 'http://localhost:17058', undefined, undefined, 'osmsp', undefined);
+            const differnet2Node: FabricNode = FabricNode.newOrderer('order3', 'orderer3.example.com', 'http://localhost:17059', undefined, undefined, 'osmsp', 'otherCluster');
 
-            const updatedOtherNode: FabricNode = FabricNode.newOrderer('order1', 'orderer1.example.com', 'http://localhost:17056', 'myWallet', 'myIdentity', 'osmsp', 'myCluster');
+            const updatedOtherNode: FabricNode = FabricNode.newOrderer('order1', 'orderer1.example.com', 'http://localhost:17057', 'myWallet', 'myIdentity', 'osmsp', 'myCluster');
 
             const nodePath: string = path.join(environmentPath, 'nodes', `${node.name}.json`);
             const otherNodePath: string = path.join(environmentPath, 'nodes', `${otherNode.name}.json`);
@@ -243,6 +243,61 @@ describe('FabricEnvironment', () => {
             writeStub.should.have.been.calledTwice;
             writeStub.firstCall.should.have.been.calledWith(otherNodePath, updatedOtherNode);
             writeStub.secondCall.should.have.been.calledWith(nodePath, node);
+        });
+
+        it('should update Ops Tools new node', async () => {
+            const node: FabricNode = FabricNode.newOrderer('order', 'orderer.example.com', 'http://localhost:17056', undefined, undefined, 'osmsp', 'myCluster');
+
+            sandbox.stub(environment, 'getNodes').resolves([]);
+
+            const nodePath: string = path.join(environmentPath, 'nodes', `${node.name}.json`);
+            const writeStub: sinon.SinonStub = sandbox.stub(fs, 'writeJson');
+
+            await environment.updateNode(node, true);
+
+            writeStub.should.have.been.calledWith(nodePath, node);
+        });
+
+        it('should move old file to new file when node name changes on an existing Ops Tools node', async () => {
+            const newNameNode: FabricNode = FabricNode.newPeer('peerNewName.org1.example.com', 'peerNewName.org1.example.com', 'grpc://localhost:17051', 'myOpsToolsWallet', 'admin', 'Org1MSP', true);
+
+            sandbox.stub(environment, 'getNodes').resolves([                {
+                short_name: 'peer1.org1.example.com',
+                name: 'peer1.org1.example.com',
+                api_url: 'grpc://localhost:17051',
+                chaincode_url: 'grpc://localhost:17052',
+                type: 'fabric-peer',
+                msp_id: 'Org1MSP',
+                container_name: 'yofn_peer1.org1.example.com',
+                hidden: false
+            }]);
+
+            const oldNodePath: string = path.join(environmentPath, 'nodes', 'peer1.org1.example.com.json');
+            const newNodePath: string = path.join(environmentPath, 'nodes', `${newNameNode.name}.json`);
+            const moveStub: sinon.SinonStub = sandbox.stub(fs, 'move');
+            const writeStub: sinon.SinonStub = sandbox.stub(fs, 'writeJson');
+
+            await environment.updateNode(newNameNode, true);
+
+            moveStub.should.have.been.calledWith(oldNodePath, newNodePath);
+            writeStub.should.have.been.calledWith(newNodePath, newNameNode);
+        });
+
+        it('should update node with wallet and identity of existing Ops Tools node if those fields no not exist on new version of the node ', async () => {
+            const existingNode: FabricNode = FabricNode.newPeer('origonalShortName', 'peer1.org1.example.com', 'grpc://localhost:17051', 'myOpsToolsWallet', 'admin', 'Org1MSP', true);
+            const newVersionNode: FabricNode = FabricNode.newPeer('newShortName', 'peer1.org1.example.com', 'grpc://localhost:17051', undefined, undefined, 'Org1MSP', true);
+            const updatedNode: FabricNode = FabricNode.newPeer('newShortName', 'peer1.org1.example.com', 'grpc://localhost:17051', 'myOpsToolsWallet', 'admin', 'Org1MSP', true);
+
+            sandbox.stub(environment, 'getNodes').resolves([existingNode]);
+
+            const nodePath: string = path.join(environmentPath, 'nodes', 'peer1.org1.example.com.json');
+            const moveStub: sinon.SinonStub = sandbox.stub(fs, 'move');
+            const writeStub: sinon.SinonStub = sandbox.stub(fs, 'writeJson');
+
+            await environment.updateNode(newVersionNode, true);
+
+            moveStub.should.not.have.been.called;
+            writeStub.should.have.been.calledWith(nodePath, updatedNode);
         });
     });
 

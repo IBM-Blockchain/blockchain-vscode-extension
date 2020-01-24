@@ -1043,12 +1043,30 @@ export class UserInputUtil {
         });
     }
 
-    public static async showNodesQuickPickBox(prompt: string, nodes: FabricNode[], canPickMany: boolean): Promise<Array<IBlockchainQuickPickItem<FabricNode>> | IBlockchainQuickPickItem<FabricNode> | undefined> {
+    public static async showNodesQuickPickBox(prompt: string, nodes: FabricNode[], canPickMany: boolean, currentNodes?: FabricNode[]): Promise<Array<IBlockchainQuickPickItem<FabricNode>> | IBlockchainQuickPickItem<FabricNode> | undefined> {
         if (nodes.length === 0) {
             throw new Error('Error when importing nodes, no nodes found to choose from.');
         }
 
         const quickPickItems: IBlockchainQuickPickItem<FabricNode>[] = UserInputUtil.selectNodesOneOrdererPerCluster(nodes);
+
+        if (currentNodes && currentNodes.length > 0) {
+            quickPickItems.map((quickPickItem: IBlockchainQuickPickItem<FabricNode>) => {
+                const existingNode: FabricNode = currentNodes.find((node: FabricNode) => node.api_url === quickPickItem.data.api_url);
+                if (existingNode) {
+                    if ( existingNode.hidden === undefined || existingNode.hidden === false ) {
+                        quickPickItem.picked = true;
+                    }
+                    if (existingNode.name !== quickPickItem.data.name) {
+                        quickPickItem.description = `(was ${existingNode.name})`;
+                    }
+                } else {
+                    quickPickItem.description = '(new)';
+                }
+                return quickPickItem;
+            });
+        }
+        const sortedQuickPickItems: IBlockchainQuickPickItem<FabricNode>[] = UserInputUtil.sortNodesForQuickpick(quickPickItems);
 
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
@@ -1056,7 +1074,18 @@ export class UserInputUtil {
             placeHolder: prompt
         };
 
-        return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+        return vscode.window.showQuickPick(sortedQuickPickItems, quickPickOptions);
+    }
+
+    public static sortNodesForQuickpick(items: IBlockchainQuickPickItem<FabricNode>[]): IBlockchainQuickPickItem<FabricNode>[] {
+
+        const alphabeticalSortFn: any = (a: IBlockchainQuickPickItem<FabricNode>, b: IBlockchainQuickPickItem<FabricNode>): number => a.label.localeCompare(b.label);
+
+        const newNodes: IBlockchainQuickPickItem<FabricNode>[] = items.filter((item: IBlockchainQuickPickItem<FabricNode>) => item.description && item.description === '(new)').sort(alphabeticalSortFn);
+        const pickedNodes: IBlockchainQuickPickItem<FabricNode>[] = items.filter((item: IBlockchainQuickPickItem<FabricNode>) => item.picked && item.picked === true).sort(alphabeticalSortFn);
+        const hiddenNodes: IBlockchainQuickPickItem<FabricNode>[] = items.filter((item: IBlockchainQuickPickItem<FabricNode>) => !item.picked && (!item.description  || item.description !== '(new)')).sort(alphabeticalSortFn);
+
+        return newNodes.concat(hiddenNodes, pickedNodes);
     }
 
     private static async checkForUnsavedFiles(): Promise<void> {
