@@ -99,6 +99,6 @@ export class UserInputUtilHelper {
         this.showWarningMessageStub = this.mySandBox.stub(vscode.window, 'showWarningMessage').callThrough();
         this.openFileBrowserStub = this.mySandBox.stub(UserInputUtil, 'openFileBrowser').callThrough();
         this.vscodeWindowShowQuickPickStub = this.mySandBox.stub(vscode.window, 'showQuickPick').callThrough();
-        this.opsToolsNodeQuickPickStub = this.vscodeWindowShowQuickPickStub.withArgs(sinon.match.any, {ignoreFocusOut: true, canPickMany: true, placeHolder: 'Which nodes would you like to import?'});
+        this.opsToolsNodeQuickPickStub = this.vscodeWindowShowQuickPickStub.withArgs(sinon.match.any, {ignoreFocusOut: true, canPickMany: true, placeHolder: 'Which nodes would you like to filter?'});
     }
 }
