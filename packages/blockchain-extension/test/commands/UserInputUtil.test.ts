@@ -2434,19 +2434,24 @@ describe('UserInputUtil', () => {
         let caNode: FabricNode;
         let ordererNode: FabricNode;
         let nodes: FabricNode[] = [];
-        let nodesPick: IBlockchainQuickPickItem<FabricNode>[];
+        let nodesPickWithoutCurrent: IBlockchainQuickPickItem<FabricNode>[];
+        let nodesPickWithCurrent: IBlockchainQuickPickItem<FabricNode>[];
+        let sortNodesForQuickpickStub: sinon.SinonStub;
 
         beforeEach(() => {
-            peerNode = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grps://somehost:7051', 'cake_fabric_wallet', 'admin', 'Org1MSP');
-            peerNode1 = FabricNode.newPeer('peer1.org1.example.com', 'peer1.org1.example.com', 'grpcs://somehost:7051', 'cake_fabric_wallet', 'admin', 'Org1MSP');
-            peerNode2 = FabricNode.newPeer('peer0.org2.example.com', 'peer0.org2.example.com', 'grpcs://somehost:7051', 'cake_fabric_wallet', 'admin', 'Org2MSP');
-            caNode = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'https://somehost:7054', 'ca_name', 'cake_fabric_wallet', 'admin', 'Org1MSP', 'admin', 'adminpw');
-            ordererNode = FabricNode.newOrderer('orderer.example.com', 'orderer.example.com', 'grpcs://somehost:7050', 'cake_fabric_wallet', 'admin', 'OrdererMSP', undefined);
+            peerNode = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grps://somehost:7051', 'cake_fabric_wallet', 'admin', 'Org1MSP', true);
+            peerNode1 = FabricNode.newPeer('peer1.org1.example.com', 'peer1.org1.example.com', 'grpcs://somehost:7052', 'cake_fabric_wallet', 'admin', 'Org1MSP', true);
+            peerNode2 = FabricNode.newPeer('peer0.org2.example.com', 'peer0.org2.example.com', 'grpcs://somehost:7053', 'cake_fabric_wallet', 'admin', 'Org2MSP', false);
+            caNode = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'https://somehost:7054', 'ca_name', 'cake_fabric_wallet', 'admin', 'Org1MSP', 'admin', 'adminpw', false);
+            ordererNode = FabricNode.newOrderer('orderer.example.com', 'orderer.example.com', 'grpcs://somehost:7055', 'cake_fabric_wallet', 'admin', 'OrdererMSP', undefined, true);
 
             nodes = [];
             nodes.push(peerNode, peerNode1, peerNode2, caNode, ordererNode);
 
-            nodesPick = nodes.map((_node: FabricNode) => ({ label: _node.name, data: _node }));
+            nodesPickWithoutCurrent = nodes.map((_node: FabricNode) => ( { label: _node.name, data: _node }));
+            nodesPickWithCurrent = nodes.map((_node: FabricNode) => ( !_node.hidden ? { label: _node.name, data: _node, picked: true } : { label: _node.name, data: _node }));
+
+            sortNodesForQuickpickStub = mySandBox.stub(UserInputUtil, 'sortNodesForQuickpick').returnsArg(0);
         });
 
         it('should throw an error if no nodes in Ops Tool', async () => {
@@ -2456,23 +2461,85 @@ describe('UserInputUtil', () => {
         });
 
         it('should allow the user to choose multiple nodes from Ops Tool', async () => {
-            quickPickStub.resolves([{ label: nodes[0].name, data: nodes[0] }, { label: nodes[2].name, data: nodes[2] }]);
+            quickPickStub.resolves([nodesPickWithoutCurrent[0], nodesPickWithoutCurrent[1]]);
 
             const result: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesQuickPickBox('choose your nodes', nodes, true) as IBlockchainQuickPickItem<FabricNode>[];
-            result.should.deep.equal([{ label: nodes[0].name, data: nodes[0] }, { label: nodes[2].name, data: nodes[2] }]);
 
-            quickPickStub.should.have.been.calledWith(nodesPick);
+            result.should.deep.equal([nodesPickWithoutCurrent[0], nodesPickWithoutCurrent[1]]);
+            quickPickStub.should.have.been.calledWith(nodesPickWithoutCurrent);
+            sortNodesForQuickpickStub.should.have.been.called;
         });
 
         it('should still show quickpick if only one node present in Ops Tool', async () => {
             nodes = [];
             nodes.push(peerNode);
-            quickPickStub.resolves([{ label: peerNode.name, data: peerNode }]);
+            quickPickStub.resolves([nodesPickWithoutCurrent[0]]);
 
             const result: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesQuickPickBox('choose your nodes', nodes, true) as IBlockchainQuickPickItem<FabricNode>[];
-            result.should.deep.equal([{ label: peerNode.name, data: peerNode }]);
 
-            quickPickStub.should.have.been.calledWith([{ label: peerNode.name, data: peerNode }]);
+            result.should.deep.equal([nodesPickWithoutCurrent[0]]);
+            quickPickStub.should.have.been.calledWith([nodesPickWithoutCurrent[0]]);
+            sortNodesForQuickpickStub.should.have.been.called;
+        });
+
+        it('should show description "(new)" when a new node is present from Ops Tool', async () => {
+            const newPeerNode: FabricNode = FabricNode.newPeer('peerNew.org1.example.com', 'peerNew.org1.example.com', 'grps://somehost:7056', 'cake_fabric_wallet', 'admin', 'Org1MSP');
+            const newNodes: FabricNode[] = Array.from(nodes);
+            newNodes.push(newPeerNode);
+            nodesPickWithCurrent.push({ label: newPeerNode.name, data: newPeerNode, description: '(new)' });
+            quickPickStub.resolves([nodesPickWithCurrent[0], nodesPickWithCurrent[2]]);
+
+            const result: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesQuickPickBox('choose your nodes', newNodes, true, nodes) as IBlockchainQuickPickItem<FabricNode>[];
+
+            result.should.deep.equal([nodesPickWithCurrent[0], nodesPickWithCurrent[2]]);
+            quickPickStub.should.have.been.calledWith(nodesPickWithCurrent);
+            sortNodesForQuickpickStub.should.have.been.called;
+        });
+
+        it('should show description "(was <oldName>)" when a node has a different name from Ops Tool', async () => {
+            const newNamePeer: FabricNode = FabricNode.newPeer('NewPeerName', 'NewPeerName', 'grps://somehost:7051', 'cake_fabric_wallet', 'admin', 'Org1MSP', true);
+            const newNodes: FabricNode[] = [newNamePeer, peerNode1, peerNode2, caNode, ordererNode];
+            nodesPickWithCurrent = [];
+            nodesPickWithCurrent = newNodes.map((_node: FabricNode) => ( !_node.hidden ? { label: _node.name, data: _node, picked: true } : { label: _node.name, data: _node }));
+            nodesPickWithCurrent[0].description = `(was ${nodes[0].name})`;
+
+            quickPickStub.resolves([nodesPickWithCurrent[0], nodesPickWithCurrent[2]]);
+
+            const result: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesQuickPickBox('choose your nodes', newNodes, true, nodes) as IBlockchainQuickPickItem<FabricNode>[];
+
+            result.should.deep.equal([nodesPickWithCurrent[0], nodesPickWithCurrent[2]]);
+            quickPickStub.should.have.been.calledWith(nodesPickWithCurrent);
+            sortNodesForQuickpickStub.should.have.been.called;
+        });
+    });
+
+    describe('sortNodesForQuickpick', () => {
+        let peerNode1: IBlockchainQuickPickItem<FabricNode>;
+        let peerNode2: IBlockchainQuickPickItem<FabricNode>;
+        let peerNode3: IBlockchainQuickPickItem<FabricNode>;
+        let peerNode4: IBlockchainQuickPickItem<FabricNode>;
+        let peerNode5: IBlockchainQuickPickItem<FabricNode>;
+        let peerNode6: IBlockchainQuickPickItem<FabricNode>;
+        let nodes: IBlockchainQuickPickItem<FabricNode>[];
+        let expectedSortedNodes: IBlockchainQuickPickItem<FabricNode>[];
+
+        beforeEach(() => {
+            peerNode1 = {data: FabricNode.newPeer('peer1', 'peer1', 'some_url', 'some_wallet', 'some_identity', 'some_msp', false), label: 'peer1', picked: true};
+            peerNode2 = {data: FabricNode.newPeer('peer2', 'peer2', 'some_url', 'some_wallet', 'some_identity', 'some_msp', true), label: 'peer2', picked: false};
+            peerNode3 = {data: FabricNode.newPeer('peer3', 'peer3', 'some_url', 'some_wallet', 'some_identity', 'some_msp', false), label: 'peer3', picked: true};
+            peerNode4 = {data: FabricNode.newPeer('peer4', 'peer4', 'some_url', 'some_wallet', 'some_identity', 'some_msp', true), label: 'peer4', picked: false, description: '(was peerOld)'};
+            peerNode5 = {data: FabricNode.newPeer('peer5', 'peer5', 'some_url', 'some_wallet', 'some_identity', 'some_msp', false), label: 'peer5', description: '(new)'};
+            peerNode6 = {data: FabricNode.newPeer('peer6', 'peer6', 'some_url', 'some_wallet', 'some_identity', 'some_msp', true), label: 'peer6', picked: false};
+
+            nodes = [];
+            nodes.push(peerNode6, peerNode5, peerNode4, peerNode3, peerNode2, peerNode1);
+            expectedSortedNodes = [];
+            expectedSortedNodes.push(peerNode5, peerNode2, peerNode4, peerNode6, peerNode1, peerNode3);
+        });
+
+        it('should sort nodes with 1: new, 2: hidden, 3: picked', async () => {
+            const result: IBlockchainQuickPickItem<FabricNode>[] = UserInputUtil.sortNodesForQuickpick(nodes);
+            result.should.deep.equal(expectedSortedNodes);
         });
     });
 });

@@ -52,6 +52,7 @@ describe('EnvironmentConnectCommand', () => {
         let logSpy: sinon.SinonSpy;
         let environmentRegistryEntry: FabricEnvironmentRegistryEntry;
         let localFabricRegistryEntry: FabricEnvironmentRegistryEntry;
+        let opsToolsEnvRegistryEntry: FabricEnvironmentRegistryEntry;
 
         let chooseEnvironmentQuickPick: sinon.SinonStub;
         let sendTelemetryEventStub: sinon.SinonStub;
@@ -69,6 +70,9 @@ describe('EnvironmentConnectCommand', () => {
         let ordererNode: FabricNode;
         let getNodesStub: sinon.SinonStub;
 
+        let executeCommandStub: sinon.SinonStub;
+        let warningNoNodesEditFilterStub: sinon.SinonStub;
+
         beforeEach(async () => {
 
             connectExplorerStub = mySandBox.stub(ExtensionUtil.getBlockchainEnvironmentExplorerProvider(), 'connect').resolves();
@@ -83,6 +87,7 @@ describe('EnvironmentConnectCommand', () => {
             mockConnection.createChannelMap.resolves();
 
             mySandBox.stub(FabricConnectionFactory, 'createFabricEnvironmentConnection').returns(mockConnection);
+            executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand').callThrough();
 
             environmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistryEntry.name = 'myFabric';
@@ -107,6 +112,15 @@ describe('EnvironmentConnectCommand', () => {
             sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
             getNodesStub = mySandBox.stub(FabricEnvironment.prototype, 'getNodes').resolves([ordererNode, caNode]);
+
+            // Ops Tools requirements
+            opsToolsEnvRegistryEntry = new FabricEnvironmentRegistryEntry();
+            opsToolsEnvRegistryEntry.name = 'myOpsToolsFabric';
+            opsToolsEnvRegistryEntry.managedRuntime = false;
+            opsToolsEnvRegistryEntry.url = '/some/cloud:port';
+            executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).resolves(true);
+
+            warningNoNodesEditFilterStub = mySandBox.stub(vscode.window, 'showWarningMessage').withArgs(`Error connecting to environment ${opsToolsEnvRegistryEntry.name}: no visible nodes. Would you like to filter nodes?`, 'Yes', 'No');
 
         });
 
@@ -137,7 +151,7 @@ describe('EnvironmentConnectCommand', () => {
                 logSpy.calledWith(LogType.SUCCESS, 'Connected to myFabric');
             });
 
-            it('should test an error is shown if the user tries to connect to an environment that doesnt have any valid nodes', async () => {
+            it('should test an error is shown if the user tries to connect to a non Ops Tools environment that doesnt have any valid nodes', async () => {
                 getNodesStub.resolves([]);
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
 
@@ -198,8 +212,6 @@ describe('EnvironmentConnectCommand', () => {
             });
 
             it('should handle error from getting channel map', async () => {
-                const commandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
-
                 const error: Error = new Error('some error');
 
                 mockConnection.createChannelMap.rejects(error);
@@ -210,8 +222,52 @@ describe('EnvironmentConnectCommand', () => {
                 logSpy.should.have.been.calledTwice;
                 logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `connecting to fabric environment`);
                 logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error connecting to environment myFabric: ${error.message}`, `Error connecting to environment myFabric: ${error.toString()}`);
-                commandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+                executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+
                 sendTelemetryEventStub.should.not.have.been.called;
+            });
+
+            it('should do nothing if the user cancels after trying to connect to an Ops Tools evironment without nodes', async () => {
+                chooseEnvironmentQuickPick.resolves({ label: 'myOpsToolsFabric', data: opsToolsEnvRegistryEntry });
+                warningNoNodesEditFilterStub.resolves();
+
+                getNodesStub.resolves([]);
+
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+
+                getNodesStub.should.have.been.calledOnce;
+                warningNoNodesEditFilterStub.should.have.been.calledOnce;
+                executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
+                mockConnection.connect.should.not.have.been.called;
+            });
+
+            it('should do nothing if the user tries to connect to an Ops Tools evironment without nodes, chooses to edit filters and does not add nodes ', async () => {
+                chooseEnvironmentQuickPick.resolves({ label: 'myOpsToolsFabric', data: opsToolsEnvRegistryEntry });
+                warningNoNodesEditFilterStub.resolves('Yes');
+
+                getNodesStub.resolves([]);
+
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+
+                getNodesStub.should.have.been.calledTwice;
+                warningNoNodesEditFilterStub.should.have.been.calledOnce;
+                executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
+                mockConnection.connect.should.not.have.been.called;
+            });
+
+            it('should connect if the user tries to connect to an Ops Tools evironment without nodes, chooses to edit filters and add nodes ', async () => {
+                chooseEnvironmentQuickPick.resolves({ label: 'myOpsToolsFabric', data: opsToolsEnvRegistryEntry });
+                warningNoNodesEditFilterStub.resolves('Yes');
+
+                getNodesStub.onFirstCall().resolves([]);
+                getNodesStub.onSecondCall().resolves([ordererNode, caNode]);
+
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+
+                getNodesStub.should.have.been.calledTwice;
+                warningNoNodesEditFilterStub.should.have.been.calledOnce;
+                executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
+                mockConnection.connect.should.have.been.called;
             });
         });
 
@@ -282,8 +338,6 @@ describe('EnvironmentConnectCommand', () => {
                 isRunningStub.resetHistory();
                 isRunningStub.onFirstCall().resolves(false);
 
-                const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
-                executeCommandStub.callThrough();
                 executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
@@ -298,8 +352,6 @@ describe('EnvironmentConnectCommand', () => {
             it(`should return if failed to start local fabric`, async () => {
                 isRunningStub.resolves(false);
 
-                const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
-                executeCommandStub.callThrough();
                 executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
