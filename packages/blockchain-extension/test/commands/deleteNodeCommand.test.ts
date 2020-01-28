@@ -57,9 +57,9 @@ describe('DeleteNodeCommand', () => {
             mySandBox.restore();
             logSpy = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
-            peerNode = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'local_fabric_wallet', 'admin', 'Org1MSP');
-            anotherPeerNode = FabricNode.newPeer('peer1.org1.example.com', 'peer1.org1.example.com', 'grpc://localhost:7051', 'local_fabric_wallet', 'admin', 'Org1MSP');
-            morePeerNode = FabricNode.newPeer('peer2.org1.example.com', 'peer2.org1.example.com', 'grpc://localhost:7051', 'local_fabric_wallet', 'admin', 'Org1MSP');
+            peerNode = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'Org1', 'admin', 'Org1MSP');
+            anotherPeerNode = FabricNode.newPeer('peer1.org1.example.com', 'peer1.org1.example.com', 'grpc://localhost:7051', 'Org1', 'admin', 'Org1MSP');
+            morePeerNode = FabricNode.newPeer('peer2.org1.example.com', 'peer2.org1.example.com', 'grpc://localhost:7051', 'Org1', 'admin', 'Org1MSP');
 
             environmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistryEntry.name = 'myEnvironment';

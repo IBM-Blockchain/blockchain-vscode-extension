@@ -19,14 +19,14 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import { TestUtil } from '../../TestUtil';
 import * as path from 'path';
-import { CommandUtil } from '../../../extension/util/CommandUtil';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
 import { SettingConfigurations } from '../../../configurations';
 import { FabricRuntimeState } from '../../../extension/fabric/FabricRuntimeState';
 import { ManagedAnsibleEnvironment } from '../../../extension/fabric/environments/ManagedAnsibleEnvironment';
-import { OutputAdapter, FabricWalletRegistry, FabricWalletUtil, FabricWalletRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
+import { OutputAdapter, FabricWalletRegistry, FabricWalletRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
+import * as stream from 'stream';
 
-chai.should();
+const should: Chai.Should = chai.should();
 chai.use(chaiAsPromised);
 
 // tslint:disable no-unused-expression
@@ -35,7 +35,7 @@ describe('ManagedAnsibleEnvironment', () => {
     const originalPlatform: string = process.platform;
     const originalSpawn: any = child_process.spawn;
     const rootPath: string = path.dirname(__dirname);
-    const environmentPath: string = path.resolve(rootPath, '..', '..', '..', 'test', 'data', 'yofn');
+    const environmentPath: string = path.resolve(rootPath, '..', '..', '..', 'test', 'data', 'yofn2');
 
     let environment: ManagedAnsibleEnvironment;
     let sandbox: sinon.SinonSandbox;
@@ -125,11 +125,13 @@ describe('ManagedAnsibleEnvironment', () => {
     describe('#deleteWalletsAndIdentities', () => {
         it('should delete all known identities that exist', async () => {
             await FabricWalletRegistry.instance().clear();
+            await TestUtil.setupLocalFabric();
             await environment.importWalletsAndIdentities();
 
             let results: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
-            results.length.should.equal(1);
-            results[0].name.should.equal(FabricWalletUtil.LOCAL_WALLET);
+            results.length.should.equal(2);
+            results[0].name.should.equal('Orderer');
+            results[1].name.should.equal('Org1');
             await environment.deleteWalletsAndIdentities();
 
             results = await FabricWalletRegistry.instance().getAll();
@@ -148,6 +150,7 @@ describe('ManagedAnsibleEnvironment', () => {
             let getSettingsStub: sinon.SinonStub;
 
             beforeEach(() => {
+                sandbox.stub(environment, 'isGenerated').resolves(true);
                 isRunningStub = sandbox.stub(environment, 'isRunning').resolves(false);
                 setStateSpy = sandbox.spy(environment, 'setState');
                 stopLogsStub = sandbox.stub(environment, 'stopLogs');
@@ -421,6 +424,35 @@ describe('ManagedAnsibleEnvironment', () => {
                     stopLogsStub.should.have.been.called;
                 }
             });
+        });
+    });
+
+    describe('#start', () => {
+        let isGeneratedStub: sinon.SinonStub;
+        let generateStub: sinon.SinonStub;
+        let importWalletsAndIdentitiesStub: sinon.SinonStub;
+        let importGatewaysStub: sinon.SinonStub;
+        beforeEach(async () => {
+            isGeneratedStub = sandbox.stub(environment, 'isGenerated').resolves(false);
+            sandbox.stub(environment, 'isRunning').resolves(false);
+            generateStub = sandbox.stub(environment, 'generate').resolves();
+            importWalletsAndIdentitiesStub = sandbox.stub(environment, 'importWalletsAndIdentities').resolves();
+            importGatewaysStub = sandbox.stub(environment, 'importGateways').resolves();
+        });
+
+        it('should start if not generated', async () => {
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+
+            spawnStub.withArgs('/bin/sh', [`start.sh`], sinon.match.any).callsFake(() => {
+                return mockSuccessCommand();
+            });
+
+            await environment['start']();
+
+            isGeneratedStub.should.have.been.calledOnce;
+            generateStub.should.have.been.calledOnce;
+            importWalletsAndIdentitiesStub.should.have.been.calledOnce;
+            importGatewaysStub.should.have.been.calledOnce;
         });
     });
 
@@ -794,23 +826,10 @@ describe('ManagedAnsibleEnvironment', () => {
 
     });
 
-    describe('#getLogspoutURL', () => {
-
-        it('should get the logspout URL', async () => {
-            await environment.getLogspoutURL().should.eventually.equal('http://localhost:17056');
-        });
-
-        it('should throw an error if there are no logspout nodes', async () => {
-            sandbox.stub(environment, 'getNodes').resolves([]);
-            await environment.getLogspoutURL().should.be.rejectedWith(/There are no Logspout nodes/);
-        });
-
-    });
-
     describe('#getPeerContainerName', () => {
 
         it('should get the peer container name', async () => {
-            await environment.getPeerContainerName().should.eventually.equal('yofn_peer0.org1.example.com');
+            await environment.getPeerContainerName().should.eventually.equal('fabricvscodelocalfabric_peer0.org1.example.com');
         });
 
         it('should throw an error if there are no peer nodes', async () => {
@@ -823,31 +842,66 @@ describe('ManagedAnsibleEnvironment', () => {
     describe('#startLogs', () => {
 
         it('should start the logs', async () => {
-            const sendRequest: sinon.SinonStub = sandbox.stub(CommandUtil, 'sendRequestWithOutput');
+            const fakeStream: stream.Readable = new stream.Readable();
+            fakeStream._read = (_size: any): any => {
+                //
+            };
+            const logHoseStub: sinon.SinonStub = sandbox.stub(environment, 'ourLoghose');
+            logHoseStub.returns(fakeStream);
+            const adapter: VSCodeBlockchainDockerOutputAdapter = VSCodeBlockchainDockerOutputAdapter.instance();
+            const outputAdapter: sinon.SinonSpy = sandbox.spy(adapter, 'log');
 
-            await environment.startLogs(VSCodeBlockchainDockerOutputAdapter.instance());
+            await environment.startLogs(adapter);
 
-            sendRequest.should.have.been.calledWith('http://localhost:17056/logs', VSCodeBlockchainDockerOutputAdapter.instance());
+            fakeStream.emit('data', { name: 'jake', line: 'simon dodges his unit tests' });
+            outputAdapter.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `jake|simon dodges his unit tests`);
+
+            const opts: any = logHoseStub.args[0][0];
+            opts.attachFilter('someid', {
+                Config: {
+                    Labels: {
+
+                    }
+                }
+            }).should.be.false;
+            opts.attachFilter('someid', {
+                Config: {
+                    Labels: {
+                        'fabric-environment-name': 'jake'
+                    }
+                }
+            }).should.be.false;
+            opts.attachFilter('someid', {
+                Config: {
+                    Labels: {
+                        'fabric-environment-name': 'managedAnsible'
+                    }
+                }
+            }).should.be.true;
         });
     });
 
     describe('#stopLogs', () => {
-        it('should stop the logs', () => {
-            const abortRequestStub: sinon.SinonStub = sandbox.stub(CommandUtil, 'abortRequest');
+        it('should stop the logs if loghose is active', () => {
+            const fakeStream: stream.Readable = new stream.Readable();
+            fakeStream._read = (_size: any): any => {
+                //
+            };
+            environment['lh'] = fakeStream;
 
-            environment['logsRequest'] = { abort: sandbox.stub() };
-            environment.stopLogs();
-
-            abortRequestStub.should.have.been.calledWith(environment['logsRequest']);
-        });
-
-        it('should not stop the logs if no request', () => {
-            const abortRequestStub: sinon.SinonStub = sandbox.stub(CommandUtil, 'abortRequest');
+            const destroyStub: sinon.SinonStub = sandbox.stub(fakeStream, 'destroy').resolves();
 
             environment.stopLogs();
+            destroyStub.should.have.been.calledOnce;
 
-            abortRequestStub.should.not.have.been.called;
         });
+
+        it('should set loghose to null', () => {
+            environment['lh'] = undefined;
+            environment.stopLogs();
+            should.not.exist(environment['lh]']);
+        });
+
     });
 
 });

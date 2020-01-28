@@ -16,8 +16,7 @@ export enum FabricNodeType {
     PEER = 'fabric-peer',
     CERTIFICATE_AUTHORITY = 'fabric-ca',
     ORDERER = 'fabric-orderer',
-    COUCHDB = 'couchdb',
-    LOGSPOUT = 'logspout'
+    COUCHDB = 'couchdb'
 }
 
 // This is a JSON representation of a Fabric node.
@@ -42,10 +41,6 @@ export class FabricNode {
 
     public static newCouchDB(short_name: string, name: string, api_url: string): FabricNode {
         return new FabricNode({ short_name, name, type: FabricNodeType.COUCHDB, api_url });
-    }
-
-    public static newLogspout(short_name: string, name: string, api_url: string): FabricNode {
-        return new FabricNode({ short_name, name, type: FabricNodeType.LOGSPOUT, api_url });
     }
 
     public static newCertificateAuthority(short_name: string, name: string, api_url: string, ca_name: string, wallet: string, identity: string, msp_id: string, enroll_id: string, enroll_secret: string): FabricNode {

@@ -48,7 +48,7 @@ export async function stopFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Prom
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
     }, async (progress: vscode.Progress<{ message: string }>) => {
-        progress.report({ message: `Stopping Fabric runtime ${runtime.getDisplayName()}` });
+        progress.report({ message: `Stopping Fabric runtime ${runtime.getName()}` });
 
         const connectedGatewayRegistry: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
         if (connectedGatewayRegistry && associatedGateways.includes(connectedGatewayRegistry.name)) {
@@ -63,7 +63,7 @@ export async function stopFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Prom
         try {
             await runtime.stop(outputAdapter);
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Failed to stop ${runtime.getDisplayName()}: ${error.message}`, `Failed to stop ${runtime.getDisplayName()}: ${error.toString()}`);
+            outputAdapter.log(LogType.ERROR, `Failed to stop ${runtime.getName()}: ${error.message}`, `Failed to stop ${runtime.getName()}: ${error.toString()}`);
         }
 
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);

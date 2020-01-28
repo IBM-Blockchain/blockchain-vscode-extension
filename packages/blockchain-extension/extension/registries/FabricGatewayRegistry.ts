@@ -30,19 +30,21 @@ export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEnt
     public async getAll(showLocalFabric: boolean = true): Promise<FabricGatewayRegistryEntry[]> {
         let entries: FabricGatewayRegistryEntry[] = await super.getAll();
 
-        let local: FabricGatewayRegistryEntry;
+        const local: FabricGatewayRegistryEntry[] = [];
 
         entries = entries.filter((entry: FabricGatewayRegistryEntry) => {
-            if (entry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
-                local = entry;
+            if (entry.displayName && entry.displayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
+                local.push(entry);
                 return false;
             }
 
             return true;
         });
 
-        if (showLocalFabric && local) {
-            entries.unshift(local);
+        if (showLocalFabric && local.length > 0) {
+            for (const entry of local) {
+                entries.unshift(entry);
+            }
         }
 
         return entries;

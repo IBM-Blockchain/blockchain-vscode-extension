@@ -17,7 +17,7 @@ import * as path from 'path';
 import * as chaiAsPromised from 'chai-as-promised';
 import { FabricWalletRegistryEntry } from '../../src/registries/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../../src/registries/FabricWalletRegistry';
-import { FabricWalletUtil } from '../../src/util/FabricWalletUtil';
+import { FabricRuntimeUtil } from '../../src/util/FabricRuntimeUtil';
 
 chai.use(chaiAsPromised);
 chai.should();
@@ -47,9 +47,9 @@ describe('FabricWalletRegistry', () => {
 
         await registry.getAll().should.eventually.deep.equal([]);
 
-        await registry.add(new FabricWalletRegistryEntry({name: FabricWalletUtil.LOCAL_WALLET, walletPath: 'myOtherPath'}));
+        await registry.add(new FabricWalletRegistryEntry({name: 'Org1', managedWallet: true, displayName: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`, walletPath: 'myOtherPath'}));
 
-        const localFabricEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(FabricWalletUtil.LOCAL_WALLET);
+        const localFabricEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Org1');
 
         await registry.add(walletOne);
         await registry.getAll().should.eventually.deep.equal([localFabricEntry, walletOne]);
@@ -63,7 +63,7 @@ describe('FabricWalletRegistry', () => {
 
         await registry.getAll().should.eventually.deep.equal([]);
 
-        await registry.add(new FabricWalletRegistryEntry({name: FabricWalletUtil.LOCAL_WALLET, walletPath: 'myOtherPath'}));
+        await registry.add(new FabricWalletRegistryEntry({name: 'Org1', managedWallet: true, displayName: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`, walletPath: 'myOtherPath'}));
         await registry.add(walletOne);
         await registry.getAll(false).should.eventually.deep.equal([walletOne]);
     });

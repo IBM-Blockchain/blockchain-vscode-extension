@@ -21,7 +21,7 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { ConsoleOutputAdapter, FabricChaincode, FabricNodeType, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, IFabricWallet, LogType, OutputAdapter } from 'ibm-blockchain-platform-common';
+import { ConsoleOutputAdapter, FabricChaincode, FabricNodeType, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWallet, LogType, OutputAdapter } from 'ibm-blockchain-platform-common';
 import { FabricWallet, FabricWalletGenerator } from 'ibm-blockchain-platform-wallet';
 
 const should: Chai.Should = chai.should();
@@ -64,7 +64,7 @@ describe('FabricEnvironmentConnection', () => {
                 'peer0.org1.example.com',
                 'peer0.org1.example.com',
                 `grpc://localhost:7051`,
-                `${FabricWalletUtil.LOCAL_WALLET}`,
+                `Org1`,
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org1MSP'
             ),
@@ -72,7 +72,7 @@ describe('FabricEnvironmentConnection', () => {
                 'peer1.org1.example.com',
                 'peer1.org1.example.com',
                 `grpc://localhost:7051`,
-                `${FabricWalletUtil.LOCAL_WALLET}`,
+                `Org1`,
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org1MSP'
             ),
@@ -80,7 +80,7 @@ describe('FabricEnvironmentConnection', () => {
                 'peer2.org1.example.com',
                 'peer2.org1.example.com',
                 `grpc://localhost:7051`,
-                `${FabricWalletUtil.LOCAL_WALLET}`,
+                `Org1`,
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org1MSP'
             ),
@@ -89,7 +89,7 @@ describe('FabricEnvironmentConnection', () => {
                 'peer0.org2.example.com',
                 `grpcs://localhost:8051`,
                 TLS_CA_CERTIFICATE,
-                `${FabricWalletUtil.LOCAL_WALLET}`,
+                `Org1`,
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org2MSP'
             ),
@@ -98,7 +98,7 @@ describe('FabricEnvironmentConnection', () => {
                 'ca.example.com',
                 `http://localhost:7054`,
                 'ca_name',
-                FabricWalletUtil.LOCAL_WALLET,
+                'Org1',
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org1MSP',
                 'admin',
@@ -110,7 +110,7 @@ describe('FabricEnvironmentConnection', () => {
                 `https://localhost:8054`,
                 'ca_name',
                 TLS_CA_CERTIFICATE,
-                FabricWalletUtil.LOCAL_WALLET,
+                'Org1',
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org2MSP',
                 'admin',
@@ -121,7 +121,7 @@ describe('FabricEnvironmentConnection', () => {
                 'ca3.example.com',
                 `http://localhost:9054`,
                 null,
-                FabricWalletUtil.LOCAL_WALLET,
+                'Org1',
                 FabricRuntimeUtil.ADMIN_USER,
                 null,
                 'admin',
@@ -131,7 +131,7 @@ describe('FabricEnvironmentConnection', () => {
                 'orderer.example.com',
                 'orderer.example.com',
                 `grpc://localhost:7050`,
-                `${FabricWalletUtil.LOCAL_WALLET}`,
+                'Org1',
                 FabricRuntimeUtil.ADMIN_USER,
                 'OrdererMSP',
                 'myCluster'
@@ -141,7 +141,7 @@ describe('FabricEnvironmentConnection', () => {
                 'orderer2.example.com',
                 `grpcs://localhost:8050`,
                 TLS_CA_CERTIFICATE,
-                `${FabricWalletUtil.LOCAL_WALLET}`,
+                'Org1',
                 FabricRuntimeUtil.ADMIN_USER,
                 'OrdererMSP',
                 'myCluster'
@@ -150,11 +150,6 @@ describe('FabricEnvironmentConnection', () => {
                 'couchdb',
                 'couchdb',
                 `http://localhost:7055`
-            ),
-            FabricNode.newLogspout(
-                'logspout',
-                'logspout',
-                `http://localhost:7056`
             )
         ];
 
@@ -162,7 +157,7 @@ describe('FabricEnvironmentConnection', () => {
         mockLocalWallet = mySandBox.createStubInstance(FabricWallet);
         mockLocalWallet['setUserContext'] = mySandBox.stub();
         mockFabricWalletGenerator.rejects(new Error('no such wallet'));
-        mockFabricWalletGenerator.withArgs(FabricWalletUtil.LOCAL_WALLET).resolves(mockLocalWallet);
+        mockFabricWalletGenerator.withArgs('Org1').resolves(mockLocalWallet);
 
         connection = new FabricEnvironmentConnection();
         await connection.connect(nodes);
@@ -214,7 +209,7 @@ describe('FabricEnvironmentConnection', () => {
                 'peer0.org2.example.com',
                 `grpcs://localhost:8051`,
                 TLS_CA_CERTIFICATE,
-                `${FabricWalletUtil.LOCAL_WALLET}`,
+                'Org1',
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org2MSP'
             );
@@ -260,7 +255,7 @@ describe('FabricEnvironmentConnection', () => {
                 'orderer2.example.com',
                 `grpcs://localhost:8050`,
                 TLS_CA_CERTIFICATE,
-                `${FabricWalletUtil.LOCAL_WALLET}`,
+                'Org1',
                 FabricRuntimeUtil.ADMIN_USER,
                 'OrdererMSP',
                 'myCluster'
@@ -315,7 +310,6 @@ describe('FabricEnvironmentConnection', () => {
         it('should ignore any other nodes', async () => {
             const nodeNames: string[] = Array.from(connection['nodes'].keys());
             nodeNames.should.not.contain('couchdb');
-            nodeNames.should.not.contain('logspout');
         });
 
         it('should set the mspids', () => {
@@ -349,8 +343,9 @@ describe('FabricEnvironmentConnection', () => {
         beforeEach(async () => {
             await FabricWalletRegistry.instance().clear();
             const walletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
-            walletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET;
+            walletRegistryEntry.name = 'Org1';
             walletRegistryEntry.managedWallet = true;
+            walletRegistryEntry.displayName = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`;
             walletRegistryEntry.walletPath = path.join('myPath');
 
             await FabricWalletRegistry.instance().add(walletRegistryEntry);
@@ -1337,7 +1332,7 @@ describe('FabricEnvironmentConnection', () => {
             node.name.should.equal('ca.example.com');
             node.type.should.equal(FabricNodeType.CERTIFICATE_AUTHORITY);
             node.api_url.should.equal('http://localhost:7054');
-            node.wallet.should.equal(FabricWalletUtil.LOCAL_WALLET);
+            node.wallet.should.equal('Org1');
             node.identity.should.equal(FabricRuntimeUtil.ADMIN_USER);
         });
 

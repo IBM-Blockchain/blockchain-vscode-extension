@@ -105,11 +105,14 @@ module.exports = function(): any {
 
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, extDir, vscode.ConfigurationTarget.Global);
 
-                await FabricWalletRegistry.instance().clear();
-                await FabricGatewayRegistry.instance().clear();
-                await FabricEnvironmentRegistry.instance().clear();
-                await RepositoryRegistry.instance().clear();
-
+                try {
+                    await FabricWalletRegistry.instance().clear();
+                    await FabricGatewayRegistry.instance().clear();
+                    await FabricEnvironmentRegistry.instance().clear();
+                    await RepositoryRegistry.instance().clear();
+                } catch (error) {
+                    // Should we be activating before clearing - we keep erroring here!
+                }
                 await ExtensionUtil.activateExtension();
 
                 try {

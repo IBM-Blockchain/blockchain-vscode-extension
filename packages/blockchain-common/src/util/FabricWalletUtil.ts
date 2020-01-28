@@ -14,6 +14,5 @@
 'use strict';
 
 export class FabricWalletUtil {
-    static readonly LOCAL_WALLET: string = 'local_fabric_wallet';
-    static readonly LOCAL_WALLET_DISPLAY_NAME: string = 'Local Fabric Wallet';
+    static readonly OLD_LOCAL_WALLET: string = 'local_fabric_wallet';
 }

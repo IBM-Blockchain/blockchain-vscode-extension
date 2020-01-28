@@ -26,7 +26,7 @@ import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTre
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { FabricWalletRegistry, FabricWalletRegistryEntry, FabricRuntimeUtil, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistry, FabricWalletRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 // tslint:disable no-unused-expression
@@ -105,7 +105,7 @@ describe('AssociateWalletCommand', () => {
             showGatewayQuickPickBoxStub.should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateWallet');
-            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Add a gateway to associate a wallet. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is associated with ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}.`, `Add a gateway to associate a wallet. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is associated with ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}.`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Add a gateway to associate a wallet.`);
         });
 
         it('should display an error message if no user added wallets exist', async () => {

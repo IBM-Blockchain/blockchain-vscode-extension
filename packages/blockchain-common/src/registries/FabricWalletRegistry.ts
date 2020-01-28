@@ -15,7 +15,7 @@
 import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
 import { FileConfigurations } from './FileConfigurations';
 import { FileRegistry } from './FileRegistry';
-import { FabricWalletUtil } from '../util/FabricWalletUtil';
+import { FabricRuntimeUtil } from '../util/FabricRuntimeUtil';
 
 export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry> {
 
@@ -32,19 +32,21 @@ export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry
     public async getAll(showLocalFabric: boolean = true): Promise<FabricWalletRegistryEntry[]> {
         let entries: FabricWalletRegistryEntry[] = await super.getAll();
 
-        let local: FabricWalletRegistryEntry;
+        const local: FabricWalletRegistryEntry[] = [];
 
         entries = entries.filter((entry: FabricWalletRegistryEntry) => {
-            if (entry.name === FabricWalletUtil.LOCAL_WALLET) {
-                local = entry;
+            if (entry.displayName && entry.displayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
+                local.push(entry);
                 return false;
             }
 
             return true;
         });
 
-        if (showLocalFabric && local) {
-            entries.unshift(local);
+        if (showLocalFabric && local.length > 0) {
+            for (const entry of local) {
+                entries.unshift(entry);
+            }
         }
 
         return entries;

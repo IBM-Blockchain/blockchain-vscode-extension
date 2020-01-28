@@ -55,9 +55,13 @@ describe('restartFabricRuntime', () => {
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
-        await runtimeManager.initialize();
 
-        const localGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+        await TestUtil.setupLocalFabric();
+        const localRuntime: LocalEnvironment = runtimeManager.getRuntime();
+        await localRuntime.importWalletsAndIdentities();
+        await localRuntime.importGateways();
+
+        const localGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('Org1');
 
         getGatewayRegistryEntryStub = sandbox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry');
         getGatewayRegistryEntryStub.returns(localGateway);
@@ -72,7 +76,7 @@ describe('restartFabricRuntime', () => {
 
         localRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
         showFabricEnvironmentQuickPickBoxStub = sandbox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox');
-        showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, data: localRegistryEntry});
+        showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localRegistryEntry});
         getEnvironmentStub = sandbox.stub(EnvironmentFactory, 'getEnvironment');
     });
 
@@ -85,6 +89,8 @@ describe('restartFabricRuntime', () => {
         getEnvironmentStub.callThrough();
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         restartStub = sandbox.stub(environment, 'restart').resolves();
+        sandbox.stub(environment, 'startLogs').resolves();
+        sandbox.stub(environment, 'stopLogs').returns(undefined);
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainEnvironmentExplorerProvider,
             environment.getName(),
@@ -114,6 +120,8 @@ describe('restartFabricRuntime', () => {
         getEnvironmentStub.callThrough();
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         restartStub = sandbox.stub(environment, 'restart').resolves();
+        sandbox.stub(environment, 'startLogs').resolves();
+        sandbox.stub(environment, 'stopLogs').returns(undefined);
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainEnvironmentExplorerProvider,
             environment.getName(),
@@ -142,6 +150,8 @@ describe('restartFabricRuntime', () => {
         getEnvironmentStub.callThrough();
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         restartStub = sandbox.stub(environment, 'restart').resolves();
+        sandbox.stub(environment, 'startLogs').resolves();
+        sandbox.stub(environment, 'stopLogs').returns(undefined);
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainEnvironmentExplorerProvider,
             environment.getName(),
@@ -172,6 +182,8 @@ describe('restartFabricRuntime', () => {
         getEnvironmentStub.callThrough();
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         restartStub = sandbox.stub(environment, 'restart').throws(error);
+        sandbox.stub(environment, 'startLogs').resolves();
+        sandbox.stub(environment, 'stopLogs').returns(undefined);
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainEnvironmentExplorerProvider,
             environment.getName(),
@@ -195,14 +207,16 @@ describe('restartFabricRuntime', () => {
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
 
         logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'restartFabricRuntime');
-        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to restart ${environment.getDisplayName()}: ${error.message}`, `Failed to restart ${environment.getDisplayName()}: ${error.toString()}`);
+        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to restart ${environment.getName()}: ${error.message}`, `Failed to restart ${environment.getName()}: ${error.toString()}`);
     });
 
     it('should be able to restart the an environment from the command', async () => {
-        showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, data: localRegistryEntry} as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>);
+        showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localRegistryEntry} as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>);
         getEnvironmentStub.callThrough();
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         restartStub = sandbox.stub(environment, 'restart').resolves();
+        sandbox.stub(environment, 'startLogs').resolves();
+        sandbox.stub(environment, 'stopLogs').returns(undefined);
         getEnvironmentStub.resolves(environment);
         getGatewayRegistryEntryStub.returns(undefined);
         getEnvironmentRegistryEntryStub.returns(undefined);

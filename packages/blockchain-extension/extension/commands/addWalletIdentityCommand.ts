@@ -26,7 +26,7 @@ import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironment
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
-import { FabricRuntimeUtil, FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, FabricWalletUtil  } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry  } from 'ibm-blockchain-platform-common';
 
 export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalletRegistryEntry, mspid: string): Promise<string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -63,17 +63,25 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
     }
 
     let isLocalWallet: boolean;
-    if (walletRegistryEntry && walletRegistryEntry.managedWallet && walletRegistryEntry.name === FabricWalletUtil.LOCAL_WALLET) {
+    // TODO JAKE: Remove the includes() - only need to check 'managedWallet' for handling managed ansible environments
+    const walletName: string = (walletRegistryEntry.displayName) ? walletRegistryEntry.displayName : walletRegistryEntry.name;
+    if (walletRegistryEntry && walletRegistryEntry.managedWallet && walletName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
         isLocalWallet = true;
     } else {
         isLocalWallet = false;
     }
 
     if (isLocalWallet) {
-        // using local_fabric_wallet
+        // using a local wallet
+        // TODO JAKE: Change this for managed Ansible
         const orgsArray: Array<string> = await LocalEnvironmentManager.instance().getRuntime().getAllOrganizationNames();
+
         // only one mspID currently, if multiple we'll need to add a dropdown
-        mspid = orgsArray[0];
+        // TODO JAKE: We will need to change this as there will eventually be multi-orgs
+        // I think we'll need that dropdown here now!
+        // orgsArray[1] is Org1MSP (0 is OrdererMSP)
+        mspid = orgsArray[1];
+
     } else if (!mspid) {
         mspid = await UserInputUtil.showInputBox('Enter MSPID');
         if (!mspid) {
@@ -142,9 +150,8 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
             // Limit the user to use local_fabric for local_fabric_wallet identities
             if (isLocalWallet) {
                 // wallet is managed so use local_fabric as the gateway
-                // assume there is only one
-                gatewayRegistryEntry = await FabricGatewayRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
 
+                // TODO JAKE: Update this to handle add identity to managed wallet
                 // make sure local_fabric is started
                 let isRunning: boolean = await LocalEnvironmentManager.instance().getRuntime().isRunning();
                 if (!isRunning) {
@@ -157,6 +164,10 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
                         return;
                     }
                 }
+
+                // TODO JAKE: This logic will need to be changed - we need to be able to get the gateway entry somehow
+                // assume there is only one
+                gatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${walletRegistryEntry.name}`);
 
             } else {
                 // select from other gateways

@@ -22,7 +22,6 @@ import { CommandUtil } from '../../extension/util/CommandUtil';
 import { SmartContractHelper, LanguageType } from './smartContractHelper';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
-import { FabricWalletUtil } from 'ibm-blockchain-platform-common';
 
 export class GeneratedTestsHelper {
     mySandBox: sinon.SinonSandbox;
@@ -43,7 +42,7 @@ export class GeneratedTestsHelper {
         } catch (error) {
             gatewayEntry = new FabricGatewayRegistryEntry();
             gatewayEntry.name = gatewayName;
-            gatewayEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+            gatewayEntry.associatedWallet = 'Org1';
         }
 
         this.userInputUtilHelper.showGatewayQuickPickStub.resolves({

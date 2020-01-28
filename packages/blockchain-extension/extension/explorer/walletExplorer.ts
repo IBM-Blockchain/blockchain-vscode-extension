@@ -18,7 +18,7 @@ import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { WalletTreeItem } from './wallets/WalletTreeItem';
 import { LocalWalletTreeItem } from './wallets/LocalWalletTreeItem';
-import { FabricCertificate, Attribute, FabricWalletRegistry, FabricWalletRegistryEntry, FabricRuntimeUtil, FabricWalletUtil, IFabricWalletGenerator, IFabricWallet, LogType } from 'ibm-blockchain-platform-common';
+import { FabricCertificate, Attribute, FabricWalletRegistry, FabricWalletRegistryEntry, FabricRuntimeUtil, IFabricWalletGenerator, IFabricWallet, LogType } from 'ibm-blockchain-platform-common';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { IdentityTreeItem } from './model/IdentityTreeItem';
@@ -79,12 +79,7 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
 
                     const treeState: vscode.TreeItemCollapsibleState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
 
-                    let walletName: string;
-                    if (walletRegistryEntry.name === FabricWalletUtil.LOCAL_WALLET) {
-                        walletName = FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME;
-                    } else {
-                        walletName = walletRegistryEntry.name;
-                    }
+                    const walletName: string = walletRegistryEntry.displayName ? walletRegistryEntry.displayName : walletRegistryEntry.name;
 
                     if (walletRegistryEntry.managedWallet) {
                         tree.push(new LocalWalletTreeItem(this, walletName, identityNames, treeState, walletRegistryEntry));
@@ -121,10 +116,10 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
 
             if (isAdminIdentity) {
                 // User can't delete this!
-                tree.push(new AdminIdentityTreeItem(this, identity.name, walletTreeItem.name, attributes));
+                tree.push(new AdminIdentityTreeItem(this, identity.name, walletTreeItem.name, attributes, walletTreeItem.registryEntry));
             } else {
 
-                tree.push(new IdentityTreeItem(this, identity.name, walletTreeItem.name, attributes));
+                tree.push(new IdentityTreeItem(this, identity.name, walletTreeItem.name, attributes, walletTreeItem.registryEntry));
             }
         }
         return tree;

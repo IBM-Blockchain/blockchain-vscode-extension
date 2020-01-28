@@ -1,0 +1,11 @@
+{
+    "api_url": "grpc://localhost:17051",
+    "chaincode_url": "grpc://localhost:17052",
+    "container_name": "fabricvscodelocalfabric_peer0.org1.example.com",
+    "identity": "org1Admin",
+    "msp_id": "Org1MSP",
+    "name": "Org1Peer1",
+    "short_name": "Org1Peer1",
+    "type": "fabric-peer",
+    "wallet": "Org1"
+}

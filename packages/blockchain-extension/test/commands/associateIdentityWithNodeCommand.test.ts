@@ -67,7 +67,6 @@ describe('AssociateIdentityWithNodeCommand', () => {
         const nodes: any = {};
 
         beforeEach(async () => {
-
             await FabricEnvironmentRegistry.instance().clear();
             await FabricWalletRegistry.instance().clear();
 

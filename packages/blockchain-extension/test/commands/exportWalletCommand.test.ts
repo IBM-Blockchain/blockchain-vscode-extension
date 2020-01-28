@@ -24,8 +24,10 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { Reporter } from '../../extension/util/Reporter';
-import { LogType } from 'ibm-blockchain-platform-common';
+import { LogType, FabricWalletRegistryEntry, FabricWalletRegistry } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 
 // tslint:disable no-unused-expression
 describe('exportWalletCommand', () => {
@@ -124,6 +126,29 @@ describe('exportWalletCommand', () => {
         fsCopyStub.should.have.been.calledOnceWithExactly('/some/path', fakeTargetPath, { overwrite: true });
         logSpy.should.have.been.calledWithExactly(LogType.ERROR, `Issue exporting wallet: ${error.message}`, `Issue exporting wallet: ${error.toString()}`);
         sendTelemetryEventStub.should.not.have.been.called;
+    });
+
+    it('should be able to export local wallet', async () => {
+
+        await TestUtil.setupLocalFabric();
+        const localEnvironment: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
+        await localEnvironment.importWalletsAndIdentities();
+
+        const localWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Org1');
+
+        showWalletsQuickPickBoxStub.resolves({
+            label: localWallet.displayName,
+            data: localWallet
+
+        });
+
+        fsCopyStub.resetHistory();
+        logSpy.resetHistory();
+        await vscode.commands.executeCommand(ExtensionCommands.EXPORT_WALLET);
+        showWalletsQuickPickBoxStub.should.have.been.calledOnce;
+        fsCopyStub.should.have.been.calledOnceWithExactly(localWallet.walletPath, fakeTargetPath, { overwrite: true });
+        logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported wallet ${localWallet.displayName} to ${fakeTargetPath}`);
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportWallet');
     });
 
 });

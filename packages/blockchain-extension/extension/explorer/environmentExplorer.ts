@@ -228,12 +228,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
     private async createConnectedTree(environmentRegistryEntry: FabricEnvironmentRegistryEntry): Promise<Array<BlockchainTreeItem>> {
         const tree: Array<BlockchainTreeItem> = [];
 
-        let name: string;
-        if (environmentRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
-            name = FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
-        } else {
-            name = environmentRegistryEntry.name;
-        }
+        const name: string = environmentRegistryEntry.name;
 
         tree.push(new EnvironmentConnectedTreeItem(this, `Connected to environment: ${name}`));
 

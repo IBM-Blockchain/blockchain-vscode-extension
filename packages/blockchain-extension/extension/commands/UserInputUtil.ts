@@ -22,7 +22,7 @@ import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryE
 import { MetadataUtil } from '../util/MetadataUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
-import { FabricCertificate, FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, IFabricEnvironmentConnection, IFabricGatewayConnection, LogType  } from 'ibm-blockchain-platform-common';
+import { FabricCertificate, FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricEnvironmentConnection, IFabricGatewayConnection, LogType  } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { FabricEnvironment } from '../fabric/environments/FabricEnvironment';
 
@@ -124,10 +124,7 @@ export class UserInputUtil {
         const environments: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(showLocalFabric, onlyShowManagedEnvironment);
 
         const environmentsQuickPickItems: Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> = environments.map((environment: FabricEnvironmentRegistryEntry) => {
-            let label: string = environment.name;
-            if (environment.name === FabricRuntimeUtil.LOCAL_FABRIC) {
-                label = FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
-            }
+            const label: string = environment.name;
 
             return { label: label, data: environment };
         });
@@ -174,7 +171,8 @@ export class UserInputUtil {
         }
 
         const gatewaysQuickPickItems: Array<IBlockchainQuickPickItem<FabricGatewayRegistryEntry>> = allGateways.map((gateway: FabricGatewayRegistryEntry) => {
-            const gatewayDisplayName: string = (gateway.name === FabricRuntimeUtil.LOCAL_FABRIC) ? FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME : gateway.name;
+            const gatewayDisplayName: string = gateway.displayName ? gateway.displayName : gateway.name;
+
             return { label: gatewayDisplayName, data: gateway };
         });
 
@@ -797,7 +795,7 @@ export class UserInputUtil {
         const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll(showLocalWallet);
         for (const walletRegistryEntry of wallets) {
             walletQuickPickItems.push({
-                label: walletRegistryEntry.name !== FabricWalletUtil.LOCAL_WALLET ? walletRegistryEntry.name : FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME,
+                label: (walletRegistryEntry.displayName) ? walletRegistryEntry.displayName : walletRegistryEntry.name,
                 data: walletRegistryEntry
             });
         }

@@ -25,7 +25,7 @@ As an example, suppose we have a smart contract which allows participants to rec
 <details>
 <summary><b>1. Create a new identity with attributes</b></summary>
 
-1. If the Local Fabric isn't running, under the `FABRIC ENVIRONMENTS` panel, click on `Local Fabric  ○ (click to start)` to start the Local Fabric and connect to it. Once this is done, look for `ca.org1.example.com` (it's under Nodes), right click it and choose `Create Identity (register and enroll)`. 
+1. If the Local Fabric isn't running, under the `FABRIC ENVIRONMENTS` panel, click on `Local Fabric  ○ (click to start)` to start the Local Fabric and connect to it. Once this is done, look for `Org1CA` (it's under Nodes), right click it and choose `Create Identity (register and enroll)`. 
 
 > Command Palette alternative: `Create Identity (register and enroll)`
 
@@ -33,7 +33,7 @@ As an example, suppose we have a smart contract which allows participants to rec
 
 >`ecert` stands for Enrollement Certificate. When set to true, it writes the attributes into the identity's certificate. This allows a transaction to read the attributes of the identity invoking it and make branching decisions, for example whether or not this user is allowed to invoke it. `"ecert":true` is required to implement attribute-based access control.
 
-3. Upon submitting your request, you should see a confirmation message at the bottom right of the screen confirming that your identity `Arium` has been created with attributes `[{"name": "manufacturer", "value": "true", "ecert":true}]`. The newly created identity should also appear in the `Fabric Wallets` panel under `Local Fabric Wallet`. 
+3. Upon submitting your request, you should see a confirmation message at the bottom right of the screen confirming that your identity `Arium` has been created with attributes `[{"name": "manufacturer", "value": "true", "ecert":true}]`. The newly created identity should also appear in the `Fabric Wallets` panel under `Local Fabric - Org1 Wallet`. 
 </details>
 
 ---
@@ -160,7 +160,7 @@ Instantiation will take a while longer than install - watch out for the success 
 
 We can now test out the attribute-based access control that we implemented earlier. To do, we will first demonstrate what happens when an identity with incorrect attributes tries to submit the `createCar` transaction.
 
-1. To test that attribute-based access control works, we can connect to the gateway by pressing `Local Fabric` under the `FABRIC GATEWAYS` panel. You will now be asked which identity you wish to connect with - choose `Jack` (created in our previous tutorial). 
+1. To test that attribute-based access control works, we can connect to the gateway by pressing `Local Fabric - Org1` under the `FABRIC GATEWAYS` panel. You will now be asked which identity you wish to connect with - choose `Jack` (created in our previous tutorial). 
 > Command Palette alternative: `Connect Via Gateway` 
 
 2. To execute a transaction, navigate to `mychannel`, `carContract@0.0.1` under the `FABRIC GATEWAYS` panel. Here, you will see a list of all the transactions you can carry out. 
@@ -178,7 +178,7 @@ We can now test out the attribute-based access control that we implemented earli
 Now we will show how an identity with the correct attributes can submit the `createCar` transaction
 1. Firstly, disconnect from the gateway (by hovering on the `FABRIC GATEWAYS` panel and pressing the button that looks like an exit symbol). 
 
-2. To reconnect with a different identity, click `Local Fabric` in the `FABRIC GATEWAYS` panel. You will then be asked which identity to connect with, choose `Arium`
+2. To reconnect with a different identity, click `Local Fabric - Org1` in the `FABRIC GATEWAYS` panel. You will then be asked which identity to connect with, choose `Arium`
 > Command Palette alternative: `Connect Via Gateway`
 
 3. Next, submit the `createCar` transaction again by navigating to `mychannel`, `carContract@0.0.1` on the `FABRIC GATEWAYS` panel.

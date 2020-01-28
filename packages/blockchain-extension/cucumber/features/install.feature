@@ -9,7 +9,7 @@ Feature: Install Smart Contract
         And the contract has been packaged
         When I install the package
         Then there should be a installed smart contract tree item with a label '<installedName>' in the 'Fabric Environments' panel
-        And the tree item should have a tooltip equal to 'Installed on: peer0.org1.example.com'
+        And the tree item should have a tooltip equal to 'Installed on: Org1Peer1'
         Examples:
         | language   | assetType | name               | installedName            | version |
         | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1 | 0.0.1   |

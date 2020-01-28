@@ -59,7 +59,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
         }
 
         if (!connection) {
-            throw new Error(`Could not create connection to ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`);
+            throw new Error(`Could not create connection to ${FabricRuntimeUtil.LOCAL_FABRIC}`);
         }
 
         return connection;
@@ -80,7 +80,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
 
             // Stop debug if not got late enough version
             if (!extensionData.generatorVersion || semver.lt(extensionData.generatorVersion, '0.0.36')) {
-                outputAdapter.log(LogType.ERROR, `To debug a smart contract, you must update the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime. Teardown and start the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime, and try again.`);
+                outputAdapter.log(LogType.ERROR, `To debug a smart contract, you must update the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime. Teardown and start the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime, and try again.`);
                 return;
             }
 
@@ -89,7 +89,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             const isRunning: boolean = await this.runtime.isRunning();
 
             if (!isRunning) {
-                outputAdapter.log(LogType.ERROR, `Please ensure "${this.runtime.getDisplayName()}" is running before trying to debug a smart contract`);
+                outputAdapter.log(LogType.ERROR, `Please ensure "${this.runtime.getName()}" is running before trying to debug a smart contract`);
                 return;
             }
 

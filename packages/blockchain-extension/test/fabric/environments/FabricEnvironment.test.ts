@@ -17,7 +17,7 @@ import * as sinon from 'sinon';
 import { TestUtil } from '../../TestUtil';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { FabricWalletUtil, FabricNode } from 'ibm-blockchain-platform-common';
+import { FabricNode } from 'ibm-blockchain-platform-common';
 import { FabricEnvironment } from '../../../extension/fabric/environments/FabricEnvironment';
 
 chai.should();
@@ -43,12 +43,6 @@ describe('FabricEnvironment', () => {
 
     afterEach(async () => {
         sandbox.restore();
-    });
-
-    describe('#getDisplayName', () => {
-        it('should return the display name of the runtime', () => {
-            environment.getDisplayName().should.equal('myFabric');
-        });
     });
 
     describe('#getName', () => {
@@ -83,7 +77,7 @@ describe('FabricEnvironment', () => {
                     api_url: 'http://localhost:17054',
                     type: 'fabric-ca',
                     ca_name: 'ca.org1.example.com',
-                    wallet: FabricWalletUtil.LOCAL_WALLET,
+                    wallet: 'Org1',
                     identity: 'admin',
                     msp_id: 'Org1MSP',
                     container_name: 'yofn_ca.org1.example.com'
@@ -96,18 +90,11 @@ describe('FabricEnvironment', () => {
                     container_name: 'yofn_couchdb'
                 },
                 {
-                    short_name: 'logspout',
-                    name: 'logspout',
-                    api_url: 'http://localhost:17056',
-                    type: 'logspout',
-                    container_name: 'yofn_logspout'
-                },
-                {
                     short_name: 'orderer.example.com',
                     name: 'orderer.example.com',
                     api_url: 'grpc://localhost:17050',
                     type: 'fabric-orderer',
-                    wallet: FabricWalletUtil.LOCAL_WALLET,
+                    wallet: 'Orderer',
                     identity: 'admin',
                     msp_id: 'OrdererMSP',
                     container_name: 'yofn_orderer.example.com'
@@ -118,7 +105,7 @@ describe('FabricEnvironment', () => {
                     api_url: 'grpc://localhost:17051',
                     chaincode_url: 'grpc://localhost:17052',
                     type: 'fabric-peer',
-                    wallet: FabricWalletUtil.LOCAL_WALLET,
+                    wallet: 'Org1',
                     identity: 'admin',
                     msp_id: 'Org1MSP',
                     container_name: 'yofn_peer0.org1.example.com'
@@ -145,13 +132,6 @@ describe('FabricEnvironment', () => {
                     container_name: 'yofn_couchdb'
                 },
                 {
-                    short_name: 'logspout',
-                    name: 'logspout',
-                    api_url: 'http://localhost:17056',
-                    type: 'logspout',
-                    container_name: 'yofn_logspout'
-                },
-                {
                     short_name: 'peer1.org1.example.com',
                     name: 'peer1.org1.example.com',
                     api_url: 'grpc://localhost:17051',
@@ -166,7 +146,7 @@ describe('FabricEnvironment', () => {
 
     describe('#updateNode', () => {
         it('should update the node', async () => {
-            const node: FabricNode = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:17054', FabricWalletUtil.LOCAL_WALLET, 'admin', 'Org1MSP', 'yofn_ca.org1.example.com', 'admin', 'adminpw');
+            const node: FabricNode = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:17054', 'Org1', 'admin', 'Org1MSP', 'yofn_ca.org1.example.com', 'admin', 'adminpw');
             const nodePath: string = path.join(environmentPath, 'nodes', `${node.name}.json`);
             const writeStub: sinon.SinonStub = sandbox.stub(fs, 'writeJson');
 
@@ -227,7 +207,7 @@ describe('FabricEnvironment', () => {
 
     describe('#requireSetup', () => {
         it('should return true if set up required', async () => {
-            const node: FabricNode = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:17054', FabricWalletUtil.LOCAL_WALLET, 'admin', 'Org1MSP', 'yofn_ca.org1.example.com', 'admin', 'adminpw');
+            const node: FabricNode = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:17054', 'Org1', 'admin', 'Org1MSP', 'yofn_ca.org1.example.com', 'admin', 'adminpw');
             sandbox.stub(environment, 'getNodes').resolves([node]);
             const result: boolean = await environment.requireSetup();
             result.should.equal(true);

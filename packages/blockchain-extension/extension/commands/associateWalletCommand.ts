@@ -17,7 +17,7 @@ import { GatewayDissociatedTreeItem } from '../explorer/model/GatewayDissociated
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
-import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistry, FabricWalletRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
 
 export async function associateWallet(gatewayTreeItem: GatewayDissociatedTreeItem): Promise<any> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -33,7 +33,7 @@ export async function associateWallet(gatewayTreeItem: GatewayDissociatedTreeIte
         let gateways: Array<FabricGatewayRegistryEntry> = [];
         gateways = await FabricGatewayRegistry.instance().getAll(false);
         if (gateways.length === 0) {
-            outputAdapter.log(LogType.ERROR, `Add a gateway to associate a wallet. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is associated with ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}.`, `Add a gateway to associate a wallet. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is associated with ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}.`);
+            outputAdapter.log(LogType.ERROR, `Add a gateway to associate a wallet.`);
             return;
         }
         const chosenGateway: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Pick a gateway to associate a wallet with', false, false, false) as IBlockchainQuickPickItem<FabricGatewayRegistryEntry>;
@@ -67,7 +67,9 @@ export async function associateWallet(gatewayTreeItem: GatewayDissociatedTreeIte
         gateway.associatedWallet = associatedWallet;
         await fabricGatewayRegistry.update(gateway);
 
-        outputAdapter.log(LogType.SUCCESS, `Successfully associated "${associatedWallet}" wallet with "${gateway.name}" gateway`);
+        const gatewayName: string = gateway.name;
+
+        outputAdapter.log(LogType.SUCCESS, `Successfully associated "${associatedWallet}" wallet with "${gatewayName}" gateway`);
 
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Unable to associate wallet: ${error.message}`, `Unable to associate wallet: ${error.toString()}`);

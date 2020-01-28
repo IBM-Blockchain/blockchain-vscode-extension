@@ -25,7 +25,7 @@ import { version } from '../../../package.json';
 import { VSCodeBlockchainOutputAdapter } from '../../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { SettingConfigurations } from '../../../configurations';
 import { FabricEnvironmentManager, ConnectedState } from '../../../extension/fabric/environments/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FileSystemUtil } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FileSystemUtil, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';
@@ -46,6 +46,7 @@ describe('LocalEnvironmentManager', () => {
 
     before(async () => {
         await TestUtil.setupTests(sandbox);
+        await TestUtil.setupLocalFabric();
         originalRuntime = runtimeManager.getRuntime();
     });
 
@@ -97,64 +98,51 @@ describe('LocalEnvironmentManager', () => {
         it('should use existing configuration and import all wallets/identities', async () => {
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {
                 ports: {
-                    certificateAuthority: 17054,
-                    couchDB: 17055,
-                    logs: 17056,
-                    orderer: 17050,
-                    peerChaincode: 17052,
-                    peerEventHub: 17053,
-                    peerRequest: 17051
+                    startPort: 17050,
+                    endPort: 17070
                 }
             }, vscode.ConfigurationTarget.Global);
             await runtimeManager.initialize();
             mockRuntime.ports.should.deep.equal({
-                certificateAuthority: 17054,
-                couchDB: 17055,
-                logs: 17056,
-                orderer: 17050,
-                peerChaincode: 17052,
-                peerEventHub: 17053,
-                peerRequest: 17051
+                startPort: 17050,
+                endPort: 17070
             });
             mockRuntime.updateUserSettings.should.not.have.been.called;
-            mockRuntime.importWalletsAndIdentities.should.have.been.calledOnce;
-            mockRuntime.importGateways.should.have.been.calledOnce;
         });
 
-        it('should generate new configuration and import all wallets/identities', async () => {
+        it('should generate new configuration', async () => {
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
+
+            findFreePortStub.returns([17050, 17070]);
             await runtimeManager.initialize();
             mockRuntime.ports.should.deep.equal({
-                certificateAuthority: 17054,
-                couchDB: 17055,
-                logs: 17056,
-                orderer: 17050,
-                peerChaincode: 17052,
-                peerEventHub: 17053,
-                peerRequest: 17051
+                startPort: 17050,
+                endPort: 17070
             });
             mockRuntime.updateUserSettings.should.have.been.calledOnce;
-            mockRuntime.importWalletsAndIdentities.should.have.been.calledOnce;
-            mockRuntime.importGateways.should.have.been.calledOnce;
         });
 
         it('create the runtime if it is not already created', async () => {
             mockRuntime.isCreated.resolves(false);
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
+            findFreePortStub.returns([17050, 17070]);
+
             await runtimeManager.initialize();
             mockRuntime.ports.should.deep.equal({
-                certificateAuthority: 17054,
-                couchDB: 17055,
-                logs: 17056,
-                orderer: 17050,
-                peerChaincode: 17052,
-                peerEventHub: 17053,
-                peerRequest: 17051
+                startPort: 17050,
+                endPort: 17070
             });
             mockRuntime.updateUserSettings.should.have.been.calledOnce;
-            mockRuntime.importWalletsAndIdentities.should.have.been.calledOnce;
-            mockRuntime.importGateways.should.have.been.calledOnce;
             mockRuntime.create.should.have.been.calledOnce;
+        });
+
+        it(`should start logs if ${FabricRuntimeUtil.LOCAL_FABRIC} is connected`, async () => {
+            mockRuntime.isCreated.resolves(true);
+            await runtimeManager.initialize();
+            const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+            mockRuntime.startLogs.resetHistory();
+            FabricEnvironmentManager.instance().connect(mockConnection, registryEntry, ConnectedState.CONNECTED);
+            mockRuntime.startLogs.should.have.been.called;
         });
 
         it('should not start the logs when other fabric connected', async () => {
@@ -180,6 +168,26 @@ describe('LocalEnvironmentManager', () => {
 
             mockRuntime.stopLogs.should.have.been.called;
         });
+
+        it('should migrate if old style-ports are used and need to be updated to a start and end port range', async () => {
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {
+                ports: {
+                    orderer: 8,
+                    peerRequest: 6,
+                    peerChaincode: 1,
+                    peerEventHub: 3,
+                    certificateAuthority: 2,
+                    couchDB: 4,
+                    otherRandomVariable: 12
+                }
+            }, vscode.ConfigurationTarget.Global);
+            await runtimeManager.initialize();
+            mockRuntime.ports.should.deep.equal({
+                startPort: 1,
+                endPort: 21
+            });
+            mockRuntime.updateUserSettings.should.have.been.calledOnce;
+        });
     });
 
     describe('#migrate', () => {
@@ -192,13 +200,8 @@ describe('LocalEnvironmentManager', () => {
             getStub = sandbox.stub();
             getStub.withArgs(SettingConfigurations.FABRIC_RUNTIME).returns({
                 ports: {
-                    certificateAuthority: 17054,
-                    couchDB: 17055,
-                    logs: 17056,
-                    orderer: 17050,
-                    peerChaincode: 17052,
-                    peerEventHub: 17053,
-                    peerRequest: 17051
+                    startPort: 17050,
+                    endPort: 17070
                 }
             });
             getStub.withArgs('fabric.runtime').returns({});
@@ -237,15 +240,12 @@ describe('LocalEnvironmentManager', () => {
                 ports: {
                     certificateAuthority: 17054,
                     couchDB: 17055,
-                    logs: 17056,
                     orderer: 17050,
                     peerChaincode: 17052,
                     peerEventHub: 17053,
                     peerRequest: 17051
                 }
             }, vscode.ConfigurationTarget.Global);
-
-            findFreePortStub.should.have.been.calledOnce;
 
         });
 
@@ -272,7 +272,6 @@ describe('LocalEnvironmentManager', () => {
                 ports: {
                     certificateAuthority: 17054,
                     couchDB: 17055,
-                    logs: 17056,
                     orderer: 17050,
                     peerChaincode: 17052,
                     peerEventHub: 17053,
@@ -280,7 +279,6 @@ describe('LocalEnvironmentManager', () => {
                 }
             }, vscode.ConfigurationTarget.Global);
 
-            findFreePortStub.should.have.been.calledOnce;
         });
 
         it(`should migrate from fabric.runtime to ${SettingConfigurations.FABRIC_RUNTIME} (previously migrated)`, async () => {

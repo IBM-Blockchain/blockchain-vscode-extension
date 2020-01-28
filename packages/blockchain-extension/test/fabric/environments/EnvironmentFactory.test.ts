@@ -53,8 +53,8 @@ describe('EnvironmentFactory', () => {
         }
     });
 
-    it(`should return the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} environment`, async () => {
-        await LocalEnvironmentManager.instance().initialize();
+    it(`should return the ${FabricRuntimeUtil.LOCAL_FABRIC} environment`, async () => {
+        await TestUtil.setupLocalFabric();
 
         const getRuntimeSpy: sinon.SinonSpy = sandbox.spy(LocalEnvironmentManager.instance(), 'getRuntime');
 
@@ -121,7 +121,7 @@ describe('EnvironmentFactory', () => {
         environment.should.be.an.instanceOf(AnsibleEnvironment);
     });
 
-    it(`should set the associated gateways for the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} if not already set`, async () => {
+    it(`should set the associated gateways for the ${FabricRuntimeUtil.LOCAL_FABRIC} if not already set`, async () => {
         await LocalEnvironmentManager.instance().initialize();
 
         const updateSpy: sinon.SinonSpy = sandbox.spy(FabricEnvironmentRegistry.instance(), 'update');
@@ -142,7 +142,7 @@ describe('EnvironmentFactory', () => {
         updateSpy.should.have.been.calledWith(registryEntry);
     });
 
-    it(`should set the environment type for the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} if not already set`, async () => {
+    it(`should set the environment type for the ${FabricRuntimeUtil.LOCAL_FABRIC} if not already set`, async () => {
         await LocalEnvironmentManager.instance().initialize();
 
         const updateSpy: sinon.SinonSpy = sandbox.spy(FabricEnvironmentRegistry.instance(), 'update');

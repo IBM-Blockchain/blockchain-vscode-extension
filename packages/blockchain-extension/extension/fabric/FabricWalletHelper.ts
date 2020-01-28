@@ -19,7 +19,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 
 export class FabricWalletHelper {
-    static readonly LOCAL_WALLET: string = 'local_fabric_wallet';
+    static readonly OLD_LOCAL_WALLET: string = 'local_fabric_wallet';
     static readonly LOCAL_WALLET_DISPLAY_NAME: string = 'Local Fabric Wallet';
 
     public static async tidyWalletSettings(): Promise<void> {
@@ -61,25 +61,10 @@ export class FabricWalletHelper {
         // Rewrite the updated wallets to the user settings
         await vscode.workspace.getConfiguration().update(SettingConfigurations.OLD_FABRIC_WALLETS, [], vscode.ConfigurationTarget.Global);
 
-        // Migrate local_fabric_wallet if it exists
-        const localFabricWalletPath: string = path.join(resolvedExtDir, FabricWalletHelper.LOCAL_WALLET);
+        // Delete local_fabric_wallet if it exists
+        const localFabricWalletPath: string = path.join(resolvedExtDir, FabricWalletHelper.OLD_LOCAL_WALLET);
         const localWalletExists: boolean = await fs.pathExists(localFabricWalletPath);
         if (localWalletExists) {
-            try {
-                newWalletDir = path.join(walletsExtDir, FabricWalletHelper.LOCAL_WALLET);
-
-                // create the new registry entry
-                const walletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
-                walletRegistryEntry.name = FabricWalletHelper.LOCAL_WALLET;
-                walletRegistryEntry.walletPath = newWalletDir;
-                walletRegistryEntry.managedWallet = true;
-                await FabricWalletRegistry.instance().add(walletRegistryEntry);
-
-                await fs.copy(localFabricWalletPath, newWalletDir);
-            } catch (error) {
-                throw new Error(`Issue copying ${localFabricWalletPath} to ${newWalletDir}: ${error.message}`);
-            }
-            // Only remove the walletPath if the copy worked
             await fs.remove(localFabricWalletPath);
         }
     }

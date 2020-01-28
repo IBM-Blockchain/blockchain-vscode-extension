@@ -69,6 +69,9 @@ export async function exportWallet(walletTreeItem?: WalletTreeItem): Promise<voi
         outputAdapter.log(LogType.ERROR, `Issue exporting wallet: ${error.message}`, `Issue exporting wallet: ${error.toString()}`);
         return;
     }
-    outputAdapter.log(LogType.SUCCESS, `Successfully exported wallet ${exportedWalletRegistryEntry.name} to ${walletUri.fsPath}`);
+
+    const walletName: string = exportedWalletRegistryEntry.displayName ? exportedWalletRegistryEntry.displayName : exportedWalletRegistryEntry.name;
+
+    outputAdapter.log(LogType.SUCCESS, `Successfully exported wallet ${walletName} to ${walletUri.fsPath}`);
     Reporter.instance().sendTelemetryEvent('exportWallet');
 }

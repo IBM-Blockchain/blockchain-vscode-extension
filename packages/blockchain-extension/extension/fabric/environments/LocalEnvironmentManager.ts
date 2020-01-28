@@ -48,35 +48,57 @@ export class LocalEnvironmentManager {
 
         // only generate a range of ports if it doesn't already exist
         const runtimeObject: any = this.readRuntimeUserSettings();
+
+        let updatedPorts: boolean = false;
         if (runtimeObject.ports) {
+            // Check to see if ports.orderer, ports.peer, etc.
+            // If so, then we'll need to migrate to use startPoor and endPort.
+
+            if (runtimeObject.ports.orderer || runtimeObject.ports.peerRequest || runtimeObject.ports.peerChaincode ||
+                runtimeObject.ports.peerEventHub || runtimeObject.ports.certificateAuthority || runtimeObject.ports.couchDB) {
+                    // Assume they have the old style ports
+                    const portList: number[] = Object.values(runtimeObject.ports);
+
+                    const startPort: number = Math.min(...portList);
+
+                    // Decide on end port
+                    const endPort: number = startPort + 20;
+                    runtimeObject.ports = {
+                        startPort,
+                        endPort
+                    };
+
+                    updatedPorts = true;
+
+            }
+
             this.runtime = new LocalEnvironment();
             this.runtime.ports = runtimeObject.ports;
+
         } else {
+            updatedPorts = true;
+
             // Generate a range of ports for this Fabric runtime.
             const ports: FabricRuntimePorts = await this.generatePortConfiguration();
 
             // Add the Fabric runtime to the internal cache.
             this.runtime = new LocalEnvironment();
             this.runtime.ports = ports;
+        }
+
+        if (updatedPorts) {
             await this.runtime.updateUserSettings();
         }
 
         // Check to see if the runtime has been created.
         const created: boolean = await this.runtime.isCreated();
         if (!created) {
-            // Nope - create it now.
             await this.runtime.create();
-
         }
-
-        // Import all of the wallets and identities as well.
-        await this.runtime.importWalletsAndIdentities();
-
-        // Import all of the gateways
-        await this.runtime.importGateways();
 
         FabricEnvironmentManager.instance().on('connected', async () => {
             const registryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+            // TODO JAKE - we'll need to update this for all managedRuntimes
             if (registryEntry.managedRuntime && registryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
                 const outputAdapter: VSCodeBlockchainDockerOutputAdapter = VSCodeBlockchainDockerOutputAdapter.instance();
                 await this.runtime.startLogs(outputAdapter);
@@ -96,30 +118,9 @@ export class LocalEnvironmentManager {
     }
 
     private readRuntimeUserSettings(): any {
-        const runtimeSettings: any = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME) as {
-            ports: {
-                orderer: number,
-                peerRequest: number,
-                peerChaincode: number,
-                peerEventHub: number,
-                certificateAuthority: number,
-                couchDB: number,
-                logs: number
-            }
-        };
+        const runtimeSettings: any = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME);
         if (runtimeSettings.ports) {
-            const runtimeObject: any = {
-                ports: {
-                    orderer: runtimeSettings.ports.orderer,
-                    peerRequest: runtimeSettings.ports.peerRequest,
-                    peerChaincode: runtimeSettings.ports.peerChaincode,
-                    peerEventHub: runtimeSettings.ports.peerEventHub,
-                    certificateAuthority: runtimeSettings.ports.certificateAuthority,
-                    couchDB: runtimeSettings.ports.couchDB,
-                    logs: runtimeSettings.ports.logs
-                }
-            };
-            return runtimeObject;
+            return runtimeSettings;
         } else {
             return {};
         }
@@ -136,13 +137,8 @@ export class LocalEnvironmentManager {
                 ports: {}
             };
             for (const oldRuntime of oldRuntimeSettings) {
-                if (oldRuntime.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+                if (oldRuntime.name === FabricRuntimeUtil.OLD_LOCAL_FABRIC) {
                     runtimeToCopy.ports = oldRuntime.ports;
-
-                    // Generate a logs port
-                    const highestPort: number = this.getHighestPort(runtimeToCopy.ports);
-                    runtimeToCopy.ports.logs = await this.generateLogsPort(highestPort);
-
                 }
             }
 
@@ -185,13 +181,6 @@ export class LocalEnvironmentManager {
             // If either fabric.runtimes and fabric.runtime existed and has ports
             if (runtimeToCopy.ports) {
 
-                // If previous settings didn't have 'logs' property
-                if (!runtimeToCopy.ports.logs) {
-                    // Generate a logs port
-                    const highestPort: number = this.getHighestPort(runtimeToCopy.ports);
-                    runtimeToCopy.ports.logs = await this.generateLogsPort(highestPort);
-                }
-
                 // Update new property with old settings values
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, runtimeToCopy, vscode.ConfigurationTarget.Global);
 
@@ -216,55 +205,23 @@ export class LocalEnvironmentManager {
         // Execute the teardown scripts.
         const basicNetworkPath: string = path.resolve(__dirname, '..', '..', '..', 'basic-network');
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-        outputAdapter.log(LogType.WARNING, null, `Attempting to teardown old ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} from version <= 0.3.3`);
+        outputAdapter.log(LogType.WARNING, null, `Attempting to teardown old ${this.runtime.getName()} from version <= 0.3.3`);
         outputAdapter.log(LogType.WARNING, null, 'Any error messages from this process can be safely ignored (for example, container does not exist');
         if (process.platform === 'win32') {
             await CommandUtil.sendCommandWithOutput('cmd', ['/c', 'teardown.cmd'], basicNetworkPath, null, outputAdapter);
         } else {
             await CommandUtil.sendCommandWithOutput('/bin/sh', ['teardown.sh'], basicNetworkPath, null, outputAdapter);
         }
-        outputAdapter.log(LogType.WARNING, null, `Finished attempting to teardown old ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} from version <= 0.3.3`);
+        outputAdapter.log(LogType.WARNING, null, `Finished attempting to teardown old ${this.runtime.getName()} from version <= 0.3.3`);
 
-    }
-
-    private async generateLogsPort(highestPort: number): Promise<number> {
-
-        const freep: number[] = await LocalEnvironmentManager.findFreePort(highestPort + 1, null, null, 1);
-
-        return freep[0];
-
-    }
-
-    private getHighestPort(ports: FabricRuntimePorts): number {
-        let port: number = 17050;
-        const portNames: string[] = Object.keys(ports);
-        for (const portName of portNames) {
-            const thisPort: number = ports[portName];
-            if (thisPort > port) {
-                port = thisPort;
-            }
-        }
-        return port;
     }
 
     private async generatePortConfiguration(): Promise<FabricRuntimePorts> {
         const ports: FabricRuntimePorts = new FabricRuntimePorts();
-        const [
-            orderer,
-            peerRequest,
-            peerChaincode,
-            peerEventHub,
-            certificateAuthority,
-            couchDB,
-            logs
-        ]: number[] = await LocalEnvironmentManager.findFreePort(17050, null, null, 7);
-        ports.orderer = orderer;
-        ports.peerRequest = peerRequest;
-        ports.peerChaincode = peerChaincode;
-        ports.peerEventHub = peerEventHub;
-        ports.certificateAuthority = certificateAuthority;
-        ports.couchDB = couchDB;
-        ports.logs = logs;
+        const freePorts: number[] = await LocalEnvironmentManager.findFreePort(17050, null, null, 20);
+        ports.startPort = freePorts[0];
+        ports.endPort = freePorts[freePorts.length - 1];
+
         return ports;
     }
 }

@@ -17,7 +17,7 @@ import { GatewayAssociatedTreeItem } from '../explorer/model/GatewayAssociatedTr
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
-import { FabricRuntimeUtil, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 
 export async function dissociateWallet(associatedGatewayTreeItem: GatewayAssociatedTreeItem): Promise<any> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -33,7 +33,7 @@ export async function dissociateWallet(associatedGatewayTreeItem: GatewayAssocia
         let gateways: Array<FabricGatewayRegistryEntry> = [];
         gateways = await FabricGatewayRegistry.instance().getAll(false);
         if (gateways.length === 0) {
-            outputAdapter.log(LogType.ERROR, `No gateways to dissociate found. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} cannot be dissociated from ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}.`, `No gateways to dissociate found. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} cannot be dissociated from ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}.`);
+            outputAdapter.log(LogType.ERROR, `No gateways to dissociate found. ${FabricRuntimeUtil.LOCAL_FABRIC} gateways cannot be dissociated from their wallet.`, `No gateways to dissociate found. ${FabricRuntimeUtil.LOCAL_FABRIC} gateways cannot be dissociated from their wallet.`);
             return;
         }
 
@@ -54,7 +54,9 @@ export async function dissociateWallet(associatedGatewayTreeItem: GatewayAssocia
         gateway.associatedWallet = '';
         await fabricGatewayRegistry.update(gateway);
 
-        outputAdapter.log(LogType.SUCCESS, `Successfully dissociated wallet from "${gateway.name}" gateway`);
+        const gatewayName: string = gateway.name;
+
+        outputAdapter.log(LogType.SUCCESS, `Successfully dissociated wallet from "${gatewayName}" gateway`);
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Unable to dissociate wallet: ${error.message}`, `Unable to dissociate wallet: ${error.toString()}`);
     }

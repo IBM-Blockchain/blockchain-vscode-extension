@@ -28,6 +28,7 @@ import { Reporter } from '../../extension/util/Reporter';
 chai.should();
 chai.use(sinonChai);
 // tslint:disable no-unused-expression
+// skip as tests keep stopping here
 describe('packageSmartContract', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     const rootPath: string = path.dirname(__dirname);

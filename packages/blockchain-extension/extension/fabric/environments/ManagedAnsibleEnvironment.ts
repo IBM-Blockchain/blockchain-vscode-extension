@@ -18,14 +18,21 @@ import * as request from 'request';
 import { SettingConfigurations } from '../../../configurations';
 import { FabricRuntimeState } from '../FabricRuntimeState';
 import { AnsibleEnvironment } from './AnsibleEnvironment';
-import { OutputAdapter, FabricNode, FabricNodeType, ConsoleOutputAdapter, FabricWalletRegistry } from 'ibm-blockchain-platform-common';
+import { FabricGateway } from '../FabricGateway';
+import { FabricGatewayRegistry } from '../../registries/FabricGatewayRegistry';
+import { OutputAdapter, FabricNode, FabricNodeType, ConsoleOutputAdapter, FabricWalletRegistry, LogType } from 'ibm-blockchain-platform-common';
+import * as loghose from 'docker-loghose';
+import * as through from 'through2';
+import stripAnsi = require('strip-ansi');
 
 export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
+    public ourLoghose: any = loghose;
     protected busy: boolean = false;
     protected state: FabricRuntimeState;
     protected isRunningPromise: Promise<boolean>;
 
     protected logsRequest: request.Request;
+    protected lh: any = null;
 
     constructor(name: string) {
         super(name);
@@ -39,11 +46,19 @@ export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
         return this.state;
     }
 
+    public async deleteGateways(): Promise<void> {
+        // Ensure that all known gateways are deleted.
+        const fabricGateways: FabricGateway[] = await this.getGateways();
+        for (const gateway of fabricGateways) {
+            await FabricGatewayRegistry.instance().delete(gateway.name, true);
+        }
+    }
+
     public async deleteWalletsAndIdentities(): Promise<void> {
-        // Ensure that all known identities in all known wallets are deleted.
+        // Ensure that all known wallets (and their identities) are deleted.
         const walletNames: string[] = await this.getWalletNames();
         for (const walletName of walletNames) {
-            await FabricWalletRegistry.instance().delete(walletName);
+            await FabricWalletRegistry.instance().delete(walletName, true);
         }
     }
 
@@ -74,6 +89,13 @@ export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
 
     public async start(outputAdapter?: OutputAdapter): Promise<void> {
         try {
+            // check if isgenerated
+            const generated: boolean = await this.isGenerated();
+            if (!generated) {
+                await this.generate(outputAdapter);
+                await this.importWalletsAndIdentities();
+                await this.importGateways();
+            }
             this.setBusy(true);
             this.setState(FabricRuntimeState.STARTING);
             await this.startInner(outputAdapter);
@@ -151,15 +173,6 @@ export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
         return peer.chaincode_url;
     }
 
-    public async getLogspoutURL(): Promise<string> {
-        const nodes: FabricNode[] = await this.getNodes();
-        const logspout: FabricNode = nodes.find((node: FabricNode) => node.type === FabricNodeType.LOGSPOUT);
-        if (!logspout) {
-            throw new Error('There are no Logspout nodes');
-        }
-        return logspout.api_url;
-    }
-
     public async getPeerContainerName(): Promise<string> {
         const nodes: FabricNode[] = await this.getNodes();
         const peer: FabricNode = nodes.find((node: FabricNode) => node.type === FabricNodeType.PEER);
@@ -170,14 +183,31 @@ export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
     }
 
     public async startLogs(outputAdapter: OutputAdapter): Promise<void> {
-        const logspoutURL: string = await this.getLogspoutURL();
-        this.logsRequest = CommandUtil.sendRequestWithOutput(`${logspoutURL}/logs`, outputAdapter);
+        const opts: any = {
+            attachFilter: (_id: any, dockerInspectInfo: any): boolean => {
+                const labels: object = dockerInspectInfo.Config.Labels;
+                const environmentName: string = labels['fabric-environment-name'];
+                return environmentName === this.name;
+            },
+            newline: true
+        };
+        const lh: any = this.ourLoghose(opts);
+
+        lh.pipe(through.obj((chunk: any, _enc: any, cb: any) => {
+            const name: string = chunk.name;
+            const line: string = stripAnsi(chunk.line);
+            outputAdapter.log(LogType.INFO, undefined, `${name}|${line}`);
+            cb();
+        }));
+
+        this.lh = lh;
     }
 
     public stopLogs(): void {
-        if (this.logsRequest) {
-            CommandUtil.abortRequest(this.logsRequest);
+        if (this.lh) {
+            this.lh.destroy();
         }
+        this.lh = null;
     }
 
     public setState(state: FabricRuntimeState): void {

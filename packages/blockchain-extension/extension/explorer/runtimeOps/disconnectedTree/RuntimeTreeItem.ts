@@ -18,7 +18,7 @@ import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
 import { VSCodeBlockchainOutputAdapter } from '../../../logging/VSCodeBlockchainOutputAdapter';
 import { FabricEnvironmentTreeItem } from './FabricEnvironmentTreeItem';
-import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../../fabric/environments/LocalEnvironment';
 import { ManagedAnsibleEnvironment } from '../../../fabric/environments/ManagedAnsibleEnvironment';
 import { EnvironmentFactory } from '../../../fabric/environments/EnvironmentFactory';
@@ -62,18 +62,18 @@ export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
             // Busy!
             this.enableBusyTicker();
             const busyStates: string[] = ['◐', '◓', '◑', '◒'];
-            newLabel = `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} runtime is ${this.runtime.getState()}... `;
+            newLabel = `${this.name} runtime is ${this.runtime.getState()}... `;
             newLabel += busyStates[this.busyTicks % 4];
             this.tooltip = `The local development runtime is ${this.runtime.getState()}...`;
         } else if (running) {
             // Running!
             this.disableBusyTicker();
-            newLabel = `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ●`;
+            newLabel = `${this.name}  ●`;
             this.tooltip = 'The local development runtime is running';
         } else {
             // Not running!
             this.disableBusyTicker();
-            newLabel = `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ○ (click to start)`;
+            newLabel = `${this.name}  ○ (click to start)`;
             this.tooltip = 'Creates a local development runtime using Hyperledger Fabric Docker images';
         }
 

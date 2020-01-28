@@ -77,7 +77,7 @@ describe('GlobalState', () => {
             const updateStateSpy: sinon.SinonSpy = mySandBox.spy(context.globalState, 'update');
 
             const newExtensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
-            newExtensionData.generatorVersion = 'something_has_changed';
+            newExtensionData.generatorVersion = '0.0.0';
 
             await GlobalState.update(newExtensionData);
 
@@ -90,7 +90,7 @@ describe('GlobalState', () => {
             const updateStateStub: sinon.SinonSpy = mySandBox.stub(context.globalState, 'update').throws(error);
 
             const newExtensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
-            newExtensionData.generatorVersion = 'something_has_changed';
+            newExtensionData.generatorVersion = '0.0.0';
 
             const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
@@ -106,7 +106,7 @@ describe('GlobalState', () => {
         it('should reset global state', async () => {
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
-            extensionData.generatorVersion = 'something_has_changed';
+            extensionData.generatorVersion = '0.0.0';
             await GlobalState.update(extensionData);
 
             const writtenState: ExtensionData = GlobalState.get();

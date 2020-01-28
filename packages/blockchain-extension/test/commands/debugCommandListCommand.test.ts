@@ -22,7 +22,7 @@ import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
-import { FabricRuntimeUtil, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
+import { LogType, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
@@ -47,7 +47,8 @@ describe('DebugCommandListCommand', () => {
     before(async () => {
         mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
-        await LocalEnvironmentManager.instance().getRuntime().create();
+        await TestUtil.setupLocalFabric();
+
     });
 
     beforeEach(async () => {
@@ -143,10 +144,11 @@ describe('DebugCommandListCommand', () => {
         executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.EVALUATE_TRANSACTION, undefined, 'mychannel', 'mySmartContract');
     });
 
-    it('should connect to local_fabric before running the submit or evaluate commands', async () => {
+    it('should connect to Org1 wallet before running the submit or evaluate commands', async () => {
         const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-        registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
-        registryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+        registryEntry.name = 'Org1';
+        registryEntry.associatedWallet = 'Org1';
+        registryEntry.displayName = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`;
         connectionManagerGetConnectionStub.onCall(0).returns(undefined);
         connectionManagerGetConnectionStub.onCall(1).returns(runtimeStub);
         showDebugCommandListStub.resolves({ label: 'Evaluate transaction', data: ExtensionCommands.EVALUATE_TRANSACTION });

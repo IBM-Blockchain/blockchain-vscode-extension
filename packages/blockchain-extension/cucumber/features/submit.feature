@@ -5,7 +5,9 @@ Feature: Submit transaction
         Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
         And the Local Fabric is running
         And the 'Local Fabric' environment is connected
-        And I'm connected to the 'Local Fabric' gateway
+        And the 'Org1' wallet
+        And the 'Local Fabric Admin' identity
+        And I'm connected to the 'Org1' gateway
         And the contract has been created
         And the contract has been packaged
         And the package has been installed

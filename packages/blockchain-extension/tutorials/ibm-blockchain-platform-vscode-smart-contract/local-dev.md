@@ -163,8 +163,8 @@ That's all you need to do in this step, but before moving on let's learn a littl
 
 * The `Smart Contracts` section shows you the `Instantiated` and `Installed` contracts on this network. The next step in this tutorial will have us __install__ and __instantiate__ a smart contract from a package.
 * Under `Channels` there is a single channel called `mychannel`. In order for a smart contract to be used, it must be __instantiated__ on a channel. This happens after we first __install__ the contract on peers.
-* The `Nodes` section contains a single "peer" (`peer0.org1.example.com`). The naming follows Hyperledger Fabric conventions, and we can see from the "org1" part that this peer is owned by `Org1`.
-* There is also a single Certificate Authority (CA) `ca.org1.example.com`, and a single orderer node `orderer.example.com`.
+* The `Nodes` section contains a single "peer" (`Org1Peer1`).
+* There is also a single Certificate Authority (CA) `Org1CA`, and a single orderer node `Orderer`.
 * There is an organization in this simple blockchain network called `Org1`. Recall that `Org1` owns the peer we saw in the `Nodes` section. A network with just a single peer-owning organization isn't very realistic for real-world use, as the whole point is to _share_ a ledger between _multiple_ organizations, but it's sufficient for local development purposes. Under `Organizations` you will see `Org1MSP`: this is Org1's `MSP ID`.
 * You may find it useful to know that the following Docker containers are started on your local machine: Orderer, Certificate Authority, CouchDB, and Peer.
 
@@ -191,7 +191,7 @@ Here is how to package, install and instantiate from your open smart contract pr
 
 2. You'll be asked to choose a smart contract to instantiate. Pick `demoContract` (it will have "Open Project" next to it).
 
-3. If you're using Typescript, you will see `demoContract@0.0.1` appear in the `SMART CONTRACTS` panel, and then under `Smart Contracts` > `Installed` in the `FABRIC ENVIRONMENTS` panel. Your open project has been automatically packaged using the information in `package.json`, and installed on the only available peer (`peer0.org1.example.com`).
+3. If you're using Typescript, you will see `demoContract@0.0.1` appear in the `SMART CONTRACTS` panel, and then under `Smart Contracts` > `Installed` in the `FABRIC ENVIRONMENTS` panel. Your open project has been automatically packaged using the information in `package.json`, and installed on the only available peer (`Org1Peer1`).
 
    > __Pro Tip:__ Some langauges, like Java, don't take their name and version info from a json file. As such, if you're using Java, you'll be asked to enter a name (e.g. `demoContract`) and then a version (e.g. `0.0.1`) for your Java package at the command-palette. Then, the package and install steps will complete.
 
@@ -267,7 +267,7 @@ The package you just created can be installed onto any Hyperledger Fabric peer (
 
 ### Step two: install
 
-In a real network, each of the organizations that will be endorsing transactions will install the smart contract on their own peers. Our basic local Fabric runtime only has a single peer-owning organization (`Org1`) with a single peer (`peer0.org1.example.com`) and a single channel (`mychannel`).
+In a real network, each of the organizations that will be endorsing transactions will install the smart contract on their own peers. Our basic local Fabric runtime only has a single peer-owning organization (`Org1`) with a single peer (`Org1Peer1`) and a single channel (`mychannel`).
 
 So, we only have to install the new version of the contract on that single peer, then we will be able to upgrade the instance in `mychannel`.
 To do this...
@@ -312,11 +312,11 @@ Note that the old version `demoContract@0.0.1` is _replaced_ with `demoContract@
 
 Fabric gateways are connections to peers participating in Hyperledger Fabric networks, which can be used by client applications to submit transactions. When you started the local runtime in `LOCAL FABRIC OPS`, a gateway was automatically created for you also. You'll find it under `FABRIC GATEWAYS`, and it's called `Local Fabric`.
 
-To _use_ a gateway, you also need an identity valid for transacting on the network in question. Again, for the local Fabric runtime, this has already been set up for you!  Observe that under `FABRIC WALLETS` there is a wallet called `Local Fabric Wallet  `, which contains an ID called `admin`. If you hover your mouse over `Local Fabric` in the `FABRIC GATEWAYS` panel, you will see that it tells you "Associated wallet: Local Fabric Wallet".
+To _use_ a gateway, you also need an identity valid for transacting on the network in question. Again, for the local Fabric runtime, this has already been set up for you!  Observe that under `FABRIC WALLETS` there is a wallet called `Local Fabric - Org1 Wallet  `, which contains an ID called `org1Admin`. If you hover your mouse over `Local Fabric` in the `FABRIC GATEWAYS` panel, you will see that it tells you "Associated wallet: Local Fabric - Org1 Wallet".
 
 So, you've got a Gateway, and an associated wallet with a single identity in it - this means the Gateway is ready to be used!
 
-1. Click on `Local Fabric` (under `FABRIC GATEWAYS`) to connect via this gateway. You will now see `Connected via gateway: Local Fabric, Using ID: admin` and a collapsed section labelled  `Channels`.
+1. Click on `Local Fabric - Org1` (under `FABRIC GATEWAYS`) to connect via this gateway. You will now see `Connected via gateway: Local Fabric - Org1, Using ID: org1Admin` and a collapsed section labelled  `Channels`.
 
 2. Expand `Channels`, then expand `mychannel` and `demoContract@0.0.2`. You will see a list of all the transactions that were defined in your smart contract.
 

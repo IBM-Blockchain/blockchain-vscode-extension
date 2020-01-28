@@ -19,10 +19,11 @@ Feature: Fabric Environments
         | environment connected       | Connected to environment: Local Fabric | Connected to environment: Local Fabric                                       |
         | installed smart contract    | + Install                              | + Install                                                                    |
         | instantiated smart contract | + Instantiate                          | + Instantiate                                                                |
-        | Channels                    | mychannel                              | Associated peers: peer0.org1.example.com                                                          |
-        | Node                        | peer0.org1.example.com                 | Name: peer0.org1.example.com\\nMSPID: Org1MSP\\nAssociated Identity:\\nadmin |
-        | Node                        | ca.org1.example.com                    | Name: ca.org1.example.com\\nAssociated Identity:\\nadmin                      |
-        | Node                        | orderer.example.com                    | Name: orderer.example.com\\nMSPID: OrdererMSP\\nAssociated Identity:\\nadmin |
+        | Channels                    | mychannel                              | Associated peers: Org1Peer1                                                          |
+        | Node                        | Org1Peer1                              | Name: Org1Peer1\\nMSPID: Org1MSP\\nAssociated Identity:\\norg1Admin |
+        | Node                        | OrdererCA                              | Name: OrdererCA\\nAssociated Identity:\\nadmin |
+        | Node                        | Org1CA                    | Name: Org1CA\\nAssociated Identity:\\nadmin                      |
+        | Node                        | Orderer                    | Name: Orderer\\nMSPID: OrdererMSP\\nAssociated Identity:\\nordererAdmin |
         | Organizations               | OrdererMSP                             | OrdererMSP                                                                   |
         | Organizations               | Org1MSP                                | Org1MSP                                                                      |
 

@@ -7,7 +7,7 @@ Feature: FabCar Sample
         And the 'Local Fabric Admin' identity
         And the 'Local Fabric' environment is connected
         And the contract has been packaged
-        And I'm connected to the 'Local Fabric' gateway
+        And I'm connected to the 'Org1' gateway
         And the package has been installed
         And the contract has been instantiated with the transaction '' and args '', not using private data
         When I submit the transaction 'createCar' with args '["123", "Tesla", "X", "Red", "Jack"]'

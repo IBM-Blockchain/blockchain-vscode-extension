@@ -28,7 +28,7 @@ import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gate
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricEnvironment } from '../../extension/fabric/environments/FabricEnvironment';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistry, FabricWalletRegistryEntry } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 chai.use(sinonChai);
@@ -111,7 +111,7 @@ export class GatewayHelper {
         } catch (error) {
             gatewayEntry = new FabricGatewayRegistryEntry();
             gatewayEntry.name = gatewayName;
-            gatewayEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+            gatewayEntry.associatedWallet = 'Org1';
         }
 
         this.userInputUtilHelper.showGatewayQuickPickStub.resolves({

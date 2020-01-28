@@ -16,7 +16,6 @@
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { FabricRuntimeUtil, FabricWalletUtil } from 'ibm-blockchain-platform-common';
 import { BlockchainWalletExplorerProvider } from '../../extension/explorer/walletExplorer';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
@@ -32,16 +31,13 @@ module.exports = function(): any {
      */
 
     this.Given("the '{string}' wallet", this.timeout, async (wallet: string) => {
-        if (wallet === FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME) {
-            wallet = FabricWalletUtil.LOCAL_WALLET;
-        }
         // Might want to detect if 'Local Fabric', then use AnsibleEnvironment/WalletUtil
         this.wallet = wallet;
     });
 
     this.Given("the '{string}' identity", this.timeout, async (identity: string) => {
         if (identity === 'Local Fabric Admin') {
-            identity = FabricRuntimeUtil.ADMIN_USER;
+            identity = 'org1Admin';
         }
         this.identity = identity;
     });

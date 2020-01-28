@@ -18,7 +18,7 @@ import * as path from 'path';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { IdentityTreeItem } from '../explorer/model/IdentityTreeItem';
-import { FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, IFabricWallet, IFabricWalletGenerator, LogType } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWallet, IFabricWalletGenerator, LogType } from 'ibm-blockchain-platform-common';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
@@ -43,15 +43,17 @@ export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> 
         walletPath = wallet.getWalletPath();
         let identityNames: string[] = await wallet.getIdentityNames();
 
-        if (chosenWallet.label === FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME) {
+        const walletName: string = (chosenWallet.data.displayName) ? chosenWallet.data.displayName : chosenWallet.data.name;
+
+        if (walletName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
             // If the local wallet was selected, we should filter out the admin identity
             identityNames = identityNames.filter((identity: string) => {
                 return identity !== FabricRuntimeUtil.ADMIN_USER;
             });
         }
 
-        if (chosenWallet.label === FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME && identityNames.length === 0) {
-            outputAdapter.log(LogType.ERROR, `No identities to delete in wallet: ${chosenWallet.label}. The ${FabricRuntimeUtil.ADMIN_USER} identity cannot be deleted.`, `No identities to delete in wallet: ${chosenWallet.label}. The ${FabricRuntimeUtil.ADMIN_USER} identity cannot be deleted.`);
+        if (walletName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `) && identityNames.length === 0) {
+            outputAdapter.log(LogType.ERROR, `No identities to delete in wallet: ${walletName}. The ${FabricRuntimeUtil.ADMIN_USER} identity cannot be deleted.`, `No identities to delete in wallet: ${walletName}. The ${FabricRuntimeUtil.ADMIN_USER} identity cannot be deleted.`);
             return;
         } else if (identityNames.length === 0) {
             outputAdapter.log(LogType.ERROR, `No identities in wallet: ${walletPath}`, `No identities in wallet: ${walletPath}`);
@@ -65,12 +67,14 @@ export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> 
 
     } else {
         // Called from the tree
-        if (treeItem.walletName === FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME) {
-           const _wallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().getWallet(FabricWalletUtil.LOCAL_WALLET);
+        const registryEntry: FabricWalletRegistryEntry = treeItem.registryEntry;
+        const walletName: string = (registryEntry.displayName) ? registryEntry.displayName : registryEntry.name;
+        if (walletName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
+           const _wallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().getWallet(registryEntry.name);
            walletPath = _wallet.getWalletPath();
 
         } else {
-            const walletRegistryEntry: FabricWalletRegistryEntry =  await FabricWalletRegistry.instance().get(treeItem.walletName);
+            const walletRegistryEntry: FabricWalletRegistryEntry =  await FabricWalletRegistry.instance().get(registryEntry.name);
             walletPath = walletRegistryEntry.walletPath;
         }
 

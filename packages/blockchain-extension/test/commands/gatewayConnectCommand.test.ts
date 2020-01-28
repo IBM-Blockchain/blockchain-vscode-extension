@@ -34,7 +34,7 @@ import { GatewayAssociatedTreeItem } from '../../extension/explorer/model/Gatewa
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { LocalGatewayTreeItem } from '../../extension/explorer/model/LocalGatewayTreeItem';
-import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
 import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
@@ -57,6 +57,7 @@ describe('GatewayConnectCommand', () => {
         let rootPath: string;
         let mockConnection: sinon.SinonStubbedInstance<FabricGatewayConnection>;
         let mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment>;
+
         let logSpy: sinon.SinonSpy;
         let connectionMultiple: FabricGatewayRegistryEntry;
         let connectionSingle: FabricGatewayRegistryEntry;
@@ -106,6 +107,7 @@ describe('GatewayConnectCommand', () => {
             await FabricGatewayRegistry.instance().add(connectionMultiple);
             await FabricGatewayRegistry.instance().add(connectionAssociated);
 
+            await TestUtil.setupLocalFabric();
             await LocalEnvironmentManager.instance().getRuntime().importGateways();
 
             mySandBox.stub(FabricGatewayHelper, 'getConnectionProfilePath').resolves(path.join('myPath'));
@@ -141,6 +143,7 @@ describe('GatewayConnectCommand', () => {
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(true);
             mockRuntime.start.resolves();
+            mockRuntime.create.resolves();
             mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
@@ -335,22 +338,23 @@ describe('GatewayConnectCommand', () => {
 
             beforeEach(async () => {
                 connection = new FabricGatewayRegistryEntry();
-                connection.name = FabricRuntimeUtil.LOCAL_FABRIC;
-                connection.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+                connection.name = 'Org1';
+                connection.associatedWallet = 'Org1';
+                connection.displayName = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`;
                 testFabricWallet = new FabricWallet('some/new/wallet/path');
                 mySandBox.stub(walletGenerator, 'getWallet').returns(testFabricWallet);
 
                 getIdentitiesStub = mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves([identity.label]);
 
                 chosenGatewayQuickPick.resolves({
-                    label: FabricRuntimeUtil.LOCAL_FABRIC,
+                    label: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`,
                     data: connection
                 });
 
                 chosenWalletQuickPick.resolves({
-                    label: FabricWalletUtil.LOCAL_WALLET,
+                    label: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`,
                     data: new FabricWalletRegistryEntry({
-                        name: FabricWalletUtil.LOCAL_WALLET,
+                        name: 'Org1',
                         walletPath: 'some/new/wallet/path',
                         managedWallet: true
                     })
@@ -383,6 +387,7 @@ describe('GatewayConnectCommand', () => {
             });
 
             it('should connect to a managed runtime from the tree', async () => {
+
                 const blockchainNetworkExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
                 const myConnectionItem: LocalGatewayTreeItem = allChildren[0] as LocalGatewayTreeItem;
@@ -393,7 +398,7 @@ describe('GatewayConnectCommand', () => {
                 choseIdentityQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label, timeout);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'managed runtime', connectIBM: sinon.match.string });
-                logSpy.should.have.been.calledWith(LogType.SUCCESS, `Connecting to ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`);
+                logSpy.should.have.been.calledWith(LogType.SUCCESS, `Connecting to ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
             });
 
             it('should handle the user cancelling an identity to choose from when connecting to a fabric runtime', async () => {
@@ -410,7 +415,7 @@ describe('GatewayConnectCommand', () => {
                 mockRuntime.isRunning.resolves(false);
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
-                logSpy.should.have.been.calledWith(LogType.ERROR, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} has not been started, please start it before connecting.`);
+                logSpy.should.have.been.calledWith(LogType.ERROR, `${FabricRuntimeUtil.LOCAL_FABRIC} has not been started, please start it before connecting.`);
             });
 
         });
@@ -470,7 +475,7 @@ describe('GatewayConnectCommand', () => {
                 getIdentitiesStub.resolves([identity.label]);
                 const blockchainNetworkExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
-                const myConnectionItem: GatewayAssociatedTreeItem = allChildren[3] as GatewayAssociatedTreeItem;
+                const myConnectionItem: GatewayAssociatedTreeItem = allChildren[2] as GatewayAssociatedTreeItem;
 
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
