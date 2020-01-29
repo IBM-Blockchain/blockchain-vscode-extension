@@ -1070,11 +1070,12 @@ export class UserInputUtil {
         });
     }
 
-    public static async showNodesQuickPickBox(prompt: string, nodes: FabricNode[], canPickMany: boolean, currentNodes?: FabricNode[]): Promise<Array<IBlockchainQuickPickItem<FabricNode>> | IBlockchainQuickPickItem<FabricNode> | undefined> {
+    public static async showNodesQuickPickBox(prompt: string, nodes: FabricNode[], canPickMany: boolean, currentNodes?: FabricNode[], informOfChanges: boolean = false): Promise<Array<IBlockchainQuickPickItem<FabricNode>> | IBlockchainQuickPickItem<FabricNode> | undefined> {
         if (nodes.length === 0) {
             throw new Error('Error when importing nodes, no nodes found to choose from.');
         }
 
+        let changeDetected: boolean = false;
         const quickPickItems: IBlockchainQuickPickItem<FabricNode>[] = UserInputUtil.selectNodesOneOrdererPerCluster(nodes);
 
         if (currentNodes && currentNodes.length > 0) {
@@ -1086,13 +1087,28 @@ export class UserInputUtil {
                     }
                     if (existingNode.name !== quickPickItem.data.name) {
                         quickPickItem.description = `(was ${existingNode.name})`;
+                        changeDetected = true;
                     }
                 } else {
                     quickPickItem.description = '(new)';
+                    changeDetected = true;
                 }
                 return quickPickItem;
             });
         }
+
+        if (informOfChanges) {
+            if (changeDetected) {
+            // Ask user if they want to edit filters
+                const editFilters: boolean = await UserInputUtil.showConfirmationWarningMessage('Differences have been detected between the local environment and the Ops Tools environment. Would you like to filter nodes?');
+                if (!editFilters) {
+                    return;
+                }
+            } else {
+                return;
+            }
+        }
+
         const sortedQuickPickItems: IBlockchainQuickPickItem<FabricNode>[] = UserInputUtil.sortNodesForQuickpick(quickPickItems);
 
         const quickPickOptions: vscode.QuickPickOptions = {

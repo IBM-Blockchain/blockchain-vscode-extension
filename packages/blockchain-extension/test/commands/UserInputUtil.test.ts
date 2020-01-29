@@ -60,7 +60,8 @@ describe('UserInputUtil', () => {
     const env: NodeJS.ProcessEnv = Object.assign({}, process.env);
 
     before(async () => {
-        await TestUtil.setupTests(mySandBox);
+        await TestUtil.setupTests(mySandBox) ;
+        mySandBox.restore();
     });
 
     beforeEach(async () => {
@@ -2729,6 +2730,7 @@ describe('UserInputUtil', () => {
         let nodesPickWithoutCurrent: IBlockchainQuickPickItem<FabricNode>[];
         let nodesPickWithCurrent: IBlockchainQuickPickItem<FabricNode>[];
         let sortNodesForQuickpickStub: sinon.SinonStub;
+        let changeDetectedWarningMessage: sinon.SinonStub;
 
         beforeEach(() => {
             peerNode = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grps://somehost:7051', 'cake_fabric_wallet', 'admin', 'Org1MSP', true);
@@ -2744,6 +2746,8 @@ describe('UserInputUtil', () => {
             nodesPickWithCurrent = nodes.map((_node: FabricNode) => ( !_node.hidden ? { label: _node.name, data: _node, picked: true } : { label: _node.name, data: _node }));
 
             sortNodesForQuickpickStub = mySandBox.stub(UserInputUtil, 'sortNodesForQuickpick').returnsArg(0);
+            changeDetectedWarningMessage = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').withArgs('Differences have been detected between the local environment and the Ops Tools environment. Would you like to filter nodes?');
+            changeDetectedWarningMessage.resolves(false);
         });
 
         it('should throw an error if no nodes in Ops Tool', async () => {
@@ -2802,6 +2806,45 @@ describe('UserInputUtil', () => {
             result.should.deep.equal([nodesPickWithCurrent[0], nodesPickWithCurrent[2]]);
             quickPickStub.should.have.been.calledWith(nodesPickWithCurrent);
             sortNodesForQuickpickStub.should.have.been.called;
+        });
+
+        it('should not ask user if she wants to edit filters when informOfChanges is true and there are no changes when connecting to Ops Tool', async () => {
+            const result: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesQuickPickBox('choose your nodes', nodes, true, nodes, true) as IBlockchainQuickPickItem<FabricNode>[];
+
+            should.equal(undefined, result);
+            quickPickStub.should.have.been.not.been.called;
+            sortNodesForQuickpickStub.should.have.not.been.called;
+            changeDetectedWarningMessage.should.have.not.been.called;
+        });
+
+        it('should ask user if she wants to edit filters when informOfChanges is true and changes are detected when connecting to Ops Tool', async () => {
+            const newPeerNode: FabricNode = FabricNode.newPeer('peerNew.org1.example.com', 'peerNew.org1.example.com', 'grps://somehost:7056', 'cake_fabric_wallet', 'admin', 'Org1MSP');
+            const newNodes: FabricNode[] = Array.from(nodes);
+            newNodes.push(newPeerNode);
+            nodesPickWithCurrent.push({ label: newPeerNode.name, data: newPeerNode, description: '(new)' });
+
+            const result: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesQuickPickBox('choose your nodes', newNodes, true, nodes, true) as IBlockchainQuickPickItem<FabricNode>[];
+
+            should.equal(undefined, result);
+            quickPickStub.should.have.been.not.been.called;
+            sortNodesForQuickpickStub.should.have.not.been.called;
+            changeDetectedWarningMessage.should.have.been.called;
+        });
+
+        it('should edit filters if user choses to do so when informOfChanges is true and changes are detected when connecting to Ops Tool', async () => {
+            const newPeerNode: FabricNode = FabricNode.newPeer('peerNew.org1.example.com', 'peerNew.org1.example.com', 'grps://somehost:7056', 'cake_fabric_wallet', 'admin', 'Org1MSP');
+            const newNodes: FabricNode[] = Array.from(nodes);
+            newNodes.push(newPeerNode);
+            nodesPickWithCurrent.push({ label: newPeerNode.name, data: newPeerNode, description: '(new)' });
+            changeDetectedWarningMessage.resolves(true);
+            quickPickStub.resolves([nodesPickWithCurrent[0], nodesPickWithCurrent[2]]);
+
+            const result: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesQuickPickBox('choose your nodes', newNodes, true, nodes, true) as IBlockchainQuickPickItem<FabricNode>[];
+
+            result.should.deep.equal([nodesPickWithCurrent[0], nodesPickWithCurrent[2]]);
+            quickPickStub.should.have.been.calledWith(nodesPickWithCurrent);
+            sortNodesForQuickpickStub.should.have.been.called;
+            changeDetectedWarningMessage.should.have.been.called;
         });
     });
 
