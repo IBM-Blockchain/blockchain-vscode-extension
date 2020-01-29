@@ -14,12 +14,11 @@
 'use strict';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import {  FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType } from 'ibm-blockchain-platform-common';
+import {  FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType, FabricEnvironment, FabricWalletGeneratorFactory } from 'ibm-blockchain-platform-common';
 import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricCertificateAuthorityFactory } from '../fabric/FabricCertificateAuthorityFactory';
-import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
-import { FabricEnvironment } from '../fabric/environments/FabricEnvironment';
+import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 
 export async function associateIdentityWithNode(replace: boolean = false, environmentRegistryEntry: FabricEnvironmentRegistryEntry, node: FabricNode): Promise<any> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -53,7 +52,7 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
                 chooseNodeMessage = 'Choose a node to replace the identity';
             }
 
-            const chosenNode: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick(chooseNodeMessage, environmentRegistryEntry.name, [FabricNodeType.CERTIFICATE_AUTHORITY, FabricNodeType.ORDERER, FabricNodeType.PEER], true) as IBlockchainQuickPickItem<FabricNode>;
+            const chosenNode: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick(chooseNodeMessage, environmentRegistryEntry, [FabricNodeType.CERTIFICATE_AUTHORITY, FabricNodeType.ORDERER, FabricNodeType.PEER], true) as IBlockchainQuickPickItem<FabricNode>;
             if (!chosenNode) {
                 return;
             }
@@ -107,8 +106,8 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
 
         walletName = walletRegistryEntry.name;
 
-        const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-        const wallet: IFabricWallet = await walletGenerator.getWallet(walletRegistryEntry.name);
+        const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
+        const wallet: IFabricWallet = await walletGenerator.getWallet(walletRegistryEntry);
 
         if (enroll) {
             node = await enrollIdAndSecret(node, wallet);
@@ -143,7 +142,7 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
 
         node.wallet = walletName;
         node.identity = identityName;
-        const environment: FabricEnvironment = new FabricEnvironment(environmentRegistryEntry.name);
+        const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
 
         await environment.updateNode(node);
 
@@ -163,7 +162,7 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
         if (!yesnoPick || yesnoPick === UserInputUtil.NO) {
             return;
         } else {
-            const nodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showFabricNodeQuickPick('Choose the nodes you wish to associate with this identity', environmentRegistryEntry.name, [], false, true, true) as IBlockchainQuickPickItem<FabricNode>[];
+            const nodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showFabricNodeQuickPick('Choose the nodes you wish to associate with this identity', environmentRegistryEntry, [], false, true, true) as IBlockchainQuickPickItem<FabricNode>[];
 
             if (!nodes || nodes.length === 0) {
                 return;

@@ -23,10 +23,9 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { Reporter } from '../util/Reporter';
 import { CommandUtil } from '../util/CommandUtil';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
-import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { MetadataUtil } from '../util/MetadataUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricWalletRegistryEntry, IFabricGatewayConnection, LogType } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistryEntry, IFabricGatewayConnection, LogType, FabricGatewayRegistryEntry  } from 'ibm-blockchain-platform-common';
 import { ContractTreeItem } from '../explorer/model/ContractTreeItem';
 import { FABRIC_CLIENT_VERSION, FABRIC_NETWORK_VERSION } from '../util/ExtensionUtil';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
@@ -176,7 +175,7 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
         let conProfileHome: boolean;
         const separator: string = process.platform === 'win32' ? '\\' : '/';
 
-        const connectionProfilePathTmp: string = await FabricGatewayHelper.getConnectionProfilePath(fabricGatewayRegistryEntry.name);
+        const connectionProfilePathTmp: string = await FabricGatewayHelper.getConnectionProfilePath(fabricGatewayRegistryEntry);
         if (connectionProfilePathTmp.includes(homedir)) {
             connectionProfilePath = 'path.join(homedir';
 

@@ -31,7 +31,7 @@ module.exports = function(): any {
         await this.smartContractHelper.installSmartContract(this.contractName, this.contractVersion);
     });
 
-    this.Given(/the contract has been instantiated with the transaction '(.*?)' and args '(.*?)', (not )?using private data/, this.timeout, async (transaction: string, args: string, usingPrivateData: string) => {
+    this.Given(/the contract has been instantiated with the transaction '(.*?)' and args '(.*?)', (not )?using private data on channel '(.*?)'/, this.timeout, async (transaction: string, args: string, usingPrivateData: string, channel: string) => {
         let privateData: boolean;
         if (usingPrivateData === 'not ') {
             privateData = false;
@@ -39,7 +39,7 @@ module.exports = function(): any {
             privateData = true;
         }
 
-        await this.smartContractHelper.instantiateSmartContract(this.contractName, this.contractVersion, transaction, args, privateData);
+        await this.smartContractHelper.instantiateSmartContract(this.contractName, this.contractVersion, transaction, args, privateData, channel);
     });
 
     /**
@@ -50,17 +50,17 @@ module.exports = function(): any {
         await this.smartContractHelper.installSmartContract(this.contractName, this.contractVersion);
     });
 
-    this.When(/I instantiate the installed package with the transaction '(.*?)' and args '(.*?)', (not )?using private data/, this.timeout, async (transaction: string, args: string, usingPrivateData: string) => {
+    this.When(/I instantiate the installed package with the transaction '(.*?)' and args '(.*?)', (not )?using private data on channel '(.*?)'/, this.timeout, async (transaction: string, args: string, usingPrivateData: string, channel: string) => {
         let privateData: boolean;
         if (usingPrivateData === 'not ') {
             privateData = false;
         } else {
             privateData = true;
         }
-        await this.smartContractHelper.instantiateSmartContract(this.contractName, this.contractVersion, transaction, args, privateData);
+        await this.smartContractHelper.instantiateSmartContract(this.contractName, this.contractVersion, transaction, args, privateData, channel);
     });
 
-    this.When(/I upgrade the installed package with the transaction '(.*?)' and args '(.*?)', (not )?using private data/, this.timeout, async (transaction: string, args: string, usingPrivateData: string) => {
+    this.When(/I upgrade the installed package with the transaction '(.*?)' and args '(.*?)', (not )?using private data on channel '(.*?)'/, this.timeout, async (transaction: string, args: string, usingPrivateData: string, channel: string) => {
         let privateData: boolean;
         if (usingPrivateData === 'not ') {
             privateData = false;
@@ -68,6 +68,6 @@ module.exports = function(): any {
             privateData = true;
         }
 
-        await this.smartContractHelper.upgradeSmartContract(this.contractName, this.contractVersion, transaction, args, privateData);
+        await this.smartContractHelper.upgradeSmartContract(this.contractName, this.contractVersion, transaction, args, privateData, channel);
     });
 };

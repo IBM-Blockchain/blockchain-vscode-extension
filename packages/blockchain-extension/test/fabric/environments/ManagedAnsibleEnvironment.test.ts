@@ -23,7 +23,7 @@ import { VSCodeBlockchainDockerOutputAdapter } from '../../../extension/logging/
 import { SettingConfigurations } from '../../../configurations';
 import { FabricRuntimeState } from '../../../extension/fabric/FabricRuntimeState';
 import { ManagedAnsibleEnvironment } from '../../../extension/fabric/environments/ManagedAnsibleEnvironment';
-import { OutputAdapter, FabricWalletRegistry, FabricWalletRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
+import { OutputAdapter, FabricWalletRegistry, LogType } from 'ibm-blockchain-platform-common';
 import * as stream from 'stream';
 
 const should: Chai.Should = chai.should();
@@ -74,8 +74,7 @@ describe('ManagedAnsibleEnvironment', () => {
     });
 
     beforeEach(async () => {
-        environment = new ManagedAnsibleEnvironment('managedAnsible');
-        environment['path'] = environmentPath;
+        environment = new ManagedAnsibleEnvironment('managedAnsible', environmentPath);
         sandbox = sinon.createSandbox();
         await FabricWalletRegistry.instance().clear();
     });
@@ -119,23 +118,6 @@ describe('ManagedAnsibleEnvironment', () => {
         it('should return started if the runtime is started', () => {
             (environment as any).state = FabricRuntimeState.STARTED;
             environment.getState().should.equal(FabricRuntimeState.STARTED);
-        });
-    });
-
-    describe('#deleteWalletsAndIdentities', () => {
-        it('should delete all known identities that exist', async () => {
-            await FabricWalletRegistry.instance().clear();
-            await TestUtil.setupLocalFabric();
-            await environment.importWalletsAndIdentities();
-
-            let results: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
-            results.length.should.equal(2);
-            results[0].name.should.equal('Orderer');
-            results[1].name.should.equal('Org1');
-            await environment.deleteWalletsAndIdentities();
-
-            results = await FabricWalletRegistry.instance().getAll();
-            results.length.should.equal(0);
         });
     });
 
@@ -430,14 +412,10 @@ describe('ManagedAnsibleEnvironment', () => {
     describe('#start', () => {
         let isGeneratedStub: sinon.SinonStub;
         let generateStub: sinon.SinonStub;
-        let importWalletsAndIdentitiesStub: sinon.SinonStub;
-        let importGatewaysStub: sinon.SinonStub;
         beforeEach(async () => {
             isGeneratedStub = sandbox.stub(environment, 'isGenerated').resolves(false);
             sandbox.stub(environment, 'isRunning').resolves(false);
             generateStub = sandbox.stub(environment, 'generate').resolves();
-            importWalletsAndIdentitiesStub = sandbox.stub(environment, 'importWalletsAndIdentities').resolves();
-            importGatewaysStub = sandbox.stub(environment, 'importGateways').resolves();
         });
 
         it('should start if not generated', async () => {
@@ -451,8 +429,6 @@ describe('ManagedAnsibleEnvironment', () => {
 
             isGeneratedStub.should.have.been.calledOnce;
             generateStub.should.have.been.calledOnce;
-            importWalletsAndIdentitiesStub.should.have.been.calledOnce;
-            importGatewaysStub.should.have.been.calledOnce;
         });
     });
 

@@ -129,7 +129,6 @@ describe('UpgradeCommand', () => {
             environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             environmentRegistry.managedRuntime = true;
             environmentRegistry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-            environmentRegistry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
 
             registryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
             mySandBox.stub(FabricEnvironmentManager.instance(), 'getState').returns(ConnectedState.CONNECTED);

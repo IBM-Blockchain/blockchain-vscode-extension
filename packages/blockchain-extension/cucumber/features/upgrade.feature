@@ -8,11 +8,11 @@ Feature: Upgrade Smart Contracts
         And the contract has been created
         And the contract has been packaged
         And the package has been installed
-        And the contract has been instantiated with the transaction '' and args '', not using private data
+        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
         And the contract version has been updated to '0.0.2'
         And the contract has been packaged
         And the package has been installed
-        When I upgrade the installed package with the transaction '' and args '', not using private data
+        When I upgrade the installed package with the transaction '' and args '', not using private data on channel 'mychannel'
         Then there should be an instantiated smart contract tree item with a label '<upgradedName>' in the 'Fabric Environments' panel
         And the tree item should have a tooltip equal to 'Instantiated on: mychannel'
         Examples:

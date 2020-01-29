@@ -21,11 +21,10 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FabricEnvironment } from '../../extension/fabric/environments/FabricEnvironment';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { PeerTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/PeerTreeItem';
-import { FabricNode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricNode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, FabricEnvironment } from 'ibm-blockchain-platform-common';
 
 chai.should();
 chai.use(sinonChai);
@@ -225,7 +224,7 @@ describe('DeleteNodeCommand', () => {
             deleteNodeStub.should.not.have.been.called;
 
             logSpy.should.have.been.calledWithExactly(LogType.INFO, undefined, `delete node`);
-            logSpy.should.have.been.calledWithExactly(LogType.ERROR,  `No environments to choose from. Nodes from ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be deleted.`);
+            logSpy.should.have.been.calledWithExactly(LogType.ERROR,  `No environments to choose from. Nodes from ${FabricRuntimeUtil.LOCAL_FABRIC} environments and environments created using ansible cannot be deleted.`);
         });
 
         it('should test can handle selecting no nodes when choosing node', async () => {

@@ -18,9 +18,8 @@ import * as vscode from 'vscode';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { UserInputUtil } from './UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWallet, IFabricWalletGenerator, LogType } from 'ibm-blockchain-platform-common';
-import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
-import {FabricWalletHelper} from '../fabric/FabricWalletHelper';
+import { FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWallet, IFabricWalletGenerator, LogType, FabricWalletGeneratorFactory } from 'ibm-blockchain-platform-common';
+import { FabricWalletHelper} from '../fabric/FabricWalletHelper';
 
 export async function addWallet(createIdentity: boolean = true): Promise<FabricWalletRegistryEntry> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -70,8 +69,8 @@ export async function addWallet(createIdentity: boolean = true): Promise<FabricW
             await fabricWalletRegistry.add(fabricWalletRegistryEntry);
 
             // Check it contains identities
-            const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-            wallet = await fabricWalletGenerator.getWallet(walletName);
+            const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
+            wallet = await fabricWalletGenerator.getWallet(fabricWalletRegistryEntry);
             identities = await wallet.getIdentityNames();
             if (identities.length === 0) {
                 await fabricWalletRegistry.delete(walletName);
@@ -102,8 +101,8 @@ export async function addWallet(createIdentity: boolean = true): Promise<FabricW
                 await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, fabricWalletRegistryEntry);
 
                 // Did it work?
-                const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-                wallet = await fabricWalletGenerator.getWallet(walletName);
+                const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
+                wallet = await fabricWalletGenerator.getWallet(fabricWalletRegistryEntry);
                 identities = await wallet.getIdentityNames();
                 if (identities.length === 0) {
                     // No identity added, so remove the wallet and return

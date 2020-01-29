@@ -18,7 +18,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { FabricWallet } from '../src/FabricWallet';
 import { FabricWalletGenerator } from '../src/FabricWalletGenerator';
-import { FabricWalletRegistry, FabricWalletRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistryEntry } from 'ibm-blockchain-platform-common';
 
 chai.use(sinonChai);
 // tslint:disable no-unused-expression
@@ -28,24 +28,17 @@ describe('FabricWalletGenerator', () => {
     const rootPath: string = path.dirname(__dirname);
     let mySandBox: sinon.SinonSandbox;
 
-    before(() => {
-        const registryPath: string = path.join(__dirname, 'tmp', 'registries');
-        FabricWalletRegistry.instance().setRegistryPath(registryPath);
-    });
-
     describe('getWallet', () => {
+
+        let fabricWalletRegistryEntry: FabricWalletRegistryEntry;
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
 
-            await FabricWalletRegistry.instance().clear();
-
-            const fabricWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
+            fabricWalletRegistryEntry  = new FabricWalletRegistryEntry();
             fabricWalletRegistryEntry.managedWallet = false;
             fabricWalletRegistryEntry.name = 'CongaWallet';
             fabricWalletRegistryEntry.walletPath = path.join(rootPath, 'data', 'wallet');
-
-            await FabricWalletRegistry.instance().add(fabricWalletRegistryEntry);
         });
 
         afterEach(async () => {
@@ -53,7 +46,7 @@ describe('FabricWalletGenerator', () => {
         });
 
         it('should get an instance of a wallet', async () => {
-            const wallet: FabricWallet = await FabricWalletGenerator.instance().getWallet('CongaWallet');
+            const wallet: FabricWallet = await FabricWalletGenerator.instance().getWallet(fabricWalletRegistryEntry);
             wallet.walletPath.should.equal(path.join(rootPath, 'data', 'wallet'));
         });
     });

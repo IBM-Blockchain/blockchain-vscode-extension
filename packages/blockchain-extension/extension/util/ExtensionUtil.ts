@@ -68,7 +68,6 @@ import { PeerTreeItem } from '../explorer/runtimeOps/connectedTree/PeerTreeItem'
 import { BlockchainWalletExplorerProvider } from '../explorer/walletExplorer';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
-import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
@@ -91,16 +90,16 @@ import { GlobalState, ExtensionData } from './GlobalState';
 import { TemporaryCommandRegistry } from '../dependencies/TemporaryCommandRegistry';
 import { version as currentExtensionVersion, dependencies } from '../../package.json';
 import { UserInputUtil } from '../commands/UserInputUtil';
-import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FileRegistry, LogType, FabricWalletUtil } from 'ibm-blockchain-platform-common';
+import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FileRegistry, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricWalletUtil } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 import { importNodesToEnvironment } from '../commands/importNodesToEnvironmentCommand';
 import { deleteNode } from '../commands/deleteNodeCommand';
-import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
 import { RepositoryRegistryEntry } from '../registries/RepositoryRegistryEntry';
 import { RepositoryRegistry } from '../registries/RepositoryRegistry';
 import { openTransactionView } from '../commands/openTransactionViewCommand';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
+import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -412,22 +411,6 @@ export class ExtensionUtil {
                         // If disabled, delete the local environment, gateway and wallet
                         await FabricEnvironmentRegistry.instance().delete(FabricRuntimeUtil.LOCAL_FABRIC, true);
 
-                        // Find and delete all local gateways
-                        const allGateways: FabricGatewayRegistryEntry[] = await FabricGatewayRegistry.instance().getAll(true);
-                        for (const gateway of allGateways) {
-                            if (gateway.displayName && gateway.displayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
-                                await FabricGatewayRegistry.instance().delete(gateway.name, true);
-                            }
-                        }
-
-                        // Find and delete all local wallets
-                        const allWallets: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll(true);
-                        for (const wallet of allWallets) {
-                            if (wallet.displayName && wallet.displayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
-                                await FabricWalletRegistry.instance().delete(wallet.name, true);
-                            }
-                        }
-
                         await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', false);
 
                     } catch (error) {
@@ -535,22 +518,6 @@ export class ExtensionUtil {
             await ExtensionUtil.setupLocalRuntime(extensionData.version);
         } else {
             await FabricEnvironmentRegistry.instance().delete(FabricRuntimeUtil.LOCAL_FABRIC, true);
-
-            // Find and delete all local gateways
-            const allGateways: FabricGatewayRegistryEntry[] = await FabricGatewayRegistry.instance().getAll(true);
-            for (const gateway of allGateways) {
-                if (gateway.displayName && gateway.displayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
-                    await FabricGatewayRegistry.instance().delete(gateway.name, true);
-                }
-            }
-
-            // Find and delete all local wallets
-            const allWallets: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll(true);
-            for (const wallet of allWallets) {
-                if (wallet.displayName && wallet.displayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
-                    await FabricWalletRegistry.instance().delete(wallet.name, true);
-                }
-            }
         }
 
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -595,6 +562,8 @@ export class ExtensionUtil {
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_NEXT_ACTIVATION, false, vscode.ConfigurationTarget.Global);
             }
         }
+
+        FabricConnectionFactory.createFabricWallet();
 
         // Check if there is a newer version of the generator available
         // This needs to be done as a seperate call to make sure the dependencies have been installed

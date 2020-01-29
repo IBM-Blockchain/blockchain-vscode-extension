@@ -54,6 +54,7 @@ export class UserInputUtilHelper {
     showWorkspaceQuickPickBoxStub: sinon.SinonStub;
     showSaveDialogStub: sinon.SinonStub;
     showWarningMessageStub: sinon.SinonStub;
+    openFileBrowserStub: sinon.SinonStub;
 
     constructor(sandbox: sinon.SinonSandbox) {
         this.mySandBox = sandbox;
@@ -92,6 +93,6 @@ export class UserInputUtilHelper {
         this.showFabricNodeQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showFabricNodeQuickPick').callThrough();
         this.showWorkspaceQuickPickBoxStub = this.mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox').callThrough();
         this.showWarningMessageStub = this.mySandBox.stub(vscode.window, 'showWarningMessage').callThrough();
-
+        this.openFileBrowserStub = this.mySandBox.stub(UserInputUtil, 'openFileBrowser').callThrough();
     }
 }

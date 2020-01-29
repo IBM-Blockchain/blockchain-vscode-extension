@@ -20,15 +20,13 @@ import * as path from 'path';
 import { TestUtil } from '../TestUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType, FileSystemUtil, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { LogType, FileSystemUtil, FabricRuntimeUtil, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { FabricWalletRegistry, FabricWalletRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistry, FabricWalletRegistryEntry, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { BlockchainWalletExplorerProvider } from '../../extension/explorer/walletExplorer';
 import { WalletTreeItem } from '../../extension/explorer/wallets/WalletTreeItem';
-import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 
 chai.should();
 chai.use(sinonChai);
@@ -56,6 +54,7 @@ describe('removeWalletCommand', () => {
         showWalletsQuickPickStub = mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox');
 
         // Reset the wallet registry
+        await FabricEnvironmentRegistry.instance().clear();
         await FabricWalletRegistry.instance().clear();
         // Add wallets to the registry
         purpleWallet = new FabricWalletRegistryEntry({

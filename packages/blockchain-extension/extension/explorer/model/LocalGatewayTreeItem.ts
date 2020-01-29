@@ -15,11 +15,10 @@
 import * as vscode from 'vscode';
 import { BlockchainTreeItem } from './BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
-import { FabricGatewayRegistryEntry } from '../../registries/FabricGatewayRegistryEntry';
 import { LocalEnvironmentManager } from '../../fabric/environments/LocalEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../../ExtensionCommands';
-import { LogType } from 'ibm-blockchain-platform-common';
+import { LogType, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../fabric/environments/LocalEnvironment';
 
 export class LocalGatewayTreeItem extends BlockchainTreeItem {

@@ -22,10 +22,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { UserInputUtilHelper } from './userInputUtilHelper';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { IFabricWallet, IFabricWalletGenerator, FabricIdentity, FabricWalletRegistry, FabricWalletRegistryEntry, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
-import { FabricWalletGeneratorFactory } from '../../extension/fabric/FabricWalletGeneratorFactory';
-import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-
+import { IFabricWallet, IFabricWalletGenerator, FabricIdentity, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletGeneratorFactory, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
@@ -35,7 +32,6 @@ export class WalletAndIdentityHelper {
     public static keyPath: string = path.join(__dirname, `../../../cucumber/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/key1.pem`);
     public static jsonFilePath: string = path.join(__dirname, `../../../cucumber/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/Org1Admin.json`);
     public static connectionProfilePath: string = path.join(__dirname, '../../../cucumber/hlfv1/connection.json');
-    public static localWalletPath: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'wallets', 'Org1');
 
     mySandBox: sinon.SinonSandbox;
     userInputUtilHelper: UserInputUtilHelper;
@@ -45,11 +41,11 @@ export class WalletAndIdentityHelper {
         this.userInputUtilHelper = userInputUtilHelper;
     }
 
-    public async createCAIdentity(walletName: string, identityName: string, attributes: string = '[]'): Promise<void> {
-        const walletEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletName);
+    public async createCAIdentity(walletName: string, identityName: string, environmentName: string, attributes: string = '[]'): Promise<void> {
+        const walletEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletName, environmentName);
 
-        const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-        const wallet: IFabricWallet = await fabricWalletGenerator.getWallet(walletEntry.name);
+        const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
+        const wallet: IFabricWallet = await fabricWalletGenerator.getWallet(walletEntry);
         const identityExists: boolean = await wallet.exists(identityName);
 
         let ca: string;
@@ -78,24 +74,20 @@ export class WalletAndIdentityHelper {
         }
     }
 
-    public async deleteCAIdentity(name: string): Promise<void> {
-        const walletEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
-        walletEntry.name = 'Org1';
-        walletEntry.managedWallet = true;
-        walletEntry.walletPath = WalletAndIdentityHelper.localWalletPath;
-        walletEntry.displayName = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`;
+    public async deleteCAIdentity(identityName: string, walletName: string, environmentName: string): Promise<void> {
+        const walletEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletName, environmentName);
 
-        const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-        const wallet: IFabricWallet = await fabricWalletGenerator.getWallet(walletEntry.name);
-        const identityExists: boolean = await wallet.exists(name);
+        const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
+        const wallet: IFabricWallet = await fabricWalletGenerator.getWallet(walletEntry);
+        const identityExists: boolean = await wallet.exists(identityName);
 
         if (identityExists) {
             this.userInputUtilHelper.showWalletsQuickPickStub.withArgs('Choose the wallet containing the identity that you want to delete').resolves({
                 label: walletEntry.displayName,
                 data: walletEntry
             });
-            this.userInputUtilHelper.showIdentitiesQuickPickStub.withArgs('Choose the identities to delete').resolves([name]);
-            this.userInputUtilHelper.showConfirmationWarningMessageStub.withArgs(`This will delete ${name} from your file system. Do you want to continue?`).resolves(true);
+            this.userInputUtilHelper.showIdentitiesQuickPickStub.withArgs('Choose the identities to delete').resolves([identityName]);
+            this.userInputUtilHelper.showConfirmationWarningMessageStub.withArgs(`This will delete ${identityName} from your file system. Do you want to continue?`).resolves(true);
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY);
         }
@@ -111,7 +103,8 @@ export class WalletAndIdentityHelper {
             this.setIdentityStubs(method, identityName, mspid);
             await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
         } else {
-            const wallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().getWallet(name);
+            const walletEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(name);
+            const wallet: IFabricWallet = await FabricWalletGeneratorFactory.getFabricWalletGenerator().getWallet(walletEntry);
             const identities: FabricIdentity[] = await wallet.getIdentities();
             const identity: FabricIdentity = identities.find((_identity: FabricIdentity) => {
                 return _identity.name === identityName;

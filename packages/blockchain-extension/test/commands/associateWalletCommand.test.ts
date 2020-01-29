@@ -18,15 +18,13 @@ import * as path from 'path';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { TestUtil } from '../TestUtil';
-import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { GatewayDissociatedTreeItem } from '../../extension/explorer/model/GatewayDissociatedTreeItem';
 import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { FabricWalletRegistry, FabricWalletRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistry, FabricWalletRegistryEntry, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 // tslint:disable no-unused-expression

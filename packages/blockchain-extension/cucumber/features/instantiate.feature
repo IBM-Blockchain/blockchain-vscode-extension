@@ -8,7 +8,7 @@ Feature: Instantiate Smart Contracts
         And the contract has been created
         And the contract has been packaged
         And the package has been installed
-        When I instantiate the installed package with the transaction '' and args '', not using private data
+        When I instantiate the installed package with the transaction '' and args '', not using private data on channel 'mychannel'
         Then there should be a instantiated smart contract tree item with a label '<instantiatedName>' in the 'Fabric Environments' panel
         And the tree item should have a tooltip equal to 'Instantiated on: mychannel'
         Examples:

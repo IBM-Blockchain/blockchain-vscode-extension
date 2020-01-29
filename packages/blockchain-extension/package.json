@@ -670,15 +670,15 @@
                 },
                 {
                     "command": "environmentExplorer.deleteNodeEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item && !blockchain-runtime-connected"
+                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item && !blockchain-runtime-connected && !blockchain-ansible-connected"
                 },
                 {
                     "command": "environmentExplorer.deleteNodeEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item && !blockchain-runtime-connected"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item && !blockchain-runtime-connected && !blockchain-ansible-connected"
                 },
                 {
                     "command": "environmentExplorer.deleteNodeEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item && !blockchain-runtime-connected"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item && !blockchain-runtime-connected && !blockchain-ansible-connected"
                 },
                 {
                     "command": "environmentExplorer.installSmartContractEntry",
@@ -1250,6 +1250,7 @@
         "productionFlag": "node ../../.azure/rewritePackageJson.js publish",
         "checkReleaseNotes": "node ../../.azure/checkReleaseNotes.js",
         "cucumberTests": "./cucumber/hlfv1/start.sh && npm run compile",
+        "cucumberAnsibleTests": "./cucumber/ansibleScripts/start.sh && npm run compile",
         "localize": "vscl build/src/**/*.js",
         "build": "tsc -p tsconfig.extension.json"
     },
@@ -1359,6 +1360,8 @@
             "cucumber/data",
             "cucumber/tmp",
             "cucumber/hlfv1",
+            "cucumber/ansible",
+            "cucumber/ansibleScripts",
             "basic-network",
             "CHANGELOG.md",
             "RELEASE-NOTES.md",

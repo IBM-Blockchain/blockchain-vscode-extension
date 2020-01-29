@@ -22,10 +22,8 @@ import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { Reporter } from '../../extension/util/Reporter';
-import { FabricEnvironmentRegistryEntry, FabricNode, LogType } from 'ibm-blockchain-platform-common';
-import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
+import { FabricEnvironmentRegistryEntry, FabricNode, LogType , FabricGatewayRegistry, FabricGatewayRegistryEntry} from 'ibm-blockchain-platform-common';
 
 // tslint:disable no-unused-expression
 chai.should();

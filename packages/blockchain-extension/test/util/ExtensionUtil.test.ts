@@ -34,13 +34,12 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { TemporaryCommandRegistry } from '../../extension/dependencies/TemporaryCommandRegistry';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FabricWalletRegistryEntry, LogType, FabricWalletRegistry, FabricWalletUtil } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FabricWalletRegistryEntry, LogType, FabricWalletRegistry, FabricGatewayRegistry, FabricWalletUtil } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
 import { TestUtil } from '../TestUtil';
 import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistry';
 import { RepositoryRegistryEntry } from '../../extension/registries/RepositoryRegistryEntry';
 import * as openTransactionViewCommand from '../../extension/commands/openTransactionViewCommand';
-import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 
 const should: Chai.Should = chai.should();
@@ -336,7 +335,7 @@ describe('ExtensionUtil Tests', () => {
                 }
             ]);
 
-            await FabricEnvironmentRegistry.instance().add({name: 'myEnvOne'});
+            await FabricEnvironmentRegistry.instance().add({ name: 'myEnvOne' });
 
             await ExtensionUtil.migrateEnvironments();
 
@@ -414,7 +413,7 @@ describe('ExtensionUtil Tests', () => {
                 }
             ]);
 
-            await RepositoryRegistry.instance().add({name: 'One', path: 'myPath'});
+            await RepositoryRegistry.instance().add({ name: 'One', path: 'myPath' });
 
             await ExtensionUtil.migrateRepositories();
 
@@ -1111,13 +1110,10 @@ describe('ExtensionUtil Tests', () => {
         });
 
         it(`should delete local registry entries if not enabled`, async () => {
-            await FabricGatewayRegistry.instance().add({name: 'otherGateway', managedGateway: false, associatedWallet: undefined});
+            await FabricGatewayRegistry.instance().add({ name: 'otherGateway', managedGateway: false, associatedWallet: undefined });
 
             await TestUtil.setupLocalFabric();
 
-            const localEnvironment: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
-            await localEnvironment.importGateways();
-            await localEnvironment.importWalletsAndIdentities();
             hasNativeDependenciesInstalledStub.returns(true);
             installNativeDependenciesStub.resolves();
             getPackageJsonStub.returns({ activationEvents: ['activationEvent1', 'activationEvent2'] });
@@ -1133,8 +1129,6 @@ describe('ExtensionUtil Tests', () => {
             getExtensionLocalFabricSettingStub.returns(false);
 
             const deleteEnvironmentSpy: sinon.SinonSpy = mySandBox.spy(FabricEnvironmentRegistry.instance(), 'delete');
-            const deleteGatewaySpy: sinon.SinonSpy = mySandBox.spy(FabricGatewayRegistry.instance(), 'delete');
-            const deleteWalletSpy: sinon.SinonSpy = mySandBox.spy(FabricWalletRegistry.instance(), 'delete');
 
             await ExtensionUtil.setupCommands();
 
@@ -1155,9 +1149,6 @@ describe('ExtensionUtil Tests', () => {
             executeStoredCommandsStub.should.have.been.calledOnce;
 
             deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
-            deleteGatewaySpy.should.have.been.calledOnceWithExactly('Org1', true);
-            deleteWalletSpy.getCall(0).should.have.been.calledWith('Org1', true);
-            deleteWalletSpy.getCall(1).should.have.been.calledWith('Orderer', true);
         });
     });
 
@@ -1557,15 +1548,10 @@ describe('ExtensionUtil Tests', () => {
             }
 
             await TestUtil.setupLocalFabric();
-            const localEnvironment: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
-            await localEnvironment.importGateways();
-            await localEnvironment.importWalletsAndIdentities();
 
             mockRuntime = mySandBox.createStubInstance(LocalEnvironment);
             mockRuntime.isGenerated.resolves(true);
             mockRuntime.isRunning.resolves(true);
-            mockRuntime.importWalletsAndIdentities.callThrough();
-            mockRuntime.importGateways.callThrough();
             mockRuntime.getGateways.resolves([]);
             // mySandBox.stub(LocalEnvironment.prototype, 'getGateways').resolves();
             getRuntimeStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime');
@@ -1769,15 +1755,14 @@ describe('ExtensionUtil Tests', () => {
 
         describe(`${FabricRuntimeUtil.LOCAL_FABRIC} functionality is disabled`, () => {
             let deleteEnvironmentSpy: sinon.SinonSpy;
-            let deleteGatewaySpy: sinon.SinonSpy;
-            let deleteWalletSpy: sinon.SinonSpy;
             beforeEach(async () => {
 
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_LOCAL_FABRIC).returns(false);
-                getSettingsStub.withArgs(SettingConfigurations.FABRIC_RUNTIME).returns({ ports: {
-                    startPort: 17050,
-                    endPort: 17070
-                }
+                getSettingsStub.withArgs(SettingConfigurations.FABRIC_RUNTIME).returns({
+                    ports: {
+                        startPort: 17050,
+                        endPort: 17070
+                    }
                 });
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(TestUtil.EXTENSION_TEST_DIR);
                 updateSettingsStub.withArgs(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global).resolves();
@@ -1786,8 +1771,6 @@ describe('ExtensionUtil Tests', () => {
                 mockRuntime.isRunning.resetHistory();
                 mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
                 deleteEnvironmentSpy = mySandBox.spy(FabricEnvironmentRegistry.instance(), 'delete');
-                deleteGatewaySpy = mySandBox.spy(FabricGatewayRegistry.instance(), 'delete');
-                deleteWalletSpy = mySandBox.spy(FabricWalletRegistry.instance(), 'delete');
             });
 
             it(`should return if runtime is running and user doesn't teardown`, async () => {
@@ -1808,7 +1791,7 @@ describe('ExtensionUtil Tests', () => {
             });
 
             it(`should set context if runtime is running and user does teardown`, async () => {
-                await FabricGatewayRegistry.instance().add({name: 'newGateway', managedGateway: false, associatedWallet: undefined});
+                await FabricGatewayRegistry.instance().add({ name: 'newGateway', managedGateway: false, associatedWallet: undefined });
                 executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true).resolves();
                 showConfirmationWarningMessageStub.resolves(true);
 
@@ -1825,10 +1808,6 @@ describe('ExtensionUtil Tests', () => {
                 logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'false'.`);
                 logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC} functionality back to 'true'.`);
                 deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
-                deleteGatewaySpy.should.calledOnceWithExactly('Org1', true);
-                deleteWalletSpy.should.have.been.calledTwice;
-                deleteWalletSpy.getCall(0).should.have.been.calledWith('Org1', true);
-                deleteWalletSpy.getCall(1).should.have.been.calledWith('Orderer', true);
                 executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
@@ -1855,10 +1834,7 @@ describe('ExtensionUtil Tests', () => {
                 logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'false'.`);
                 logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC} functionality back to 'true'.`);
                 deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
-                deleteGatewaySpy.should.calledOnceWithExactly('Org1', true);
-                deleteWalletSpy.should.have.been.calledTwice;
-                deleteWalletSpy.getCall(0).should.have.been.calledWith('Org1', true);
-                deleteWalletSpy.getCall(1).should.have.been.calledWith('Orderer', true);
+
                 executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
@@ -1883,10 +1859,7 @@ describe('ExtensionUtil Tests', () => {
                 logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'false'.`);
                 logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC} functionality back to 'true'.`);
                 deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
-                deleteGatewaySpy.should.calledOnceWithExactly('Org1', true);
-                deleteWalletSpy.should.have.been.calledTwice;
-                deleteWalletSpy.getCall(0).should.have.been.calledWith('Org1', true);
-                deleteWalletSpy.getCall(1).should.have.been.calledWith('Orderer', true);
+
                 executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
                 executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
@@ -1909,10 +1882,7 @@ describe('ExtensionUtil Tests', () => {
                 logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'false'.`);
                 logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC} functionality back to 'true'.`);
                 deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
-                deleteGatewaySpy.should.calledOnceWithExactly('Org1', true);
-                deleteWalletSpy.should.have.been.calledTwice;
-                deleteWalletSpy.getCall(0).should.have.been.calledWith('Org1', true);
-                deleteWalletSpy.getCall(1).should.have.been.calledWith('Orderer', true);
+
                 executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
                 executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
@@ -1939,9 +1909,7 @@ describe('ExtensionUtil Tests', () => {
                 logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC} functionality back to 'true'.`);
                 logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC} functionality to false: ${error.message}`, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC} functionality to false: ${error.toString()}`);
                 deleteEnvironmentSpy.should.not.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
-                deleteGatewaySpy.should.not.have.been.calledOnceWithExactly('Org1', true);
-                deleteWalletSpy.should.not.have.been.calledWith('Org1', true);
-                deleteWalletSpy.should.not.have.been.calledWith('Orderer', true);
+
                 executeCommandStub.should.not.have.been.calledWith('setContext', 'local-fabric-enabled', false);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
@@ -1949,6 +1917,5 @@ describe('ExtensionUtil Tests', () => {
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
             });
         });
-
     });
 });

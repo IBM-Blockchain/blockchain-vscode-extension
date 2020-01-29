@@ -120,7 +120,6 @@ describe('FabricNodeDebugConfigurationProvider', () => {
             environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             environmentRegistry.managedRuntime = true;
             environmentRegistry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-            environmentRegistry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
 
             mySandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
 

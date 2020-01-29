@@ -19,8 +19,7 @@ import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectio
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
-import { IFabricGatewayConnection, FabricChaincode, LogType } from 'ibm-blockchain-platform-common';
-import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
+import { IFabricGatewayConnection, FabricChaincode, LogType, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { GlobalState } from '../util/GlobalState';
 
 export async function openTransactionView(treeItem?: InstantiatedTreeItem): Promise<void> {

@@ -17,13 +17,14 @@
 import * as Client from 'fabric-client';
 import * as FabricCAServices from 'fabric-ca-client';
 import * as fs from 'fs-extra';
-import { ConsoleOutputAdapter, FabricChaincode, Attribute, FabricNode, FabricNodeType, IFabricEnvironmentConnection, IFabricWallet, OutputAdapter, LogType } from 'ibm-blockchain-platform-common';
+import { ConsoleOutputAdapter, FabricChaincode, Attribute, FabricNode, FabricNodeType, IFabricEnvironmentConnection, IFabricWallet, OutputAdapter, LogType, FabricWalletRegistryEntry, FabricWalletRegistry } from 'ibm-blockchain-platform-common';
 import { FabricWalletGenerator } from 'ibm-blockchain-platform-wallet';
 import { URL } from 'url';
 
 export class FabricEnvironmentConnection implements IFabricEnvironmentConnection {
 
     private outputAdapter: OutputAdapter;
+    private environmentName: string;
     private nodes: Map<string, FabricNode> = new Map<string, FabricNode>();
     private client: Client;
     private peers: Map<string, Client.Peer> = new Map<string, Client.Peer>();
@@ -31,12 +32,14 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
     private certificateAuthorities: Map<string, FabricCAServices> = new Map<string, FabricCAServices>();
     private mspIDs: Set<string> = new Set<string>();
 
-    constructor(outputAdapter?: OutputAdapter) {
+    constructor(environmentName: string, outputAdapter?: OutputAdapter) {
         if (!outputAdapter) {
             this.outputAdapter = ConsoleOutputAdapter.instance();
         } else {
             this.outputAdapter = outputAdapter;
         }
+
+        this.environmentName = environmentName;
     }
 
     public async connect(nodes: FabricNode[]): Promise<void> {
@@ -281,7 +284,8 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         const node: FabricNode = this.getNode(nodeName);
         const walletName: string = node.wallet;
 
-        return FabricWalletGenerator.instance().getWallet(walletName);
+        const walletRegistryEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletName, this.environmentName);
+        return FabricWalletGenerator.instance().getWallet(walletRegistryEntry);
     }
 
     private async instantiateOrUpgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionsConfig: string, contractEP: any,  upgrade: boolean): Promise<Buffer> {

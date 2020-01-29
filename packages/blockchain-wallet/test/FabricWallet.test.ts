@@ -92,10 +92,14 @@ describe('FabricWallet', () => {
         it('should return any identities', async () => {
             const wallet: IFabricWallet = new FabricWallet('/some/path');
             mySandBox.stub(FabricWallet.prototype, 'getWalletPath').returns('/some/path');
-            const readdirStub: sinon.SinonStub = mySandBox.stub(fs, 'readdir').resolves(['/dir/identity_a', '/dir/identity_b', '/dir/identity_c']);
+            const readdirStub: sinon.SinonStub = mySandBox.stub(fs, 'readdir').resolves(['/dir/identity_a', '/dir/identity_b', '/dir/identity_c', '/dir/identity_d']);
             const basenameSpy: sinon.SinonSpy = mySandBox.spy(path, 'basename');
             const resolveSpy: sinon.SinonSpy = mySandBox.spy(path, 'resolve');
             const readJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'readJson');
+            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
+            mySandBox.stub(fs, 'lstatSync').returns({
+                isDirectory: sinon.stub().returns(true)
+            });
 
             const identityOne: FabricIdentity = {
                 affiliation: '',
@@ -127,6 +131,9 @@ describe('FabricWallet', () => {
             readJsonStub.onCall(0).resolves(identityOne);
             readJsonStub.onCall(1).resolves(identityTwo);
             readJsonStub.onCall(2).resolves(identityThree);
+
+            pathExistsStub.resolves(true);
+            pathExistsStub.onCall(3).resolves(false);
 
             const identities: FabricIdentity[] = await wallet.getIdentities();
 

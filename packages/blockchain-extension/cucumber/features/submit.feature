@@ -7,11 +7,11 @@ Feature: Submit transaction
         And the 'Local Fabric' environment is connected
         And the 'Org1' wallet
         And the 'Local Fabric Admin' identity
-        And I'm connected to the 'Org1' gateway
+        And I'm connected to the 'Local Fabric - Org1' gateway
         And the contract has been created
         And the contract has been packaged
         And the package has been installed
-        And the contract has been instantiated with the transaction '' and args '', not using private data
+        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
         When I submit the transaction 'createConga' with args '["Conga_001", "Big Conga"]'
         Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'No value returned from createConga'
         Examples:
@@ -31,7 +31,7 @@ Feature: Submit transaction
         And the contract has been created
         And the contract has been packaged
         And the package has been installed
-        And the contract has been instantiated with the transaction '' and args '', not using private data
+        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
         And the gateway 'myGateway' is created
         And I'm connected to the 'myGateway' gateway without association
         When I submit the transaction 'createConga' with args '["Conga_001", "Big Conga"]'

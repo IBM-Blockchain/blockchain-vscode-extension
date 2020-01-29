@@ -21,7 +21,7 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { ConsoleOutputAdapter, FabricChaincode, FabricNodeType, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWallet, LogType, OutputAdapter } from 'ibm-blockchain-platform-common';
+import { ConsoleOutputAdapter, FabricChaincode, FabricNodeType, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, IFabricWallet, LogType, OutputAdapter, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType, FabricWalletGeneratorFactory } from 'ibm-blockchain-platform-common';
 import { FabricWallet, FabricWalletGenerator } from 'ibm-blockchain-platform-wallet';
 
 const should: Chai.Should = chai.should();
@@ -55,10 +55,18 @@ describe('FabricEnvironmentConnection', () => {
     let connection: FabricEnvironmentConnection;
     let nodes: FabricNode[];
 
+    before(async () => {
+        FabricWalletGeneratorFactory.setFabricWalletGenerator(FabricWalletGenerator.instance());
+        FabricWalletRegistry.instance().setRegistryPath(path.join(__dirname, 'tmp', 'registries'));
+        FabricEnvironmentRegistry.instance().setRegistryPath(path.join(__dirname, 'tmp', 'registries'));
+        await FabricWalletRegistry.instance().clear();
+        await FabricEnvironmentRegistry.instance().clear();
+        await FabricEnvironmentRegistry.instance().add(new FabricEnvironmentRegistryEntry({ name: 'Local Fabric', environmentDirectory: path.join(__dirname, 'data', 'Local Fabric'), environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT }));
+    });
+
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
 
-        FabricWalletRegistry.instance().setRegistryPath(path.join(__dirname, 'tmp', 'registries'));
         nodes = [
             FabricNode.newPeer(
                 'peer0.org1.example.com',
@@ -156,10 +164,9 @@ describe('FabricEnvironmentConnection', () => {
         const mockFabricWalletGenerator: sinon.SinonStub = mySandBox.stub(FabricWalletGenerator.instance(), 'getWallet');
         mockLocalWallet = mySandBox.createStubInstance(FabricWallet);
         mockLocalWallet['setUserContext'] = mySandBox.stub();
-        mockFabricWalletGenerator.rejects(new Error('no such wallet'));
-        mockFabricWalletGenerator.withArgs('Org1').resolves(mockLocalWallet);
+        mockFabricWalletGenerator.resolves(mockLocalWallet);
 
-        connection = new FabricEnvironmentConnection();
+        connection = new FabricEnvironmentConnection('Local Fabric');
         await connection.connect(nodes);
     });
 
@@ -169,13 +176,15 @@ describe('FabricEnvironmentConnection', () => {
 
     describe('constructor', () => {
         it('should default to the console output adapter', () => {
-            connection = new FabricEnvironmentConnection();
+            connection = new FabricEnvironmentConnection('Local Fabric');
             connection['outputAdapter'].should.be.an.instanceOf(ConsoleOutputAdapter);
+            connection['environmentName'].should.equal('Local Fabric');
         });
 
         it('should accept another output adapter', () => {
-            connection = new FabricEnvironmentConnection(TestOutputAdapter.instance());
+            connection = new FabricEnvironmentConnection('Local Fabric', TestOutputAdapter.instance());
             connection['outputAdapter'].should.be.an.instanceOf(TestOutputAdapter);
+            connection['environmentName'].should.equal('Local Fabric');
         });
     });
 
@@ -341,15 +350,6 @@ describe('FabricEnvironmentConnection', () => {
         let queryChannelsStub: sinon.SinonStub;
 
         beforeEach(async () => {
-            await FabricWalletRegistry.instance().clear();
-            const walletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
-            walletRegistryEntry.name = 'Org1';
-            walletRegistryEntry.managedWallet = true;
-            walletRegistryEntry.displayName = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`;
-            walletRegistryEntry.walletPath = path.join('myPath');
-
-            await FabricWalletRegistry.instance().add(walletRegistryEntry);
-
             mockPeer1 = mySandBox.createStubInstance(Client.Peer);
             mockPeer2 = mySandBox.createStubInstance(Client.Peer);
             connection['peers'].has('peer0.org1.example.com').should.be.true;

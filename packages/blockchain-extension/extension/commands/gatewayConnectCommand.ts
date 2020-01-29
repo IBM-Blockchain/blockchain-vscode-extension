@@ -16,12 +16,9 @@ import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
-import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { IFabricGatewayConnection, IFabricWallet, LogType } from 'ibm-blockchain-platform-common';
-import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
-import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWalletGenerator } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWalletGenerator, FabricGatewayRegistryEntry, FabricWalletGeneratorFactory, IFabricGatewayConnection, IFabricWallet, LogType } from 'ibm-blockchain-platform-common';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { SettingConfigurations } from '../../configurations';
@@ -56,12 +53,10 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
         runtimeData = 'managed runtime';
     }
 
-    let wallet: IFabricWallet;
     let walletName: string;
-    let walletData: FabricWalletRegistryEntry;
+    let walletRegistryEntry: FabricWalletRegistryEntry;
 
-    // If the user is trying to connect to the local_fabric, we should always use the local_fabric_wallet
-    if (!gatewayRegistryEntry.associatedWallet && !gatewayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
+    if (!gatewayRegistryEntry.associatedWallet) {
         // If there is no wallet associated with the gateway, we should ask for a wallet to connect with
         // First check there is at least one that isn't local_fabric_wallet
         const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll(false);
@@ -76,37 +71,16 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
             return;
         }
         walletName = chosenWallet.data.name;
-        walletData = chosenWallet.data;
+        walletRegistryEntry = chosenWallet.data;
     } else {
         walletName = gatewayRegistryEntry.associatedWallet;
 
-        if (gatewayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
-
-            // We don't want to attempt to get it from the wallet registry
-            wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().getWallet(walletName);
-
-            const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
-
-            runtimeWalletRegistryEntry.name = walletName;
-            runtimeWalletRegistryEntry.walletPath = wallet.getWalletPath();
-            runtimeWalletRegistryEntry.managedWallet = true;
-            // Assume that for managed wallets, the display name will be the gateway name with 'Wallet' appended
-            runtimeWalletRegistryEntry.displayName = `${gatewayName} Wallet`;
-
-            walletData = runtimeWalletRegistryEntry;
-
-        } else {
-            const fabricWalletRegistry: FabricWalletRegistry = FabricWalletRegistry.instance();
-            walletData = await fabricWalletRegistry.get(walletName);
-        }
+        const fabricWalletRegistry: FabricWalletRegistry = FabricWalletRegistry.instance();
+        walletRegistryEntry = await fabricWalletRegistry.get(walletName, gatewayRegistryEntry.fromEnvironment);
     }
 
-    if (!wallet) {
-        // If we haven't already retrieved the wallet
-        // Get the wallet
-        const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-        wallet = await FabricWalletGenerator.getWallet(walletName);
-    }
+    const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
+    const wallet: IFabricWallet = await FabricWalletGenerator.getWallet(walletRegistryEntry);
 
     // Get the identities
     const identityNames: string[] = await wallet.getIdentityNames();
@@ -117,13 +91,13 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
             return;
         }
     } else if (identityNames.length === 0) {
-            outputAdapter.log(LogType.ERROR, 'No identities found in wallet: ' + walletName);
-            return;
+        outputAdapter.log(LogType.ERROR, 'No identities found in wallet: ' + walletName);
+        return;
     } else {
         identityName = identityNames[0];
     }
 
-    const connectionProfilePath: string = await FabricGatewayHelper.getConnectionProfilePath(gatewayRegistryEntry.name);
+    const connectionProfilePath: string = await FabricGatewayHelper.getConnectionProfilePath(gatewayRegistryEntry);
 
     const connection: IFabricGatewayConnection = FabricConnectionFactory.createFabricGatewayConnection(connectionProfilePath);
 
@@ -132,7 +106,7 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
 
         await connection.connect(wallet, identityName, timeout);
         connection.identityName = identityName;
-        FabricGatewayConnectionManager.instance().connect(connection, gatewayRegistryEntry, walletData);
+        FabricGatewayConnectionManager.instance().connect(connection, gatewayRegistryEntry, walletRegistryEntry);
 
         outputAdapter.log(LogType.SUCCESS, `Connecting to ${gatewayName}`);
         if (!runtimeData) {
@@ -141,7 +115,7 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
         }
 
         const isIBMer: boolean = ExtensionUtil.checkIfIBMer();
-        Reporter.instance().sendTelemetryEvent('connectCommand', { runtimeData: runtimeData, connectIBM: isIBMer + ''});
+        Reporter.instance().sendTelemetryEvent('connectCommand', { runtimeData: runtimeData, connectIBM: isIBMer + '' });
     } catch (error) {
         outputAdapter.log(LogType.ERROR, error.message, error.toString());
         return;

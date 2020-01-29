@@ -31,6 +31,7 @@ import { LogType } from 'ibm-blockchain-platform-common';
 import { View } from '../../extension/webview/View';
 import { Reporter } from '../../extension/util/Reporter';
 import { RepositoryRegistryEntry } from '../../extension/registries/RepositoryRegistryEntry';
+import { TestUtil } from '../TestUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -47,6 +48,7 @@ describe('SampleView', () => {
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
+        await TestUtil.setupTests(mySandBox);
         repositoryName = 'hyperledger/fabric-samples';
 
         await RepositoryRegistry.instance().clear();

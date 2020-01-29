@@ -16,11 +16,9 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { TestUtil } from '../../TestUtil';
 import { EnvironmentFactory } from '../../../extension/fabric/environments/EnvironmentFactory';
-import { FabricRuntimeUtil, FabricEnvironmentRegistryEntry, EnvironmentType, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricEnvironmentRegistryEntry, EnvironmentType, AnsibleEnvironment, FabricEnvironment } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';
 import { ManagedAnsibleEnvironment } from '../../../extension/fabric/environments/ManagedAnsibleEnvironment';
-import { AnsibleEnvironment } from '../../../extension/fabric/environments/AnsibleEnvironment';
-import { FabricEnvironment } from '../../../extension/fabric/environments/FabricEnvironment';
 import { LocalEnvironmentManager } from '../../../extension/fabric/environments/LocalEnvironmentManager';
 
 chai.should();
@@ -61,7 +59,6 @@ describe('EnvironmentFactory', () => {
         const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
         registryEntry.managedRuntime = true;
-        registryEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
         registryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
 
         const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = await EnvironmentFactory.getEnvironment(registryEntry);
@@ -119,49 +116,6 @@ describe('EnvironmentFactory', () => {
 
         const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = await EnvironmentFactory.getEnvironment(registryEntry);
         environment.should.be.an.instanceOf(AnsibleEnvironment);
-    });
-
-    it(`should set the associated gateways for the ${FabricRuntimeUtil.LOCAL_FABRIC} if not already set`, async () => {
-        await LocalEnvironmentManager.instance().initialize();
-
-        const updateSpy: sinon.SinonSpy = sandbox.spy(FabricEnvironmentRegistry.instance(), 'update');
-
-        const getRuntimeSpy: sinon.SinonSpy = sandbox.spy(LocalEnvironmentManager.instance(), 'getRuntime');
-
-        const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
-        registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
-        registryEntry.managedRuntime = true;
-        registryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-
-        const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = await EnvironmentFactory.getEnvironment(registryEntry);
-        environment.should.be.an.instanceOf(LocalEnvironment);
-
-        getRuntimeSpy.should.have.been.calledOnce;
-
-        registryEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
-        updateSpy.should.have.been.calledWith(registryEntry);
-    });
-
-    it(`should set the environment type for the ${FabricRuntimeUtil.LOCAL_FABRIC} if not already set`, async () => {
-        await LocalEnvironmentManager.instance().initialize();
-
-        const updateSpy: sinon.SinonSpy = sandbox.spy(FabricEnvironmentRegistry.instance(), 'update');
-
-        const getRuntimeSpy: sinon.SinonSpy = sandbox.spy(LocalEnvironmentManager.instance(), 'getRuntime');
-
-        const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
-        registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
-        registryEntry.managedRuntime = true;
-        registryEntry.associatedGateways = [FabricRuntimeUtil.LOCAL_FABRIC];
-
-        const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = await EnvironmentFactory.getEnvironment(registryEntry);
-        environment.should.be.an.instanceOf(LocalEnvironment);
-
-        getRuntimeSpy.should.have.been.calledOnce;
-
-        registryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-
-        updateSpy.should.have.been.calledWith(registryEntry);
     });
 
 });

@@ -37,10 +37,9 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { CertificateAuthorityTreeItem } from './runtimeOps/connectedTree/CertificateAuthorityTreeItem';
 import { OrdererTreeItem } from './runtimeOps/connectedTree/OrdererTreeItem';
 import { FabricEnvironmentManager, ConnectedState } from '../fabric/environments/FabricEnvironmentManager';
-import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, IFabricEnvironmentConnection, LogType } from 'ibm-blockchain-platform-common';
+import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, IFabricEnvironmentConnection, LogType, FabricEnvironment, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentTreeItem } from './runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { SetupTreeItem } from './runtimeOps/identitySetupTree/SetupTreeItem';
-import { FabricEnvironment } from '../fabric/environments/FabricEnvironment';
 import { EnvironmentConnectedTreeItem } from './runtimeOps/connectedTree/EnvironmentConnectedTreeItem';
 import { TextTreeItem } from './model/TextTreeItem';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
@@ -114,12 +113,16 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             this.tree = await this.setupIdentities(environmentRegistryEntry);
         } else if (FabricEnvironmentManager.instance().getState() === ConnectedState.CONNECTED) {
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+            await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', true);
             if (environmentRegistryEntry.managedRuntime) {
-                await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', true);
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', true);
-            } else {
-                await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', true);
+                await vscode.commands.executeCommand('setContext', 'blockchain-ansible-connected', true);
+            } else if (environmentRegistryEntry.environmentType === EnvironmentType.ANSIBLE_ENVIRONMENT) {
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
+                await vscode.commands.executeCommand('setContext', 'blockchain-ansible-connected', true);
+            } else {
+                await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
+                await vscode.commands.executeCommand('setContext', 'blockchain-ansible-connected', false);
             }
 
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
@@ -128,6 +131,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
             await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', false);
+            await vscode.commands.executeCommand('setContext', 'blockchain-ansible-connected', false);
 
             this.tree = await this.createConnectionTree();
         }
@@ -138,7 +142,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
     private async setupIdentities(environmentRegistryEntry: FabricEnvironmentRegistryEntry): Promise<BlockchainTreeItem[]> {
         const tree: BlockchainTreeItem[] = [];
 
-        const environment: FabricEnvironment = new FabricEnvironment(environmentRegistryEntry.name);
+        const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
 
         const nodes: FabricNode[] = await environment.getNodes(true);
 

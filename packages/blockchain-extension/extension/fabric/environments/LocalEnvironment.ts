@@ -13,9 +13,10 @@
 */
 
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { ManagedAnsibleEnvironment } from './ManagedAnsibleEnvironment';
 import { YeomanUtil } from '../../util/YeomanUtil';
-import { FabricRuntimeUtil, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType, OutputAdapter } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType, OutputAdapter, FileSystemUtil, FileConfigurations } from 'ibm-blockchain-platform-common';
 import { SettingConfigurations } from '../../../configurations';
 import { FabricRuntimePorts } from '../FabricRuntimePorts';
 
@@ -24,7 +25,10 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
     private dockerName: string;
 
     constructor() {
-        super(FabricRuntimeUtil.LOCAL_FABRIC);
+        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const resolvedExtDir: string = FileSystemUtil.getDirPath(extDir);
+        const envPath: string = path.join(resolvedExtDir, FileConfigurations.FABRIC_ENVIRONMENTS, FabricRuntimeUtil.LOCAL_FABRIC);
+        super(FabricRuntimeUtil.LOCAL_FABRIC, envPath);
         this.dockerName = `fabricvscodelocalfabric`;
     }
 
@@ -37,7 +41,7 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
             name: this.name,
             managedRuntime: true,
             environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
-            associatedGateways: ['Org1']
+            environmentDirectory: path.join(this.path)
         });
 
         await FabricEnvironmentRegistry.instance().add(registryEntry);
@@ -53,7 +57,7 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
         });
     }
 
-     public async isCreated(): Promise<boolean> {
+    public async isCreated(): Promise<boolean> {
         return FabricEnvironmentRegistry.instance().exists(this.name);
     }
 
@@ -72,7 +76,6 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
         } finally {
             await super.setTeardownState();
         }
-
     }
 
     public async updateUserSettings(): Promise<void> {

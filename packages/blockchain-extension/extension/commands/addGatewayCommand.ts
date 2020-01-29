@@ -16,10 +16,8 @@ import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
-import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
-import { FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 
 export async function addGateway(): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -65,7 +63,7 @@ export async function addGateway(): Promise<{} | void> {
         if (gatewayMethod === UserInputUtil.ADD_GATEWAY_FROM_CCP) {
             gatewayRegistryEntry = await createGatewayFromCCP(gatewayName);
         } else {
-            gatewayRegistryEntry = await createGatewayFromEnvironment(gatewayName, chosenEnvironment.data.name);
+            gatewayRegistryEntry = await createGatewayFromEnvironment(gatewayName, chosenEnvironment.data);
         }
 
         if (!gatewayRegistryEntry) {
@@ -80,9 +78,9 @@ export async function addGateway(): Promise<{} | void> {
     }
 }
 
-async function createGatewayFromEnvironment(gatewayName: string, environmentName: string): Promise<FabricGatewayRegistryEntry> {
+async function createGatewayFromEnvironment(gatewayName: string, environmentRegistryEntry: FabricEnvironmentRegistryEntry): Promise<FabricGatewayRegistryEntry> {
 
-    const chosenOrg: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showOrgQuickPick('Choose an organisation to create the gateway for', environmentName);
+    const chosenOrg: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showOrgQuickPick('Choose an organisation to create the gateway for', environmentRegistryEntry);
 
     if (!chosenOrg) {
         return;
@@ -91,7 +89,7 @@ async function createGatewayFromEnvironment(gatewayName: string, environmentName
     let caNode: FabricNode;
 
     try {
-        const chosenCA: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Choose a certificate authority for the gateway connection', environmentName, [FabricNodeType.CERTIFICATE_AUTHORITY]) as IBlockchainQuickPickItem<FabricNode>;
+        const chosenCA: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Choose a certificate authority for the gateway connection', environmentRegistryEntry, [FabricNodeType.CERTIFICATE_AUTHORITY]) as IBlockchainQuickPickItem<FabricNode>;
 
         if (!chosenCA) {
             return;

@@ -49,8 +49,10 @@ async function runCucumberTest(): Promise<any> {
 
     if (process.env.OTHER_FABRIC) {
         tags = '@otherFabric';
+    } else if (process.env.ANSIBLE_FABRIC) {
+        tags = '@ansibleFabric';
     } else {
-        tags = 'not @otherFabric';
+        tags = 'not @otherFabric and not @ansibleFabric';
     }
 
     for (const file of featureFiles) {
@@ -129,7 +131,7 @@ async function runCucumberTest(): Promise<any> {
     const runtime: any = new Cucumber.Runtime({
         features: features,
         listeners: [jsonFormatter, prettyFormatter],
-        options: {strict: true},
+        options: { strict: true },
         supportCodeLibrary: supportCodeLibrary,
     });
     return runtime.start();

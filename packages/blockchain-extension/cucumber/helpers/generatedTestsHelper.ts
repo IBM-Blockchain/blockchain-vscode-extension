@@ -20,8 +20,7 @@ import { UserInputUtilHelper } from './userInputUtilHelper';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { CommandUtil } from '../../extension/util/CommandUtil';
 import { SmartContractHelper, LanguageType } from './smartContractHelper';
-import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
+import { FabricGatewayRegistryEntry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
 
 export class GeneratedTestsHelper {
     mySandBox: sinon.SinonSandbox;

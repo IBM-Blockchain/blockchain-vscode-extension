@@ -100,7 +100,7 @@ export abstract class FileRegistry<T extends RegistryEntry> extends EventEmitter
         this.emit(FileRegistry.EVENT_NAME, this.registryName);
     }
 
-    private async getEntries(): Promise<T[]> {
+    protected async getEntries(): Promise<T[]> {
         const homeExtDir: string = FileSystemUtil.getDirPath(this.registryPath);
         const registryPath: string = path.join(homeExtDir, this.registryName);
 

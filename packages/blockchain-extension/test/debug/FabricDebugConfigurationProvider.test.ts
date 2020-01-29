@@ -20,7 +20,7 @@ import { LocalEnvironmentManager } from '../../extension/fabric/environments/Loc
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
-import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { GlobalState } from '../../extension/util/GlobalState';
@@ -127,11 +127,7 @@ describe('FabricDebugConfigurationProvider', () => {
             getConnectionStub = mySandbox.stub(FabricEnvironmentManager.instance(), 'getConnection');
             getConnectionStub.returns(mockRuntimeConnection);
 
-            environmentRegistry = new FabricEnvironmentRegistryEntry();
-            environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
-            environmentRegistry.managedRuntime = true;
-            environmentRegistry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-            environmentRegistry.associatedGateways = ['Org1'];
+            environmentRegistry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
 
             getEnvironmentRegistryStub = mySandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
 

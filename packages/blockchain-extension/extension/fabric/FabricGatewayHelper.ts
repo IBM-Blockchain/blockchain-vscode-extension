@@ -18,26 +18,28 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as yaml from 'js-yaml';
 import { SettingConfigurations } from '../../configurations';
-import { FabricNode, FileConfigurations, FileSystemUtil } from 'ibm-blockchain-platform-common';
-import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
-import { FabricGatewayRegistry } from '../registries/FabricGatewayRegistry';
+import { FabricNode, FileConfigurations, FileSystemUtil, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 
 export class FabricGatewayHelper {
 
-    public static async getConnectionProfilePath(gatewayName: string): Promise<string> {
+    public static async getConnectionProfilePath(gatewayRegistryEntry: FabricGatewayRegistryEntry): Promise<string> {
 
-        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-        const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
-        const profileDirPath: string = path.join(homeExtDir, 'gateways', gatewayName);
+        if (gatewayRegistryEntry.connectionProfilePath) {
+            return gatewayRegistryEntry.connectionProfilePath;
+        } else {
+            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
+            const profileDirPath: string = path.join(homeExtDir, 'gateways', gatewayRegistryEntry.name);
 
-        let files: string[] = await fs.readdir(profileDirPath);
-        files = files.filter((fileName: string) => !fileName.startsWith('.'));
+            let files: string[] = await fs.readdir(profileDirPath);
+            files = files.filter((fileName: string) => !fileName.startsWith('.'));
 
-        if (files.length === 0) {
-            throw new Error(`Failed to find a connection profile file in folder ${profileDirPath}`);
+            if (files.length === 0) {
+                throw new Error(`Failed to find a connection profile file in folder ${profileDirPath}`);
+            }
+
+            return path.join(profileDirPath, files[0]);
         }
-
-        return path.join(profileDirPath, files[0]);
     }
 
     public static async generateConnectionProfile(gatewayName: string, peerNode: FabricNode, caNode: FabricNode): Promise<string> {

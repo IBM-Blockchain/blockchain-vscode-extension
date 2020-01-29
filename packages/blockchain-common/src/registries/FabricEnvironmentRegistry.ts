@@ -12,9 +12,9 @@
  * limitations under the License.
 */
 
-import { FabricEnvironmentRegistryEntry } from './FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry, EnvironmentType } from './FabricEnvironmentRegistryEntry';
 import { FabricRuntimeUtil } from '../util/FabricRuntimeUtil';
-import { FileConfigurations} from './FileConfigurations';
+import { FileConfigurations } from './FileConfigurations';
 import { FileRegistry } from './FileRegistry';
 
 export class FabricEnvironmentRegistry extends FileRegistry<FabricEnvironmentRegistryEntry> {
@@ -29,12 +29,17 @@ export class FabricEnvironmentRegistry extends FileRegistry<FabricEnvironmentReg
         super(FileConfigurations.FABRIC_ENVIRONMENTS);
     }
 
-    public async getAll(showLocalFabric: boolean = true, onlyShowManagedEnvironment: boolean = false): Promise<FabricEnvironmentRegistryEntry[]> {
+    public async getAll(showLocalFabric: boolean = true, onlyShowManagedEnvironment: boolean = false, onlyShowNonAnsible: boolean = false): Promise<FabricEnvironmentRegistryEntry[]> {
         let entries: FabricEnvironmentRegistryEntry[] = await super.getAll();
 
         let local: FabricEnvironmentRegistryEntry;
 
         entries = entries.filter((entry: FabricEnvironmentRegistryEntry) => {
+            // TODO change all this for fabric 2 to just filter by environment types
+            if (onlyShowNonAnsible) {
+                return entry.environmentType !== EnvironmentType.ANSIBLE_ENVIRONMENT;
+            }
+
             if (entry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
                 local = entry;
                 return false;

@@ -24,7 +24,6 @@ import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGat
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
-import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
 import { TransactionTreeItem } from '../../extension/explorer/model/TransactionTreeItem';
 import { InstantiatedContractTreeItem } from '../../extension/explorer/model/InstantiatedContractTreeItem';
 import { ConnectedTreeItem } from '../../extension/explorer/model/ConnectedTreeItem';
@@ -36,10 +35,8 @@ import { InstantiatedChaincodeTreeItem } from '../../extension/explorer/model/In
 import { GatewayTreeItem } from '../../extension/explorer/model/GatewayTreeItem';
 import { GatewayDissociatedTreeItem } from '../../extension/explorer/model/GatewayDissociatedTreeItem';
 import { GatewayAssociatedTreeItem } from '../../extension/explorer/model/GatewayAssociatedTreeItem';
-import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, LogType, FabricGatewayRegistryEntry, FabricGatewayRegistry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { InstantiatedUnknownTreeItem } from '../../extension/explorer/model/InstantiatedUnknownTreeItem';
-import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
-import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -115,6 +112,7 @@ describe('gatewayExplorer', () => {
             let getConnectionStub: sinon.SinonStub;
 
             beforeEach(async () => {
+                await TestUtil.setupLocalFabric();
                 getConnectionStub = mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getConnection');
             });
 
@@ -136,7 +134,6 @@ describe('gatewayExplorer', () => {
 
                 await FabricGatewayRegistry.instance().clear();
                 await TestUtil.setupLocalFabric();
-                await LocalEnvironmentManager.instance().getRuntime().importGateways();
                 await FabricGatewayRegistry.instance().add(gatewayB);
                 await FabricGatewayRegistry.instance().add(gatewayC);
                 await FabricGatewayRegistry.instance().add(gatewayA);
@@ -160,6 +157,7 @@ describe('gatewayExplorer', () => {
             });
 
             it('should say that there are no gateways', async () => {
+                await FabricEnvironmentRegistry.instance().clear();
                 await FabricGatewayRegistry.instance().clear();
                 const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
                 const gateways: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
@@ -181,16 +179,12 @@ describe('gatewayExplorer', () => {
 
             it('should display the managed runtime', async () => {
                 await FabricGatewayRegistry.instance().clear();
-                await LocalEnvironmentManager.instance().getRuntime().importGateways();
 
                 mySandBox.stub(LocalEnvironmentManager.instance().getRuntime(), 'isRunning').resolves(true);
                 const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
 
-                const gateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-                gateway.name = `Org1`;
-                gateway.associatedWallet = 'Org1';
-                gateway.displayName = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`;
+                const gateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
                 const myCommand: vscode.Command = {
                     command: ExtensionCommands.CONNECT_TO_GATEWAY,
                     title: '',
@@ -439,10 +433,8 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
 
             it('should update connected to context value if managed runtime', async () => {
                 await TestUtil.setupLocalFabric();
-                const localEnvironment: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
-                await localEnvironment.importGateways();
 
-                registryEntry = await FabricGatewayRegistry.instance().get('Org1');
+                registryEntry = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
                 getGatewayRegistryEntryStub.returns(registryEntry);
                 allChildren = await ExtensionUtil.getBlockchainGatewayExplorerProvider().getChildren();
 
@@ -1025,6 +1017,7 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
                 associatedWallet: ''
             });
 
+            await FabricEnvironmentRegistry.instance().clear();
             await FabricGatewayRegistry.instance().clear();
             await FabricGatewayRegistry.instance().add(myGateway);
 

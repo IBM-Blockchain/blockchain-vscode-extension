@@ -25,9 +25,9 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricWalletRegistry, FabricWalletRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricWalletRegistry, FabricWalletRegistryEntry, FabricEnvironment } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FabricEnvironment } from '../../extension/fabric/environments/FabricEnvironment';
+import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -53,15 +53,23 @@ export class EnvironmentHelper {
         });
 
         if (!treeItem) {
+
             this.userInputUtilHelper.inputBoxStub.withArgs('Enter a name for the environment').resolves(name);
 
-            const caUri: vscode.Uri = vscode.Uri.file(path.join(__dirname, '../../../cucumber/hlfv1/nodes/ca.example.com.json'));
-            const ordererUri: vscode.Uri = vscode.Uri.file(path.join(__dirname, '../../../cucumber/hlfv1/nodes/orderer.example.com.json'));
-            const peerUri: vscode.Uri = vscode.Uri.file(path.join(__dirname, '../../../cucumber/hlfv1/nodes/peer0.org1.example.com.json'));
-            const nodes: vscode.Uri[] = [caUri, ordererUri, peerUri];
-            this.userInputUtilHelper.browseStub.withArgs('Select all the Fabric node (JSON) files you want to import').resolves(nodes);
+            if (process.env.ANSIBLE_FABRIC) {
+                this.userInputUtilHelper.showQuickPickStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_DIR]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_DIR);
+                this.userInputUtilHelper.openFileBrowserStub.resolves(vscode.Uri.file(path.join(__dirname,  '..', '..', '..', 'cucumber', 'ansible')));
+            } else {
+                this.userInputUtilHelper.showQuickPickStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_DIR]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
 
-            this.userInputUtilHelper.addMoreNodesStub.resolves(UserInputUtil.DONE_ADDING_NODES);
+                const caUri: vscode.Uri = vscode.Uri.file(path.join(__dirname, '../../../cucumber/hlfv1/nodes/ca.example.com.json'));
+                const ordererUri: vscode.Uri = vscode.Uri.file(path.join(__dirname, '../../../cucumber/hlfv1/nodes/orderer.example.com.json'));
+                const peerUri: vscode.Uri = vscode.Uri.file(path.join(__dirname, '../../../cucumber/hlfv1/nodes/peer0.org1.example.com.json'));
+                const nodes: vscode.Uri[] = [caUri, ordererUri, peerUri];
+                this.userInputUtilHelper.browseStub.withArgs('Select all the Fabric node (JSON) files you want to import').resolves(nodes);
+
+                this.userInputUtilHelper.addMoreNodesStub.resolves(UserInputUtil.DONE_ADDING_NODES);
+            }
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
         }
@@ -72,7 +80,7 @@ export class EnvironmentHelper {
         const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
         this.userInputUtilHelper.showEnvironmentQuickPickStub.resolves({ label: environmentName, data: fabricEnvironmentRegistryEntry });
 
-        const environment: FabricEnvironment = new FabricEnvironment(environmentName);
+        const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentRegistryEntry);
         const nodes: FabricNode[] = await environment.getNodes();
 
         const node: FabricNode = nodes.find((_node: FabricNode) => {
@@ -92,7 +100,7 @@ export class EnvironmentHelper {
     }
 
     public async associateNodeWithIdentitiy(environmentName: string, nodeName: string, identityName: string, walletName: string): Promise<void> {
-        const walletReigstryEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletName);
+        const walletReigstryEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletName, environmentName);
         this.userInputUtilHelper.showWalletsQuickPickStub.resolves({ label: walletName, data: walletReigstryEntry });
         this.userInputUtilHelper.showIdentitiesQuickPickStub.resolves(identityName);
         this.userInputUtilHelper.showQuickPickStub.resolves('Use ID and secret to enroll a new identity');
@@ -115,7 +123,6 @@ export class EnvironmentHelper {
 
     public async connectToEnvironment(environment: string): Promise<void> {
         const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environment);
-
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, registryEntry);
     }
 }

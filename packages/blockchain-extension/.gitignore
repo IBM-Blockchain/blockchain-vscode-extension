@@ -26,3 +26,6 @@ coverage
 /cucumber/hfc-key-store/
 /cucumber/tmp/
 /unit-tests.xml
+/cucumber/ansible/wallets/
+/cucumber/ansible/nodes/
+/cucumber/ansible/gateways/

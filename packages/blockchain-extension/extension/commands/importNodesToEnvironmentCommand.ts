@@ -17,18 +17,16 @@ import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { SettingConfigurations } from '../../configurations';
-import { FabricEnvironmentRegistryEntry, FabricNode, LogType, FileSystemUtil } from 'ibm-blockchain-platform-common';
-import { FabricEnvironment } from '../fabric/environments/FabricEnvironment';
+import { FabricEnvironmentRegistryEntry, FabricNode, LogType, FabricEnvironment } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
+import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 
 export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false): Promise<boolean> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'Import nodes to environment');
 
     try {
-
         if (!environmentRegistryEntry) {
             const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to import nodes to', false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             if (!chosenEnvironment) {
@@ -37,6 +35,12 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
 
             environmentRegistryEntry = chosenEnvironment.data;
         }
+
+        const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
+        const environmentBaseDir: string = path.resolve(environment.getPath());
+
+        const nodesToUpdate: FabricNode[] = [];
+        let addedAllNodes: boolean = true;
 
         const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
         const openDialogOptions: vscode.OpenDialogOptions = {
@@ -59,11 +63,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             }
 
             if (!nodeUris || nodeUris.length === 0) {
-                if (fromAddEnvironment) {
-                    return undefined;
-                } else {
-                    return;
-                }
+                return;
             }
 
             const addMoreString: string = await UserInputUtil.addMoreNodes(`${nodeUris.length} JSON file(s) added successfully`);
@@ -77,15 +77,6 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             }
         } while (addMore);
 
-        const dirPath: string = await vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-        const homeExtDir: string = FileSystemUtil.getDirPath(dirPath);
-        const environmentPath: string = path.join(homeExtDir, 'environments', environmentRegistryEntry.name, 'nodes');
-
-        const environment: FabricEnvironment = new FabricEnvironment(environmentRegistryEntry.name);
-        const oldNodes: FabricNode[] = await environment.getNodes();
-
-        await fs.ensureDir(environmentPath);
-        let addedAllNodes: boolean = true;
         for (const nodeUri of nodeUris) {
             try {
                 let nodes: FabricNode | Array<FabricNode> = await fs.readJson(nodeUri.fsPath);
@@ -93,38 +84,45 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                     nodes = [nodes];
                 }
 
-                for (const node of nodes) {
-                    try {
-                        const alreadyExists: boolean = oldNodes.some((_node: FabricNode) => _node.name === node.name);
-
-                        if (alreadyExists) {
-                            throw new Error(`Node with name ${node.name} already exists`);
-                        }
-                        FabricNode.validateNode(node);
-                        await environment.updateNode(node);
-                    } catch (error) {
-                        addedAllNodes = false;
-                        if (!node.name) {
-                            outputAdapter.log(LogType.ERROR, `Error importing node from file ${nodeUri.fsPath}: ${error.message}`, `Error importing node from file ${nodeUri.fsPath}: ${error.toString()}`);
-                        } else {
-                            outputAdapter.log(LogType.ERROR, `Error importing node ${node.name} from file ${nodeUri.fsPath}: ${error.message}`, `Error importing node ${node.name} from file ${nodeUri.fsPath}: ${error.toString()}`);
-                        }
-                    }
-                }
+                nodesToUpdate.push(...nodes);
             } catch (error) {
                 addedAllNodes = false;
                 outputAdapter.log(LogType.ERROR, `Error importing node file ${nodeUri.fsPath}: ${error.message}`, `Error importing node file ${nodeUri.fsPath}: ${error.toString()}`);
             }
         }
 
+        const environmentNodesPath: string = path.join(environmentBaseDir, 'nodes');
+        await fs.ensureDir(environmentNodesPath);
+
+        const oldNodes: FabricNode[] = await environment.getNodes();
+        for (const node of nodesToUpdate) {
+            try {
+                const alreadyExists: boolean = oldNodes.some((_node: FabricNode) => _node.name === node.name);
+                if (alreadyExists) {
+                    throw new Error(`Node with name ${node.name} already exists`);
+                }
+                FabricNode.validateNode(node);
+                await environment.updateNode(node);
+            } catch (error) {
+                addedAllNodes = false;
+                if (!node.name) {
+                    outputAdapter.log(LogType.ERROR, `Error importing node: ${error.message}`, `Error importing node: ${error.toString()}`);
+                } else {
+                    outputAdapter.log(LogType.ERROR, `Error importing node ${node.name}: ${error.message}`, `Error importing node ${node.name}: ${error.toString()}`);
+                }
+            }
+        }
+
         // check if any nodes were added
-        const newNodes: FabricNode[] = await environment.getNodes();
+
+        const newEnvironment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
+        const newNodes: FabricNode[] = await newEnvironment.getNodes();
         if (newNodes.length === oldNodes.length) {
             throw new Error('no nodes were added');
         }
 
         if (addedAllNodes) {
-            outputAdapter.log(LogType.SUCCESS, 'Successfully imported all node files');
+            outputAdapter.log(LogType.SUCCESS, 'Successfully imported all nodes');
         } else {
             outputAdapter.log(LogType.WARNING, 'Finished importing nodes but some nodes could not be added');
         }
@@ -138,7 +136,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
         return addedAllNodes;
 
     } catch (error) {
-        outputAdapter.log(LogType.ERROR, `Error importing node files: ${error.message}`, `Error importing node files: ${error.toString()}`);
+        outputAdapter.log(LogType.ERROR, `Error importing nodes: ${error.message}`);
         if (fromAddEnvironment) {
             throw error;
         }

@@ -27,12 +27,10 @@ import * as fs from 'fs-extra';
 import { Reporter } from '../../extension/util/Reporter';
 import * as os from 'os';
 import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
-import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { GatewayTreeItem } from '../../extension/explorer/model/GatewayTreeItem';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
 import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
-import { ConnectionProfileUtil, LogType} from 'ibm-blockchain-platform-common';
+import { ConnectionProfileUtil, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry} from 'ibm-blockchain-platform-common';
 
 // tslint:disable no-unused-expression
 describe('exportConnectionProfileCommand', () => {

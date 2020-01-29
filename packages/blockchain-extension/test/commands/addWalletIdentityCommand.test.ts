@@ -20,15 +20,13 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { TestUtil } from '../TestUtil';
-import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { FabricCertificateAuthorityFactory } from '../../extension/fabric/FabricCertificateAuthorityFactory';
-import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWallet, LogType } from 'ibm-blockchain-platform-common';
-import { FabricWalletGenerator } from '../../extension/fabric/FabricWalletGenerator';
+import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWallet, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricWalletGenerator } from 'ibm-blockchain-platform-wallet';
 import { BlockchainWalletExplorerProvider } from '../../extension/explorer/walletExplorer';
 import { WalletTreeItem } from '../../extension/explorer/wallets/WalletTreeItem';
 import { LocalWalletTreeItem } from '../../extension/explorer/wallets/LocalWalletTreeItem';
@@ -95,9 +93,6 @@ describe('AddWalletIdentityCommand', () => {
 
             await FabricWalletRegistry.instance().clear();
             await TestUtil.setupLocalFabric();
-            // add the local fabric one back in
-            await LocalEnvironmentManager.instance().getRuntime().importWalletsAndIdentities();
-            await LocalEnvironmentManager.instance().getRuntime().importGateways();
 
             const connectionOneWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
                 name: 'blueWallet',
@@ -329,6 +324,7 @@ describe('AddWalletIdentityCommand', () => {
 
             inputBoxStub.onFirstCall().resolves('greenConga');
             inputBoxStub.onSecondCall().resolves('myMSPID');
+            importIdentityStub.resetHistory();
             addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
             const myGatewayA: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayA');
             showGatewayQuickPickBoxStub.resolves({
@@ -406,6 +402,7 @@ describe('AddWalletIdentityCommand', () => {
 
         it('should test adding an identity can be cancelled when choosing a wallet', async () => {
             showWalletsQuickPickStub.resolves();
+            importIdentityStub.resetHistory();
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
             inputBoxStub.should.not.have.been.called;
@@ -550,6 +547,7 @@ describe('AddWalletIdentityCommand', () => {
             addIdentityMethodStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
             getCertKeyStub.resolves();
 
+            importIdentityStub.resetHistory();
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
             fsReadFile.should.not.have.been.called;
@@ -570,6 +568,7 @@ describe('AddWalletIdentityCommand', () => {
             const error: Error = new Error('certificate invalid');
             getCertKeyStub.throws(error);
 
+            importIdentityStub.resetHistory();
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
             fsReadFile.should.not.have.been.called;
@@ -715,6 +714,7 @@ describe('AddWalletIdentityCommand', () => {
             browseStub.resolves('myTestPath');
             fsReadFile.resolves('{"name": "purpleConga","certificate": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0", "privateKEy": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0"}');
 
+            importIdentityStub.resetHistory();
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
             inputBoxStub.should.have.been.calledTwice;
@@ -784,14 +784,8 @@ describe('AddWalletIdentityCommand', () => {
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
 
-                const isRunning: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isRunning').resolves(true);
-                const getWalletNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getWalletNames').resolves(['Org1']);
-                const getAllOrganizationNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getAllOrganizationNames').resolves(['Orderer', 'Org1MSP']);
-                mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns({
-                    isRunning,
-                    getWalletNames,
-                    getAllOrganizationNames
-                });
+                mySandBox.stub(LocalEnvironment.prototype, 'isRunning').resolves(true);
+
                 getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
                 enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
                 importIdentityStub.resolves();
@@ -833,15 +827,6 @@ describe('AddWalletIdentityCommand', () => {
                 const isRunning: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isRunning');
                 isRunning.onCall(0).resolves(false);
                 isRunning.onCall(1).resolves(true);
-                const importWalletsAndIdentities: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'importWalletsAndIdentities').resolves();
-                const getWalletNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getWalletNames').resolves(['Org1']);
-                const getAllOrganizationNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getAllOrganizationNames').resolves(['Orderer', 'Org1MSP']);
-                mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns({
-                    isRunning,
-                    importWalletsAndIdentities,
-                    getWalletNames,
-                    getAllOrganizationNames
-                });
 
                 executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
                 getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
@@ -873,12 +858,10 @@ describe('AddWalletIdentityCommand', () => {
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
 
                 const isRunning: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isRunning').resolves(false);
-                const importWalletsAndIdentities: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'importWalletsAndIdentities').resolves();
                 const getWalletNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getWalletNames').resolves(['Org1']);
                 const getAllOrganizationNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getAllOrganizationNames').resolves(['myMSPID']);
                 mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns({
                     isRunning,
-                    importWalletsAndIdentities,
                     getWalletNames,
                     getAllOrganizationNames
                 });
@@ -927,6 +910,7 @@ describe('AddWalletIdentityCommand', () => {
                 getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
                 enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
 
+                importIdentityStub.resetHistory();
                 const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, emptyWalletRegistryEntry);
                 result.should.equal('greenConga');
 

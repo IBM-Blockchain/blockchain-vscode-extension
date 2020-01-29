@@ -15,11 +15,11 @@
 import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricEnvironment } from '../fabric/environments/FabricEnvironment';
 import { NodeTreeItem } from '../explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, LogType, FabricEnvironment } from 'ibm-blockchain-platform-common';
+import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 
 export async function deleteNode(nodeTreeItem: NodeTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -34,20 +34,20 @@ export async function deleteNode(nodeTreeItem: NodeTreeItem): Promise<void> {
             // If called from command palette
             // Ask for environment to delete
             // First check there is at least one that isn't local_fabric
-            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll(false);
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll(false, false, true);
             if (environments.length === 0) {
-                outputAdapter.log(LogType.ERROR, `No environments to choose from. Nodes from ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be deleted.`);
+                outputAdapter.log(LogType.ERROR, `No environments to choose from. Nodes from ${FabricRuntimeUtil.LOCAL_FABRIC} environments and environments created using ansible cannot be deleted.`);
                 return;
             }
 
-            const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to delete a node from', false, true, false) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to delete a node from', false, true, false, false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             if (!chosenEnvironment) {
                 return;
             }
 
             environmentRegistryEntry = chosenEnvironment.data;
 
-            const chosenNodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showFabricNodeQuickPick('Choose the node(s) you wish to delete', environmentRegistryEntry.name, [], false, true) as IBlockchainQuickPickItem<FabricNode>[];
+            const chosenNodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showFabricNodeQuickPick('Choose the node(s) you wish to delete', environmentRegistryEntry, [], false, true) as IBlockchainQuickPickItem<FabricNode>[];
             if (!chosenNodes || chosenNodes.length === 0) {
                 return;
             }
@@ -58,7 +58,7 @@ export async function deleteNode(nodeTreeItem: NodeTreeItem): Promise<void> {
             environmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
         }
 
-        const environment: FabricEnvironment = new FabricEnvironment(environmentRegistryEntry.name);
+        const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
         const nodes: FabricNode[] = await environment.getNodes();
 
         let reallyDoIt: boolean = false;

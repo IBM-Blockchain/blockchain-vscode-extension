@@ -99,6 +99,42 @@
       "env": {
         "OTHER_FABRIC": "true"
       }
+    },
+    {
+      "name": "Cucumber ansible fabric",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "${workspaceFolder}/cucumber/data/cucumber.code-workspace",
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--extensionTestsPath=${workspaceFolder}/build/cucumber/"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/build/cucumber/**/*.feature"
+      ],
+      "preLaunchTask": "npm: watch",
+      "env": {
+        "ANSIBLE_FABRIC": "true"
+      }
+    },
+    {
+      "name": "Cucumber ansible fabric (new fabric)",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "${workspaceFolder}/cucumber/data/cucumber.code-workspace",
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--extensionTestsPath=${workspaceFolder}/build/cucumber/"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/build/cucumber/**/*.feature"
+      ],
+      "preLaunchTask": "npm: cucumberAnsibleTests",
+      "env": {
+        "ANSIBLE_FABRIC": "true"
+      }
     }
   ]
 }

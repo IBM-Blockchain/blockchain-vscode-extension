@@ -16,8 +16,7 @@
 
 import * as vscode from 'vscode';
 import { FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
-import { FabricGatewayRegistryEntry } from '../../extension/registries/FabricGatewayRegistryEntry';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';

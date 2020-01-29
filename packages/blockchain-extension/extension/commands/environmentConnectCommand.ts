@@ -19,13 +19,11 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironment } from '../fabric/environments/FabricEnvironment';
 import { FabricEnvironmentManager, ConnectedState } from '../fabric/environments/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, FabricNode, LogType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, FabricNode, LogType, FabricEnvironment, AnsibleEnvironment } from 'ibm-blockchain-platform-common';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
-import { AnsibleEnvironment } from '../fabric/environments/AnsibleEnvironment';
 
 export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -43,7 +41,8 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
             fabricEnvironmentRegistryEntry = chosenEntry.data;
         }
 
-        fabricEnvironment = await EnvironmentFactory.getEnvironment(fabricEnvironmentRegistryEntry);
+        fabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentRegistryEntry);
+
         if (fabricEnvironmentRegistryEntry.managedRuntime) {
 
             let running: boolean = await (fabricEnvironment as LocalEnvironment | ManagedAnsibleEnvironment).isRunning();
@@ -66,7 +65,7 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
             return;
         }
 
-        const connection: IFabricEnvironmentConnection = FabricConnectionFactory.createFabricEnvironmentConnection();
+        const connection: IFabricEnvironmentConnection = FabricConnectionFactory.createFabricEnvironmentConnection(fabricEnvironmentRegistryEntry.name);
 
         const nodes: FabricNode[] = await fabricEnvironment.getNodes();
         await connection.connect(nodes);

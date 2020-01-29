@@ -20,21 +20,18 @@ import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { ExtensionCommands } from '../../ExtensionCommands';
-import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { TestUtil } from '../../test/TestUtil';
-import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { SettingConfigurations } from '../../configurations';
-import { UserInputUtilHelper } from '../helpers/userInputUtilHelper';
-import { SmartContractHelper } from '../helpers/smartContractHelper';
-import { GeneratedTestsHelper } from '../helpers/generatedTestsHelper';
-import { WalletAndIdentityHelper } from '../helpers/walletAndIdentityHelper';
-import { GatewayHelper } from '../helpers/gatewayHelper';
-import { EnvironmentHelper } from '../helpers/environmentHelper';
-import { SampleHelper } from '../helpers/sampleHelper';
-import { FabricEnvironmentRegistry, FabricWalletRegistry } from 'ibm-blockchain-platform-common';
-import { FabricGatewayRegistry } from '../../extension/registries/FabricGatewayRegistry';
-import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistry';
+import {ExtensionCommands} from '../../ExtensionCommands';
+import {ExtensionUtil} from '../../extension/util/ExtensionUtil';
+import {TestUtil} from '../../test/TestUtil';
+import {VSCodeBlockchainOutputAdapter} from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import {SettingConfigurations} from '../../configurations';
+import {UserInputUtilHelper} from '../helpers/userInputUtilHelper';
+import {SmartContractHelper} from '../helpers/smartContractHelper';
+import {GeneratedTestsHelper} from '../helpers/generatedTestsHelper';
+import {WalletAndIdentityHelper} from '../helpers/walletAndIdentityHelper';
+import {GatewayHelper} from '../helpers/gatewayHelper';
+import {EnvironmentHelper} from '../helpers/environmentHelper';
+import {SampleHelper} from '../helpers/sampleHelper';
 
 // tslint:disable:no-unused-expression
 
@@ -50,7 +47,7 @@ let firstTime: boolean = true; // Flag used for making sure we do some setup onc
 
 module.exports = function(): any {
 
-    this.timeout = { timeout: 120000 * 1000 }; // Global timeout - 2 minutes
+    this.timeout = {timeout: 120000 * 1000}; // Global timeout - 2 minutes
 
     this.Before(this.timeout, async () => {
         try {
@@ -105,14 +102,6 @@ module.exports = function(): any {
 
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, extDir, vscode.ConfigurationTarget.Global);
 
-                try {
-                    await FabricWalletRegistry.instance().clear();
-                    await FabricGatewayRegistry.instance().clear();
-                    await FabricEnvironmentRegistry.instance().clear();
-                    await RepositoryRegistry.instance().clear();
-                } catch (error) {
-                    // Should we be activating before clearing - we keep erroring here!
-                }
                 await ExtensionUtil.activateExtension();
 
                 try {
