@@ -110,6 +110,28 @@ describe('FabricWalletRegistry', () => {
 
             entries[1].should.deep.equal(walletOne);
         });
+
+        it('should get all including environments ones and set managed if from a managed environment', async () => {
+            const walletOne: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+                name: 'walletOne',
+                walletPath: 'myPath'
+            });
+
+            await registry.getAll().should.eventually.deep.equal([]);
+
+            await registry.add(walletOne);
+
+            await environmentRegistry.add(new FabricEnvironmentRegistryEntry({ name: 'myEnvironment', environmentDirectory: path.join('test', 'data', 'nonManagedAnsible'), environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT, managedRuntime: true }));
+
+            const entries: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
+
+            entries.length.should.equal(2);
+
+            entries[0].name.should.equal('myWallet');
+            entries[0].managedWallet.should.equal(true);
+
+            entries[1].should.deep.equal(walletOne);
+        });
     });
 
     describe('get', () => {
@@ -145,6 +167,10 @@ describe('FabricWalletRegistry', () => {
 
         it('should throw an error if does not exist', async () => {
             await FabricWalletRegistry.instance().get('blah', 'myEnvironment').should.eventually.be.rejectedWith(`Entry "blah" from environment "myEnvironment" in registry "${FileConfigurations.FABRIC_WALLETS}" does not exist`);
+        });
+
+        it('should throw an error if does not exist and no from environment', async () => {
+            await FabricWalletRegistry.instance().get('blah').should.eventually.be.rejectedWith(`Entry "blah" in registry "${FileConfigurations.FABRIC_WALLETS}" does not exist`);
         });
     });
 });

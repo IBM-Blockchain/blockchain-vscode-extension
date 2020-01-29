@@ -41,7 +41,7 @@ export class AnsibleEnvironment extends FabricEnvironment {
             const walletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
             walletRegistryEntry.name = walletName;
             walletRegistryEntry.walletPath = path.join(this.path, FileConfigurations.FABRIC_WALLETS, walletName);
-            walletRegistryEntry.managedWallet = true;
+            walletRegistryEntry.managedWallet = false;
             walletRegistryEntry.displayName = `${this.name} - ${walletName} Wallet`;
             walletRegistryEntry.fromEnvironment = this.name;
 

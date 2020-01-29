@@ -22,7 +22,6 @@ import { FabricWalletGeneratorFactory } from '../../src/util/FabricWalletGenerat
 import { FabricIdentity } from '../../src/fabricModel/FabricIdentity';
 import { FabricWalletRegistryEntry } from '../../src/registries/FabricWalletRegistryEntry';
 import { FabricGateway } from '../../src/fabricModel/FabricGateway';
-import { FabricGatewayRegistryEntry } from '../../src/registries/FabricGatewayRegistryEntry';
 import { FileConfigurations } from '../../src/registries/FileConfigurations';
 
 chai.use(chaiAsPromised);
@@ -66,33 +65,6 @@ describe('AnsibleEnvironment', () => {
             entries[0].fromEnvironment.should.equal('nonManagedAnsible');
             mockFabricWalletGenerator.getWallet.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWalletRegistryEntry));
             mockFabricWallet.importIdentity.should.have.been.calledOnceWithExactly(sinon.match.string, sinon.match.string, 'admin', 'Org1MSP');
-        });
-    });
-
-    describe('#getGateways', () => {
-        it('should get all gateways', async () => {
-
-            await environment.getGateways();
-
-            const entries: FabricGatewayRegistryEntry[] = await environment.getGateways();
-            entries.should.have.lengthOf(3);
-
-            entries[0].name.should.equal('nonManagedAnsible - yofn-org1');
-            entries[0].associatedWallet.should.equal('org1-wallet');
-            entries[0].connectionProfilePath.should.equal(path.join(environmentPath, FileConfigurations.FABRIC_GATEWAYS, 'org1', 'yofn.json'));
-            entries[0].fromEnvironment.should.equal('nonManagedAnsible');
-            entries[0].displayName.should.equal('nonManagedAnsible - yofn-org1');
-
-            entries[1].name.should.equal('nonManagedAnsible - yofn-org2');
-            entries[1].associatedWallet.should.equal('org2-wallet');
-            entries[1].connectionProfilePath.should.equal(path.join(environmentPath, FileConfigurations.FABRIC_GATEWAYS, 'org2', 'yofn.json'));
-            entries[1].fromEnvironment.should.equal('nonManagedAnsible');
-            entries[1].displayName.should.equal('nonManagedAnsible - yofn-org2');
-
-            entries[2].name.should.equal('nonManagedAnsible - myGateway');
-            entries[2].connectionProfilePath.should.equal(path.join(environmentPath, FileConfigurations.FABRIC_GATEWAYS, 'yofn.json'));
-            entries[2].fromEnvironment.should.equal('nonManagedAnsible');
-            entries[2].displayName.should.equal('nonManagedAnsible - myGateway');
         });
     });
 

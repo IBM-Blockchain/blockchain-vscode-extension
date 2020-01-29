@@ -66,10 +66,13 @@ export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry
             }
         });
 
-        if (!entry) {
+        if (!entry && fromEnvironment) {
             throw new Error(`Entry "${name}" from environment "${fromEnvironment}" in registry "${FileConfigurations.FABRIC_WALLETS}" does not exist`);
+        } else if (!entry && !fromEnvironment) {
+            throw new Error(`Entry "${name}" in registry "${FileConfigurations.FABRIC_WALLETS}" does not exist`);
+        } else {
+            return entry;
         }
-        return entry;
     }
 
     public async getEntries(): Promise<FabricWalletRegistryEntry[]> {
@@ -85,7 +88,14 @@ export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry
 
         for (const environmentEntry of environmentEntries) {
             const environment: AnsibleEnvironment = new AnsibleEnvironment(environmentEntry.name, environmentEntry.environmentDirectory);
-            const walletEntries: FabricWalletRegistryEntry[] = await environment.getWalletsAndIdentities();
+            let walletEntries: FabricWalletRegistryEntry[] = await environment.getWalletsAndIdentities();
+            walletEntries = walletEntries.map((entry: FabricWalletRegistryEntry) => {
+                if (environmentEntry.managedRuntime) {
+                    entry.managedWallet = true;
+                }
+
+                return entry;
+            });
             otherEntries.push(...walletEntries);
         }
 
