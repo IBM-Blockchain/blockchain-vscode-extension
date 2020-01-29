@@ -70,6 +70,9 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
             await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, fabricEnvironmentRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, informOfChanges);
             nodes = await fabricEnvironment.getNodes();
             if (nodes.length === 0) {
+                if (FabricEnvironmentManager.instance().getState() !== ConnectedState.DISCONNECTED) {
+                    await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+                }
                 return;
             }
         }
@@ -85,10 +88,6 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
 
         const connection: IFabricEnvironmentConnection = FabricConnectionFactory.createFabricEnvironmentConnection(fabricEnvironmentRegistryEntry.name);
 
-        if (nodes.length === 0) {
-            throw new Error('No nodes available');
-        }
-
         await connection.connect(nodes);
 
         try {
@@ -99,7 +98,7 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
             return;
         }
 
-        FabricEnvironmentManager.instance().connect(connection, fabricEnvironmentRegistryEntry, ConnectedState.CONNECTED);
+        FabricEnvironmentManager.instance().connect(connection, fabricEnvironmentRegistryEntry, ConnectedState.CONNECTING);
 
         const environmentName: string = fabricEnvironment.getName();
 
