@@ -24,7 +24,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import Axios from 'axios';
 import { ModuleUtil } from '../util/ModuleUtil';
 
-export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false, createMethod?: string): Promise<boolean> {
+export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false, createMethod?: string, informOfChanges: boolean = false): Promise<boolean> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     const methodMessageString: string = createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS ? 'import' : 'filter';
     outputAdapter.log(LogType.INFO, undefined, 'Import nodes to environment');
@@ -175,7 +175,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                 );
 
                 let chosenNodes: IBlockchainQuickPickItem<FabricNode>[];
-                chosenNodes = await UserInputUtil.showNodesQuickPickBox(`Which nodes would you like to ${methodMessageString}?`, filteredData, true, oldNodes) as IBlockchainQuickPickItem<FabricNode>[];
+                chosenNodes = await UserInputUtil.showNodesQuickPickBox(`Which nodes would you like to ${methodMessageString}?`, filteredData, true, oldNodes, informOfChanges) as IBlockchainQuickPickItem<FabricNode>[];
 
                 if (!chosenNodes || chosenNodes.length === 0) {
                     return true;
@@ -240,7 +240,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             outputAdapter.log(LogType.WARNING, `Finished ${methodMessageString}ing nodes but some nodes could not be ${methodMessageString}ed`);
         }
 
-        if (!fromAddEnvironment && environmentRegistryEntry) {
+        if (!fromAddEnvironment && environmentRegistryEntry && !informOfChanges) {
             // only do this if we run the command from the tree as need to refresh the tree to do setup
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
         }
