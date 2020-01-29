@@ -103,4 +103,13 @@ describe('FabricEnvironmentManager', () => {
             result.should.equal(ConnectedState.CONNECTED);
         });
     });
+
+    describe('#setState', () => {
+        it('should set new state', () => {
+            environmentManager['state'] = ConnectedState.CONNECTING;
+            environmentManager.setState(ConnectedState.CONNECTED);
+            const result: ConnectedState = environmentManager.getState();
+            result.should.equal(ConnectedState.CONNECTED);
+        });
+    });
 });

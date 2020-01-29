@@ -113,21 +113,29 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
 
             this.tree = await this.setupIdentities(environmentRegistryEntry);
-        } else if (FabricEnvironmentManager.instance().getState() === ConnectedState.CONNECTED) {
+        } else if (FabricEnvironmentManager.instance().getState() === ConnectedState.CONNECTING || FabricEnvironmentManager.instance().getState() === ConnectedState.CONNECTED) {
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
             if (environmentRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
                 await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', true);
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', true);
             } else {
                 if (environmentRegistryEntry.url) {
+                    if (FabricEnvironmentManager.instance().getState() === ConnectedState.CONNECTED) {
+                        await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+                        this.tree = await this.createConnectedTree(environmentRegistryEntry);
+                        return this.tree;
+                    }
                     await vscode.commands.executeCommand('setContext', 'blockchain-opstool-connected', true);
                 }
                 await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', true);
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
             }
-
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
+
             this.tree = await this.createConnectedTree(environmentRegistryEntry);
+            if (FabricEnvironmentManager.instance().getState() === ConnectedState.CONNECTING) {
+                FabricEnvironmentManager.instance().setState(ConnectedState.CONNECTED);
+            }
         } else {
             await vscode.commands.executeCommand('setContext', 'blockchain-opstool-connected', false);
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);

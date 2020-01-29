@@ -63,6 +63,7 @@ describe('EnvironmentConnectCommand', () => {
 
         let connectExplorerStub: sinon.SinonStub;
         let connectManagerSpy: sinon.SinonSpy;
+        let getStateStub: sinon.SinonStub;
 
         let caNode: FabricNode;
         let ordererNode: FabricNode;
@@ -127,6 +128,7 @@ describe('EnvironmentConnectCommand', () => {
             executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).resolves(true);
 
             warningNoNodesEditFilterStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').withArgs(`Error connecting to environment ${opsToolsEnvRegistryEntry.name}: no visible nodes. Would you like to filter nodes?`);
+            getStateStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getState');
 
         });
 
@@ -142,23 +144,10 @@ describe('EnvironmentConnectCommand', () => {
 
                 chooseEnvironmentQuickPick.should.have.been.calledWith(sinon.match.string, false, true, true);
                 connectExplorerStub.should.have.been.called;
-                connectManagerSpy.should.have.been.calledWith(mockConnection, environmentRegistryEntry, ConnectedState.CONNECTED);
+                connectManagerSpy.should.have.been.calledWith(mockConnection, environmentRegistryEntry, ConnectedState.CONNECTING);
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'user environment', connectEnvironmentIBM: sinon.match.string });
                 logSpy.calledWith(LogType.SUCCESS, 'Connected to myFabric');
-            });
-
-            it('should test an error is shown if the user tries to connect to a non Ops Tools environment that doesn\'t have any valid nodes', async () => {
-                getNodesStub.resolves([]);
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
-
-                mockRuntime.isRunning.should.not.have.been.called;
-                connectManagerSpy.should.not.have.been.called;
-                logSpy.should.have.been.calledTwice;
-                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `connecting to fabric environment`);
-                logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Cannot connect to environment: No nodes available`);
-                connectExplorerStub.should.not.have.been.called;
-                sendTelemetryEventStub.should.not.have.been.called;
             });
 
             it('should do nothing if the user cancels choosing a environment', async () => {
@@ -189,7 +178,7 @@ describe('EnvironmentConnectCommand', () => {
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
                 connectExplorerStub.should.have.been.calledOnce;
-                connectManagerSpy.should.have.been.calledWith(mockConnection, environmentRegistryEntry, ConnectedState.CONNECTED);
+                connectManagerSpy.should.have.been.calledWith(mockConnection, environmentRegistryEntry, ConnectedState.CONNECTING);
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'user environment', connectEnvironmentIBM: sinon.match.string });
             });
@@ -245,12 +234,31 @@ describe('EnvironmentConnectCommand', () => {
                 warningNoNodesEditFilterStub.resolves(true);
 
                 getNodesStub.resolves([]);
+                getStateStub.callThrough();
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
 
                 getNodesStub.should.have.been.calledTwice;
                 warningNoNodesEditFilterStub.should.have.been.calledOnce;
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
+                mockConnection.connect.should.not.have.been.called;
+            });
+
+            it('should disconnect if the user tries to connect to an already connected Ops Tools evironment with nodes, differences are detected, user chooses to edit filters and hides all nodes ', async () => {
+                chooseEnvironmentQuickPick.resolves({ label: 'myOpsToolsFabric', data: opsToolsEnvRegistryEntry });
+                warningNoNodesEditFilterStub.resolves(true);
+
+                getStateStub.returns(ConnectedState.CONNECTED);
+                getNodesStub.onFirstCall().resolves([ordererNode, caNode]);
+                getNodesStub.onSecondCall().resolves([]);
+
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+
+                getNodesStub.should.have.been.calledTwice;
+                warningNoNodesEditFilterStub.should.have.not.been.called;
+                getStateStub.should.have.been.called;
+                executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
+                executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
                 mockConnection.connect.should.not.have.been.called;
             });
 
@@ -301,7 +309,7 @@ describe('EnvironmentConnectCommand', () => {
                 connectExplorerStub.should.have.been.calledOnce;
                 chooseEnvironmentQuickPick.should.have.been.calledWith(sinon.match.string, false, true, true);
                 mockConnection.connect.should.have.been.calledOnce;
-                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTED);
+                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTING);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'managed environment', connectEnvironmentIBM: sinon.match.string });
                 logSpy.calledWith(LogType.SUCCESS, `Connected to ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`);
             });
@@ -314,7 +322,7 @@ describe('EnvironmentConnectCommand', () => {
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
                 connectExplorerStub.should.have.been.calledOnce;
-                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTED);
+                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTING);
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'managed environment', connectEnvironmentIBM: sinon.match.string });
             });
@@ -330,7 +338,7 @@ describe('EnvironmentConnectCommand', () => {
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
                 connectExplorerStub.should.have.been.calledOnce;
-                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTED);
+                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTING);
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'managed environment', connectEnvironmentIBM: sinon.match.string });
             });
@@ -345,7 +353,7 @@ describe('EnvironmentConnectCommand', () => {
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
 
                 connectExplorerStub.should.have.been.calledOnce;
-                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTED);
+                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTING);
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'managed environment', connectEnvironmentIBM: sinon.match.string });
             });

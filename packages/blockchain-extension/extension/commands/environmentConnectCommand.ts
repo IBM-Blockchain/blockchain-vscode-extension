@@ -70,6 +70,9 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
             await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, fabricEnvironmentRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, informOfChanges);
             nodes = await fabricEnvironment.getNodes();
             if (nodes.length === 0) {
+                if (FabricEnvironmentManager.instance().getState() !== ConnectedState.DISCONNECTED) {
+                    await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+                }
                 return;
             }
         }
@@ -78,16 +81,12 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
         const requireSetup: boolean = await fabricEnvironment.requireSetup();
 
         if (requireSetup && fabricEnvironmentRegistryEntry.name !== FabricRuntimeUtil.LOCAL_FABRIC) {
-            await FabricEnvironmentManager.instance().connect(undefined, fabricEnvironmentRegistryEntry, ConnectedState.SETUP);
+            FabricEnvironmentManager.instance().connect(undefined, fabricEnvironmentRegistryEntry, ConnectedState.SETUP);
             VSCodeBlockchainOutputAdapter.instance().log(LogType.IMPORTANT, 'You must complete setup for this environment to enable install, instantiate and register identity operations on the nodes. Click each node in the list to perform the required setup steps');
             return;
         }
 
         const connection: IFabricEnvironmentConnection = FabricConnectionFactory.createFabricEnvironmentConnection();
-
-        if (nodes.length === 0) {
-            throw new Error('No nodes available');
-        }
 
         await connection.connect(nodes);
 
@@ -99,7 +98,7 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
             return;
         }
 
-        FabricEnvironmentManager.instance().connect(connection, fabricEnvironmentRegistryEntry, ConnectedState.CONNECTED);
+        FabricEnvironmentManager.instance().connect(connection, fabricEnvironmentRegistryEntry, ConnectedState.CONNECTING);
 
         let environmentName: string;
         if (fabricEnvironmentRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
