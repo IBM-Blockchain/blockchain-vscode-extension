@@ -90,9 +90,7 @@ Feature: Fabric Environments
      Scenario: It should edit filters, add all nodes and connect automatically
          Given an environment 'myOpsToolsFabric' exists
          When I edit filters and import all nodes to environment 'myOpsToolsFabric'
-         Then there should be a tree item with a label 'Setting up: myOpsToolsFabric' in the 'Fabric Environments' panel
-         And the tree item should have a tooltip equal to 'Setting up: myOpsToolsFabric'
-         And the 'myOpsToolsFabric' environment is connected
+         Then the 'myOpsToolsFabric' environment is connected
 
 
      @opsToolsFabric

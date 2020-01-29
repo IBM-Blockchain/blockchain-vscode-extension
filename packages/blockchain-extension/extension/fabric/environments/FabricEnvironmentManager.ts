@@ -18,7 +18,8 @@ import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection } from 'ib
 export enum ConnectedState {
     CONNECTED,
     SETUP,
-    DISCONNECTED
+    DISCONNECTED,
+    CONNECTING
 }
 
 export class FabricEnvironmentManager extends EventEmitter {
@@ -46,6 +47,10 @@ export class FabricEnvironmentManager extends EventEmitter {
 
     public getState(): ConnectedState {
         return this.state;
+    }
+
+    public setState(newState: ConnectedState): void {
+        this.state = newState;
     }
 
     public connect(connection: IFabricEnvironmentConnection, environmentRegistryEntry: FabricEnvironmentRegistryEntry, state: ConnectedState): void {
