@@ -44,6 +44,7 @@ describe('EnvironmentConnectCommand', () => {
     before(async () => {
         mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
+        mySandBox.restore();
     });
 
     describe('connect', () => {
@@ -120,7 +121,7 @@ describe('EnvironmentConnectCommand', () => {
             opsToolsEnvRegistryEntry.url = '/some/cloud:port';
             executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).resolves(true);
 
-            warningNoNodesEditFilterStub = mySandBox.stub(vscode.window, 'showWarningMessage').withArgs(`Error connecting to environment ${opsToolsEnvRegistryEntry.name}: no visible nodes. Would you like to filter nodes?`, 'Yes', 'No');
+            warningNoNodesEditFilterStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').withArgs(`Error connecting to environment ${opsToolsEnvRegistryEntry.name}: no visible nodes. Would you like to filter nodes?`);
 
         });
 
@@ -151,7 +152,7 @@ describe('EnvironmentConnectCommand', () => {
                 logSpy.calledWith(LogType.SUCCESS, 'Connected to myFabric');
             });
 
-            it('should test an error is shown if the user tries to connect to a non Ops Tools environment that doesnt have any valid nodes', async () => {
+            it('should test an error is shown if the user tries to connect to a non Ops Tools environment that doesn\'t have any valid nodes', async () => {
                 getNodesStub.resolves([]);
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
 
@@ -229,7 +230,7 @@ describe('EnvironmentConnectCommand', () => {
 
             it('should do nothing if the user cancels after trying to connect to an Ops Tools evironment without nodes', async () => {
                 chooseEnvironmentQuickPick.resolves({ label: 'myOpsToolsFabric', data: opsToolsEnvRegistryEntry });
-                warningNoNodesEditFilterStub.resolves();
+                warningNoNodesEditFilterStub.resolves(false);
 
                 getNodesStub.resolves([]);
 
@@ -243,7 +244,7 @@ describe('EnvironmentConnectCommand', () => {
 
             it('should do nothing if the user tries to connect to an Ops Tools evironment without nodes, chooses to edit filters and does not add nodes ', async () => {
                 chooseEnvironmentQuickPick.resolves({ label: 'myOpsToolsFabric', data: opsToolsEnvRegistryEntry });
-                warningNoNodesEditFilterStub.resolves('Yes');
+                warningNoNodesEditFilterStub.resolves(true);
 
                 getNodesStub.resolves([]);
 
@@ -257,7 +258,7 @@ describe('EnvironmentConnectCommand', () => {
 
             it('should connect if the user tries to connect to an Ops Tools evironment without nodes, chooses to edit filters and add nodes ', async () => {
                 chooseEnvironmentQuickPick.resolves({ label: 'myOpsToolsFabric', data: opsToolsEnvRegistryEntry });
-                warningNoNodesEditFilterStub.resolves('Yes');
+                warningNoNodesEditFilterStub.resolves(true);
 
                 getNodesStub.onFirstCall().resolves([]);
                 getNodesStub.onSecondCall().resolves([ordererNode, caNode]);
@@ -269,6 +270,21 @@ describe('EnvironmentConnectCommand', () => {
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
                 mockConnection.connect.should.have.been.called;
             });
+
+            it('should call edit filters with informOfChanges as true if the user tries to connect to an Ops Tools evironment with nodes', async () => {
+                chooseEnvironmentQuickPick.resolves({ label: 'myOpsToolsFabric', data: opsToolsEnvRegistryEntry });
+
+                getNodesStub.resolves([ordererNode, caNode]);
+
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+
+                getNodesStub.should.have.been.calledTwice;
+                warningNoNodesEditFilterStub.should.have.not.been.called;
+                executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
+                executeCommandStub.getCalls().filter((call: any) => call.args[0] === ExtensionCommands.EDIT_NODE_FILTERS && call.args[4] === true).should.not.deep.equal([]);
+                mockConnection.connect.should.have.been.called;
+            });
+
         });
 
         describe('LocalEnvironment', () => {
