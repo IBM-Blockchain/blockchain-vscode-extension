@@ -2216,6 +2216,32 @@ describe('UserInputUtil', () => {
         });
     });
 
+    describe('showQuickPickItem', () => {
+        it('should be able to pick an item', async () => {
+            const items: IBlockchainQuickPickItem<string>[] = [{label: 'itemOne', data: 'itemData', description: 'my data'}, { label: 'itemTwo', data: 'itemDataTwo', description: 'my data two'}];
+            quickPickStub.resolves(items[0]);
+
+            const prompt: string = 'choose an item';
+
+            const result: IBlockchainQuickPickItem<string> = await UserInputUtil.showQuickPickItem(prompt, items) as IBlockchainQuickPickItem<string>;
+            result.should.equal(items[0]);
+
+            quickPickStub.should.have.been.calledWith(items, {ignoreFocusOut: true, canPickMany: false, placeHolder: prompt});
+        });
+
+        it('should be able to pick multiple items', async () => {
+            const items: IBlockchainQuickPickItem<string>[] = [{label: 'itemOne', data: 'itemData', description: 'my data'}, { label: 'itemTwo', data: 'itemDataTwo', description: 'my data two'}];
+            quickPickStub.resolves(items);
+
+            const prompt: string = 'choose an item';
+
+            const result: IBlockchainQuickPickItem<string>[] = await UserInputUtil.showQuickPickItem(prompt, items, true) as IBlockchainQuickPickItem<string>[];
+            result.should.equal(items);
+
+            quickPickStub.should.have.been.calledWith(items, {ignoreFocusOut: true, canPickMany: true, placeHolder: prompt});
+        });
+    });
+
     describe('getWorkspaceFolders', () => {
 
         it(' getWorkspaceFolders should not show package chooser when only one folder to package', async () => {

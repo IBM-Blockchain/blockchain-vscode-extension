@@ -38,7 +38,7 @@ describe('AddEnvironmentCommand', () => {
     let chooseMethodStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
     let sendTelemetryEventStub: sinon.SinonStub;
-    let showQuickPickStub: sinon.SinonStub;
+    let showQuickPickItemStub: sinon.SinonStub;
     let deleteEnvironmentSpy: sinon.SinonSpy;
     let openFileBrowserStub: sinon.SinonStub;
     let environmentDirectoryPath: string;
@@ -63,9 +63,9 @@ describe('AddEnvironmentCommand', () => {
             await FabricEnvironmentRegistry.instance().clear();
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            showQuickPickStub = mySandBox.stub(UserInputUtil, 'showQuickPick');
-            chooseMethodStub = showQuickPickStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_DIR]);
-            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
+            showQuickPickItemStub = mySandBox.stub(UserInputUtil, 'showQuickPickItem');
+            chooseMethodStub = showQuickPickItemStub.withArgs('Select a method to add an environment');
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES});
             environmentDirectoryPath = path.join(__dirname, '..', '..', '..', 'test', 'data', 'managedAnsible');
             const uri: vscode.Uri = vscode.Uri.file(environmentDirectoryPath);
             openFileBrowserStub = mySandBox.stub(UserInputUtil, 'openFileBrowser').resolves(uri);
@@ -241,7 +241,7 @@ describe('AddEnvironmentCommand', () => {
 
         // JAKE TODO add this back in
         it.skip('should add a managed environment from an ansible dir', async () => {
-            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_DIR);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR});
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
@@ -267,7 +267,7 @@ describe('AddEnvironmentCommand', () => {
         });
 
         it('should add a non managed environment from an ansible dir', async () => {
-            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_DIR);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR});
 
             environmentDirectoryPath = path.join(environmentDirectoryPath, '..', 'nonManagedAnsible');
             const uri: vscode.Uri = vscode.Uri.file(environmentDirectoryPath);
@@ -297,7 +297,7 @@ describe('AddEnvironmentCommand', () => {
         });
 
         it('should handle cancel from choosing dir when adding from an ansible dir', async () => {
-            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_DIR);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR});
 
             openFileBrowserStub.resolves();
 
