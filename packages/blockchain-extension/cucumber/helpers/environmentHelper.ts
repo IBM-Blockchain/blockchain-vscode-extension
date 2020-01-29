@@ -62,16 +62,13 @@ export class EnvironmentHelper {
             this.userInputUtilHelper.inputBoxStub.withArgs('Enter a name for the environment').resolves(name);
             if (process.env.OPSTOOLS_FABRIC) {
                 // Connect to OpsTools and create environment without nodes
-                this.userInputUtilHelper.showQuickPickStub.withArgs('Choose a method to import nodes to an environment').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+                this.userInputUtilHelper.showQuickPickStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
                 this.userInputUtilHelper.inputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves(process.env.MAP_OPSTOOLS_URL);
                 this.userInputUtilHelper.inputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').resolves(process.env.MAP_OPSTOOLS_KEY);
                 this.userInputUtilHelper.inputBoxStub.withArgs('Enter the api secret of the ops tools you want to connect to').resolves(process.env.MAP_OPSTOOLS_SECRET);
                 this.userInputUtilHelper.showQuickPickStub.withArgs('Unable to perform certificate verification. Please choose how to proceed', [UserInputUtil.ADD_CA_CERT_CHAIN, UserInputUtil.CONNECT_NO_CA_CERT_CHAIN]).resolves(UserInputUtil.CONNECT_NO_CA_CERT_CHAIN);
                 this.userInputUtilHelper.opsToolsNodeQuickPickStub.resolves();
-            } else {
-                this.userInputUtilHelper.showQuickPickStub.withArgs('Choose a method to import nodes to an environment').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
-
-            if (process.env.ANSIBLE_FABRIC) {
+            } else if (process.env.ANSIBLE_FABRIC) {
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR});
                 this.userInputUtilHelper.openFileBrowserStub.resolves(vscode.Uri.file(path.join(__dirname,  '..', '..', '..', 'cucumber', 'ansible')));
             } else {

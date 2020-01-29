@@ -147,6 +147,16 @@ export async function addEnvironment(): Promise<void> {
         }
 
         // Create environment
+        if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_DIR) {
+            fabricEnvironmentEntry.environmentDirectory = envDir;
+
+            const files: string[] = await fs.readdir(envDir);
+            if (files.includes('start.sh')) {
+                fabricEnvironmentEntry.managedRuntime = true;
+            }
+            fabricEnvironmentEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+        }
+
         fabricEnvironmentEntry.name = environmentName;
         await fabricEnvironmentRegistry.add(fabricEnvironmentEntry);
 
@@ -159,17 +169,6 @@ export async function addEnvironment(): Promise<void> {
                 throw new Error(`Unable to store the CA certificate chain file: ${error.message}`);
             }
         }
-
-        if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_DIR) {
-            fabricEnvironmentEntry.environmentDirectory = envDir;
-
-            const files: string[] = await fs.readdir(envDir);
-            if (files.includes('start.sh')) {
-                fabricEnvironmentEntry.managedRuntime = true;
-            }
-            fabricEnvironmentEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-        }
-        await fabricEnvironmentRegistry.add(fabricEnvironmentEntry);
 
         if (createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_DIR) {
 

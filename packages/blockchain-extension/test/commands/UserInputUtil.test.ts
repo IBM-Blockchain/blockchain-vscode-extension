@@ -160,9 +160,7 @@ describe('UserInputUtil', () => {
         });
 
         it('should show all environments except Ops Tool instances', async () => {
-            const localFabricEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
-            localFabricEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
-            localFabricEntry.managedRuntime = true;
+            const localFabricEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
 
             const opsEnvironment1: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
                 name: 'opsEnvironment1',
