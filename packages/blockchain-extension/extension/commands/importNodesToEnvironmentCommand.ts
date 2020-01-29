@@ -32,7 +32,7 @@ import {EnvironmentFactory} from '../fabric/environments/EnvironmentFactory';
 import Axios from 'axios';
 import { ModuleUtil } from '../util/ModuleUtil';
 
-export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false, createMethod?: string): Promise<boolean> {
+export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false, createMethod?: string, informOfChanges: boolean = false): Promise<boolean> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     const methodMessageString: string = createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS ? 'import' : 'filter';
     outputAdapter.log(LogType.INFO, undefined, 'Import nodes to environment');
@@ -187,7 +187,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                         );
 
                 let chosenNodes: IBlockchainQuickPickItem<FabricNode>[];
-                chosenNodes = await UserInputUtil.showNodesQuickPickBox(`Which nodes would you like to ${methodMessageString}?`, filteredData, true, oldNodes) as IBlockchainQuickPickItem<FabricNode>[];
+                chosenNodes = await UserInputUtil.showNodesQuickPickBox(`Which nodes would you like to ${methodMessageString}?`, filteredData, true, oldNodes, informOfChanges) as IBlockchainQuickPickItem<FabricNode>[];
 
                     if (!chosenNodes || chosenNodes.length === 0) {
                     return true;
@@ -254,7 +254,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             }
 
             const connectedRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
-            if (connectedRegistryEntry && connectedRegistryEntry.name === environmentRegistryEntry.name) {
+            if (connectedRegistryEntry && connectedRegistryEntry.name === environmentRegistryEntry.name && !informOfChanges) {
                 // only do this if we run the command if we are connected to the one we are updating
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
             }
