@@ -23,12 +23,11 @@ import { TestUtil } from '../TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, EnvironmentType, FabricEnvironment } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { UserInputUtil} from '../../extension/commands/UserInputUtil';
 import { ModuleUtil } from '../../extension/util/ModuleUtil';
-import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -48,13 +47,11 @@ describe('AddEnvironmentCommand', () => {
     let environmentDirectoryPath: string;
     let browseStub: sinon.SinonStub;
     let axiosGetStub: sinon.SinonStub;
-    let showQuickPickStub: sinon.SinonStub;
     let chooseCertVerificationStub: sinon.SinonStub;
     let readFileStub: sinon.SinonStub;
     let fsCopyStub: sinon.SinonStub;
     let setPasswordStub: sinon.SinonStub;
     let getCoreNodeModuleStub: sinon.SinonStub;
-    let deleteEnvironmentSpy: sinon.SinonSpy;
     let getNodesStub: sinon.SinonStub;
     let url: string;
     let key: string;

@@ -451,9 +451,9 @@ describe('environmentExplorer', () => {
                 orgs.contextValue.should.equal('blockchain-runtime-organizations-item');
                 orgs.label.should.equal('Organizations');
 
-                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', true);
-                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
-                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', true);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', true);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', true);
             });
 
             it('should set correct context if not local runtime and not ansible', async () => {
@@ -469,9 +469,9 @@ describe('environmentExplorer', () => {
                 const connectedTo: EnvironmentConnectedTreeItem = allChildren[0] as EnvironmentConnectedTreeItem;
                 connectedTo.label.should.equal(`Connected to environment: myFabric`);
 
-                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
-                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
-                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', false);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', false);
             });
 
             it('should set correct context if ansible', async () => {
@@ -487,9 +487,9 @@ describe('environmentExplorer', () => {
                 const connectedTo: EnvironmentConnectedTreeItem = allChildren[0] as EnvironmentConnectedTreeItem;
                 connectedTo.label.should.equal(`Connected to environment: myAnsibleFabric`);
 
-                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
-                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
-                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', true);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', true);
             });
 
             it('should create channels children correctly', async () => {

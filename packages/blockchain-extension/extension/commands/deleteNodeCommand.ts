@@ -13,7 +13,7 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import { UserInputUtil, IBlockchainQuickPickItem, EnvironmentType } from './UserInputUtil';
+import { UserInputUtil, IBlockchainQuickPickItem, IncludeEnvironmentOptions } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { NodeTreeItem } from '../explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
@@ -51,9 +51,9 @@ export async function deleteNode(nodeTreeItem: NodeTreeItem, hideNode?: boolean)
 
             let chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             if (hideNode) {
-                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an OpsTool environment to hide a node from', false, true, false, EnvironmentType.OPSTOOLSENV, false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an OpsTool environment to hide a node from', false, true, false, IncludeEnvironmentOptions.OPSTOOLSENV, false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             } else {
-                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to delete a node from', false, true, false, EnvironmentType.ALLENV, false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to delete a node from', false, true, false, IncludeEnvironmentOptions.ALLENV, false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             }
 
             if (!chosenEnvironment) {
@@ -62,7 +62,7 @@ export async function deleteNode(nodeTreeItem: NodeTreeItem, hideNode?: boolean)
 
             environmentRegistryEntry = chosenEnvironment.data;
 
-            const chosenNodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesInEnvironmentQuickPick(`Choose a node to ${action}`, environmentRegistryEntry.name, [], false, true) as IBlockchainQuickPickItem<FabricNode>[];
+            const chosenNodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesInEnvironmentQuickPick(`Choose a node to ${action}`, environmentRegistryEntry, [], false, true) as IBlockchainQuickPickItem<FabricNode>[];
             if (!chosenNodes || chosenNodes.length === 0) {
                 return;
             }

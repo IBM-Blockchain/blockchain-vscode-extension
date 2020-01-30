@@ -89,7 +89,7 @@ async function createGatewayFromEnvironment(gatewayName: string, environmentRegi
     let caNode: FabricNode;
 
     try {
-        const chosenCA: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showNodesInEnvironmentQuickPick('Choose a certificate authority for the gateway connection', environmentName, [FabricNodeType.CERTIFICATE_AUTHORITY]) as IBlockchainQuickPickItem<FabricNode>;
+        const chosenCA: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showNodesInEnvironmentQuickPick('Choose a certificate authority for the gateway connection', environmentRegistryEntry, [FabricNodeType.CERTIFICATE_AUTHORITY]) as IBlockchainQuickPickItem<FabricNode>;
 
         if (!chosenCA) {
             return;
