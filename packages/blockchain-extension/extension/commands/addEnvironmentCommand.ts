@@ -20,16 +20,10 @@ import * as vscode from 'vscode';
 import {UserInputUtil} from './UserInputUtil';
 import {Reporter} from '../util/Reporter';
 import {VSCodeBlockchainOutputAdapter} from '../logging/VSCodeBlockchainOutputAdapter';
-import {
-    FabricEnvironmentRegistry,
-    FabricEnvironmentRegistryEntry,
-    FabricRuntimeUtil,
-    LogType,
-    EnvironmentType
-} from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType,  EnvironmentType, FabricEnvironment, FabricNode} from 'ibm-blockchain-platform-common';
 import {ExtensionCommands} from '../../ExtensionCommands';
 import {ModuleUtil} from '../util/ModuleUtil';
-import {FabricEnvironment} from '../fabric/FabricEnvironment';
+import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 
 export async function addEnvironment(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -147,7 +141,7 @@ export async function addEnvironment(): Promise<void> {
 
         if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS && certificatePath) {
             try {
-                const environment: FabricEnvironment = new FabricEnvironment(fabricEnvironmentEntry.name);
+                const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentEntry);
                 const caCertificateCopy: string = path.join(path.resolve(environment.getPath()), certificatePath.fsPath.split(separator).pop());
                 await fs.copy(certificatePath.fsPath, caCertificateCopy, {overwrite: true});
             } catch (error) {
@@ -180,7 +174,7 @@ export async function addEnvironment(): Promise<void> {
                 await fabricEnvironmentRegistry.delete(fabricEnvironmentEntry.name);
                 return;
         } else if (addedAllNodes) {
-            const environment: FabricEnvironment = new FabricEnvironment(fabricEnvironmentEntry.name);
+            const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentEntry);
             const nodes: FabricNode[] = await environment.getNodes();
             if (nodes.length === 0) {
                 outputAdapter.log(LogType.SUCCESS, `Successfully added a new environment. No available nodes included in current filters, click ${fabricEnvironmentEntry.name} to edit filters`);

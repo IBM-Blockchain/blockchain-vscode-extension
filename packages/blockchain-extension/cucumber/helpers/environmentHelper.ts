@@ -68,10 +68,7 @@ export class EnvironmentHelper {
                 this.userInputUtilHelper.inputBoxStub.withArgs('Enter the api secret of the ops tools you want to connect to').resolves(process.env.MAP_OPSTOOLS_SECRET);
                 this.userInputUtilHelper.showQuickPickStub.withArgs('Unable to perform certificate verification. Please choose how to proceed', [UserInputUtil.ADD_CA_CERT_CHAIN, UserInputUtil.CONNECT_NO_CA_CERT_CHAIN]).resolves(UserInputUtil.CONNECT_NO_CA_CERT_CHAIN);
                 this.userInputUtilHelper.opsToolsNodeQuickPickStub.resolves();
-            } else {
-                this.userInputUtilHelper.showQuickPickStub.withArgs('Choose a method to import nodes to an environment').resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
-
-            if (process.env.ANSIBLE_FABRIC) {
+            } else if (process.env.ANSIBLE_FABRIC) {
                 this.userInputUtilHelper.showQuickPickStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_DIR]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_DIR);
                 this.userInputUtilHelper.openFileBrowserStub.resolves(vscode.Uri.file(path.join(__dirname,  '..', '..', '..', 'cucumber', 'ansible')));
             } else {
@@ -152,7 +149,8 @@ export class EnvironmentHelper {
         this.userInputUtilHelper.opsToolsNodeQuickPickStub.resolves(nodesToImport);
         await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, undefined, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
-        const environment: FabricEnvironment = new FabricEnvironment(environmentName);
+        const environmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
+        const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
         const nodes: FabricNode[] = await environment.getNodes();
         nodes.length.should.equal(nodesToImport.length);
     }

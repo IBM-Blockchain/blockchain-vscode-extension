@@ -33,7 +33,7 @@ export enum LanguageType {
     CONTRACT = 'contract'
 }
 
-export enum EnvironmentType {
+export enum IncludeEnvironmentOptions {
     ALLENV = 'all-environments',
     OPSTOOLSENV = 'ops-tools',
     OTHERENV = 'other-environment'
@@ -81,7 +81,7 @@ export class UserInputUtil {
     static readonly ADD_ENVIRONMENT_FROM_DIR: string = 'Add an Ansible-created network';
     static readonly ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION: string = '(Browse for directory)';
     static readonly ADD_ENVIRONMENT_FROM_OPS_TOOLS: string = 'Add an IBM Blockchain Platform network';
-    static readonly ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION: string = '(connect to Ops Console)'
+    static readonly ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION: string = '(connect to Ops Console)';
     static readonly ADD_CA_CERT_CHAIN: string = 'Provide the CA Certificate Chain file';
     static readonly CONNECT_NO_CA_CERT_CHAIN: string = 'Proceed without certificate verification';
 
@@ -126,7 +126,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(items, quickPickOptions);
     }
 
-    public static async showFabricEnvironmentQuickPickBox(prompt: string, canPickMany: boolean, autoChoose: boolean, showLocalFabric: boolean = false, envType: EnvironmentType, onlyShowManagedEnvironment: boolean = false, onlyShowNonAnsibleEnvironment: boolean = false): Promise<Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> | IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
+    public static async showFabricEnvironmentQuickPickBox(prompt: string, canPickMany: boolean, autoChoose: boolean, showLocalFabric: boolean = false, envType: IncludeEnvironmentOptions = IncludeEnvironmentOptions.ALLENV, onlyShowManagedEnvironment: boolean = false, onlyShowNonAnsibleEnvironment: boolean = false): Promise<Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> | IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
             canPickMany: canPickMany,
@@ -139,25 +139,21 @@ export class UserInputUtil {
         let environmentsFiltered: Array<FabricEnvironmentRegistryEntry> = environments;
 
         switch (envType) {
-            case EnvironmentType.ALLENV: {
+            case IncludeEnvironmentOptions.ALLENV: {
                 break;
             }
-            case EnvironmentType.OPSTOOLSENV: {
+            case IncludeEnvironmentOptions.OPSTOOLSENV: {
                 environmentsFiltered = environments.filter((environment: FabricEnvironmentRegistryEntry) => environment.url);
                 break;
             }
-            case EnvironmentType.OTHERENV: {
+            case IncludeEnvironmentOptions.OTHERENV: {
                 environmentsFiltered = environments.filter((environment: FabricEnvironmentRegistryEntry) => !environment.url);
                 break;
             }
         }
 
         environmentsQuickPickItems = environmentsFiltered.map((environment: FabricEnvironmentRegistryEntry) => {
-            let label: string = environment.name;
-            if (environment.name === FabricRuntimeUtil.LOCAL_FABRIC) {
-                label = FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
-            }
-            return { label: label, data: environment };
+            return { label: environment.name, data: environment };
         });
 
         if (autoChoose) {
