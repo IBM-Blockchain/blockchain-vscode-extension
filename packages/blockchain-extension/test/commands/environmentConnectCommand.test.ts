@@ -285,6 +285,24 @@ describe('EnvironmentConnectCommand', () => {
                 mockConnection.connect.should.not.have.been.called;
                 sendTelemetryEventStub.should.not.have.been.called;
             });
+
+            it('should return if starting local fabric throws an error', async () => {
+                isRunningStub.resolves(false);
+
+                const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+                executeCommandStub.callThrough();
+                const error: Error = new Error('Failed to start');
+                executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).throws(error);
+
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+                executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
+
+                connectExplorerStub.should.not.have.been.called;
+                connectManagerSpy.should.not.have.been.calledWith;
+                mockConnection.connect.should.not.have.been.called;
+                sendTelemetryEventStub.should.not.have.been.called;
+                logSpy.should.have.been.calledWith(LogType.ERROR, `Unable to connect as starting the Fabric failed`);
+            });
         });
     });
 });

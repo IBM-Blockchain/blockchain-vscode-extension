@@ -31,7 +31,7 @@ import { LocalGatewayTreeItem } from './model/LocalGatewayTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedContractTreeItem } from './model/InstantiatedContractTreeItem';
 import { InstantiatedTreeItem } from './model/InstantiatedTreeItem';
-import { FabricChaincode, FabricRuntimeUtil, IFabricGatewayConnection, LogType, FabricGatewayRegistryEntry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
+import { FabricChaincode, IFabricGatewayConnection, LogType, FabricGatewayRegistryEntry, FabricGatewayRegistry, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { InstantiatedMultiContractTreeItem } from './model/InstantiatedMultiContractTreeItem';
 import { InstantiatedUnknownTreeItem } from './model/InstantiatedUnknownTreeItem';
 import { TextTreeItem } from './model/TextTreeItem';
@@ -175,7 +175,12 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
 
                 const gatewayName: string = gateway.displayName ? gateway.displayName : gateway.name;
 
-                if (gatewayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
+                let environentEntry: FabricEnvironmentRegistryEntry;
+                if (gateway.fromEnvironment) {
+                    environentEntry = await FabricEnvironmentRegistry.instance().get(gateway.fromEnvironment);
+                }
+
+                if (environentEntry && environentEntry.managedRuntime) {
                     const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(
                         this,
                         gatewayName,

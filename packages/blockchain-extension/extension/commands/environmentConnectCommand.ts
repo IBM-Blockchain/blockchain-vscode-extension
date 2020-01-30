@@ -47,7 +47,13 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
 
             let running: boolean = await (fabricEnvironment as LocalEnvironment | ManagedAnsibleEnvironment).isRunning();
             if (!running) {
-                await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC, fabricEnvironmentRegistryEntry);
+                try {
+                    await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC, fabricEnvironmentRegistryEntry);
+                } catch (error) {
+                    // Starting fabric failed
+                    outputAdapter.log(LogType.ERROR, `Unable to connect as starting the Fabric failed`);
+                    return;
+                }
                 running = await (fabricEnvironment as LocalEnvironment | ManagedAnsibleEnvironment).isRunning();
                 if (!running) {
                     // failed to start local fabric so return

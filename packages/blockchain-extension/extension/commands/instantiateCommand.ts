@@ -22,7 +22,7 @@ import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
-import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { PackageRegistry } from '../registries/PackageRegistry';
 import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
@@ -225,7 +225,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
             progress.report({ message: 'Instantiating Smart Contract' });
 
             const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
-            if (fabricEnvironmentRegistryEntry.managedRuntime) {
+            if (fabricEnvironmentRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
                 VSCodeBlockchainDockerOutputAdapter.instance().show();
             }
 

@@ -19,6 +19,7 @@ import { LocalEnvironmentManager } from './LocalEnvironmentManager';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { SettingConfigurations } from '../../../configurations';
+import { ManagedAnsibleEnvironmentManager } from './ManagedAnsibleEnvironmentManager';
 
 export class EnvironmentFactory {
 
@@ -38,7 +39,7 @@ export class EnvironmentFactory {
         if (managedRuntime && type === EnvironmentType.ANSIBLE_ENVIRONMENT && name === FabricRuntimeUtil.LOCAL_FABRIC) {
             return LocalEnvironmentManager.instance().getRuntime();
         } else if (managedRuntime && type === EnvironmentType.ANSIBLE_ENVIRONMENT) {
-            return new ManagedAnsibleEnvironment(name, environmentRegistryEntry.environmentDirectory);
+            return ManagedAnsibleEnvironmentManager.instance().ensureRuntime(name, environmentRegistryEntry.environmentDirectory);
         } else if (!managedRuntime && type === EnvironmentType.ANSIBLE_ENVIRONMENT) {
             return new AnsibleEnvironment(name, environmentRegistryEntry.environmentDirectory);
         } else {

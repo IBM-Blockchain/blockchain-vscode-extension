@@ -20,6 +20,7 @@ import { FabricRuntimeUtil, FabricEnvironmentRegistryEntry, EnvironmentType, Ans
 import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';
 import { ManagedAnsibleEnvironment } from '../../../extension/fabric/environments/ManagedAnsibleEnvironment';
 import { LocalEnvironmentManager } from '../../../extension/fabric/environments/LocalEnvironmentManager';
+import { ManagedAnsibleEnvironmentManager } from '../../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
 
 chai.should();
 
@@ -60,6 +61,7 @@ describe('EnvironmentFactory', () => {
         registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
         registryEntry.managedRuntime = true;
         registryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+        registryEntry.environmentDirectory = '/some/path';
 
         const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = await EnvironmentFactory.getEnvironment(registryEntry);
         environment.should.be.an.instanceOf(LocalEnvironment);
@@ -68,14 +70,19 @@ describe('EnvironmentFactory', () => {
     });
 
     it('should return a managed ansible environment', async () => {
-
         const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         registryEntry.name = 'managedAnsibleEnvironment';
         registryEntry.managedRuntime = true;
         registryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+        registryEntry.environmentDirectory = '/some/path';
+
+        const managedAnsibleEnvironment: ManagedAnsibleEnvironment = new ManagedAnsibleEnvironment(registryEntry.name, registryEntry.environmentDirectory);
+        const ensureRuntimeStub: sinon.SinonStub = sandbox.stub(ManagedAnsibleEnvironmentManager.instance(), 'ensureRuntime').resolves(managedAnsibleEnvironment);
 
         const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = await EnvironmentFactory.getEnvironment(registryEntry);
+        ensureRuntimeStub.should.have.been.calledOnceWithExactly(registryEntry.name, registryEntry.environmentDirectory);
         environment.should.be.an.instanceOf(ManagedAnsibleEnvironment);
+        environment.should.deep.equal(managedAnsibleEnvironment);
 
     });
 

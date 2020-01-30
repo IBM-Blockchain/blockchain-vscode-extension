@@ -402,7 +402,7 @@ export class SampleView extends View {
         }
 
         // Ask the user if they want to open the project now
-        await UserInputUtil.delayWorkaround(500);
+        await ExtensionUtil.sleep(500);
         const openMethod: string = await UserInputUtil.showFolderOptions('Choose how to open the sample files');
         if (!openMethod) {
             // User cancelled dialog

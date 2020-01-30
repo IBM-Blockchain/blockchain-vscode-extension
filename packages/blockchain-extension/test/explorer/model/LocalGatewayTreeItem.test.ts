@@ -18,13 +18,13 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { LocalGatewayTreeItem } from '../../../extension/explorer/model/LocalGatewayTreeItem';
 import { BlockchainGatewayExplorerProvider } from '../../../extension/explorer/gatewayExplorer';
-import { LocalEnvironmentManager } from '../../../extension/fabric/environments/LocalEnvironmentManager';
 import { ExtensionUtil } from '../../../extension/util/ExtensionUtil';
 import { TestUtil } from '../../TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { FabricRuntimeUtil, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../../ExtensionCommands';
 import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';
+import { EnvironmentFactory } from '../../../extension/fabric/environments/EnvironmentFactory';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -48,20 +48,22 @@ describe('LocalGatewayTreeItem', () => {
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
         await gatewayRegistry.clear();
+        await TestUtil.setupLocalFabric();
 
         gateway = new FabricGatewayRegistryEntry();
         gateway.name = FabricRuntimeUtil.LOCAL_FABRIC;
         gateway.associatedWallet = 'Org1';
         gateway.displayName = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`;
+        gateway.fromEnvironment = FabricRuntimeUtil.LOCAL_FABRIC;
 
         provider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
-        const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
+
         mockRuntime = sandbox.createStubInstance(LocalEnvironment);
         mockRuntime.on.callsFake((name: string, callback: any) => {
             name.should.equal('busy');
             onBusyCallback = callback;
         });
-        sandbox.stub(runtimeManager, 'getRuntime').returns(mockRuntime);
+        sandbox.stub(EnvironmentFactory, 'getEnvironment').returns(mockRuntime);
         clock = sinon.useFakeTimers({toFake: ['setInterval', 'clearInterval']});
     });
 
@@ -238,7 +240,8 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
             mockRuntime.isRunning.resolves(false);
             const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`, new FabricGatewayRegistryEntry({
                 name: FabricRuntimeUtil.LOCAL_FABRIC,
-                associatedWallet: 'Org1'
+                associatedWallet: 'Org1',
+                fromEnvironment: FabricRuntimeUtil.LOCAL_FABRIC
             }), vscode.TreeItemCollapsibleState.None);
             sandbox.stub(treeItem, 'refresh').throws(new Error('such error'));
             const logSpy: sinon.SinonSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');

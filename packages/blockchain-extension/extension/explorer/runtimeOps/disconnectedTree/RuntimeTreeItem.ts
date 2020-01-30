@@ -27,10 +27,6 @@ export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
 
     static async newRuntimeTreeItem(provider: BlockchainExplorerProvider, label: string, environmentRegistryEntry: FabricEnvironmentRegistryEntry, command: vscode.Command): Promise<RuntimeTreeItem> {
         const treeItem: RuntimeTreeItem = new RuntimeTreeItem(provider, label, environmentRegistryEntry, command);
-        treeItem.runtime = await EnvironmentFactory.getEnvironment(environmentRegistryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
-        treeItem.runtime.on('busy', () => {
-            treeItem.safelyUpdateProperties();
-        });
         await treeItem.updateProperties();
         return treeItem;
     }
@@ -44,6 +40,10 @@ export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
     private constructor(provider: BlockchainExplorerProvider, public readonly label: string, environmentRegistryEntry: FabricEnvironmentRegistryEntry, public readonly command: vscode.Command) {
         super(provider, label, environmentRegistryEntry, command);
         this.name = label;
+        this.runtime = EnvironmentFactory.getEnvironment(environmentRegistryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+        this.runtime.on('busy', () => {
+            this.safelyUpdateProperties();
+        });
     }
 
     private safelyUpdateProperties(): void {

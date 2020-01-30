@@ -22,7 +22,7 @@ import { TestUtil } from '../TestUtil';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironmentRegistry, FabricRuntimeUtil, LogType, FabricEnvironmentRegistryEntry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricRuntimeUtil, LogType, FabricEnvironmentRegistryEntry, FabricGatewayRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
@@ -142,13 +142,14 @@ describe('startFabricRuntime', () => {
     it('should generate and start a managed environment', async () => {
         mockManagedEnvironment.isGenerated.resolves(false);
         getEnvironmentStub.resolves(mockManagedEnvironment);
+        showFabricEnvironmentQuickPickBoxStub.resolves({label: 'managedAnsible', data: {name: 'managedAnsible', managedRuntime: true, environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT}});
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
         showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to start', false, true, true, true);
         mockManagedEnvironment.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
         commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
-        blockchainLogsOutputSpy.should.have.been.called;
+        blockchainLogsOutputSpy.should.not.have.been.called;
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'startFabricRuntime');
     });
 

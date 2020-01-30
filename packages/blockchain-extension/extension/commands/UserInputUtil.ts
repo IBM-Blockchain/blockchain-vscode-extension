@@ -23,6 +23,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { FabricCertificate, FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricEnvironmentConnection, IFabricGatewayConnection, LogType, FabricEnvironment, FabricGatewayRegistryEntry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
+import { ExtensionUtil } from '../util/ExtensionUtil';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -154,7 +155,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(environmentsQuickPickItems, quickPickOptions);
     }
 
-    public static async showGatewayQuickPickBox(prompt: string, canPickMany: boolean, showManagedRuntime?: boolean, showAssociatedGateways?: boolean): Promise<Array<IBlockchainQuickPickItem<FabricGatewayRegistryEntry>> | IBlockchainQuickPickItem<FabricGatewayRegistryEntry> | undefined> {
+    public static async showGatewayQuickPickBox(prompt: string, canPickMany: boolean, showManagedRuntime?: boolean, showAssociatedGateways?: boolean, fromEnvironment?: string): Promise<Array<IBlockchainQuickPickItem<FabricGatewayRegistryEntry>> | IBlockchainQuickPickItem<FabricGatewayRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
             canPickMany: canPickMany,
@@ -173,6 +174,12 @@ export class UserInputUtil {
                     return !gateway.associatedWallet;
                 }
 
+            });
+        }
+
+        if (fromEnvironment) {
+            gateways = gateways.filter((gateway: FabricGatewayRegistryEntry) => {
+                return gateway.fromEnvironment === fromEnvironment;
             });
         }
 
@@ -501,16 +508,6 @@ export class UserInputUtil {
         return reallyDoIt.title === 'Yes';
     }
 
-    /** Delay for a set number of ms; this code is added in order to workaround the VSCode issue
-     * https://github.com/Microsoft/vscode/issues/52778
-     *
-     * See comment on this post for discussion.
-     * @param {number} ms milliseconds to pause for
-     */
-    public static delayWorkaround(ms: number): Promise<any> {
-        return new Promise((resolve: any): any => setTimeout(resolve, ms));
-    }
-
     public static async showClientInstantiatedSmartContractsQuickPick(prompt: string, channelName?: string): Promise<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> | undefined> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         const connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
@@ -760,7 +757,7 @@ export class UserInputUtil {
         try {
             // Browse file and get path
             // work around for #135
-            await UserInputUtil.delayWorkaround(500);
+            await ExtensionUtil.sleep(500);
 
             const fileBrowser: vscode.Uri[] = await vscode.window.showOpenDialog(openDialogOptions);
 
