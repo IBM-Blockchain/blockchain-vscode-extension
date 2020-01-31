@@ -82,8 +82,7 @@ describe('FabricEnvironment', () => {
                     api_url: 'http://localhost:17055',
                     type: 'couchdb',
                     container_name: 'yofn_couchdb'
-                },
-                {
+                },                 {
                     short_name: 'peer1.org1.example.com',
                     name: 'peer1.org1.example.com',
                     api_url: 'grpc://localhost:17051',
@@ -125,8 +124,7 @@ describe('FabricEnvironment', () => {
                     api_url: 'http://localhost:17055',
                     type: 'couchdb',
                     container_name: 'yofn_couchdb'
-                },
-                {
+                },                 {
                     short_name: 'peer1.org1.example.com',
                     name: 'peer1.org1.example.com',
                     api_url: 'grpc://localhost:17051',
@@ -139,20 +137,24 @@ describe('FabricEnvironment', () => {
             ]);
         });
         it('should return hidden nodes if showAll is true', async () => {
-            await environment.getNodes(true, true).should.eventually.deep.equal([
+            await environment.getNodes(false, true).should.eventually.deep.equal([
+                {
+                    short_name: 'ca.org1.example.com',
+                    name: 'ca.org1.example.com',
+                    api_url: 'http://localhost:17054',
+                    type: 'fabric-ca',
+                    ca_name: 'ca.org1.example.com',
+                    wallet: 'Org1',
+                    identity: 'admin',
+                    msp_id: 'Org1MSP',
+                    container_name: 'yofn_ca.org1.example.com'
+                },
                 {
                     short_name: 'couchdb',
                     name: 'couchdb',
                     api_url: 'http://localhost:17055',
                     type: 'couchdb',
                     container_name: 'yofn_couchdb'
-                },
-                {
-                    short_name: 'logspout',
-                    name: 'logspout',
-                    api_url: 'http://localhost:17056',
-                    type: 'logspout',
-                    container_name: 'yofn_logspout'
                 },
                 {
                     short_name: 'peer1.org1.example.com',
@@ -165,16 +167,39 @@ describe('FabricEnvironment', () => {
                     hidden: false
                 },
                 {
+                    short_name: 'orderer.example.com',
+                    name: 'orderer.example.com',
+                    api_url: 'grpc://localhost:17050',
+                    type: 'fabric-orderer',
+                    wallet: 'Orderer',
+                    identity: 'admin',
+                    msp_id: 'OrdererMSP',
+                    container_name: 'yofn_orderer.example.com',
+                },
+                {
+                    short_name: 'peer0.org1.example.com',
+                    name: 'peer0.org1.example.com',
+                    api_url: 'grpc://localhost:17051',
+                    chaincode_url: 'grpc://localhost:17052',
+                    type: 'fabric-peer',
+                    wallet: 'Org1',
+                    identity: 'admin',
+                    msp_id: 'Org1MSP',
+                    container_name: 'yofn_peer0.org1.example.com'
+                },
+                {
                     short_name: 'peer2.org1.example.com',
                     name: 'peer2.org1.example.com',
                     api_url: 'grpc://localhost:17051',
                     chaincode_url: 'grpc://localhost:17052',
                     type: 'fabric-peer',
+                    wallet: 'Org1',
+                    identity: 'admin',
                     msp_id: 'Org1MSP',
                     container_name: 'yofn_peer2.org1.example.com',
                     hidden: true
                 }
-            ]);
+                            ]);
         });
     });
 

@@ -171,10 +171,6 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 getPassword: getPasswordStub
             });
 
-            showEnvironmentQuickPickStub = mySandBox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox').returns({
-                label: environmentRegistryEntry.name,
-                data: environmentRegistryEntry
-            });
             getConnectedEnvironmentRegistryEntry = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(undefined);
         });
 
@@ -212,6 +208,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         // Update this test when doing issue for filtering nodes
         it('should test nodes can be filtered for an existing OpsTool environment from command palette', async () => {
             showEnvironmentQuickPickStub.resolves({ label: OpsToolRegistryEntry.name, data: OpsToolRegistryEntry });
+            getConnectedEnvironmentRegistryEntry.returns(OpsToolRegistryEntry);
 
             await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, undefined, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
@@ -227,6 +224,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
         it('should test nodes can be added to an existing OpsTool environment', async () => {
             getNodesStub.onSecondCall().resolves(opsToolNodes);
+            getConnectedEnvironmentRegistryEntry.returns(OpsToolRegistryEntry);
 
             await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false);
 
@@ -242,6 +240,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         it('should test nodes can be added to an existing OpsTool environment (on windows)', async () => {
             mySandBox.stub(process, 'platform').value('win32');
             getNodesStub.onSecondCall().resolves(opsToolNodes);
+            getConnectedEnvironmentRegistryEntry.returns(OpsToolRegistryEntry);
 
             await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false);
 
