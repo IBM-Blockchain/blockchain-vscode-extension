@@ -24,7 +24,7 @@ import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentRegistry, FabricRuntimeUtil, LogType, FabricEnvironmentRegistryEntry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
-import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import { UserInputUtil, IncludeEnvironmentOptions } from '../../extension/commands/UserInputUtil';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
 import { ManagedAnsibleEnvironment } from '../../extension/fabric/environments/ManagedAnsibleEnvironment';
 
@@ -91,7 +91,7 @@ describe('startFabricRuntime', () => {
         mockLocalRuntime.isGenerated.resolves(true);
         getEnvironmentStub.resolves(mockLocalRuntime);
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
-        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to start', false, true, true, true);
+        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to start', false, true, true, IncludeEnvironmentOptions.ALLENV, true);
         mockLocalRuntime.create.should.not.have.been.called;
         mockLocalRuntime.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
@@ -104,7 +104,7 @@ describe('startFabricRuntime', () => {
     it('should return if user doesnt select a managed environment to start', async () => {
         showFabricEnvironmentQuickPickBoxStub.resolves(undefined);
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
-        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to start', false, true, true, true);
+        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to start', false, true, true, IncludeEnvironmentOptions.ALLENV, true);
         getEnvironmentStub.should.not.have.been.called;
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'startFabricRuntime');
     });
@@ -114,7 +114,7 @@ describe('startFabricRuntime', () => {
         mockLocalRuntime.isGenerated.resolves(false);
         getEnvironmentStub.resolves(mockLocalRuntime);
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
-        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to start', false, true, true, true);
+        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to start', false, true, true, IncludeEnvironmentOptions.ALLENV, true);
         mockLocalRuntime.create.should.have.been.calledOnce;
         mockLocalRuntime.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
@@ -143,7 +143,7 @@ describe('startFabricRuntime', () => {
         mockManagedEnvironment.isGenerated.resolves(false);
         getEnvironmentStub.resolves(mockManagedEnvironment);
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
-        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to start', false, true, true, true);
+        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to start', false, true, true, IncludeEnvironmentOptions.ALLENV, true);
         mockManagedEnvironment.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);

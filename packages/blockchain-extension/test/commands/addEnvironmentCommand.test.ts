@@ -79,7 +79,7 @@ describe('AddEnvironmentCommand', () => {
             await FabricEnvironmentRegistry.instance().clear();
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             showQuickPickStub = mySandBox.stub(UserInputUtil, 'showQuickPick');
-            chooseMethodStub = showQuickPickStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_DIR]);
+            chooseMethodStub = showQuickPickStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]);
             chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
             environmentDirectoryPath = path.join(__dirname, '..', '..', '..', 'test', 'data', 'managedAnsible');
             const uri: vscode.Uri = vscode.Uri.file(environmentDirectoryPath);

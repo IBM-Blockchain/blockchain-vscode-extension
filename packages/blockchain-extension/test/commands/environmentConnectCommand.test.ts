@@ -81,7 +81,6 @@ describe('EnvironmentConnectCommand', () => {
             caNode = FabricNode.newCertificateAuthority('caNodeWithCreds', 'ca.org1.example.com', 'http://localhost:17054', 'ca.org1.example.com', undefined, undefined, undefined, 'admin', 'adminpw');
             ordererNode = FabricNode.newOrderer('ordererNode', 'orderer.example.com', 'http://localhost:17056', undefined, undefined, 'osmsp', undefined);
 
-            connectExplorerStub = mySandBox.stub(ExtensionUtil.getBlockchainEnvironmentExplorerProvider(), 'connect');
             connectManagerSpy = mySandBox.spy(FabricEnvironmentManager.instance(), 'connect');
             mySandBox.stub(ExtensionUtil.getBlockchainEnvironmentExplorerProvider(), 'refresh').resolves();
             mockConnection = mySandBox.createStubInstance(FabricEnvironmentConnection);
@@ -140,7 +139,7 @@ describe('EnvironmentConnectCommand', () => {
                 getEnvironmentStub = mySandBox.stub(EnvironmentFactory, 'getEnvironment');
                 getEnvironmentStub.callThrough();
                 getEnvironmentStub.withArgs(environmentRegistryEntry).returns(fabricEnvironment);
-                requireSetupStub = mySandBox.stub(fabricEnvironment, 'requireSetup').resolves(false);
+                requireSetupStub = mySandBox.stub(FabricEnvironment.prototype, 'requireSetup').resolves(false);
             });
 
             it('should test a fabric environment can be connected to from the command', async () => {
@@ -265,6 +264,7 @@ describe('EnvironmentConnectCommand', () => {
             });
 
             it('should connect if the user tries to connect to an Ops Tools evironment without nodes, chooses to edit filters and add nodes ', async () => {
+                requireSetupStub.resolves(false);
                 chooseEnvironmentQuickPick.resolves({ label: 'myOpsToolsFabric', data: opsToolsEnvRegistryEntry });
                 warningNoNodesEditFilterStub.resolves(true);
 
@@ -280,6 +280,7 @@ describe('EnvironmentConnectCommand', () => {
             });
 
             it('should call edit filters with informOfChanges as true if the user tries to connect to an Ops Tools evironment with nodes', async () => {
+                requireSetupStub.resolves(false);
                 chooseEnvironmentQuickPick.resolves({ label: 'myOpsToolsFabric', data: opsToolsEnvRegistryEntry });
 
                 getNodesStub.resolves([ordererNode, caNode]);

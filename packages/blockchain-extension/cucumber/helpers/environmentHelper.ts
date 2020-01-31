@@ -69,10 +69,10 @@ export class EnvironmentHelper {
                 this.userInputUtilHelper.showQuickPickStub.withArgs('Unable to perform certificate verification. Please choose how to proceed', [UserInputUtil.ADD_CA_CERT_CHAIN, UserInputUtil.CONNECT_NO_CA_CERT_CHAIN]).resolves(UserInputUtil.CONNECT_NO_CA_CERT_CHAIN);
                 this.userInputUtilHelper.opsToolsNodeQuickPickStub.resolves();
             } else if (process.env.ANSIBLE_FABRIC) {
-                this.userInputUtilHelper.showQuickPickStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_DIR]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_DIR);
+                this.userInputUtilHelper.showQuickPickStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_DIR);
                 this.userInputUtilHelper.openFileBrowserStub.resolves(vscode.Uri.file(path.join(__dirname,  '..', '..', '..', 'cucumber', 'ansible')));
             } else {
-                this.userInputUtilHelper.showQuickPickStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_DIR]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
+                this.userInputUtilHelper.showQuickPickStub.withArgs('Choose a method to import nodes to an environment', [UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS]).resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
 
                 const caUri: vscode.Uri = vscode.Uri.file(path.join(__dirname, '../../../cucumber/hlfv1/nodes/ca.example.com.json'));
                 const ordererUri: vscode.Uri = vscode.Uri.file(path.join(__dirname, '../../../cucumber/hlfv1/nodes/orderer.example.com.json'));
