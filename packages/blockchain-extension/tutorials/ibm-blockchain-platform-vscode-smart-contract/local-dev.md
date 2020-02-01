@@ -285,7 +285,7 @@ You should see `demoContract@0.0.2` appear under the Smart Contracts > Installed
 
 We've got our contract installed on all (one) of the peers that participate in `mychannel` so we can go ahead and upgrade.
 
-1. 1. In the `Fabric Environments` panel, look under `Smart Contracts` > `Installed` and find `demoContract@0.0.1`. Right-click it and select `Upgrade Smart Contract`.
+1. In the `Fabric Environments` panel, look under `Smart Contracts` > `Instantiated` and find `demoContract@0.0.1`. Right-click it and select `Upgrade Smart Contract`.
 
    > Command Palette Alternative: `Upgrade Smart Contract`
 
