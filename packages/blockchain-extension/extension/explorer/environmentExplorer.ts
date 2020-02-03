@@ -44,6 +44,7 @@ import { EnvironmentConnectedTreeItem } from './runtimeOps/connectedTree/Environ
 import { TextTreeItem } from './model/TextTreeItem';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
+import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 
 export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorerProvider {
 
@@ -194,7 +195,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             } else {
                 for (const environmentEntry of environmentEntries) {
                     if (environmentEntry.managedRuntime) {
-                        const runtime: ManagedAnsibleEnvironment = await EnvironmentFactory.getEnvironment(environmentEntry) as ManagedAnsibleEnvironment;
+                        const runtime: ManagedAnsibleEnvironment | LocalEnvironment = await EnvironmentFactory.getEnvironment(environmentEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
                         const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
                             runtime.getName(),
                             environmentEntry,

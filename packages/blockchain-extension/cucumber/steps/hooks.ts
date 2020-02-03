@@ -20,18 +20,19 @@ import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import {ExtensionCommands} from '../../ExtensionCommands';
-import {ExtensionUtil} from '../../extension/util/ExtensionUtil';
-import {TestUtil} from '../../test/TestUtil';
-import {VSCodeBlockchainOutputAdapter} from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import {SettingConfigurations} from '../../configurations';
-import {UserInputUtilHelper} from '../helpers/userInputUtilHelper';
-import {SmartContractHelper} from '../helpers/smartContractHelper';
-import {GeneratedTestsHelper} from '../helpers/generatedTestsHelper';
-import {WalletAndIdentityHelper} from '../helpers/walletAndIdentityHelper';
-import {GatewayHelper} from '../helpers/gatewayHelper';
-import {EnvironmentHelper} from '../helpers/environmentHelper';
-import {SampleHelper} from '../helpers/sampleHelper';
+import { ExtensionCommands } from '../../ExtensionCommands';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { TestUtil } from '../../test/TestUtil';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { SettingConfigurations } from '../../configurations';
+import { UserInputUtilHelper } from '../helpers/userInputUtilHelper';
+import { SmartContractHelper } from '../helpers/smartContractHelper';
+import { GeneratedTestsHelper } from '../helpers/generatedTestsHelper';
+import { WalletAndIdentityHelper } from '../helpers/walletAndIdentityHelper';
+import { GatewayHelper } from '../helpers/gatewayHelper';
+import { EnvironmentHelper } from '../helpers/environmentHelper';
+import { SampleHelper } from '../helpers/sampleHelper';
+import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 // tslint:disable:no-unused-expression
 
@@ -105,7 +106,7 @@ module.exports = function(): any {
                 await ExtensionUtil.activateExtension();
 
                 try {
-                    await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
+                    await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
                 } catch (error) {
                     // If the Fabric is already torn down, do nothing
                 }

@@ -17,24 +17,34 @@ import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
-import { FabricEnvironmentRegistryEntry, LogType, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, LogType, FabricGatewayRegistryEntry, IFabricEnvironmentConnection, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 
-export async function teardownFabricRuntime(runtimeTreeItem: RuntimeTreeItem, force: boolean = false): Promise<void> {
+export async function teardownFabricRuntime(runtimeTreeItem: RuntimeTreeItem, force: boolean = false, environmentName?: string): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'teardownFabricRuntime');
     let registryEntry: FabricEnvironmentRegistryEntry;
-    if (!runtimeTreeItem) {
-        const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Select an environment to teardown', false, true, true, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
-        if (!chosenEnvironment) {
-            return;
+
+    if (environmentName) {
+        registryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
+    } else if (!runtimeTreeItem) {
+        const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
+        if (connection) {
+            registryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
         }
 
-        registryEntry = chosenEnvironment.data;
+        if ((registryEntry && !registryEntry.managedRuntime) || !registryEntry) {
+            const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Select an environment to teardown', false, true, true, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            if (!chosenEnvironment) {
+                return;
+            }
+
+            registryEntry = chosenEnvironment.data;
+        }
 
     } else {
         registryEntry = runtimeTreeItem.environmentRegistryEntry;

@@ -24,7 +24,6 @@ export class GatewayAssociatedTreeItem extends GatewayTreeItem {
     constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly gateway: FabricGatewayRegistryEntry, public readonly collapsableState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
         super(provider, label, gateway, collapsableState, command);
         // Have to keep tool tip formatted like this, as otherwise it doesn't display over two lines
-        // TODO JAKE: Update this, update how we pass name through
         this.tooltip = `ⓘ Associated wallet:
     ${gateway.associatedWallet}`;
         this.label += ' ⧉';

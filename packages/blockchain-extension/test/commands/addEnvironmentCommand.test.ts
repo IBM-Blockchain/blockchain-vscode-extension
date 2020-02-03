@@ -239,8 +239,7 @@ describe('AddEnvironmentCommand', () => {
             sendTelemetryEventStub.should.not.have.been.called;
         });
 
-        // JAKE TODO add this back in
-        it.skip('should add a managed environment from an ansible dir', async () => {
+        it('should add a managed environment from an ansible dir', async () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR});
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);

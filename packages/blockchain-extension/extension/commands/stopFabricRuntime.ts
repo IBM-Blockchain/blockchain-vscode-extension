@@ -16,7 +16,7 @@ import * as vscode from 'vscode';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
-import { FabricEnvironmentRegistryEntry, LogType, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, LogType, FabricGatewayRegistryEntry, IFabricEnvironmentConnection } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
@@ -29,12 +29,20 @@ export async function stopFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Prom
     outputAdapter.log(LogType.INFO, undefined, 'stopFabricRuntime');
     let registryEntry: FabricEnvironmentRegistryEntry;
     if (!runtimeTreeItem) {
-        const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Select an environment to stop', false, true, true, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
-        if (!chosenEnvironment) {
-            return;
+
+        const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
+        if (connection) {
+            registryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
         }
 
-        registryEntry = chosenEnvironment.data;
+        if ((registryEntry && !registryEntry.managedRuntime) || !registryEntry) {
+            const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Select an environment to stop', false, true, true, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            if (!chosenEnvironment) {
+                return;
+            }
+
+            registryEntry = chosenEnvironment.data;
+        }
 
     } else {
         registryEntry = runtimeTreeItem.environmentRegistryEntry;

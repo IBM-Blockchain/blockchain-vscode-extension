@@ -40,7 +40,7 @@ describe('stopFabricRuntime', () => {
     let logSpy: sinon.SinonSpy;
     let stopStub: sinon.SinonStub;
     let executeCommandSpy: sinon.SinonSpy;
-
+    let getConnectionStub: sinon.SinonStub;
     let showFabricEnvironmentQuickPickBoxStub: sinon.SinonStub;
     let localRegistryEntry: FabricEnvironmentRegistryEntry;
     before(async () => {
@@ -58,6 +58,8 @@ describe('stopFabricRuntime', () => {
         getGatewayRegistryEntryStub.returns(localGateway);
 
         getEnvironmentRegistryEntryStub = sandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry');
+        getConnectionStub = sandbox.stub(FabricEnvironmentManager.instance(), 'getConnection');
+        getConnectionStub.returns(undefined);
 
         const localEnvironment: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
         getEnvironmentRegistryEntryStub.returns(localEnvironment);
@@ -214,6 +216,48 @@ describe('stopFabricRuntime', () => {
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+
+        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'stopFabricRuntime');
+    });
+
+    it('should stop local connected environment (called from three dot menu)', async () => {
+        getConnectionStub.returns({});
+        const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        stopStub = sandbox.stub(environment, 'stop').resolves();
+        sandbox.stub(environment, 'startLogs').resolves();
+        sandbox.stub(environment, 'stopLogs').returns(undefined);
+
+        getGatewayRegistryEntryStub.returns(undefined);
+
+        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
+
+        showFabricEnvironmentQuickPickBoxStub.should.not.have.been.called;
+        stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+
+        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'stopFabricRuntime');
+    });
+
+    it('should ask what environment to stop if connected to non-managed environment', async () => {
+        getEnvironmentRegistryEntryStub.returns({name: 'otherEnvironment'} as FabricEnvironmentRegistryEntry);
+
+        const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        stopStub = sandbox.stub(environment, 'stop').resolves();
+        sandbox.stub(environment, 'startLogs').resolves();
+        sandbox.stub(environment, 'stopLogs').returns(undefined);
+
+        getGatewayRegistryEntryStub.returns(undefined);
+        showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localRegistryEntry} as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>);
+
+        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
+
+        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to stop', false, true, true, true);
+        stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
 
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'stopFabricRuntime');
     });

@@ -98,7 +98,6 @@ export class LocalEnvironmentManager {
 
         FabricEnvironmentManager.instance().on('connected', async () => {
             const registryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
-            // TODO JAKE - we'll need to update this for all managedRuntimes
             if (registryEntry.managedRuntime && registryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
                 const outputAdapter: VSCodeBlockchainDockerOutputAdapter = VSCodeBlockchainDockerOutputAdapter.instance();
                 await this.runtime.startLogs(outputAdapter);

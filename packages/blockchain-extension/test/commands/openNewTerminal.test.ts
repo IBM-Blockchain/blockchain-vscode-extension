@@ -61,6 +61,8 @@ describe('openNewTerminal', () => {
         };
         createTerminalStub = sandbox.stub(vscode.window, 'createTerminal').returns(mockTerminal);
         sendTelemetryEventStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
+
+        await TestUtil.setupLocalFabric();
     });
 
     afterEach(async () => {

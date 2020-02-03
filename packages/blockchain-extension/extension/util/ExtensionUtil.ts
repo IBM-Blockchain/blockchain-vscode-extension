@@ -284,7 +284,7 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.START_FABRIC, (environmentRegistryEntry?: FabricEnvironmentRegistryEntry) => startFabricRuntime(environmentRegistryEntry)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.STOP_FABRIC, (runtimeTreeItem?: RuntimeTreeItem) => stopFabricRuntime(runtimeTreeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.RESTART_FABRIC, (runtimeTreeItem?: RuntimeTreeItem) => restartFabricRuntime(runtimeTreeItem)));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEARDOWN_FABRIC, (runtimeTreeItem?: RuntimeTreeItem, force: boolean = false) => teardownFabricRuntime(runtimeTreeItem, force)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEARDOWN_FABRIC, (runtimeTreeItem?: RuntimeTreeItem, force: boolean = false, environmentName?: string) => teardownFabricRuntime(runtimeTreeItem, force, environmentName)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_NEW_TERMINAL, (nodeItem: NodeTreeItem) => openNewTerminal(nodeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, (gatewayItem: GatewayTreeItem, isConnected?: boolean) => exportConnectionProfile(gatewayItem, isConnected)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE_CONNECTED, (gatewayItem: GatewayTreeItem, isConnected: boolean = true) => exportConnectionProfile(gatewayItem, isConnected)));
@@ -405,7 +405,7 @@ export class ExtensionUtil {
                                 await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
                                 return;
                             }
-                            await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
+                            await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
                         }
 
                         // If disabled, delete the local environment, gateway and wallet
@@ -567,7 +567,7 @@ export class ExtensionUtil {
 
         // Check if there is a newer version of the generator available
         // This needs to be done as a seperate call to make sure the dependencies have been installed
-        const generatorVersion: string = dependencies['generator-fabric']; // Change this back
+        const generatorVersion: string = dependencies['generator-fabric'];
         if (generatorVersion !== extensionData.generatorVersion) {
             // If the latest generator version is not equal to the previous used version
 
@@ -593,6 +593,12 @@ export class ExtensionUtil {
             if (gotVersions && latestMinor > storedMinor) {
                 // Delete old environments, wallets and gateways
 
+                try {
+                    await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC);
+                } catch (err) {
+                    // Ignore
+                }
+
                 await FabricEnvironmentRegistry.instance().delete(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
                 await FabricGatewayRegistry.instance().delete(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
                 await FabricWalletRegistry.instance().delete(FabricWalletUtil.OLD_LOCAL_WALLET, true);
@@ -613,7 +619,7 @@ export class ExtensionUtil {
                     const isRunning: boolean = await runtime.isRunning();
 
                     // Teardown and remove generated Fabric
-                    await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
+                    await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
 
                     if (isRunning) {
                         // Start the Fabric again
@@ -681,6 +687,16 @@ export class ExtensionUtil {
 
     public static getExtensionLocalFabricSetting(): boolean {
         return vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
+    }
+
+    /** Delay for a set number of ms; this code is added in order to workaround the VSCode issue
+     * https://github.com/Microsoft/vscode/issues/52778
+     *
+     * See comment on this post for discussion.
+     * @param {number} milliseconds milliseconds to pause for
+     */
+    public static async sleep(milliseconds: number): Promise<void> {
+        await new Promise((resolve: any): any => setTimeout(resolve, milliseconds));
     }
 
     private static getExtension(): vscode.Extension<any> {

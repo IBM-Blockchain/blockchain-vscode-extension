@@ -511,22 +511,6 @@
             ],
             "commandPalette": [
                 {
-                    "command": "environmentExplorer.startFabricRuntime",
-                    "when": "local-fabric-enabled == true"
-                },
-                {
-                    "command": "environmentExplorer.stopFabricRuntime",
-                    "when": "local-fabric-enabled == true"
-                },
-                {
-                    "command": "environmentExplorer.restartFabricRuntime",
-                    "when": "local-fabric-enabled == true"
-                },
-                {
-                    "command": "environmentExplorer.teardownFabricRuntime",
-                    "when": "local-fabric-enabled == true"
-                },
-                {
                     "command": "environmentExplorer.openNewTerminal"
                 },
                 {
@@ -607,17 +591,17 @@
                 },
                 {
                     "command": "environmentExplorer.stopFabricRuntime",
-                    "when": "view == environmentExplorer && blockchain-runtime-connected && local-fabric-enabled",
+                    "when": "view == environmentExplorer && blockchain-runtime-connected",
                     "group": "blockchain"
                 },
                 {
                     "command": "environmentExplorer.restartFabricRuntime",
-                    "when": "view == environmentExplorer && blockchain-runtime-connected && local-fabric-enabled",
+                    "when": "view == environmentExplorer && blockchain-runtime-connected",
                     "group": "blockchain"
                 },
                 {
                     "command": "environmentExplorer.teardownFabricRuntime",
-                    "when": "view == environmentExplorer && blockchain-runtime-connected && local-fabric-enabled",
+                    "when": "view == environmentExplorer && blockchain-runtime-connected",
                     "group": "blockchain"
                 },
                 {

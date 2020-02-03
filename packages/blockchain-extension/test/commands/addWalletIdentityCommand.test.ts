@@ -25,7 +25,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { FabricCertificateAuthorityFactory } from '../../extension/fabric/FabricCertificateAuthorityFactory';
-import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWallet, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWallet, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { FabricWalletGenerator } from 'ibm-blockchain-platform-wallet';
 import { BlockchainWalletExplorerProvider } from '../../extension/explorer/walletExplorer';
 import { WalletTreeItem } from '../../extension/explorer/wallets/WalletTreeItem';
@@ -631,11 +631,8 @@ describe('AddWalletIdentityCommand', () => {
                 data: externalWallet
             });
 
-            const myGatewayB: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayB');
-            showGatewayQuickPickBoxStub.resolves({
-                label: 'myGatewayB',
-                data: myGatewayB
-            });
+            const error: Error = new Error(`Error when choosing gateway, no gateway found to choose from.`);
+            showGatewayQuickPickBoxStub.throws(error);
 
             await FabricGatewayRegistry.instance().clear();
 
@@ -651,7 +648,7 @@ describe('AddWalletIdentityCommand', () => {
             fsReadFile.should.not.have.been.called;
             enrollStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
-            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Please add a gateway in order to enroll a new identity`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Unable to add identity to wallet: ${error.message}`, `Unable to add identity to wallet: ${error.toString()}`);
         });
 
         it('should test an identity can be added via a json identity file', async () => {
@@ -793,10 +790,24 @@ describe('AddWalletIdentityCommand', () => {
 
                 const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
                 const walletItem: WalletTreeItem = walletItems[0] as LocalWalletTreeItem;
+                const showOrgQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showOrgQuickPick').resolves({label: 'Org1MSP', data: {
+                    api_url: 'grpc://localhost:17051',
+                    chaincode_url: 'grpc://localhost:17052',
+                    container_name: 'fabricvscodelocalfabric_peer0.org1.example.com',
+                    identity: 'org1Admin',
+                    msp_id: 'Org1MSP',
+                    name: 'Org1Peer1',
+                    short_name: 'Org1Peer1',
+                    type: 'fabric-peer',
+                    wallet: 'Org1',
+                }});
+                const localGatewayEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
+                const localEnvironmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC}`);
 
+                showGatewayQuickPickBoxStub.resolves({label: localGatewayEntry.displayName, data: localGatewayEntry});
                 const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
                 result.should.equal('greenConga');
-
+                showOrgQuickPickStub.should.have.been.calledWith(`Select the organization which the identity belongs to`, localEnvironmentEntry);
                 showWalletsQuickPickStub.should.not.have.been.called;
                 inputBoxStub.should.have.been.calledOnce;
                 fsReadFile.should.have.been.called;
@@ -832,6 +843,23 @@ describe('AddWalletIdentityCommand', () => {
                 getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
                 enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
                 importIdentityStub.resolves();
+
+                const showOrgQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showOrgQuickPick').resolves({label: 'Org1MSP', data: {
+                    api_url: 'grpc://localhost:17051',
+                    chaincode_url: 'grpc://localhost:17052',
+                    container_name: 'fabricvscodelocalfabric_peer0.org1.example.com',
+                    identity: 'org1Admin',
+                    msp_id: 'Org1MSP',
+                    name: 'Org1Peer1',
+                    short_name: 'Org1Peer1',
+                    type: 'fabric-peer',
+                    wallet: 'Org1',
+                }});
+
+                const localGatewayEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
+                const localEnvironmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC}`);
+
+                showGatewayQuickPickBoxStub.resolves({label: localGatewayEntry.displayName, data: localGatewayEntry});
                 const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
 
                 const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
@@ -840,6 +868,7 @@ describe('AddWalletIdentityCommand', () => {
                 const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
                 result.should.equal('greenConga');
 
+                showOrgQuickPickStub.should.have.been.calledWith(`Select the organization which the identity belongs to`, localEnvironmentEntry);
                 showWalletsQuickPickStub.should.not.have.been.called;
                 inputBoxStub.should.have.been.calledOnce;
                 fsReadFile.should.have.been.called;
@@ -856,7 +885,17 @@ describe('AddWalletIdentityCommand', () => {
             it(`should handle ${FabricRuntimeUtil.LOCAL_FABRIC} failing to start`, async () => {
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
-
+                const showOrgQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showOrgQuickPick').resolves({label: 'Org1MSP', data: {
+                    api_url: 'grpc://localhost:17051',
+                    chaincode_url: 'grpc://localhost:17052',
+                    container_name: 'fabricvscodelocalfabric_peer0.org1.example.com',
+                    identity: 'org1Admin',
+                    msp_id: 'Org1MSP',
+                    name: 'Org1Peer1',
+                    short_name: 'Org1Peer1',
+                    type: 'fabric-peer',
+                    wallet: 'Org1',
+                }});
                 const isRunning: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isRunning').resolves(false);
                 const getWalletNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getWalletNames').resolves(['Org1']);
                 const getAllOrganizationNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getAllOrganizationNames').resolves(['myMSPID']);
@@ -866,6 +905,8 @@ describe('AddWalletIdentityCommand', () => {
                     getAllOrganizationNames
                 });
 
+                const localEnvironmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC}`);
+
                 executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
 
                 const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
@@ -874,6 +915,28 @@ describe('AddWalletIdentityCommand', () => {
 
                 const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
                 should.not.exist(result);
+                showOrgQuickPickStub.should.have.been.calledWith(`Select the organization which the identity belongs to`, localEnvironmentEntry);
+                showWalletsQuickPickStub.should.not.have.been.called;
+                inputBoxStub.should.have.been.calledOnce;
+                fsReadFile.should.not.have.been.called;
+                logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
+                sendTelemetryEventStub.should.not.have.been.called;
+            });
+
+            it(`should stop when cancelling selecting an organisation`, async () => {
+                inputBoxStub.onFirstCall().resolves('greenConga');
+                addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
+                const showOrgQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showOrgQuickPick').resolves();
+
+                const localEnvironmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC}`);
+
+                const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
+                const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
+                const walletItem: WalletTreeItem = walletItems[0] as LocalWalletTreeItem;
+
+                const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
+                should.not.exist(result);
+                showOrgQuickPickStub.should.have.been.calledWith(`Select the organization which the identity belongs to`, localEnvironmentEntry);
                 showWalletsQuickPickStub.should.not.have.been.called;
                 inputBoxStub.should.have.been.calledOnce;
                 fsReadFile.should.not.have.been.called;
