@@ -1356,7 +1356,7 @@ describe('ExtensionUtil Tests', () => {
             mockRuntime.isGenerated.should.have.been.calledOnce;
             showConfirmationWarningMessageStub.should.have.been.calledOnce;
             mockRuntime.isRunning.should.have.been.calledOnce;
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
             globalStateUpdateStub.should.have.been.calledWith({
                 generatorVersion: dependencies['generator-fabric']
@@ -1387,7 +1387,7 @@ describe('ExtensionUtil Tests', () => {
             mockRuntime.isGenerated.should.have.been.calledOnce;
             showConfirmationWarningMessageStub.should.have.been.calledOnce;
             mockRuntime.isRunning.should.have.been.calledOnce;
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
             globalStateUpdateStub.should.have.been.calledWith({
                 generatorVersion: dependencies['generator-fabric']
@@ -1413,7 +1413,7 @@ describe('ExtensionUtil Tests', () => {
             mockRuntime.isGenerated.should.have.been.calledOnce;
             showConfirmationWarningMessageStub.should.have.been.calledOnce;
             mockRuntime.isRunning.should.not.have.been.called;
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
             globalStateUpdateStub.should.not.have.been.calledWith({
                 generatorVersion: dependencies['generator-fabric']
@@ -1439,7 +1439,7 @@ describe('ExtensionUtil Tests', () => {
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
             showConfirmationWarningMessageStub.should.have.been.calledOnce;
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
             globalStateUpdateStub.should.have.been.calledWith({
                 generatorVersion: dependencies['generator-fabric']
@@ -1467,7 +1467,7 @@ describe('ExtensionUtil Tests', () => {
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
             showConfirmationWarningMessageStub.should.have.been.calledOnce;
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
             globalStateUpdateStub.should.have.been.calledWith({
                 generatorVersion: dependencies['generator-fabric']
@@ -1476,7 +1476,7 @@ describe('ExtensionUtil Tests', () => {
             executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
         });
 
-        it(`should delete old runtime, gateways and wallets if the minor version of the generator has changed`, async () => {
+        it(`should attempt to teardown and delete old runtime, gateways and wallets if the minor version of the generator has changed`, async () => {
             await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
 
             dependencies['generator-fabric'] = '0.1.0';
@@ -1496,6 +1496,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC);
             getRuntimeStub.should.have.been.calledOnce;
             mockRuntime.isGenerated.should.have.been.calledOnce;
             showConfirmationWarningMessageStub.should.not.have.been.called;
@@ -1792,7 +1793,7 @@ describe('ExtensionUtil Tests', () => {
 
             it(`should set context if runtime is running and user does teardown`, async () => {
                 await FabricGatewayRegistry.instance().add({ name: 'newGateway', managedGateway: false, associatedWallet: undefined });
-                executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true).resolves();
+                executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC).resolves();
                 showConfirmationWarningMessageStub.resolves(true);
 
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
@@ -1809,7 +1810,7 @@ describe('ExtensionUtil Tests', () => {
                 logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC} functionality back to 'true'.`);
                 deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
                 executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
-                executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
+                executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
@@ -1817,7 +1818,7 @@ describe('ExtensionUtil Tests', () => {
 
             it(`should set context if runtime is not running but generated and user does teardown`, async () => {
 
-                executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true).resolves();
+                executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC).resolves();
                 showConfirmationWarningMessageStub.resolves(true);
                 mockRuntime.isGenerated.resolves(true);
                 mockRuntime.isRunning.resolves(false);
@@ -1836,7 +1837,7 @@ describe('ExtensionUtil Tests', () => {
                 deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
 
                 executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
-                executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
+                executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
@@ -1861,7 +1862,7 @@ describe('ExtensionUtil Tests', () => {
                 deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
 
                 executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
-                executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
+                executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
@@ -1884,7 +1885,7 @@ describe('ExtensionUtil Tests', () => {
                 deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
 
                 executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
-                executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
+                executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
@@ -1892,7 +1893,7 @@ describe('ExtensionUtil Tests', () => {
 
             it(`should handle any errors`, async () => {
                 const error: Error = new Error('Unable to teardown');
-                executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true).throws(error);
+                executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC).throws(error);
                 showConfirmationWarningMessageStub.resolves(true);
 
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
@@ -1911,11 +1912,34 @@ describe('ExtensionUtil Tests', () => {
                 deleteEnvironmentSpy.should.not.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
 
                 executeCommandStub.should.not.have.been.calledWith('setContext', 'local-fabric-enabled', false);
-                executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
+                executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
             });
+        });
+    });
+
+    describe('sleep', () => {
+
+        let clock: sinon.SinonFakeTimers;
+
+        beforeEach(() => {
+            clock = sinon.useFakeTimers({ toFake: ['setTimeout'] });
+        });
+
+        afterEach(() => {
+            clock.restore();
+        });
+
+        it('should delay for the specified time', async () => {
+            const stub: sinon.SinonStub = mySandBox.stub();
+            const p: Promise<any> = ExtensionUtil.sleep(2000).then(stub);
+            sinon.assert.notCalled(stub);
+
+            clock.tick(2300);
+            await p.should.be.eventually.fulfilled;
+            sinon.assert.calledOnce(stub);
         });
     });
 });

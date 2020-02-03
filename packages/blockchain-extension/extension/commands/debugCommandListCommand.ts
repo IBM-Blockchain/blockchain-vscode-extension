@@ -69,7 +69,7 @@ export async function debugCommandList(commandName?: string): Promise<void> {
 
         if (!FabricGatewayConnectionManager.instance().getConnection()) {
             // Connect to local_fabric gateway before submitting/evaluating transaction
-            // TODO JAKE: For multi-org, get all managed gateways and ask the user to select the gateway
+            // TODO: Support multi-org debugging
             const runtimeGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
             // Assume one runtime gateway registry entry
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY, runtimeGateway);

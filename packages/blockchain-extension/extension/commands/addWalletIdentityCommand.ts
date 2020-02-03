@@ -20,10 +20,11 @@ import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricCertificateAuthorityFactory } from '../fabric/FabricCertificateAuthorityFactory';
-import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
-import { FabricRuntimeUtil, FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, FabricGatewayRegistryEntry, FabricGatewayRegistry, FabricWalletGeneratorFactory } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, FabricGatewayRegistryEntry, FabricWalletGeneratorFactory, FabricNode } from 'ibm-blockchain-platform-common';
+import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
+import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 
 export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalletRegistryEntry, mspid: string): Promise<string> {
@@ -60,25 +61,25 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
         return;
     }
 
-    let isLocalWallet: boolean;
-    // TODO JAKE: Remove the includes() - only need to check 'managedWallet' for handling managed ansible environments
-    const walletName: string = (walletRegistryEntry.displayName) ? walletRegistryEntry.displayName : walletRegistryEntry.name;
-    if (walletRegistryEntry && walletRegistryEntry.managedWallet && walletName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
-        isLocalWallet = true;
+    let isManagedWallet: boolean;
+    if (walletRegistryEntry && walletRegistryEntry.managedWallet) {
+        isManagedWallet = true;
     } else {
-        isLocalWallet = false;
+        isManagedWallet = false;
     }
 
-    if (isLocalWallet) {
-        // using a local wallet
-        // TODO JAKE: Change this for managed Ansible
-        const orgsArray: Array<string> = await LocalEnvironmentManager.instance().getRuntime().getAllOrganizationNames();
+    let environmentEntry: FabricEnvironmentRegistryEntry;
+    if (isManagedWallet) {
+        // using a managed wallet
 
-        // only one mspID currently, if multiple we'll need to add a dropdown
-        // TODO JAKE: We will need to change this as there will eventually be multi-orgs
-        // I think we'll need that dropdown here now!
-        // orgsArray[1] is Org1MSP (0 is OrdererMSP)
-        mspid = orgsArray[1];
+        environmentEntry = await FabricEnvironmentRegistry.instance().get(walletRegistryEntry.fromEnvironment);
+
+        const chosenOrg: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showOrgQuickPick(`Select the organization which the identity belongs to`, environmentEntry);
+        if (!chosenOrg) {
+            return;
+        }
+
+        mspid = chosenOrg.data.msp_id;
 
     } else if (!mspid) {
         mspid = await UserInputUtil.showInputBox('Enter MSPID');
@@ -94,7 +95,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
     let privateKeyPath: string;
 
     // User selects if they want to add an identity using either a cert/key or an id/secret
-    const addIdentityMethod: string = await UserInputUtil.addIdentityMethod(isLocalWallet);
+    const addIdentityMethod: string = await UserInputUtil.addIdentityMethod(isManagedWallet);
     if (!addIdentityMethod) {
         return;
     }
@@ -145,46 +146,29 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
             // We can't tell this automatically as a wallet is associated with a gateway (and a wallet can be associated with multiple gateways)
             let gatewayRegistryEntry: FabricGatewayRegistryEntry;
 
-            // Limit the user to use local_fabric for local_fabric_wallet identities
-            if (isLocalWallet) {
-                // wallet is managed so use local_fabric as the gateway
+            if (isManagedWallet) {
+                // make sure environment is running
 
-                // TODO JAKE: Update this to handle add identity to managed wallet
-                // make sure local_fabric is started
-                const environment: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
+                let environment: ManagedAnsibleEnvironment | LocalEnvironment = await EnvironmentFactory.getEnvironment(environmentEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+
                 let isRunning: boolean = await environment.isRunning();
                 if (!isRunning) {
-                    const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
                     // Start local_fabric to enroll identity
-                    await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC, registryEntry);
-                    isRunning = await LocalEnvironmentManager.instance().getRuntime().isRunning();
+                    await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC, environmentEntry);
+                    environment = await EnvironmentFactory.getEnvironment(environmentEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+                    isRunning = await environment.isRunning();
                     if (!isRunning) {
                         // Start local_fabric failed so return
                         return;
                     }
                 }
-
-                // TODO JAKE: This logic will need to be changed - we need to be able to get the gateway entry somehow
-                // assume there is only one
-                const gateways: FabricGatewayRegistryEntry[] = await environment.getGateways();
-                gatewayRegistryEntry = gateways[0];
-
-            } else {
-                // select from other gateways
-                // Check there is at least one
-                let gateways: Array<FabricGatewayRegistryEntry> = [];
-                gateways = await FabricGatewayRegistry.instance().getAll(false);
-                if (gateways.length === 0) {
-                    outputAdapter.log(LogType.ERROR, `Please add a gateway in order to enroll a new identity`);
-                    return;
-                }
-
-                const chosenEntry: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway to enroll the identity with', false, false) as IBlockchainQuickPickItem<FabricGatewayRegistryEntry>;
-                if (!chosenEntry) {
-                    return;
-                }
-                gatewayRegistryEntry = chosenEntry.data;
             }
+
+            const chosenEntry: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway to enroll the identity with', false, true, true, walletRegistryEntry.fromEnvironment) as IBlockchainQuickPickItem<FabricGatewayRegistryEntry>;
+            if (!chosenEntry) {
+                return;
+            }
+            gatewayRegistryEntry = chosenEntry.data;
 
             const enrollIdSecret: { enrollmentID: string, enrollmentSecret: string } = await UserInputUtil.getEnrollIdSecret();
             if (!enrollIdSecret) {

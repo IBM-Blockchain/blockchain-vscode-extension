@@ -301,6 +301,21 @@ describe('UserInputUtil', () => {
             result.data.should.deep.equal(gatewayEntryTwo);
         });
 
+        it('should filter any gateways using the fromEnvironment property', async () => {
+            const managedGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
+
+            mySandBox.stub(gatewayRegistry, 'getAll').returns([managedGateway, gatewayEntryOne, gatewayEntryTwo]);
+            quickPickStub.resolves({ label: managedGateway.name, data: managedGateway });
+            const result: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', false, true, undefined, FabricRuntimeUtil.LOCAL_FABRIC) as IBlockchainQuickPickItem<FabricGatewayRegistryEntry>;
+            quickPickStub.should.have.been.calledWith([{ label: managedGateway.name, data: managedGateway }], {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Choose a gateway'
+            });
+            result.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
+            result.data.should.deep.equal(managedGateway);
+        });
+
         it('should throw an error if there are no gateways', async () => {
             await FabricGatewayRegistry.instance().clear();
 
@@ -1191,29 +1206,6 @@ describe('UserInputUtil', () => {
             const warningStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showWarningMessage').resolves();
             await UserInputUtil.showConfirmationWarningMessage('hello world').should.eventually.be.false;
             warningStub.should.have.been.calledWithExactly('hello world', { title: 'Yes' }, { title: 'No' });
-        });
-    });
-
-    describe('delayWorkaround', () => {
-
-        let clock: sinon.SinonFakeTimers;
-
-        beforeEach(() => {
-            clock = sinon.useFakeTimers({ toFake: ['setTimeout'] });
-        });
-
-        afterEach(() => {
-            clock.restore();
-        });
-
-        it('should delay for the specified time', async () => {
-            const stub: sinon.SinonStub = mySandBox.stub();
-            const p: Promise<any> = UserInputUtil.delayWorkaround(2000).then(stub);
-            sinon.assert.notCalled(stub);
-
-            clock.tick(2300);
-            await p.should.be.eventually.fulfilled;
-            sinon.assert.calledOnce(stub);
         });
     });
 

@@ -18,11 +18,13 @@ import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWalletGenerator, FabricGatewayRegistryEntry, FabricWalletGeneratorFactory, IFabricGatewayConnection, IFabricWallet, LogType } from 'ibm-blockchain-platform-common';
-import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
+import { FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWalletGenerator, FabricGatewayRegistryEntry, FabricWalletGeneratorFactory, IFabricGatewayConnection, IFabricWallet, LogType, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { SettingConfigurations } from '../../configurations';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
+import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
+import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
+import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 
 export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistryEntry, identityName?: string): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -41,16 +43,26 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
 
     const gatewayName: string = gatewayRegistryEntry.displayName ? gatewayRegistryEntry.displayName : gatewayRegistryEntry.name;
 
-    // TODO JAKE: Update this so it supports managed ansible environments
-    // Maybe we'll want to use the 'managedGateway' property here. We'll need to find out which environment this gateway is for as well.
-    if (gatewayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
-        const running: boolean = await LocalEnvironmentManager.instance().getRuntime().isRunning();
+    const environmentName: string = gatewayRegistryEntry.fromEnvironment;
+    let environmentEntry: FabricEnvironmentRegistryEntry;
+    if (environmentName) {
+        environmentEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
+    }
+
+    if (environmentEntry && environmentEntry.managedRuntime) {
+        const environment: ManagedAnsibleEnvironment | LocalEnvironment = EnvironmentFactory.getEnvironment(environmentEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+        const running: boolean = await environment.isRunning();
         if (!running) {
-            outputAdapter.log(LogType.ERROR, `${FabricRuntimeUtil.LOCAL_FABRIC} has not been started, please start it before connecting.`);
+            outputAdapter.log(LogType.ERROR, `${environmentName} has not been started, please start it before connecting.`);
             return;
         }
 
-        runtimeData = 'managed runtime';
+        if (environment instanceof LocalEnvironment) {
+            // Is LocalEnvironment instance
+            runtimeData = 'managed runtime';
+        } else {
+            runtimeData = 'managed ansible runtime';
+        }
     }
 
     let walletName: string;

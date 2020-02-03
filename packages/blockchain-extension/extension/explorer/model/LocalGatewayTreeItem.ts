@@ -15,16 +15,19 @@
 import * as vscode from 'vscode';
 import { BlockchainTreeItem } from './BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
-import { LocalEnvironmentManager } from '../../fabric/environments/LocalEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../../ExtensionCommands';
-import { LogType, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { LogType, FabricGatewayRegistryEntry, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../fabric/environments/LocalEnvironment';
+import { ManagedAnsibleEnvironment } from '../../fabric/environments/ManagedAnsibleEnvironment';
+import { EnvironmentFactory } from '../../fabric/environments/EnvironmentFactory';
 
 export class LocalGatewayTreeItem extends BlockchainTreeItem {
 
     static async newLocalGatewayTreeItem(provider: BlockchainExplorerProvider, label: string, gateway: FabricGatewayRegistryEntry, collapsableState: vscode.TreeItemCollapsibleState, command?: vscode.Command): Promise<LocalGatewayTreeItem> {
-        const treeItem: LocalGatewayTreeItem = new LocalGatewayTreeItem(provider, label, gateway, collapsableState, command);
+        const environmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(gateway.fromEnvironment);
+
+        const treeItem: LocalGatewayTreeItem = new LocalGatewayTreeItem(provider, label, gateway, collapsableState, environmentEntry, command);
         await treeItem.updateProperties();
         return treeItem;
     }
@@ -32,15 +35,15 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-local-gateway-item';
 
     public readonly name: string;
-    private runtime: LocalEnvironment;
+    private runtime: ManagedAnsibleEnvironment | LocalEnvironment;
     private busyTicker: NodeJS.Timer;
     private busyTicks: number = 0;
 
-    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public gateway: FabricGatewayRegistryEntry, public readonly collapsableState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
+    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public gateway: FabricGatewayRegistryEntry, public readonly collapsableState: vscode.TreeItemCollapsibleState, public environmentEntry: FabricEnvironmentRegistryEntry, public readonly command?: vscode.Command ) {
         super(provider, label, collapsableState);
-        const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
+        this.runtime = EnvironmentFactory.getEnvironment(environmentEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
         this.name = label;
-        this.runtime = runtimeManager.getRuntime();
+
         this.runtime.on('busy', () => {
             this.safelyUpdateProperties();
         });
@@ -68,7 +71,7 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
             newLabel += currentBusyState;
             newTooltip = `${this.name}  ${currentBusyState}
 ⓘ Associated wallet:
-${this.name} Wallet`;
+${this.gateway.fromEnvironment} - ${this.gateway.associatedWallet} Wallet`;
             newCommand = null;
         } else if (running) {
             // Running!
@@ -76,7 +79,7 @@ ${this.name} Wallet`;
             newLabel += '●';
             newTooltip = `${this.name} is running
 ⓘ Associated wallet:
-${this.name} Wallet`;
+${this.gateway.fromEnvironment} - ${this.gateway.associatedWallet} Wallet`;
             newCommand = {
                 command: ExtensionCommands.CONNECT_TO_GATEWAY,
                 title: '',
@@ -88,7 +91,7 @@ ${this.name} Wallet`;
             newLabel += '○';
             newTooltip = `${this.name} is not running
 ⓘ Associated wallet:
-${this.name} Wallet`;
+${this.gateway.fromEnvironment} - ${this.gateway.associatedWallet} Wallet`;
             newCommand = {
                 command: ExtensionCommands.CONNECT_TO_GATEWAY,
                 title: '',

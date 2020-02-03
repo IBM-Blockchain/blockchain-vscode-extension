@@ -32,6 +32,7 @@ import { View } from '../../extension/webview/View';
 import { Reporter } from '../../extension/util/Reporter';
 import { RepositoryRegistryEntry } from '../../extension/registries/RepositoryRegistryEntry';
 import { TestUtil } from '../TestUtil';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -515,7 +516,7 @@ describe('SampleView', () => {
             const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').resolves(true);
             const shellCdStub: sinon.SinonStub = mySandBox.stub(shell, 'cd').returns(undefined);
             const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
-            mySandBox.stub(UserInputUtil, 'delayWorkaround').resolves();
+            mySandBox.stub(ExtensionUtil, 'sleep').resolves();
             mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
             const openNewProjectStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'openNewProject').resolves();
 
@@ -539,7 +540,7 @@ describe('SampleView', () => {
             await RepositoryRegistry.instance().clear();
             const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
-            mySandBox.stub(UserInputUtil, 'delayWorkaround').resolves();
+            mySandBox.stub(ExtensionUtil, 'sleep').resolves();
             mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
             const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
@@ -574,7 +575,7 @@ describe('SampleView', () => {
             const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').resolves(true);
             const shellCdStub: sinon.SinonStub = mySandBox.stub(shell, 'cd').returns(undefined);
             const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
-            mySandBox.stub(UserInputUtil, 'delayWorkaround').resolves();
+            mySandBox.stub(ExtensionUtil, 'sleep').resolves();
             mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves();
             const openNewProjectStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'openNewProject').resolves();
 
@@ -603,7 +604,7 @@ describe('SampleView', () => {
             sendCommandStub.onCall(0).throws(errorOne);
             sendCommandStub.onCall(1).resolves();
 
-            mySandBox.stub(UserInputUtil, 'delayWorkaround').resolves();
+            mySandBox.stub(ExtensionUtil, 'sleep').resolves();
             mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
             const openNewProjectStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'openNewProject').resolves();
 
@@ -660,7 +661,7 @@ describe('SampleView', () => {
             sendCommandStub.onCall(0).throws(errorOne);
             sendCommandStub.onCall(1).throws(errorTwo);
 
-            mySandBox.stub(UserInputUtil, 'delayWorkaround').resolves();
+            mySandBox.stub(ExtensionUtil, 'sleep').resolves();
             mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
             const openNewProjectStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'openNewProject').resolves();
 
@@ -685,7 +686,7 @@ describe('SampleView', () => {
             const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').resolves(true);
             const shellCdStub: sinon.SinonStub = mySandBox.stub(shell, 'cd').returns(undefined);
             const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
-            mySandBox.stub(UserInputUtil, 'delayWorkaround').resolves();
+            mySandBox.stub(ExtensionUtil, 'sleep').resolves();
             mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
             const openNewProjectStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'openNewProject').resolves();
 

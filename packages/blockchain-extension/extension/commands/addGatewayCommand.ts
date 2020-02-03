@@ -17,7 +17,7 @@ import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
-import { FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 
 export async function addGateway(): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -38,7 +38,13 @@ export async function addGateway(): Promise<{} | void> {
         let gatewayName: string;
 
         if (gatewayMethod === UserInputUtil.ADD_GATEWAY_FROM_ENVIRONMENT) {
-            chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to create a gateway from', false, true, false) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+
+            const environments: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(false, false, true);
+            if (environments.length === 0) {
+                throw new Error(`No environments to choose from. Gateways cannot be created from managed Ansible or ${FabricRuntimeUtil.LOCAL_FABRIC} environments.`);
+            }
+
+            chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to create a gateway from', false, true, false, false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             if (!chosenEnvironment) {
                 return;
             }
@@ -105,6 +111,7 @@ async function createGatewayFromEnvironment(gatewayName: string, environmentRegi
     const fabricGatewayEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
     fabricGatewayEntry.name = gatewayName;
     fabricGatewayEntry.associatedWallet = peerNode.wallet;
+    fabricGatewayEntry.fromEnvironment = environmentRegistryEntry.name;
 
     const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     await fabricGatewayRegistry.add(fabricGatewayEntry);

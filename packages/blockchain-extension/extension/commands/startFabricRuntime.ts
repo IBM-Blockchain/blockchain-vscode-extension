@@ -19,7 +19,8 @@ import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { LogType, FabricEnvironmentRegistryEntry } from 'ibm-blockchain-platform-common';
+import { LogType, FabricEnvironmentRegistryEntry, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { ExtensionUtil } from '../util/ExtensionUtil';
 
 export async function startFabricRuntime(registryEntry?: FabricEnvironmentRegistryEntry): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -36,7 +37,9 @@ export async function startFabricRuntime(registryEntry?: FabricEnvironmentRegist
     }
 
     const runtime: ManagedAnsibleEnvironment | LocalEnvironment = await EnvironmentFactory.getEnvironment(registryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
-    VSCodeBlockchainOutputAdapter.instance().show();
+    if (registryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+        VSCodeBlockchainOutputAdapter.instance().show();
+    }
 
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
@@ -56,6 +59,8 @@ export async function startFabricRuntime(registryEntry?: FabricEnvironmentRegist
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Failed to start ${runtime.getName()}: ${error.message}`, `Failed to start ${runtime.getName()}: ${error.toString()}`);
         }
+
+        await ExtensionUtil.sleep(1000);
 
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);

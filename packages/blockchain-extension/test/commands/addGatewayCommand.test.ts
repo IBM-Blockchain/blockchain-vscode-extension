@@ -23,7 +23,7 @@ import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper'
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
-import { FabricEnvironmentRegistryEntry, FabricNode, LogType , FabricGatewayRegistry, FabricGatewayRegistryEntry} from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricNode, LogType , FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry, FabricRuntimeUtil} from 'ibm-blockchain-platform-common';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -192,7 +192,7 @@ describe('AddGatewayCommand', () => {
         let generateConnectionProfileStub: sinon.SinonStub;
         let peerNode: FabricNode;
         let caNode: FabricNode;
-
+        let environmentRegistryEntry: FabricEnvironmentRegistryEntry;
         beforeEach(async () => {
 
             // reset the available gateways
@@ -200,7 +200,7 @@ describe('AddGatewayCommand', () => {
 
             methodChooserStub.resolves(UserInputUtil.ADD_GATEWAY_FROM_ENVIRONMENT);
 
-            const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            environmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistryEntry.name = 'myEnv';
             showEnvironmentQuickPickStub = mySandBox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox').resolves({ label: 'myEnv', data: environmentRegistryEntry });
 
@@ -216,6 +216,7 @@ describe('AddGatewayCommand', () => {
         });
 
         it('should create a gateway from an environment', async () => {
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([{ label: 'myEnv', data: environmentRegistryEntry }]);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
@@ -224,7 +225,8 @@ describe('AddGatewayCommand', () => {
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal({
                 name: 'myGateway',
-                associatedWallet: 'Org1'
+                associatedWallet: 'Org1',
+                fromEnvironment: 'myEnv'
             });
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             generateConnectionProfileStub.should.have.been.calledOnceWith('myGateway', peerNode, caNode);
@@ -233,7 +235,23 @@ describe('AddGatewayCommand', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addGatewayCommand');
         });
 
+        it('should error if there are no non-ansible environments to create the gateway from', async () => {
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([]);
+
+            const error: Error = new Error(`No environments to choose from. Gateways cannot be created from managed Ansible or ${FabricRuntimeUtil.LOCAL_FABRIC} environments.`);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
+
+            executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            generateConnectionProfileStub.should.not.have.been.calledOnceWith('myGateway', peerNode, caNode);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new gateway: ${error.message}`, `Failed to add a new gateway: ${error.toString()}`);
+            sendTelemetryEventStub.should.not.have.been.calledOnceWithExactly('addGatewayCommand');
+        });
+
         it('should handle cancel of choosing gateway name', async () => {
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([{ label: 'myEnv', data: environmentRegistryEntry }]);
+
             showInputBoxStub.onFirstCall().resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
@@ -259,6 +277,7 @@ describe('AddGatewayCommand', () => {
         });
 
         it('should handle cancel of choosing environment', async () => {
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([{ label: 'myEnv', data: environmentRegistryEntry }]);
             showEnvironmentQuickPickStub.resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
@@ -273,6 +292,7 @@ describe('AddGatewayCommand', () => {
         });
 
         it('should handle cancel choosing org', async () => {
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([{ label: 'myEnv', data: environmentRegistryEntry }]);
             showOrgQuickPickStub.resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
@@ -287,6 +307,7 @@ describe('AddGatewayCommand', () => {
         });
 
         it('should handle cancel choosing ca', async () => {
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([{ label: 'myEnv', data: environmentRegistryEntry }]);
             showFabricNodeQuickPickStub.resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
@@ -301,6 +322,7 @@ describe('AddGatewayCommand', () => {
         });
 
         it('should handle no ca found', async () => {
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([{ label: 'myEnv', data: environmentRegistryEntry }]);
             showFabricNodeQuickPickStub.rejects('some error');
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
@@ -309,7 +331,8 @@ describe('AddGatewayCommand', () => {
 
             gateways[0].should.deep.equal({
                 name: 'myGateway',
-                associatedWallet: 'Org1'
+                associatedWallet: 'Org1',
+                fromEnvironment: 'myEnv'
             });
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');

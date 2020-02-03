@@ -12,6 +12,7 @@
  * limitations under the License.
 */
 'use strict';
+import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
@@ -70,11 +71,10 @@ export async function addEnvironment(): Promise<void> {
         if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_DIR) {
             fabricEnvironmentEntry.environmentDirectory = envDir;
 
-            // JAKE TODO put this back in
-            // const files: string[] = await fs.readdir(envDir);
-            // if (files.includes('start.sh')) {
-            //     fabricEnvironmentEntry.managedRuntime = true;
-            // }
+            const files: string[] = await fs.readdir(envDir);
+            if (files.includes('start.sh')) {
+                fabricEnvironmentEntry.managedRuntime = true;
+            }
             fabricEnvironmentEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
         }
         await fabricEnvironmentRegistry.add(fabricEnvironmentEntry);
