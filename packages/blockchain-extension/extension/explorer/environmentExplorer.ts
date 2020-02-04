@@ -401,7 +401,6 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             for (const peer of allPeerNames) {
                 const chaincodes: Map<string, Array<string>> = await connection.getInstalledChaincode(peer);
                 chaincodes.forEach((versions: Array<string>, name: string) => {
-
                     for (const version of versions) {
                         const foundTreeItemNum: number = tempTree.findIndex((treeItem: InstalledChainCodeOpsTreeItem) => {
                             return treeItem.name === name && treeItem.version === version;

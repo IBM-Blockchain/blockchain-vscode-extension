@@ -18,7 +18,6 @@
 // configured
 import * as nls from 'vscode-nls';
 nls.config({ messageFormat: nls.MessageFormat.both })();
-
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { Reporter } from './util/Reporter';
@@ -120,10 +119,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     try {
         const dependencyManager: DependencyManager = DependencyManager.instance();
 
-        const dependenciesInstalled: boolean = await dependencyManager.hasPreReqsInstalled();
+        const bypassPreReqs: boolean = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_BYPASS_PREREQS);
+        let dependenciesInstalled: boolean;
+        if (!bypassPreReqs) {
+            dependenciesInstalled = await dependencyManager.hasPreReqsInstalled();
+        }
 
         const tempCommandRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
-        const bypassPreReqs: boolean = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_BYPASS_PREREQS);
 
         // Register the 'Open Pre Req' command
         context = await ExtensionUtil.registerOpenPreReqsCommand(context);

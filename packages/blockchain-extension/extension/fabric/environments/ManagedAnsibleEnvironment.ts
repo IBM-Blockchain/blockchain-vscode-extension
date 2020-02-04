@@ -165,9 +165,13 @@ export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
     public async startLogs(outputAdapter: OutputAdapter): Promise<void> {
         const opts: any = {
             attachFilter: (_id: any, dockerInspectInfo: any): boolean => {
-                const labels: object = dockerInspectInfo.Config.Labels;
-                const environmentName: string = labels['fabric-environment-name'];
-                return environmentName === this.name;
+                if (dockerInspectInfo.Name.startsWith('/fabricvscodelocalfabric')) {
+                    return true;
+                } else {
+                    const labels: object = dockerInspectInfo.Config.Labels;
+                    const environmentName: string = labels['fabric-environment-name'];
+                    return environmentName === this.name;
+                }
             },
             newline: true
         };

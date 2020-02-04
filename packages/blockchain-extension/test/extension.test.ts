@@ -472,7 +472,7 @@ describe('Extension Tests', () => {
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
 
             setExtensionContextStub.should.have.been.calledTwice;
-            hasPreReqsInstalledStub.should.have.been.calledOnce;
+            hasPreReqsInstalledStub.should.not.have.been.called;
             createTempCommandsStub.should.have.been.calledOnceWith(true);
             setupCommandsStub.should.have.been.calledOnce;
             registerOpenPreReqsCommandStub.should.have.been.calledOnce;

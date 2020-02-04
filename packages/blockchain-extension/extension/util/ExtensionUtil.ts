@@ -16,7 +16,6 @@ import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as semver from 'semver';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { SettingConfigurations } from '../../configurations';
 import { addGateway } from '../commands/addGatewayCommand';
@@ -90,7 +89,7 @@ import { GlobalState, ExtensionData } from './GlobalState';
 import { TemporaryCommandRegistry } from '../dependencies/TemporaryCommandRegistry';
 import { version as currentExtensionVersion, dependencies } from '../../package.json';
 import { UserInputUtil } from '../commands/UserInputUtil';
-import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FileRegistry, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricWalletUtil } from 'ibm-blockchain-platform-common';
+import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FileRegistry, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricWalletUtil, EnvironmentType, FileConfigurations, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 import { importNodesToEnvironment } from '../commands/importNodesToEnvironmentCommand';
 import { deleteNode } from '../commands/deleteNodeCommand';
@@ -260,17 +259,6 @@ export class ExtensionUtil {
 
         this.disposeExtension(context);
 
-        const goDebugProvider: FabricGoDebugConfigurationProvider = new FabricGoDebugConfigurationProvider();
-        const javaDebugProvider: FabricJavaDebugConfigurationProvider = new FabricJavaDebugConfigurationProvider();
-        const nodeDebugProvider: FabricNodeDebugConfigurationProvider = new FabricNodeDebugConfigurationProvider();
-        context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('fabric:go', goDebugProvider));
-        context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('fabric:java', javaDebugProvider));
-        context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('fabric:node', nodeDebugProvider));
-        context.subscriptions.push(vscode.window.registerTreeDataProvider('environmentExplorer', blockchainEnvironmentExplorerProvider));
-
-        context.subscriptions.push(vscode.window.registerTreeDataProvider('gatewaysExplorer', blockchainGatewayExplorerProvider));
-        context.subscriptions.push(vscode.window.registerTreeDataProvider('aPackagesExplorer', blockchainPackageExplorerProvider));
-        context.subscriptions.push(vscode.window.registerTreeDataProvider('walletExplorer', blockchainWalletExplorerProvider));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_GATEWAYS, (element: BlockchainTreeItem) => blockchainGatewayExplorerProvider.refresh(element)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.CONNECT_TO_GATEWAY, (gateway: FabricGatewayRegistryEntry, identityName: string) => gatewayConnect(gateway, identityName)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISCONNECT_GATEWAY, () => FabricGatewayConnectionManager.instance().disconnect()));
@@ -345,6 +333,43 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE, async (treeItem: InstantiatedTreeItem) => {
             await openTransactionView(treeItem);
         }));
+
+        // Delete old environments, wallets and gateways
+        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const oldPath: string = path.join(extDir, FileConfigurations.FABRIC_ENVIRONMENTS, FabricRuntimeUtil.OLD_LOCAL_FABRIC);
+        const oldPathResolved: string = FileSystemUtil.getDirPath(oldPath);
+        const oldConfig: string = path.join(oldPathResolved, '.config.json');
+
+        // Have to do this as calling 'get' on the environment entry calls the broken code.
+        const oldFabricExists: boolean = await fs.pathExists(oldConfig);
+        if (oldFabricExists) {
+            const oldEntry: FabricEnvironmentRegistryEntry = {
+                name: FabricRuntimeUtil.OLD_LOCAL_FABRIC,
+                environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
+                managedRuntime: true,
+                environmentDirectory: oldPathResolved
+            };
+            await FabricEnvironmentRegistry.instance().update(oldEntry);
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC);
+
+            await FabricEnvironmentRegistry.instance().delete(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
+            await FabricGatewayRegistry.instance().delete(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
+            await FabricWalletRegistry.instance().delete(FabricWalletUtil.OLD_LOCAL_WALLET, true);
+
+        }
+
+        const goDebugProvider: FabricGoDebugConfigurationProvider = new FabricGoDebugConfigurationProvider();
+        const javaDebugProvider: FabricJavaDebugConfigurationProvider = new FabricJavaDebugConfigurationProvider();
+        const nodeDebugProvider: FabricNodeDebugConfigurationProvider = new FabricNodeDebugConfigurationProvider();
+        context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('fabric:go', goDebugProvider));
+        context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('fabric:java', javaDebugProvider));
+        context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('fabric:node', nodeDebugProvider));
+        context.subscriptions.push(vscode.window.registerTreeDataProvider('environmentExplorer', blockchainEnvironmentExplorerProvider));
+
+        context.subscriptions.push(vscode.window.registerTreeDataProvider('gatewaysExplorer', blockchainGatewayExplorerProvider));
+        context.subscriptions.push(vscode.window.registerTreeDataProvider('aPackagesExplorer', blockchainPackageExplorerProvider));
+        context.subscriptions.push(vscode.window.registerTreeDataProvider('walletExplorer', blockchainWalletExplorerProvider));
 
         FabricWalletRegistry.instance().on(FileRegistry.EVENT_NAME, (async (): Promise<void> => {
             try {
@@ -514,11 +539,6 @@ export class ExtensionUtil {
 
         const extensionData: ExtensionData = GlobalState.get();
         const localFabricEnabled: boolean = this.getExtensionLocalFabricSetting();
-        if (localFabricEnabled) {
-            await ExtensionUtil.setupLocalRuntime(extensionData.version);
-        } else {
-            await FabricEnvironmentRegistry.instance().delete(FabricRuntimeUtil.LOCAL_FABRIC, true);
-        }
 
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
@@ -529,6 +549,12 @@ export class ExtensionUtil {
         outputAdapter.log(LogType.INFO, undefined, 'Registering commands');
         const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
         await ExtensionUtil.registerCommands(context);
+
+        if (localFabricEnabled) {
+            await ExtensionUtil.setupLocalRuntime(extensionData.version);
+        } else {
+            await FabricEnvironmentRegistry.instance().delete(FabricRuntimeUtil.LOCAL_FABRIC, true);
+        }
 
         outputAdapter.log(LogType.INFO, undefined, 'Execute stored commands in the registry');
         await tempCommandRegistry.executeStoredCommands();
@@ -571,39 +597,7 @@ export class ExtensionUtil {
         if (generatorVersion !== extensionData.generatorVersion) {
             // If the latest generator version is not equal to the previous used version
 
-            let storedMinor: number;
-            let latestMinor: number;
-            let gotVersions: boolean = false; // State whether coercing and getting the minor version was successful.
-            try {
-                const storedVersion: semver.SemVer = semver.coerce(extensionData.generatorVersion);
-
-                const latestVersion: semver.SemVer = semver.coerce(generatorVersion);
-
-                storedMinor = semver.minor(storedVersion);
-                latestMinor = semver.minor(latestVersion);
-                gotVersions = true;
-
-            } catch (error) {
-                //
-            }
-
             let updateGeneratorVersion: boolean = true;
-
-            // Tidy up if minor version has been updated.
-            if (gotVersions && latestMinor > storedMinor) {
-                // Delete old environments, wallets and gateways
-
-                try {
-                    await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC);
-                } catch (err) {
-                    // Ignore
-                }
-
-                await FabricEnvironmentRegistry.instance().delete(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
-                await FabricGatewayRegistry.instance().delete(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
-                await FabricWalletRegistry.instance().delete(FabricWalletUtil.OLD_LOCAL_WALLET, true);
-
-            }
 
             const runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
             let generated: boolean = false;

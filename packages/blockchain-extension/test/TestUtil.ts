@@ -21,7 +21,6 @@ import * as sinon from 'sinon';
 import * as path from 'path';
 import { SettingConfigurations } from '../configurations';
 import { SinonSandbox, SinonStub } from 'sinon';
-import { UserInputUtil } from '../extension/commands/UserInputUtil';
 import { FabricRuntimeUtil, FileConfigurations, FabricEnvironmentRegistryEntry } from 'ibm-blockchain-platform-common';
 import { GlobalState, ExtensionData } from '../extension/util/GlobalState';
 import { LocalEnvironment } from '../extension/fabric/environments/LocalEnvironment';
@@ -43,14 +42,15 @@ export class TestUtil {
                 sandbox = sinon.createSandbox();
             }
 
-            const showConfirmationWarningMessage: SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage');
-            showConfirmationWarningMessage.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`).resolves(false);
+            // Uncommenting this showConfirmationWarningMessage stuff makes the test run correctly now for some reason. Maybe because the local fabric name changed?
+            // const showConfirmationWarningMessage: SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage');
+            // showConfirmationWarningMessage.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`).resolves(false);
             const createStub: SinonStub = sandbox.stub(LocalEnvironment.prototype, 'create').resolves();
             await this.setupLocalFabric();
             await ExtensionUtil.activateExtension();
 
             createStub.restore();
-            showConfirmationWarningMessage.restore();
+            // showConfirmationWarningMessage.restore();
         }
     }
 

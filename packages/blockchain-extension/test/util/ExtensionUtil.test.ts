@@ -648,6 +648,62 @@ describe('ExtensionUtil Tests', () => {
             registerOpenPreReqsCommandStub.should.have.been.calledOnce;
         });
 
+        it(`should delete old ${FabricRuntimeUtil.OLD_LOCAL_FABRIC} and teardown if it exists`, async () => {
+            const disposeExtensionSpy: sinon.SinonSpy = mySandBox.spy(ExtensionUtil, 'disposeExtension');
+
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const registerOpenPreReqsCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerOpenPreReqsCommand').resolves(ctx);
+
+            const deleteEnvironmentStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'delete').resolves();
+            const deleteGatewayStub: sinon.SinonStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'delete').resolves();
+            const deleteWalletStub: sinon.SinonStub = mySandBox.stub(FabricWalletRegistry.instance(), 'delete').resolves();
+
+            mySandBox.stub(fs, 'pathExists').resolves(true);
+
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'update').resolves();
+
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC).resolves();
+
+            await ExtensionUtil.registerCommands(ctx);
+
+            disposeExtensionSpy.should.have.been.calledOnceWith(ctx);
+            registerOpenPreReqsCommandStub.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC);
+            deleteEnvironmentStub.should.have.been.calledOnceWith(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
+            deleteGatewayStub.should.have.been.calledOnceWith(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
+            deleteWalletStub.should.have.been.calledOnceWith(FabricWalletUtil.OLD_LOCAL_WALLET, true);
+        });
+
+        it(`should not delete old ${FabricRuntimeUtil.OLD_LOCAL_FABRIC} and teardown if it doesn't exist`, async () => {
+            const disposeExtensionSpy: sinon.SinonSpy = mySandBox.spy(ExtensionUtil, 'disposeExtension');
+
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const registerOpenPreReqsCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerOpenPreReqsCommand').resolves(ctx);
+
+            const deleteEnvironmentStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'delete').resolves();
+            const deleteGatewayStub: sinon.SinonStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'delete').resolves();
+            const deleteWalletStub: sinon.SinonStub = mySandBox.stub(FabricWalletRegistry.instance(), 'delete').resolves();
+
+            mySandBox.stub(fs, 'pathExists').resolves(false);
+
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'update').resolves();
+
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC).resolves();
+
+            await ExtensionUtil.registerCommands(ctx);
+
+            disposeExtensionSpy.should.have.been.calledOnceWith(ctx);
+            registerOpenPreReqsCommandStub.should.have.been.calledOnce;
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC);
+            deleteEnvironmentStub.should.not.have.been.calledOnceWith(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
+            deleteGatewayStub.should.not.have.been.calledOnceWith(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
+            deleteWalletStub.should.not.have.been.calledOnceWith(FabricWalletUtil.OLD_LOCAL_WALLET, true);
+        });
+
         it('should register and show home page', async () => {
             const homeViewStub: sinon.SinonStub = mySandBox.stub(HomeView.prototype, 'openView');
             homeViewStub.resolves();
@@ -1475,39 +1531,6 @@ describe('ExtensionUtil Tests', () => {
 
             executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
         });
-
-        it(`should attempt to teardown and delete old runtime, gateways and wallets if the minor version of the generator has changed`, async () => {
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
-
-            dependencies['generator-fabric'] = '0.1.0';
-
-            globalStateGetStub.returns({
-                generatorVersion: '0.0.1'
-            });
-
-            executeCommandStub.resolves();
-            mockRuntime.isGenerated.resolves(false);
-
-            const deleteEnvironmentStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'delete').resolves();
-            const deleteGatewayStub: sinon.SinonStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'delete').resolves();
-            const deleteWalletStub: sinon.SinonStub = mySandBox.stub(FabricWalletRegistry.instance(), 'delete').resolves();
-
-            await ExtensionUtil.completeActivation(false);
-
-            logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC);
-            getRuntimeStub.should.have.been.calledOnce;
-            mockRuntime.isGenerated.should.have.been.calledOnce;
-            showConfirmationWarningMessageStub.should.not.have.been.called;
-            globalStateUpdateStub.should.have.been.calledWith({
-                generatorVersion: dependencies['generator-fabric']
-            });
-            deleteEnvironmentStub.should.have.been.calledOnceWith(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
-            deleteGatewayStub.should.have.been.calledOnceWith(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
-            deleteWalletStub.should.have.been.calledOnceWith(FabricWalletUtil.OLD_LOCAL_WALLET, true);
-        });
-
     });
 
     describe('setupLocalRuntime', () => {
@@ -1612,6 +1635,7 @@ describe('ExtensionUtil Tests', () => {
         describe(`${FabricRuntimeUtil.LOCAL_FABRIC} functionality is enabled`, () => {
             beforeEach(async () => {
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_LOCAL_FABRIC).returns(true);
+                getSettingsStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(TestUtil.EXTENSION_TEST_DIR);
                 updateSettingsStub.withArgs(SettingConfigurations.EXTENSION_LOCAL_FABRIC, false, vscode.ConfigurationTarget.Global).resolves();
             });
 

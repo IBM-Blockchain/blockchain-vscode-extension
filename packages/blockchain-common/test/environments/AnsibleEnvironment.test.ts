@@ -45,10 +45,12 @@ describe('AnsibleEnvironment', () => {
 
     describe('#getWalletsAndIdentities', () => {
 
-        it('should create all wallets and import all identities and return registry entries', async () => {
+        it('should create all wallets and import all identities if not already imported and return registry entries', async () => {
             const importIdentityStub: sinon.SinonStub = sinon.stub().resolves();
+            const getIdentitiesStub: sinon.SinonStub = sinon.stub().resolves([]);
             const mockFabricWallet: any = {
-                importIdentity: importIdentityStub
+                importIdentity: importIdentityStub,
+                getIdentities: getIdentitiesStub
             };
 
             const mockFabricWalletGenerator: any = {
@@ -65,6 +67,51 @@ describe('AnsibleEnvironment', () => {
             entries[0].fromEnvironment.should.equal('nonManagedAnsible');
             mockFabricWalletGenerator.getWallet.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWalletRegistryEntry));
             mockFabricWallet.importIdentity.should.have.been.calledOnceWithExactly(sinon.match.string, sinon.match.string, 'admin', 'Org1MSP');
+        });
+
+        it(`should create all wallets and ignore importing all identities as they're imported already and return registry entries`, async () => {
+            const importIdentityStub: sinon.SinonStub = sinon.stub().resolves();
+            const decodedCert: string = `-----BEGIN CERTIFICATE-----
+MIICWDCCAf+gAwIBAgIUQN3RQ50PzGL+dTAshZyrQ4g60AYwCgYIKoZIzj0EAwIw
+czELMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAUBgNVBAcTDVNh
+biBGcmFuY2lzY28xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHDAaBgNVBAMT
+E2NhLm9yZzEuZXhhbXBsZS5jb20wHhcNMTkwNDE4MTYxNDAwWhcNMjAwNDE3MTYx
+OTAwWjBdMQswCQYDVQQGEwJVUzEXMBUGA1UECBMOTm9ydGggQ2Fyb2xpbmExFDAS
+BgNVBAoTC0h5cGVybGVkZ2VyMQ8wDQYDVQQLEwZjbGllbnQxDjAMBgNVBAMTBWFk
+bWluMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAECI3dnr5zLtoufnax7IvntLCq
+cH22VoyxXrN7DsYLmL8LHXqdLORLdB0yAyT9kqjEReaQFS+9yf4DhEQXya4lhKOB
+hjCBgzAOBgNVHQ8BAf8EBAMCB4AwDAYDVR0TAQH/BAIwADAdBgNVHQ4EFgQU/Glz
+0tMj0bDqnVvapQpmLcAlrggwKwYDVR0jBCQwIoAgMFIT0ZXGWa355LyT4BzsdG4j
+w/Q4pdy0rO5+tKFTF5IwFwYDVR0RBBAwDoIMZDgzNTU1ZDk1OWM5MAoGCCqGSM49
+BAMCA0cAMEQCICektG+z01RFG976m+MZrrrAY7K+rLUaqObi5a+lIk4rAiA0l33v
+58vAo0XXmOgrt+Rd0XVIl6IQmDTQkfspOtlT5w==
+-----END CERTIFICATE-----
+`;
+
+            const getIdentitiesStub: sinon.SinonStub = sinon.stub().resolves([{name: 'admin', mspid: 'Org1MSP', enrollment: {
+                identity: {
+                    certificate: decodedCert
+                }
+            }}]);
+            const mockFabricWallet: any = {
+                importIdentity: importIdentityStub,
+                getIdentities: getIdentitiesStub
+            };
+
+            const mockFabricWalletGenerator: any = {
+                getWallet: sinon.stub().resolves(mockFabricWallet)
+            };
+
+            FabricWalletGeneratorFactory.setFabricWalletGenerator(mockFabricWalletGenerator);
+
+            const entries: FabricWalletRegistryEntry[] = await environment.getWalletsAndIdentities();
+
+            entries.length.should.equal(1);
+            entries[0].name.should.equal('myWallet');
+            entries[0].walletPath.should.equal(path.join(environmentPath, FileConfigurations.FABRIC_WALLETS, 'myWallet'));
+            entries[0].fromEnvironment.should.equal('nonManagedAnsible');
+            mockFabricWalletGenerator.getWallet.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWalletRegistryEntry));
+            mockFabricWallet.importIdentity.should.not.have.been.called;
         });
     });
 

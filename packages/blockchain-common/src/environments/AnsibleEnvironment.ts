@@ -48,7 +48,26 @@ export class AnsibleEnvironment extends FabricEnvironment {
             entries.push(walletRegistryEntry);
 
             const wallet: IFabricWallet = await fabricWalletGenerator.getWallet(walletRegistryEntry);
-            const identities: FabricIdentity[] = await this.getIdentities(walletName);
+
+            const existingIdentityNames: any[] = await wallet.getIdentities();
+
+            let identities: FabricIdentity[] = await this.getIdentities(walletName);
+
+            // Filter out identities
+            identities = identities.filter((id: FabricIdentity) => {
+                const exists: FabricIdentity = existingIdentityNames.find((otherId: any) => {
+                    const buff: Buffer = new Buffer(id.cert, 'base64');
+                    const decodedCert: string = buff.toString('utf8');
+                    return otherId.name === id.name && otherId.mspid === id.msp_id && otherId.enrollment.identity.certificate === decodedCert;
+                });
+                if (exists) {
+                    return false;
+                } else {
+                    return true;
+                }
+            });
+
+            // Import the identities which haven't been imported yet
             for (const identity of identities) {
                 await wallet.importIdentity(
                     Buffer.from(identity.cert, 'base64').toString('utf8'),

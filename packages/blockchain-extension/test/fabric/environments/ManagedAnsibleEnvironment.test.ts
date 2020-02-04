@@ -834,6 +834,7 @@ describe('ManagedAnsibleEnvironment', () => {
 
             const opts: any = logHoseStub.args[0][0];
             opts.attachFilter('someid', {
+                Name: '/something',
                 Config: {
                     Labels: {
 
@@ -841,6 +842,7 @@ describe('ManagedAnsibleEnvironment', () => {
                 }
             }).should.be.false;
             opts.attachFilter('someid', {
+                Name: '/something',
                 Config: {
                     Labels: {
                         'fabric-environment-name': 'jake'
@@ -848,11 +850,16 @@ describe('ManagedAnsibleEnvironment', () => {
                 }
             }).should.be.false;
             opts.attachFilter('someid', {
+                Name: '/something',
                 Config: {
                     Labels: {
                         'fabric-environment-name': 'managedAnsible'
                     }
                 }
+            }).should.be.true;
+
+            opts.attachFilter('someid', {
+                Name: '/fabricvscodelocalfabric'
             }).should.be.true;
         });
     });
