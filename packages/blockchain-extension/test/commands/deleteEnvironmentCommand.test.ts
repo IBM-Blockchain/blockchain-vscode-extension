@@ -80,13 +80,15 @@ describe('DeleteEnvironmentCommand', () => {
             environments = [];
 
             myEnvironmentA = new FabricEnvironmentRegistryEntry({
-                name: 'myEnvironmentA'
+                name: 'myEnvironmentA',
+                environmentType: EnvironmentType.ENVIRONMENT
             });
 
             await FabricEnvironmentRegistry.instance().add(myEnvironmentA);
 
             myEnvironmentB = new FabricEnvironmentRegistryEntry({
-                name: 'myEnvironmentB'
+                name: 'myEnvironmentB',
+                environmentType: EnvironmentType.ENVIRONMENT
             });
 
             await FabricEnvironmentRegistry.instance().add(myEnvironmentB);

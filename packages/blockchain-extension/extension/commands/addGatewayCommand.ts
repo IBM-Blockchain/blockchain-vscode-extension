@@ -13,11 +13,11 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import { UserInputUtil, IBlockchainQuickPickItem, IncludeEnvironmentOptions } from './UserInputUtil';
+import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
-import { FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry, EnvironmentFlags } from 'ibm-blockchain-platform-common';
 
 export async function addGateway(): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -39,12 +39,12 @@ export async function addGateway(): Promise<{} | void> {
 
         if (gatewayMethod === UserInputUtil.ADD_GATEWAY_FROM_ENVIRONMENT) {
 
-            const environments: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(false, false, true);
+            const environments: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([], [EnvironmentFlags.ANSIBLE]);
             if (environments.length === 0) {
                 throw new Error(`No environments to choose from. Gateways cannot be created from managed Ansible or local environments.`);
             }
 
-            chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to create a gateway from', false, true, false, IncludeEnvironmentOptions.ALLENV, false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to create a gateway from', false, true, [], [EnvironmentFlags.ANSIBLE]) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             if (!chosenEnvironment) {
                 return;
             }

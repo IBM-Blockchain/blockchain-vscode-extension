@@ -16,7 +16,7 @@ import * as vscode from 'vscode';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, IFabricGatewayConnection, FabricGatewayRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, IFabricGatewayConnection, FabricGatewayRegistry, EnvironmentType, EnvironmentFlags } from 'ibm-blockchain-platform-common';
 import { URL } from 'url';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { SettingConfigurations } from '../../configurations';
@@ -115,7 +115,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             }
 
             const localRuntimes: IBlockchainQuickPickItem<LocalEnvironment>[] = [];
-            const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(true, true); // Get only local entries
+            const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.LOCAL]); // Get only local entries
 
             for (const entry of environmentEntries) {
                 const runtime: LocalEnvironment = await LocalEnvironmentManager.instance().ensureRuntime(entry.name, undefined, entry.numberOfOrgs);

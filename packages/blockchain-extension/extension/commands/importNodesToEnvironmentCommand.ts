@@ -13,12 +13,12 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import { UserInputUtil, IBlockchainQuickPickItem, IncludeEnvironmentOptions } from './UserInputUtil';
+import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import * as fs from 'fs-extra';
 import * as https from 'https';
 import * as path from 'path';
-import { FabricEnvironmentRegistryEntry, FabricNode, LogType, FabricEnvironment, FabricNodeType, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricNode, LogType, FabricEnvironment, FabricNodeType, FabricEnvironmentRegistry, EnvironmentType, EnvironmentFlags} from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
@@ -43,9 +43,9 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
         let chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
         if (!environmentRegistryEntry) {
             if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS) {
-                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an OpsTool environment to filter nodes', false, false, false, IncludeEnvironmentOptions.OPSTOOLSENV) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an OpsTool environment to filter nodes', false, true, [EnvironmentFlags.OPS_TOOLS]) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             } else {
-                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to import nodes to', false, false, false, IncludeEnvironmentOptions.OTHERENV) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to import nodes to', false, true, [], [EnvironmentFlags.OPS_TOOLS, EnvironmentFlags.ANSIBLE]) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             }
 
             if (!chosenEnvironment) {
@@ -262,7 +262,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                     return;
                 }
             }
-            const currentEnvironents: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll(false);
+            const currentEnvironents: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll([], [EnvironmentFlags.LOCAL]);
             const stillExists: boolean = currentEnvironents.some((_env: FabricEnvironmentRegistryEntry) => _env.name === environment.getName());
             if (!stillExists) {
                 return;

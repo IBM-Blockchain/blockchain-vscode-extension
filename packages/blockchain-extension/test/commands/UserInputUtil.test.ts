@@ -15,7 +15,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { TestUtil } from '../TestUtil';
-import { UserInputUtil, IBlockchainQuickPickItem, LanguageQuickPickItem, LanguageType, IncludeEnvironmentOptions } from '../../extension/commands/UserInputUtil';
+import { UserInputUtil, IBlockchainQuickPickItem, LanguageQuickPickItem, LanguageType } from '../../extension/commands/UserInputUtil';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -29,7 +29,7 @@ import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { FabricWalletGenerator } from 'ibm-blockchain-platform-wallet';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
-import { FabricCertificate, FabricEnvironmentRegistry, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricNode, FabricNodeType, FabricEnvironmentRegistryEntry, LogType, EnvironmentType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironment } from 'ibm-blockchain-platform-common';
+import { FabricCertificate, FabricEnvironmentRegistry, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricNode, FabricNodeType, FabricEnvironmentRegistryEntry, LogType, EnvironmentType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironment, EnvironmentFlags } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 
 chai.use(sinonChai);
@@ -69,14 +69,16 @@ describe('UserInputUtil', () => {
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
         environmentEntryOne = new FabricEnvironmentRegistryEntry({
-            name: 'myFabric'
+            name: 'myFabric',
+            environmentType: EnvironmentType.ENVIRONMENT
         });
 
         await FabricEnvironmentRegistry.instance().clear();
         await FabricEnvironmentRegistry.instance().add(environmentEntryOne);
 
         environmentEntryTwo = new FabricEnvironmentRegistryEntry({
-            name: 'otherFabric'
+            name: 'otherFabric',
+            environmentType: EnvironmentType.ENVIRONMENT
         });
 
         await FabricEnvironmentRegistry.instance().add(environmentEntryTwo);
@@ -151,7 +153,7 @@ describe('UserInputUtil', () => {
         it('should show only remote environments', async () => {
             quickPickStub.resolves({ label: environmentEntryOne.name, data: environmentEntryOne });
 
-            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false, true, [EnvironmentFlags.ENVIRONMENT]) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
 
             result.data.name.should.equal(environmentEntryOne.name);
 
@@ -167,21 +169,23 @@ describe('UserInputUtil', () => {
 
             const opsEnvironment1: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
                 name: 'opsEnvironment1',
-                url: 'someURL'
+                url: 'someURL',
+                environmentType: EnvironmentType.OPS_TOOLS_ENVIRONMENT
             });
 
             await FabricEnvironmentRegistry.instance().add(opsEnvironment1);
 
             const opsEnvironment2: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
                 name: 'opsEnvironment2',
-                url: 'someOtherURL'
+                url: 'someOtherURL',
+                environmentType: EnvironmentType.OPS_TOOLS_ENVIRONMENT
             });
 
             await FabricEnvironmentRegistry.instance().add(opsEnvironment2);
 
             quickPickStub.resolves({ label: environmentEntryOne.name, data: environmentEntryOne });
 
-            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false, true, true, IncludeEnvironmentOptions.OTHERENV) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false, true, [], [EnvironmentFlags.OPS_TOOLS]) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
 
             result.data.name.should.equal(environmentEntryOne.name);
 
@@ -195,21 +199,23 @@ describe('UserInputUtil', () => {
         it('should show only Ops tool environments', async () => {
             const opsEnvironment1: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
                 name: 'opsEnvironment1',
-                url: 'someURL'
+                url: 'someURL',
+                environmentType: EnvironmentType.OPS_TOOLS_ENVIRONMENT
             });
 
             await FabricEnvironmentRegistry.instance().add(opsEnvironment1);
 
             const opsEnvironment2: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
                 name: 'opsEnvironment2',
-                url: 'someOtherURL'
+                url: 'someOtherURL',
+                environmentType: EnvironmentType.OPS_TOOLS_ENVIRONMENT
             });
 
             await FabricEnvironmentRegistry.instance().add(opsEnvironment2);
 
             quickPickStub.resolves({ label: opsEnvironment1.name, data: opsEnvironment1 });
 
-            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false, true, false, IncludeEnvironmentOptions.OPSTOOLSENV) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false, true, [EnvironmentFlags.OPS_TOOLS]) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
 
             result.data.name.should.equal(opsEnvironment1.name);
 
@@ -223,7 +229,7 @@ describe('UserInputUtil', () => {
         it('should show multiple environments', async () => {
             quickPickStub.resolves([{ label: environmentEntryOne.name, data: environmentEntryOne }, { label: environmentEntryTwo.name, data: environmentEntryTwo }]);
 
-            const results: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[] = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', true, false) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[];
+            const results: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[] = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', true, false, [EnvironmentFlags.ENVIRONMENT]) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[];
 
             results[0].data.name.should.equal(environmentEntryOne.name);
             results[1].data.name.should.equal(environmentEntryTwo.name);
@@ -240,7 +246,7 @@ describe('UserInputUtil', () => {
 
             quickPickStub.resolves({ label: environmentEntryOne.name, data: environmentEntryOne });
 
-            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false, false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false, false) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
 
             result.data.name.should.equal(environmentEntryOne.name);
 
@@ -269,7 +275,7 @@ describe('UserInputUtil', () => {
 
             await TestUtil.setupLocalFabric();
 
-            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false, true, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             result.data.name.should.equal(localFabricEntry.name);
 
             quickPickStub.should.not.have.been.called;
@@ -2430,7 +2436,7 @@ describe('UserInputUtil', () => {
 
         it('should allow the user to select a node', async () => {
             quickPickStub.resolves({ data: nodes[0] });
-            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showNodesInEnvironmentQuickPick('Gimme a node', new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC}), [FabricNodeType.PEER, FabricNodeType.ORDERER]) as IBlockchainQuickPickItem<FabricNode>;
+            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showNodesInEnvironmentQuickPick('Gimme a node', new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentType: EnvironmentType.LOCAL_ENVIRONMENT}), [FabricNodeType.PEER, FabricNodeType.ORDERER]) as IBlockchainQuickPickItem<FabricNode>;
             node.data.should.equal(nodes[0]);
             quickPickStub.should.have.been.calledOnceWithExactly([
                 { label: 'peer0.org1.example.com', data: nodes[0] },
@@ -2445,7 +2451,7 @@ describe('UserInputUtil', () => {
 
         it('should show all nodes if type not specified', async () => {
             quickPickStub.resolves({ data: nodes[0] });
-            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showNodesInEnvironmentQuickPick('Gimme a node', new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC}), [] ) as IBlockchainQuickPickItem<FabricNode>;
+            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showNodesInEnvironmentQuickPick('Gimme a node', new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentType: EnvironmentType.LOCAL_ENVIRONMENT}), [] ) as IBlockchainQuickPickItem<FabricNode>;
             node.data.should.equal(nodes[0]);
             quickPickStub.should.have.been.calledOnceWithExactly([
                 { label: 'peer0.org1.example.com', data: nodes[0] },
@@ -2462,7 +2468,7 @@ describe('UserInputUtil', () => {
 
         it('should allow the user to select a node with associated identity', async () => {
             quickPickStub.resolves({ data: nodes[0] });
-            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showNodesInEnvironmentQuickPick('Gimme a node', new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC}), [FabricNodeType.PEER, FabricNodeType.ORDERER], true) as IBlockchainQuickPickItem<FabricNode>;
+            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showNodesInEnvironmentQuickPick('Gimme a node', new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentType: EnvironmentType.LOCAL_ENVIRONMENT}), [FabricNodeType.PEER, FabricNodeType.ORDERER], true) as IBlockchainQuickPickItem<FabricNode>;
             node.data.should.equal(nodes[0]);
             quickPickStub.should.have.been.calledOnceWithExactly([
                 { label: 'peer0.org1.example.com', data: nodes[0], description: `Associated with identity: ${nodes[0].identity} in wallet: ${nodes[0].wallet}` },
@@ -2478,7 +2484,7 @@ describe('UserInputUtil', () => {
         it('should not show quick pick if only one node', async () => {
             nodes = [peerNode];
             getNodesStub.resolves(nodes);
-            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showNodesInEnvironmentQuickPick('Gimme a node', new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC}), [FabricNodeType.PEER]) as IBlockchainQuickPickItem<FabricNode>;
+            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showNodesInEnvironmentQuickPick('Gimme a node', new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC,  environmentType: EnvironmentType.LOCAL_ENVIRONMENT}), [FabricNodeType.PEER]) as IBlockchainQuickPickItem<FabricNode>;
             node.data.should.equal(peerNode);
             quickPickStub.should.not.have.been.called;
         });
@@ -2486,7 +2492,7 @@ describe('UserInputUtil', () => {
         it('should not show quick pick if only one node can pick many', async () => {
             nodes = [peerNode];
             getNodesStub.resolves(nodes);
-            const chosenNodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesInEnvironmentQuickPick('Gimme a node', new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC}), [FabricNodeType.PEER], false, true) as IBlockchainQuickPickItem<FabricNode>[];
+            const chosenNodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesInEnvironmentQuickPick('Gimme a node', new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentType: EnvironmentType.LOCAL_ENVIRONMENT}), [FabricNodeType.PEER], false, true) as IBlockchainQuickPickItem<FabricNode>[];
             chosenNodes.length.should.equal(1);
             chosenNodes[0].data.should.deep.equal(peerNode);
             quickPickStub.should.not.have.been.called;
@@ -2494,7 +2500,7 @@ describe('UserInputUtil', () => {
 
         it('should return undefined if the user cancels selecting a node', async () => {
             quickPickStub.resolves(undefined);
-            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showNodesInEnvironmentQuickPick('Gimme a node', new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC}), [FabricNodeType.PEER, FabricNodeType.ORDERER]) as IBlockchainQuickPickItem<FabricNode>;
+            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showNodesInEnvironmentQuickPick('Gimme a node', new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentType: EnvironmentType.LOCAL_ENVIRONMENT}), [FabricNodeType.PEER, FabricNodeType.ORDERER]) as IBlockchainQuickPickItem<FabricNode>;
             should.equal(node, undefined);
             quickPickStub.should.have.been.calledOnceWithExactly([
                 { label: 'peer0.org1.example.com', data: nodes[0] },
@@ -2511,7 +2517,7 @@ describe('UserInputUtil', () => {
             ordererNode.cluster_name = 'myCluster';
             ordererNode1.cluster_name = 'myCluster';
             quickPickStub.resolves({ data: nodes[0] });
-            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showNodesInEnvironmentQuickPick('Gimme a node', new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC}), [FabricNodeType.PEER, FabricNodeType.ORDERER]) as IBlockchainQuickPickItem<FabricNode>;
+            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showNodesInEnvironmentQuickPick('Gimme a node', new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC,  environmentType: EnvironmentType.LOCAL_ENVIRONMENT}), [FabricNodeType.PEER, FabricNodeType.ORDERER]) as IBlockchainQuickPickItem<FabricNode>;
             node.data.should.equal(nodes[0]);
             quickPickStub.should.have.been.calledOnceWithExactly([
                 { label: 'peer0.org1.example.com', data: nodes[0] },
@@ -2527,7 +2533,7 @@ describe('UserInputUtil', () => {
             ordererNode.cluster_name = 'myCluster';
             ordererNode1.cluster_name = 'myCluster';
             quickPickStub.resolves({ data: nodes[0] });
-            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showNodesInEnvironmentQuickPick('Gimme a node', new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC}), [FabricNodeType.PEER, FabricNodeType.ORDERER], true) as IBlockchainQuickPickItem<FabricNode>;
+            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showNodesInEnvironmentQuickPick('Gimme a node', new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC,  environmentType: EnvironmentType.LOCAL_ENVIRONMENT}), [FabricNodeType.PEER, FabricNodeType.ORDERER], true) as IBlockchainQuickPickItem<FabricNode>;
             node.data.should.equal(nodes[0]);
             quickPickStub.should.have.been.calledOnceWithExactly([
                 { label: 'peer0.org1.example.com', data: nodes[0], description: `Associated with identity: ${nodes[0].identity} in wallet: ${nodes[0].wallet}` },
@@ -2542,7 +2548,7 @@ describe('UserInputUtil', () => {
         it('should handle no nodes found', async () => {
             nodes = [];
             getNodesStub.resolves(nodes);
-            await UserInputUtil.showNodesInEnvironmentQuickPick('Gimme a node', new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC}), [FabricNodeType.PEER, FabricNodeType.CERTIFICATE_AUTHORITY]).should.eventually.be.rejectedWith('No nodes found to choose from');
+            await UserInputUtil.showNodesInEnvironmentQuickPick('Gimme a node', new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC,  environmentType: EnvironmentType.LOCAL_ENVIRONMENT}), [FabricNodeType.PEER, FabricNodeType.CERTIFICATE_AUTHORITY]).should.eventually.be.rejectedWith('No nodes found to choose from');
 
             quickPickStub.should.not.have.been.called;
         });
@@ -2575,7 +2581,7 @@ describe('UserInputUtil', () => {
         it('should allow the user to select an org', async () => {
             quickPickStub.resolves({ label: 'Org1MSP', data: nodes[0] });
 
-            const result: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showOrgQuickPick('choose an org', new FabricEnvironmentRegistryEntry({name: 'myEnv'}));
+            const result: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showOrgQuickPick('choose an org', new FabricEnvironmentRegistryEntry({name: 'myEnv',  environmentType: EnvironmentType.ENVIRONMENT}));
             result.should.deep.equal({ label: 'Org1MSP', data: nodes[0] });
 
             quickPickStub.should.have.been.calledWith([{ label: 'Org1MSP', data: peerNode }, { label: 'Org2MSP', data: peerNode2 }]);
@@ -2586,7 +2592,7 @@ describe('UserInputUtil', () => {
             nodes.push(caNode, ordererNode);
             getNodesStub.resolves(nodes);
 
-            await UserInputUtil.showOrgQuickPick('choose an org', new FabricEnvironmentRegistryEntry({name: 'myEnv'})).should.eventually.be.rejectedWith('No organisations found');
+            await UserInputUtil.showOrgQuickPick('choose an org', new FabricEnvironmentRegistryEntry({name: 'myEnv',  environmentType: EnvironmentType.ENVIRONMENT})).should.eventually.be.rejectedWith('No organisations found');
         });
 
         it('should not show quickpick if only one node', async () => {
@@ -2595,7 +2601,7 @@ describe('UserInputUtil', () => {
 
             getNodesStub.resolves(nodes);
 
-            const result: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showOrgQuickPick('choose an org', new FabricEnvironmentRegistryEntry({name: 'myEnv'}));
+            const result: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showOrgQuickPick('choose an org', new FabricEnvironmentRegistryEntry({name: 'myEnv',  environmentType: EnvironmentType.ENVIRONMENT}));
             result.should.deep.equal({ label: 'Org1MSP', data: nodes[0] });
 
             quickPickStub.should.not.have.been.called;

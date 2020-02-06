@@ -14,7 +14,7 @@
 'use strict';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import {  FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType, FabricEnvironment, FabricWalletGeneratorFactory } from 'ibm-blockchain-platform-common';
+import {  FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType, FabricEnvironment, FabricWalletGeneratorFactory, EnvironmentFlags } from 'ibm-blockchain-platform-common';
 import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricCertificateAuthorityFactory } from '../fabric/FabricCertificateAuthorityFactory';
@@ -29,7 +29,7 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
         let identityName: string;
         if (!environmentRegistryEntry || !node) {
             // If called from command palette
-            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll(false);
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll([], [EnvironmentFlags.LOCAL]);
             if (environments.length === 0) {
                 if (!replace) {
                     outputAdapter.log(LogType.ERROR, `Add an environment to associate identities with nodes. Local environments cannot be edited.`);

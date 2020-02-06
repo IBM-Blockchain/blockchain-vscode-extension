@@ -36,13 +36,13 @@ export async function deleteEnvironment(environment: FabricEnvironmentTreeItem |
             // If called from command palette
             // Ask for environment to delete
             // Get all environments, including local environments.
-            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll(true);
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
             if (environments.length === 0) {
                 outputAdapter.log(LogType.ERROR, `No environments to delete.`);
                 return;
             }
 
-            const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[] = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose the environment(s) that you want to delete', true, false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[];
+            const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[] = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose the environment(s) that you want to delete', true, false, []) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[];
             if (!chosenEnvironment || chosenEnvironment.length === 0) {
                 return;
             }

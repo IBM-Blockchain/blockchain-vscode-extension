@@ -23,7 +23,7 @@ import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { FabricCertificateAuthority } from 'ibm-blockchain-platform-environment-v1';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistry, FabricWalletRegistryEntry, LogType, FabricEnvironment } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistry, FabricWalletRegistryEntry, LogType, FabricEnvironment, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { NodeTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
@@ -71,7 +71,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
 
             environmentRegistryEntry = new FabricEnvironmentRegistryEntry({
                 name: 'myEnvironment',
-                managedRuntime: false
+                environmentType: EnvironmentType.ENVIRONMENT
             });
 
             await FabricEnvironmentRegistry.instance().clear();
