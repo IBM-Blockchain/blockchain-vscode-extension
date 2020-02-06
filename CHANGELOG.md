@@ -1,5 +1,26 @@
 # IBM Blockchain Platform Extension Change Log
 
+## 1.0.19 February 6th 2020
+
+Announcements
+---
+* We’re still waiting for the gRPC v1.25.0 binaries to be published so you may be affected by [this issue](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621), where gRPC fails to rebuild when using VS Code 1.40.x.
+   > Please see [this comment](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621#issuecomment-552926559) for a workaround.
+
+* Changing the `ibm-blockchain-platform.fabric.chaincode.timeout` setting will not work in this release due to moving to an Ansible based Local Fabric. This will be fixed in our next release.
+
+Features & Enhancements
+---
+* Updated Local Fabric to use Ansible [#1768](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1768).
+
+* Import Ansible created networks [#1848](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1848).
+
+Fixes
+---
+* Fixed local development tutorial information on upgrading a smart contract [#1861](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/1861).
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-66.jpg)
+
 ## 1.0.18: January 16th 2020
 
 Announcements

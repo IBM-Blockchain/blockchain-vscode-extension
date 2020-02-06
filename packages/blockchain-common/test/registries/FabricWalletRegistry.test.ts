@@ -38,8 +38,10 @@ describe('FabricWalletRegistry', () => {
         registry.setRegistryPath(registryPath);
         environmentRegistry.setRegistryPath(registryPath);
         const importIdentityStub: sinon.SinonStub = sinon.stub().resolves();
+        const getIdentitiesStub: sinon.SinonStub = sinon.stub().resolves([]);
         const mockFabricWallet: any = {
-            importIdentity: importIdentityStub
+            importIdentity: importIdentityStub,
+            getIdentities: getIdentitiesStub
         };
 
         const mockFabricWalletGenerator: any = {

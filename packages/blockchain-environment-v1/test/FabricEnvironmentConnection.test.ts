@@ -164,6 +164,9 @@ describe('FabricEnvironmentConnection', () => {
         const mockFabricWalletGenerator: sinon.SinonStub = mySandBox.stub(FabricWalletGenerator.instance(), 'getWallet');
         mockLocalWallet = mySandBox.createStubInstance(FabricWallet);
         mockLocalWallet['setUserContext'] = mySandBox.stub();
+        // We need this even though the code is affected by AnsibleEnvironment.ts.
+        // Somehow `getWalletsAndIdentities()` is being called.
+        mockLocalWallet.getIdentities.resolves([]);
         mockFabricWalletGenerator.resolves(mockLocalWallet);
 
         connection = new FabricEnvironmentConnection('Local Fabric');
