@@ -214,7 +214,7 @@ stages:
 
           - bash: |
               set -ev
-              npm install vsce@1.71.0
+              npm install vsce@1.65.0
               git checkout package.json
               node ./node_modules/vsce/out/vsce publish -p $(VSCETOKEN) --packagePath ibm-blockchain-platform-*
             displayName: Publish extension
