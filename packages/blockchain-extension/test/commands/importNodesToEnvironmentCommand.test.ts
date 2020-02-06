@@ -20,10 +20,10 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import Axios from 'axios';
 import { TestUtil } from '../TestUtil';
-import { UserInputUtil, IncludeEnvironmentOptions } from '../../extension/commands/UserInputUtil';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironmentRegistryEntry, LogType, FabricEnvironment, FabricNode, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, LogType, FabricEnvironment, FabricNode, FabricEnvironmentRegistry, EnvironmentType, EnvironmentFlags } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { ModuleUtil } from '../../extension/util/ModuleUtil';
 
@@ -261,7 +261,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
-            showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, false, false, IncludeEnvironmentOptions.OPSTOOLSENV);
+            showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, true, [EnvironmentFlags.OPS_TOOLS]);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, OpsToolRegistryEntry);
             stopEnvironmentRefreshStub.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
@@ -280,7 +280,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
-            showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, false, false, IncludeEnvironmentOptions.OPSTOOLSENV);
+            showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, true, [EnvironmentFlags.OPS_TOOLS]);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             stopEnvironmentRefreshStub.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
@@ -464,7 +464,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         });
 
         it('should test that connect command is not called when connected to an environment you are not updating', async () => {
-            const anotherEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({ name: 'anotherNetwork' });
+            const anotherEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({name: 'anotherNetwork',  environmentType: EnvironmentType.ENVIRONMENT});
             getConnectedEnvironmentRegistryEntry.returns(anotherEnvironmentRegistryEntry);
 
             const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));

@@ -24,7 +24,7 @@ const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
-When('I install the smart contract', {timeout: 70 * 1000}, async function(): Promise<void> {
+When('I install the smart contract', {timeout: 100 * 1000}, async function(): Promise<void> {
     this.packageId = await InstallHelper.installPackage(this.lifecycle, Helper.org1Peer, this.packagePath, this.wallet, this.org1Identity);
     this.packageId = await InstallHelper.installPackage(this.lifecycle, Helper.org2Peer, this.packagePath, this.wallet, this.org2Identity);
 });
@@ -45,7 +45,7 @@ Then(/^the package should be installed on the peer$/, async function(): Promise<
     should.exist(exists);
 });
 
-Given(/^the package is installed$/, {timeout: 70 * 1000}, async function(): Promise<void> {
+Given(/^the package is installed$/, {timeout: 100 * 1000}, async function(): Promise<void> {
     const resultOrg1: { label: string, packageId: string }[] = await InstallHelper.getInstalledSmartContracts(this.lifecycle, Helper.org1Peer, this.wallet, this.org1Identity);
     let result: { label: string, packageId: string } = resultOrg1.find((data) => data.label === this.label);
     if (!result) {

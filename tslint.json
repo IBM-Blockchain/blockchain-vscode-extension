@@ -27,6 +27,7 @@
         "no-console": [
             true
         ],
+        "no-bitwise": false,
         "forin": false,
         "max-line-length": false,
         "no-string-literal": false,

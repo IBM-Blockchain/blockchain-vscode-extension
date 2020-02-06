@@ -23,7 +23,7 @@ import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper'
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
-import { FabricEnvironmentRegistryEntry, FabricNode, LogType , FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricNode, LogType , FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -210,6 +210,7 @@ describe('AddGatewayCommand', () => {
 
             environmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistryEntry.name = 'myEnv';
+            environmentRegistryEntry.environmentType = EnvironmentType.ENVIRONMENT;
 
             await FabricEnvironmentRegistry.instance().add(environmentRegistryEntry);
 
@@ -232,8 +233,6 @@ describe('AddGatewayCommand', () => {
         });
 
         it('should create a gateway from an environment', async () => {
-            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([{ label: 'myEnv', data: environmentRegistryEntry }]);
-
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
             const gateways: Array<FabricGatewayRegistryEntry> = await FabricGatewayRegistry.instance().getAll();
@@ -255,7 +254,7 @@ describe('AddGatewayCommand', () => {
         it('should error if there are no non-ansible environments to create the gateway from', async () => {
             mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([]);
 
-            const error: Error = new Error(`No environments to choose from. Gateways cannot be created from managed Ansible or local environments.`);
+            const error: Error = new Error(`No environments to choose from. Gateways cannot be created from Ansible or local environments.`);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
@@ -267,8 +266,6 @@ describe('AddGatewayCommand', () => {
         });
 
         it('should handle cancel of choosing gateway name', async () => {
-            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([{ label: 'myEnv', data: environmentRegistryEntry }]);
-
             showInputBoxStub.onFirstCall().resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
@@ -294,7 +291,6 @@ describe('AddGatewayCommand', () => {
         });
 
         it('should handle cancel of choosing environment', async () => {
-            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([{ label: 'myEnv', data: environmentRegistryEntry }]);
             showEnvironmentQuickPickStub.resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
@@ -309,7 +305,6 @@ describe('AddGatewayCommand', () => {
         });
 
         it('should handle cancel choosing org', async () => {
-            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([{ label: 'myEnv', data: environmentRegistryEntry }]);
             showOrgQuickPickStub.resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);

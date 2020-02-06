@@ -258,7 +258,7 @@ Feature: Fabric Environments
      Scenario: It should create an environment
          When I create an environment 'myAnsibleFabric'
          Then there should be a tree item with a label 'myAnsibleFabric' in the 'Fabric Environments' panel
-         And the tree item should have a tooltip equal to 'myAnsibleFabric'  
+         And the tree item should have a tooltip equal to 'myAnsibleFabric'
 
     @ansibleFabric
     Scenario Outline: It should connect to an environment

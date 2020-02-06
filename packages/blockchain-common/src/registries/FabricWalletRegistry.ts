@@ -15,7 +15,7 @@
 import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
 import { FileConfigurations } from './FileConfigurations';
 import { FileRegistry } from './FileRegistry';
-import { FabricEnvironmentRegistryEntry, EnvironmentType } from './FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry, EnvironmentType, EnvironmentFlags } from './FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentRegistry } from './FabricEnvironmentRegistry';
 import { AnsibleEnvironment } from '../environments/AnsibleEnvironment';
 
@@ -83,12 +83,8 @@ export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry
         const normalEntries: FabricWalletRegistryEntry[] = await super.getEntries();
         const otherEntries: FabricWalletRegistryEntry[] = [];
 
-        let environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
-
         // just get the ansible ones
-        environmentEntries = environmentEntries.filter((entry: FabricEnvironmentRegistryEntry) => {
-            return entry.environmentType === EnvironmentType.ANSIBLE_ENVIRONMENT || entry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT;
-        });
+        const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.ANSIBLE]);
 
         for (const environmentEntry of environmentEntries) {
             const environment: AnsibleEnvironment = new AnsibleEnvironment(environmentEntry.name, environmentEntry.environmentDirectory);

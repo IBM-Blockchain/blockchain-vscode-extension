@@ -12,22 +12,32 @@
  * limitations under the License.
 */
 
-import { RegistryEntry } from './RegistryEntry';
+import {RegistryEntry} from './RegistryEntry';
+
+export enum EnvironmentFlags {
+    ENVIRONMENT = 1 << 0,
+    ANSIBLE = 1 << 1,
+    MANAGED = 1 << 2,
+    LOCAL = 1 << 3,
+    OPS_TOOLS = 1 << 4,
+}
 
 export enum EnvironmentType {
-    ENVIRONMENT = 1, // Standard remote environment
-    ANSIBLE_ENVIRONMENT = 2, // Ansible environment (non-managed or managed)
-    OPS_TOOLS_ENVIRONMENT = 3,
-    LOCAL_ENVIRONMENT = 4 // Local environments
+    ENVIRONMENT = EnvironmentFlags.ENVIRONMENT,
+    ANSIBLE_ENVIRONMENT = EnvironmentFlags.ANSIBLE,
+    MANAGED_ANSIBLE_ENVIRONMENT = EnvironmentFlags.MANAGED | EnvironmentFlags.ANSIBLE,
+    LOCAL_ENVIRONMENT = EnvironmentFlags.LOCAL | EnvironmentFlags.MANAGED | EnvironmentFlags.ANSIBLE, // Local environments,
+    OPS_TOOLS_ENVIRONMENT = EnvironmentFlags.OPS_TOOLS,
 }
 
 export class FabricEnvironmentRegistryEntry extends RegistryEntry {
 
     public managedRuntime?: boolean; // True if the Local environment or a managed Ansible environment
-    public environmentType?: EnvironmentType;
+    public environmentType: EnvironmentType;
     public environmentDirectory?: string; // the dir where the ansible output is
     public url?: string;
     public numberOfOrgs?: number;
+
     constructor(fields?: FabricEnvironmentRegistryEntry) {
         super();
         Object.assign(this, fields);
