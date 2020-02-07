@@ -131,6 +131,7 @@ stages:
               npm install ../blockchain-environment-v1/ibm-blockchain-platform-environment-v1-*.tgz
               npm install ../blockchain-gateway-v1/ibm-blockchain-platform-gateway-v1-*.tgz
               npm run package
+
             displayName: package extension
 
           - task: CopyFiles@2
@@ -214,9 +215,9 @@ stages:
 
           - bash: |
               set -ev
-              npm install vsce@1.65.0
+              npm install vsce
               git checkout package.json
-              node ./node_modules/vsce/out/vsce publish -p $(VSCETOKEN) --packagePath ibm-blockchain-platform-*
+              node ./node_modules/vsce/out/vsce publish -p $(VSCETOKEN) --packagePath ibm-blockchain-platform-1*
             displayName: Publish extension
             condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v1'))
 
