@@ -124,7 +124,12 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 if (environmentRegistryEntry.url) {
                     if (FabricEnvironmentManager.instance().getState() === ConnectedState.CONNECTED) {
                         await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
-                        this.tree = await this.createConnectedTree(environmentRegistryEntry);
+                        if (FabricEnvironmentManager.instance().getState() !== ConnectedState.DISCONNECTED) {
+                            // If the user did not hide all nodes and therefore we are still connecting, update the tree
+                            this.tree = await this.createConnectedTree(environmentRegistryEntry);
+                        } else {
+                            this.tree = await this.createConnectionTree();
+                        }
                         return this.tree;
                     }
                     await vscode.commands.executeCommand('setContext', 'blockchain-opstool-connected', true);
