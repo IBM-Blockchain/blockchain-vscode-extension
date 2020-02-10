@@ -26,7 +26,6 @@ export async function importSmartContractPackageCommand(): Promise<void> {
 
     VSCodeBlockchainOutputAdapter.instance().log(LogType.INFO, undefined, 'Import smart contract package');
 
-    const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
     const openDialogOptions: vscode.OpenDialogOptions = {
         canSelectFiles: true,
         canSelectFolders: false,
@@ -35,7 +34,7 @@ export async function importSmartContractPackageCommand(): Promise<void> {
         filters: { Packages: ['cds'] }
     };
 
-    const packagePath: string = await UserInputUtil.browse('Browse for a package to import', quickPickItems, openDialogOptions) as string;
+    const packagePath: string = await UserInputUtil.browse('Browse for a package to import', UserInputUtil.BROWSE_LABEL, openDialogOptions) as string;
 
     if (!packagePath) {
         return;

@@ -742,12 +742,23 @@ export class UserInputUtil {
 
     }
 
-    public static async browse(placeHolder: string, quickPickItems: string[] | { label: string, description: string }[], openDialogOptions: vscode.OpenDialogOptions, returnUri?: boolean): Promise<string | vscode.Uri | vscode.Uri[]> {
-        const result: string = await vscode.window.showQuickPick(quickPickItems as any[], { placeHolder });
+    public static async browse(placeHolder: string, browseOption: string | { label: string, description: string }, openDialogOptions: vscode.OpenDialogOptions, returnUri?: boolean): Promise<string | vscode.Uri | vscode.Uri[]> {
+        const result: string = await vscode.window.showQuickPick([browseOption as any], { placeHolder });
         if (!result) {
             return;
         } else { // result === this.BROWSE_LABEL
             return this.openFileBrowser(openDialogOptions, returnUri);
+        }
+    }
+
+    public static async browseWithOptions(placeHolder: string, quickPickItems: string[] | IBlockchainQuickPickItem<any>[], openDialogOptions: vscode.OpenDialogOptions, returnUri?: boolean): Promise<string | IBlockchainQuickPickItem<any> | vscode.Uri | vscode.Uri[]> {
+        const result: string | IBlockchainQuickPickItem<any> = await vscode.window.showQuickPick(quickPickItems as any[], { placeHolder });
+        if (!result) {
+            return;
+        } else if ((typeof result === 'string')) {
+            return (result !== this.BROWSE_LABEL) ? result : this.openFileBrowser(openDialogOptions, returnUri);
+        } else {
+            return (result.label !== this.BROWSE_LABEL) ? result : this.openFileBrowser(openDialogOptions, returnUri);
         }
     }
 
@@ -846,7 +857,6 @@ export class UserInputUtil {
     }
 
     public static async getCertKey(): Promise<{ certificatePath: string, privateKeyPath: string }> {
-        const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
         const openDialogOptions: vscode.OpenDialogOptions = {
             canSelectFiles: true,
             canSelectFolders: false,
@@ -856,7 +866,7 @@ export class UserInputUtil {
         };
 
         // Get the certificate file path
-        const certificatePath: string = await UserInputUtil.browse('Browse for a certificate file', quickPickItems, openDialogOptions) as string;
+        const certificatePath: string = await UserInputUtil.browse('Browse for a certificate file', UserInputUtil.BROWSE_LABEL, openDialogOptions) as string;
         if (!certificatePath) {
             return;
         }
@@ -865,7 +875,7 @@ export class UserInputUtil {
         FabricCertificate.validateCertificate(certificate);
 
         // Get the private key file path
-        const privateKeyPath: string = await UserInputUtil.browse('Browse for a private key file', quickPickItems, openDialogOptions) as string;
+        const privateKeyPath: string = await UserInputUtil.browse('Browse for a private key file', UserInputUtil.BROWSE_LABEL, openDialogOptions) as string;
         if (!privateKeyPath) {
             return;
         }

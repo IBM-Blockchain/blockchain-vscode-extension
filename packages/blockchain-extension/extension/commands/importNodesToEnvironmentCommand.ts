@@ -42,7 +42,6 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
         const nodesToUpdate: FabricNode[] = [];
         let addedAllNodes: boolean = true;
 
-        const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
         const openDialogOptions: vscode.OpenDialogOptions = {
             canSelectFiles: true,
             canSelectFolders: false,
@@ -56,7 +55,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
         const nodeUris: vscode.Uri[] = [];
         let addMore: boolean = true;
         do {
-            const selectedNodeUris: vscode.Uri[] = await UserInputUtil.browse('Select all the Fabric node (JSON) files you want to import', quickPickItems, openDialogOptions, true) as vscode.Uri[];
+            const selectedNodeUris: vscode.Uri[] = await UserInputUtil.browse('Select all the Fabric node (JSON) files you want to import', UserInputUtil.BROWSE_LABEL, openDialogOptions, true) as vscode.Uri[];
 
             if (selectedNodeUris) {
                 nodeUris.push(...selectedNodeUris);

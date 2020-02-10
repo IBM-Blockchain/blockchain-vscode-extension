@@ -198,7 +198,6 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
                 defaultUri = workspaceFolders[0].uri;
             }
 
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
                 canSelectFiles: true,
                 canSelectFolders: false,
@@ -207,7 +206,7 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
                 defaultUri: defaultUri
             };
 
-            collectionPath = await UserInputUtil.browse('Enter a file path to the collection configuration', quickPickItems, openDialogOptions) as string;
+            collectionPath = await UserInputUtil.browse('Enter a file path to the collection configuration', UserInputUtil.BROWSE_LABEL, openDialogOptions) as string;
             if (collectionPath === undefined) {
                 return;
             }
@@ -230,7 +229,7 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
                 }
             };
 
-            const jsonEpPath: vscode.Uri = await UserInputUtil.browse('Browse for the JSON file containing the smart contract endorsement policy', [UserInputUtil.BROWSE_LABEL], openDialogOptions, true) as vscode.Uri;
+            const jsonEpPath: vscode.Uri = await UserInputUtil.browse('Browse for the JSON file containing the smart contract endorsement policy', UserInputUtil.BROWSE_LABEL, openDialogOptions, true) as vscode.Uri;
             if (!jsonEpPath) {
                 return;
             }
