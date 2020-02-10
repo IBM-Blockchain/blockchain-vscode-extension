@@ -1074,7 +1074,7 @@ describe('environmentExplorer', () => {
             disconnectStub.should.have.been.called;
         });
 
-        it('should try to reconnect if refreshing a connected an Ops Tools environment, and return current tree', async () => {
+        it('should try to reconnect if refreshing a connected Ops Tools environment, and return current tree', async () => {
             const getStateStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getState').returns(ConnectedState.CONNECTED);
             const registryEntryOpsTools: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             registryEntryOpsTools.name = 'myOpsToolsFabric';
@@ -1088,6 +1088,34 @@ describe('environmentExplorer', () => {
             const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
 
             allChildren.length.should.equal(5);
+            commandStub.should.have.not.been.calledWith('setContext', 'blockchain-opstool-connected', true);
+            commandStub.should.have.not.been.calledWith('setContext', 'blockchain-environment-connected', true);
+            commandStub.should.have.not.been.calledWith('setContext', 'blockchain-runtime-connected', false);
+            commandStub.should.have.not.been.calledWith('setContext', 'blockchain-environment-setup', false);
+            getStateStub.should.have.been.called;
+            connectCommandStub.should.have.been.called;
+        });
+
+        it('should handle disconnect when refreshing a connected Ops Tools environment, and return current tree', async () => {
+            const getStateStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getState');
+            getStateStub.returns(ConnectedState.CONNECTED);
+            getStateStub.onCall(4).returns(ConnectedState.DISCONNECTED);
+
+            const registryEntryOpsTools: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            registryEntryOpsTools.name = 'myOpsToolsFabric';
+            registryEntryOpsTools.managedRuntime = false;
+            registryEntryOpsTools.url = '/some/url:port';
+            getEnvRegEntryStub.returns(registryEntryOpsTools);
+
+            const getAllStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([registryEntry, registryEntryOpsTools]);
+
+            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+            const connectCommandStub: sinon.SinonStub = commandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT, registryEntryOpsTools).resolves();
+
+            const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+            allChildren.length.should.equal(2);
+            getAllStub.should.have.been.called;
             commandStub.should.have.not.been.calledWith('setContext', 'blockchain-opstool-connected', true);
             commandStub.should.have.not.been.calledWith('setContext', 'blockchain-environment-connected', true);
             commandStub.should.have.not.been.calledWith('setContext', 'blockchain-runtime-connected', false);

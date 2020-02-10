@@ -223,6 +223,24 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
         });
 
+        it('should test all nodes can be hidden for an existing OpsTool environment from command palette', async () => {
+            showEnvironmentQuickPickStub.resolves({ label: OpsToolRegistryEntry.name, data: OpsToolRegistryEntry });
+            getConnectedEnvironmentRegistryEntry.returns(OpsToolRegistryEntry);
+            showNodesQuickPickBoxStub.resolves([]);
+            getNodesStub.onSecondCall().resolves([]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, undefined, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+
+            getCoreNodeModuleStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.been.calledTwice;
+            getNodesStub.should.have.been.calledTwice;
+            showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, true, false, IncludeEnvironmentOptions.OPSTOOLSENV);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
+        });
+
         it('should test nodes can be added to an existing OpsTool environment', async () => {
             getNodesStub.onSecondCall().resolves(opsToolNodes);
             getConnectedEnvironmentRegistryEntry.returns(OpsToolRegistryEntry);
@@ -679,10 +697,49 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
+            ensureDirStub.should.have.been.called;
+            updateNodeStub.should.have.been.called;
+            getNodesStub.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
+        });
+
+        it('should handle when user cancel selecting nodes when editting nodes on an existing Ops Tool instance', async () => {
+            const startNodes: any[] = [{
+                short_name: 'orderer2.example.com',
+                name: 'orderer2.example.com',
+                display_name: 'Orderer 2',
+                api_url: 'grpcs://someHost:somePort12',
+                type: 'fabric-orderer',
+                wallet: 'fabric_wallet',
+                identity: 'admin',
+                msp_id: 'OrdererMSP',
+                id: 'orderer2',
+                cluster_name: 'Ordering Service',
+                hidden: false
+            }].concat(opsToolNodes);
+            getNodesStub.onFirstCall().resolves(startNodes);
+            showNodesQuickPickBoxStub.resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+
+            ensureDirStub.should.have.been.called;
+            updateNodeStub.should.have.been.called;
+            getNodesStub.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.should.have.not.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
+        });
+
+        it('should handle when user cancel selecting nodes when adding a new Ops Tool instance', async () => {
+            showNodesQuickPickBoxStub.resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.have.not.been.called;
             getNodesStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.should.have.not.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
         });
 
         it('should handle user choosing a subset of nodes from Ops Tool from a new Ops Tool instance', async () => {

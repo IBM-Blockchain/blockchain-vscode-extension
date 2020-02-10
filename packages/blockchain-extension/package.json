@@ -676,11 +676,11 @@
                 },
                 {
                     "command": "environmentExplorer.deleteNodeEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item || viewItem == blockchain-runtime-certificate-authority-item || viewItem == blockchain-runtime-orderer-item && !blockchain-runtime-connected && !blockchain-opstool-connected && !blockchain-ansible-connected"
+                    "when": "view == environmentExplorer && !blockchain-runtime-connected && !blockchain-opstool-connected && !blockchain-ansible-connected && viewItem == blockchain-peer-item || view == environmentExplorer && !blockchain-runtime-connected && !blockchain-opstool-connected && !blockchain-ansible-connected && viewItem == blockchain-runtime-certificate-authority-item || view == environmentExplorer && !blockchain-runtime-connected && !blockchain-opstool-connected && !blockchain-ansible-connected && viewItem == blockchain-runtime-orderer-item"
                 },
                 {
                     "command": "environmentExplorer.hideNodeEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item || viewItem == blockchain-runtime-certificate-authority-item || viewItem == blockchain-runtime-orderer-item && !blockchain-runtime-connected && blockchain-opstool-connected && !blockchain-ansible-connected"
+                    "when": "view == environmentExplorer && !blockchain-runtime-connected && blockchain-opstool-connected && !blockchain-ansible-connected && viewItem == blockchain-peer-item || view == environmentExplorer && !blockchain-runtime-connected && blockchain-opstool-connected && !blockchain-ansible-connected && viewItem == blockchain-runtime-certificate-authority-item || view == environmentExplorer && !blockchain-runtime-connected && blockchain-opstool-connected && !blockchain-ansible-connected && viewItem == blockchain-runtime-orderer-item"
                 },
                 {
                     "command": "environmentExplorer.installSmartContractEntry",

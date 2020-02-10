@@ -39,6 +39,8 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
 
     try {
 
+        let justUpdate: boolean = false;
+
         let chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
         if (!environmentRegistryEntry) {
             if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS) {
@@ -64,7 +66,8 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
 
         const environment: FabricEnvironment = new FabricEnvironment(environmentRegistryEntry.name);
         const environmentBaseDir: string = path.resolve(environment.getPath());
-        const oldNodes: FabricNode[] = await environment.getNodes(false, true);
+        const allNodes: FabricNode[] = await environment.getNodes(false, true);
+        const oldNodes: FabricNode[] = allNodes.filter((_node: FabricNode) => !_node.hidden);
 
         const nodesToUpdate: FabricNode[] = [];
         let addedAllNodes: boolean = true;
@@ -186,18 +189,23 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                         );
 
                 let chosenNodes: IBlockchainQuickPickItem<FabricNode>[];
-                chosenNodes = await UserInputUtil.showNodesQuickPickBox(`Which nodes would you like to ${methodMessageString}?`, filteredData, true, oldNodes, informOfChanges) as IBlockchainQuickPickItem<FabricNode>[];
+                chosenNodes = await UserInputUtil.showNodesQuickPickBox(`Which nodes would you like to ${methodMessageString}?`, filteredData, true, allNodes, informOfChanges) as IBlockchainQuickPickItem<FabricNode>[];
 
-                    if (!chosenNodes || chosenNodes.length === 0) {
-                    return true;
-                    } else if (!Array.isArray(chosenNodes)) {
+                let chosenNodesNames: string[] = [];
+                if (chosenNodes === undefined) {
+                    if (fromAddEnvironment) {
+                        return;
+                    }
+                    justUpdate = true;
+                    chosenNodesNames = oldNodes.map((_node: FabricNode) => _node.type === FabricNodeType.ORDERER && _node.cluster_name ? _node.cluster_name : _node.name);
+                } else {
+                    if (!Array.isArray(chosenNodes)) {
                         chosenNodes = [chosenNodes];
                     }
-
-                    const chosenNodesNames: string[] = chosenNodes.map((_chosenNode: IBlockchainQuickPickItem<FabricNode>) => {
-                        return _chosenNode.label;
-                    });
-
+                    if (chosenNodes.length > 0) {
+                        chosenNodesNames = chosenNodes.map((_chosenNode: IBlockchainQuickPickItem<FabricNode>) => _chosenNode.label);
+                    }
+                }
                     filteredData.forEach((node: FabricNode) => {
                         if (node.type === FabricNodeType.ORDERER && node.cluster_name) {
                             node.hidden = chosenNodesNames.indexOf(node.cluster_name) === -1;
@@ -205,6 +213,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                             node.hidden = true;
                         }
                     });
+
                     nodesToUpdate.push(...filteredData);
                 } catch (error) {
                 outputAdapter.log(LogType.ERROR, `Failed to acquire nodes from ${environmentRegistryEntry.url}, with error ${error.message}`, `Failed to acquire nodes from ${environmentRegistryEntry.url}, with error ${error.toString()}`);
@@ -223,7 +232,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
 
             for (const node of nodesToUpdate) {
                 try {
-                const alreadyExists: boolean = oldNodes.some((_node: FabricNode) => _node.name === node.name && ( _node.hidden === false || _node.hidden === undefined ));
+                const alreadyExists: boolean = oldNodes.some((_node: FabricNode) => _node.name === node.name);
                     if (alreadyExists && createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_NODES) {
                         throw new Error(`Node with name ${node.name} already exists`);
                     }
@@ -242,11 +251,12 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             // check if any nodes were added
             const newEnvironment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
             const newNodes: FabricNode[] = await newEnvironment.getNodes();
-            if (newNodes.length === oldNodes.length && createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS) {
+        if (newNodes.length === oldNodes.length && createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_NODES) {
                 throw new Error('no nodes were added');
             }
-
-            if (addedAllNodes) {
+        if (justUpdate) {
+            return;
+        } else if (addedAllNodes) {
             outputAdapter.log(LogType.SUCCESS, `Successfully ${methodMessageString}ed all nodes`);
             } else {
             outputAdapter.log(LogType.WARNING, `Finished ${methodMessageString}ing nodes but some nodes could not be ${methodMessageString}ed`);
@@ -255,7 +265,11 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             const connectedRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
             if (connectedRegistryEntry && connectedRegistryEntry.name === environmentRegistryEntry.name && !informOfChanges) {
                 // only do this if we run the command if we are connected to the one we are updating
+            if (newNodes.length > 0) {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            } else {
+                await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            }
             }
 
             return addedAllNodes;
