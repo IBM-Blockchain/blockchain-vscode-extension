@@ -61,6 +61,8 @@ describe('EnvironmentConnectCommand', () => {
 
         let connectExplorerStub: sinon.SinonStub;
         let connectManagerSpy: sinon.SinonSpy;
+        let disconnectManagerSpy: sinon.SinonSpy;
+        let stopEnvironmentRefreshSpy: sinon.SinonSpy;
         let getStateStub: sinon.SinonStub;
 
         let localEnvironment: LocalEnvironment;
@@ -82,6 +84,8 @@ describe('EnvironmentConnectCommand', () => {
             ordererNode = FabricNode.newOrderer('ordererNode', 'orderer.example.com', 'http://localhost:17056', undefined, undefined, 'osmsp', undefined);
 
             connectManagerSpy = mySandBox.spy(FabricEnvironmentManager.instance(), 'connect');
+            disconnectManagerSpy = mySandBox.spy(FabricEnvironmentManager.instance(), 'disconnect');
+            stopEnvironmentRefreshSpy = mySandBox.spy(FabricEnvironmentManager.instance(), 'stopEnvironmentRefresh');
             mySandBox.stub(ExtensionUtil.getBlockchainEnvironmentExplorerProvider(), 'refresh').resolves();
             mockConnection = mySandBox.createStubInstance(FabricEnvironmentConnection);
             mockConnection.connect.resolves();
@@ -119,6 +123,7 @@ describe('EnvironmentConnectCommand', () => {
             opsToolsEnvRegistryEntry.name = 'myOpsToolsFabric';
             opsToolsEnvRegistryEntry.managedRuntime = false;
             opsToolsEnvRegistryEntry.url = '/some/cloud:port';
+            opsToolsEnvRegistryEntry.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
             executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).resolves(true);
 
             warningNoNodesEditFilterStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').withArgs(`Error connecting to environment ${opsToolsEnvRegistryEntry.name}: no visible nodes. Would you like to filter nodes?`);
@@ -153,6 +158,17 @@ describe('EnvironmentConnectCommand', () => {
                 logSpy.calledWith(LogType.SUCCESS, 'Connected to myFabric');
             });
 
+            it('should test a fabric environment can be connected to from the command but not show success if not wanted', async () => {
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, undefined, false);
+
+                chooseEnvironmentQuickPick.should.have.been.calledWith(sinon.match.string, false, true, true);
+                connectExplorerStub.should.have.been.called;
+                connectManagerSpy.should.have.been.calledWith(mockConnection, environmentRegistryEntry, ConnectedState.CONNECTING);
+                mockConnection.connect.should.have.been.called;
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'user environment', connectEnvironmentIBM: sinon.match.string });
+                logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Connected to myFabric');
+            });
+
             it('should do nothing if the user cancels choosing a environment', async () => {
                 chooseEnvironmentQuickPick.resolves();
 
@@ -169,6 +185,7 @@ describe('EnvironmentConnectCommand', () => {
                 connectManagerSpy.should.have.been.calledWith(undefined, environmentRegistryEntry, ConnectedState.SETUP);
                 logSpy.should.have.been.calledWith(LogType.IMPORTANT, 'You must complete setup for this environment to enable install, instantiate and register identity operations on the nodes. Click each node in the list to perform the required setup steps');
 
+                stopEnvironmentRefreshSpy.should.have.been.called;
                 mockConnection.connect.should.not.have.been.called;
             });
 
@@ -257,9 +274,8 @@ describe('EnvironmentConnectCommand', () => {
 
                 getNodesStub.should.have.been.calledTwice;
                 warningNoNodesEditFilterStub.should.have.not.been.called;
-                getStateStub.should.have.been.called;
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
-                executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+                disconnectManagerSpy.should.have.been.called;
                 mockConnection.connect.should.not.have.been.called;
             });
 
@@ -293,7 +309,6 @@ describe('EnvironmentConnectCommand', () => {
                 executeCommandStub.getCalls().filter((call: any) => call.args[0] === ExtensionCommands.EDIT_NODE_FILTERS && call.args[4] === true).should.not.deep.equal([]);
                 mockConnection.connect.should.have.been.called;
             });
-
         });
 
         describe('LocalEnvironment', () => {

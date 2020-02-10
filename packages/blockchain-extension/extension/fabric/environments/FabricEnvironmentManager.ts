@@ -13,7 +13,9 @@
 */
 
 import { EventEmitter } from 'events';
-import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { TimerUtil } from '../../util/TimerUtil';
+import { ExtensionCommands } from '../../../ExtensionCommands';
 
 export enum ConnectedState {
     CONNECTED,
@@ -32,6 +34,7 @@ export class FabricEnvironmentManager extends EventEmitter {
     private connection: IFabricEnvironmentConnection;
     private environmentRegistryEntry: FabricEnvironmentRegistryEntry;
     private state: ConnectedState = ConnectedState.DISCONNECTED;
+    private timeoutObject: NodeJS.Timeout;
 
     private constructor() {
         super();
@@ -57,7 +60,24 @@ export class FabricEnvironmentManager extends EventEmitter {
         this.connection = connection;
         this.environmentRegistryEntry = environmentRegistryEntry;
         this.state = state;
+        this.startEnvironmentRefresh();
         this.emit('connected');
+    }
+
+    public stopEnvironmentRefresh(): void {
+        if (this.timeoutObject) {
+            TimerUtil.cancelInterval(this.timeoutObject);
+        }
+    }
+
+    public startEnvironmentRefresh(): void {
+        if (this.timeoutObject) {
+            TimerUtil.cancelInterval(this.timeoutObject);
+        }
+
+        if ((this.state === ConnectedState.CONNECTING || this.state === ConnectedState.CONNECTED) && (this.environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT)) {
+            this.timeoutObject = TimerUtil.setInterval(ExtensionCommands.CONNECT_TO_ENVIRONMENT, [this.environmentRegistryEntry, false], 10000);
+        }
     }
 
     public disconnect(): void {
@@ -69,6 +89,8 @@ export class FabricEnvironmentManager extends EventEmitter {
         if (this.environmentRegistryEntry) {
             this.environmentRegistryEntry = null;
         }
+
+        this.stopEnvironmentRefresh();
 
         this.state = ConnectedState.DISCONNECTED;
 

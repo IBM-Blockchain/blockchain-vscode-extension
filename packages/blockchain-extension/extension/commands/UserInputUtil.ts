@@ -20,7 +20,7 @@ import { PackageRegistry } from '../registries/PackageRegistry';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { MetadataUtil } from '../util/MetadataUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricCertificate, FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricEnvironmentConnection, IFabricGatewayConnection, LogType, FabricEnvironment, FabricGatewayRegistryEntry, FabricGatewayRegistry} from 'ibm-blockchain-platform-common';
+import { FabricCertificate, FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricEnvironmentConnection, IFabricGatewayConnection, LogType, FabricEnvironment, FabricGatewayRegistryEntry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 
@@ -138,6 +138,7 @@ export class UserInputUtil {
         let environmentsQuickPickItems: Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>>;
         let environmentsFiltered: Array<FabricEnvironmentRegistryEntry> = environments;
 
+        // TODO: Caroline remoe this for fabric 2 and just use filters
         switch (envType) {
             case IncludeEnvironmentOptions.ALLENV: {
                 break;
@@ -1061,7 +1062,7 @@ export class UserInputUtil {
             quickPickItems.map((quickPickItem: IBlockchainQuickPickItem<FabricNode>) => {
                 const existingNode: FabricNode = currentNodes.find((node: FabricNode) => node.api_url === quickPickItem.data.api_url);
                 if (existingNode) {
-                    if ( existingNode.hidden === undefined || existingNode.hidden === false ) {
+                    if (existingNode.hidden === undefined || existingNode.hidden === false) {
                         quickPickItem.picked = true;
                     }
                     if (existingNode.name !== quickPickItem.data.name) {
@@ -1078,7 +1079,9 @@ export class UserInputUtil {
 
         if (informOfChanges) {
             if (changeDetected) {
-            // Ask user if they want to edit filters
+                // stop the refresh until the user has finished making changes
+                FabricEnvironmentManager.instance().stopEnvironmentRefresh();
+                // Ask user if they want to edit filters
                 const editFilters: boolean = await UserInputUtil.showConfirmationWarningMessage('Differences have been detected between the local environment and the Ops Tools environment. Would you like to filter nodes?');
                 if (!editFilters) {
                     return;
@@ -1105,7 +1108,7 @@ export class UserInputUtil {
 
         const newNodes: IBlockchainQuickPickItem<FabricNode>[] = items.filter((item: IBlockchainQuickPickItem<FabricNode>) => item.description && item.description === '(new)').sort(alphabeticalSortFn);
         const pickedNodes: IBlockchainQuickPickItem<FabricNode>[] = items.filter((item: IBlockchainQuickPickItem<FabricNode>) => item.picked && item.picked === true).sort(alphabeticalSortFn);
-        const hiddenNodes: IBlockchainQuickPickItem<FabricNode>[] = items.filter((item: IBlockchainQuickPickItem<FabricNode>) => !item.picked && (!item.description  || item.description !== '(new)')).sort(alphabeticalSortFn);
+        const hiddenNodes: IBlockchainQuickPickItem<FabricNode>[] = items.filter((item: IBlockchainQuickPickItem<FabricNode>) => !item.picked && (!item.description || item.description !== '(new)')).sort(alphabeticalSortFn);
 
         return newNodes.concat(hiddenNodes, pickedNodes);
     }

@@ -122,6 +122,7 @@ export async function addEnvironment(): Promise<void> {
             }
 
             fabricEnvironmentEntry.url = url;
+            fabricEnvironmentEntry.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
         }
 
         const environmentName: string = await UserInputUtil.showInputBox('Enter a name for the environment');
