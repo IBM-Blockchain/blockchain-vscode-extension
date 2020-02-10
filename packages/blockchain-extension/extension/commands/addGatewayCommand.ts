@@ -113,10 +113,11 @@ async function createGatewayFromEnvironment(gatewayName: string, environmentRegi
     fabricGatewayEntry.associatedWallet = peerNode.wallet;
     fabricGatewayEntry.fromEnvironment = environmentRegistryEntry.name;
 
+    const connectionProfilePath: string = await FabricGatewayHelper.generateConnectionProfile(gatewayName, peerNode, caNode);
+    fabricGatewayEntry.connectionProfilePath = connectionProfilePath;
+
     const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     await fabricGatewayRegistry.add(fabricGatewayEntry);
-
-    await FabricGatewayHelper.generateConnectionProfile(gatewayName, peerNode, caNode);
 
     return fabricGatewayEntry;
 }

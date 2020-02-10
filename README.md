@@ -356,6 +356,30 @@ The `startPort` and `endPort` are used when attempting to start the Local Fabric
 
 If you decide to change these ports, you will need to run the `Teardown Fabric Runtime` command before starting it again. This is required in order to regenerate the files containing the new port range.
 
+## Using transaction data files to submit a transaction
+Instead of manually typing in your arguments when you want to submit or evaluate a transaction, you can instead associate a directory of transaction data with your smart contract, and use the data files in that directory to submit your transaction instead.
+
+To associate a directory of transaction data with your smart contract, run the `Associate Directory for Transaction Data` command, and choose the directory that you want to associate. When you submit or evaluate a transaction when you have associated a transaction data directory, you will be able to submit any transaction data in that directory instead of inputting the informattion manually.
+
+Transaction data files are in JSON format, but must end with the file extension `.txdata`. Each file contains an array of objects that are parsed by the extension and used to submit transactions. Below is an example of what your transaction data file might look like:
+
+    [
+        {
+            "transactionName": "myTransaction",
+            "transactionLabel": "This is my transaction",
+            "arguments": [
+                "001",
+                "myValue"
+            ],
+            "transientData": {
+                "key": "value"
+            }
+        }
+    ]
+
+Note that the `transactionName` is the name of the transaction as defined in your smart contract, whereas `transactionLabel` is a custom label that is used to differentiate between transaction data objects.
+
+
 ## Useful Commands
 The IBM Blockchain Platform extension provides an explorer and commands accessible from the Command Palette, for developing smart contracts quickly:
 <!---Table of commands with columns: 'command' and 'description'
@@ -368,6 +392,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Add Identity To Wallet | Add an identity into a wallet to be used when connecting to a Hyperledger Fabric gateway |
 | Add Wallet | Add a wallet containing identities to be used when connecting to a gateway |
 | Associate A Wallet | Associate a wallet with a gateway to be used when connecting |
+| Associate Directory for Transaction Data | Associate a directory of transasction data with a smart contract
 | Associate Identity with a Node | Associate an identity with a node to enable the extension to connect to that node |
 | Connect Via Gateway | Connect to a Hyperledger Fabric instance using a gateway |
 | Create New Project | Create a new smart contract project |
@@ -378,6 +403,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Delete Gateway | Delete a Hyperledger Fabric instance gateway |
 | Delete Package | Delete a smart contract package |
 | Disassociate A Wallet | Remove the association between a wallet and a gateway |
+| Dissociate Directory for Transaction Data | Dissociate a directory of transasction data from a smart contract
 | Disconnect From Environment | Disconnect from the environment you're currently connected to |
 | Disconnect From Gateway | Disconnect from the blockchain gateway you're currently connected to |
 | Evaluate Transaction | Evaluate a smart contract transaction |

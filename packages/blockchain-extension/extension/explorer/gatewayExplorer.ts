@@ -261,7 +261,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
                     tree.push(new TransactionTreeItem(this, transaction, chainCodeElement.name, chainCodeElement.channels[0].label, contract));
                 }
             } else {
-                tree.push(new ContractTreeItem(this, contract, vscode.TreeItemCollapsibleState.Collapsed, chainCodeElement, transactionNames));
+                tree.push(new ContractTreeItem(this, contract, vscode.TreeItemCollapsibleState.Collapsed, chainCodeElement, transactionNames, chainCodeElement.channels[0].label));
             }
         }
         return tree;
@@ -282,7 +282,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
             const tree: Array<BlockchainTreeItem> = [];
 
             const connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
-            const gateway: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
+            const gateway: FabricGatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
             const gatewayName: string = gateway.displayName ? gateway.displayName : gateway.name;
 
             tree.push(new ConnectedTreeItem(this, `Connected via gateway: ${gatewayName}`, gateway, 0));

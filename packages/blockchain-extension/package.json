@@ -89,6 +89,8 @@
             "walletExplorer.removeWalletEntry",
             "walletExplorer.deleteIdentityEntry",
             "walletExplorer.exportWalletEntry",
+            "gatewaysExplorer.associateTransactionDataDirectoryEntry",
+            "gatewaysExplorer.dissociateTransactionDataDirectoryEntry",
             "extensionHome.open",
             "preReq.open",
             "tutorialGallery.open",
@@ -491,6 +493,16 @@
                 "command": "walletExplorer.exportWalletEntry",
                 "title": "Export Wallet",
                 "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "gatewaysExplorer.associateTransactionDataDirectoryEntry",
+                "title": "Associate Directory For Transaction Data",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "gatewaysExplorer.dissociateTransactionDataDirectoryEntry",
+                "title": "Dissociate Directory For Transaction Data",
+                "category": "IBM Blockchain Platform"
             }
         ],
         "menus": {
@@ -714,6 +726,14 @@
                 },
                 {
                     "command": "gatewaysExplorer.testSmartContractEntry",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-multi-contract-item || viewItem == blockchain-instantiated-contract-item || viewItem == blockchain-contract-item || viewItem == blockchain-instantiated-unknown-item"
+                },
+                {
+                    "command": "gatewaysExplorer.associateTransactionDataDirectoryEntry",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-multi-contract-item || viewItem == blockchain-instantiated-contract-item || viewItem == blockchain-contract-item || viewItem == blockchain-instantiated-unknown-item"
+                },
+                {
+                    "command": "gatewaysExplorer.dissociateTransactionDataDirectoryEntry",
                     "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-multi-contract-item || viewItem == blockchain-instantiated-contract-item || viewItem == blockchain-contract-item || viewItem == blockchain-instantiated-unknown-item"
                 },
                 {

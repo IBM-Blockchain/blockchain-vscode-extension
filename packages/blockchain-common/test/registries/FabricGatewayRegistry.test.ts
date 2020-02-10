@@ -14,15 +14,18 @@
 
 import { FabricGatewayRegistry } from '../../src/registries/FabricGatewayRegistry';
 
+import * as sinon from 'sinon';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as path from 'path';
+import * as fs from 'fs-extra';
 import { FabricGatewayRegistryEntry } from '../../src/registries/FabricGatewayRegistryEntry';
 import { FabricRuntimeUtil } from '../../src/util/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/util/FabricWalletUtil';
 import { FabricEnvironmentRegistry } from '../../src/registries/FabricEnvironmentRegistry';
 import { FabricEnvironmentRegistryEntry, EnvironmentType } from '../../src/registries/FabricEnvironmentRegistryEntry';
 
+// tslint:disable no-unused-expression
 chai.should();
 chai.use(chaiAsPromised);
 
@@ -99,5 +102,53 @@ describe('FabricGatewayRegistry', () => {
         entries[1].name.should.equal('myEnvironment - myGateway');
         entries[2].name.should.equal('myEnvironment - yofn-org1');
         entries[3].name.should.equal('myEnvironment - yofn-org2');
+    });
+
+    it('should update an unmanaged gateway', async () => {
+        const gatewayOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
+            name: 'gatewayOne',
+            associatedWallet: ''
+        });
+
+        await registry.getAll().should.eventually.deep.equal([]);
+
+        await registry.add(gatewayOne);
+
+        const transactionDataDirectories: Array<{chaincodeName: string, channelName: string, transactionDataPath: string}> = [{
+            chaincodeName: 'mySmartContract',
+            channelName: 'myChannel',
+            transactionDataPath: 'my/transaction/data/path'
+        }] ;
+
+        gatewayOne.transactionDataDirectories = transactionDataDirectories;
+
+        await registry.update(gatewayOne);
+
+        await registry.getAll(false).should.eventually.deep.equal([gatewayOne]);
+    });
+
+    it('should update a gateway in a managed environment', async () => {
+        const writeFileStub: sinon.SinonStub = sinon.stub(fs, 'writeJson');
+
+        const gatewayOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
+            name: 'gatewayOne',
+            associatedWallet: ''
+        });
+
+        await registry.getAll().should.eventually.deep.equal([]);
+
+        await registry.add(gatewayOne);
+
+        gatewayOne.fromEnvironment = 'myEnvironment';
+        gatewayOne.connectionProfilePath = 'my/connection/profile/path';
+        gatewayOne.transactionDataDirectories = [{
+            chaincodeName: 'mySmartContract',
+            channelName: 'myChannel',
+            transactionDataPath: 'my/transaction/data/path'
+        }];
+
+        await registry.update(gatewayOne);
+
+        writeFileStub.should.have.been.called;
     });
 });

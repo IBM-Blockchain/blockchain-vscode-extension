@@ -1,0 +1,8 @@
+*[
+    {
+        "transactionName": "badTransaction",
+        "transactionLabel": "My Bad Transaction",
+        "arguments": [],
+        "transientData": {}
+    }
+]

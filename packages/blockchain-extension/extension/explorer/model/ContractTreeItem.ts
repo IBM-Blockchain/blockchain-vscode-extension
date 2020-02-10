@@ -20,7 +20,7 @@ import { InstantiatedContractTreeItem } from './InstantiatedContractTreeItem';
 export class ContractTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-contract-item';
 
-    constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly collapsibleState: vscode.TreeItemCollapsibleState, public readonly instantiatedChaincode: InstantiatedContractTreeItem, public readonly transactions: Array<string>) {
+    constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly collapsibleState: vscode.TreeItemCollapsibleState, public readonly instantiatedChaincode: InstantiatedContractTreeItem, public readonly transactions: Array<string>, public readonly channelName: string) {
         super(provider, name, collapsibleState);
     }
 }

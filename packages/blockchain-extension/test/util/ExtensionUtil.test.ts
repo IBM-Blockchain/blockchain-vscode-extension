@@ -571,6 +571,8 @@ describe('ExtensionUtil Tests', () => {
                 ExtensionCommands.ASSOCIATE_WALLET,
                 ExtensionCommands.DISSOCIATE_WALLET,
                 ExtensionCommands.EXPORT_WALLET,
+                ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY,
+                ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY,
                 ExtensionCommands.OPEN_HOME_PAGE,
                 ExtensionCommands.OPEN_PRE_REQ_PAGE
             ]);
@@ -628,6 +630,8 @@ describe('ExtensionUtil Tests', () => {
                 `onCommand:${ExtensionCommands.REMOVE_WALLET}`,
                 `onCommand:${ExtensionCommands.DELETE_IDENTITY}`,
                 `onCommand:${ExtensionCommands.EXPORT_WALLET}`,
+                `onCommand:${ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY}`,
+                `onCommand:${ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY}`,
                 `onCommand:${ExtensionCommands.OPEN_HOME_PAGE}`,
                 `onCommand:${ExtensionCommands.OPEN_PRE_REQ_PAGE}`,
                 `onCommand:${ExtensionCommands.OPEN_TUTORIAL_GALLERY}`,

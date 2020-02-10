@@ -193,6 +193,7 @@ describe('AddGatewayCommand', () => {
         let peerNode: FabricNode;
         let caNode: FabricNode;
         let environmentRegistryEntry: FabricEnvironmentRegistryEntry;
+        let connectionProfilePath: string;
         beforeEach(async () => {
 
             // reset the available gateways
@@ -210,7 +211,8 @@ describe('AddGatewayCommand', () => {
             caNode = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:7054', 'ca_name', 'Org1', 'admin', 'Org1MSP', 'admin', 'adminpw');
             showFabricNodeQuickPickStub = mySandBox.stub(UserInputUtil, 'showFabricNodeQuickPick').resolves({ label: 'ca.org1.example.com', data: caNode });
 
-            generateConnectionProfileStub = mySandBox.stub(FabricGatewayHelper, 'generateConnectionProfile').resolves(path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'));
+            connectionProfilePath = path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json');
+            generateConnectionProfileStub = mySandBox.stub(FabricGatewayHelper, 'generateConnectionProfile').resolves(connectionProfilePath);
 
             showInputBoxStub.resolves('myGateway');
         });
@@ -225,6 +227,7 @@ describe('AddGatewayCommand', () => {
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal({
                 name: 'myGateway',
+                connectionProfilePath,
                 associatedWallet: 'Org1',
                 fromEnvironment: 'myEnv'
             });
@@ -331,6 +334,7 @@ describe('AddGatewayCommand', () => {
 
             gateways[0].should.deep.equal({
                 name: 'myGateway',
+                connectionProfilePath,
                 associatedWallet: 'Org1',
                 fromEnvironment: 'myEnv'
             });

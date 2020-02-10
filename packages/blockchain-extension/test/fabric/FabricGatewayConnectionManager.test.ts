@@ -16,6 +16,7 @@ import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGat
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import * as path from 'path';
 import { FabricWalletRegistryEntry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
 
@@ -28,6 +29,7 @@ describe('FabricGatewayConnectionManager', () => {
     let sandbox: sinon.SinonSandbox;
     let registryEntry: FabricGatewayRegistryEntry;
     let walletRegistryEntry: FabricWalletRegistryEntry;
+    let fromEnvGateway: FabricGatewayRegistryEntry;
 
     beforeEach(async () => {
         sandbox = sinon.createSandbox();
@@ -40,6 +42,12 @@ describe('FabricGatewayConnectionManager', () => {
         walletRegistryEntry = new FabricWalletRegistryEntry({
             name: 'congaWallet',
             walletPath: '/some/path'
+        });
+
+        fromEnvGateway = new FabricGatewayRegistryEntry({
+            name: 'myGateway',
+            associatedWallet: '',
+            fromEnvironment: 'myEnvironment'
         });
     });
 
@@ -58,9 +66,34 @@ describe('FabricGatewayConnectionManager', () => {
     });
 
     describe('#getGatewayRegistryEntry', () => {
-        it('should get the registry entry', () => {
+        it('should get the registry entry', async () => {
             connectionManager['gatewayRegistryEntry'] = registryEntry;
-            connectionManager.getGatewayRegistryEntry().should.equal(registryEntry);
+            connectionManager.getGatewayRegistryEntry().should.eventually.equal(registryEntry);
+        });
+
+        it('should return undefined if the registry entry is not present', async () => {
+            connectionManager['gatewayRegistryEntry'] = undefined;
+            const result: any = await connectionManager.getGatewayRegistryEntry();
+            should.equal(result, undefined);
+        });
+
+        it('should get the registry entry from a config file', async () => {
+            const rootPath: string = path.dirname(__dirname);
+            const connectionProfilePath: string = path.join(rootPath, '../../test/data/gatewayWithConfig/myOrg.json');
+            fromEnvGateway.connectionProfilePath = connectionProfilePath;
+            connectionManager['gatewayRegistryEntry'] = fromEnvGateway;
+            connectionManager.getGatewayRegistryEntry().should.eventually.deep.equal({
+                name: 'myGatewayWithConfig',
+                associatedWallet: '',
+                fromEnvironment: 'myEnvironemt',
+                transactionDataDirectories: []
+            });
+        });
+
+        it('should not try to get a registry entry from a config file if there isn\'t one', async () => {
+            fromEnvGateway.connectionProfilePath = '';
+            connectionManager['gatewayRegistryEntry'] = fromEnvGateway;
+            connectionManager.getGatewayRegistryEntry().should.eventually.equal(fromEnvGateway);
         });
     });
 
@@ -71,7 +104,7 @@ describe('FabricGatewayConnectionManager', () => {
             connectionManager.once('connected', listenerStub);
             connectionManager.connect((mockFabricConnection as any) as FabricGatewayConnection, registryEntry, walletRegistryEntry);
             connectionManager.getConnection().should.equal(mockFabricConnection);
-            connectionManager.getGatewayRegistryEntry().should.equal(registryEntry);
+            connectionManager.getGatewayRegistryEntry().should.eventually.equal(registryEntry);
             listenerStub.should.have.been.calledOnceWithExactly(mockFabricConnection);
         });
 

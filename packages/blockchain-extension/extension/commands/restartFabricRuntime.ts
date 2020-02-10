@@ -56,7 +56,7 @@ export async function restartFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): P
     }, async (progress: vscode.Progress<{ message: string }>) => {
         progress.report({ message: `Restarting Fabric runtime ${runtime.getName()}` });
 
-        const connectedGatewayRegistry: FabricGatewayRegistryEntry = FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
+        const connectedGatewayRegistry: FabricGatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
         if (connectedGatewayRegistry && connectedGatewayRegistry.fromEnvironment === registryEntry.name) {
             await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
         }
