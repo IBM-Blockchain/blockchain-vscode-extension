@@ -164,7 +164,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
                 }
             }
 
-            const chosenEntry: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway to enroll the identity with', false, true, true, walletRegistryEntry.fromEnvironment) as IBlockchainQuickPickItem<FabricGatewayRegistryEntry>;
+            const chosenEntry: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway to enroll the identity with', false, true, undefined, walletRegistryEntry.fromEnvironment) as IBlockchainQuickPickItem<FabricGatewayRegistryEntry>;
             if (!chosenEntry) {
                 return;
             }

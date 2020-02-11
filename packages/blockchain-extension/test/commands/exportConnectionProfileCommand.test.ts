@@ -100,6 +100,7 @@ describe('exportConnectionProfileCommand', () => {
     it('should export the connection profile by right clicking on a peer in the runtime ops tree', async () => {
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, gatewayTreeItem);
         delete connectionProfile.wallet;
+        showGatewayQuickPickStub.should.not.have.been.calledOnceWithExactly('Choose a gateway to export a connection profile from', false, true);
         writeFileStub.should.have.been.called.calledOnceWithExactly(fakeTargetPath, JSON.stringify(connectionProfile, null, 4));
         logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported connection profile to ${fakeTargetPath}`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportConnectionProfileCommand');
@@ -108,6 +109,7 @@ describe('exportConnectionProfileCommand', () => {
     it('should export the connection profile when called from the command palette', async () => {
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
         delete connectionProfile.wallet;
+        showGatewayQuickPickStub.should.have.been.calledOnceWithExactly('Choose a gateway to export a connection profile from', false, true);
         writeFileStub.should.have.been.called.calledOnceWithExactly(fakeTargetPath, JSON.stringify(connectionProfile, null, 4));
         logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported connection profile to ${fakeTargetPath}`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportConnectionProfileCommand');
@@ -117,6 +119,7 @@ describe('exportConnectionProfileCommand', () => {
         getConnectionProfilePathStub.resolves(path.join('myPath', 'connection.yml'));
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, gatewayTreeItem);
         delete connectionProfile.wallet;
+        showGatewayQuickPickStub.should.not.have.been.calledOnceWithExactly('Choose a gateway to export a connection profile from', false, true);
         writeFileStub.should.have.been.called.calledOnceWithExactly(fakeTargetPath, yaml.dump(connectionProfile));
         logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported connection profile to ${fakeTargetPath}`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportConnectionProfileCommand');
@@ -126,6 +129,7 @@ describe('exportConnectionProfileCommand', () => {
         workspaceFolderStub.returns([]);
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
         delete connectionProfile.wallet;
+        showGatewayQuickPickStub.should.have.been.calledOnceWithExactly('Choose a gateway to export a connection profile from', false, true);
         writeFileStub.should.have.been.called.calledOnceWithExactly(fakeTargetPath, JSON.stringify(connectionProfile, null, 4));
         logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported connection profile to ${fakeTargetPath}`);
     });
@@ -133,6 +137,7 @@ describe('exportConnectionProfileCommand', () => {
     it('should handle cancel choosing gateway', async () => {
         showGatewayQuickPickStub.resolves();
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
+        showGatewayQuickPickStub.should.have.been.calledOnceWithExactly('Choose a gateway to export a connection profile from', false, true);
         writeFileStub.should.not.have.been.called;
     });
 
@@ -140,6 +145,7 @@ describe('exportConnectionProfileCommand', () => {
         showSaveDialogStub.resolves();
 
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
+        showGatewayQuickPickStub.should.have.been.calledOnceWithExactly('Choose a gateway to export a connection profile from', false, true);
         writeFileStub.should.not.have.been.called;
     });
 
@@ -147,7 +153,7 @@ describe('exportConnectionProfileCommand', () => {
         const error: Error = new Error('such error');
         writeFileStub.rejects(error);
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
-
+        showGatewayQuickPickStub.should.have.been.calledOnceWithExactly('Choose a gateway to export a connection profile from', false, true);
         logSpy.callCount.should.equal(2);
         logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'exportConnectionProfileCommand');
         logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Issue exporting connection profile: ${error.message}`, `Issue exporting connection profile: ${error.toString()}`);
@@ -158,6 +164,7 @@ describe('exportConnectionProfileCommand', () => {
         sandbox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistryEntry);
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE_CONNECTED);
         delete connectionProfile.wallet;
+        showGatewayQuickPickStub.should.not.have.been.calledOnceWithExactly('Choose a gateway to export a connection profile from', false, true);
         writeFileStub.should.have.been.called.calledOnceWithExactly(fakeTargetPath, JSON.stringify(connectionProfile, null, 4));
         logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported connection profile to ${fakeTargetPath}`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportConnectionProfileCommand');
