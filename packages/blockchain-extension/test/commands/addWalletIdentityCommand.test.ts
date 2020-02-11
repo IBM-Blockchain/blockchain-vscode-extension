@@ -163,7 +163,7 @@ describe('AddWalletIdentityCommand', () => {
             result.should.equal('greenConga');
 
             inputBoxStub.should.have.been.calledTwice;
-
+            showGatewayQuickPickBoxStub.should.have.been.calledOnceWith('Choose a gateway to enroll the identity with', false, true, undefined, externalWallet.fromEnvironment);
             fsReadFile.should.have.been.calledOnce;
             getEnrollIdSecretStub.should.have.been.calledOnce;
             enrollStub.should.have.been.calledOnceWith('http://ca0url', 'enrollID', 'enrollSecret');
@@ -207,7 +207,7 @@ describe('AddWalletIdentityCommand', () => {
             result.should.equal('greyConga');
 
             inputBoxStub.should.have.been.calledOnce;
-
+            showGatewayQuickPickBoxStub.should.have.been.calledOnceWith('Choose a gateway to enroll the identity with', false, true, undefined, externalWallet.fromEnvironment);
             fsReadFile.should.have.been.calledOnce;
             getEnrollIdSecretStub.should.have.been.calledOnce;
             enrollStub.should.have.been.calledOnceWith('http://ca0url', 'enrollID', 'enrollSecret');
@@ -236,9 +236,11 @@ describe('AddWalletIdentityCommand', () => {
             inputBoxStub.onFirstCall().resolves('greenConga');
             inputBoxStub.onSecondCall().resolves('myMSPID');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+            const myGatewayC: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayC');
+
             showGatewayQuickPickBoxStub.resolves({
                 label: 'myGatewayC',
-                data: FabricGatewayRegistry.instance().get('myGatewayC')
+                data:  myGatewayC
             });
             getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
             enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
@@ -247,6 +249,7 @@ describe('AddWalletIdentityCommand', () => {
             result.should.equal('greenConga');
 
             inputBoxStub.should.have.been.calledTwice;
+            showGatewayQuickPickBoxStub.should.have.been.calledOnceWith('Choose a gateway to enroll the identity with', false, true, undefined, externalWallet.fromEnvironment);
 
             fsReadFile.should.have.been.calledOnce;
             getEnrollIdSecretStub.should.have.been.calledOnce;
@@ -289,6 +292,7 @@ describe('AddWalletIdentityCommand', () => {
             result.should.equal('greenConga');
 
             inputBoxStub.should.have.been.calledTwice;
+            showGatewayQuickPickBoxStub.should.have.been.calledOnceWith('Choose a gateway to enroll the identity with', false, true, undefined, externalWallet.fromEnvironment);
 
             fsReadFile.should.have.been.calledOnce;
             getEnrollIdSecretStub.should.have.been.calledOnce;
@@ -338,6 +342,7 @@ describe('AddWalletIdentityCommand', () => {
             should.not.exist(result);
 
             inputBoxStub.should.have.been.calledTwice;
+            showGatewayQuickPickBoxStub.should.have.been.calledOnceWith('Choose a gateway to enroll the identity with', false, true, undefined, externalWallet.fromEnvironment);
 
             showQuickPickCAStub.should.have.been.calledOnce;
             fsReadFile.should.have.been.calledOnce;
@@ -386,6 +391,7 @@ describe('AddWalletIdentityCommand', () => {
             result.should.equal('greenConga');
 
             inputBoxStub.should.have.been.calledTwice;
+            showGatewayQuickPickBoxStub.should.have.been.calledOnceWith('Choose a gateway to enroll the identity with', false, true, undefined, externalWallet.fromEnvironment);
 
             showQuickPickCAStub.should.have.been.calledOnce;
             fsReadFile.should.have.been.calledOnce;
@@ -405,6 +411,7 @@ describe('AddWalletIdentityCommand', () => {
             importIdentityStub.resetHistory();
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
+            showGatewayQuickPickBoxStub.should.not.have.been.called;
             inputBoxStub.should.not.have.been.called;
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
             sendTelemetryEventStub.should.not.have.been.called;
@@ -421,6 +428,7 @@ describe('AddWalletIdentityCommand', () => {
 
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
+            showGatewayQuickPickBoxStub.should.not.have.been.called;
             inputBoxStub.should.have.been.calledOnce;
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
             sendTelemetryEventStub.should.not.have.been.called;
@@ -439,6 +447,7 @@ describe('AddWalletIdentityCommand', () => {
 
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
+            showGatewayQuickPickBoxStub.should.not.have.been.called;
             inputBoxStub.should.have.been.calledTwice;
             addIdentityMethodStub.should.have.been.calledOnce;
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
@@ -457,6 +466,7 @@ describe('AddWalletIdentityCommand', () => {
 
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
+            showGatewayQuickPickBoxStub.should.not.have.been.called;
             inputBoxStub.should.have.been.calledTwice;
             addIdentityMethodStub.should.not.have.been.called;
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
@@ -476,6 +486,8 @@ describe('AddWalletIdentityCommand', () => {
 
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
+            showGatewayQuickPickBoxStub.should.have.been.calledOnceWith('Choose a gateway to enroll the identity with', false, true, undefined, externalWallet.fromEnvironment);
+
             inputBoxStub.should.have.been.calledTwice;
             getEnrollIdSecretStub.should.not.have.been.called;
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
@@ -500,6 +512,7 @@ describe('AddWalletIdentityCommand', () => {
 
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
+            showGatewayQuickPickBoxStub.should.have.been.calledOnceWith('Choose a gateway to enroll the identity with', false, true, undefined, externalWallet.fromEnvironment);
             inputBoxStub.should.have.been.calledTwice;
             fsReadFile.should.not.have.been.called;
             enrollStub.should.not.have.been.called;
@@ -614,6 +627,7 @@ describe('AddWalletIdentityCommand', () => {
             should.not.exist(result);
 
             inputBoxStub.should.have.been.calledTwice;
+            showGatewayQuickPickBoxStub.should.have.been.calledOnceWith('Choose a gateway to enroll the identity with', false, true, undefined, externalWallet.fromEnvironment);
             fsReadFile.should.have.been.calledOnce;
             getEnrollIdSecretStub.should.have.been.calledOnce;
             enrollStub.should.have.been.calledOnceWith('http://ca0url', 'enrollID', 'enrollSecret');
@@ -644,6 +658,7 @@ describe('AddWalletIdentityCommand', () => {
 
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
+            showGatewayQuickPickBoxStub.should.have.been.calledOnceWith('Choose a gateway to enroll the identity with', false, true, undefined, externalWallet.fromEnvironment);
             inputBoxStub.should.have.been.calledTwice;
             fsReadFile.should.not.have.been.called;
             enrollStub.should.not.have.been.called;
@@ -755,6 +770,7 @@ describe('AddWalletIdentityCommand', () => {
 
                 const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
                 result.should.equal('greenConga');
+                showGatewayQuickPickBoxStub.should.have.been.calledOnceWith('Choose a gateway to enroll the identity with', false, true, undefined, undefined);
                 showWalletsQuickPickStub.should.not.have.been.called;
                 inputBoxStub.should.have.been.calledTwice;
                 fsReadFile.should.have.been.called;
@@ -807,6 +823,7 @@ describe('AddWalletIdentityCommand', () => {
                 showGatewayQuickPickBoxStub.resolves({label: localGatewayEntry.displayName, data: localGatewayEntry});
                 const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
                 result.should.equal('greenConga');
+                showGatewayQuickPickBoxStub.should.have.been.calledOnceWith('Choose a gateway to enroll the identity with', false, true, undefined, FabricRuntimeUtil.LOCAL_FABRIC);
                 showOrgQuickPickStub.should.have.been.calledWith(`Select the organization which the identity belongs to`, localEnvironmentEntry);
                 showWalletsQuickPickStub.should.not.have.been.called;
                 inputBoxStub.should.have.been.calledOnce;
@@ -867,7 +884,7 @@ describe('AddWalletIdentityCommand', () => {
 
                 const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
                 result.should.equal('greenConga');
-
+                showGatewayQuickPickBoxStub.should.have.been.calledOnceWith('Choose a gateway to enroll the identity with', false, true, undefined, FabricRuntimeUtil.LOCAL_FABRIC);
                 showOrgQuickPickStub.should.have.been.calledWith(`Select the organization which the identity belongs to`, localEnvironmentEntry);
                 showWalletsQuickPickStub.should.not.have.been.called;
                 inputBoxStub.should.have.been.calledOnce;
@@ -976,7 +993,7 @@ describe('AddWalletIdentityCommand', () => {
                 importIdentityStub.resetHistory();
                 const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, emptyWalletRegistryEntry);
                 result.should.equal('greenConga');
-
+                showGatewayQuickPickBoxStub.should.have.been.calledOnceWith('Choose a gateway to enroll the identity with', false, true, undefined, undefined);
                 showWalletsQuickPickStub.should.not.have.been.called;
                 inputBoxStub.should.have.been.calledTwice;
                 fsReadFile.should.have.been.called;

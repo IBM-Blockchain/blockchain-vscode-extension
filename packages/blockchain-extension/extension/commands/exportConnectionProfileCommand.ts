@@ -37,7 +37,7 @@ export async function exportConnectionProfile(gatewayTreeItem: GatewayTreeItem, 
         gatewayEntry = connectedGateway;
 
     } else if (!gatewayTreeItem) {
-        const chosenGateway: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway to export a connection profile from', false, true, true) as IBlockchainQuickPickItem<FabricGatewayRegistryEntry>;
+        const chosenGateway: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway to export a connection profile from', false, true) as IBlockchainQuickPickItem<FabricGatewayRegistryEntry>;
         if (!chosenGateway) {
             return;
         }
