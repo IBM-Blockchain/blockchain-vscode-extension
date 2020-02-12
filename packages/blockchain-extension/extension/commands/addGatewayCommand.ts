@@ -13,11 +13,20 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import { UserInputUtil, IBlockchainQuickPickItem, IncludeEnvironmentOptions } from './UserInputUtil';
-import { Reporter } from '../util/Reporter';
-import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
-import { FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
+import {UserInputUtil, IBlockchainQuickPickItem, IncludeEnvironmentOptions} from './UserInputUtil';
+import {Reporter} from '../util/Reporter';
+import {VSCodeBlockchainOutputAdapter} from '../logging/VSCodeBlockchainOutputAdapter';
+import {FabricGatewayHelper} from '../fabric/FabricGatewayHelper';
+import {
+    FabricEnvironmentRegistryEntry,
+    FabricNode,
+    FabricNodeType,
+    FabricRuntimeUtil,
+    LogType,
+    FabricGatewayRegistry,
+    FabricGatewayRegistryEntry,
+    FabricEnvironmentRegistry
+} from 'ibm-blockchain-platform-common';
 
 export async function addGateway(): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -108,12 +117,13 @@ async function createGatewayFromEnvironment(gatewayName: string, environmentRegi
 
     const peerNode: FabricNode = chosenOrg.data;
 
+    const connectionProfilePath: string = await FabricGatewayHelper.generateConnectionProfile(gatewayName, peerNode, caNode);
+
     const fabricGatewayEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
     fabricGatewayEntry.name = gatewayName;
     fabricGatewayEntry.associatedWallet = peerNode.wallet;
-
-    const connectionProfilePath: string = await FabricGatewayHelper.generateConnectionProfile(gatewayName, peerNode, caNode);
     fabricGatewayEntry.connectionProfilePath = connectionProfilePath;
+    fabricGatewayEntry.fromEnvironment = environmentRegistryEntry.name;
 
     const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     await fabricGatewayRegistry.add(fabricGatewayEntry);
@@ -141,6 +151,7 @@ async function createGatewayFromCCP(gatewayName: string): Promise<FabricGatewayR
     const fabricGatewayEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
     fabricGatewayEntry.name = gatewayName;
     fabricGatewayEntry.associatedWallet = '';
+    fabricGatewayEntry.connectionProfilePath = connectionProfilePath;
 
     const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     await fabricGatewayRegistry.add(fabricGatewayEntry);

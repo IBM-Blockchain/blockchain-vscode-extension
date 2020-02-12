@@ -22,7 +22,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { UserInputUtilHelper } from './userInputUtilHelper';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { IFabricWallet, IFabricWalletGenerator, FabricIdentity, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletGeneratorFactory, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { IFabricWallet, IFabricWalletGenerator, FabricIdentity, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletGeneratorFactory, FabricGatewayRegistryEntry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
@@ -100,7 +100,7 @@ export class WalletAndIdentityHelper {
             this.userInputUtilHelper.showAddWalletOptionsQuickPickStub.resolves(UserInputUtil.WALLET_NEW_ID);
             this.userInputUtilHelper.inputBoxStub.withArgs('Enter a name for the wallet').resolves(name);
 
-            this.setIdentityStubs(method, identityName, mspid);
+            await this.setIdentityStubs(method, identityName, mspid);
             await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
         } else {
             const walletEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(name);
@@ -117,12 +117,12 @@ export class WalletAndIdentityHelper {
     }
 
     public async createIdentity(walletName: string, identityName: string, mspid: string, method: string): Promise<void> {
-        this.setIdentityStubs(method, identityName, mspid);
+        await this.setIdentityStubs(method, identityName, mspid);
         const wallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletName);
         await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, wallet);
     }
 
-    private setIdentityStubs(method: string, identityName: string, mspid: string): void {
+    private async setIdentityStubs(method: string, identityName: string, mspid: string): Promise<void> {
         this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(identityName);
         this.userInputUtilHelper.inputBoxStub.withArgs('Enter MSPID').resolves(mspid);
 
@@ -136,8 +136,7 @@ export class WalletAndIdentityHelper {
         } else {
             // use enroll id and secret
             this.userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
-            const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-            gatewayRegistryEntry.name = 'myGateway';
+            const gatewayRegistryEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGateway');
 
             this.userInputUtilHelper.showGatewayQuickPickStub.resolves({ data: gatewayRegistryEntry });
             this.userInputUtilHelper.getEnrollIdSecretStub.resolves({ enrollmentID: 'admin', enrollmentSecret: 'adminpw' });

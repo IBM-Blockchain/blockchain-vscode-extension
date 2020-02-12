@@ -16,6 +16,7 @@ import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import * as path from 'path';
 import { TestUtil } from '../TestUtil';
 import { FabricGatewayRegistryEntry, FabricGatewayRegistry, FileRegistry } from 'ibm-blockchain-platform-common';
 import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
@@ -141,7 +142,8 @@ describe('SubscribeToEventCommand', () => {
 
             gatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGateway',
-                associatedWallet: ''
+                associatedWallet: '',
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json')
             });
             getGatewayRegistryStub = mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry');
             getGatewayRegistryStub.resolves(gatewayRegistryEntry);

@@ -23,23 +23,7 @@ import { FabricNode, FileConfigurations, FileSystemUtil, FabricGatewayRegistryEn
 export class FabricGatewayHelper {
 
     public static async getConnectionProfilePath(gatewayRegistryEntry: FabricGatewayRegistryEntry): Promise<string> {
-
-        if (gatewayRegistryEntry.connectionProfilePath) {
-            return gatewayRegistryEntry.connectionProfilePath;
-        } else {
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
-            const profileDirPath: string = path.join(homeExtDir, 'gateways', gatewayRegistryEntry.name);
-
-            let files: string[] = await fs.readdir(profileDirPath);
-            files = files.filter((fileName: string) => !fileName.startsWith('.'));
-
-            if (files.length === 0) {
-                throw new Error(`Failed to find a connection profile file in folder ${profileDirPath}`);
-            }
-
-            return path.join(profileDirPath, files[0]);
-        }
+        return gatewayRegistryEntry.connectionProfilePath;
     }
 
     public static async generateConnectionProfile(gatewayName: string, peerNode: FabricNode, caNode: FabricNode): Promise<string> {

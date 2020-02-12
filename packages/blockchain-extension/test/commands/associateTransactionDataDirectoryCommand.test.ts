@@ -146,7 +146,8 @@ describe('AssociateTestDataDirectoryCommand', () => {
 
             gatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGateway',
-                associatedWallet: ''
+                associatedWallet: '',
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
             });
             getGatewayRegistryStub = mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry');
             getGatewayRegistryStub.resolves(gatewayRegistryEntry);

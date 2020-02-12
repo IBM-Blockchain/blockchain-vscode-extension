@@ -251,7 +251,8 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
             const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`, new FabricGatewayRegistryEntry({
                 name: FabricRuntimeUtil.LOCAL_FABRIC,
                 associatedWallet: 'Org1',
-                fromEnvironment: FabricRuntimeUtil.LOCAL_FABRIC
+                fromEnvironment: FabricRuntimeUtil.LOCAL_FABRIC,
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json')
             }), vscode.TreeItemCollapsibleState.None, localRuntime);
             sandbox.stub(treeItem, 'refresh').throws(new Error('such error'));
             const logSpy: sinon.SinonSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');

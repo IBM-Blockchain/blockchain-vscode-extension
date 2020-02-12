@@ -52,16 +52,17 @@ describe('FabricGatewayRegistry', () => {
     it('should get all the gateways and put local fabrics first', async () => {
         const gatewayOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
             name: 'gatewayOne',
-            associatedWallet: ''
+            associatedWallet: '',
+            connectionProfilePath: path.join('myPath', 'connection.json')
         });
 
         await registry.getAll().should.eventually.deep.equal([]);
 
-        await FabricEnvironmentRegistry.instance().add({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: '', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1, managedRuntime: true});
-        await FabricEnvironmentRegistry.instance().add({name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, environmentDirectory : '', numberOfOrgs: 1});
+        await FabricEnvironmentRegistry.instance().add({ name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: '', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1, managedRuntime: true });
+        await FabricEnvironmentRegistry.instance().add({ name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, environmentDirectory: '', numberOfOrgs: 1 });
 
-        const localFabricEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: FabricRuntimeUtil.LOCAL_FABRIC, fromEnvironment: FabricRuntimeUtil.LOCAL_FABRIC, associatedWallet: 'Org1', displayName: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1` });
-        const otherLocalEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'otherLocal', fromEnvironment: 'otherLocalEnv', associatedWallet: 'Org1', displayName: `otherLocal - Org1` });
+        const localFabricEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: FabricRuntimeUtil.LOCAL_FABRIC, fromEnvironment: FabricRuntimeUtil.LOCAL_FABRIC, associatedWallet: 'Org1', displayName: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`, connectionProfilePath: path.join('localFabric', 'connection.json') });
+        const otherLocalEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'otherLocal', fromEnvironment: 'otherLocalEnv', associatedWallet: 'Org1', displayName: `otherLocal - Org1`, connectionProfilePath: path.join('localFabric', 'connection.json') });
 
         await registry.add(gatewayOne);
         await registry.add(localFabricEntry);
@@ -74,16 +75,17 @@ describe('FabricGatewayRegistry', () => {
     it('should get all gateways but not show local fabric', async () => {
         const gatewayOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
             name: 'gatewayOne',
-            associatedWallet: ''
+            associatedWallet: '',
+            connectionProfilePath: path.join('myPath', 'connection.json')
         });
 
         await registry.getAll().should.eventually.deep.equal([]);
 
-        await FabricEnvironmentRegistry.instance().add({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: '', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true});
-        await FabricEnvironmentRegistry.instance().add({name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, environmentDirectory : ''});
+        await FabricEnvironmentRegistry.instance().add({ name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: '', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true });
+        await FabricEnvironmentRegistry.instance().add({ name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, environmentDirectory: '' });
 
-        const localFabricEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: FabricRuntimeUtil.LOCAL_FABRIC, fromEnvironment: FabricRuntimeUtil.LOCAL_FABRIC, associatedWallet: 'Org1', displayName: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1` });
-        const otherLocalEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'otherLocal', fromEnvironment: 'otherLocalEnv', associatedWallet: 'Org1', displayName: `otherLocal - Org1` });
+        const localFabricEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: FabricRuntimeUtil.LOCAL_FABRIC, fromEnvironment: FabricRuntimeUtil.LOCAL_FABRIC, associatedWallet: 'Org1', displayName: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`, connectionProfilePath: path.join('localFabric', 'connection.json') });
+        const otherLocalEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'otherLocal', fromEnvironment: 'otherLocalEnv', associatedWallet: 'Org1', displayName: `otherLocal - Org1`, connectionProfilePath: path.join('localFabric', 'connection.json') });
 
         await registry.add(gatewayOne);
         await registry.add(localFabricEntry);
@@ -94,7 +96,8 @@ describe('FabricGatewayRegistry', () => {
     it('should get all including environments ones', async () => {
         const gatewayOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
             name: 'gatewayOne',
-            associatedWallet: ''
+            associatedWallet: '',
+            connectionProfilePath: path.join('myPath', 'connection.json')
         });
 
         await registry.getAll().should.eventually.deep.equal([]);
@@ -117,18 +120,19 @@ describe('FabricGatewayRegistry', () => {
     it('should update an unmanaged gateway', async () => {
         const gatewayOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
             name: 'gatewayOne',
-            associatedWallet: ''
+            associatedWallet: '',
+            connectionProfilePath: path.join('localFabric', 'connection.json')
         });
 
         await registry.getAll().should.eventually.deep.equal([]);
 
         await registry.add(gatewayOne);
 
-        const transactionDataDirectories: Array<{chaincodeName: string, channelName: string, transactionDataPath: string}> = [{
+        const transactionDataDirectories: Array<{ chaincodeName: string, channelName: string, transactionDataPath: string }> = [{
             chaincodeName: 'mySmartContract',
             channelName: 'myChannel',
             transactionDataPath: 'my/transaction/data/path'
-        }] ;
+        }];
 
         gatewayOne.transactionDataDirectories = transactionDataDirectories;
 
@@ -142,7 +146,8 @@ describe('FabricGatewayRegistry', () => {
 
         const gatewayOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
             name: 'gatewayOne',
-            associatedWallet: ''
+            associatedWallet: '',
+            connectionProfilePath: path.join('localFabric', 'connection.json')
         });
 
         await registry.getAll().should.eventually.deep.equal([]);

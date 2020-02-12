@@ -102,7 +102,8 @@ describe('Extension Tests', () => {
 
             const gateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGateway',
-                associatedWallet: ''
+                associatedWallet: '',
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json')
             });
 
             await FabricGatewayRegistry.instance().add(gateway);

@@ -41,44 +41,10 @@ describe('FabricGatewayHelper', () => {
     });
 
     describe('getConnectionProfilePath', () => {
-        it('should get the connection profile path', async () => {
-            mySandBox.stub(fs, 'readdir').resolves(['.', '..', '.bob.json', 'connection.json']);
-
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
-            const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
-
-            const result: string = await FabricGatewayHelper.getConnectionProfilePath(new FabricGatewayRegistryEntry({name: 'myGateway', associatedWallet: ''}));
-
-            result.should.equal(path.join(profileDirPath, 'connection.json'));
-        });
-
-        it('should get the connection profile path yml file', async () => {
-            mySandBox.stub(fs, 'readdir').resolves(['.', '..', '.bob.json', 'connection.yml']);
-
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
-            const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
-
-            const result: string = await FabricGatewayHelper.getConnectionProfilePath(new FabricGatewayRegistryEntry({name: 'myGateway', associatedWallet: ''}));
-
-            result.should.equal(path.join(profileDirPath, 'connection.yml'));
-        });
-
-        it('should get the connection profile from the registry entry if set', async () => {
-            const result: string = await FabricGatewayHelper.getConnectionProfilePath(new FabricGatewayRegistryEntry({name: 'myGateway', associatedWallet: '', connectionProfilePath: path.join('myPath', 'connection.json')}));
+        it('should get the connection profile from the registry entry', async () => {
+            const result: string = await FabricGatewayHelper.getConnectionProfilePath(new FabricGatewayRegistryEntry({ name: 'myGateway', associatedWallet: '', connectionProfilePath: path.join('myPath', 'connection.json') }));
 
             result.should.equal(path.join('myPath', 'connection.json'));
-        });
-
-        it('should throw an error if no files found', async () => {
-            mySandBox.stub(fs, 'readdir').resolves(['.', '..', '.bob.json']);
-
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
-            const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
-
-            await FabricGatewayHelper.getConnectionProfilePath(new FabricGatewayRegistryEntry({name: 'myGateway', associatedWallet: ''})).should.eventually.be.rejectedWith(`Failed to find a connection profile file in folder ${profileDirPath}`);
         });
     });
 
