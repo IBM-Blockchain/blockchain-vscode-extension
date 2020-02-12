@@ -107,8 +107,8 @@ let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
 let blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider;
 let blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider;
 
-export const FABRIC_CLIENT_VERSION: string = '1.4.4';
-export const FABRIC_NETWORK_VERSION: string = '1.4.4';
+export const FABRIC_CLIENT_VERSION: string = '1.4.5';
+export const FABRIC_NETWORK_VERSION: string = '1.4.5';
 export const EXTENSION_ID: string = 'IBMBlockchain.ibm-blockchain-platform';
 
 // tslint:disable-next-line: max-classes-per-file
