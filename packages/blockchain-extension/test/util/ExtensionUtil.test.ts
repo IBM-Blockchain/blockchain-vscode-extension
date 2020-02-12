@@ -41,6 +41,7 @@ import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistr
 import { RepositoryRegistryEntry } from '../../extension/registries/RepositoryRegistryEntry';
 import * as openTransactionViewCommand from '../../extension/commands/openTransactionViewCommand';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
+import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -1051,6 +1052,7 @@ describe('ExtensionUtil Tests', () => {
         let executeStoredCommandsStub: sinon.SinonStub;
         let logSpy: sinon.SinonSpy;
         let getExtensionLocalFabricSettingStub: sinon.SinonStub;
+        let fabricConnectionFactorySpy: sinon.SinonSpy;
 
         beforeEach(() => {
             hasNativeDependenciesInstalledStub = mySandBox.stub(DependencyManager.instance(), 'hasNativeDependenciesInstalled');
@@ -1065,6 +1067,7 @@ describe('ExtensionUtil Tests', () => {
             executeStoredCommandsStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'executeStoredCommands');
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             getExtensionLocalFabricSettingStub = mySandBox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting');
+            fabricConnectionFactorySpy = mySandBox.spy(FabricConnectionFactory, 'createFabricWallet');
         });
 
         it('should install native dependencies if not installed', async () => {
@@ -1099,6 +1102,7 @@ describe('ExtensionUtil Tests', () => {
             getExtensionContextStub.should.have.been.calledOnce;
             registerCommandsStub.should.have.been.calledOnceWithExactly({ hello: 'world' });
             executeStoredCommandsStub.should.have.been.calledOnce;
+            fabricConnectionFactorySpy.should.have.been.called;
         });
 
         it(`shouldn't install native dependencies if they are already installed`, async () => {
@@ -1133,6 +1137,7 @@ describe('ExtensionUtil Tests', () => {
             getExtensionContextStub.should.have.been.calledOnce;
             registerCommandsStub.should.have.been.calledOnceWithExactly({ hello: 'world' });
             executeStoredCommandsStub.should.have.been.calledOnce;
+            fabricConnectionFactorySpy.should.have.been.called;
         });
 
         it(`should rewrite the package.json file if ther native dependencies are installed but there are no activation events`, async () => {
@@ -1167,6 +1172,7 @@ describe('ExtensionUtil Tests', () => {
             getExtensionContextStub.should.have.been.calledOnce;
             registerCommandsStub.should.have.been.calledOnceWithExactly({ hello: 'world' });
             executeStoredCommandsStub.should.have.been.calledOnce;
+            fabricConnectionFactorySpy.should.have.been.called;
         });
 
         it(`should delete local registry entries if not enabled`, async () => {
@@ -1207,6 +1213,7 @@ describe('ExtensionUtil Tests', () => {
             getExtensionContextStub.should.have.been.calledOnce;
             registerCommandsStub.should.have.been.calledOnceWithExactly({ hello: 'world' });
             executeStoredCommandsStub.should.have.been.calledOnce;
+            fabricConnectionFactorySpy.should.have.been.called;
 
             deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
         });
