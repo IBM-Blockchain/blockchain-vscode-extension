@@ -23,7 +23,6 @@ import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDe
 import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, FabricEnvironmentRegistry, EnvironmentType, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { GlobalState } from '../../extension/util/GlobalState';
 import { TestUtil } from '../TestUtil';
 import { SettingConfigurations } from '../../configurations';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
@@ -77,7 +76,6 @@ describe('FabricDebugConfigurationProvider', () => {
         let getConnectionStub: sinon.SinonStub;
         let startDebuggingStub: sinon.SinonStub;
         let logSpy: sinon.SinonSpy;
-        let generatorVersionStub: sinon.SinonStub;
         let getEnvironmentRegistryStub: sinon.SinonStub;
         let environmentRegistry: FabricEnvironmentRegistryEntry;
         let getName: sinon.SinonStub;
@@ -140,10 +138,6 @@ describe('FabricDebugConfigurationProvider', () => {
 
             startDebuggingStub = mySandbox.stub(vscode.debug, 'startDebugging');
             logSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-
-            generatorVersionStub = mySandbox.stub(GlobalState, 'get').returns({
-                generatorVersion: '0.0.36'
-            });
 
             const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
             showQuickPickItemStub = mySandbox.stub(UserInputUtil, 'showQuickPickItem').resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment});
@@ -382,40 +376,6 @@ describe('FabricDebugConfigurationProvider', () => {
             should.not.exist(config);
             const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
             showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            commandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistry);
-        });
-
-        it('should give an error if generator version is too old', async () => {
-            generatorVersionStub.returns({
-                globalState: {
-                    get: mySandbox.stub().returns({
-                        generatorVersion: '0.0.34'
-                    })
-                }
-            });
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            should.equal(config, undefined);
-            showQuickPickItemStub.should.not.have.been.called;
-            startDebuggingStub.should.not.have.been.called;
-            commandStub.should.not.have.been.calledWith('setContext', 'blockchain-debug', true);
-            logSpy.should.have.been.calledWith(LogType.ERROR, `To debug a smart contract, you must update the local runtimes. Teardown all local runtimes, start the runtime to debug, and try again.`);
-        });
-
-        it('should give an error if generator version is unknown', async () => {
-            generatorVersionStub.returns({
-                globalState: {
-                    get: mySandbox.stub().returns({
-                        generatorVersion: undefined
-                    })
-                }
-            });
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            should.equal(config, undefined);
-            showQuickPickItemStub.should.not.have.been.called;
-            startDebuggingStub.should.not.have.been.called;
-            commandStub.should.not.have.been.calledWith('setContext', 'blockchain-debug', true);
-            logSpy.should.have.been.calledWith(LogType.ERROR, `To debug a smart contract, you must update the local runtimes. Teardown all local runtimes, start the runtime to debug, and try again.`);
         });
 
         it('should not run if the chaincode name is not provided', async () => {

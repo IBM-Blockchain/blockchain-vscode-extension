@@ -314,6 +314,7 @@ describe('InstantiateCommand', () => {
         });
 
         it(`should handle any errors parsing the chaincode EP`, async () => {
+            executeCommandStub.resetHistory();
             showYesNo.resolves(UserInputUtil.NO);
             showQuickPick.resolves(UserInputUtil.CUSTOM);
             browseStub.withArgs('Browse for the JSON file containing the smart contract endorsement policy', UserInputUtil.BROWSE_LABEL, openDialogOptions, true).resolves(vscode.Uri.file('myPath'));
