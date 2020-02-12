@@ -138,7 +138,8 @@ describe('AddEnvironmentCommand', () => {
             environments.length.should.equal(1);
             environments[0].should.deep.equal({
                 name: 'myOpsToolsEnvironment',
-                url: url
+                url: url,
+                environmentType: EnvironmentType.OPS_TOOLS_ENVIRONMENT
             });
 
             fsCopyStub.should.have.been.calledOnce;

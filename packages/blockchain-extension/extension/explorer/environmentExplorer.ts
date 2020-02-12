@@ -121,7 +121,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
                 await vscode.commands.executeCommand('setContext', 'blockchain-ansible-connected', true);
             } else {
-                if (environmentRegistryEntry.url) {
+                if (environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT) {
                     if (FabricEnvironmentManager.instance().getState() === ConnectedState.CONNECTED) {
                         await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
                         if (FabricEnvironmentManager.instance().getState() !== ConnectedState.DISCONNECTED) {
@@ -341,7 +341,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
             if (environmentEntry.name !== FabricRuntimeUtil.LOCAL_FABRIC) {
 
-                if (environmentEntry.url) {
+                if (environmentEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT) {
                     tree.push(new EditFiltersTreeItem(this, {
                         command: ExtensionCommands.EDIT_NODE_FILTERS,
                         title: '',

@@ -23,7 +23,7 @@ import {TestUtil} from '../TestUtil';
 import { UserInputUtil, IncludeEnvironmentOptions } from '../../extension/commands/UserInputUtil';
 import {VSCodeBlockchainOutputAdapter} from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import {ExtensionCommands} from '../../ExtensionCommands';
-import {FabricEnvironmentRegistryEntry, LogType, FabricEnvironment, FabricNode} from 'ibm-blockchain-platform-common';
+import {FabricEnvironmentRegistryEntry, LogType, FabricEnvironment, FabricNode, EnvironmentType} from 'ibm-blockchain-platform-common';
 import {FabricEnvironmentManager} from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { ModuleUtil } from '../../extension/util/ModuleUtil';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
@@ -122,6 +122,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             OpsToolRegistryEntry.name = 'myOpsToolInstance';
             OpsToolRegistryEntry.url = url;
             OpsToolRegistryEntry.managedRuntime = false;
+            OpsToolRegistryEntry.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
             opsToolNodes = [
                 {
                     short_name: 'peer0.org1.example.com',
