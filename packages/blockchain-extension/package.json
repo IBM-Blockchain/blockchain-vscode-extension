@@ -1236,6 +1236,20 @@
                     }
                 ]
             }
+        ],
+        "jsonValidation": [
+            {
+                "fileMatch": "*.txdata",
+                "url": "./txdata.schema.json"
+            }
+        ],
+        "languages": [
+            {
+                "id": "json",
+                "extensions": [
+                    ".txdata"
+                ]
+            }
         ]
     },
     "scripts": {
