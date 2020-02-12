@@ -89,12 +89,10 @@ import { GlobalState, ExtensionData } from './GlobalState';
 import { TemporaryCommandRegistry } from '../dependencies/TemporaryCommandRegistry';
 import { version as currentExtensionVersion, dependencies } from '../../package.json';
 import { UserInputUtil } from '../commands/UserInputUtil';
-import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FileRegistry, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricWalletUtil, EnvironmentType, FileConfigurations, FileSystemUtil } from 'ibm-blockchain-platform-common';
+import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FileRegistry, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, EnvironmentType, FileConfigurations, FileSystemUtil, FabricWalletUtil } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 import { importNodesToEnvironment } from '../commands/importNodesToEnvironmentCommand';
 import { deleteNode } from '../commands/deleteNodeCommand';
-import { RepositoryRegistryEntry } from '../registries/RepositoryRegistryEntry';
-import { RepositoryRegistry } from '../registries/RepositoryRegistry';
 import { openTransactionView } from '../commands/openTransactionViewCommand';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
@@ -154,84 +152,6 @@ export class ExtensionUtil {
         } catch (error) {
             throw new Error('error reading package.json from project ' + error.message);
         }
-    }
-
-    // Migrate user setting configurations
-    public static async migrateSettingConfigurations(): Promise<any> {
-        // No need to handle migrating 'fabric.runtime' to the new configuration as this is handled in LocalEnvironmentManager
-
-        // Migrate Fabric gateways
-        const oldGateways: any = vscode.workspace.getConfiguration().get('fabric.gateways');
-        if (oldGateways !== undefined) {
-            const newGateways: any = vscode.workspace.getConfiguration().get(SettingConfigurations.OLD_FABRIC_GATEWAYS);
-            if (oldGateways && newGateways.length === 0) {
-                await vscode.workspace.getConfiguration().update(SettingConfigurations.OLD_FABRIC_GATEWAYS, oldGateways, vscode.ConfigurationTarget.Global);
-            }
-        }
-
-        // Migrate Fabric wallets
-        const oldWallets: any = vscode.workspace.getConfiguration().get('fabric.wallets');
-        if (oldWallets !== undefined) {
-            const newWallets: any = vscode.workspace.getConfiguration().get(SettingConfigurations.OLD_FABRIC_WALLETS);
-            if (oldWallets && newWallets.length === 0) {
-                await vscode.workspace.getConfiguration().update(SettingConfigurations.OLD_FABRIC_WALLETS, oldWallets, vscode.ConfigurationTarget.Global);
-            }
-        }
-
-        // Migrate extension repositories
-        const oldRepositories: any = vscode.workspace.getConfiguration().get('blockchain.repositories');
-        if (oldRepositories !== undefined) {
-            const newRepositories: any = vscode.workspace.getConfiguration().get(SettingConfigurations.OLD_EXTENSION_REPOSITORIES);
-            if (oldRepositories && newRepositories.length === 0) {
-                await vscode.workspace.getConfiguration().update(SettingConfigurations.OLD_EXTENSION_REPOSITORIES, oldRepositories, vscode.ConfigurationTarget.Global);
-            }
-        }
-
-        // Migrate extension directory
-        const oldDirectory: any = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
-        if (oldDirectory !== undefined) {
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, oldDirectory, vscode.ConfigurationTarget.Global);
-        }
-    }
-
-    public static async migrateEnvironments(): Promise<void> {
-        const oldEnvironments: FabricEnvironmentRegistryEntry[] = vscode.workspace.getConfiguration().get(SettingConfigurations.OLD_ENVIRONMENTS);
-
-        for (const environment of oldEnvironments) {
-            const entry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
-                name: environment.name
-            });
-
-            const exists: boolean = await FabricEnvironmentRegistry.instance().exists(environment.name);
-
-            if (!exists) {
-                await FabricEnvironmentRegistry.instance().add(entry);
-            }
-        }
-
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.OLD_ENVIRONMENTS, [], vscode.ConfigurationTarget.Global);
-    }
-
-    public static async migrateRepositories(): Promise<void> {
-        const oldRepositories: RepositoryRegistryEntry[] = vscode.workspace.getConfiguration().get(SettingConfigurations.OLD_EXTENSION_REPOSITORIES);
-
-        for (const repository of oldRepositories) {
-            // need to do this otherwise it creates the wrong dir structure
-            const info: string[] = repository.name.split('/');
-
-            const entry: RepositoryRegistryEntry = new RepositoryRegistryEntry({
-                name: info[1],
-                path: repository.path
-            });
-
-            const exists: boolean = await RepositoryRegistry.instance().exists(entry.name);
-
-            if (!exists) {
-                await RepositoryRegistry.instance().add(entry);
-            }
-        }
-
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.OLD_EXTENSION_REPOSITORIES, [], vscode.ConfigurationTarget.Global);
     }
 
     public static skipNpmInstall(): boolean {
@@ -349,9 +269,6 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE, async (treeItem: InstantiatedTreeItem) => {
             await openTransactionView(treeItem);
         }));
-
-        // Teardown old containers and delete environments, wallets, gateways.
-        await this.purgeOldRuntimes();
 
         const goDebugProvider: FabricGoDebugConfigurationProvider = new FabricGoDebugConfigurationProvider();
         const javaDebugProvider: FabricJavaDebugConfigurationProvider = new FabricJavaDebugConfigurationProvider();
@@ -580,10 +497,8 @@ export class ExtensionUtil {
         return context;
     }
 
-    public static async setupLocalRuntime(version: string): Promise<void> {
+    public static async setupLocalRuntime(): Promise<void> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-        outputAdapter.log(LogType.INFO, undefined, 'Migrating local runtime manager');
-        await LocalEnvironmentManager.instance().migrate(version);
 
         outputAdapter.log(LogType.INFO, undefined, 'Initializing local runtime manager');
         await LocalEnvironmentManager.instance().initialize(FabricRuntimeUtil.LOCAL_FABRIC, 1);
@@ -617,7 +532,7 @@ export class ExtensionUtil {
 
         if (localFabricEnabled) {
             if (extensionData.createOneOrgLocalFabric) {
-                await ExtensionUtil.setupLocalRuntime(extensionData.version);
+                await ExtensionUtil.setupLocalRuntime();
                 extensionData.createOneOrgLocalFabric = false;
                 await GlobalState.update(extensionData);
             }
