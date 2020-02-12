@@ -290,7 +290,7 @@ describe('UpgradeCommand', () => {
         it(`should be able to pass a chaincode EP`, async () => {
             showYesNo.resolves(UserInputUtil.NO);
             showQuickPick.resolves(UserInputUtil.CUSTOM);
-            browseStub.withArgs('Browse for the JSON file containing the smart contract endorsement policy', [UserInputUtil.BROWSE_LABEL], openDialogOptions, true).resolves(vscode.Uri.file('myPath'));
+            browseStub.withArgs('Browse for the JSON file containing the smart contract endorsement policy', UserInputUtil.BROWSE_LABEL, openDialogOptions, true).resolves(vscode.Uri.file('myPath'));
             const readFileStub: sinon.SinonStub = mySandBox.stub(fs, 'readFile').resolves(policyString);
             executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
@@ -309,7 +309,7 @@ describe('UpgradeCommand', () => {
         it(`should handle any errors parsing the chaincode EP`, async () => {
             showYesNo.resolves(UserInputUtil.NO);
             showQuickPick.resolves(UserInputUtil.CUSTOM);
-            browseStub.withArgs('Browse for the JSON file containing the smart contract endorsement policy', [UserInputUtil.BROWSE_LABEL], openDialogOptions, true).resolves(vscode.Uri.file('myPath'));
+            browseStub.withArgs('Browse for the JSON file containing the smart contract endorsement policy', UserInputUtil.BROWSE_LABEL, openDialogOptions, true).resolves(vscode.Uri.file('myPath'));
             const readFileStub: sinon.SinonStub = mySandBox.stub(fs, 'readFile').resolves(`{invalidJSON}`);
             executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
