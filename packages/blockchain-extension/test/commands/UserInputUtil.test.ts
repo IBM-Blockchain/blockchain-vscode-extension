@@ -2729,6 +2729,7 @@ describe('UserInputUtil', () => {
         let nodesPickWithCurrent: IBlockchainQuickPickItem<FabricNode>[];
         let sortNodesForQuickpickStub: sinon.SinonStub;
         let changeDetectedWarningMessage: sinon.SinonStub;
+        let stopRefreshStub: sinon.SinonStub;
 
         beforeEach(() => {
             peerNode = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grps://somehost:7051', 'cake_fabric_wallet', 'admin', 'Org1MSP', true);
@@ -2746,12 +2747,15 @@ describe('UserInputUtil', () => {
             sortNodesForQuickpickStub = mySandBox.stub(UserInputUtil, 'sortNodesForQuickpick').returnsArg(0);
             changeDetectedWarningMessage = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').withArgs('Differences have been detected between the local environment and the Ops Tools environment. Would you like to filter nodes?');
             changeDetectedWarningMessage.resolves(false);
+
+            stopRefreshStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'stopEnvironmentRefresh');
         });
 
         it('should throw an error if no nodes in Ops Tool', async () => {
             nodes = [];
 
             await UserInputUtil.showNodesQuickPickBox('choose your nodes', nodes, true).should.eventually.be.rejectedWith('Error when importing nodes, no nodes found to choose from.') as IBlockchainQuickPickItem<FabricNode>[];
+            stopRefreshStub.should.not.have.been.called;
         });
 
         it('should allow the user to choose multiple nodes from Ops Tool', async () => {
@@ -2762,6 +2766,7 @@ describe('UserInputUtil', () => {
             result.should.deep.equal([nodesPickWithoutCurrent[0], nodesPickWithoutCurrent[1]]);
             quickPickStub.should.have.been.calledWith(nodesPickWithoutCurrent);
             sortNodesForQuickpickStub.should.have.been.called;
+            stopRefreshStub.should.not.have.been.called;
         });
 
         it('should still show quickpick if only one node present in Ops Tool', async () => {
@@ -2774,6 +2779,7 @@ describe('UserInputUtil', () => {
             result.should.deep.equal([nodesPickWithoutCurrent[0]]);
             quickPickStub.should.have.been.calledWith([nodesPickWithoutCurrent[0]]);
             sortNodesForQuickpickStub.should.have.been.called;
+            stopRefreshStub.should.not.have.been.called;
         });
 
         it('should show description "(new)" when a new node is present from Ops Tool', async () => {
@@ -2788,6 +2794,7 @@ describe('UserInputUtil', () => {
             result.should.deep.equal([nodesPickWithCurrent[0], nodesPickWithCurrent[2]]);
             quickPickStub.should.have.been.calledWith(nodesPickWithCurrent);
             sortNodesForQuickpickStub.should.have.been.called;
+            stopRefreshStub.should.not.have.been.called;
         });
 
         it('should show description "(was <oldName>)" when a node has a different name from Ops Tool', async () => {
@@ -2804,6 +2811,7 @@ describe('UserInputUtil', () => {
             result.should.deep.equal([nodesPickWithCurrent[0], nodesPickWithCurrent[2]]);
             quickPickStub.should.have.been.calledWith(nodesPickWithCurrent);
             sortNodesForQuickpickStub.should.have.been.called;
+            stopRefreshStub.should.not.have.been.called;
         });
 
         it('should not ask user if she wants to edit filters when informOfChanges is true and there are no changes when connecting to Ops Tool', async () => {
@@ -2813,6 +2821,7 @@ describe('UserInputUtil', () => {
             quickPickStub.should.have.been.not.been.called;
             sortNodesForQuickpickStub.should.have.not.been.called;
             changeDetectedWarningMessage.should.have.not.been.called;
+            stopRefreshStub.should.not.have.been.called;
         });
 
         it('should ask user if she wants to edit filters when informOfChanges is true and changes are detected when connecting to Ops Tool', async () => {
@@ -2827,6 +2836,7 @@ describe('UserInputUtil', () => {
             quickPickStub.should.have.been.not.been.called;
             sortNodesForQuickpickStub.should.have.not.been.called;
             changeDetectedWarningMessage.should.have.been.called;
+            stopRefreshStub.should.have.been.called;
         });
 
         it('should edit filters if user choses to do so when informOfChanges is true and changes are detected when connecting to Ops Tool', async () => {
@@ -2843,6 +2853,7 @@ describe('UserInputUtil', () => {
             quickPickStub.should.have.been.calledWith(nodesPickWithCurrent);
             sortNodesForQuickpickStub.should.have.been.called;
             changeDetectedWarningMessage.should.have.been.called;
+            stopRefreshStub.should.have.been.called;
         });
     });
 

@@ -642,6 +642,7 @@ describe('environmentExplorer', () => {
                 const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
                 environmentRegistry.name = 'myEnvironment';
                 environmentRegistry.url = 'someURL';
+                environmentRegistry.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
 
                 const connectCommandStub: sinon.SinonStub = executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistry).resolves();
                 environmentStub.returns(environmentRegistry);
@@ -1080,6 +1081,7 @@ describe('environmentExplorer', () => {
             registryEntryOpsTools.name = 'myOpsToolsFabric';
             registryEntryOpsTools.managedRuntime = false;
             registryEntryOpsTools.url = '/some/url:port';
+            registryEntryOpsTools.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
             getEnvRegEntryStub.returns(registryEntryOpsTools);
 
             const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -1105,6 +1107,7 @@ describe('environmentExplorer', () => {
             registryEntryOpsTools.name = 'myOpsToolsFabric';
             registryEntryOpsTools.managedRuntime = false;
             registryEntryOpsTools.url = '/some/url:port';
+            registryEntryOpsTools.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
             getEnvRegEntryStub.returns(registryEntryOpsTools);
 
             const getAllStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([registryEntry, registryEntryOpsTools]);

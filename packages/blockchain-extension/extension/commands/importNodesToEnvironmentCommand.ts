@@ -19,13 +19,7 @@ import * as fs from 'fs-extra';
 import * as https from 'https';
 import * as path from 'path';
 import {SettingConfigurations} from '../../configurations';
-import {
-    FabricEnvironmentRegistryEntry,
-    FabricNode,
-    LogType,
-    FabricEnvironment,
-    FileSystemUtil
-} from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricNode, LogType, FabricEnvironment, FabricNodeType, EnvironmentType, FileSystemUtil} from 'ibm-blockchain-platform-common';
 import {ExtensionCommands} from '../../ExtensionCommands';
 import {FabricEnvironmentManager} from '../fabric/environments/FabricEnvironmentManager';
 import {EnvironmentFactory} from '../fabric/environments/EnvironmentFactory';
@@ -57,7 +51,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
         }
 
         if (!fromAddEnvironment) {
-            if (environmentRegistryEntry.url) {
+            if (environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT) {
                 createMethod = UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS;
             } else {
                 createMethod = UserInputUtil.ADD_ENVIRONMENT_FROM_NODES;
