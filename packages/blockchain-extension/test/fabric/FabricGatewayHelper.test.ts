@@ -21,7 +21,7 @@ import * as yaml from 'js-yaml';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
 import * as vscode from 'vscode';
 import { SettingConfigurations } from '../../configurations';
-import { FabricNode, FileConfigurations, FileSystemUtil, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricNode, FileConfigurations, FileSystemUtil, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { TestUtil } from '../TestUtil';
 
 chai.use(chaiAsPromised);
@@ -304,75 +304,6 @@ describe('FabricGatewayHelper', () => {
             readFileStub.getCall(0).should.have.been.calledWithExactly(yamlPathLocation, 'utf8');
             readFileStub.getCalls().length.should.equal(4);
             result.should.equal(path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.yml'));
-        });
-    });
-
-    describe('migrateGateways', () => {
-
-        let getConfigurationStub: sinon.SinonStub;
-        let getSettingsStub: sinon.SinonStub;
-        let updateSettingsStub: sinon.SinonStub;
-        let gatewayA: any;
-        let gatewayB: any;
-        let fsCopyStub: sinon.SinonStub;
-        let fsRemoveStub: sinon.SinonStub;
-
-        beforeEach(async () => {
-
-            await FabricGatewayRegistry.instance().clear();
-
-            gatewayA = {
-                name: 'gatewayA',
-                connectionProfilePath: `${TestUtil.EXTENSION_TEST_DIR}/gateways/gatewayA/file.json`,
-                associatedWallet: ''
-            };
-            gatewayB = {
-                name: 'gatewayB',
-                connectionProfilePath: `${TestUtil.EXTENSION_TEST_DIR}/gatewayB/anotherFile.json`,
-                associatedWallet: ''
-            };
-
-            getSettingsStub = mySandBox.stub();
-            updateSettingsStub = mySandBox.stub();
-            getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
-            getConfigurationStub.returns({
-                get: getSettingsStub,
-                update: updateSettingsStub
-            });
-
-            getSettingsStub.withArgs(SettingConfigurations.OLD_FABRIC_GATEWAYS).returns([gatewayA, gatewayB]);
-            getSettingsStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(TestUtil.EXTENSION_TEST_DIR);
-            fsCopyStub = mySandBox.stub(fs, 'copy').resolves();
-            fsRemoveStub = mySandBox.stub(fs, 'remove').resolves();
-
-        });
-
-        it('should migrate gateways found in user settings to correct extension subdirectory', async () => {
-            await FabricGatewayHelper.migrateGateways();
-
-            getSettingsStub.should.have.been.calledWithExactly(SettingConfigurations.OLD_FABRIC_GATEWAYS);
-
-            fsCopyStub.should.have.been.calledOnceWithExactly(`${TestUtil.EXTENSION_TEST_DIR}/gatewayB/anotherFile.json`, `${TestUtil.EXTENSION_TEST_DIR}/gateways/gatewayB`);
-            fsRemoveStub.should.have.been.calledOnceWithExactly(`${TestUtil.EXTENSION_TEST_DIR}/gatewayB`);
-        });
-
-        it('should not add the registry entry if already exists', async () => {
-            await FabricGatewayRegistry.instance().add(gatewayA);
-            await FabricGatewayHelper.migrateGateways();
-
-            getSettingsStub.should.have.been.calledWithExactly(SettingConfigurations.OLD_FABRIC_GATEWAYS);
-
-            fsCopyStub.should.have.been.calledOnceWithExactly(`${TestUtil.EXTENSION_TEST_DIR}/gatewayB/anotherFile.json`, `${TestUtil.EXTENSION_TEST_DIR}/gateways/gatewayB`);
-            fsRemoveStub.should.have.been.calledOnceWithExactly(`${TestUtil.EXTENSION_TEST_DIR}/gatewayB`);
-        });
-
-        it(`should not migrate a gateway if there is an issue migrating it`, async () => {
-            const error: Error = new Error('a problem');
-            fsCopyStub.rejects(error);
-            await FabricGatewayHelper.migrateGateways().should.be.rejectedWith(`Issue copying ${gatewayB.connectionProfilePath} to ${TestUtil.EXTENSION_TEST_DIR}/gateways/gatewayB: ${error.message}`);
-
-            fsCopyStub.should.have.been.calledOnceWithExactly(`${TestUtil.EXTENSION_TEST_DIR}/gatewayB/anotherFile.json`, `${TestUtil.EXTENSION_TEST_DIR}/gateways/gatewayB`);
-            fsRemoveStub.should.not.have.been.called;
         });
     });
 });

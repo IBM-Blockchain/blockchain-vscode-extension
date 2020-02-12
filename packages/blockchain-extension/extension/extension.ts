@@ -30,8 +30,6 @@ import { version as currentExtensionVersion } from '../package.json';
 import { SettingConfigurations } from '../configurations';
 import { UserInputUtil } from './commands/UserInputUtil';
 import { GlobalState, ExtensionData } from './util/GlobalState';
-import { FabricGatewayHelper } from './fabric/FabricGatewayHelper';
-import { FabricWalletHelper } from './fabric/FabricWalletHelper';
 import { FabricWalletRegistry, FabricEnvironmentRegistry, LogType, FabricGatewayRegistry, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { RepositoryRegistry } from './registries/RepositoryRegistry';
 
@@ -62,17 +60,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const isIBMer: boolean = ExtensionUtil.checkIfIBMer();
 
     if (originalExtensionData.migrationCheck !== newExtensionData.migrationCheck) {
-        // Migrate old user setting configurations to use newer values
-        await ExtensionUtil.migrateSettingConfigurations();
-
-        // Remove managedWallet boolean from wallets in user settings
-        // Ensure wallets are stored correctly
-        outputAdapter.log(LogType.INFO, undefined, 'Tidying wallet, gateway, environment and repository settings');
-        await FabricWalletHelper.tidyWalletSettings();
-        // Ensure gateways are stored correctly
-        await FabricGatewayHelper.migrateGateways();
-        await ExtensionUtil.migrateEnvironments();
-        await ExtensionUtil.migrateRepositories();
+        // add migration code here
     }
 
     const extensionUpdated: boolean = newExtensionData.version !== originalExtensionData.version;

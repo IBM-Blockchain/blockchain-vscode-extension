@@ -18,7 +18,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as yaml from 'js-yaml';
 import { SettingConfigurations } from '../../configurations';
-import { FabricNode, FileConfigurations, FileSystemUtil, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricNode, FileConfigurations, FileSystemUtil, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 
 export class FabricGatewayHelper {
 
@@ -180,46 +180,6 @@ export class FabricGatewayHelper {
             const newError: Error = new Error(`Unable to copy connection profile: ${error.message}`);
             throw newError;
         }
-    }
-
-    public static async migrateGateways(): Promise<void> {
-        // Get gateways from user settings
-        const gateways: any = vscode.workspace.getConfiguration().get(SettingConfigurations.OLD_FABRIC_GATEWAYS);
-
-        for (const gateway of gateways) {
-            // Ensure all the gateways are stored under the gateways subdirectory
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const resolvedExtDir: string = FileSystemUtil.getDirPath(extDir);
-            const gatewaysExtDir: string = path.join(resolvedExtDir, FileConfigurations.FABRIC_GATEWAYS);
-
-            // create the new registry entry
-            const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-            gatewayRegistryEntry.name = gateway.name;
-            gatewayRegistryEntry.associatedWallet = gateway.associatedWallet;
-
-            const exists: boolean = await FabricGatewayRegistry.instance().exists(gateway.name);
-
-            if (!exists) {
-                await FabricGatewayRegistry.instance().add(gatewayRegistryEntry);
-            }
-
-            if (gateway.connectionProfilePath && gateway.connectionProfilePath.includes(extDir) && !gateway.connectionProfilePath.includes(gatewaysExtDir)) {
-                const newGatewayDir: string = path.join(gatewaysExtDir, gatewayRegistryEntry.name);
-                try {
-                    await fs.copy(gateway.connectionProfilePath, newGatewayDir);
-                } catch (error) {
-                    throw new Error(`Issue copying ${gateway.connectionProfilePath} to ${newGatewayDir}: ${error.message}`);
-                }
-                // Only remove the gateway dir if the copy worked
-                await fs.remove(path.join(extDir, gateway.name));
-                gateway.connectionProfilePath = path.join(newGatewayDir, path.basename(gateway.connectionProfilePath));
-
-            }
-
-            delete gateway.connectionProfilePath;
-        }
-        // Rewrite the updated gateways to the user settings
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.OLD_FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
     }
 
     private static profileName: string = 'connection';

@@ -1266,7 +1266,7 @@
         "pretest": "npm run compile && npm run lint && npm run licchk && npm run updatePackageJSON",
         "test": "node ./build/test/runTests.js",
         "posttest": "remap-istanbul -i ./coverage/coverage.json -o ./coverage/coverage-remap.json && istanbul check-coverage ./coverage/coverage-remap.json",
-        "cucumber": "npm run compile && node ./build/cucumber/runCucumberTests.js",
+        "cucumber": "npm run updatePackageJSON && npm run compile && node ./build/cucumber/runCucumberTests.js",
         "licchk": "license-check-and-add",
         "tslint": "tslint --project tsconfig.extension.json",
         "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts' 'cucumber/**/*.ts'",

@@ -34,11 +34,9 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { TemporaryCommandRegistry } from '../../extension/dependencies/TemporaryCommandRegistry';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FabricWalletRegistryEntry, LogType, FabricWalletRegistry, FabricGatewayRegistry, FabricWalletUtil } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricRuntimeUtil, FabricWalletRegistryEntry, LogType, FabricWalletRegistry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
 import { TestUtil } from '../TestUtil';
-import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistry';
-import { RepositoryRegistryEntry } from '../../extension/registries/RepositoryRegistryEntry';
 import * as openTransactionViewCommand from '../../extension/commands/openTransactionViewCommand';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
@@ -129,303 +127,6 @@ describe('ExtensionUtil Tests', () => {
 
             mySandBox.stub(ExtensionUtil, 'loadJSON').throws({ message: 'error reading package.json from project Cannot read file' });
             should.equal(await ExtensionUtil.getContractNameAndVersion(workspaceFolder), undefined);
-        });
-    });
-
-    describe('migrateSettingConfigurations', () => {
-        let getConfigurationStub: sinon.SinonStub;
-        let workspaceConfigurationGetStub: sinon.SinonStub;
-        let workspaceConfigurationUpdateStub: sinon.SinonStub;
-
-        beforeEach(() => {
-            getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
-            workspaceConfigurationGetStub = mySandBox.stub();
-            workspaceConfigurationUpdateStub = mySandBox.stub();
-        });
-        it('should ignore migration if old configuration values no longer exist', async () => {
-            getConfigurationStub.returns({
-                get: workspaceConfigurationGetStub,
-                update: workspaceConfigurationUpdateStub
-            });
-
-            await ExtensionUtil.migrateSettingConfigurations();
-            workspaceConfigurationGetStub.callCount.should.equal(4);
-            workspaceConfigurationUpdateStub.should.not.have.been.called;
-        });
-
-        it('should migration old configuration values to new values', async () => {
-            workspaceConfigurationGetStub.returns([]);
-            getConfigurationStub.returns({
-                get: workspaceConfigurationGetStub,
-                update: workspaceConfigurationUpdateStub
-            });
-
-            workspaceConfigurationGetStub.onCall(0).returns([
-                {
-                    name: 'myGateway',
-                    connectionProfilePath: 'blockchain/extension/directory/gatewayOne/connection.json',
-                    associatedWallet: ''
-                }
-            ]);
-
-            workspaceConfigurationGetStub.onCall(2).returns([
-                {
-                    managedWallet: false,
-                    name: 'myWallet',
-                    walletPath: '/some/path'
-                }
-            ]);
-
-            workspaceConfigurationGetStub.onCall(4).returns([
-                {
-                    name: 'hyperledger/fabric-samples',
-                    path: '/sample/path/fabric-samples'
-                }
-            ]);
-
-            workspaceConfigurationGetStub.onCall(6).returns('some_directory');
-
-            await ExtensionUtil.migrateSettingConfigurations();
-            workspaceConfigurationGetStub.callCount.should.equal(7);
-            workspaceConfigurationUpdateStub.callCount.should.equal(4);
-            workspaceConfigurationUpdateStub.getCall(0).should.have.been.calledWithExactly(SettingConfigurations.OLD_FABRIC_GATEWAYS, [
-                {
-                    name: 'myGateway',
-                    connectionProfilePath: 'blockchain/extension/directory/gatewayOne/connection.json',
-                    associatedWallet: ''
-                }
-            ], vscode.ConfigurationTarget.Global);
-
-            workspaceConfigurationUpdateStub.getCall(1).should.have.been.calledWithExactly(SettingConfigurations.OLD_FABRIC_WALLETS, [
-                {
-                    managedWallet: false,
-                    name: 'myWallet',
-                    walletPath: '/some/path'
-                }
-            ], vscode.ConfigurationTarget.Global);
-
-            workspaceConfigurationUpdateStub.getCall(2).should.have.been.calledWithExactly(SettingConfigurations.OLD_EXTENSION_REPOSITORIES, [
-                {
-                    name: 'hyperledger/fabric-samples',
-                    path: '/sample/path/fabric-samples'
-                }
-            ], vscode.ConfigurationTarget.Global);
-
-            workspaceConfigurationUpdateStub.getCall(3).should.have.been.calledWithExactly(SettingConfigurations.EXTENSION_DIRECTORY, 'some_directory', vscode.ConfigurationTarget.Global);
-
-        });
-
-        it('should ignore migration if values already exist in new config', async () => {
-            getConfigurationStub.returns({
-                get: workspaceConfigurationGetStub,
-                update: workspaceConfigurationUpdateStub
-            });
-
-            workspaceConfigurationGetStub.onCall(0).returns([
-                {
-                    name: 'myGateway',
-                    connectionProfilePath: 'blockchain/extension/directory/gatewayOne/connection.json',
-                    associatedWallet: ''
-                }
-            ]);
-
-            workspaceConfigurationGetStub.onCall(1).returns([
-                {
-                    name: 'alreadyStoredGateway',
-                    connectionProfilePath: 'blockchain/extension/directory/gatewayOne/connection.json',
-                    associatedWallet: ''
-                }
-            ]);
-
-            workspaceConfigurationGetStub.onCall(2).returns([
-                {
-                    managedWallet: false,
-                    name: 'myWallet',
-                    walletPath: '/some/path'
-                }
-            ]);
-
-            workspaceConfigurationGetStub.onCall(3).returns([
-                {
-                    managedWallet: false,
-                    name: 'alreadyStoredWallet',
-                    walletPath: '/some/path'
-                }
-            ]);
-
-            workspaceConfigurationGetStub.onCall(4).returns([
-                {
-                    name: 'hyperledger/fabric-samples',
-                    path: '/sample/path/fabric-samples'
-                }
-            ]);
-
-            workspaceConfigurationGetStub.onCall(5).returns([
-                {
-                    name: 'hyperledger/fabric-samples',
-                    path: '/already/stored/fabric-samples'
-                }
-            ]);
-
-            workspaceConfigurationGetStub.onCall(6).returns(undefined);
-
-            await ExtensionUtil.migrateSettingConfigurations();
-            workspaceConfigurationGetStub.callCount.should.equal(7);
-            workspaceConfigurationUpdateStub.callCount.should.equal(0);
-
-        });
-    });
-
-    describe('migrateEnvironments', () => {
-
-        beforeEach(async () => {
-            await FabricEnvironmentRegistry.instance().clear();
-        });
-
-        it('should migrate the environments', async () => {
-            const workspaceConfigurationGetStub: sinon.SinonStub = mySandBox.stub();
-            const workspaceConfigurationUpdateStub: sinon.SinonStub = mySandBox.stub();
-
-            const getConfigurationStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
-
-            getConfigurationStub.returns({
-                get: workspaceConfigurationGetStub,
-                update: workspaceConfigurationUpdateStub
-            });
-
-            workspaceConfigurationGetStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(TestUtil.EXTENSION_TEST_DIR);
-
-            workspaceConfigurationGetStub.withArgs(SettingConfigurations.OLD_ENVIRONMENTS).returns([
-                {
-                    name: 'myEnvOne'
-                },
-                {
-                    name: 'myEnvTwo'
-                }
-            ]);
-
-            await ExtensionUtil.migrateEnvironments();
-
-            const results: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(false);
-
-            results.length.should.equal(2);
-
-            results[0].name.should.equal('myEnvOne');
-            results[1].name.should.equal('myEnvTwo');
-        });
-
-        it('should not add registry if exists', async () => {
-            const workspaceConfigurationGetStub: sinon.SinonStub = mySandBox.stub();
-            const workspaceConfigurationUpdateStub: sinon.SinonStub = mySandBox.stub();
-
-            const getConfigurationStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
-
-            getConfigurationStub.returns({
-                get: workspaceConfigurationGetStub,
-                update: workspaceConfigurationUpdateStub
-            });
-
-            workspaceConfigurationGetStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(TestUtil.EXTENSION_TEST_DIR);
-
-            workspaceConfigurationGetStub.withArgs(SettingConfigurations.OLD_ENVIRONMENTS).returns([
-                {
-                    name: 'myEnvOne'
-                },
-                {
-                    name: 'myEnvTwo'
-                }
-            ]);
-
-            await FabricEnvironmentRegistry.instance().add({ name: 'myEnvOne' });
-
-            await ExtensionUtil.migrateEnvironments();
-
-            const results: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(false);
-
-            results.length.should.equal(2);
-
-            results[0].name.should.equal('myEnvOne');
-            results[1].name.should.equal('myEnvTwo');
-        });
-    });
-
-    describe('migrateRepositories', () => {
-        beforeEach(async () => {
-            await RepositoryRegistry.instance().clear();
-        });
-
-        it('should migrate the repositories', async () => {
-            const workspaceConfigurationGetStub: sinon.SinonStub = mySandBox.stub();
-            const workspaceConfigurationUpdateStub: sinon.SinonStub = mySandBox.stub();
-
-            const getConfigurationStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
-
-            getConfigurationStub.returns({
-                get: workspaceConfigurationGetStub,
-                update: workspaceConfigurationUpdateStub
-            });
-
-            workspaceConfigurationGetStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(TestUtil.EXTENSION_TEST_DIR);
-
-            workspaceConfigurationGetStub.withArgs(SettingConfigurations.OLD_EXTENSION_REPOSITORIES).returns([
-                {
-                    name: 'myRepo/One',
-                    path: 'myPath'
-                },
-                {
-                    name: 'myRepo/Two',
-                    path: 'myPathTwo'
-                }
-            ]);
-
-            await ExtensionUtil.migrateRepositories();
-
-            const results: RepositoryRegistryEntry[] = await RepositoryRegistry.instance().getAll();
-
-            results.length.should.equal(2);
-
-            results[0].name.should.equal('One');
-            results[0].path.should.equal('myPath');
-            results[1].name.should.equal('Two');
-            results[1].path.should.equal('myPathTwo');
-        });
-
-        it('should not add registry if exists', async () => {
-            const workspaceConfigurationGetStub: sinon.SinonStub = mySandBox.stub();
-            const workspaceConfigurationUpdateStub: sinon.SinonStub = mySandBox.stub();
-
-            const getConfigurationStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
-
-            getConfigurationStub.returns({
-                get: workspaceConfigurationGetStub,
-                update: workspaceConfigurationUpdateStub
-            });
-
-            workspaceConfigurationGetStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(TestUtil.EXTENSION_TEST_DIR);
-
-            workspaceConfigurationGetStub.withArgs(SettingConfigurations.OLD_EXTENSION_REPOSITORIES).returns([
-                {
-                    name: 'myRepo/One',
-                    path: 'myPath'
-                },
-                {
-                    name: 'myRepo/Two',
-                    path: 'myPathTwo'
-                }
-            ]);
-
-            await RepositoryRegistry.instance().add({ name: 'One', path: 'myPath' });
-
-            await ExtensionUtil.migrateRepositories();
-
-            const results: RepositoryRegistryEntry[] = await RepositoryRegistry.instance().getAll();
-
-            results.length.should.equal(2);
-
-            results[0].name.should.equal('One');
-            results[0].path.should.equal('myPath');
-            results[1].name.should.equal('Two');
-            results[1].path.should.equal('myPathTwo');
         });
     });
 
@@ -653,62 +354,6 @@ describe('ExtensionUtil Tests', () => {
 
             disposeExtensionSpy.should.have.been.calledOnceWith(ctx);
             registerOpenPreReqsCommandStub.should.have.been.calledOnce;
-        });
-
-        it(`should delete old ${FabricRuntimeUtil.OLD_LOCAL_FABRIC} and teardown if it exists`, async () => {
-            const disposeExtensionSpy: sinon.SinonSpy = mySandBox.spy(ExtensionUtil, 'disposeExtension');
-
-            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            const registerOpenPreReqsCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerOpenPreReqsCommand').resolves(ctx);
-
-            const deleteEnvironmentStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'delete').resolves();
-            const deleteGatewayStub: sinon.SinonStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'delete').resolves();
-            const deleteWalletStub: sinon.SinonStub = mySandBox.stub(FabricWalletRegistry.instance(), 'delete').resolves();
-
-            mySandBox.stub(fs, 'pathExists').resolves(true);
-
-            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'update').resolves();
-
-            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
-            executeCommandStub.callThrough();
-            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC).resolves();
-
-            await ExtensionUtil.registerCommands(ctx);
-
-            disposeExtensionSpy.should.have.been.calledOnceWith(ctx);
-            registerOpenPreReqsCommandStub.should.have.been.calledOnce;
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC);
-            deleteEnvironmentStub.should.have.been.calledOnceWith(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
-            deleteGatewayStub.should.have.been.calledOnceWith(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
-            deleteWalletStub.should.have.been.calledOnceWith(FabricWalletUtil.OLD_LOCAL_WALLET, true);
-        });
-
-        it(`should not delete old ${FabricRuntimeUtil.OLD_LOCAL_FABRIC} and teardown if it doesn't exist`, async () => {
-            const disposeExtensionSpy: sinon.SinonSpy = mySandBox.spy(ExtensionUtil, 'disposeExtension');
-
-            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            const registerOpenPreReqsCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerOpenPreReqsCommand').resolves(ctx);
-
-            const deleteEnvironmentStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'delete').resolves();
-            const deleteGatewayStub: sinon.SinonStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'delete').resolves();
-            const deleteWalletStub: sinon.SinonStub = mySandBox.stub(FabricWalletRegistry.instance(), 'delete').resolves();
-
-            mySandBox.stub(fs, 'pathExists').resolves(false);
-
-            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'update').resolves();
-
-            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
-            executeCommandStub.callThrough();
-            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC).resolves();
-
-            await ExtensionUtil.registerCommands(ctx);
-
-            disposeExtensionSpy.should.have.been.calledOnceWith(ctx);
-            registerOpenPreReqsCommandStub.should.have.been.calledOnce;
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC);
-            deleteEnvironmentStub.should.not.have.been.calledOnceWith(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
-            deleteGatewayStub.should.not.have.been.calledOnceWith(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
-            deleteWalletStub.should.not.have.been.calledOnceWith(FabricWalletUtil.OLD_LOCAL_WALLET, true);
         });
 
         it('should register and show home page', async () => {
@@ -1046,7 +691,6 @@ describe('ExtensionUtil Tests', () => {
         let installNativeDependenciesStub: sinon.SinonStub;
         let getPackageJsonStub: sinon.SinonStub;
         let rewritePackageJsonStub: sinon.SinonStub;
-        let globalStateStub: sinon.SinonStub;
         let setupLocalRuntimeStub: sinon.SinonStub;
         let restoreCommandsStub: sinon.SinonStub;
         let getExtensionContextStub: sinon.SinonStub;
@@ -1061,7 +705,6 @@ describe('ExtensionUtil Tests', () => {
             installNativeDependenciesStub = mySandBox.stub(DependencyManager.instance(), 'installNativeDependencies');
             getPackageJsonStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON');
             rewritePackageJsonStub = mySandBox.stub(DependencyManager.instance(), 'rewritePackageJson');
-            globalStateStub = mySandBox.stub(GlobalState, 'get');
             setupLocalRuntimeStub = mySandBox.stub(ExtensionUtil, 'setupLocalRuntime');
             restoreCommandsStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'restoreCommands');
             getExtensionContextStub = mySandBox.stub(GlobalState, 'getExtensionContext');
@@ -1077,9 +720,6 @@ describe('ExtensionUtil Tests', () => {
             installNativeDependenciesStub.resolves();
             getPackageJsonStub.returns({ activationEvents: ['*'] });
             rewritePackageJsonStub.resolves();
-            globalStateStub.returns({
-                version: '1.0.0'
-            });
             setupLocalRuntimeStub.resolves();
             restoreCommandsStub.resolves();
             getExtensionContextStub.returns({ hello: 'world' });
@@ -1091,9 +731,8 @@ describe('ExtensionUtil Tests', () => {
 
             hasNativeDependenciesInstalledStub.should.have.been.calledOnce;
             installNativeDependenciesStub.should.have.been.calledOnce;
-            globalStateStub.should.have.been.calledOnce;
             getExtensionLocalFabricSettingStub.should.have.been.calledOnce;
-            setupLocalRuntimeStub.should.have.been.calledOnceWithExactly('1.0.0');
+            setupLocalRuntimeStub.should.have.been.calledOnce;
 
             logSpy.should.have.been.calledThrice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Restoring command registry');
@@ -1112,9 +751,6 @@ describe('ExtensionUtil Tests', () => {
             installNativeDependenciesStub.resolves();
             getPackageJsonStub.returns({ activationEvents: ['activationEvent1', 'activationEvent2'] });
             rewritePackageJsonStub.resolves();
-            globalStateStub.returns({
-                version: '1.0.0'
-            });
             setupLocalRuntimeStub.resolves();
             restoreCommandsStub.resolves();
             getExtensionContextStub.returns({ hello: 'world' });
@@ -1126,9 +762,8 @@ describe('ExtensionUtil Tests', () => {
 
             hasNativeDependenciesInstalledStub.should.have.been.calledOnce;
             installNativeDependenciesStub.should.not.have.been.called;
-            globalStateStub.should.have.been.calledOnce;
             getExtensionLocalFabricSettingStub.should.have.been.calledOnce;
-            setupLocalRuntimeStub.should.have.been.calledOnceWithExactly('1.0.0');
+            setupLocalRuntimeStub.should.have.been.calledOnce;
 
             logSpy.should.have.been.calledThrice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Restoring command registry');
@@ -1147,9 +782,6 @@ describe('ExtensionUtil Tests', () => {
             installNativeDependenciesStub.resolves();
             getPackageJsonStub.returns({ activationEvents: ['*'] });
             rewritePackageJsonStub.resolves();
-            globalStateStub.returns({
-                version: '1.0.0'
-            });
             setupLocalRuntimeStub.resolves();
             restoreCommandsStub.resolves();
             getExtensionContextStub.returns({ hello: 'world' });
@@ -1161,9 +793,8 @@ describe('ExtensionUtil Tests', () => {
 
             hasNativeDependenciesInstalledStub.should.have.been.calledOnce;
             installNativeDependenciesStub.should.not.have.been.called;
-            globalStateStub.should.have.been.calledOnce;
             getExtensionLocalFabricSettingStub.should.have.been.calledOnce;
-            setupLocalRuntimeStub.should.have.been.calledOnceWithExactly('1.0.0');
+            setupLocalRuntimeStub.should.have.been.calledOnce;
 
             logSpy.should.have.been.calledThrice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Restoring command registry');
@@ -1186,9 +817,6 @@ describe('ExtensionUtil Tests', () => {
             installNativeDependenciesStub.resolves();
             getPackageJsonStub.returns({ activationEvents: ['activationEvent1', 'activationEvent2'] });
             rewritePackageJsonStub.resolves();
-            globalStateStub.returns({
-                version: '1.0.0'
-            });
             setupLocalRuntimeStub.resolves();
             restoreCommandsStub.resolves();
             getExtensionContextStub.returns({ hello: 'world' });
@@ -1202,9 +830,8 @@ describe('ExtensionUtil Tests', () => {
 
             hasNativeDependenciesInstalledStub.should.have.been.calledOnce;
             installNativeDependenciesStub.should.not.have.been.called;
-            globalStateStub.should.have.been.calledOnce;
             getExtensionLocalFabricSettingStub.should.have.been.calledOnce;
-            setupLocalRuntimeStub.should.not.have.been.calledOnceWithExactly('1.0.0');
+            setupLocalRuntimeStub.should.not.have.been.calledOnce;
 
             logSpy.should.have.been.calledThrice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Restoring command registry');
@@ -1547,16 +1174,14 @@ describe('ExtensionUtil Tests', () => {
     });
 
     describe('setupLocalRuntime', () => {
-        it(`should migrate runtime and initialize the runtime manager`, async () => {
+        it(`should initialize the runtime manager`, async () => {
             const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            const migrateStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'migrate').resolves();
+
             const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').resolves();
 
-            await ExtensionUtil.setupLocalRuntime('1.2.3');
+            await ExtensionUtil.setupLocalRuntime();
 
-            logSpy.should.have.been.calledTwice;
-            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Migrating local runtime manager');
-            migrateStub.should.have.been.calledOnce;
+            logSpy.should.have.been.calledOnce;
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Initializing local runtime manager');
             initializeStub.should.have.been.calledOnce;
         });
@@ -1590,7 +1215,7 @@ describe('ExtensionUtil Tests', () => {
             mockRuntime.isGenerated.resolves(true);
             mockRuntime.isRunning.resolves(true);
             mockRuntime.getGateways.resolves([]);
-            // mySandBox.stub(LocalEnvironment.prototype, 'getGateways').resolves();
+
             getRuntimeStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime');
             getRuntimeStub.returns(mockRuntime);
 
@@ -1854,7 +1479,6 @@ describe('ExtensionUtil Tests', () => {
             });
 
             it(`should set context if runtime is not running but generated and user does teardown`, async () => {
-
                 executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC).resolves();
                 showConfirmationWarningMessageStub.resolves(true);
                 mockRuntime.isGenerated.resolves(true);
@@ -1881,7 +1505,6 @@ describe('ExtensionUtil Tests', () => {
             });
 
             it(`should set context if runtime is not running or generated`, async () => {
-
                 mockRuntime.isGenerated.resolves(false);
                 mockRuntime.isRunning.resolves(false);
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
