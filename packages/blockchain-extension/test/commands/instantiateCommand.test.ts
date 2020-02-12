@@ -245,6 +245,7 @@ describe('InstantiateCommand', () => {
         });
 
         it('should stop if cancelled when asked what chaincode EP to use', async () => {
+            executeCommandStub.resetHistory();
             showYesNo.resolves(UserInputUtil.NO);
             showQuickPick.resolves(undefined);
 

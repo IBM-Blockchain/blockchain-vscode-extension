@@ -80,9 +80,9 @@ describe('removeWalletCommand', () => {
 
         await FabricGatewayRegistry.instance().clear();
 
-        await FabricGatewayRegistry.instance().add({ name: 'gatewayA', associatedWallet: 'blueWallet' });
-        await FabricGatewayRegistry.instance().add({ name: 'gatewayB', associatedWallet: 'blueWallet' });
-        await FabricGatewayRegistry.instance().add({ name: 'gatewayC', associatedWallet: 'greenWallet' });
+        await FabricGatewayRegistry.instance().add({ name: 'gatewayA', associatedWallet: 'blueWallet',  connectionProfilePath: path.join('myPath', 'connection.json') });
+        await FabricGatewayRegistry.instance().add({ name: 'gatewayB', associatedWallet: 'blueWallet',  connectionProfilePath: path.join('myPath', 'connection.json') });
+        await FabricGatewayRegistry.instance().add({ name: 'gatewayC', associatedWallet: 'greenWallet', connectionProfilePath: path.join('myPath', 'connection.json') });
     });
 
     afterEach(() => {

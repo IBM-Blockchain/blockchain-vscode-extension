@@ -47,7 +47,8 @@ describe('FabricGatewayConnectionManager', () => {
         fromEnvGateway = new FabricGatewayRegistryEntry({
             name: 'myGateway',
             associatedWallet: '',
-            fromEnvironment: 'myEnvironment'
+            fromEnvironment: 'myEnvironment',
+            connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json')
         });
     });
 

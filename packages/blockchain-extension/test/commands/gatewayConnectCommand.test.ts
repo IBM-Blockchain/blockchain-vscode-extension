@@ -90,17 +90,20 @@ describe('GatewayConnectCommand', () => {
 
             connectionSingle = new FabricGatewayRegistryEntry({
                 name: 'myGatewayA',
-                associatedWallet: undefined
+                associatedWallet: undefined,
+                connectionProfilePath: path.join('myPath', 'connection.json')
             });
 
             connectionMultiple = new FabricGatewayRegistryEntry({
                 name: 'myGatewayB',
-                associatedWallet: undefined
+                associatedWallet: undefined,
+                connectionProfilePath: path.join('myPath', 'connection.json')
             });
 
             connectionAssociated = new FabricGatewayRegistryEntry({
                 name: 'myGatewayC',
-                associatedWallet: 'myGatewayCWallet'
+                associatedWallet: 'myGatewayCWallet',
+                connectionProfilePath: path.join('myPath', 'connection.json')
             });
 
             await FabricGatewayRegistry.instance().clear();
@@ -398,6 +401,7 @@ describe('GatewayConnectCommand', () => {
                     name: 'myGatewayD',
                     associatedWallet: 'myGatewayDWallet',
                     fromEnvironment: 'managedEnvironment',
+                    connectionProfilePath: path.join('myPath', 'connection.json'),
                     displayName: 'managedEnvironment - Org1'
                 });
 

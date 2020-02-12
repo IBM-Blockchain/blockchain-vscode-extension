@@ -16,6 +16,7 @@ import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import * as path from 'path';
 import { FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
@@ -119,17 +120,20 @@ describe('gatewayExplorer', () => {
             it('should display gateway that has been added in alphabetical order', async () => {
                 const gatewayB: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                     name: 'myGatewayB',
-                    associatedWallet: ''
+                    associatedWallet: '',
+                    connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json')
                 });
 
                 const gatewayC: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                     name: 'myGatewayC',
-                    associatedWallet: 'some_wallet'
+                    associatedWallet: 'some_wallet',
+                    connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json')
                 });
 
                 const gatewayA: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                     name: 'myGatewayA',
-                    associatedWallet: 'some_other_wallet'
+                    associatedWallet: 'some_other_wallet',
+                    connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json')
                 });
 
                 await FabricGatewayRegistry.instance().clear();
@@ -1164,7 +1168,8 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
         it('should get a tree item', async () => {
             const myGateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGateway',
-                associatedWallet: ''
+                associatedWallet: '',
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json')
             });
 
             await FabricEnvironmentRegistry.instance().clear();

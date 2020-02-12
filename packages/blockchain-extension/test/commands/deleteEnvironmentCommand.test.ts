@@ -227,7 +227,7 @@ describe('DeleteEnvironmentCommand', () => {
             environmentRegistryEntry.name = 'myEnvironmentB';
             geConnectedEnvironmentRegistryStub.returns(environmentRegistryEntry);
 
-            const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({name: 'myGateway', fromEnvironment: environmentRegistryEntry.name, associatedWallet: ''});
+            const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({name: 'myGateway', fromEnvironment: environmentRegistryEntry.name, associatedWallet: '', connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json')});
             getConnectedGatewayRegistryStub.resolves(gatewayRegistryEntry);
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
@@ -253,7 +253,7 @@ describe('DeleteEnvironmentCommand', () => {
             environmentRegistryEntry.name = 'myEnvironmentB';
             geConnectedEnvironmentRegistryStub.returns(environmentRegistryEntry);
 
-            const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({name: 'myGateway', fromEnvironment: 'anotherEnv', associatedWallet: ''});
+            const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({name: 'myGateway', fromEnvironment: 'anotherEnv', associatedWallet: '', connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json')});
             getConnectedGatewayRegistryStub.resolves(gatewayRegistryEntry);
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);

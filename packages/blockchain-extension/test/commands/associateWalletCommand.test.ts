@@ -52,7 +52,8 @@ describe('AssociateWalletCommand', () => {
 
             const connectionOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGateway',
-                associatedWallet: ''
+                associatedWallet: '',
+                connectionProfilePath: path.join('myPath', 'connection.json')
             });
 
             await FabricGatewayRegistry.instance().clear();

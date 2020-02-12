@@ -16,6 +16,7 @@ import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import * as path from 'path';
 import { TestUtil } from '../TestUtil';
 import { FabricGatewayRegistryEntry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
 import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
@@ -145,7 +146,8 @@ describe('DissociateTestDataDirectoryCommand', () => {
                     chaincodeName: 'myContract',
                     channelName: 'myChannel',
                     transactionDataPath: 'some/file/path'
-                }]
+                }],
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json')
             });
             getGatewayRegistryStub = mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry');
             getGatewayRegistryStub.resolves(gatewayRegistryEntry);
@@ -268,6 +270,7 @@ describe('DissociateTestDataDirectoryCommand', () => {
             gatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGateway',
                 associatedWallet: '',
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json')
             });
             getGatewayRegistryStub.returns(gatewayRegistryEntry);
 
