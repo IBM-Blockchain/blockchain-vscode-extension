@@ -612,4 +612,25 @@ describe('Extension Tests', () => {
         });
     });
 
+    describe('txdata files', () => {
+        it('should associate .txdata files with JSON language', async () => {
+            getPackageJSONStub.callThrough();
+            const packageJSON: any = ExtensionUtil.getPackageJSON();
+            const languages: Array<{id: string, extensions: string[]}> = packageJSON.contributes.languages;
+            languages.should.deep.equal([{
+                id: 'json',
+                extensions: ['.txdata']
+            }]);
+        });
+
+        it('should associate a schema with .txdata files for validation', async () => {
+            getPackageJSONStub.callThrough();
+            const packageJSON: any = ExtensionUtil.getPackageJSON();
+            const jsonValidation: Array<{fileMatch: string, url: string}> = packageJSON.contributes.jsonValidation;
+            jsonValidation.should.deep.equal([{
+                fileMatch: '*.txdata',
+                url: './txdata.schema.json'
+            }]);
+        });
+    });
 });
