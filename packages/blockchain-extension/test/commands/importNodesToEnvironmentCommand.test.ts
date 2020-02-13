@@ -23,14 +23,14 @@ import {TestUtil} from '../TestUtil';
 import { UserInputUtil, EnvironmentType } from '../../extension/commands/UserInputUtil';
 import {VSCodeBlockchainOutputAdapter} from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import {ExtensionCommands} from '../../ExtensionCommands';
-import {FabricEnvironmentRegistryEntry, LogType, FabricEnvironment, FabricNode, EnvironmentType} from 'ibm-blockchain-platform-common';
+import {FabricEnvironmentRegistryEntry, LogType, FabricEnvironment, FabricNode, FabricEnvironmentRegistry, EnvironmentType} from 'ibm-blockchain-platform-common';
 import {FabricEnvironmentManager} from '../../extension/fabric/environments/FabricEnvironmentManager';
 import {ExtensionUtil} from '../../extension/util/ExtensionUtil';
 import { ModuleUtil } from '../../extension/util/ModuleUtil';
 
 // tslint:disable no-unused-expression
-chai.should();
 chai.use(sinonChai);
+const should: Chai.Should = chai.should();
 
 describe('ImportNodesToEnvironmentCommand', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
@@ -61,6 +61,8 @@ describe('ImportNodesToEnvironmentCommand', () => {
     let caCertChainUri: vscode.Uri;
     let localFabricNodes: any;
     let getConnectedEnvironmentRegistryEntry: sinon.SinonStub;
+    let getAllStub: sinon.SinonStub;
+    let showConfirmationWarningMessageStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
@@ -69,6 +71,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
     describe('importNodesToEnvironment', () => {
 
         beforeEach(async () => {
+            mySandBox.restore();
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             browseStub = mySandBox.stub(UserInputUtil, 'browse');
             addMoreStub = mySandBox.stub(UserInputUtil, 'addMoreNodes').resolves(UserInputUtil.DONE_ADDING_NODES);
@@ -174,6 +177,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
             });
 
             getConnectedEnvironmentRegistryEntry = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(undefined);
+            getAllStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([environmentRegistryEntry, OpsToolRegistryEntry]);
+            showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
+            showConfirmationWarningMessageStub.callThrough();
+
         });
 
         afterEach(async () => {
@@ -706,7 +713,35 @@ describe('ImportNodesToEnvironmentCommand', () => {
         });
 
         it('should handle when user cancel selecting nodes when editting nodes on an existing Ops Tool instance', async () => {
-            const startNodes: any[] = [{
+            getNodesStub.resolves(opsToolNodes);
+            showNodesQuickPickBoxStub.resolves();
+            executeCommandStub.withArgs(ExtensionCommands.DELETE_NODE).resolves();
+
+            const result: boolean = await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+
+            should.equal(undefined, result);
+            ensureDirStub.should.have.been.called;
+            updateNodeStub.should.have.been.called;
+            getNodesStub.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.should.have.not.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
+        });
+
+        it('should handle when user cancel selecting nodes and there are orderer nodes present when editting nodes on an existing Ops Tool instance', async () => {
+            const someNodes: any[] = [{
+                short_name: 'orderer1.example.com',
+                name: 'orderer1.example.com',
+                display_name: 'Orderer 1',
+                api_url: 'grpcs://someHost:somePort12',
+                type: 'fabric-orderer',
+                wallet: 'fabric_wallet',
+                identity: 'admin',
+                msp_id: 'OrdererMSP',
+                id: 'orderer1',
+                cluster_name: 'Ordering Service',
+                hidden: false
+            },
+            {
                 short_name: 'orderer2.example.com',
                 name: 'orderer2.example.com',
                 display_name: 'Orderer 2',
@@ -719,11 +754,14 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 cluster_name: 'Ordering Service',
                 hidden: false
             }].concat(opsToolNodes);
-            getNodesStub.onFirstCall().resolves(startNodes);
+            getNodesStub.reset();
+            getNodesStub.resolves(someNodes);
+            axiosGetStub.onSecondCall().resolves({data: someNodes});
             showNodesQuickPickBoxStub.resolves();
 
-            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            const result: boolean = await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
+            should.equal(undefined, result);
             ensureDirStub.should.have.been.called;
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
@@ -935,16 +973,16 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 msp_id: 'Org1MSP',
                 container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
             },
-                {
-                    short_name: 'invalid',
-                    api_url: 'grpc://localhost:17051',
-                    chaincode_url: 'grpc://localhost:17052',
-                    type: 'fabric-peer',
-                    wallet: 'Org1',
-                    identity: 'admin',
-                    msp_id: 'Org1MSP',
-                    container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
-                }]);
+            {
+                short_name: 'invalid',
+                api_url: 'grpc://localhost:17051',
+                chaincode_url: 'grpc://localhost:17052',
+                type: 'fabric-peer',
+                wallet: 'Org1',
+                identity: 'admin',
+                msp_id: 'Org1MSP',
+                container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
+            }]);
 
             const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
             browseStub.onFirstCall().resolves([uri]);
@@ -959,5 +997,176 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.should.have.been.calledWith(LogType.ERROR, `Error importing node: A node should have a name property`, `Error importing node: Error: A node should have a name property`);
             logSpy.should.have.been.calledWith(LogType.WARNING, 'Finished importing nodes but some nodes could not be imported');
         });
+
+        it('should handle error when deleting nodes from an Ops Tool instance', async () => {
+            const originalNodes: any[] = [{
+                short_name: 'peer1.org1.example.com',
+                name: 'peer1.org1.example.com',
+                display_name: 'Peer1 Org1',
+                api_url: 'grpcs://someHost:somePort1',
+                type: 'fabric-peer',
+                wallet: 'fabric_wallet',
+                identity: 'admin',
+                msp_id: 'Org1MSP',
+                pem: 'someCertPeer',
+                location: 'some_saas',
+                id: 'peer10rg1',
+                cluster_name: 'someClusterName',
+                hidden: false
+            },
+            {
+                short_name: 'peer2.org1.example.com',
+                display_name: 'Peer2 Org1',
+                api_url: 'grpcs://someHost:somePort2',
+                type: 'fabric-peer',
+                wallet: 'fabric_wallet',
+                identity: 'admin',
+                msp_id: 'Org1MSP',
+                pem: 'someCertPeer',
+                location: 'some_saas',
+                id: 'peer20rg1',
+                cluster_name: 'someClusterName',
+                hidden: false
+            }];
+
+            const nodesFromOpsTools: any[] = [{
+                short_name: 'peer3.org1.example.com',
+                name: 'peer3.org1.example.com',
+                display_name: 'Peer3 Org1',
+                api_url: 'grpcs://someHost:somePort3',
+                type: 'fabric-peer',
+                wallet: 'fabric_wallet',
+                identity: 'admin',
+                msp_id: 'Org1MSP',
+                pem: 'someCertPeer',
+                location: 'some_saas',
+                id: 'peer30rg1',
+                cluster_name: 'someClusterName',
+                hidden: false
+            }];
+            getNodesStub.resetBehavior();
+            getNodesStub.resolves(originalNodes);
+            axiosGetStub.onSecondCall().resolves({data: nodesFromOpsTools});
+            showNodesQuickPickBoxStub.resolves({label: nodesFromOpsTools[0].display_name, data: nodesFromOpsTools[0]});
+            const error: Error = new Error('Some error');
+            executeCommandStub.withArgs(ExtensionCommands.DELETE_NODE).throws(error);
+
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.DELETE_NODE);
+            getCoreNodeModuleStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.been.called;
+            getNodesStub.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Error deleting node: ${error.message}`, `Error deleting node: ${error.toString()}`);
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Error deletinging node peer1.org1.example.com: ${error.message}`, `Error deleting node peer1.org1.example.com: ${error.toString()}`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
+        });
+
+        it('should handle user chosing to delete environment after all nodes have been deleted from an Ops Tool instance', async () => {
+            const originalNodes: any[] = [{
+                short_name: 'peer1.org1.example.com',
+                name: 'peer1.org1.example.com',
+                display_name: 'Peer1 Org1',
+                api_url: 'grpcs://someHost:somePort1',
+                type: 'fabric-peer',
+                wallet: 'fabric_wallet',
+                identity: 'admin',
+                msp_id: 'Org1MSP',
+                pem: 'someCertPeer',
+                location: 'some_saas',
+                id: 'peer10rg1',
+                cluster_name: 'someClusterName',
+                hidden: false
+            }];
+
+            getNodesStub.resetBehavior();
+            getNodesStub.onFirstCall().resolves(originalNodes);
+            getNodesStub.onSecondCall().throws(new Error('should never get this far'));
+            axiosGetStub.onSecondCall().resolves([]);
+            showConfirmationWarningMessageStub.resolves(true);
+            getAllStub.resolves([]);
+            executeCommandStub.withArgs(ExtensionCommands.DELETE_NODE).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.DELETE_ENVIRONMENT).resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.DELETE_NODE);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
+            getCoreNodeModuleStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.not.been.called;
+            getNodesStub.should.have.been.calledOnce;
+            getAllStub.should.have.been.calledOnce;
+            showNodesQuickPickBoxStub.should.not.have.been.called;
+            showConfirmationWarningMessageStub.should.have.been.calledWithExactly(`There are no nodes in the ${OpsToolRegistryEntry.name} IBM Blockchain Platform network. Do you want to delete this environment?`);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+        });
+
+        it('should handle user chosing not to delete environment after all nodes have been deleted from an Ops Tool instance', async () => {
+            const originalNodes: any[] = [{
+                short_name: 'peer1.org1.example.com',
+                name: 'peer1.org1.example.com',
+                display_name: 'Peer1 Org1',
+                api_url: 'grpcs://someHost:somePort1',
+                type: 'fabric-peer',
+                wallet: 'fabric_wallet',
+                identity: 'admin',
+                msp_id: 'Org1MSP',
+                pem: 'someCertPeer',
+                location: 'some_saas',
+                id: 'peer10rg1',
+                cluster_name: 'someClusterName',
+                hidden: false
+            }];
+
+            getNodesStub.resetBehavior();
+            getNodesStub.onFirstCall().resolves(originalNodes);
+            getNodesStub.onSecondCall().resolves([]);
+            axiosGetStub.onSecondCall().resolves([]);
+            showConfirmationWarningMessageStub.resolves(false);
+            getAllStub.resolves([OpsToolRegistryEntry]);
+            executeCommandStub.withArgs(ExtensionCommands.DELETE_NODE).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.DELETE_ENVIRONMENT).resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.DELETE_NODE);
+            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
+            getCoreNodeModuleStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.not.been.called;
+            getNodesStub.should.have.been.calledTwice;
+            getAllStub.should.have.been.calledOnce;
+            showNodesQuickPickBoxStub.should.not.have.been.called;
+            showConfirmationWarningMessageStub.should.have.been.calledWithExactly(`There are no nodes in the ${OpsToolRegistryEntry.name} IBM Blockchain Platform network. Do you want to delete this environment?`);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
+        });
+
+        it('should handle user creating Ops Tool environment from a network with no nodes and chosing to delete environment', async () => {
+            getNodesStub.resolves([]);
+            axiosGetStub.onSecondCall().resolves([]);
+            showNodesQuickPickBoxStub.resolves([]);
+            showConfirmationWarningMessageStub.resolves(true);
+            getAllStub.resolves([]);
+            executeCommandStub.withArgs(ExtensionCommands.DELETE_NODE).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.DELETE_ENVIRONMENT).resolves();
+
+            const result: boolean = await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+
+            should.equal(result, undefined);
+            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.DELETE_NODE);
+            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
+            getCoreNodeModuleStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.not.been.called;
+            getNodesStub.should.have.been.calledOnce;
+            getAllStub.should.have.not.been.called;
+            showConfirmationWarningMessageStub.should.have.been.calledWithExactly(`There are no nodes in the ${OpsToolRegistryEntry.name} IBM Blockchain Platform network. Do you want to delete this environment?`);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+        });
+
     });
 });

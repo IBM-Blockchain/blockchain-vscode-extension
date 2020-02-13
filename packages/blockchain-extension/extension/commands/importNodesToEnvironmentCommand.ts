@@ -19,7 +19,7 @@ import * as fs from 'fs-extra';
 import * as https from 'https';
 import * as path from 'path';
 import {SettingConfigurations} from '../../configurations';
-import { FabricEnvironmentRegistryEntry, FabricNode, LogType, FabricEnvironment, FabricNodeType, EnvironmentType, FileSystemUtil} from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricNode, LogType, FabricEnvironment, FabricNodeType, EnvironmentType, FileSystemUtil, FabricEnvironmentRegistry} from 'ibm-blockchain-platform-common';
 import {ExtensionCommands} from '../../ExtensionCommands';
 import {FabricEnvironmentManager} from '../fabric/environments/FabricEnvironmentManager';
 import {EnvironmentFactory} from '../fabric/environments/EnvironmentFactory';
@@ -64,6 +64,8 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
         const oldNodes: FabricNode[] = allNodes.filter((_node: FabricNode) => !_node.hidden);
 
         const nodesToUpdate: FabricNode[] = [];
+        let nodesToDelete: FabricNode[] = [];
+
         let addedAllNodes: boolean = true;
         if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_NODES) {
             const openDialogOptions: vscode.OpenDialogOptions = {
@@ -169,7 +171,10 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                     }
 
                     const data: any = response.data;
-                    const filteredData: FabricNode[] = data.filter((_data: any) => _data.api_url)
+                let filteredData: FabricNode[] = [];
+
+                if (data && data.length > 0) {
+                    filteredData = data.filter((_data: any) => _data.api_url)
                         .map((_data: any) => {
                                 if (_data.tls_cert) {
                                     _data.pem = _data.tls_cert;
@@ -179,34 +184,42 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                                 _data.name = _data.display_name;
                                 delete _data.display_name;
                                 return FabricNode.pruneNode(_data);
-                            }
-                        );
+                        });
 
-                let chosenNodes: IBlockchainQuickPickItem<FabricNode>[];
-                chosenNodes = await UserInputUtil.showNodesQuickPickBox(`Which nodes would you like to ${methodMessageString}?`, filteredData, true, allNodes, informOfChanges) as IBlockchainQuickPickItem<FabricNode>[];
+                    let chosenNodes: IBlockchainQuickPickItem<FabricNode>[];
+                    chosenNodes = await UserInputUtil.showNodesQuickPickBox(`Which nodes would you like to ${methodMessageString}?`, filteredData, true, allNodes, informOfChanges) as IBlockchainQuickPickItem<FabricNode>[];
 
-                let chosenNodesNames: string[] = [];
-                if (chosenNodes === undefined) {
-                    if (fromAddEnvironment) {
-                        return;
-                    }
-                    justUpdate = true;
-                    chosenNodesNames = oldNodes.map((_node: FabricNode) => _node.type === FabricNodeType.ORDERER && _node.cluster_name ? _node.cluster_name : _node.name);
-                } else {
-                    if (!Array.isArray(chosenNodes)) {
-                        chosenNodes = [chosenNodes];
-                    }
-                    if (chosenNodes.length > 0) {
-                        chosenNodesNames = chosenNodes.map((_chosenNode: IBlockchainQuickPickItem<FabricNode>) => _chosenNode.label);
+                    let chosenNodesNames: string[] = [];
+                    let chosenNodesUrls: string[] = [];
+                    if (chosenNodes === undefined) {
+                        if (fromAddEnvironment) {
+                            return;
+                        }
+                        justUpdate = true;
+                        chosenNodesNames = oldNodes.map((_node: FabricNode) => _node.type === FabricNodeType.ORDERER && _node.cluster_name ? _node.cluster_name : _node.name);
+                        chosenNodesUrls = oldNodes.map((_node: FabricNode) => _node.api_url);
+                    } else {
+                        if (!Array.isArray(chosenNodes)) {
+                            chosenNodes = [chosenNodes];
+                        }
+                        if (chosenNodes.length > 0) {
+                            chosenNodesNames = chosenNodes.map((_chosenNode: IBlockchainQuickPickItem<FabricNode>) => _chosenNode.label);
+                            chosenNodesUrls = chosenNodes.map((_chosenNode: IBlockchainQuickPickItem<FabricNode>) => _chosenNode.data.api_url);
                     }
                 }
                     filteredData.forEach((node: FabricNode) => {
                         if (node.type === FabricNodeType.ORDERER && node.cluster_name) {
                             node.hidden = chosenNodesNames.indexOf(node.cluster_name) === -1;
-                        } else if (chosenNodesNames.indexOf(node.name) === -1) {
+                        } else if (chosenNodesUrls.indexOf(node.api_url) === -1) {
                             node.hidden = true;
                         }
                     });
+                }
+
+                if (allNodes.length > 0) {
+                    const filteredNodesUrls: string[] = filteredData.map((_node: FabricNode) => _node.api_url);
+                    nodesToDelete = allNodes.filter((_node: FabricNode) => filteredNodesUrls.indexOf(_node.api_url) === -1);
+                }
 
                     nodesToUpdate.push(...filteredData);
                 } catch (error) {
@@ -241,6 +254,33 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                     }
                 }
             }
+
+        if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS && (nodesToDelete.length > 0 || nodesToUpdate.length === 0)) {
+            for (const node of nodesToDelete) {
+                try {
+                    await vscode.commands.executeCommand(ExtensionCommands.DELETE_NODE, node, false);
+                } catch (error) {
+                    if (!node.name) {
+                        outputAdapter.log(LogType.ERROR, `Error deleting node: ${error.message}`, `Error deleting node: ${error.toString()}`);
+                    } else {
+                        outputAdapter.log(LogType.ERROR, `Error deletinging node ${node.name}: ${error.message}`, `Error deleting node ${node.name}: ${error.toString()}`);
+                    }
+                }
+            }
+            if (nodesToUpdate.length === 0) {
+                const deleteEnvironment: boolean = await UserInputUtil.showConfirmationWarningMessage(`There are no nodes in the ${environment.getName()} IBM Blockchain Platform network. Do you want to delete this environment?`);
+                if (deleteEnvironment && fromAddEnvironment) {
+                    return;
+                } else if (deleteEnvironment) {
+                    await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT, environmentRegistryEntry, true);
+                }
+            }
+            const currentEnvironents: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll(false);
+            const stillExists: boolean = currentEnvironents.some((_env: FabricEnvironmentRegistryEntry) => _env.name === environment.getName());
+            if (!stillExists) {
+                return;
+            }
+        }
 
             // check if any nodes were added
             const newEnvironment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
