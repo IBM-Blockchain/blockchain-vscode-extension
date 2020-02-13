@@ -24,7 +24,7 @@ import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { PeerTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/PeerTreeItem';
-import { FabricNode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, FabricEnvironment } from 'ibm-blockchain-platform-common';
+import { FabricNode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, FabricEnvironment, EnvironmentType } from 'ibm-blockchain-platform-common';
 
 chai.should();
 chai.use(sinonChai);
@@ -45,6 +45,7 @@ describe('DeleteNodeCommand', () => {
         let peerNode: FabricNode;
         let anotherPeerNode: FabricNode;
         let morePeerNode: FabricNode;
+        let hiddenPeerNode: FabricNode;
         let deleteNodeStub: sinon.SinonStub;
         let updateNodeStub: sinon.SinonStub;
         let getEnvStub: sinon.SinonStub;
@@ -62,6 +63,7 @@ describe('DeleteNodeCommand', () => {
             peerNode = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'Org1', 'admin', 'Org1MSP');
             anotherPeerNode = FabricNode.newPeer('peer1.org1.example.com', 'peer1.org1.example.com', 'grpc://localhost:7051', 'Org1', 'admin', 'Org1MSP');
             morePeerNode = FabricNode.newPeer('peer2.org1.example.com', 'peer2.org1.example.com', 'grpc://localhost:7051', 'Org1', 'admin', 'Org1MSP');
+            hiddenPeerNode = FabricNode.newPeer('peer3.org1.example.com', 'peer2.org1.example.com', 'grpc://localhost:7051', 'Org1', 'admin', 'Org1MSP', true);
 
             environmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistryEntry.name = 'myEnvironment';
@@ -69,6 +71,7 @@ describe('DeleteNodeCommand', () => {
             opsToolRegistryEntry = new FabricEnvironmentRegistryEntry();
             opsToolRegistryEntry.name = 'someName';
             opsToolRegistryEntry.url = 'someURL';
+            opsToolRegistryEntry.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
 
             await FabricEnvironmentRegistry.instance().clear();
             await FabricEnvironmentRegistry.instance().add(environmentRegistryEntry);
@@ -117,7 +120,7 @@ describe('DeleteNodeCommand', () => {
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted nodes`);
         });
 
-        it('should test multiple nodes can be hidden from the command', async () => {
+        it('should test multiple nodes can be hidden from the command on an Ops Tools environment', async () => {
             getEnvStub.returns(opsToolRegistryEntry);
             showEnvironmentStub.resolves({ label: opsToolRegistryEntry.name, data: opsToolRegistryEntry });
             showNodeStub.resolves([{ label: peerNode.name, data: peerNode }, {label: anotherPeerNode.name, data: anotherPeerNode}]);
@@ -136,6 +139,54 @@ describe('DeleteNodeCommand', () => {
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `hide node`);
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully hid nodes`);
+        });
+
+        it('should test a node can be deleted from an Ops Tools environment', async () => {
+            getEnvStub.returns(opsToolRegistryEntry);
+            getNodesStub.resolves([peerNode, morePeerNode]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_NODE, peerNode);
+
+            updateNodeStub.should.have.not.been.called;
+            showNodeStub.should.have.not.been.called;
+            deleteNodeStub.should.have.been.calledWith(peerNode);
+            showEnvironmentStub.should.have.not.been.called;
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+            showConfirmationWarningMessage.should.have.not.been.called;
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete node`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted node ${peerNode.name}`);
+        });
+
+        it('should test all visible nodes can be deleted from an Ops Tools environment', async () => {
+            getEnvStub.returns(opsToolRegistryEntry);
+            getNodesStub.resolves([peerNode, hiddenPeerNode]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_NODE, peerNode);
+
+            updateNodeStub.should.have.not.been.called;
+            showNodeStub.should.have.not.been.called;
+            deleteNodeStub.should.have.been.calledWith(peerNode);
+            showEnvironmentStub.should.have.not.been.called;
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            showConfirmationWarningMessage.should.have.not.been.called;
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete node`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted node ${peerNode.name}`);
+        });
+
+        it('should test all nodes can be deleted from an Ops Tools environment', async () => {
+            getEnvStub.returns(opsToolRegistryEntry);
+            getNodesStub.resolves([hiddenPeerNode]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_NODE, hiddenPeerNode);
+
+            updateNodeStub.should.have.not.been.called;
+            showNodeStub.should.have.not.been.called;
+            deleteNodeStub.should.have.been.calledWith(hiddenPeerNode);
+            showEnvironmentStub.should.have.not.been.called;
+            showConfirmationWarningMessage.should.have.not.been.called;
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete node`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted node ${hiddenPeerNode.name}`);
         });
 
         it('should test a node can be deleted from the command', async () => {
