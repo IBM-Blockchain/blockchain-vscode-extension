@@ -394,6 +394,9 @@ export class ExtensionUtil {
         FabricEnvironmentRegistry.instance().on(FileRegistry.EVENT_NAME, (async (): Promise<void> => {
             try {
                 await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
+                // need to refresh gateways and wallets if the environments are updated as some will be generated
+                await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+                await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
             } catch (error) {
                 // ignore error this only happens in tests
             }

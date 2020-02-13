@@ -93,8 +93,6 @@ export async function addEnvironment(): Promise<void> {
                 outputAdapter.log(LogType.WARNING, 'Added a new environment, but some nodes could not be added');
             }
         } else {
-            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
-            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
             outputAdapter.log(LogType.SUCCESS, 'Successfully added a new environment');
         }
         Reporter.instance().sendTelemetryEvent('addEnvironmentCommand');

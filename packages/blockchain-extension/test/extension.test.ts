@@ -26,7 +26,7 @@ import { TemporaryCommandRegistry } from '../extension/dependencies/TemporaryCom
 import { TestUtil } from './TestUtil';
 import { Reporter } from '../extension/util/Reporter';
 import { ExtensionCommands } from '../ExtensionCommands';
-import { LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry } from 'ibm-blockchain-platform-common';
 import { SettingConfigurations } from '../configurations';
 import { UserInputUtil } from '../extension/commands/UserInputUtil';
 import { dependencies } from '../package.json';
@@ -34,6 +34,8 @@ import { GlobalState, DEFAULT_EXTENSION_DATA, ExtensionData } from '../extension
 import { BlockchainGatewayExplorerProvider } from '../extension/explorer/gatewayExplorer';
 import { FabricGatewayHelper } from '../extension/fabric/FabricGatewayHelper';
 import { FabricWalletHelper } from '../extension/fabric/FabricWalletHelper';
+import { BlockchainEnvironmentExplorerProvider } from '../extension/explorer/environmentExplorer';
+import { BlockchainWalletExplorerProvider } from '../extension/explorer/walletExplorer';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -79,7 +81,7 @@ describe('Extension Tests', () => {
         await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, false, vscode.ConfigurationTarget.Global);
 
         reporterDisposeStub = mySandBox.stub(Reporter.instance(), 'dispose');
-        getPackageJSONStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
+        getPackageJSONStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
         migrateSettingConfigurations = mySandBox.stub(ExtensionUtil, 'migrateSettingConfigurations').resolves();
         tidyWalletSettingsStub = mySandBox.stub(FabricWalletHelper, 'tidyWalletSettings').resolves();
         migrateGatewaysStub = mySandBox.stub(FabricGatewayHelper, 'migrateGateways').resolves();
@@ -99,7 +101,7 @@ describe('Extension Tests', () => {
 
     describe('activate', () => {
 
-        it('should refresh the tree when a connection is added', async () => {
+        it('should refresh the tree when a gateway connection is added', async () => {
             await FabricGatewayRegistry.instance().clear();
 
             const treeDataProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
@@ -114,6 +116,32 @@ describe('Extension Tests', () => {
             await FabricGatewayRegistry.instance().add(gateway);
 
             treeSpy.should.have.been.called;
+        });
+
+        it('should refresh all the trees when a environment connection is added', async () => {
+            await FabricEnvironmentRegistry.instance().clear();
+
+            const gatewayTreeDataProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
+
+            const gatewayTreeSpy: sinon.SinonSpy = mySandBox.spy(gatewayTreeDataProvider['_onDidChangeTreeData'], 'fire');
+
+            const environmentTreeDataProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+
+            const environmentTreeSpy: sinon.SinonSpy = mySandBox.spy(environmentTreeDataProvider['_onDidChangeTreeData'], 'fire');
+
+            const walletTreeDataProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
+
+            const walletTreeSpy: sinon.SinonSpy = mySandBox.spy(walletTreeDataProvider['_onDidChangeTreeData'], 'fire');
+
+            const environment: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
+                name: 'myEnvironment'
+            });
+
+            await FabricEnvironmentRegistry.instance().add(environment);
+
+            environmentTreeSpy.should.have.been.called;
+            gatewayTreeSpy.should.have.been.called;
+            walletTreeSpy.should.have.been.called;
         });
 
         it('should activate if required dependencies are installed and prereq page has been shown before', async () => {
@@ -326,7 +354,7 @@ describe('Extension Tests', () => {
 
             await myExtension.activate(context);
 
-            sendTelemetryStub.should.have.been.calledWith('updatedInstall', {IBM: sinon.match.string});
+            sendTelemetryStub.should.have.been.calledWith('updatedInstall', { IBM: sinon.match.string });
 
             logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
@@ -372,7 +400,7 @@ describe('Extension Tests', () => {
 
             await myExtension.activate(context);
 
-            sendTelemetryStub.should.have.been.calledWith('newInstall', {IBM: sinon.match.string});
+            sendTelemetryStub.should.have.been.calledWith('newInstall', { IBM: sinon.match.string });
 
             logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
@@ -420,7 +448,7 @@ describe('Extension Tests', () => {
 
             await myExtension.activate(context);
 
-            sendTelemetryStub.should.have.been.calledWith('updatedInstall', {IBM: sinon.match.string});
+            sendTelemetryStub.should.have.been.calledWith('updatedInstall', { IBM: sinon.match.string });
 
             logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
@@ -466,7 +494,7 @@ describe('Extension Tests', () => {
 
             await myExtension.activate(context);
 
-            sendTelemetryStub.should.have.been.calledWith('updatedInstall', {IBM: sinon.match.string});
+            sendTelemetryStub.should.have.been.calledWith('updatedInstall', { IBM: sinon.match.string });
 
             logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
@@ -508,7 +536,7 @@ describe('Extension Tests', () => {
 
             await myExtension.activate(context);
 
-            sendTelemetryStub.should.have.been.calledWith('newInstall', {IBM: sinon.match.string});
+            sendTelemetryStub.should.have.been.calledWith('newInstall', { IBM: sinon.match.string });
 
             logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');

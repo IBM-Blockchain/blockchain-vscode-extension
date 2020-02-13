@@ -21,10 +21,11 @@ import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
+import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 
 chai.should();
 chai.use(sinonChai);
@@ -46,7 +47,8 @@ describe('DeleteEnvironmentCommand', () => {
         let myEnvironmentB: FabricEnvironmentRegistryEntry;
         let logSpy: sinon.SinonSpy;
         let commandSpy: sinon.SinonSpy;
-        let geConnectedRegistryStub: sinon.SinonStub;
+        let geConnectedEnvironmentRegistryStub: sinon.SinonStub;
+        let getConnectedGatewayRegistryStub: sinon.SinonStub;
 
         beforeEach(async () => {
             mySandBox.restore();
@@ -76,7 +78,9 @@ describe('DeleteEnvironmentCommand', () => {
                 data: myEnvironmentB
             }]);
 
-            geConnectedRegistryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry');
+            geConnectedEnvironmentRegistryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry');
+            getConnectedGatewayRegistryStub = mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').resolves();
+
             commandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
             logSpy = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
@@ -160,7 +164,7 @@ describe('DeleteEnvironmentCommand', () => {
         it('should disconnect before deleting if connected', async () => {
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistryEntry.name = 'myEnvironmentB';
-            geConnectedRegistryStub.returns(environmentRegistryEntry);
+            geConnectedEnvironmentRegistryStub.returns(environmentRegistryEntry);
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
@@ -171,6 +175,52 @@ describe('DeleteEnvironmentCommand', () => {
             environments[1].should.deep.equal(myEnvironmentA);
 
             commandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ${myEnvironmentB.name} environment`);
+        });
+
+        it('should disconnect from gateway before deleting if connected to a related gateway', async () => {
+            const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            environmentRegistryEntry.name = 'myEnvironmentB';
+            geConnectedEnvironmentRegistryStub.returns(environmentRegistryEntry);
+
+            const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({name: 'myGateway', fromEnvironment: environmentRegistryEntry.name, associatedWallet: ''});
+            getConnectedGatewayRegistryStub.resolves(gatewayRegistryEntry);
+
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
+
+            environments =  await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(2);
+
+            environments[0].name.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
+            environments[1].should.deep.equal(myEnvironmentA);
+
+            commandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            commandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ${myEnvironmentB.name} environment`);
+        });
+
+        it('should not disconnect from gateway before deleting if connected to a non-related gateway', async () => {
+            const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            environmentRegistryEntry.name = 'myEnvironmentB';
+            geConnectedEnvironmentRegistryStub.returns(environmentRegistryEntry);
+
+            const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({name: 'myGateway', fromEnvironment: 'anotherEnv', associatedWallet: ''});
+            getConnectedGatewayRegistryStub.resolves(gatewayRegistryEntry);
+
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
+
+            environments =  await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(2);
+
+            environments[0].name.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
+            environments[1].should.deep.equal(myEnvironmentA);
+
+            commandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            commandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ${myEnvironmentB.name} environment`);
