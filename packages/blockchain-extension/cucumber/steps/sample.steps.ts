@@ -38,6 +38,7 @@ module.exports = function(): any {
         const exists: boolean = await fs.pathExists(pathToCheck);
         let webview: SampleView;
         if (!exists) {
+            await fs.ensureDir(pathToCheck);
             webview = await this.sampleHelper.cloneSample(repositoryName, namespace);
 
         } else {

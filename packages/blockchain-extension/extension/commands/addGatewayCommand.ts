@@ -123,7 +123,6 @@ async function createGatewayFromEnvironment(gatewayName: string, environmentRegi
 }
 
 async function createGatewayFromCCP(gatewayName: string): Promise<FabricGatewayRegistryEntry> {
-    const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
     const openDialogOptions: vscode.OpenDialogOptions = {
         canSelectFiles: true,
         canSelectFolders: false,
@@ -135,7 +134,7 @@ async function createGatewayFromCCP(gatewayName: string): Promise<FabricGatewayR
     };
 
     // Get the connection profile json file path
-    const connectionProfilePath: string = await UserInputUtil.browse('Enter a file path to a connection profile file', quickPickItems, openDialogOptions) as string;
+    const connectionProfilePath: string = await UserInputUtil.browse('Enter a file path to a connection profile file', UserInputUtil.BROWSE_LABEL, openDialogOptions) as string;
     if (!connectionProfilePath) {
         return;
     }

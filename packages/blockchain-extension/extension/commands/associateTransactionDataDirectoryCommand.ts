@@ -13,6 +13,8 @@
 */
 'use strict';
 import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs-extra';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { FabricGatewayRegistryEntry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
@@ -65,7 +67,19 @@ export async function associateTransactionDataDirectory(chaincode?: Instantiated
 
     gateway = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
 
-    const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
+    const quickPickItems: IBlockchainQuickPickItem<string>[] = [];
+    const workspaceFolders: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
+    for (const folder of workspaceFolders) {
+        const txnDataPath: string = path.join(folder.uri.path, 'transaction_data');
+        if (fs.existsSync(txnDataPath)) {
+            quickPickItems.push({
+                label: `Transaction data directory for ${folder.name}`,
+                description: txnDataPath,
+                data: txnDataPath
+            });
+        }
+    }
+    quickPickItems.push({label: UserInputUtil.BROWSE_LABEL, data: '', description: ''});
     const openDialogOptions: vscode.OpenDialogOptions = {
         canSelectFiles: false,
         canSelectFolders: true,
@@ -74,11 +88,12 @@ export async function associateTransactionDataDirectory(chaincode?: Instantiated
         filters: undefined
     };
 
-    const transactionDataPath: string = await UserInputUtil.browse(`Choose a directory to associate with ${chaincodeLabel}`, quickPickItems, openDialogOptions) as string;
-    if (!transactionDataPath) {
+    const chosenDirectory: string  | IBlockchainQuickPickItem<string> = await UserInputUtil.browseWithOptions(`Choose a directory to associate with ${chaincodeLabel}`, quickPickItems, openDialogOptions) as string | IBlockchainQuickPickItem<string>;
+    if (!chosenDirectory) {
         return;
     } else {
         try {
+            const transactionDataPath: string = (typeof chosenDirectory === 'string') ? chosenDirectory : chosenDirectory.description;
             const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
             if (!gateway.transactionDataDirectories) {
                 gateway.transactionDataDirectories = [];
