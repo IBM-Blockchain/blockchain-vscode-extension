@@ -251,7 +251,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
         if (justUpdate) {
             return;
         } else if (addedAllNodes) {
-            outputAdapter.log(LogType.SUCCESS, `Successfully ${methodMessageString}ed all nodes`);
+            outputAdapter.log(LogType.SUCCESS, `Successfully ${methodMessageString}ed nodes`);
             } else {
             outputAdapter.log(LogType.WARNING, `Finished ${methodMessageString}ing nodes but some nodes could not be ${methodMessageString}ed`);
             }
