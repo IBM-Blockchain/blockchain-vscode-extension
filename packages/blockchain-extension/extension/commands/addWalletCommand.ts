@@ -42,14 +42,13 @@ export async function addWallet(createIdentity: boolean = true): Promise<FabricW
         }
         if (walletMethod === UserInputUtil.IMPORT_WALLET) {
             // User has a wallet - get the path
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
                 canSelectFiles: false,
                 canSelectFolders: true,
                 canSelectMany: false,
                 openLabel: 'Select',
             };
-            walletUri = await UserInputUtil.browse('Enter a file path to a wallet directory', quickPickItems, openDialogOptions, true) as vscode.Uri;
+            walletUri = await UserInputUtil.browse('Enter a file path to a wallet directory', UserInputUtil.BROWSE_LABEL, openDialogOptions, true) as vscode.Uri;
             if (!walletUri) {
                 // User cancelled dialog box
                 return;
