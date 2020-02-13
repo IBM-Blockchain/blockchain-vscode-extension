@@ -190,7 +190,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
         });
 
         it('should test nodes can be added to a new OpsTool instance', async () => {
@@ -203,7 +203,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
         // Update this test when doing issue for filtering nodes
@@ -220,7 +220,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, true, false, IncludeEnvironmentOptions.OPSTOOLSENV);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, OpsToolRegistryEntry);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
         it('should test all nodes can be hidden for an existing OpsTool environment from command palette', async () => {
@@ -238,7 +238,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, true, false, IncludeEnvironmentOptions.OPSTOOLSENV);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
         it('should test nodes can be added to an existing OpsTool environment', async () => {
@@ -253,7 +253,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, OpsToolRegistryEntry);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
         it('should test nodes can be added to an existing OpsTool environment (on windows)', async () => {
@@ -269,7 +269,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, OpsToolRegistryEntry);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
         it('should handle when the keytar module cannot be imported at all when creating a new OpsTool instance', async () => {
@@ -359,7 +359,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
         it('should handle no certificate verification on a new Ops Tool instance', async () => {
@@ -374,7 +374,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
             readFileStub.should.have.not.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
         it('should handle no certificate verification on an existing Ops Tool instance', async () => {
@@ -389,7 +389,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
             readFileStub.should.have.not.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
         it('should throw error when multiple certificates present when editing filters on an existing Ops Tool instance', async () => {
@@ -423,7 +423,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
         });
 
         it('should test nodes can be added from adding an environment', async () => {
@@ -439,7 +439,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
         });
 
         it('should test that connect command is called when connected to the environment you are updating', async () => {
@@ -457,7 +457,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
         });
 
         it('should test that connect command is not called when connected to an environment you are not updating', async () => {
@@ -476,7 +476,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
         });
 
         it('should test nodes can be imported when node contains multiple definitions', async () => {
@@ -516,7 +516,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
         });
 
         it('should handle when first node contains error', async () => {
@@ -582,7 +582,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported all nodes');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
         });
 
         it('should test importing nodes can be cancelled when choosing environment', async () => {
@@ -701,7 +701,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
         it('should handle when user cancel selecting nodes when editting nodes on an existing Ops Tool instance', async () => {
@@ -727,7 +727,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.should.have.not.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
+            logSpy.should.have.not.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
         it('should handle when user cancel selecting nodes when adding a new Ops Tool instance', async () => {
@@ -739,7 +739,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.not.been.called;
             getNodesStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.should.have.not.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
+            logSpy.should.have.not.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
         it('should handle user choosing a subset of nodes from Ops Tool from a new Ops Tool instance', async () => {
@@ -752,7 +752,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
         it('should add all nodes from the orderer cluster if user chooses any of those nodes, when adding nodes from Ops Tool', async () => {
@@ -817,7 +817,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
         it('should handle errors when copying node files', async () => {
