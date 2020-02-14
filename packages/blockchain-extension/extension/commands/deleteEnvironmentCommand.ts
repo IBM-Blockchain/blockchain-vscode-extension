@@ -15,10 +15,11 @@
 import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentTreeItem } from '../explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 
 export async function deleteEnvironment(environment: FabricEnvironmentTreeItem | FabricEnvironmentRegistryEntry, force: boolean = false): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -60,10 +61,16 @@ export async function deleteEnvironment(environment: FabricEnvironmentTreeItem |
             }
         }
 
-        const connectedRegistry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+        const connectedEnvironmentRegistry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+        const connectedGatewayRegistry: FabricGatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
+
         for (const _environment of environmentsToDelete) {
-            if (connectedRegistry && connectedRegistry.name === _environment.name) {
+            if (connectedEnvironmentRegistry && connectedEnvironmentRegistry.name === _environment.name) {
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            }
+
+            if (connectedGatewayRegistry && connectedGatewayRegistry.fromEnvironment === _environment.name) {
+                await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
             }
 
             await FabricEnvironmentRegistry.instance().delete(_environment.name);
