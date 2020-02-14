@@ -20,12 +20,12 @@ import { ExtensionUtil } from '../util/ExtensionUtil';
 import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentManager, ConnectedState } from '../fabric/environments/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, FabricNode, LogType, FabricEnvironment, AnsibleEnvironment } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, FabricNode, LogType, FabricEnvironment, AnsibleEnvironment, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 
-export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry): Promise<void> {
+export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry, showSuccess: boolean = true): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, `connecting to fabric environment`);
 
@@ -62,18 +62,37 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
             }
         }
 
+        let nodes: FabricNode[] = await fabricEnvironment.getNodes();
+
+        if (fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT) {
+            let informOfChanges: boolean = true;
+            if (nodes.length === 0) {
+                const importNodes: boolean = await UserInputUtil.showConfirmationWarningMessage(`Error connecting to environment ${fabricEnvironmentRegistryEntry.name}: no visible nodes. Would you like to filter nodes?`);
+                if (!importNodes) {
+                    return;
+                }
+                informOfChanges = false;
+            }
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, fabricEnvironmentRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, informOfChanges);
+            nodes = await fabricEnvironment.getNodes();
+            if (nodes.length === 0) {
+                FabricEnvironmentManager.instance().disconnect();
+                return;
+            }
+        }
+
         // need to check if the environment is setup
         const requireSetup: boolean = await fabricEnvironment.requireSetup();
 
         if (requireSetup && !(fabricEnvironment instanceof LocalEnvironment || fabricEnvironment instanceof ManagedAnsibleEnvironment)) {
             FabricEnvironmentManager.instance().connect(undefined, fabricEnvironmentRegistryEntry, ConnectedState.SETUP);
             VSCodeBlockchainOutputAdapter.instance().log(LogType.IMPORTANT, 'You must complete setup for this environment to enable install, instantiate and register identity operations on the nodes. Click each node in the list to perform the required setup steps');
+            FabricEnvironmentManager.instance().stopEnvironmentRefresh();
             return;
         }
 
         const connection: IFabricEnvironmentConnection = FabricConnectionFactory.createFabricEnvironmentConnection(fabricEnvironmentRegistryEntry.name);
 
-        const nodes: FabricNode[] = await fabricEnvironment.getNodes();
         await connection.connect(nodes);
 
         try {
@@ -84,11 +103,14 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
             return;
         }
 
-        FabricEnvironmentManager.instance().connect(connection, fabricEnvironmentRegistryEntry, ConnectedState.CONNECTED);
+        FabricEnvironmentManager.instance().connect(connection, fabricEnvironmentRegistryEntry, ConnectedState.CONNECTING);
 
         const environmentName: string = fabricEnvironment.getName();
 
-        outputAdapter.log(LogType.SUCCESS, `Connected to ${environmentName}`);
+        // we shouldn't show the success message if we are auto refreshing
+        if (showSuccess) {
+            outputAdapter.log(LogType.SUCCESS, `Connected to ${environmentName}`);
+        }
 
         let environmentData: string = 'managed environment';
         if (!fabricEnvironmentRegistryEntry.managedRuntime) {
@@ -98,7 +120,7 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
         const isIBMer: boolean = ExtensionUtil.checkIfIBMer();
         Reporter.instance().sendTelemetryEvent('fabricEnvironmentConnectCommand', { environmentData: environmentData, connectEnvironmentIBM: isIBMer + '' });
     } catch (error) {
-        outputAdapter.log(LogType.ERROR, error.message, error.toString());
+        outputAdapter.log(LogType.ERROR, `Cannot connect to environment: ${error.message}`, `Cannot connect to environment: ${error.toString()}`);
         return;
     }
 }

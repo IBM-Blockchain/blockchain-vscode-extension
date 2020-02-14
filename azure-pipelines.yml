@@ -56,6 +56,9 @@ stages:
             cucumber_ansible:
               imageName: 'ubuntu-16.04'
               ANSIBLE_FABRIC: 'true'
+            cucumber_opsTools:
+              imageName: 'ubuntu-16.04'
+              OPSTOOLS_FABRIC: 'true'
 
         pool:
           vmImage: $(imageName)

@@ -48,13 +48,14 @@ module.exports = function(): any {
     });
 
     this.Given(/the wallet '(.*?)' with identity '(.*?)' and mspid '(.*?)' exists/, this.timeout, async (wallet: string, identity: string, mspid: string) => {
+        const method: string = process.env.OPSTOOLS_FABRIC ? 'JSON file' : 'certs';
         const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
         let treeItems: BlockchainTreeItem[] = await blockchainWalletExplorerProvider.getChildren();
         const walletIndex: number = treeItems.findIndex((item: any) => {
             return item.label === wallet;
         });
         if (walletIndex < 0) {
-            await this.walletAndIdentityHelper.createWallet(wallet, identity, mspid, 'certs');
+            await this.walletAndIdentityHelper.createWallet(wallet, identity, mspid, method);
         } else {
             treeItems = await blockchainWalletExplorerProvider.getChildren(treeItems[walletIndex]);
 
@@ -63,7 +64,7 @@ module.exports = function(): any {
             });
 
             if (!identityExists) {
-                await this.walletAndIdentityHelper.createIdentity(wallet, identity, mspid, 'certs');
+                await this.walletAndIdentityHelper.createIdentity(wallet, identity, mspid, method);
             }
         }
 

@@ -22,13 +22,16 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { NodeTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricNode } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
+import { IBlockchainQuickPickItem } from '../../extension/commands/UserInputUtil';
 
 // tslint:disable:no-unused-expression
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
+
+let opsToolsAllNodesQuickPick: IBlockchainQuickPickItem<FabricNode>[] = [];
 
 module.exports = function(): any {
     /**
@@ -56,7 +59,7 @@ module.exports = function(): any {
     });
 
     this.Given("an environment '{string}' exists", this.timeout, async (environmentName: string) => {
-        await this.fabricEnvironmentHelper.createEnvironment(environmentName);
+        opsToolsAllNodesQuickPick = await this.fabricEnvironmentHelper.createEnvironment(environmentName);
         this.environmentName = environmentName;
     });
 
@@ -75,12 +78,31 @@ module.exports = function(): any {
         }
     });
 
+    this.Given('the opstools environment is setup', this.timeout, async () => {
+        const nodeMap: Map<string, string> = new Map< string, string>();
+        nodeMap.set('Ordering Service CA', 'OrderingServiceCAAdmin');
+        nodeMap.set('Ordering Service_1', 'OrderingServiceMSPAdmin');
+        nodeMap.set('Org1 CA', 'Org1CAAdmin');
+        nodeMap.set('Org2 CA', 'Org2CAAdmin');
+        nodeMap.set('Peer Org1', 'Org1MSPAdmin');
+        nodeMap.set('Peer Org2', 'Org2MSPAdmin');
+        const wallet: string = 'opsToolsWallet';
+        for (const node of nodeMap.entries()) {
+            await this.fabricEnvironmentHelper.associateNodeWithIdentitiy(this.environmentName, node[0], node[1], wallet);
+        }
+    });
+
+    this.Given("I have edited filters and imported all nodes to environment '{string}'", this.timeout, async (environmentName: string) => {
+        await this.fabricEnvironmentHelper.editNodeFilters(opsToolsAllNodesQuickPick, environmentName);
+
+    });
+
     /**
      * When
      */
 
     this.When("I create an environment '{string}'", this.timeout, async (environmentName: string) => {
-        await this.fabricEnvironmentHelper.createEnvironment(environmentName);
+        opsToolsAllNodesQuickPick = await this.fabricEnvironmentHelper.createEnvironment(environmentName);
     });
 
     this.When("I associate identity '{string}' in wallet '{string}' with node '{string}'", this.timeout, async (identity: string, wallet: string, node: string) => {
@@ -93,6 +115,10 @@ module.exports = function(): any {
 
     this.When("I delete node '{string}'", this.timeout, async (nodeName: string) => {
         await this.fabricEnvironmentHelper.deleteNode(nodeName, this.environmentName);
+    });
+
+    this.When("I hide the node '{string}'", this.timeout, async (nodeName: string) => {
+        await this.fabricEnvironmentHelper.hideNode(nodeName, this.environmentName);
     });
 
     this.When("I delete an environment '{string}'", this.timeout, async (environmentName: string) => {
@@ -135,6 +161,11 @@ module.exports = function(): any {
         treeItem.should.not.be.null;
         this.treeItem = treeItem;
         await vscode.commands.executeCommand(ExtensionCommands.OPEN_NEW_TERMINAL, treeItem);
+    });
+
+    this.When("I edit filters and import all nodes to environment '{string}'", this.timeout, async (environmentName: string) => {
+        await this.fabricEnvironmentHelper.editNodeFilters(opsToolsAllNodesQuickPick, environmentName);
+
     });
 
     /**

@@ -5,5 +5,6 @@
     "chaincode_url": "grpc://localhost:17052",
     "type": "fabric-peer",
     "msp_id": "Org1MSP",
-    "container_name": "yofn_peer1.org1.example.com"
+    "container_name": "yofn_peer1.org1.example.com",
+    "hidden": false
 }

@@ -101,6 +101,24 @@
       }
     },
     {
+      "name": "Cucumber OpsTools fabric",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "${workspaceFolder}/cucumber/data/cucumber.code-workspace",
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--extensionTestsPath=${workspaceFolder}/build/cucumber/"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/build/cucumber/**/*.feature"
+      ],
+      "preLaunchTask": "npm: watch",
+      "env": {
+        "OPSTOOLS_FABRIC": "true"
+      }
+    },
+    {
       "name": "Cucumber ansible fabric",
       "type": "extensionHost",
       "request": "launch",

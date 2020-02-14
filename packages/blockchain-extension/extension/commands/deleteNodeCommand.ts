@@ -13,19 +13,28 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
+import { UserInputUtil, IBlockchainQuickPickItem, IncludeEnvironmentOptions } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { NodeTreeItem } from '../explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, LogType, FabricEnvironment } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, LogType, FabricEnvironment, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 
-export async function deleteNode(nodeTreeItem: NodeTreeItem): Promise<void> {
+export async function deleteNode(nodeTreeItem: NodeTreeItem | FabricNode, hideNode?: boolean): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-    outputAdapter.log(LogType.INFO, undefined, 'delete node');
 
-    let removeEnvironment: boolean = false;
+    let action: string;
+    if (hideNode) {
+        action = 'hide';
+        outputAdapter.log(LogType.INFO, undefined, 'hide node');
+    } else {
+        action = 'delete';
+        outputAdapter.log(LogType.INFO, undefined, 'delete node');
+    }
+
+    let deleteEnvironment: boolean = false;
+    let disconnectEnvironment: boolean = false;
     let environmentRegistryEntry: FabricEnvironmentRegistryEntry;
     try {
         let nodesToDelete: FabricNode[];
@@ -36,51 +45,88 @@ export async function deleteNode(nodeTreeItem: NodeTreeItem): Promise<void> {
             // First check there is at least one that isn't local_fabric
             const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll(false, false, true);
             if (environments.length === 0) {
-                outputAdapter.log(LogType.ERROR, `No environments to choose from. Nodes from ${FabricRuntimeUtil.LOCAL_FABRIC} environments and environments created using ansible cannot be deleted.`);
+                outputAdapter.log(LogType.ERROR, `No environments to choose from. Nodes from ${FabricRuntimeUtil.LOCAL_FABRIC} environments and environments created using ansible cannot be modified.`);
                 return;
             }
 
-            const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to delete a node from', false, true, false, false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            let chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            if (hideNode) {
+                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an OpsTools environment to hide a node from', false, true, false, IncludeEnvironmentOptions.OPSTOOLSENV, false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            } else {
+                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to delete a node from', false, true, false, IncludeEnvironmentOptions.ALLENV, false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            }
+
             if (!chosenEnvironment) {
                 return;
             }
 
             environmentRegistryEntry = chosenEnvironment.data;
 
-            const chosenNodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showFabricNodeQuickPick('Choose the node(s) you wish to delete', environmentRegistryEntry, [], false, true) as IBlockchainQuickPickItem<FabricNode>[];
+            const chosenNodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesInEnvironmentQuickPick(`Choose a node to ${action}`, environmentRegistryEntry, [], false, true) as IBlockchainQuickPickItem<FabricNode>[];
             if (!chosenNodes || chosenNodes.length === 0) {
                 return;
             }
 
             nodesToDelete = chosenNodes.map((chosenNode: IBlockchainQuickPickItem<FabricNode>) => chosenNode.data);
         } else {
-            nodesToDelete = [nodeTreeItem.node];
+            if (nodeTreeItem instanceof NodeTreeItem) {
+                nodesToDelete = [nodeTreeItem.node];
+            } else {
+                nodesToDelete = [nodeTreeItem];
+            }
             environmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
         }
 
         const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
-        const nodes: FabricNode[] = await environment.getNodes();
+        const allNodes: FabricNode[] = await environment.getNodes(false, true);
+        const nodes: FabricNode[] = allNodes.filter((_node: FabricNode) => !_node.hidden);
 
         let reallyDoIt: boolean = false;
-        if (nodes.length === nodesToDelete.length) {
-            reallyDoIt = await UserInputUtil.showConfirmationWarningMessage(`This will remove the remaining node(s), and the environment. Do you want to continue?`);
-            if (!reallyDoIt) {
-                return;
+        let allOpsNodesDeleted: boolean = false;
+        if (environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT) {
+            if (hideNode) {
+                if (nodes.length === nodesToDelete.length) {
+                    reallyDoIt = await UserInputUtil.showConfirmationWarningMessage(`This will ${action} the remaining node(s), and disconnect from the environment. Do you want to continue?`);
+                    disconnectEnvironment = true;
+                } else {
+                    reallyDoIt = await UserInputUtil.showConfirmationWarningMessage(`This will ${action} the node(s). Do you want to continue?`);
+                }
+            } else {
+                reallyDoIt = true;
+                const visibleNodesUrls: string[] = nodes.map((_node: FabricNode) => _node.api_url);
+                const visibleTodDelete: FabricNode[] = nodesToDelete.filter((_node: FabricNode) => visibleNodesUrls.indexOf(_node.api_url) !== -1);
+                if (nodesToDelete.length === allNodes.length) {
+                    allOpsNodesDeleted = true;
+                } else if (visibleTodDelete.length >= nodes.length) {
+                    // All visible nodes are being deleted, but hidden nodes remain. Disconnect from environment.
+                    disconnectEnvironment = true;
+                }
             }
-
-            removeEnvironment = true;
         } else {
-            reallyDoIt = await UserInputUtil.showConfirmationWarningMessage(`This will remove the node(s). Do you want to continue?`);
-            if (!reallyDoIt) {
-                return;
+            if (nodes.length === nodesToDelete.length) {
+                reallyDoIt = await UserInputUtil.showConfirmationWarningMessage(`This will ${action} the remaining node(s), and the environment. Do you want to continue?`);
+                deleteEnvironment = reallyDoIt;
+            } else {
+                reallyDoIt = await UserInputUtil.showConfirmationWarningMessage(`This will ${action} the node(s). Do you want to continue?`);
             }
         }
 
-        for (const nodeToDelete of nodesToDelete) {
-            await environment.deleteNode(nodeToDelete);
+        if (!reallyDoIt) {
+            return;
         }
 
-        if (!removeEnvironment) {
+        if (hideNode) {
+            for (const nodeToDelete of nodesToDelete) {
+                nodeToDelete.hidden = true;
+                await environment.updateNode(nodeToDelete);
+            }
+        } else {
+            for (const nodeToDelete of nodesToDelete) {
+                await environment.deleteNode(nodeToDelete);
+            }
+        }
+
+        if (!deleteEnvironment && !disconnectEnvironment && !allOpsNodesDeleted) {
             const connectedRegistry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
             if (connectedRegistry && connectedRegistry.name === environmentRegistryEntry.name) {
                 // only connect if already connected to this environment or in setup for this environment
@@ -88,17 +134,28 @@ export async function deleteNode(nodeTreeItem: NodeTreeItem): Promise<void> {
             }
         }
 
-        if (nodesToDelete.length === 1) {
-            outputAdapter.log(LogType.SUCCESS, `Successfully deleted node ${nodesToDelete[0].name}`);
+        if (hideNode) {
+            if (nodesToDelete.length === 1) {
+                outputAdapter.log(LogType.SUCCESS, `Successfully hid node ${nodesToDelete[0].name}`);
+            } else {
+                outputAdapter.log(LogType.SUCCESS, `Successfully hid nodes`);
+            }
         } else {
-            outputAdapter.log(LogType.SUCCESS, `Successfully deleted nodes`);
+            if (nodesToDelete.length === 1) {
+                outputAdapter.log(LogType.SUCCESS, `Successfully deleted node ${nodesToDelete[0].name}`);
+            } else {
+                outputAdapter.log(LogType.SUCCESS, `Successfully deleted nodes`);
+            }
         }
 
     } catch (error) {
-        outputAdapter.log(LogType.ERROR, `Error deleting node: ${error.message}`, `Error deleting node: ${error.toString()}`);
-    }
+            outputAdapter.log(LogType.ERROR, `Cannot ${action} node: ${error.message}`, `Cannot ${action} node: ${error.toString()}`);
+        }
 
-    if (removeEnvironment) {
+    if (deleteEnvironment) {
         await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT, environmentRegistryEntry, true);
+    }
+    if (disconnectEnvironment) {
+        await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
     }
 }

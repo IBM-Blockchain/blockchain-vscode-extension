@@ -44,6 +44,7 @@ import { EnvironmentConnectedTreeItem } from './runtimeOps/connectedTree/Environ
 import { TextTreeItem } from './model/TextTreeItem';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
+import { EditFiltersTreeItem } from './runtimeOps/connectedTree/EditFiltersTreeItem';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 
 export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorerProvider {
@@ -112,9 +113,8 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
 
             this.tree = await this.setupIdentities(environmentRegistryEntry);
-        } else if (FabricEnvironmentManager.instance().getState() === ConnectedState.CONNECTED) {
+        } else if (FabricEnvironmentManager.instance().getState() === ConnectedState.CONNECTING || FabricEnvironmentManager.instance().getState() === ConnectedState.CONNECTED) {
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
-            await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', true);
             if (environmentRegistryEntry.managedRuntime) {
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', true);
                 await vscode.commands.executeCommand('setContext', 'blockchain-ansible-connected', true);
@@ -122,13 +122,32 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
                 await vscode.commands.executeCommand('setContext', 'blockchain-ansible-connected', true);
             } else {
+                if (environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT) {
+                    if (FabricEnvironmentManager.instance().getState() === ConnectedState.CONNECTED) {
+                        await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+                        if (FabricEnvironmentManager.instance().getState() !== ConnectedState.DISCONNECTED) {
+                            // If the user did not hide all nodes and therefore we are still connecting, update the tree
+                            this.tree = await this.createConnectedTree(environmentRegistryEntry);
+                        } else {
+                            this.tree = await this.createConnectionTree();
+                        }
+                        return this.tree;
+                    }
+                    await vscode.commands.executeCommand('setContext', 'blockchain-opstool-connected', true);
+                }
+
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
                 await vscode.commands.executeCommand('setContext', 'blockchain-ansible-connected', false);
             }
-
+            await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', true);
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
+
             this.tree = await this.createConnectedTree(environmentRegistryEntry);
+            if (FabricEnvironmentManager.instance().getState() === ConnectedState.CONNECTING) {
+                FabricEnvironmentManager.instance().setState(ConnectedState.CONNECTED);
+            }
         } else {
+            await vscode.commands.executeCommand('setContext', 'blockchain-opstool-connected', false);
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
             await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', false);
@@ -323,11 +342,19 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
             if (environmentEntry.name !== FabricRuntimeUtil.LOCAL_FABRIC) {
 
-                tree.push(new ImportNodesTreeItem(this, {
-                    command: ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT,
-                    title: '',
-                    arguments: [environmentEntry]
-                }));
+                if (environmentEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT) {
+                    tree.push(new EditFiltersTreeItem(this, {
+                        command: ExtensionCommands.EDIT_NODE_FILTERS,
+                        title: '',
+                        arguments: [environmentEntry],
+                    }));
+                } else {
+                    tree.push(new ImportNodesTreeItem(this, {
+                        command: ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT,
+                        title: '',
+                        arguments: [environmentEntry]
+                    }));
+                }
             }
 
         } catch (error) {

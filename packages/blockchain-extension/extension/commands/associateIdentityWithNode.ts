@@ -52,7 +52,7 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
                 chooseNodeMessage = 'Choose a node to replace the identity';
             }
 
-            const chosenNode: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick(chooseNodeMessage, environmentRegistryEntry, [FabricNodeType.CERTIFICATE_AUTHORITY, FabricNodeType.ORDERER, FabricNodeType.PEER], true) as IBlockchainQuickPickItem<FabricNode>;
+            const chosenNode: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showNodesInEnvironmentQuickPick(chooseNodeMessage, environmentRegistryEntry, [FabricNodeType.CERTIFICATE_AUTHORITY, FabricNodeType.ORDERER, FabricNodeType.PEER], true) as IBlockchainQuickPickItem<FabricNode>;
             if (!chosenNode) {
                 return;
             }
@@ -162,7 +162,7 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
         if (!yesnoPick || yesnoPick === UserInputUtil.NO) {
             return;
         } else {
-            const nodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showFabricNodeQuickPick('Choose the nodes you wish to associate with this identity', environmentRegistryEntry, [], false, true, true) as IBlockchainQuickPickItem<FabricNode>[];
+            const nodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesInEnvironmentQuickPick('Choose the nodes you wish to associate with this identity', environmentRegistryEntry, [], false, true, true) as IBlockchainQuickPickItem<FabricNode>[];
 
             if (!nodes || nodes.length === 0) {
                 return;

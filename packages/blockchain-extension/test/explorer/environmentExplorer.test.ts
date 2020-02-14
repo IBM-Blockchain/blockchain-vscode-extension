@@ -346,8 +346,9 @@ describe('environmentExplorer', () => {
             let blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider;
             let fabricConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
             let logSpy: sinon.SinonSpy;
-            let executeCommandSpy: sinon.SinonSpy;
+            let executeCommandStub: sinon.SinonStub;
             let environmentStub: sinon.SinonStub;
+            let connectedStateStub: sinon.SinonStub;
 
             beforeEach(async () => {
 
@@ -355,9 +356,10 @@ describe('environmentExplorer', () => {
 
                 await ExtensionUtil.activateExtension();
 
-                mySandBox.stub(FabricEnvironmentManager.instance(), 'getState').returns(ConnectedState.CONNECTED);
+                connectedStateStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getState').returns(ConnectedState.CONNECTED);
 
-                executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+                executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
+                executeCommandStub.callThrough();
 
                 fabricConnection = mySandBox.createStubInstance(FabricEnvironmentConnection);
 
@@ -449,9 +451,9 @@ describe('environmentExplorer', () => {
                 orgs.contextValue.should.equal('blockchain-runtime-organizations-item');
                 orgs.label.should.equal('Organizations');
 
-                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', true);
-                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
-                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', true);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', true);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', true);
             });
 
             it('should set correct context if not local runtime and not ansible', async () => {
@@ -467,9 +469,9 @@ describe('environmentExplorer', () => {
                 const connectedTo: EnvironmentConnectedTreeItem = allChildren[0] as EnvironmentConnectedTreeItem;
                 connectedTo.label.should.equal(`Connected to environment: myFabric`);
 
-                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
-                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
-                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', false);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', false);
             });
 
             it('should set correct context if ansible', async () => {
@@ -485,9 +487,9 @@ describe('environmentExplorer', () => {
                 const connectedTo: EnvironmentConnectedTreeItem = allChildren[0] as EnvironmentConnectedTreeItem;
                 connectedTo.label.should.equal(`Connected to environment: myAnsibleFabric`);
 
-                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
-                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
-                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', true);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', true);
             });
 
             it('should create channels children correctly', async () => {
@@ -629,6 +631,86 @@ describe('environmentExplorer', () => {
                 importNodes.contextValue.should.equal('blockchain-import-nodes-item');
                 importNodes.label.should.equal('+ Import Nodes');
 
+                logSpy.should.not.have.been.calledWith(LogType.ERROR);
+            });
+
+            it('should show peers, certificate authorities, and orderer nodes correctly with OpsTool instance', async () => {
+                // For an Ops Tools instance the behaviour is different if we are finishing the connection, or if we are
+                // reconnecting (this is dealt with in 'refresh' test section), hence the state must be CONNECTING.
+                connectedStateStub.returns(ConnectedState.CONNECTING);
+                const setStateStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'setState');
+                const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                environmentRegistry.name = 'myEnvironment';
+                environmentRegistry.url = 'someURL';
+                environmentRegistry.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
+
+                const connectCommandStub: sinon.SinonStub = executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistry).resolves();
+                environmentStub.returns(environmentRegistry);
+
+                fabricConnection.getAllCertificateAuthorityNames.returns(['ca-name']);
+                fabricConnection.getNode.withArgs('peerOne').returns(FabricNode.newPeer('peerOne', 'peerOne', 'grpc://localhost:7051', 'wallet', 'identity', 'Org1MSP'));
+                fabricConnection.getNode.withArgs('peerTwo').returns(FabricNode.newPeer('peerTwo', 'peerTwo', 'grpc://localhost:8051', 'wallet', 'identity', 'Org1MSP'));
+                fabricConnection.getNode.withArgs('ca-name').returns(FabricNode.newCertificateAuthority('ca-name', 'ca-name', 'http://localhost:7054', 'ca_name', 'wallet', 'identity', 'Org1MSP', 'admin', 'adminpw'));
+                fabricConnection.getNode.withArgs('orderer1').returns(FabricNode.newOrderer('orderer1', 'orderer1', 'grpc://localhost:7050', 'wallet', 'identity', 'Org1MSP', undefined));
+                fabricConnection.getNode.withArgs('orderer2').returns(FabricNode.newOrderer('orderer2', 'orderer2', 'grpc://localhost:7050', 'wallet', 'identity', 'Org1MSP', undefined));
+
+                allChildren = await blockchainRuntimeExplorerProvider.getChildren();
+                allChildren.length.should.equal(5);
+
+                const items: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[3]);
+                items.length.should.equal(6);
+                const peerOne: PeerTreeItem = items[0] as PeerTreeItem;
+                peerOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                peerOne.contextValue.should.equal('blockchain-peer-item');
+                peerOne.label.should.equal('peerOne');
+                peerOne.node.api_url.should.equal('grpc://localhost:7051');
+                let tooltip: string = `Name: ${peerOne.node.name}\nMSPID: ${peerOne.node.msp_id}\nAssociated Identity:\n${peerOne.node.identity}`;
+                peerOne.tooltip.should.equal(tooltip);
+
+                const peerTwo: PeerTreeItem = items[1] as PeerTreeItem;
+                peerTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                peerTwo.contextValue.should.equal('blockchain-peer-item');
+                peerTwo.label.should.equal('peerTwo');
+                peerTwo.node.api_url.should.equal('grpc://localhost:8051');
+                tooltip = `Name: ${peerTwo.node.name}\nMSPID: ${peerTwo.node.msp_id}\nAssociated Identity:\n${peerTwo.node.identity}`;
+                peerTwo.tooltip.should.equal(tooltip);
+
+                const ca: CertificateAuthorityTreeItem = items[2] as CertificateAuthorityTreeItem;
+                ca.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                ca.contextValue.should.equal('blockchain-runtime-certificate-authority-item');
+                ca.label.should.equal('ca-name');
+                ca.node.api_url.should.equal('http://localhost:7054');
+                tooltip = `Name: ${ca.node.name}\nAssociated Identity:\n${ca.node.identity}`;
+                ca.tooltip.should.equal(tooltip);
+
+                const orderer: OrdererTreeItem = items[3] as OrdererTreeItem;
+                orderer.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                orderer.contextValue.should.equal('blockchain-runtime-orderer-item');
+                orderer.label.should.equal('orderer1');
+                orderer.node.api_url.should.equal('grpc://localhost:7050');
+                tooltip = `Name: ${orderer.node.name}\nMSPID: ${orderer.node.msp_id}\nAssociated Identity:\n${orderer.node.identity}`;
+                orderer.tooltip.should.equal(tooltip);
+
+                const orderer2: OrdererTreeItem = items[4] as OrdererTreeItem;
+                orderer2.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                orderer2.contextValue.should.equal('blockchain-runtime-orderer-item');
+                orderer2.label.should.equal('orderer2');
+                orderer2.node.api_url.should.equal('grpc://localhost:7050');
+                tooltip = `Name: ${orderer2.node.name}\nMSPID: ${orderer2.node.msp_id}\nAssociated Identity:\n${orderer2.node.identity}`;
+                orderer2.tooltip.should.equal(tooltip);
+
+                const importNodes: ImportNodesTreeItem = items[5] as ImportNodesTreeItem;
+                importNodes.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                importNodes.contextValue.should.equal('blockchain-filter-nodes-item');
+                importNodes.label.should.equal('Edit Filters');
+
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-opstool-connected', true);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-environment-setup', false);
+                executeCommandStub.should.have.been.called;
+                connectCommandStub.should.have.not.been.called;
+                setStateStub.should.have.been.calledWith(ConnectedState.CONNECTED);
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
             });
 
@@ -923,6 +1005,8 @@ describe('environmentExplorer', () => {
     describe('refresh', () => {
 
         let registryEntry: FabricEnvironmentRegistryEntry;
+        let getEnvRegEntryStub: sinon.SinonStub;
+        let commandStub: sinon.SinonStub;
 
         beforeEach(async () => {
 
@@ -932,11 +1016,15 @@ describe('environmentExplorer', () => {
             registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             registryEntry.managedRuntime = true;
             registryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-            mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(registryEntry);
 
             const fabricRuntimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
             mySandBox.stub(fabricRuntimeManager.getRuntime(), 'startLogs').resolves();
             mySandBox.stub(fabricRuntimeManager.getRuntime(), 'stopLogs').returns(undefined);
+            getEnvRegEntryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry');
+            getEnvRegEntryStub.returns(registryEntry);
+            commandStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            commandStub.callThrough();
+
         });
 
         afterEach(() => {
@@ -986,7 +1074,59 @@ describe('environmentExplorer', () => {
 
             disconnectStub.should.have.been.called;
         });
-    });
+
+        it('should try to reconnect if refreshing a connected Ops Tools environment, and return current tree', async () => {
+            const getStateStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getState').returns(ConnectedState.CONNECTED);
+            const registryEntryOpsTools: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            registryEntryOpsTools.name = 'myOpsToolsFabric';
+            registryEntryOpsTools.managedRuntime = false;
+            registryEntryOpsTools.url = '/some/url:port';
+            registryEntryOpsTools.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
+            getEnvRegEntryStub.returns(registryEntryOpsTools);
+
+            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+            const connectCommandStub: sinon.SinonStub = commandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT, registryEntryOpsTools).resolves();
+
+            const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+            allChildren.length.should.equal(5);
+            commandStub.should.have.not.been.calledWith('setContext', 'blockchain-opstool-connected', true);
+            commandStub.should.have.not.been.calledWith('setContext', 'blockchain-environment-connected', true);
+            commandStub.should.have.not.been.calledWith('setContext', 'blockchain-runtime-connected', false);
+            commandStub.should.have.not.been.calledWith('setContext', 'blockchain-environment-setup', false);
+            getStateStub.should.have.been.called;
+            connectCommandStub.should.have.been.called;
+        });
+
+        it('should handle disconnect when refreshing a connected Ops Tools environment, and return current tree', async () => {
+            const getStateStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getState');
+            getStateStub.returns(ConnectedState.CONNECTED);
+            getStateStub.onCall(4).returns(ConnectedState.DISCONNECTED);
+
+            const registryEntryOpsTools: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            registryEntryOpsTools.name = 'myOpsToolsFabric';
+            registryEntryOpsTools.managedRuntime = false;
+            registryEntryOpsTools.url = '/some/url:port';
+            registryEntryOpsTools.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
+            getEnvRegEntryStub.returns(registryEntryOpsTools);
+
+            const getAllStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([registryEntry, registryEntryOpsTools]);
+
+            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+            const connectCommandStub: sinon.SinonStub = commandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT, registryEntryOpsTools).resolves();
+
+            const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+            allChildren.length.should.equal(2);
+            getAllStub.should.have.been.called;
+            commandStub.should.have.not.been.calledWith('setContext', 'blockchain-opstool-connected', true);
+            commandStub.should.have.not.been.calledWith('setContext', 'blockchain-environment-connected', true);
+            commandStub.should.have.not.been.calledWith('setContext', 'blockchain-runtime-connected', false);
+            commandStub.should.have.not.been.calledWith('setContext', 'blockchain-environment-setup', false);
+            getStateStub.should.have.been.called;
+            connectCommandStub.should.have.been.called;
+        });
+});
 
     describe('connect', () => {
 
