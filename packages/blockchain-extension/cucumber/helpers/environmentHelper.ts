@@ -22,13 +22,13 @@ import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { UserInputUtilHelper } from './userInputUtilHelper';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { UserInputUtil, IBlockchainQuickPickItem } from '../../extension/commands/UserInputUtil';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricWalletRegistry, FabricWalletRegistryEntry, FabricEnvironment } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricWalletRegistry, FabricWalletRegistryEntry, FabricEnvironment, FabricNodeType } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
 import { ModuleUtilHelper } from './moduleUtilHelper';
+import { FabricEnvironmentTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -46,16 +46,14 @@ export class EnvironmentHelper {
     }
 
     public async createEnvironment(name: string): Promise<IBlockchainQuickPickItem<FabricNode>[]> {
-        let treeItem: any;
+        let treeItem: FabricEnvironmentTreeItem;
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         // need to make sure its not showing the setup tree
 
-        if (!process.env.OPSTOOLS_FABRIC || blockchainEnvironmentExplorerProvider) {
-            const treeItems: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
-            treeItem = treeItems.find((item: any) => {
-                return item.label === name;
-            });
-        }
+        const treeItems: Array<FabricEnvironmentTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren() as FabricEnvironmentTreeItem[];
+        treeItem = treeItems.find((item: FabricEnvironmentTreeItem) => {
+            return item.label === name;
+        });
 
         if (!treeItem) {
 
@@ -70,7 +68,7 @@ export class EnvironmentHelper {
                 this.userInputUtilHelper.opsToolsNodeQuickPickStub.resolves([]);
             } else if (process.env.ANSIBLE_FABRIC) {
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR});
-                this.userInputUtilHelper.openFileBrowserStub.resolves(vscode.Uri.file(path.join(__dirname,  '..', '..', '..', 'cucumber', 'ansible')));
+                this.userInputUtilHelper.openFileBrowserStub.resolves(vscode.Uri.file(path.join(__dirname, '..', '..', '..', 'cucumber', 'ansible')));
             } else {
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES});
 
@@ -88,10 +86,28 @@ export class EnvironmentHelper {
                 this.userInputUtilHelper.opsToolsNodeQuickPickStub.called.should.equal(true);
                 this.moduleUtilHelper.setPasswordStub.called.should.equal(true);
                 this.moduleUtilHelper.getPasswordStub.called.should.equal(true);
-                return this.userInputUtilHelper.opsToolsNodeQuickPickStub.getCall(0).args[0];
+                const call: sinon.SinonSpyCall = this.userInputUtilHelper.opsToolsNodeQuickPickStub.getCall(0);
+                return call.args[0];
             }
-            return [];
+        } else {
+            if (process.env.OPSTOOLS_FABRIC) {
+                const env: FabricEnvironment = EnvironmentFactory.getEnvironment(treeItem.environmentRegistryEntry);
+                const nodes: FabricNode[] = await env.getNodes(false, true);
+                const items: Set<IBlockchainQuickPickItem<FabricNode>> = new Set<IBlockchainQuickPickItem<FabricNode>>();
+
+                for (const node of nodes) {
+                    if (node.type === FabricNodeType.ORDERER) {
+                        items.add({ label: node.cluster_name, data: node });
+                    } else {
+                        items.add({ label: node.name, data: node });
+                    }
+                }
+
+                return Array.from(items);
+            }
         }
+
+        return [];
     }
 
     public async deleteNode(nodeName: string, environmentName: string): Promise<void> {
@@ -109,6 +125,23 @@ export class EnvironmentHelper {
         this.userInputUtilHelper.showNodesInEnvironmentQuickPickStub.resolves([{ label: nodeName, data: node }]);
 
         await vscode.commands.executeCommand(ExtensionCommands.DELETE_NODE);
+    }
+
+    public async hideNode(nodeName: string, environmentName: string): Promise<void> {
+        this.userInputUtilHelper.showConfirmationWarningMessageStub.resolves(true);
+        const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
+        this.userInputUtilHelper.showEnvironmentQuickPickStub.resolves({ label: environmentName, data: fabricEnvironmentRegistryEntry });
+
+        const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentRegistryEntry);
+        const nodes: FabricNode[] = await environment.getNodes();
+
+        const node: FabricNode = nodes.find((_node: FabricNode) => {
+            return _node.name === nodeName;
+        });
+
+        this.userInputUtilHelper.showNodesInEnvironmentQuickPickStub.resolves([{ label: nodeName, data: node }]);
+
+        await vscode.commands.executeCommand(ExtensionCommands.HIDE_NODE);
     }
 
     public async deleteEnvironment(environmentName: string): Promise<void> {
