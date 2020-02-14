@@ -107,8 +107,8 @@ let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
 let blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider;
 let blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider;
 
-export const FABRIC_CLIENT_VERSION: string = '1.4.4';
-export const FABRIC_NETWORK_VERSION: string = '1.4.4';
+export const FABRIC_CLIENT_VERSION: string = '1.4.5';
+export const FABRIC_NETWORK_VERSION: string = '1.4.5';
 export const EXTENSION_ID: string = 'IBMBlockchain.ibm-blockchain-platform';
 
 // tslint:disable-next-line: max-classes-per-file
@@ -553,6 +553,8 @@ export class ExtensionUtil {
         outputAdapter.log(LogType.INFO, undefined, 'Restoring command registry');
         tempCommandRegistry.restoreCommands();
 
+        FabricConnectionFactory.createFabricWallet();
+
         outputAdapter.log(LogType.INFO, undefined, 'Registering commands');
         const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
         await ExtensionUtil.registerCommands(context);
@@ -595,8 +597,6 @@ export class ExtensionUtil {
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_NEXT_ACTIVATION, false, vscode.ConfigurationTarget.Global);
             }
         }
-
-        FabricConnectionFactory.createFabricWallet();
 
         // Check if there is a newer version of the generator available
         // This needs to be done as a seperate call to make sure the dependencies have been installed

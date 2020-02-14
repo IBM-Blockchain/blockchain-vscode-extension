@@ -71,7 +71,7 @@ describe('AssociateTestDataDirectoryCommand', () => {
 
         beforeEach(async () => {
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            browseStub = mySandBox.stub(UserInputUtil, 'browse');
+            browseStub = mySandBox.stub(UserInputUtil, 'browseWithOptions');
 
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
             executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_GATEWAY).resolves();
@@ -310,6 +310,60 @@ describe('AssociateTestDataDirectoryCommand', () => {
 
             logSpy.getCall(2).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateTestDataDirectory');
             logSpy.getCall(3).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated the directory "${otherPath}" with "${instantiatedSmartContract.label}"`);
+        });
+
+        it('should suggest transaction data directories in open projects', async () => {
+            const workspacePath: string = path.join(rootPath, '../../test/data/transactionData/workspaceWithTransactionData');
+            const workspaceTxDataPath: string = path.join(workspacePath, 'transaction_data');
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([{
+                uri: {
+                    name: 'myWorkspaceFolder',
+                    path: workspacePath
+                }
+            }]);
+
+            getConnectionStub.onCall(3).returns(undefined);
+            browseStub.onFirstCall().resolves({
+                label: 'Transaction data directory',
+                description: workspaceTxDataPath
+            });
+            await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY);
+
+            const result: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGateway');
+            result.transactionDataDirectories.should.deep.equal([{
+                chaincodeName: 'myContract',
+                channelName: 'myChannel',
+                transactionDataPath: workspaceTxDataPath
+            }]);
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateTestDataDirectory');
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated the directory "${workspaceTxDataPath}" with "${instantiatedSmartContract.label}"`);
+        });
+
+        it('should not suggest transaction data folders if there are none present in the open workspace', async () => {
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([{
+                uri: {
+                    name: 'myWorkspaceFolder',
+                    path: 'my/workspace/folder'
+                }
+            }]);
+
+            getConnectionStub.onCall(3).returns(undefined);
+            browseStub.onFirstCall().resolves({
+                label: 'Transaction data directory',
+                description: transactionDataPath
+            });
+            await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY);
+
+            const result: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGateway');
+            result.transactionDataDirectories.should.deep.equal([{
+                chaincodeName: 'myContract',
+                channelName: 'myChannel',
+                transactionDataPath
+            }]);
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateTestDataDirectory');
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated the directory "${transactionDataPath}" with "${instantiatedSmartContract.label}"`);
         });
 
         it('should handle an error', async () => {

@@ -14,6 +14,7 @@
 
 import * as path from 'path';
 import { runTests, downloadAndUnzipVSCode } from 'vscode-test';
+import * as fs from 'fs-extra';
 
 async function main(): Promise<void> {
     try {
@@ -35,7 +36,14 @@ async function main(): Promise<void> {
         // Download VS Code, unzip it and run the integration test
         console.log('setting up tests');
 
-        await runTests({extensionDevelopmentPath, extensionTestsPath, version: version});
+        await runTests({ extensionDevelopmentPath, extensionTestsPath, version: version });
+
+        // need to make sure the tests actually ran properly
+        const pathToCheck: string = path.resolve(__dirname, '..', '..', 'coverage', 'coverage.json');
+        const exists: boolean = await fs.pathExists(pathToCheck);
+        if (!exists) {
+            throw new Error('coverage does not exist so tests failed');
+        }
 
     } catch (err) {
         console.error('Failed to run tests', err);

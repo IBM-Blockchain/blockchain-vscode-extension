@@ -57,7 +57,7 @@ export async function createSmartContractProject(): Promise<void> {
         }
     }
 
-    const quickPickItems: {label: string, description: string}[] = [{label: UserInputUtil.BROWSE_LABEL, description: UserInputUtil.VALID_FOLDER_NAME}];
+    const quickPickItem: {label: string, description: string} = {label: UserInputUtil.BROWSE_LABEL, description: UserInputUtil.VALID_FOLDER_NAME};
     const openDialogOptions: vscode.OpenDialogOptions = {
         canSelectFiles: false,
         canSelectFolders: true,
@@ -66,7 +66,7 @@ export async function createSmartContractProject(): Promise<void> {
         filters: undefined
     };
 
-    const folderUri: vscode.Uri = await UserInputUtil.browse('Choose the location to save the smart contract.', quickPickItems, openDialogOptions, true) as vscode.Uri;
+    const folderUri: vscode.Uri = await UserInputUtil.browse('Choose the location to save the smart contract.', quickPickItem, openDialogOptions, true) as vscode.Uri;
     if (!folderUri) {
         return;
     }

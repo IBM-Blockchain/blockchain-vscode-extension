@@ -70,7 +70,7 @@ export class SmartContractHelper {
 
         const uri: vscode.Uri = vscode.Uri.file(contractDirectory);
 
-        this.userInputUtilHelper.browseStub.withArgs('Choose the location to save the smart contract.', [{ label: UserInputUtil.BROWSE_LABEL, description: UserInputUtil.VALID_FOLDER_NAME }], {
+        this.userInputUtilHelper.browseStub.withArgs('Choose the location to save the smart contract.', { label: UserInputUtil.BROWSE_LABEL, description: UserInputUtil.VALID_FOLDER_NAME }, {
             canSelectFiles: false,
             canSelectFolders: true,
             canSelectMany: false,

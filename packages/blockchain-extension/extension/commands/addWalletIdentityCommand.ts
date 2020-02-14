@@ -123,7 +123,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
                 }
             };
             // Get the json identity file path
-            const jsonIdentityPath: vscode.Uri = await UserInputUtil.browse('Browse for a JSON identity file', [UserInputUtil.BROWSE_LABEL], openDialogOptions, true) as vscode.Uri;
+            const jsonIdentityPath: vscode.Uri = await UserInputUtil.browse('Browse for a JSON identity file', UserInputUtil.BROWSE_LABEL, openDialogOptions, true) as vscode.Uri;
             if (!jsonIdentityPath) {
                 return;
             }

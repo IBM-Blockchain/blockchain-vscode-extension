@@ -32,7 +32,7 @@ import { WalletAndIdentityHelper } from '../helpers/walletAndIdentityHelper';
 import { GatewayHelper } from '../helpers/gatewayHelper';
 import { EnvironmentHelper } from '../helpers/environmentHelper';
 import { SampleHelper } from '../helpers/sampleHelper';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 
 // tslint:disable:no-unused-expression
 
@@ -48,72 +48,57 @@ let firstTime: boolean = true; // Flag used for making sure we do some setup onc
 
 module.exports = function(): any {
 
-    this.timeout = {timeout: 120000 * 1000}; // Global timeout - 2 minutes
+    this.timeout = { timeout: 120000 * 1000 }; // Global timeout - 2 minutes
 
     this.Before(this.timeout, async () => {
-        try {
-            if (firstTime) {
-                this.mySandBox = sinon.createSandbox();
-                this.userInputUtilHelper = new UserInputUtilHelper(this.mySandBox);
-                this.smartContractHelper = new SmartContractHelper(this.mySandBox, this.userInputUtilHelper);
-                this.generatedTestsHelper = new GeneratedTestsHelper(this.mySandBox, this.userInputUtilHelper, this.smartContractHelper);
-                this.walletAndIdentityHelper = new WalletAndIdentityHelper(this.mySandBox, this.userInputUtilHelper);
-                this.gatewayHelper = new GatewayHelper(this.mySandBox, this.userInputUtilHelper);
-                this.fabricEnvironmentHelper = new EnvironmentHelper(this.mySandbox, this.userInputUtilHelper);
-                this.sampleHelper = new SampleHelper(this.mySandBox, this.userInputUtilHelper, this.smartContractHelper);
+        if (firstTime) {
+            await TestUtil.storeRuntimesConfig();
+            await TestUtil.storeExtensionDirectoryConfig();
 
-                VSCodeBlockchainOutputAdapter.instance().setConsole(true);
+            const extDir: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp');
 
-                await TestUtil.storeBypassPreReqs();
-                await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, extDir, vscode.ConfigurationTarget.Global);
 
-                const extDir: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp');
+            this.mySandBox = sinon.createSandbox();
+            this.userInputUtilHelper = new UserInputUtilHelper(this.mySandBox);
+            this.smartContractHelper = new SmartContractHelper(this.mySandBox, this.userInputUtilHelper);
+            this.generatedTestsHelper = new GeneratedTestsHelper(this.mySandBox, this.userInputUtilHelper, this.smartContractHelper);
+            this.walletAndIdentityHelper = new WalletAndIdentityHelper(this.mySandBox, this.userInputUtilHelper);
+            this.gatewayHelper = new GatewayHelper(this.mySandBox, this.userInputUtilHelper);
+            this.fabricEnvironmentHelper = new EnvironmentHelper(this.mySandbox, this.userInputUtilHelper);
+            this.sampleHelper = new SampleHelper(this.mySandBox, this.userInputUtilHelper, this.smartContractHelper);
 
-                this.userInputUtilHelper.showConfirmationWarningMessageStub.reset();
-                firstTime = false;
+            VSCodeBlockchainOutputAdapter.instance().setConsole(true);
 
-                const extDirExists: boolean = await fs.pathExists(extDir);
-                if (!extDirExists) {
-                    await fs.mkdir(extDir);
-                }
+            await TestUtil.storeBypassPreReqs();
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
 
-                const packageDir: string = path.join(extDir, 'packages');
-                const contractDir: string = path.join(extDir, 'contracts');
-                const environmentsDir: string = path.join(extDir, 'environments');
-                const walletsDir: string = path.join(extDir, 'wallets');
-                const profileDir: string = path.join(extDir, 'profiles');
-                for (const dir of [packageDir, contractDir, environmentsDir, walletsDir, profileDir]) {
-                    const exists: boolean = await fs.pathExists(dir);
+            this.userInputUtilHelper.showConfirmationWarningMessageStub.reset();
+            firstTime = false;
 
-                    if (exists) {
-                        await fs.remove(dir);
-                    }
-                }
-
-                const tmpRepo: string = path.join(extDir, 'repositories');
-
-                const tmpExists: boolean = await fs.pathExists(tmpRepo);
-                if (tmpExists) {
-                    await fs.remove(tmpRepo);
-                }
-                await fs.mkdir(tmpRepo);
-
-                await TestUtil.storeRuntimesConfig();
-                await TestUtil.storeExtensionDirectoryConfig();
-
-                await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, extDir, vscode.ConfigurationTarget.Global);
-
-                await ExtensionUtil.activateExtension();
-
-                try {
-                    await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
-                } catch (error) {
-                    // If the Fabric is already torn down, do nothing
-                }
+            const extDirExists: boolean = await fs.pathExists(extDir);
+            if (extDirExists) {
+                await fs.remove(extDir);
             }
-        } catch (error) {
-            // tslint:disable-next-line: no-console
-            console.log(error);
+
+            await fs.ensureDir(extDir);
+
+            await ExtensionUtil.activateExtension();
+
+            await vscode.commands.executeCommand('environmentExplorer.focus');
+
+            // sleep to allow the panels to refresh
+            await ExtensionUtil.sleep(3000);
+
+            // check there were no errors on activation
+            this.userInputUtilHelper.logSpy.should.not.have.been.calledWith(LogType.ERROR);
+            this.userInputUtilHelper.logSpy.resetHistory();
+
+            try {
+                await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
+            } catch (error) {
+                // If the Fabric is already torn down, do nothing
+            }
         }
     });
 
