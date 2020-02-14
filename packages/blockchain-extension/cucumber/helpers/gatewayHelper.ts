@@ -100,7 +100,7 @@ export class GatewayHelper {
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY, gatewayEntry);
     }
 
-    public async submitTransaction(name: string, version: string, contractLanguage: string, transaction: string, args: string, gatewayName: string, contractName?: string, transientData?: string, evaluate?: boolean): Promise<void> {
+    public async submitTransaction(name: string, version: string, contractLanguage: string, transaction: string, channel: string, args: string, gatewayName: string, contractName?: string, transientData?: string, evaluate?: boolean): Promise<void> {
 
         let gatewayEntry: FabricGatewayRegistryEntry;
 
@@ -120,7 +120,7 @@ export class GatewayHelper {
         if (contractLanguage === 'Go' || contractLanguage === 'Java') {
             this.userInputUtilHelper.showClientInstantiatedSmartContractsStub.resolves({
                 label: `${name}@${version}`,
-                data: { name: name, channel: 'mychannel', version: version }
+                data: { name: name, channel: channel, version: version }
             });
 
             this.userInputUtilHelper.showTransactionStub.resolves({
@@ -131,7 +131,7 @@ export class GatewayHelper {
         } else {
             this.userInputUtilHelper.showClientInstantiatedSmartContractsStub.resolves({
                 label: `${name}@${version}`,
-                data: { name: name, channel: 'mychannel', version: version }
+                data: { name: name, channel: channel, version: version }
             });
 
             this.userInputUtilHelper.showTransactionStub.resolves({
