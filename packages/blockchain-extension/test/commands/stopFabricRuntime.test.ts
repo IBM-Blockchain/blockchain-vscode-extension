@@ -255,7 +255,7 @@ describe('stopFabricRuntime', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
 
-        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to stop', false, true, true, true);
+        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to stop', false, true, true, IncludeEnvironmentOptions.ALLENV, true);
         stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
 
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);

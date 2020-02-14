@@ -20,13 +20,13 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import Axios from 'axios';
 import {TestUtil} from '../TestUtil';
-import { UserInputUtil, EnvironmentType } from '../../extension/commands/UserInputUtil';
+import { UserInputUtil, IncludeEnvironmentOptions } from '../../extension/commands/UserInputUtil';
 import {VSCodeBlockchainOutputAdapter} from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import {ExtensionCommands} from '../../ExtensionCommands';
 import {FabricEnvironmentRegistryEntry, LogType, FabricEnvironment, FabricNode, FabricEnvironmentRegistry, EnvironmentType} from 'ibm-blockchain-platform-common';
 import {FabricEnvironmentManager} from '../../extension/fabric/environments/FabricEnvironmentManager';
-import {ExtensionUtil} from '../../extension/util/ExtensionUtil';
 import { ModuleUtil } from '../../extension/util/ModuleUtil';
+import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -59,7 +59,6 @@ describe('ImportNodesToEnvironmentCommand', () => {
     let secret: string;
     let certVerificationError: any;
     let caCertChainUri: vscode.Uri;
-    let localFabricNodes: any;
     let getConnectedEnvironmentRegistryEntry: sinon.SinonStub;
     let getAllStub: sinon.SinonStub;
     let showConfirmationWarningMessageStub: sinon.SinonStub;
@@ -225,7 +224,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
-            showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, true, false, EnvironmentType.OPSTOOLSENV);
+            showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, true, false, IncludeEnvironmentOptions.OPSTOOLSENV);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, OpsToolRegistryEntry);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
@@ -401,7 +400,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         });
 
         it('should throw error when multiple certificates present when editing filters on an existing Ops Tool instance', async () => {
-            const environment: FabricEnvironment = new FabricEnvironment(OpsToolRegistryEntry.name);
+            const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(OpsToolRegistryEntry);
             const environmentBaseDir: string = path.resolve(environment.getPath());
             fsReaddirStub.resolves(['myCaCert.pem', 'myCaCert2.pem']);
             const expectedError: Error = new Error(`Unable to connect: There are multiple certificates in ${environmentBaseDir}`);

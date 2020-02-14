@@ -62,7 +62,7 @@ module.exports = function(): any {
 
             this.mySandBox = sinon.createSandbox();
             this.userInputUtilHelper = new UserInputUtilHelper(this.mySandBox);
-                this.moduleUtilHelper = new ModuleUtilHelper(this.mySandBox);
+            this.moduleUtilHelper = new ModuleUtilHelper(this.mySandBox);
             this.smartContractHelper = new SmartContractHelper(this.mySandBox, this.userInputUtilHelper);
             this.generatedTestsHelper = new GeneratedTestsHelper(this.mySandBox, this.userInputUtilHelper, this.smartContractHelper);
             this.walletAndIdentityHelper = new WalletAndIdentityHelper(this.mySandBox, this.userInputUtilHelper);

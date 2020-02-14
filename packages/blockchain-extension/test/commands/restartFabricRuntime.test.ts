@@ -196,7 +196,7 @@ describe('restartFabricRuntime', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC);
 
-        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to restart', false, true, true, true);
+        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to restart', false, true, true, IncludeEnvironmentOptions.ALLENV, true);
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
 
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
