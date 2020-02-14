@@ -13,7 +13,7 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
+import { UserInputUtil, IBlockchainQuickPickItem, IncludeEnvironmentOptions } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
@@ -44,7 +44,7 @@ export async function addGateway(): Promise<{} | void> {
                 throw new Error(`No environments to choose from. Gateways cannot be created from managed Ansible or ${FabricRuntimeUtil.LOCAL_FABRIC} environments.`);
             }
 
-            chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to create a gateway from', false, true, false, false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to create a gateway from', false, true, false, IncludeEnvironmentOptions.ALLENV, false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             if (!chosenEnvironment) {
                 return;
             }
@@ -95,7 +95,7 @@ async function createGatewayFromEnvironment(gatewayName: string, environmentRegi
     let caNode: FabricNode;
 
     try {
-        const chosenCA: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showNodesInEnvironmentQuickPick('Choose a certificate authority for the gateway connection', environmentName, [FabricNodeType.CERTIFICATE_AUTHORITY]) as IBlockchainQuickPickItem<FabricNode>;
+        const chosenCA: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showNodesInEnvironmentQuickPick('Choose a certificate authority for the gateway connection', environmentRegistryEntry, [FabricNodeType.CERTIFICATE_AUTHORITY]) as IBlockchainQuickPickItem<FabricNode>;
 
         if (!chosenCA) {
             return;

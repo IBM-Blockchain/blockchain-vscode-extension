@@ -277,7 +277,7 @@ describe('teardownFabricRuntime', () => {
 
         showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`All world state and ledger data for the Fabric runtime ${environment.getName()} will be destroyed. Do you want to continue?`);
 
-        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledWith('Select an environment to teardown', false, true, true, true);
+        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledWith('Select an environment to teardown', false, true, true, IncludeEnvironmentOptions.ALLENV, true);
 
         teardownStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
 

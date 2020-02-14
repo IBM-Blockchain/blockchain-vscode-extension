@@ -23,12 +23,11 @@ import { TestUtil } from '../TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, EnvironmentType, FabricEnvironment } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { UserInputUtil} from '../../extension/commands/UserInputUtil';
 import { ModuleUtil } from '../../extension/util/ModuleUtil';
-import { FabricEnvironment } from '../../extension/fabric/FabricEnvironment';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -54,7 +53,6 @@ describe('AddEnvironmentCommand', () => {
     let fsCopyStub: sinon.SinonStub;
     let setPasswordStub: sinon.SinonStub;
     let getCoreNodeModuleStub: sinon.SinonStub;
-    let deleteEnvironmentSpy: sinon.SinonSpy;
     let getNodesStub: sinon.SinonStub;
     let url: string;
     let key: string;
@@ -82,6 +80,7 @@ describe('AddEnvironmentCommand', () => {
             await FabricEnvironmentRegistry.instance().clear();
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             showQuickPickItemStub = mySandBox.stub(UserInputUtil, 'showQuickPickItem');
+            showQuickPickStub = mySandBox.stub(UserInputUtil, 'showQuickPick');
             chooseMethodStub = showQuickPickItemStub.withArgs('Select a method to add an environment');
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES});
             environmentDirectoryPath = path.join(__dirname, '..', '..', '..', 'test', 'data', 'managedAnsible');
@@ -131,7 +130,7 @@ describe('AddEnvironmentCommand', () => {
         });
 
         it('should test an Ops Tools environment can be added', async () => {
-            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
@@ -259,7 +258,7 @@ describe('AddEnvironmentCommand', () => {
         });
 
         it('should handle errors when adding nodes to an Ops Tools environment', async () => {
-            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
             const error: Error = new Error('some error');
             executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).rejects(error);
@@ -403,7 +402,7 @@ describe('AddEnvironmentCommand', () => {
         });
 
         it('should handle user cancelling when asked for url when creating an OpsTool instance', async () => {
-            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
             showInputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves(undefined);
 
@@ -420,7 +419,7 @@ describe('AddEnvironmentCommand', () => {
         });
 
         it('should handle user cancelling when asked for api key when creating an OpsTool instance', async () => {
-            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
             showInputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').resolves(undefined);
 
@@ -436,7 +435,7 @@ describe('AddEnvironmentCommand', () => {
         });
 
         it('should handle when user cancels when asked for api secret when creating an OpsTool instance', async () => {
-            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
             showInputBoxStub.withArgs('Enter the api secret of the ops tools you want to connect to').resolves(undefined);
 
@@ -451,7 +450,7 @@ describe('AddEnvironmentCommand', () => {
         });
 
         it('should handle when the keytar module cannot be imported at all when creating a new OpsTool instance', async () => {
-            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
             getCoreNodeModuleStub.withArgs('keytar').returns(undefined);
 
@@ -468,7 +467,7 @@ describe('AddEnvironmentCommand', () => {
         });
 
         it('should handle when the api key and secret cannot be stored saved securely onto the keychain using the setPassword function when creating new OpsTool instance', async () => {
-            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
             const error: Error = new Error('newError');
             const caughtError: Error = new Error(`Unable to store the required credentials: ${error.message}`);
@@ -484,7 +483,7 @@ describe('AddEnvironmentCommand', () => {
         });
 
         it('should handle when the ca certificate chain cannot be copied into the environment base directory when creating new OpsTool instance', async () => {
-            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
             const error: Error = new Error('Unable to copy file');
             const caughtError: Error = new Error(`Unable to store the CA certificate chain file: ${error.message}`);
@@ -500,7 +499,7 @@ describe('AddEnvironmentCommand', () => {
         });
 
         it('should handle user choosing not to perform certificate verification on a new Ops Tool instance', async () => {
-            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
             chooseCertVerificationStub.onFirstCall().resolves(UserInputUtil.CONNECT_NO_CA_CERT_CHAIN);
 
@@ -514,7 +513,7 @@ describe('AddEnvironmentCommand', () => {
 
         it('should handle CA certificate chain browse not returning array, on a new Ops Tool instance (win32)', async () => {
             mySandBox.stub(process, 'platform').value('win32');
-            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
             browseStub.withArgs('Select CA certificate chain (.pem) file', sinon.match.any, sinon.match.any, sinon.match.any).resolves(caCertChainUri);
 
@@ -527,7 +526,7 @@ describe('AddEnvironmentCommand', () => {
         });
 
         it('should handle when user cancels when asked to choose certificate verification methtod when creating an OpsTool instance', async () => {
-            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
             chooseCertVerificationStub.resolves();
 
@@ -539,7 +538,7 @@ describe('AddEnvironmentCommand', () => {
         });
 
         it('should handle when user cancels after choosing to provide a certificate chain when creating an OpsTool instance', async () => {
-            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
             browseStub.withArgs('Select CA certificate chain (.pem) file', sinon.match.any, sinon.match.any, sinon.match.any).resolves();
 
@@ -551,7 +550,7 @@ describe('AddEnvironmentCommand', () => {
         });
 
         it('should handle error connecting to Ops Tool URL when adding environment', async () => {
-            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
             const error: Error = new Error('some error');
             axiosGetStub.onFirstCall().rejects(error);
@@ -567,7 +566,7 @@ describe('AddEnvironmentCommand', () => {
         });
 
         it('should create environment without nodes if user does not choose any nodes from a new Ops Tool instance', async () => {
-            chooseMethodStub.resolves(UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
             executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).resolves(true);
             getNodesStub.onFirstCall().resolves([]);

@@ -18,7 +18,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
-import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
+import { IBlockchainQuickPickItem, UserInputUtil, IncludeEnvironmentOptions } from './UserInputUtil';
 import { LogType, FabricEnvironmentRegistryEntry, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 
@@ -27,7 +27,7 @@ export async function startFabricRuntime(registryEntry?: FabricEnvironmentRegist
     outputAdapter.log(LogType.INFO, undefined, 'startFabricRuntime');
 
     if (!registryEntry) {
-        const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Select an environment to start', false, true, true, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+        const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Select an environment to start', false, true, true, IncludeEnvironmentOptions.ALLENV, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
         if (!chosenEnvironment) {
             return;
         }

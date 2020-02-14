@@ -18,18 +18,12 @@ import * as https from 'https';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
-import {Reporter} from '../util/Reporter';
-import {VSCodeBlockchainOutputAdapter} from '../logging/VSCodeBlockchainOutputAdapter';
-import {
-    FabricEnvironmentRegistry,
-    FabricEnvironmentRegistryEntry,
-    FabricRuntimeUtil,
-    LogType,
-    EnvironmentType
-} from 'ibm-blockchain-platform-common';
-import {ExtensionCommands} from '../../ExtensionCommands';
-import {ModuleUtil} from '../util/ModuleUtil';
-import {FabricEnvironment} from '../fabric/FabricEnvironment';
+import { Reporter } from '../util/Reporter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, EnvironmentType, FabricEnvironment, FabricNode } from 'ibm-blockchain-platform-common';
+import { ExtensionCommands } from '../../ExtensionCommands';
+import { ModuleUtil } from '../util/ModuleUtil';
+import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 
 export async function addEnvironment(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -40,7 +34,7 @@ export async function addEnvironment(): Promise<void> {
         let certificatePath: vscode.Uri;
         const separator: string = process.platform === 'win32' ? '\\' : '/';
 
-        const items: IBlockchainQuickPickItem<string>[] = [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION}, {label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION}, {label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION}];
+        const items: IBlockchainQuickPickItem<string>[] = [{ label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }];
         const chosenMethod: IBlockchainQuickPickItem<string> = await UserInputUtil.showQuickPickItem('Select a method to add an environment', items) as IBlockchainQuickPickItem<string>;
 
         let envDir: string;
@@ -87,8 +81,8 @@ export async function addEnvironment(): Promise<void> {
 
             const api: string = url.replace(/\/$/, '') + GET_ALL_COMPONENTS;
             const requestOptions: any = {
-                headers: {'Content-Type': 'application/json'},
-                auth: {username: apiKey, password: apiSecret}
+                headers: { 'Content-Type': 'application/json' },
+                auth: { username: apiKey, password: apiSecret }
             };
             try {
                 await Axios.get(api, requestOptions);
@@ -100,7 +94,6 @@ export async function addEnvironment(): Promise<void> {
                     if (!certificateUsage) {
                         return;
                     } else if (certificateUsage === UserInputUtil.ADD_CA_CERT_CHAIN) {
-                        const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
                         const browseOptions: vscode.OpenDialogOptions = {
                             canSelectFiles: true,
                             canSelectFolders: false,
@@ -110,16 +103,16 @@ export async function addEnvironment(): Promise<void> {
                                 Certificates: ['pem']
                             }
                         };
-                        certificatePath = await UserInputUtil.browse('Select CA certificate chain (.pem) file', quickPickItems, browseOptions, true) as vscode.Uri;
+                        certificatePath = await UserInputUtil.browse('Select CA certificate chain (.pem) file', UserInputUtil.BROWSE_LABEL, browseOptions, true) as vscode.Uri;
                         if (certificatePath === undefined) {
                             return;
                         } else if (Array.isArray(certificatePath)) {
                             certificatePath = certificatePath[0];
                         }
                         caCertificate = await fs.readFile(certificatePath.fsPath, 'utf8');
-                        requestOptions.httpsAgent = new https.Agent({ca: caCertificate});
+                        requestOptions.httpsAgent = new https.Agent({ ca: caCertificate });
                     } else {
-                        requestOptions.httpsAgent = new https.Agent({rejectUnauthorized: false});
+                        requestOptions.httpsAgent = new https.Agent({ rejectUnauthorized: false });
                     }
                     await Axios.get(api, requestOptions);
                     try {
@@ -165,9 +158,9 @@ export async function addEnvironment(): Promise<void> {
 
             if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS && certificatePath) {
                 try {
-                const environment: FabricEnvironment = new FabricEnvironment(fabricEnvironmentEntry.name);
+                    const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentEntry);
                     const caCertificateCopy: string = path.join(path.resolve(environment.getPath()), certificatePath.fsPath.split(separator).pop());
-                    await fs.copy(certificatePath.fsPath, caCertificateCopy, {overwrite: true});
+                    await fs.copy(certificatePath.fsPath, caCertificateCopy, { overwrite: true });
                 } catch (error) {
                     throw new Error(`Unable to store the CA certificate chain file: ${error.message}`);
                 }
@@ -185,7 +178,7 @@ export async function addEnvironment(): Promise<void> {
                 await fabricEnvironmentRegistry.delete(fabricEnvironmentEntry.name);
                 return;
             } else if (addedAllNodes) {
-            const environment: FabricEnvironment = new FabricEnvironment(fabricEnvironmentEntry.name);
+                const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentEntry);
                 const nodes: FabricNode[] = await environment.getNodes();
                 if (nodes.length === 0) {
                     outputAdapter.log(LogType.SUCCESS, `Successfully added a new environment. No available nodes included in current filters, click ${fabricEnvironmentEntry.name} to edit filters`);
