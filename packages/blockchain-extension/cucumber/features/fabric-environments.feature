@@ -70,7 +70,6 @@ Feature: Fabric Environments
          | language   | assetType | name               | version |
          | JavaScript | Conga     | JavaScriptContract | 0.0.2   |
 
-
      @otherFabric
      Scenario: It should create an environment
          When I create an environment 'myFabric'
@@ -85,17 +84,16 @@ Feature: Fabric Environments
          And the tree item should have a tooltip equal to 'myOpsToolsFabric'
          And there should be a tree item with a label 'opsToolsWallet' in the 'Fabric Wallets' panel
 
-
      @opsToolsFabric
      Scenario: It should edit filters, add all nodes and connect automatically
          Given an environment 'myOpsToolsFabric' exists
          When I edit filters and import all nodes to environment 'myOpsToolsFabric'
          Then the 'myOpsToolsFabric' environment is connected
 
-
      @opsToolsFabric
      Scenario Outline: It should setup environment
          Given an environment 'myOpsToolsFabric' exists
+         And I have edited filters and imported all nodes to environment 'myOpsToolsFabric'
          And the 'myOpsToolsFabric' environment is connected
          Then there should be a tree item with a label '<label>' in the 'Fabric Environments' panel
          And the tree item should have a tooltip equal to '<tooltip>'
@@ -113,6 +111,7 @@ Feature: Fabric Environments
      @opsToolsFabric
      Scenario Outline: It should associate nodes with identities
          Given an environment 'myOpsToolsFabric' exists
+         And I have edited filters and imported all nodes to environment 'myOpsToolsFabric'
          And the 'myOpsToolsFabric' environment is connected
          And the wallet 'opsToolsWallet' with identity 'Org1CAAdmin' and mspid 'org1msp' exists
          When I create an identity using JSON file with identity name '<identity>' and mspid '<mspid>' in wallet '<wallet>'
@@ -126,6 +125,54 @@ Feature: Fabric Environments
          | Org2 CA               | opsToolsWallet   | Org2CAAdmin               | org2msp |
          | Peer Org1             | opsToolsWallet   | Org1MSPAdmin              | org1msp |
          | Peer Org2             | opsToolsWallet   | Org2MSPAdmin              | org2msp |
+
+    @opsToolsFabric
+    Scenario Outline: It should connect to an environment
+        Given an environment 'myOpsToolsFabric' exists
+        And the wallet 'opsToolsWallet' with identity 'Org1CAAdmin' and mspid 'org1msp' exists
+        And the wallet 'opsToolsWallet' with identity 'Org2CAAdmin' and mspid 'org2msp' exists
+        And the wallet 'opsToolsWallet' with identity 'OrderingServiceCAAdmin' and mspid 'osmsp' exists
+        And the wallet 'opsToolsWallet' with identity 'OrderingServiceMSPAdmin' and mspid 'osmsp' exists
+        And the wallet 'opsToolsWallet' with identity 'OrderingServiceMSPAdmin' and mspid 'osmsp' exists
+        And the wallet 'opsToolsWallet' with identity 'Org1MSPAdmin' and mspid 'org1msp' exists
+        And the wallet 'opsToolsWallet' with identity 'Org2MSPAdmin' and mspid 'org2msp' exists
+        And I have edited filters and imported all nodes to environment 'myOpsToolsFabric'
+        And the opstools environment is setup
+        And the 'myOpsToolsFabric' environment is connected      
+        Then there should be a <treeItem> tree item with a label '<label>' in the 'Fabric Environments' panel
+        And the tree item should have a tooltip equal to '<tooltip>'
+        Examples:
+        | treeItem                    | label                                      | tooltip                                                                                 |
+        | environment connected       | Connected to environment: myOpsToolsFabric | Connected to environment: myOpsToolsFabric                                              |
+        | installed smart contract    | + Install                                  | + Install                                                                               |
+        | instantiated smart contract | + Instantiate                              | + Instantiate                                                                           |
+        | Channels                    | channel1                                   | Associated peers: Peer Org1, Peer Org2                                                |
+        | Node                        | Ordering Service CA                        | Name: Ordering Service CA\\nAssociated Identity:\\nOrderingServiceCAAdmin                |
+        | Node                        | Ordering Service                           | Name: Ordering Service\\nMSPID: osmsp\\nAssociated Identity:\\nOrderingServiceMSPAdmin   |
+        | Node                        | Org1 CA                                    | Name: Org1 CA\\nAssociated Identity:\\nOrg1CAAdmin                                       |
+        | Node                        | Org2 CA                                    | Name: Org2 CA\\nAssociated Identity:\\nOrg2CAAdmin                                       |
+        | Node                        | Peer Org1                                  | Name: Peer Org1\\nMSPID: org1msp\\nAssociated Identity:\\nOrg1MSPAdmin                  |
+        | Node                        | Peer Org2                                  | Name: Peer Org2\\nMSPID: org2msp\\nAssociated Identity:\\nOrg2MSPAdmin                  |          
+        | Organizations               | osmsp                                      | osmsp                                                                                   |
+        | Organizations               | org1msp                                    | org1msp                                                                                 |   
+        | Organizations               | org2msp                                    | org2msp                                                                                 |   
+
+     @opsToolsFabric
+     Scenario: It should hide nodes
+         Given an environment 'myOpsToolsFabric' exists
+         And the wallet 'opsToolsWallet' with identity 'Org1CAAdmin' and mspid 'org1msp' exists
+         And the wallet 'opsToolsWallet' with identity 'Org2CAAdmin' and mspid 'org2msp' exists
+         And the wallet 'opsToolsWallet' with identity 'OrderingServiceCAAdmin' and mspid 'osmsp' exists
+         And the wallet 'opsToolsWallet' with identity 'OrderingServiceMSPAdmin' and mspid 'osmsp' exists
+         And the wallet 'opsToolsWallet' with identity 'OrderingServiceMSPAdmin' and mspid 'osmsp' exists
+         And the wallet 'opsToolsWallet' with identity 'Org1MSPAdmin' and mspid 'org1msp' exists
+         And the wallet 'opsToolsWallet' with identity 'Org2MSPAdmin' and mspid 'org2msp' exists
+         And I have edited filters and imported all nodes to environment 'myOpsToolsFabric'
+         And the opstools environment is setup
+         And the 'myOpsToolsFabric' environment is connected        
+         When I hide the node 'Org2 CA'
+         Then there shouldn't be a tree item with a label 'Org2 CA' in the 'Fabric Environments' panel
+         And the log should have been called with 'SUCCESS' and 'Successfully hid node Org2 CA'
 
      @otherFabric
      Scenario Outline: It should setup environment
