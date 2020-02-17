@@ -146,7 +146,7 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
 
         await environment.updateNode(node);
 
-        vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+        await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
         outputAdapter.log(LogType.SUCCESS, `Successfully associated identity ${node.identity} from wallet ${node.wallet} with node ${node.name}`);
 
         let otherNodes: FabricNode[] = [];

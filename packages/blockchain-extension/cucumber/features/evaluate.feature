@@ -11,8 +11,8 @@ Feature: Evaluate transaction
         And the contract has been packaged
         And the package has been installed
         And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
-        And the transaction 'createConga' has been submitted with args '["Conga_001", "Big Conga"]'
-        When I evaluate the transaction 'readConga' with args '["Conga_001"]'
+        And the transaction 'createConga' has been submitted on the channel 'mychannel' with args '["Conga_001", "Big Conga"]'
+        When I evaluate the transaction 'readConga' on the channel 'mychannel' with args '["Conga_001"]'
         Then the logger should have been called with 'SUCCESS', 'Successfully evaluated transaction' and 'Returned value from readConga: {"value":"Big Conga"}'
         Examples:
         | language   | assetType | name               | version |
@@ -34,8 +34,8 @@ Feature: Evaluate transaction
         And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
         And the gateway 'myGateway' is created
         And I'm connected to the 'myGateway' gateway without association
-        And the transaction 'createConga' has been submitted with args '["Conga_001", "Big Conga"]'
-        When I evaluate the transaction 'readConga' with args '["Conga_001"]'
+        And the transaction 'createConga' has been submitted on the channel 'mychannel' with args '["Conga_001", "Big Conga"]'
+        When I evaluate the transaction 'readConga' on the channel 'mychannel' with args '["Conga_001"]'
         Then the logger should have been called with 'SUCCESS', 'Successfully evaluated transaction' and 'Returned value from readConga: {"value":"Big Conga"}'
         Examples:
         | language   | assetType | name               | version |

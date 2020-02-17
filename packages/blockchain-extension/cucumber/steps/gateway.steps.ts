@@ -33,10 +33,22 @@ module.exports = function(): any {
      * Given
      */
 
-    this.Given("the gateway '{string}' is created", this.timeout, async (gateway: string) => {
+    this.Given(/the gateway '(.*?)' is created/, this.timeout, async (gateway: string) => {
         this.gateway = gateway;
 
         await this.gatewayHelper.createGateway(gateway);
+    });
+
+    this.Given(/I have created a gateway '(.*)' from an? '(.*)'/, this.timeout, async (gateway: string, method: string) => {
+        this.gateway = gateway;
+
+        let fromEnvironment: boolean = false;
+        if (method === 'environment') {
+            fromEnvironment = true;
+
+        }
+
+        await this.gatewayHelper.createGateway(gateway, fromEnvironment, this.environmentName);
     });
 
     this.Given(/I'm connected to the '(.*?)' gateway( without association)?/, this.timeout, async (gateway: string, withoutAssociation: string) => {
@@ -51,9 +63,9 @@ module.exports = function(): any {
         await this.gatewayHelper.connectToFabric(this.gateway, this.wallet, this.identity, hasAssociation);
     });
 
-    this.Given(/^the transaction '(.*?)' has been submitted with args '(.*?)' ?(?:and with the transient data )?('.*?')?$/, this.timeout, async (transaction: string, args: string, transientData: string) => {
+    this.Given(/^the transaction '(.*?)' has been submitted on the channel '(.*?)' with args '(.*?)' ?(?:and with the transient data )?('.*?')?$/, this.timeout, async (transaction: string, channel: string, args: string, transientData: string) => {
         // submit tx
-        await this.gatewayHelper.submitTransaction(this.contractName, this.contractVersion, this.contractLanguage, transaction, args, this.gateway, `${this.contractAssetType}Contract`, transientData, false);
+        await this.gatewayHelper.submitTransaction(this.contractName, this.contractVersion, this.contractLanguage, transaction, channel, args, this.gateway, `${this.contractAssetType}Contract`, transientData, false);
     });
 
     /**
@@ -91,14 +103,14 @@ module.exports = function(): any {
         this.contractLanguage = contractLanguage;
     });
 
-    this.When(/^I (submit|evaluate) the transaction '(.*?)' with args '(.*?)' ?(?:and with the transient data )?('.*?')?$/, this.timeout, async (submitEvaluate: string, transaction: string, args: string, transientData: string) => {
+    this.When(/^I (submit|evaluate) the transaction '(.*?)' on the channel '(.*?)' with args '(.*?)' ?(?:and with the transient data )?('.*?')?$/, this.timeout, async (submitEvaluate: string, transaction: string, channel: string, args: string, transientData: string) => {
         let evaluateBoolean: boolean;
         if (submitEvaluate === 'submit') {
             evaluateBoolean = false;
         } else if (submitEvaluate === 'evaluate') {
             evaluateBoolean = true;
         }
-        await this.gatewayHelper.submitTransaction(this.contractName, this.contractVersion, this.contractLanguage, transaction, args, this.gateway, this.namespace, transientData, evaluateBoolean);
+        await this.gatewayHelper.submitTransaction(this.contractName, this.contractVersion, this.contractLanguage, transaction, channel, args, this.gateway, this.namespace, transientData, evaluateBoolean);
     });
 
     this.When('I export the connection profile', this.timeout, async () => {
