@@ -103,7 +103,7 @@ describe('SubmitTransactionCommand', () => {
             showQuickPickItemStub = mySandBox.stub(UserInputUtil, 'showQuickPickItem');
             showQuickPickItemStub.onFirstCall().resolves(UserInputUtil.DEFAULT);
             showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves({
-                label: 'My Transaction',
+                label: 'transactionData.txdata',
                 description: 'My Transaction',
                 data: {
                     transactionName: 'transaction1',
@@ -1008,7 +1008,7 @@ describe('SubmitTransactionCommand', () => {
             registryStub.returns(gatewayWithTestData);
 
             showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves({
-                label: 'transaction1',
+                label: 'transactionData.txdata',
                 description: '',
                 data: {
                     transactionName: 'transaction1',
@@ -1045,7 +1045,7 @@ describe('SubmitTransactionCommand', () => {
             registryStub.returns(gatewayWithTestData);
 
             showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves({
-                label: 'transaction1',
+                label: 'transactionData.txdata',
                 description: 'My Transaction - no args or transient',
                 data: {
                     transactionName: 'transaction1',
@@ -1075,7 +1075,7 @@ describe('SubmitTransactionCommand', () => {
             registryStub.returns(gatewayWithTestData);
 
             showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves({
-                label: 'transaction1',
+                label: 'transactionData.txdata',
                 description: 'My Transaction - object as args',
                 data: {
                     transactionName: 'transaction1',
@@ -1139,8 +1139,8 @@ describe('SubmitTransactionCommand', () => {
 
             const txnOptions: any = showQuickPickItemStub.getCall(0).args[1];
             txnOptions.should.not.contain({
-                label: 'My Other Transaction',
-                description: 'transaction2',
+                label: 'transactionData.txdata',
+                description: 'My Other Transaction',
                 data: {
                     transactionName: 'transaction2',
                     transactionLabel: 'My Other Transaction',
