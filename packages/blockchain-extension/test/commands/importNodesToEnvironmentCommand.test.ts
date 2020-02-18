@@ -200,6 +200,11 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
         });
 
+        it('should update environment periodically and not show the log message saying filter nodes has been run', async () => {
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, false, false);
+            logSpy.should.not.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
+        });
+
         it('should test nodes can be added to a new OpsTool instance', async () => {
             getNodesStub.onSecondCall().resolves(opsToolNodes);
 
@@ -209,7 +214,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -226,7 +231,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
             showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, true, false, IncludeEnvironmentOptions.OPSTOOLSENV);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, OpsToolRegistryEntry);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -244,7 +249,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
             showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, true, false, IncludeEnvironmentOptions.OPSTOOLSENV);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -259,7 +264,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, OpsToolRegistryEntry);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -275,7 +280,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, OpsToolRegistryEntry);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -288,7 +293,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.have.been.calledOnce;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: Error importing the keytar module`);
             });
 
@@ -302,7 +307,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.have.been.calledOnce;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${error.message}`, `Failed to acquire nodes from ${url}, with error ${error.toString()}`);
         });
 
@@ -316,7 +321,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.have.been.calledOnce;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${error.message}`, `Failed to acquire nodes from ${url}, with error ${error.toString()}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: ${error.message}`);
 
@@ -365,7 +370,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
 
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -380,7 +385,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
             readFileStub.should.have.not.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -395,7 +400,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
             readFileStub.should.have.not.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -412,7 +417,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.not.been.called;
             getNodesStub.should.have.been.calledOnce;
             readFileStub.should.have.not.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${expectedError.message}`, `Failed to acquire nodes from ${url}, with error ${expectedError.toString()}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: ${expectedError.message}`);
         });
@@ -679,7 +684,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.have.been.calledOnce;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${connectionError.message}`, `Failed to acquire nodes from ${url}, with error ${connectionError.toString()}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: ${connectionError.message}`);
         });
@@ -694,7 +699,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.have.been.calledOnce;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${error.message}`, `Failed to acquire nodes from ${url}, with error ${error.toString()}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: ${error.message}`);
         });
@@ -707,7 +712,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.called;
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -722,7 +727,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.called;
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.should.have.not.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
         });
 
@@ -764,7 +769,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.called;
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.should.have.not.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -776,7 +781,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.have.not.been.called;
             getNodesStub.should.have.been.calledOnce;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.should.have.not.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -789,7 +794,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -854,7 +859,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -1057,7 +1062,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.should.have.been.calledWith(LogType.ERROR, `Error deleting node: ${error.message}`, `Error deleting node: ${error.toString()}`);
             logSpy.should.have.been.calledWith(LogType.ERROR, `Error deletinging node peer1.org1.example.com: ${error.message}`, `Error deleting node peer1.org1.example.com: ${error.toString()}`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
@@ -1100,7 +1105,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getAllStub.should.have.been.calledOnce;
             showNodesQuickPickBoxStub.should.not.have.been.called;
             showConfirmationWarningMessageStub.should.have.been.calledWithExactly(`There are no nodes in the ${OpsToolRegistryEntry.name} IBM Blockchain Platform network. Do you want to delete this environment?`);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
         });
 
         it('should handle user chosing not to delete environment after all nodes have been deleted from an Ops Tool instance', async () => {
@@ -1140,7 +1145,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getAllStub.should.have.been.calledOnce;
             showNodesQuickPickBoxStub.should.not.have.been.called;
             showConfirmationWarningMessageStub.should.have.been.calledWithExactly(`There are no nodes in the ${OpsToolRegistryEntry.name} IBM Blockchain Platform network. Do you want to delete this environment?`);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -1164,7 +1169,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledOnce;
             getAllStub.should.have.not.been.called;
             showConfirmationWarningMessageStub.should.have.been.calledWithExactly(`There are no nodes in the ${OpsToolRegistryEntry.name} IBM Blockchain Platform network. Do you want to delete this environment?`);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
         });
 
     });
