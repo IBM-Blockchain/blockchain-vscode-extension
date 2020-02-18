@@ -126,7 +126,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
                         fileJson.forEach((txn: ITransactionData) => {
                             if (txn.transactionName === transactionName) {
                                 quickPickItems.push({
-                                    label: txn.transactionName,
+                                    label: file,
                                     description: txn.transactionLabel ? txn.transactionLabel : '',
                                     data: txn
                                 });
