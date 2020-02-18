@@ -68,6 +68,10 @@ module.exports = function(): any {
         await this.gatewayHelper.submitTransaction(this.contractName, this.contractVersion, this.contractLanguage, transaction, channel, args, this.gateway, `${this.contractAssetType}Contract`, transientData, false);
     });
 
+    this.Given('the contract has been associated with a directory of transaction data', this.timeout, async () => {
+        await this.gatewayHelper.associateTransactionDataDirectory(this.contractName, this.contractVersion, this.contractLanguage, this.gateway);
+    });
+
     /**
      * When
      */
@@ -111,6 +115,16 @@ module.exports = function(): any {
             evaluateBoolean = true;
         }
         await this.gatewayHelper.submitTransaction(this.contractName, this.contractVersion, this.contractLanguage, transaction, channel, args, this.gateway, this.namespace, transientData, evaluateBoolean);
+    });
+
+    this.When(/^I (submit|evaluate) the transaction '(.*?)' on the channel '(.*?)' using the transaction data labelled '(.*?)'$/, this.timeout, async (submitEvaluate: string, transaction: string, channel: string, transactionLabel: string) => {
+        let evaluateBoolean: boolean;
+        if (submitEvaluate === 'submit') {
+            evaluateBoolean = false;
+        } else if (submitEvaluate === 'evaluate') {
+            evaluateBoolean = true;
+        }
+        await this.gatewayHelper.submitTransaction(this.contractName, this.contractVersion, this.contractLanguage, transaction, channel, undefined, this.gateway, this.namespace, undefined, evaluateBoolean, transactionLabel);
     });
 
     this.When('I export the connection profile', this.timeout, async () => {

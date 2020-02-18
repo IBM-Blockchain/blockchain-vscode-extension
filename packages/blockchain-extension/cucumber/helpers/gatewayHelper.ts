@@ -28,6 +28,7 @@ import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistry, FabricWalletRegistryEntry, FabricEnvironment, FabricGatewayRegistryEntry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
+import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -100,16 +101,45 @@ export class GatewayHelper {
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY, gatewayEntry);
     }
 
-    public async submitTransaction(name: string, version: string, contractLanguage: string, transaction: string, channel: string, args: string, gatewayName: string, contractName?: string, transientData?: string, evaluate?: boolean): Promise<void> {
+    public async submitTransaction(name: string, version: string, contractLanguage: string, transaction: string, channel: string, args: string, gatewayName: string, contractName?: string, transientData?: string, evaluate?: boolean, transactionLabel?: string): Promise<void> {
 
         let gatewayEntry: FabricGatewayRegistryEntry;
 
         try {
-            gatewayEntry = await FabricGatewayRegistry.instance().get(gatewayName);
+            gatewayEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
         } catch (error) {
             gatewayEntry = new FabricGatewayRegistryEntry();
             gatewayEntry.name = gatewayName;
             gatewayEntry.associatedWallet = 'Org1';
+        }
+
+        if (gatewayEntry.transactionDataDirectories) {
+            if (transactionLabel !== undefined) {
+                interface ITransactionData {
+                    transactionName: string;
+                    transactionLabel?: string;
+                    arguments?: string[];
+                    transientData?: any;
+                }
+
+                const txdataFilePath: string = path.join(gatewayEntry.transactionDataDirectories[0].transactionDataPath, 'conga-transactions.txdata');
+                const fileJson: ITransactionData[] = await fs.readJSON(txdataFilePath);
+                const chosenTransaction: ITransactionData = fileJson.find((txdata: ITransactionData) => {
+                    return txdata.transactionLabel === transactionLabel;
+                });
+
+                this.userInputUtilHelper.showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves({
+                    label: txdataFilePath,
+                    description: chosenTransaction.transactionLabel,
+                    data: chosenTransaction
+                });
+            } else {
+                this.userInputUtilHelper.showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves({
+                    label: 'None (manual entry)',
+                    description: '',
+                    data: undefined
+                });
+            }
         }
 
         this.userInputUtilHelper.showGatewayQuickPickStub.resolves({
@@ -171,5 +201,38 @@ export class GatewayHelper {
         this.userInputUtilHelper.getWorkspaceFoldersStub.callThrough();
 
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
+    }
+
+    public async associateTransactionDataDirectory(name: string, version: string, language: string, gatewayName: string): Promise<void> {
+        let gatewayEntry: FabricGatewayRegistryEntry;
+
+        try {
+            gatewayEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
+        } catch (error) {
+            gatewayEntry = new FabricGatewayRegistryEntry();
+            gatewayEntry.name = gatewayName;
+            gatewayEntry.associatedWallet = 'Org1';
+        }
+
+        this.userInputUtilHelper.showClientInstantiatedSmartContractsStub.resolves({
+            label: `${name}@${version}`,
+            data: { name: name, channel: 'mychannel', version: version }
+        });
+
+        let contractDirectory: string;
+        if (language === 'Go') {
+            process.env.GOPATH = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'contracts');
+            contractDirectory = path.join(process.env.GOPATH, 'src', name);
+        } else {
+            contractDirectory = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'contracts', name);
+        }
+        const workspaceFolder: vscode.WorkspaceFolder = { index: 0, name: name, uri: vscode.Uri.file(contractDirectory) };
+        this.userInputUtilHelper.getWorkspaceFoldersStub.returns([workspaceFolder]);
+
+        this.userInputUtilHelper.browseWithOptionsStub.resolves({
+            description: path.join(contractDirectory, 'transaction_data')
+        });
+
+        await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY);
     }
 }
