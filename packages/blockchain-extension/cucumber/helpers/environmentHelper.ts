@@ -179,10 +179,11 @@ export class EnvironmentHelper {
     }
 
     public async editNodeFilters(nodesToImport: IBlockchainQuickPickItem<FabricNode>[], environmentName: string): Promise<void> {
+        const environmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
+        this.userInputUtilHelper.showEnvironmentQuickPickStub.resolves({label: environmentName, data: environmentRegistryEntry});
         this.userInputUtilHelper.opsToolsNodeQuickPickStub.resolves(nodesToImport);
         await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, undefined, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
-        const environmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
         const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
         const nodes: FabricNode[] = await environment.getNodes();
         nodes.length.should.equal(nodesToImport.length);
