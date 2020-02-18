@@ -729,7 +729,11 @@ export class UserInputUtil {
             placeHolder: prompt
         };
 
-        return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+        if (quickPickItems.length === 0) {
+            throw new Error('No packages found to install on peer');
+        } else {
+            return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+        }
     }
 
     public static async openNewProject(openMethod: string, uri: vscode.Uri, workspaceLabel?: string): Promise<void> {
