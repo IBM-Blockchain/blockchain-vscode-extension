@@ -134,42 +134,18 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                 // establish connection to Ops Tools and retrieve json file
                 const credentials: string = await keytar.getPassword('blockchain-vscode-ext', environmentRegistryEntry.url);
                 const credentialsArray: string[] = credentials.split(':');
-                if (credentialsArray.length !== 2) {
+                if (credentialsArray.length !== 3) {
                     throw new Error(`Unable to retrieve the stored credentials`);
                 }
                 const apiKey: string = credentialsArray[0];
                 const apiSecret: string = credentialsArray[1];
+                const rejectUnauthorized: boolean = credentialsArray[2] === 'true';
                 const requestOptions: any = {
                     headers: {'Content-Type': 'application/json'},
                     auth: {username: apiKey, password: apiSecret}
                 };
-                try {
-                    response = await Axios.get(api, requestOptions);
-                } catch (error) {
-                    // This needs to be fixed - exactly what codes can we get that will require this behaviour?
-                    if (error.code === 'DEPTH_ZERO_SELF_SIGNED_CERT') {
-                        const environmentBaseDirExists: boolean = await fs.pathExists(environmentBaseDir);
-                        let caCertificate: string;
-                        if (environmentBaseDirExists) {
-                            let certificateFiles: string[] = await fs.readdir(environmentBaseDir);
-                            certificateFiles = certificateFiles.filter((fileName: string) => fileName.endsWith('.pem')).map((fileName: string) => path.resolve(environmentBaseDir, fileName));
-
-                            if (certificateFiles.length > 1) {
-                                throw new Error(`Unable to connect: There are multiple certificates in ${environmentBaseDir}`);
-                            } else if (certificateFiles.length === 1) {
-                                caCertificate = await fs.readFile(certificateFiles[0], 'utf8');
-                                requestOptions.httpsAgent = new https.Agent({ca: caCertificate});
-                            }
-                        }
-                        if (!caCertificate) {
-                            requestOptions.httpsAgent = new https.Agent({rejectUnauthorized: false});
-                        }
-                        response = await Axios.get(api, requestOptions);
-
-                    } else {
-                        throw error;
-                    }
-                }
+                requestOptions.httpsAgent = new https.Agent({rejectUnauthorized: rejectUnauthorized});
+                response = await Axios.get(api, requestOptions);
 
                 const data: any = response.data;
                 let filteredData: FabricNode[] = [];
@@ -188,7 +164,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                         });
 
                     let chosenNodes: IBlockchainQuickPickItem<FabricNode>[];
-                    chosenNodes = await UserInputUtil.showNodesQuickPickBox(`Which nodes would you like to ${methodMessageString}?`, filteredData, true, allNodes, informOfChanges) as IBlockchainQuickPickItem<FabricNode>[];
+                    chosenNodes = await UserInputUtil.showNodesQuickPickBox('Edit filters: Which nodes would you like to include?', filteredData, true, allNodes, informOfChanges) as IBlockchainQuickPickItem<FabricNode>[];
 
                     let chosenNodesNames: string[] = [];
                     let chosenNodesUrls: string[] = [];
