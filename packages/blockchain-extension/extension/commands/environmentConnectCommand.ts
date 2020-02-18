@@ -27,7 +27,9 @@ import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 
 export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry, showSuccess: boolean = true): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-    outputAdapter.log(LogType.INFO, undefined, `connecting to fabric environment`);
+    if (showSuccess) {
+        outputAdapter.log(LogType.INFO, undefined, `connecting to fabric environment`);
+    }
 
     let fabricEnvironment: FabricEnvironment | AnsibleEnvironment | ManagedAnsibleEnvironment | LocalEnvironment;
 
@@ -73,7 +75,7 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
                 }
                 informOfChanges = false;
             }
-            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, fabricEnvironmentRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, informOfChanges);
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, fabricEnvironmentRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, informOfChanges, showSuccess);
             nodes = await fabricEnvironment.getNodes();
             if (nodes.length === 0) {
                 FabricEnvironmentManager.instance().disconnect();
