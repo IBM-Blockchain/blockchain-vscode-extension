@@ -13,6 +13,7 @@ Feature: Created Smart Contracts
         | Java       | Conga     | JavaContract       | 0.0.1   |
         | Go         | null      | GoContract         | 0.0.1   |
 
+    @ansibleFabric
     Scenario Outline: Create a private data smart contract
         Given a private <language> smart contract for <assetType> assets with the name <name> and version <version> and mspid <mspid>
         And the contract hasn't been created already
