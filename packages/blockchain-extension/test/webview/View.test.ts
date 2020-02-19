@@ -291,7 +291,7 @@ describe('View', () => {
                     {
                         title: 'Local smart contract development',
                         length: '20-30 mins',
-                        description: `Follow the typical workflow from generating a new smart contract project, deploying code to the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime, and testing your transactions via an application gateway.`,
+                        description: `Follow the typical workflow from generating a new default smart contract project, deploying code to the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime, and testing your transactions via an application gateway.`,
                         file: 'ibm-blockchain-platform-vscode-smart-contract/local-dev.md'
                     },
                     {

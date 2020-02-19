@@ -22,7 +22,7 @@ Feature: Submit transaction
         | Go         | null      | GoContract         | 0.0.1   |
 
 
-    Scenario Outline: Submit a transaction for a smart contract using generated transaction data
+     Scenario Outline: Submit a transaction for a smart contract using generated transaction data
         Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
         And the Local Fabric is running
         And the 'Local Fabric' environment is connected
@@ -39,6 +39,28 @@ Feature: Submit transaction
         Examples:
         | language   | assetType | name               | version |
         | TypeScript | Conga     | TypeScriptContract | 0.0.1   |
+
+     @ansibleFabric
+     Scenario Outline: Submit a verify transaction for a private data smart contract
+        Given a private <language> smart contract for <assetType> assets with the name <name> and version <version> and mspid <mspid>
+        Given an environment 'myAnsibleFabric' exists
+        And the 'myAnsibleFabric' environment is connected
+        And the 'admin' identity
+        And I'm connected to the 'myAnsibleFabric - Org1 gateway' gateway
+        And the private contract has been created
+        And the contract has been packaged
+        And the package has been installed
+        And the contract has been instantiated with the transaction '' and args '', using private data on channel 'channel1'
+        When I submit the transaction 'createPrivateConga' on the channel 'channel1' with args '["001"]' and with the transient data '{"privateValue":"125"}'
+        Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'No value returned from createPrivateConga'
+        When I submit the transaction 'verifyPrivateConga' on the channel 'channel1' with args '["001", "{\"privateValue\":\"125\"}"]'
+        Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'Returned value from verifyPrivateConga: true'
+        Examples:
+        | language   | assetType        | name                      | mspid      | version |
+        | JavaScript | PrivateConga     | PrivateJavaScriptContract | Org1MSP    | 0.0.1   |
+        | TypeScript | PrivateConga     | PrivateTypeScriptContract | Org1MSP    | 0.0.1   |
+        | Java       | PrivateConga     | PrivateJavaContract       | Org1MSP    | 0.0.1   |
+
 
     @otherFabric
     Scenario Outline: Submit a transaction for a smart contract (other fabric)
