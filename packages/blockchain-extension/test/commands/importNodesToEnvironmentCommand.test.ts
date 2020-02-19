@@ -26,7 +26,6 @@ import {ExtensionCommands} from '../../ExtensionCommands';
 import {FabricEnvironmentRegistryEntry, LogType, FabricEnvironment, FabricNode, FabricEnvironmentRegistry, EnvironmentType} from 'ibm-blockchain-platform-common';
 import {FabricEnvironmentManager} from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { ModuleUtil } from '../../extension/util/ModuleUtil';
-import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -49,16 +48,13 @@ describe('ImportNodesToEnvironmentCommand', () => {
     let showNodesQuickPickBoxStub: sinon.SinonStub;
     let getPasswordStub: sinon.SinonStub;
     let getCoreNodeModuleStub: sinon.SinonStub;
-    let readFileStub: sinon.SinonStub;
     let fsPathExistsStub: sinon.SinonStub;
-    let fsReaddirStub: sinon.SinonStub;
     let localFabricNodes: any;
     let opsToolNodes: any;
     let url: string;
     let key: string;
     let secret: string;
-    let certVerificationError: any;
-    let caCertChainUri: vscode.Uri;
+    let rejectUnauthorized: string;
     let getConnectedEnvironmentRegistryEntry: sinon.SinonStub;
     let getAllStub: sinon.SinonStub;
     let showConfirmationWarningMessageStub: sinon.SinonStub;
@@ -121,6 +117,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             url = 'my/OpsTool/url';
             key = 'myOpsToolKey';
             secret = 'myOpsToolSecret';
+            rejectUnauthorized = 'false';
             OpsToolRegistryEntry = new FabricEnvironmentRegistryEntry();
             OpsToolRegistryEntry.name = 'myOpsToolInstance';
             OpsToolRegistryEntry.url = url;
@@ -159,18 +156,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             fsPathExistsStub = mySandBox.stub(fs, 'pathExists');
             fsPathExistsStub.resolves(true);
-            caCertChainUri = vscode.Uri.file(path.join('myCaCert.pem'));
-            fsReaddirStub = mySandBox.stub(fs, 'readdir');
-            fsReaddirStub.resolves([caCertChainUri.fsPath]);
-            readFileStub = mySandBox.stub(fs, 'readFile');
-            readFileStub.resolves('-----BEGIN CERTIFICATE-----\nsomeInfo\n-----END CERTIFICATE-----');
 
-            certVerificationError = new Error('Certificate Verification Error');
-            certVerificationError.code = 'DEPTH_ZERO_SELF_SIGNED_CERT';
-            axiosGetStub.onFirstCall().rejects(certVerificationError);
-            axiosGetStub.onSecondCall().resolves({data: opsToolNodes});
+            axiosGetStub.onFirstCall().resolves({data: opsToolNodes});
             showNodesQuickPickBoxStub.resolves(opsToolNodes.map((_node: any) => ({ label: _node.display_name, data: _node })));
-            getPasswordStub = mySandBox.stub().resolves(`${key}:${secret}`);
+            getPasswordStub = mySandBox.stub().resolves(`${key}:${secret}:${rejectUnauthorized}`);
             getCoreNodeModuleStub = mySandBox.stub(ModuleUtil, 'getCoreNodeModule').returns({
                 getPassword: getPasswordStub
             });
@@ -312,7 +301,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         });
 
         it('should handle when the api key/secret stored have the wrong number of entries (separated by ":") when edditing filters on existing OpsTool instance', async () => {
-            getPasswordStub.resolves(`${key}:${secret}:someMoreInfo`);
+            getPasswordStub.resolves(`${key}:${secret}:${rejectUnauthorized}:someMoreInfo`);
             const error: Error = new Error('Unable to retrieve the stored credentials');
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
@@ -372,54 +361,6 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
-        });
-
-        it('should handle no certificate verification on a new Ops Tool instance', async () => {
-            // when creating a new environment from ops tools, if a certificate was not provided the environment folder will not exist.
-            fsPathExistsStub.resolves(false);
-
-            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
-
-            readFileStub.withArgs(caCertChainUri.fsPath, 'utf8').should.have.not.been.called;
-            ensureDirStub.should.have.been.calledOnce;
-            updateNodeStub.should.have.been.calledTwice;
-            getNodesStub.should.have.been.calledTwice;
-            readFileStub.should.have.not.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
-        });
-
-        it('should handle no certificate verification on an existing Ops Tool instance', async () => {
-            // when editing filters on an existing environment from ops tools, if a certificate was not provided the environment folder will exist, but no certificate will be present.
-            fsReaddirStub.resolves([]);
-
-            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
-
-            readFileStub.should.have.not.been.called;
-            ensureDirStub.should.have.been.calledOnce;
-            updateNodeStub.should.have.been.calledTwice;
-            getNodesStub.should.have.been.calledTwice;
-            readFileStub.should.have.not.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
-        });
-
-        it('should throw error when multiple certificates present when editing filters on an existing Ops Tool instance', async () => {
-            const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(OpsToolRegistryEntry);
-            const environmentBaseDir: string = path.resolve(environment.getPath());
-            fsReaddirStub.resolves(['myCaCert.pem', 'myCaCert2.pem']);
-            const expectedError: Error = new Error(`Unable to connect: There are multiple certificates in ${environmentBaseDir}`);
-
-            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
-
-            readFileStub.should.have.not.been.called;
-            ensureDirStub.should.have.not.been.called;
-            updateNodeStub.should.have.not.been.called;
-            getNodesStub.should.have.been.calledOnce;
-            readFileStub.should.have.not.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${expectedError.message}`, `Failed to acquire nodes from ${url}, with error ${expectedError.toString()}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: ${expectedError.message}`);
         });
 
         it('should test nodes can be added with environment chosen', async () => {
@@ -760,7 +701,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             }].concat(opsToolNodes);
             getNodesStub.reset();
             getNodesStub.resolves(someNodes);
-            axiosGetStub.onSecondCall().resolves({data: someNodes});
+            axiosGetStub.onFirstCall().resolves({data: someNodes});
             showNodesQuickPickBoxStub.resolves();
 
             const result: boolean = await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
@@ -1050,7 +991,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             }];
             getNodesStub.resetBehavior();
             getNodesStub.resolves(originalNodes);
-            axiosGetStub.onSecondCall().resolves({data: nodesFromOpsTools});
+            axiosGetStub.onFirstCall().resolves({data: nodesFromOpsTools});
             showNodesQuickPickBoxStub.resolves({label: nodesFromOpsTools[0].display_name, data: nodesFromOpsTools[0]});
             const error: Error = new Error('Some error');
             executeCommandStub.withArgs(ExtensionCommands.DELETE_NODE).throws(error);
@@ -1088,7 +1029,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.resetBehavior();
             getNodesStub.onFirstCall().resolves(originalNodes);
             getNodesStub.onSecondCall().throws(new Error('should never get this far'));
-            axiosGetStub.onSecondCall().resolves([]);
+            axiosGetStub.onFirstCall().resolves([]);
             showConfirmationWarningMessageStub.resolves(true);
             getAllStub.resolves([]);
             executeCommandStub.withArgs(ExtensionCommands.DELETE_NODE).resolves();
@@ -1128,7 +1069,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.resetBehavior();
             getNodesStub.onFirstCall().resolves(originalNodes);
             getNodesStub.onSecondCall().resolves([]);
-            axiosGetStub.onSecondCall().resolves([]);
+            axiosGetStub.onFirstCall().resolves([]);
             showConfirmationWarningMessageStub.resolves(false);
             getAllStub.resolves([OpsToolRegistryEntry]);
             executeCommandStub.withArgs(ExtensionCommands.DELETE_NODE).resolves();
@@ -1151,7 +1092,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
         it('should handle user creating Ops Tool environment from a network with no nodes and chosing to delete environment', async () => {
             getNodesStub.resolves([]);
-            axiosGetStub.onSecondCall().resolves([]);
+            axiosGetStub.onFirstCall().resolves([]);
             showNodesQuickPickBoxStub.resolves([]);
             showConfirmationWarningMessageStub.resolves(true);
             getAllStub.resolves([]);

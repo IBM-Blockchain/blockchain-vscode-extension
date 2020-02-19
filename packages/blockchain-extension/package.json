@@ -768,7 +768,7 @@
                 },
                 {
                     "command": "environmentExplorer.createNewIdentityEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item && !blockchain-environment-setup"
                 },
                 {
                     "command": "walletExplorer.removeWalletEntry",

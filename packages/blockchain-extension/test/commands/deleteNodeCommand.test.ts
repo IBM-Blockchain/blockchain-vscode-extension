@@ -154,7 +154,7 @@ describe('DeleteNodeCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
             showConfirmationWarningMessage.should.have.not.been.called;
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete node`);
-            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted node ${peerNode.name}`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Node ${peerNode.name} was removed from ${opsToolRegistryEntry.name}`);
         });
 
         it('should test all visible nodes can be deleted from an Ops Tools environment', async () => {
@@ -170,7 +170,7 @@ describe('DeleteNodeCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             showConfirmationWarningMessage.should.have.not.been.called;
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete node`);
-            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted node ${peerNode.name}`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Node ${peerNode.name} was removed from ${opsToolRegistryEntry.name}`);
         });
 
         it('should test all nodes can be deleted from an Ops Tools environment', async () => {
@@ -186,7 +186,7 @@ describe('DeleteNodeCommand', () => {
             showConfirmationWarningMessage.should.have.not.been.called;
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete node`);
-            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted node ${hiddenPeerNode.name}`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Node ${hiddenPeerNode.name} was removed from ${opsToolRegistryEntry.name}`);
         });
 
         it('should test a node can be deleted from the command', async () => {

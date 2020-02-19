@@ -27,7 +27,7 @@ export class ModuleUtilHelper {
     constructor(sandbox: sinon.SinonSandbox) {
         this.mySandBox = sandbox;
         this.setPasswordStub = this.mySandBox.stub().resolves();
-        this.getPasswordStub = this.mySandBox.stub().resolves(`${process.env.MAP_OPSTOOLS_KEY}:${process.env.MAP_OPSTOOLS_SECRET}`);
+        this.getPasswordStub = this.mySandBox.stub().resolves(`${process.env.MAP_OPSTOOLS_KEY}:${process.env.MAP_OPSTOOLS_SECRET}:false`);
         this.getCoreNodeModuleStub = this.mySandBox.stub(ModuleUtil, 'getCoreNodeModule').withArgs('keytar').returns({setPassword: this.setPasswordStub, getPassword: this.getPasswordStub});
     }
 }

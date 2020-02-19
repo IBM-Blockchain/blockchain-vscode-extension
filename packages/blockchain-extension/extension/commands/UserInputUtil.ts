@@ -82,8 +82,9 @@ export class UserInputUtil {
     static readonly ADD_ENVIRONMENT_FROM_DIR: string = 'Add an Ansible-created network';
     static readonly ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION: string = '(browse for directory)';
     static readonly ADD_ENVIRONMENT_FROM_OPS_TOOLS: string = 'Add an IBM Blockchain Platform network';
-    static readonly ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION: string = '(connect to Ops Console)';
-    static readonly ADD_CA_CERT_CHAIN: string = 'Provide the CA Certificate Chain file';
+    static readonly ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION: string = '(connect to IBM Blockchain Platform Console)';
+    static readonly CANCEL_NO_CERT_CHAIN: string = 'Cancel';
+    static readonly CANCEL_NO_CERT_CHAIN_DESCRIPTION: string = '(CA certificate chain must be added to Operative System trusted root certificates)';
     static readonly CONNECT_NO_CA_CERT_CHAIN: string = 'Proceed without certificate verification';
 
     public static async showQuickPick(prompt: string, items: string[], canPickMany: boolean = false): Promise<string | string[]> {

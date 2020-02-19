@@ -15,7 +15,6 @@
 import Axios from 'axios';
 import * as fs from 'fs-extra';
 import * as https from 'https';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
@@ -31,8 +30,6 @@ export async function addEnvironment(): Promise<void> {
     const fabricEnvironmentRegistry: FabricEnvironmentRegistry = FabricEnvironmentRegistry.instance();
     try {
         outputAdapter.log(LogType.INFO, undefined, 'Add environment');
-        let certificatePath: vscode.Uri;
-        const separator: string = process.platform === 'win32' ? '\\' : '/';
 
         const items: IBlockchainQuickPickItem<string>[] = [{ label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }];
         const chosenMethod: IBlockchainQuickPickItem<string> = await UserInputUtil.showQuickPickItem('Select a method to add an environment', items) as IBlockchainQuickPickItem<string>;
@@ -65,64 +62,62 @@ export async function addEnvironment(): Promise<void> {
                 throw new Error('Error importing the keytar module');
             }
 
+            const HEALTH_CHECK: string = '/ak/api/v1/health';
             const GET_ALL_COMPONENTS: string = '/ak/api/v1/components';
-            const url: string = await UserInputUtil.showInputBox('Enter the url of the ops tools you want to connect to');
+            const url: string = await UserInputUtil.showInputBox('Enter the URL of the IBM Blockchain Platform Console you want to connect to');
             if (!url) {
                 return;
             }
-            const apiKey: string = await UserInputUtil.showInputBox('Enter the api key of the ops tools you want to connect to');
+            const apiKey: string = await UserInputUtil.showInputBox('Enter the API key of the IBM Blockchain Platform Console you want to connect to');
             if (!apiKey) {
                 return;
             }
-            const apiSecret: string = await UserInputUtil.showInputBox('Enter the api secret of the ops tools you want to connect to');
+            const apiSecret: string = await UserInputUtil.showInputBox('Enter the API secret of the IBM Blockchain Platform Console you want to connect to');
             if (!apiSecret) {
                 return;
             }
 
+            const healthUrl: string = url.replace(/\/$/, '') + HEALTH_CHECK;
             const api: string = url.replace(/\/$/, '') + GET_ALL_COMPONENTS;
-            const requestOptions: any = {
-                headers: { 'Content-Type': 'application/json' },
-                auth: { username: apiKey, password: apiSecret }
-            };
+            const requestOptions: any = { headers: { 'Content-Type': 'application/json' } };
+            requestOptions.httpsAgent = new https.Agent( {rejectUnauthorized: true});
+
             try {
-                await Axios.get(api, requestOptions);
-            } catch (error) {
-                // This needs to be fixed - exactly what codes can we get that will require this behaviour?
-                if (error.code === 'DEPTH_ZERO_SELF_SIGNED_CERT') {
-                    let caCertificate: string;
-                    const certificateUsage: string = await UserInputUtil.showQuickPick('Unable to perform certificate verification. Please choose how to proceed', [UserInputUtil.ADD_CA_CERT_CHAIN, UserInputUtil.CONNECT_NO_CA_CERT_CHAIN]) as string;
-                    if (!certificateUsage) {
-                        return;
-                    } else if (certificateUsage === UserInputUtil.ADD_CA_CERT_CHAIN) {
-                        const browseOptions: vscode.OpenDialogOptions = {
-                            canSelectFiles: true,
-                            canSelectFolders: false,
-                            canSelectMany: false,
-                            openLabel: 'Select',
-                            filters: {
-                                Certificates: ['pem']
-                            }
-                        };
-                        certificatePath = await UserInputUtil.browse('Select CA certificate chain (.pem) file', UserInputUtil.BROWSE_LABEL, browseOptions, true) as vscode.Uri;
-                        if (certificatePath === undefined) {
-                            return;
-                        } else if (Array.isArray(certificatePath)) {
-                            certificatePath = certificatePath[0];
-                        }
-                        caCertificate = await fs.readFile(certificatePath.fsPath, 'utf8');
-                        requestOptions.httpsAgent = new https.Agent({ ca: caCertificate });
-                    } else {
-                        requestOptions.httpsAgent = new https.Agent({ rejectUnauthorized: false });
-                    }
-                    await Axios.get(api, requestOptions);
+                await Axios.get(healthUrl, requestOptions);
+            } catch (errorWithAuth) {
+                // error indicates a certificate verification is needed (response.status === 401), proceed with real connection.
+                if (!errorWithAuth.response || !errorWithAuth.response.status || errorWithAuth.response.status !== 401) {
+                    // Otherwise, try again to connect to health end point.
                     try {
-                        await keytar.setPassword('blockchain-vscode-ext', url, `${apiKey}:${apiSecret}`);
-                    } catch (error) {
-                        throw new Error(`Unable to store the required credentials: ${error.message}`);
+                        requestOptions.httpsAgent.options.rejectUnauthorized = false;
+                        await Axios.get(healthUrl, requestOptions);
+                    } catch (errorWithoutAuth) {
+                        if (errorWithoutAuth.response && errorWithoutAuth.response.status && errorWithoutAuth.response.status === 401) {
+                            // This indicates a certificate verification is needed. Ask the user if they wish to proceed insecurely or cancel.
+                            const options: IBlockchainQuickPickItem<string>[] = [{ label: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN, data: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN }, { label: UserInputUtil.CANCEL_NO_CERT_CHAIN, data: UserInputUtil.CANCEL_NO_CERT_CHAIN, description: UserInputUtil.CANCEL_NO_CERT_CHAIN_DESCRIPTION }];
+                            const certificateUsage: IBlockchainQuickPickItem<string> = await UserInputUtil.showQuickPickItem('Unable to perform certificate verification. Please choose how to proceed', options) as IBlockchainQuickPickItem<string>;
+                            if (!certificateUsage || certificateUsage.label === UserInputUtil.CANCEL_NO_CERT_CHAIN) {
+                                return;
+                            }
+                        } else {
+                            // There is a connection problem other than certificate related. Throw error.
+                            throw new Error(`Unable to connect to the IBM Blockchain Platform network: ${errorWithoutAuth.message}`);
+                        }
                     }
-                } else {
-                    throw error;
                 }
+            }
+            // We will now atempt to connect using key and secret. If it fails, there is a problem with the key and secret provided.
+            try {
+                requestOptions.auth = { username: apiKey, password: apiSecret };
+                await Axios.get(api, requestOptions);
+            } catch (errorConnecting) {
+                throw new Error(`Problem detected with API key and/or secret: ${errorConnecting.message}`);
+            }
+            // Securely store API key and secret
+            try {
+                await keytar.setPassword('blockchain-vscode-ext', url, `${apiKey}:${apiSecret}:${requestOptions.httpsAgent.options.rejectUnauthorized}`);
+            } catch (errorStorePass) {
+                throw new Error(`Unable to store the required credentials: ${errorStorePass.message}`);
             }
 
             fabricEnvironmentEntry.url = url;
@@ -156,16 +151,6 @@ export async function addEnvironment(): Promise<void> {
 
         if (createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_DIR) {
 
-            if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS && certificatePath) {
-                try {
-                    const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentEntry);
-                    const caCertificateCopy: string = path.join(path.resolve(environment.getPath()), certificatePath.fsPath.split(separator).pop());
-                    await fs.copy(certificatePath.fsPath, caCertificateCopy, { overwrite: true });
-                } catch (error) {
-                    throw new Error(`Unable to store the CA certificate chain file: ${error.message}`);
-                }
-            }
-
             let addedAllNodes: boolean;
 
             if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS) {
@@ -181,7 +166,7 @@ export async function addEnvironment(): Promise<void> {
                 const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentEntry);
                 const nodes: FabricNode[] = await environment.getNodes();
                 if (nodes.length === 0) {
-                    outputAdapter.log(LogType.SUCCESS, `Successfully added a new environment. No available nodes included in current filters, click ${fabricEnvironmentEntry.name} to edit filters`);
+                    outputAdapter.log(LogType.SUCCESS, `Successfully added a new environment. No nodes included in current filters, click ${fabricEnvironmentEntry.name} to edit filters`);
                 } else {
                     outputAdapter.log(LogType.SUCCESS, 'Successfully added a new environment');
                 }
