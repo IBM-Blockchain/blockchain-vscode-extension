@@ -295,6 +295,7 @@ describe('CreateSmartContractProjectCommand', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         inputBoxSpy.should.have.been.calledWith('Name the type of asset managed by this smart contract', 'MyPrivateAsset');
+        showLanguagesQuickPickStub.should.have.been.calledWith(sinon.match.string, [], sinon.match.array);
         executeCommandStub.should.have.been.calledThrice;
         executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
         executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, true);

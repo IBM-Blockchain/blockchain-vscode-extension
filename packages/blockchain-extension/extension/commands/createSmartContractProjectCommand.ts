@@ -29,7 +29,7 @@ export async function createSmartContractProject(): Promise<void> {
     // Create and show output channel
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
-    const chaincodeLanguageOptions: string[] = getChaincodeLanguageOptions();
+    let chaincodeLanguageOptions: string[] = getChaincodeLanguageOptions();
     const smartContractLanguageOptions: string[] = getSmartContractLanguageOptions();
     let contractType: IBlockchainQuickPickItem<string>;
     let privateOrDefault: string;
@@ -40,7 +40,7 @@ export async function createSmartContractProject(): Promise<void> {
     const defaultAsset: string = 'MyAsset';
     const privateAsset: string = 'MyPrivateAsset';
 
-    contractType = await UserInputUtil.showQuickPickItem('Choose a contract type to generate:', [{label: UserInputUtil.GENERATE_DEFAULT_CONTRACT, description: UserInputUtil.GENERATE_DEFAULT_CONTRACT_DESCRIPTION, data: 'default'}, {label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private'}] as IBlockchainQuickPickItem<string>[]) as IBlockchainQuickPickItem<string>;
+    contractType = await UserInputUtil.showQuickPickItem('Choose a contract type to generate:', [{ label: UserInputUtil.GENERATE_DEFAULT_CONTRACT, description: UserInputUtil.GENERATE_DEFAULT_CONTRACT_DESCRIPTION, data: 'default' }, { label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private' }] as IBlockchainQuickPickItem<string>[]) as IBlockchainQuickPickItem<string>;
 
     if (!contractType) {
         return;
@@ -58,6 +58,10 @@ export async function createSmartContractProject(): Promise<void> {
     }
 
     const smartContractLanguagePrompt: string = localize('smartContractLanguage.prompt', 'Choose smart contract language (Esc to cancel)');
+    if (contractType.data !== typeDefault) {
+        // don't want to show low level options for private data
+        chaincodeLanguageOptions = [];
+    }
     const smartContractLanguageItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick(smartContractLanguagePrompt, chaincodeLanguageOptions, smartContractLanguageOptions);
     if (!smartContractLanguageItem) {
         // User has cancelled the QuickPick box
@@ -82,7 +86,7 @@ export async function createSmartContractProject(): Promise<void> {
         }
     }
 
-    const quickPickItem: {label: string, description: string} = {label: UserInputUtil.BROWSE_LABEL, description: UserInputUtil.VALID_FOLDER_NAME};
+    const quickPickItem: { label: string, description: string } = { label: UserInputUtil.BROWSE_LABEL, description: UserInputUtil.VALID_FOLDER_NAME };
     const openDialogOptions: vscode.OpenDialogOptions = {
         canSelectFiles: false,
         canSelectFolders: true,
@@ -136,17 +140,17 @@ export async function createSmartContractProject(): Promise<void> {
             location: vscode.ProgressLocation.Notification,
             title: 'IBM Blockchain Platform Extension',
             cancellable: false
-        }, async (progress: vscode.Progress<{message: string}>): Promise<void> => {
-            progress.report({message: `Generating${privateOrDefault}Smart Contract Project`});
+        }, async (progress: vscode.Progress<{ message: string }>): Promise<void> => {
+            progress.report({ message: `Generating${privateOrDefault}Smart Contract Project` });
             await YeomanUtil.run(generator, runOptions);
         });
 
         outputAdapter.log(LogType.SUCCESS, `Successfully generated${privateOrDefault}Smart Contract Project`);
 
         if (contractType.data === typeDefault) {
-            Reporter.instance().sendTelemetryEvent('createSmartContractProject', {contractLanguage: smartContractLanguage});
+            Reporter.instance().sendTelemetryEvent('createSmartContractProject', { contractLanguage: smartContractLanguage });
         } else {
-            Reporter.instance().sendTelemetryEvent('createPrivateDataSmartContractProject', {contractLanguage: smartContractLanguage});
+            Reporter.instance().sendTelemetryEvent('createPrivateDataSmartContractProject', { contractLanguage: smartContractLanguage });
         }
         // Open the returned folder in explorer, in a new window
         await UserInputUtil.openNewProject(openMethod, folderUri);
@@ -164,5 +168,5 @@ function getChaincodeLanguageOptions(): string[] {
 }
 
 function getSmartContractLanguageOptions(): string[] {
-     return GeneratorFabricPackageJSON.contractLanguages;
+    return GeneratorFabricPackageJSON.contractLanguages;
 }

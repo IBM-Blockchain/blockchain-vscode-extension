@@ -1333,7 +1333,7 @@
         "ejs": "^2.6.1",
         "find-free-port": "^2.0.0",
         "fs-extra": "^7.0.1",
-        "generator-fabric": "0.1.7",
+        "generator-fabric": "0.1.8",
         "handlebars": "^4.5.3",
         "home-dir": "1.0.0",
         "ibm-blockchain-platform-common": "^1.0.20",
