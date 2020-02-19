@@ -25,10 +25,16 @@ import {EnvironmentFactory} from '../fabric/environments/EnvironmentFactory';
 import Axios from 'axios';
 import {ModuleUtil} from '../util/ModuleUtil';
 
-export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false, createMethod?: string, informOfChanges: boolean = false): Promise<boolean> {
+export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false, createMethod?: string, informOfChanges: boolean = false, showSuccess: boolean = true): Promise<boolean> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     const methodMessageString: string = createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS ? 'import' : 'filter';
-    outputAdapter.log(LogType.INFO, undefined, 'Import nodes to environment');
+    if (showSuccess) {
+        if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_NODES) {
+            outputAdapter.log(LogType.INFO, undefined, 'Import nodes to environment');
+        } else {
+            outputAdapter.log(LogType.INFO, undefined, 'Edit node filters');
+        }
+    }
 
     try {
 
