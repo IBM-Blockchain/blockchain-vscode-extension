@@ -65,13 +65,17 @@ describe('FabricWalletRegistry', () => {
         it('should get all the wallets and put local fabric first', async () => {
             const walletOne: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
                 name: 'walletOne',
-                walletPath: 'myPath'
+                walletPath: 'myPath',
+            });
+            const walletTwo: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+                name: 'walletTwo',
+                walletPath: 'otherPath',
             });
 
             await registry.getAll().should.eventually.deep.equal([]);
 
-            await FabricEnvironmentRegistry.instance().add({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: path.join(__dirname, '..', 'data', '1 Org Local Fabric'), environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true});
-            await FabricEnvironmentRegistry.instance().add({name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, environmentDirectory : path.join(__dirname, '..', 'data', 'otherLocalEnv')});
+            await FabricEnvironmentRegistry.instance().add({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: path.join(__dirname, '..', '..', '..', '..', 'test', 'data', FabricRuntimeUtil.LOCAL_FABRIC), environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1, managedRuntime: true});
+            await FabricEnvironmentRegistry.instance().add({name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, environmentDirectory : path.join(__dirname, '..', 'data', 'otherLocalEnv'), numberOfOrgs: 1});
 
             const localFabricOrgEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Org1', FabricRuntimeUtil.LOCAL_FABRIC);
             const localFabricOrdererEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Orderer', FabricRuntimeUtil.LOCAL_FABRIC);
@@ -79,15 +83,17 @@ describe('FabricWalletRegistry', () => {
             const otherLocalOrdererEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Orderer', 'otherLocalEnv');
 
             await registry.add(walletOne);
+            await registry.add(walletTwo);
 
             const gateways: any = await registry.getAll();
-            gateways.length.should.equal(5);
+            gateways.length.should.equal(6);
 
             gateways[0].should.deep.equal(otherLocalOrgEntry);
             gateways[1].should.deep.equal(otherLocalOrdererEntry);
             gateways[2].should.deep.equal(localFabricOrgEntry);
             gateways[3].should.deep.equal(localFabricOrdererEntry);
             gateways[4].should.deep.equal(walletOne);
+            gateways[5].should.deep.equal(walletTwo);
         });
 
         it('should get all wallets but not show local fabric', async () => {
@@ -98,8 +104,8 @@ describe('FabricWalletRegistry', () => {
 
             await registry.getAll().should.eventually.deep.equal([]);
 
-            await FabricEnvironmentRegistry.instance().add({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: path.join(__dirname, '..', 'data', '1 Org Local Fabric'), environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true});
-            await FabricEnvironmentRegistry.instance().add({name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, environmentDirectory : path.join(__dirname, '..', 'data', 'otherLocalEnv')});
+            await FabricEnvironmentRegistry.instance().add({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: path.join(__dirname, '..', 'data', FabricRuntimeUtil.LOCAL_FABRIC), environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, numberOfOrgs: 1});
+            await FabricEnvironmentRegistry.instance().add({name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, environmentDirectory : path.join(__dirname, '..', 'data', 'otherLocalEnv'), numberOfOrgs: 1});
 
             await registry.add(walletOne);
             await registry.getAll(false).should.eventually.deep.equal([walletOne]);

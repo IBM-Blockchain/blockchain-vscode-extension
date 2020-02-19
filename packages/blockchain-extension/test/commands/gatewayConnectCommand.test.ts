@@ -144,7 +144,7 @@ describe('GatewayConnectCommand', () => {
             mockRuntime.isRunning.resolves(true);
             mockRuntime.start.resolves();
             mockRuntime.create.resolves();
-            getEnvironmentStub = mySandBox.stub(EnvironmentFactory, 'getEnvironment').returns(mockRuntime);
+            getEnvironmentStub = mySandBox.stub(EnvironmentFactory, 'getEnvironment').resolves(mockRuntime);
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             walletGenerator = FabricWalletGenerator.instance();
@@ -414,7 +414,7 @@ describe('GatewayConnectCommand', () => {
 
                 const managedAnsible: ManagedAnsibleEnvironment = new ManagedAnsibleEnvironment('managedEnvironment', '/some/path');
                 mySandBox.stub(managedAnsible, 'isRunning').resolves(true);
-                getEnvironmentStub.returns(managedAnsible);
+                getEnvironmentStub.resolves(managedAnsible);
 
                 testFabricWallet = new FabricWallet(managedWallet.walletPath);
 

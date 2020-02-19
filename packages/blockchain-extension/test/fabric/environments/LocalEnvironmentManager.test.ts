@@ -51,12 +51,13 @@ describe('LocalEnvironmentManager', () => {
 
     before(async () => {
         await TestUtil.setupTests(sandbox);
-        await TestUtil.setupLocalFabric();
         backupRuntime = new LocalEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, {startPort: 17050, endPort: 17070}, 1);
     });
 
     beforeEach(async () => {
-        originalRuntime = backupRuntime; // Do we want to do Object.assign({}, backupRuntime) here?
+        await FabricEnvironmentRegistry.instance().clear();
+        await TestUtil.setupLocalFabric();
+        originalRuntime = backupRuntime;
         sandbox = sinon.createSandbox();
         await connectionRegistry.clear();
 
@@ -67,7 +68,7 @@ describe('LocalEnvironmentManager', () => {
         runtimeManager['runtimes'].set(FabricRuntimeUtil.LOCAL_FABRIC, originalRuntime);
         mockConnection = sandbox.createStubInstance(FabricEnvironmentConnection);
         sandbox.stub(FabricConnectionFactory, 'createFabricEnvironmentConnection').returns(mockConnection);
-        findFreePortStub = sandbox.stub().resolves([17050, 17051, 17052, 17053, 17054, 17055, 17056]);
+        findFreePortStub = sandbox.stub().resolves([17050, 17051, 17052, 17053, 17054, 17055, 17056, 17058, 17059, 17060, 17070]);
         sandbox.stub(LocalEnvironmentManager, 'findFreePort').value(findFreePortStub);
         startLogsStub = sandbox.stub(LocalEnvironment.prototype, 'startLogs').returns(undefined);
         stopLogsStub = sandbox.stub(LocalEnvironment.prototype, 'stopLogs').returns(undefined);
@@ -94,26 +95,123 @@ describe('LocalEnvironmentManager', () => {
         });
     });
 
-    describe('#ensureRuntime', () => {
-        it('should get runtime if it already exists', () => {
+    describe('#updateRuntime', () => {
+        it('should return the runtime', async () => {
             runtimeManager['runtimes'].size.should.equal(1);
-            runtimeManager.ensureRuntime(FabricRuntimeUtil.LOCAL_FABRIC, {startPort: 17050, endPort: 17070}, 1).should.deep.equal(originalRuntime);
+            const newEnv: LocalEnvironment = new LocalEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, {startPort: 21212, endPort: 21232}, 1);
+            runtimeManager.updateRuntime(FabricRuntimeUtil.LOCAL_FABRIC, newEnv);
+            runtimeManager['runtimes'].get(FabricRuntimeUtil.LOCAL_FABRIC).should.deep.equal(newEnv);
+            runtimeManager['runtimes'].size.should.equal(1);
+        });
+    });
+
+    describe('#ensureRuntime', () => {
+        it('should get runtime if it already exists', async () => {
+            runtimeManager['runtimes'].size.should.equal(1);
+            const runtime: LocalEnvironment = await runtimeManager.ensureRuntime(FabricRuntimeUtil.LOCAL_FABRIC);
+            runtime.should.deep.equal(originalRuntime);
             runtimeManager['runtimes'].size.should.equal(1);
         });
 
-        it(`should create runtime if it doesn't exist and return it`, async () => {
+        it(`should create and add runtime if it doesn't exist already`, async () => {
             runtimeManager['runtimes'] = new Map();
             runtimeManager['runtimes'].size.should.equal(0);
-            runtimeManager.ensureRuntime(FabricRuntimeUtil.LOCAL_FABRIC, {startPort: 17050, endPort: 17070}, 1).should.deep.equal(originalRuntime);
+            const runtime: LocalEnvironment = await runtimeManager.ensureRuntime(FabricRuntimeUtil.LOCAL_FABRIC, {startPort: 17050, endPort: 17070}, 1);
+            runtime.should.deep.equal(originalRuntime);
             runtimeManager['runtimes'].size.should.equal(1);
         });
 
-        it(`should update runtime if the ports have changed`, async () => {
-            runtimeManager['runtimes'].size.should.equal(1);
-            const runtime: LocalEnvironment = runtimeManager.ensureRuntime(FabricRuntimeUtil.LOCAL_FABRIC, {startPort: 18050, endPort: 18070}, 1);
-            runtime.ports.should.deep.equal({startPort: 18050, endPort: 18070});
+    });
+
+    describe('#addRuntime', () => {
+
+        beforeEach(async () => {
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
+        });
+
+        it(`should add runtime when ports and orgs are passed in`, async () => {
+            runtimeManager['runtimes'] = new Map();
+            runtimeManager['runtimes'].size.should.equal(0);
+            const runtime: LocalEnvironment = await runtimeManager.addRuntime(FabricRuntimeUtil.LOCAL_FABRIC, {startPort: 17050, endPort: 17070}, 1);
+            runtime.should.deep.equal(originalRuntime);
             runtimeManager['runtimes'].size.should.equal(1);
         });
+
+        it(`should add runtime when orgs are passed in and ports exist in settings`, async () => {
+            const settings: any = {};
+            settings[FabricRuntimeUtil.LOCAL_FABRIC] = {
+                ports: {
+                    startPort: 17050,
+                    endPort: 17070
+                }
+            };
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, settings, vscode.ConfigurationTarget.Global);
+
+            runtimeManager['runtimes'] = new Map();
+            runtimeManager['runtimes'].size.should.equal(0);
+            const runtime: LocalEnvironment = await runtimeManager.addRuntime(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1);
+            runtime.should.deep.equal(originalRuntime);
+            runtimeManager['runtimes'].size.should.equal(1);
+        });
+
+        it(`should add runtime when orgs are passed in and ports don't exist in settings`, async () => {
+            const settings: any = {};
+            settings[FabricRuntimeUtil.LOCAL_FABRIC] = {
+                ports: {}
+            };
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, settings, vscode.ConfigurationTarget.Global);
+
+            runtimeManager['runtimes'] = new Map();
+            runtimeManager['runtimes'].size.should.equal(0);
+            const runtime: LocalEnvironment = await runtimeManager.addRuntime(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1);
+            runtime.should.deep.equal(originalRuntime);
+
+            runtimeManager['runtimes'].size.should.equal(1);
+        });
+
+        it(`should add runtime when ports are passed in but orgs aren't`, async () => {
+            runtimeManager['runtimes'] = new Map();
+            runtimeManager['runtimes'].size.should.equal(0);
+
+            const runtime: LocalEnvironment = await runtimeManager.addRuntime(FabricRuntimeUtil.LOCAL_FABRIC, {startPort: 17050, endPort: 17070});
+            runtime.numberOfOrgs.should.equal(1);
+            runtime.should.deep.equal(originalRuntime);
+            runtimeManager['runtimes'].size.should.equal(1);
+        });
+
+        it(`should throw an error when runtime with ports are passed in but orgs aren't, and environment doesn't exist`, async () => {
+            runtimeManager['runtimes'] = new Map();
+            runtimeManager['runtimes'].size.should.equal(0);
+
+            await FabricEnvironmentRegistry.instance().clear();
+
+            try {
+                await runtimeManager.addRuntime(FabricRuntimeUtil.LOCAL_FABRIC, {startPort: 17050, endPort: 17070});
+            } catch (error) {
+                error.message.should.deep.equal(`Unable to add runtime as environment '${FabricRuntimeUtil.LOCAL_FABRIC}' does not exist.`);
+
+            }
+
+            runtimeManager['runtimes'].size.should.equal(0);
+        });
+
+        it(`should throw an error when runtime with ports are passed in but orgs aren't, and environment doesn't have 'numberOfOrgs' property`, async () => {
+            runtimeManager['runtimes'] = new Map();
+            runtimeManager['runtimes'].size.should.equal(0);
+
+            await FabricEnvironmentRegistry.instance().clear();
+            await FabricEnvironmentRegistry.instance().add({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true});
+
+            try {
+                await runtimeManager.addRuntime(FabricRuntimeUtil.LOCAL_FABRIC, {startPort: 17050, endPort: 17070});
+            } catch (error) {
+                error.message.should.deep.equal(`Unable to add runtime as environment '${FabricRuntimeUtil.LOCAL_FABRIC}' does not have 'numberOfOrgs' property.`);
+
+            }
+
+            runtimeManager['runtimes'].size.should.equal(0);
+        });
+
     });
 
     describe('#removeRuntime', () => {
@@ -146,7 +244,7 @@ describe('LocalEnvironmentManager', () => {
             const getEnvironmentStub: sinon.SinonStub = sandbox.stub(EnvironmentFactory, 'getEnvironment');
             getEnvironmentStub.callThrough();
             getEnvironmentRegistryEntryStub = sandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(registryEntry);
-            getEnvironmentStub.withArgs(registryEntry).returns(originalRuntime);
+            getEnvironmentStub.withArgs(registryEntry).resolves(originalRuntime);
 
             isCreatedStub = sandbox.stub(LocalEnvironment.prototype, 'isCreated').resolves(true);
             updateUserSettingsStub = sandbox.stub(LocalEnvironment.prototype, 'updateUserSettings').resolves(); // these need to be on the runtime we retrieve
@@ -245,6 +343,7 @@ describe('LocalEnvironmentManager', () => {
         });
 
         it(`should start logs if ${FabricRuntimeUtil.LOCAL_FABRIC} is connected`, async () => {
+
             sandbox.stub(LocalEnvironmentManager.instance(), 'ensureRuntime').returns(originalRuntime);
 
             isCreatedStub.resolves(true);
@@ -252,10 +351,9 @@ describe('LocalEnvironmentManager', () => {
 
             await runtimeManager.initialize(FabricRuntimeUtil.LOCAL_FABRIC, 1);
             const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
-            FabricEnvironmentManager.instance().disconnect();
-            startLogsStub.resetHistory();
 
             FabricEnvironmentManager.instance().connect(mockConnection, registryEntry, ConnectedState.CONNECTED);
+
             startLogsStub.should.have.been.calledOnce;
         });
 
@@ -286,6 +384,7 @@ describe('LocalEnvironmentManager', () => {
 
             await runtimeManager.initialize(FabricRuntimeUtil.LOCAL_FABRIC, 1);
             const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+
             FabricEnvironmentManager.instance().connect(mockConnection, registryEntry, ConnectedState.CONNECTED);
 
             FabricEnvironmentManager.instance().disconnect();
@@ -296,8 +395,6 @@ describe('LocalEnvironmentManager', () => {
         it('should do nothing when disconnected from a non-local environment', async () => {
             sandbox.stub(ManagedAnsibleEnvironmentManager.instance(), 'ensureRuntime').returns(new ManagedAnsibleEnvironment('managedAnsible', path.join(__dirname, '..', '..', '..', 'test', 'data', 'managedAnsible')));
             await FabricEnvironmentRegistry.instance().add({name: 'managedAnsible', environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT, managedRuntime: true, environmentDirectory: path.join(__dirname, '..', '..', '..', 'test', 'data', 'managedAnsible') });
-            // const managedAnsible: ManagedAnsibleEnvironment = EnvironmentFactory.getEnvironment({name: 'managedAnsible', environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT, managedRuntime: true }) as ManagedAnsibleEnvironment;
-            // Not sure if these changes work
 
             const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get('managedAnsible');
             getEnvironmentRegistryEntryStub.returns(registryEntry);
@@ -318,7 +415,6 @@ describe('LocalEnvironmentManager', () => {
             originalRuntime.ports = {startPort: 1, endPort: 21};
             sandbox.stub(LocalEnvironmentManager.instance(), 'ensureRuntime').returns(originalRuntime);
 
-            // runtimeManager['runtimes'].delete(FabricRuntimeUtil.LOCAL_FABRIC);
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {
                 ports: {
                     orderer: 8,
@@ -344,7 +440,6 @@ describe('LocalEnvironmentManager', () => {
             originalRuntime.ports = {startPort: 17050, endPort: 17070};
             sandbox.stub(LocalEnvironmentManager.instance(), 'ensureRuntime').returns(originalRuntime);
 
-            // runtimeManager['runtimes'].delete(FabricRuntimeUtil.LOCAL_FABRIC);
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {
                 ports: {
 

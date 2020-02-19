@@ -142,7 +142,7 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
 
         node.wallet = walletName;
         node.identity = identityName;
-        const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
+        const environment: FabricEnvironment = await EnvironmentFactory.getEnvironment(environmentRegistryEntry);
 
         await environment.updateNode(node);
 

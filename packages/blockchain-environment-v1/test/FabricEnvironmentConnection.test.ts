@@ -61,7 +61,7 @@ describe('FabricEnvironmentConnection', () => {
         FabricEnvironmentRegistry.instance().setRegistryPath(path.join(__dirname, 'tmp', 'registries'));
         await FabricWalletRegistry.instance().clear();
         await FabricEnvironmentRegistry.instance().clear();
-        await FabricEnvironmentRegistry.instance().add(new FabricEnvironmentRegistryEntry({ name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: path.join(__dirname, 'data', FabricRuntimeUtil.LOCAL_FABRIC), environmentType: EnvironmentType.LOCAL_ENVIRONMENT }));
+        await FabricEnvironmentRegistry.instance().add(new FabricEnvironmentRegistryEntry({ name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: path.join(__dirname, '..', '..', '..', 'test', 'data', FabricRuntimeUtil.LOCAL_FABRIC), environmentType: EnvironmentType.LOCAL_ENVIRONMENT }));
     });
 
     beforeEach(async () => {

@@ -2,33 +2,33 @@ Feature: Fabric Wallets
     Test all the features of a fabric wallet
 
     Scenario: local fabric wallets are created automatically
-        Given the Local Fabric is running
+        Given the 1 Org Local Fabric environment is running
         And the 'Org1' wallet
-        Then there should be a tree item with a label 'Local Fabric - Org1 Wallet' in the 'Fabric Wallets' panel
-        And the tree item should have a tooltip equal to 'Local Fabric - Org1 Wallet'
-        And there should be a identity tree item with a label 'admin ⭑' in the 'Fabric Wallets' panel for item Local Fabric - Org1 Wallet
+        Then there should be a tree item with a label '1 Org Local Fabric - Org1 Wallet' in the 'Fabric Wallets' panel
+        And the tree item should have a tooltip equal to '1 Org Local Fabric - Org1 Wallet'
+        And there should be a identity tree item with a label 'admin ⭑' in the 'Fabric Wallets' panel for item 1 Org Local Fabric - Org1 Wallet
         And the tree item should have a tooltip equal to 'Attributes:\n\nNone'
-        And there should be a tree item with a label 'Local Fabric - Orderer Wallet' in the 'Fabric Wallets' panel
-        And the tree item should have a tooltip equal to 'Local Fabric - Orderer Wallet'
-        And there should be a identity tree item with a label 'admin ⭑' in the 'Fabric Wallets' panel for item Local Fabric - Orderer Wallet
+        And there should be a tree item with a label '1 Org Local Fabric - Orderer Wallet' in the 'Fabric Wallets' panel
+        And the tree item should have a tooltip equal to '1 Org Local Fabric - Orderer Wallet'
+        And there should be a identity tree item with a label 'admin ⭑' in the 'Fabric Wallets' panel for item 1 Org Local Fabric - Orderer Wallet
         And the tree item should have a tooltip equal to 'Attributes:\n\nNone'
 
 
     Scenario: create an identity with attributes
-        Given the Local Fabric is running
+        Given the 1 Org Local Fabric environment is running
         And the '1 Org Local Fabric' environment is connected
         And the 'Org1' wallet
         When I register a new identity 'attributes_user' with the attributes '[{"name": "hello", "value": "world", "ecert": true}]'
-        Then there should be an identity tree item with a label 'attributes_user' in the 'Fabric Wallets' panel for item Local Fabric - Org1 Wallet
+        Then there should be an identity tree item with a label 'attributes_user' in the 'Fabric Wallets' panel for item 1 Org Local Fabric - Org1 Wallet
         And the tree item should have a tooltip equal to 'Attributes:\n\nhello:world\nhf.Affiliation:\nhf.EnrollmentID:attributes_user\nhf.Type:client'
 
     Scenario: delete an identity
-        Given the Local Fabric is running
+        Given the 1 Org Local Fabric environment is running
         And the '1 Org Local Fabric' environment is connected
         And the 'Org1' wallet
         And the identity 'example_identity' exists
         When I delete the identity 'example_identity'
-        Then there shouldn't be a identity tree item with a label 'example_identity' in the 'Fabric Wallets' panel for item Local Fabric - Org1 Wallet
+        Then there shouldn't be a identity tree item with a label 'example_identity' in the 'Fabric Wallets' panel for item 1 Org Local Fabric - Org1 Wallet
 
     @otherFabric
     Scenario: create a new wallet using certs

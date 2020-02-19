@@ -23,9 +23,9 @@ import { SettingConfigurations } from '../configurations';
 import { SinonSandbox, SinonStub } from 'sinon';
 import { FabricRuntimeUtil, FileConfigurations, FabricEnvironmentRegistryEntry } from 'ibm-blockchain-platform-common';
 import { GlobalState, ExtensionData } from '../extension/util/GlobalState';
+import { UserInputUtil } from '../extension/commands/UserInputUtil';
 import { LocalEnvironment } from '../extension/fabric/environments/LocalEnvironment';
-// import { YeomanUtil } from '../extension/util/YeomanUtil';
-
+// import { dependencies } from '../package.json';
 export class TestUtil {
 
     public static EXTENSION_TEST_DIR: string = path.join(__dirname, '..', '..', 'test', 'tmp');
@@ -40,17 +40,28 @@ export class TestUtil {
 
             if (!sandbox) {
                 sandbox = sinon.createSandbox();
+            } else {
+                sandbox.restore();
+                sandbox.reset();
             }
 
+            let showConfirmationWarningMessage: SinonStub;
+            let createStub: SinonStub;
+
             // Uncommenting this showConfirmationWarningMessage stuff makes the test run correctly now for some reason. Maybe because the local fabric name changed?
-            // const showConfirmationWarningMessage: SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage');
-            // showConfirmationWarningMessage.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`).resolves(false);
-            const createStub: SinonStub = sandbox.stub(LocalEnvironment.prototype, 'create').resolves();
+            showConfirmationWarningMessage = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage');
+            showConfirmationWarningMessage.withArgs(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`).resolves(true);
+
+            createStub = sandbox.stub(LocalEnvironment.prototype, 'create').resolves();
+
             await this.setupLocalFabric();
+
             await ExtensionUtil.activateExtension();
 
             createStub.restore();
-            // showConfirmationWarningMessage.restore();
+
+            showConfirmationWarningMessage.restore();
+
         }
     }
 
@@ -63,11 +74,12 @@ export class TestUtil {
         await fs.ensureDir(environmentDir);
 
         // Copy the generated '1 Org Local Fabric' directory into the environments directory.
-        const localFabricDir: string = path.join(this.EXTENSION_TEST_DIR, '..', 'data', FabricRuntimeUtil.LOCAL_FABRIC);
+        const localFabricDir: string = path.join(this.EXTENSION_TEST_DIR, '..', '..', '..', '..', 'test', 'data', FabricRuntimeUtil.LOCAL_FABRIC);
         await fs.copy(localFabricDir, environmentDir);
         const envReg: FabricEnvironmentRegistryEntry = await fs.readJSON(path.join(environmentDir, '.config.json'));
         envReg.environmentDirectory = environmentDir;
         await fs.writeJSON(path.join(environmentDir, '.config.json'), envReg);
+
     }
 
     static async storeAll(): Promise<void> {

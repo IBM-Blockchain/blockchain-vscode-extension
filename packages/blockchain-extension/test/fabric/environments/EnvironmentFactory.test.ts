@@ -62,12 +62,12 @@ describe('EnvironmentFactory', () => {
         registryEntry.environmentDirectory = '/some/path';
 
         const localEnvironment: LocalEnvironment = new LocalEnvironment(registryEntry.name, {startPort: 17050, endPort: 17069}, 1);
-        const ensureRuntimeStub: sinon.SinonStub = sandbox.stub(LocalEnvironmentManager.instance(), 'ensureRuntime').resolves(localEnvironment);
+        const getRuntimeStub: sinon.SinonStub = sandbox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(localEnvironment);
 
         const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = await EnvironmentFactory.getEnvironment(registryEntry);
         environment.should.be.an.instanceOf(LocalEnvironment);
 
-        ensureRuntimeStub.should.have.been.calledOnce;
+        getRuntimeStub.should.have.been.calledOnce;
     });
 
     it('should return a managed ansible environment', async () => {

@@ -333,9 +333,6 @@ describe('FabricGatewayHelper', () => {
                 associatedWallet: ''
             };
 
-            // await FabricGatewayRegistry.instance().add(gatewayA);
-            // await FabricGatewayRegistry.instance().add(gatewayB);
-
             getSettingsStub = mySandBox.stub();
             updateSettingsStub = mySandBox.stub();
             getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');

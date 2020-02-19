@@ -393,18 +393,15 @@ export class ExtensionUtil {
 
                 const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
 
-                // TODO JAKE: What are the chances this works / isn't terrible.
                 let runtimes: LocalEnvironment[] = runtimeManager.getAllRuntimes();
 
                 if (!localFabricEnabled) {
                     // Just got set to false
-                    // outputAdapter.log(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'false'.`);
                     try {
                         if (runtimes.length > 0) {
                             const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`Toggling this feature will remove the world state and ledger data for all local runtimes. Do you want to continue?`);
                             if (!reallyDoIt) {
                                 // log setting variable back
-                                // outputAdapter.log(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC} functionality back to 'true'.`);
                                 await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
                                 return;
                             }
@@ -438,7 +435,6 @@ export class ExtensionUtil {
 
                 } else {
                     // Just got set to true
-                    // outputAdapter.log(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'true'.`);
                     try {
                         const bypassPreReqs: boolean = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_BYPASS_PREREQS);
                         let dependenciesInstalled: boolean = true;
@@ -602,18 +598,11 @@ export class ExtensionUtil {
         // Check if there is a newer version of the generator available
         // This needs to be done as a seperate call to make sure the dependencies have been installed
         const generatorVersion: string = dependencies['generator-fabric'];
-        // extensionData.generatorVersion = '0.1.0'; // TODO JAKE: Delete this!!!!!
-        if (generatorVersion !== extensionData.generatorVersion) {
+
+        if (extensionData.generatorVersion !== null && generatorVersion !== extensionData.generatorVersion) {
             // If the latest generator version is not equal to the previous used version
 
             let updateGeneratorVersion: boolean = true;
-
-            // TODO JAKE: Pray this works and also doesn't handle terribly
-
-            // TODO JAKE: getAllRuntimes doesn't return the other added templated local environments. How can we ensure they get added?
-            // We could getEnvironment on each of the entries from the EnvironmentRegistry - that will ensure they exist in this.
-            // Ports and number of orgs are unknown if we do this - does this matter later on? Perhaps we don't care what these ports are as we always read from user settings when we teardown/start again
-            // Try this out tomorrow
 
             const envEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(true);
 
@@ -621,30 +610,14 @@ export class ExtensionUtil {
 
             for (const entry of envEntries) {
 
-                const envDir: string = entry.environmentDirectory;
-                const nodesDir: string = path.join(envDir, 'nodes');
-                const nodesExist: boolean = await fs.pathExists(nodesDir);
-                if (!nodesExist) {
-                    // Hasn't been generated, so we don't need to worry about adding it to the runtime map or handling the generator-fabric version changing.
-                    // In this case, the environment will not be available when we call getAllRuntimes below.
-                    continue;
-                }
-
-                let subDirs: string[] = await fs.readdir(nodesDir);
-
-                // Filter out anything hidden or .DS_Store files
-                subDirs = subDirs.filter((dir: string) => !dir.startsWith('.'));
-
-                // Orgs is equal to number of directories in 'Nodes' subtract one (the orderer).
-                const numberOfOrgs: number = subDirs.length - 1;
-
-                // Ports can be retrieved from the user settings.
-                runtimeManager.ensureRuntime(entry.name, undefined, numberOfOrgs);
+                // TODO JAKE: Try out this generator version if/else branch to check this works / if it is needed.
+                await runtimeManager.ensureRuntime(entry.name, undefined, entry.numberOfOrgs);
             }
 
             const runtimes: LocalEnvironment[] = runtimeManager.getAllRuntimes();
 
             const response: boolean = await UserInputUtil.showConfirmationWarningMessage(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
+
             if (response) {
 
                 for (const runtime of runtimes) {

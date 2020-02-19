@@ -14,6 +14,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs-extra';
 import { ManagedAnsibleEnvironment } from './ManagedAnsibleEnvironment';
 import { YeomanUtil } from '../../util/YeomanUtil';
 import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType, OutputAdapter, FileSystemUtil, FileConfigurations, LogType } from 'ibm-blockchain-platform-common';
@@ -27,8 +28,8 @@ import { FabricRuntimeState } from '../FabricRuntimeState';
 export class LocalEnvironment extends ManagedAnsibleEnvironment {
     public ourLoghose: any;
     public ports: FabricRuntimePorts;
+    public numberOfOrgs: number;
     private dockerName: string;
-    private numberOfOrgs: number;
 
     constructor(name: string, ports: FabricRuntimePorts, numberOfOrgs: number) {
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
@@ -44,7 +45,9 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
 
     }
 
-    public async create(): Promise<void> {
+    public async create(numberOfOrgs: number): Promise<void> {
+
+        this.numberOfOrgs = numberOfOrgs;
 
         // Delete any existing runtime directory, and then recreate it.
         await FabricEnvironmentRegistry.instance().delete(this.name, true);
@@ -53,7 +56,8 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
             name: this.name,
             managedRuntime: true,
             environmentType: EnvironmentType.LOCAL_ENVIRONMENT,
-            environmentDirectory: path.join(this.path)
+            environmentDirectory: path.join(this.path),
+            numberOfOrgs: this.numberOfOrgs
         });
 
         await FabricEnvironmentRegistry.instance().add(registryEntry);
@@ -84,7 +88,20 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
     }
 
     public async isCreated(): Promise<boolean> {
-        return FabricEnvironmentRegistry.instance().exists(this.name);
+        // We should check the playbook exists, as we might get in a state where the entry is in the registry but the playbook and other files don't exist.
+        let entry: FabricEnvironmentRegistryEntry;
+        try {
+            entry = await FabricEnvironmentRegistry.instance().get(this.name);
+        } catch (err) {
+            // Entry doesn't exist.
+            return false;
+        }
+
+        const playbookPath: string = path.join(entry.environmentDirectory, 'playbook.yml');
+        const playbookExists: boolean = await fs.pathExists(playbookPath);
+
+        // We know the entry exists at this point, so determining whether the local environment is created depends on if the playbook exists.
+        return playbookExists;
     }
 
     public async isGenerated(): Promise<boolean> {
@@ -98,7 +115,7 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
     public async teardown(outputAdapter?: OutputAdapter): Promise<void> {
         try {
             await this.teardownInner(outputAdapter);
-            await this.create();
+            await this.create(this.numberOfOrgs);
         } finally {
             await super.setTeardownState();
         }

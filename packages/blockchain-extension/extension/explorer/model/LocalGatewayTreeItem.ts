@@ -19,15 +19,17 @@ import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOut
 import { ExtensionCommands } from '../../../ExtensionCommands';
 import { LogType, FabricGatewayRegistryEntry, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../fabric/environments/LocalEnvironment';
+import { LocalEnvironmentManager } from '../../fabric/environments/LocalEnvironmentManager';
 import { ManagedAnsibleEnvironment } from '../../fabric/environments/ManagedAnsibleEnvironment';
-import { EnvironmentFactory } from '../../fabric/environments/EnvironmentFactory';
+import { ManagedAnsibleEnvironmentManager } from '../../fabric/environments/ManagedAnsibleEnvironmentManager';
 
 export class LocalGatewayTreeItem extends BlockchainTreeItem {
 
-    static async newLocalGatewayTreeItem(provider: BlockchainExplorerProvider, label: string, gateway: FabricGatewayRegistryEntry, collapsableState: vscode.TreeItemCollapsibleState, command?: vscode.Command): Promise<LocalGatewayTreeItem> {
+    static async newLocalGatewayTreeItem(provider: BlockchainExplorerProvider, label: string, gateway: FabricGatewayRegistryEntry, collapsableState: vscode.TreeItemCollapsibleState, _runtime: LocalEnvironment | ManagedAnsibleEnvironment, command?: vscode.Command): Promise<LocalGatewayTreeItem> {
         const environmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(gateway.fromEnvironment);
 
-        const treeItem: LocalGatewayTreeItem = new LocalGatewayTreeItem(provider, label, gateway, collapsableState, environmentEntry, command);
+        const treeItem: LocalGatewayTreeItem = new LocalGatewayTreeItem(provider, label, gateway, collapsableState, environmentEntry, _runtime, command);
+
         await treeItem.updateProperties();
         return treeItem;
     }
@@ -35,18 +37,18 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-local-gateway-item';
 
     public readonly name: string;
-    private runtime: ManagedAnsibleEnvironment | LocalEnvironment;
+    private runtime: LocalEnvironment | ManagedAnsibleEnvironment;
     private busyTicker: NodeJS.Timer;
     private busyTicks: number = 0;
 
-    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public gateway: FabricGatewayRegistryEntry, public readonly collapsableState: vscode.TreeItemCollapsibleState, public environmentEntry: FabricEnvironmentRegistryEntry, public readonly command?: vscode.Command ) {
+    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public gateway: FabricGatewayRegistryEntry, public readonly collapsableState: vscode.TreeItemCollapsibleState, public environmentEntry: FabricEnvironmentRegistryEntry, public _runtime: LocalEnvironment | ManagedAnsibleEnvironment, public readonly command?: vscode.Command ) {
         super(provider, label, collapsableState);
-        this.runtime = EnvironmentFactory.getEnvironment(environmentEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
         this.name = label;
-
+        this.runtime = _runtime;
         this.runtime.on('busy', () => {
             this.safelyUpdateProperties();
         });
+
     }
 
     private safelyUpdateProperties(): void {
@@ -102,6 +104,11 @@ ${this.gateway.fromEnvironment} - ${this.gateway.associatedWallet} Wallet`;
         this.setLabel(newLabel);
         this.setTooltip(newTooltip);
         this.setCommand(newCommand);
+        if (this.runtime instanceof LocalEnvironment) {
+            LocalEnvironmentManager.instance().updateRuntime(this.name, this.runtime);
+        } else {
+            ManagedAnsibleEnvironmentManager.instance().updateRuntime(this.name, this.runtime);
+        }
         this.refresh();
     }
 

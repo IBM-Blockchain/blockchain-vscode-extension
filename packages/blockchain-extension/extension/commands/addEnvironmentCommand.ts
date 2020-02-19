@@ -13,7 +13,6 @@
 */
 'use strict';
 import Axios from 'axios';
-import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as https from 'https';
 import * as vscode from 'vscode';
@@ -27,6 +26,7 @@ import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { SettingConfigurations } from '../../configurations';
+import { ExtensionUtil } from '../util/ExtensionUtil';
 
 export async function addEnvironment(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -36,7 +36,14 @@ export async function addEnvironment(): Promise<void> {
     try {
         outputAdapter.log(LogType.INFO, undefined, 'Add environment');
 
-        const items: IBlockchainQuickPickItem<string>[] = [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION}, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }];
+        const items: IBlockchainQuickPickItem<string>[] = [{ label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }];
+
+        // Can only create from template if Docker is enabled.
+        const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
+        if (localFabricEnabled) {
+            items.unshift({label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION});
+        }
+
         const chosenMethod: IBlockchainQuickPickItem<string> = await UserInputUtil.showQuickPickItem('Select a method to add an environment', items) as IBlockchainQuickPickItem<string>;
 
         let envDir: string;
@@ -178,7 +185,6 @@ export async function addEnvironment(): Promise<void> {
         fabricEnvironmentEntry.name = environmentName;
 
         if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE) {
-            // create it!!
 
             let numberOfOrgs: number;
             if (configurationChosen === UserInputUtil.ONE_ORG_TEMPLATE) {
@@ -190,7 +196,7 @@ export async function addEnvironment(): Promise<void> {
 
             await LocalEnvironmentManager.instance().initialize(environmentName, numberOfOrgs);
 
-            const environment: LocalEnvironment = await LocalEnvironmentManager.instance().getRuntime(environmentName);
+            const environment: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime(environmentName);
             // Generate all nodes, gateways and wallets
             await environment.generate(outputAdapter);
 
@@ -205,8 +211,6 @@ export async function addEnvironment(): Promise<void> {
             }
             fabricEnvironmentEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
         }
-
-        // await fabricEnvironmentRegistry.add(fabricEnvironmentEntry);
 
         if (createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE) {
             // We don't want to add an entry if creating from a template, as the initialize handles this.
@@ -227,7 +231,7 @@ export async function addEnvironment(): Promise<void> {
                 await fabricEnvironmentRegistry.delete(fabricEnvironmentEntry.name);
                 return;
             } else if (addedAllNodes) {
-                const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentEntry);
+                const environment: FabricEnvironment = await EnvironmentFactory.getEnvironment(fabricEnvironmentEntry);
                 const nodes: FabricNode[] = await environment.getNodes();
                 if (nodes.length === 0) {
                     outputAdapter.log(LogType.SUCCESS, `Successfully added a new environment. No nodes included in current filters, click ${fabricEnvironmentEntry.name} to edit filters`);

@@ -28,6 +28,7 @@ import { LocalEnvironmentManager } from '../../extension/fabric/environments/Loc
 import { UserInputUtil} from '../../extension/commands/UserInputUtil';
 import { ModuleUtil } from '../../extension/util/ModuleUtil';
 import { SettingConfigurations } from '../../configurations';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -55,6 +56,7 @@ describe('AddEnvironmentCommand', () => {
     let certVerificationError: any;
     let certVerificationError2: any;
     let chooseMethodStub: sinon.SinonStub;
+    let getExtensionLocalFabricSettingStub: sinon.SinonStub;
 
     before(async () => {
         mySandBox = sinon.createSandbox();
@@ -64,7 +66,6 @@ describe('AddEnvironmentCommand', () => {
     describe('addEnvironment', () => {
 
         beforeEach(async () => {
-
             try {
                 const localEnvironment: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime(FabricRuntimeUtil.LOCAL_FABRIC);
                 if (localEnvironment) {
@@ -73,6 +74,7 @@ describe('AddEnvironmentCommand', () => {
             } catch (err) {
                 //
             }
+
             await FabricEnvironmentRegistry.instance().clear();
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             showQuickPickItemStub = mySandBox.stub(UserInputUtil, 'showQuickPickItem');
@@ -115,6 +117,8 @@ describe('AddEnvironmentCommand', () => {
             getCoreNodeModuleStub = mySandBox.stub(ModuleUtil, 'getCoreNodeModule').returns({setPassword: setPasswordStub});
             getNodesStub = mySandBox.stub(FabricEnvironment.prototype, 'getNodes');
             getNodesStub.resolves([{nodeOneData: {}}, {nodeTwoData: {}}]);
+            getExtensionLocalFabricSettingStub = mySandBox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting');
+            getExtensionLocalFabricSettingStub.returns(true);
         });
 
         afterEach(async () => {
@@ -552,6 +556,28 @@ describe('AddEnvironmentCommand', () => {
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment. No nodes included in current filters, click myOpsToolsEnvironment to edit filters');
         });
 
+        it(`shouldn't have option to create from template if local fabric functionality is disabled`, async () => {
+            getExtensionLocalFabricSettingStub.returns(false);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+
+            environments.length.should.equal(1);
+            environments[0].should.deep.equal({
+                name: 'myEnvironment'
+            });
+
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+
+            deleteEnvironmentSpy.should.have.not.been.called;
+            showQuickPickItemStub.should.have.been.calledWith('Select a method to add an environment', [{ label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }]);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
+        });
+
         it('should be able to add a new 1-org local network', async () => {
             getNodesStub.restore();
 
@@ -566,7 +592,7 @@ describe('AddEnvironmentCommand', () => {
             mockRuntime.getName.returns(envName);
             mockRuntime.generate.resolves();
 
-            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').resolves(mockRuntime);
+            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
@@ -600,7 +626,7 @@ describe('AddEnvironmentCommand', () => {
             mockRuntime.getName.returns(envName);
             mockRuntime.generate.resolves();
 
-            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').resolves(mockRuntime);
+            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
@@ -677,7 +703,7 @@ describe('AddEnvironmentCommand', () => {
             const error: Error = new Error(`unable to create new environment`);
             mockRuntime.generate.throws(error);
 
-            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').resolves(mockRuntime);
+            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
 
             executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, envName).resolves();
 
@@ -733,7 +759,7 @@ describe('AddEnvironmentCommand', () => {
             const error: Error = new Error(`unable to create new environment`);
             mockRuntime.generate.throws(error);
 
-            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').resolves(mockRuntime);
+            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
 
             executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, envName).resolves();
 

@@ -16,13 +16,14 @@ import * as vscode from 'vscode';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
-import { FabricEnvironmentRegistryEntry, LogType, FabricGatewayRegistryEntry, IFabricEnvironmentConnection } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, LogType, FabricGatewayRegistryEntry, IFabricEnvironmentConnection, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
-import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { IBlockchainQuickPickItem, UserInputUtil, IncludeEnvironmentOptions } from './UserInputUtil';
+import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
+import { ManagedAnsibleEnvironmentManager } from '../fabric/environments/ManagedAnsibleEnvironmentManager';
 
 export async function stopFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -47,7 +48,13 @@ export async function stopFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Prom
     } else {
         registryEntry = runtimeTreeItem.environmentRegistryEntry;
     }
-    const runtime: ManagedAnsibleEnvironment | LocalEnvironment = EnvironmentFactory.getEnvironment(registryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+
+    let runtime: LocalEnvironment | ManagedAnsibleEnvironment;
+    if (registryEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+        runtime = LocalEnvironmentManager.instance().getRuntime(registryEntry.name);
+    } else {
+        runtime = ManagedAnsibleEnvironmentManager.instance().getRuntime(registryEntry.name);
+    }
 
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,

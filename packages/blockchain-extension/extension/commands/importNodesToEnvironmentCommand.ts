@@ -70,7 +70,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             }
         }
 
-        const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
+        const environment: FabricEnvironment = await EnvironmentFactory.getEnvironment(environmentRegistryEntry);
         const environmentBaseDir: string = path.resolve(environment.getPath());
         const allNodes: FabricNode[] = await environment.getNodes(false, true);
         const oldNodes: FabricNode[] = allNodes.filter((_node: FabricNode) => !_node.hidden);
@@ -270,7 +270,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
         }
 
         // check if any nodes were added
-        const newEnvironment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
+        const newEnvironment: FabricEnvironment = await EnvironmentFactory.getEnvironment(environmentRegistryEntry);
         const newNodes: FabricNode[] = await newEnvironment.getNodes();
         if (newNodes.length === oldNodes.length && createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_NODES) {
             throw new Error('no nodes were added');

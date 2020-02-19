@@ -37,6 +37,10 @@ export class ManagedAnsibleEnvironmentManager {
         this.runtimes.delete(name);
     }
 
+    public updateRuntime(name: string, runtime: ManagedAnsibleEnvironment): void {
+        this.runtimes.set(name, runtime);
+    }
+
     public ensureRuntime(name: string, environmentDirectory: string): ManagedAnsibleEnvironment {
         // Return the environment instance if it has already been created.
         // Else create a new instance of the environment.

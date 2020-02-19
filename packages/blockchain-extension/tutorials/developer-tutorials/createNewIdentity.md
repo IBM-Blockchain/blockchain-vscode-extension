@@ -28,7 +28,7 @@ For the purpose of this tutorial, we’ll use a fictional example of a manufactu
 
 3. Upon submitting your request, you should see a confirmation message at the bottom right of the screen confirming that your identity `Jack` has been created. The newly created identity should also appear in the `Fabric Wallets` panel under `Local Fabric Wallet`. 
 
-4. To connect to the Local Fabric gateway using this identity, you simply click `Local Fabric - Org1` under the Fabric Gateways panel and select the identity you wish to connect with (Jack in our case).
+4. To connect to the Local Fabric gateway using this identity, you simply click `1 Org Local Fabric - Org1` under the Fabric Gateways panel and select the identity you wish to connect with (Jack in our case).
 
 __*Note*__: If you are connected to the gateway already using the `admin` identity, you will need to disconnect from the gateway before you can reconnect with another identity. 
 

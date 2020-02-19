@@ -41,7 +41,6 @@ describe('FabricEnvironmentManager', () => {
         registryEntry.name = 'myConnection';
         registryEntry.managedRuntime = false;
 
-        // sandbox.stub(LocalEnvironment.prototype, 'stopLogs').returns(undefined);
     });
 
     before(async () => {

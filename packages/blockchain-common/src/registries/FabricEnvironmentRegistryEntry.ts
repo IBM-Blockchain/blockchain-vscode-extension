@@ -27,6 +27,7 @@ export class FabricEnvironmentRegistryEntry extends RegistryEntry {
     public environmentType?: EnvironmentType;
     public environmentDirectory?: string; // the dir where the ansible output is
     public url?: string;
+    public numberOfOrgs?: number;
     constructor(fields?: FabricEnvironmentRegistryEntry) {
         super();
         Object.assign(this, fields);

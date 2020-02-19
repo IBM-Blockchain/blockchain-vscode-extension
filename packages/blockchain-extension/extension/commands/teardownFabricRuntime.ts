@@ -51,7 +51,9 @@ export async function teardownFabricRuntime(runtimeTreeItem: RuntimeTreeItem, fo
     } else {
         registryEntry = runtimeTreeItem.environmentRegistryEntry;
     }
-    const runtime: ManagedAnsibleEnvironment | LocalEnvironment = EnvironmentFactory.getEnvironment(registryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+
+    const runtime: ManagedAnsibleEnvironment | LocalEnvironment = await EnvironmentFactory.getEnvironment(registryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+
     if (!force) {
         const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`All world state and ledger data for the Fabric runtime ${runtime.getName()} will be destroyed. Do you want to continue?`);
         if (!reallyDoIt) {

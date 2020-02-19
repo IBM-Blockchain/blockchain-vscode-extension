@@ -28,6 +28,7 @@ import { EnvironmentFactory } from '../../extension/fabric/environments/Environm
 import { RuntimeTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
+import { ManagedAnsibleEnvironmentManager } from '../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -72,8 +73,6 @@ describe('restartFabricRuntime', () => {
         showFabricEnvironmentQuickPickBoxStub = sandbox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox');
         showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localRegistryEntry});
 
-        // sandbox.stub(LocalEnvironment.prototype, 'startLogs').resolves();
-        // sandbox.stub(LocalEnvironment.prototype, 'stopLogs').returns(undefined);
     });
 
     afterEach(async () => {
@@ -93,7 +92,8 @@ describe('restartFabricRuntime', () => {
                 command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
                 title: '',
                 arguments: [localRegistryEntry]
-            }
+            },
+            environment
         );
 
         getGatewayRegistryEntryStub.resolves();
@@ -121,7 +121,8 @@ describe('restartFabricRuntime', () => {
                 command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
                 title: '',
                 arguments: [localRegistryEntry]
-            }
+            },
+            environment
         );
 
         getEnvironmentRegistryEntryStub.returns(undefined);
@@ -148,7 +149,8 @@ describe('restartFabricRuntime', () => {
                 command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
                 title: '',
                 arguments: [localRegistryEntry]
-            }
+            },
+            environment
         );
 
         getGatewayRegistryEntryStub.resolves();
@@ -215,7 +217,8 @@ describe('restartFabricRuntime', () => {
                 command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
                 title: '',
                 arguments: [localRegistryEntry]
-            }
+            },
+            environment
         );
 
         getGatewayRegistryEntryStub.resolves();
@@ -269,17 +272,21 @@ describe('restartFabricRuntime', () => {
 
     it(`shouldn't disconnect from the connected gateway if the environment isn't associated`, async () => {
         const managedAnsibleEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
-        managedAnsibleEntry.name = 'managedAnsibleEntry';
+        managedAnsibleEntry.name = 'managedAnsible';
         managedAnsibleEntry.managedRuntime = true;
         managedAnsibleEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
 
+        const managedEnvironment: ManagedAnsibleEnvironment = new ManagedAnsibleEnvironment('managedAnsible', '');
+
         await FabricEnvironmentRegistry.instance().add(managedAnsibleEntry);
 
-        showFabricEnvironmentQuickPickBoxStub.resolves({label: 'managedAnsibleEntry', data: managedAnsibleEntry});
+        showFabricEnvironmentQuickPickBoxStub.resolves({label: 'managedAnsible', data: managedAnsibleEntry});
 
-        restartStub = sandbox.stub(ManagedAnsibleEnvironment.prototype, 'restart').resolves();
+        restartStub = sandbox.stub(managedEnvironment, 'restart').resolves();
 
         getEnvironmentRegistryEntryStub.returns(undefined);
+
+        sandbox.stub(ManagedAnsibleEnvironmentManager.instance(), 'getRuntime').returns(managedEnvironment);
 
         await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC);
 

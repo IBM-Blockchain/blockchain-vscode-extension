@@ -76,6 +76,8 @@ module.exports = function(): any {
             await TestUtil.storeBypassPreReqs();
             await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
 
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
+
             this.userInputUtilHelper.showConfirmationWarningMessageStub.reset();
             firstTime = false;
 

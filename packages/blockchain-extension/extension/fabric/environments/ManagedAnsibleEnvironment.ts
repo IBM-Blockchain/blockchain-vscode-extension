@@ -156,7 +156,6 @@ export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
 
     public setState(state: FabricRuntimeState): void {
         this.state = state;
-
     }
 
     public async execute(script: string, args: string[] = [], outputAdapter?: OutputAdapter): Promise<void> {

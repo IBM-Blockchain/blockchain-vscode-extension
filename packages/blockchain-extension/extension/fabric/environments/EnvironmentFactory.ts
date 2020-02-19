@@ -23,7 +23,7 @@ import { ManagedAnsibleEnvironmentManager } from './ManagedAnsibleEnvironmentMan
 
 export class EnvironmentFactory {
 
-    public static getEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry): FabricEnvironment | AnsibleEnvironment | ManagedAnsibleEnvironment | LocalEnvironment {
+    public static async getEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry): Promise<FabricEnvironment | AnsibleEnvironment | ManagedAnsibleEnvironment | LocalEnvironment> {
         const name: string = environmentRegistryEntry.name;
         if (!name) {
             throw new Error('Unable to get environment, a name must be provided');
@@ -37,7 +37,8 @@ export class EnvironmentFactory {
         const type: EnvironmentType = environmentRegistryEntry.environmentType;
 
         if (managedRuntime && type === EnvironmentType.LOCAL_ENVIRONMENT) {
-            return LocalEnvironmentManager.instance().ensureRuntime(name);
+            const runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime(name);
+            return runtime;
         } else if (managedRuntime && type === EnvironmentType.ANSIBLE_ENVIRONMENT) {
             return ManagedAnsibleEnvironmentManager.instance().ensureRuntime(name, environmentRegistryEntry.environmentDirectory);
         } else if (!managedRuntime && type === EnvironmentType.ANSIBLE_ENVIRONMENT) {

@@ -69,6 +69,10 @@ export class EnvironmentHelper {
             } else if (process.env.ANSIBLE_FABRIC) {
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR});
                 this.userInputUtilHelper.openFileBrowserStub.resolves(vscode.Uri.file(path.join(__dirname, '..', '..', '..', 'cucumber', 'ansible')));
+            } else if (process.env.TWO_ORG_FABRIC) {
+                this.userInputUtilHelper.inputBoxStub.withArgs(`Provide a name for this Fabric Environment (avoid duplicating an existing name)`).resolves(name);
+                this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE});
+                this.userInputUtilHelper.showQuickPickItemStub.withArgs('Choose a configuration for a new local network').resolves({data: UserInputUtil.TWO_ORG_TEMPLATE});
             } else {
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES});
 
@@ -91,7 +95,7 @@ export class EnvironmentHelper {
             }
         } else {
             if (process.env.OPSTOOLS_FABRIC) {
-                const env: FabricEnvironment = EnvironmentFactory.getEnvironment(treeItem.environmentRegistryEntry);
+                const env: FabricEnvironment = await EnvironmentFactory.getEnvironment(treeItem.environmentRegistryEntry);
                 const nodes: FabricNode[] = await env.getNodes(false, true);
                 const items: Set<IBlockchainQuickPickItem<FabricNode>> = new Set<IBlockchainQuickPickItem<FabricNode>>();
 
@@ -115,7 +119,7 @@ export class EnvironmentHelper {
         const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
         this.userInputUtilHelper.showEnvironmentQuickPickStub.resolves({ label: environmentName, data: fabricEnvironmentRegistryEntry });
 
-        const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentRegistryEntry);
+        const environment: FabricEnvironment = await EnvironmentFactory.getEnvironment(fabricEnvironmentRegistryEntry);
         const nodes: FabricNode[] = await environment.getNodes();
 
         const node: FabricNode = nodes.find((_node: FabricNode) => {
@@ -132,7 +136,7 @@ export class EnvironmentHelper {
         const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
         this.userInputUtilHelper.showEnvironmentQuickPickStub.resolves({ label: environmentName, data: fabricEnvironmentRegistryEntry });
 
-        const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentRegistryEntry);
+        const environment: FabricEnvironment = await EnvironmentFactory.getEnvironment(fabricEnvironmentRegistryEntry);
         const nodes: FabricNode[] = await environment.getNodes();
 
         const node: FabricNode = nodes.find((_node: FabricNode) => {
@@ -184,7 +188,7 @@ export class EnvironmentHelper {
         this.userInputUtilHelper.opsToolsNodeQuickPickStub.resolves(nodesToImport);
         await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, undefined, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
-        const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
+        const environment: FabricEnvironment = await EnvironmentFactory.getEnvironment(environmentRegistryEntry);
         const nodes: FabricNode[] = await environment.getNodes();
         nodes.length.should.equal(nodesToImport.length);
     }

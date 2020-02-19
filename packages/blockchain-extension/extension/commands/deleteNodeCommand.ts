@@ -77,7 +77,7 @@ export async function deleteNode(nodeTreeItem: NodeTreeItem | FabricNode, hideNo
             environmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
         }
 
-        const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
+        const environment: FabricEnvironment = await EnvironmentFactory.getEnvironment(environmentRegistryEntry);
         const allNodes: FabricNode[] = await environment.getNodes(false, true);
         const nodes: FabricNode[] = allNodes.filter((_node: FabricNode) => !_node.hidden);
 

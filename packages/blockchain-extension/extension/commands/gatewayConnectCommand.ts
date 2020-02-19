@@ -50,7 +50,7 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
     }
 
     if (environmentEntry && environmentEntry.managedRuntime) {
-        const environment: ManagedAnsibleEnvironment | LocalEnvironment = EnvironmentFactory.getEnvironment(environmentEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+        const environment: ManagedAnsibleEnvironment | LocalEnvironment = await EnvironmentFactory.getEnvironment(environmentEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
         const running: boolean = await environment.isRunning();
         if (!running) {
             outputAdapter.log(LogType.ERROR, `${environmentName} has not been started, please start it before connecting.`);

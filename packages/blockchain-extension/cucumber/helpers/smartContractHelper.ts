@@ -148,7 +148,9 @@ export class SmartContractHelper {
                 this.userInputUtilHelper.showPeersQuickPickStub.resolves(['Org1Peer1', 'Org1Peer2', 'Org2Peer1', 'Org2Peer2']);
             }
 
-            // TODO: when local fabric multi-org need to add here which peers
+            if (process.env.TWO_ORG_FABRIC) {
+                this.userInputUtilHelper.showPeersQuickPickStub.resolves(['Org1Peer1', 'Org2Peer1']);
+            }
 
             const _package: PackageRegistryEntry = await PackageRegistry.instance().get(name, version);
 
