@@ -19,12 +19,12 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import Axios from 'axios';
-import {TestUtil} from '../TestUtil';
+import { TestUtil } from '../TestUtil';
 import { UserInputUtil, IncludeEnvironmentOptions } from '../../extension/commands/UserInputUtil';
-import {VSCodeBlockchainOutputAdapter} from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import {ExtensionCommands} from '../../ExtensionCommands';
-import {FabricEnvironmentRegistryEntry, LogType, FabricEnvironment, FabricNode, FabricEnvironmentRegistry, EnvironmentType} from 'ibm-blockchain-platform-common';
-import {FabricEnvironmentManager} from '../../extension/fabric/environments/FabricEnvironmentManager';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { ExtensionCommands } from '../../ExtensionCommands';
+import { FabricEnvironmentRegistryEntry, LogType, FabricEnvironment, FabricNode, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { ModuleUtil } from '../../extension/util/ModuleUtil';
 
 // tslint:disable no-unused-expression
@@ -284,7 +284,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: Error importing the keytar module`);
-            });
+        });
 
         it('should handle when the api key and secret cannot be retrieved when creating new OpsTool instance', async () => {
             const error: Error = new Error('newError');
@@ -414,7 +414,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         });
 
         it('should test that connect command is not called when connected to an environment you are not updating', async () => {
-            const anotherEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({name: 'anotherNetwork'});
+            const anotherEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({ name: 'anotherNetwork' });
             getConnectedEnvironmentRegistryEntry.returns(anotherEnvironmentRegistryEntry);
 
             const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
@@ -444,17 +444,17 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 msp_id: 'Org1MSP',
                 container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
             },
-                {
-                    short_name: 'ca.org1.example.com',
-                    name: 'ca.org1.example.com',
-                    api_url: 'http://localhost:17054',
-                    type: 'fabric-ca',
-                    ca_name: 'ca.org1.example.com',
-                    wallet: 'Org1',
-                    identity: 'admin',
-                    msp_id: 'Org1MSP',
-                    container_name: 'fabricvscodelocalfabric_ca.org1.example.com'
-                }
+            {
+                short_name: 'ca.org1.example.com',
+                name: 'ca.org1.example.com',
+                api_url: 'http://localhost:17054',
+                type: 'fabric-ca',
+                ca_name: 'ca.org1.example.com',
+                wallet: 'Org1',
+                identity: 'admin',
+                msp_id: 'Org1MSP',
+                container_name: 'fabricvscodelocalfabric_ca.org1.example.com'
+            }
             ]);
 
             const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
@@ -483,17 +483,17 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 msp_id: 'Org1MSP',
                 container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
             },
-                {
-                    short_name: 'ca.org1.example.com',
-                    name: 'peer0.org1.example.com',
-                    api_url: 'http://localhost:17054',
-                    type: 'fabric-ca',
-                    ca_name: 'ca.org1.example.com',
-                    wallet: 'Org1',
-                    identity: 'admin',
-                    msp_id: 'Org1MSP',
-                    container_name: 'fabricvscodelocalfabric_ca.org1.example.com'
-                }
+            {
+                short_name: 'ca.org1.example.com',
+                name: 'peer0.org1.example.com',
+                api_url: 'http://localhost:17054',
+                type: 'fabric-ca',
+                ca_name: 'ca.org1.example.com',
+                wallet: 'Org1',
+                identity: 'admin',
+                msp_id: 'Org1MSP',
+                container_name: 'fabricvscodelocalfabric_ca.org1.example.com'
+            }
             ]);
 
             const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
@@ -614,7 +614,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.getCall(2).should.have.been.calledWith(LogType.WARNING, 'Finished importing nodes but some nodes could not be imported');
         });
 
-        it('should throw error when failing to connect to Ops Tool URL when edditing nodes in existing environment', async () => {
+        it('should throw error when failing to connect to Ops Tool URL when editing nodes in existing environment', async () => {
             getNodesStub.onSecondCall().resolves([]);
             const connectionError: Error = new Error('some error');
             axiosGetStub.onFirstCall().rejects(connectionError);
@@ -727,7 +727,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         });
 
         it('should handle user choosing a subset of nodes from Ops Tool from a new Ops Tool instance', async () => {
-            showNodesQuickPickBoxStub.resolves({label: opsToolNodes[0].display_name, data: opsToolNodes[0]});
+            showNodesQuickPickBoxStub.resolves({ label: opsToolNodes[0].display_name, data: opsToolNodes[0] });
 
             await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
@@ -771,8 +771,8 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ];
             allNodes.push(...orderer);
             // User chooses peer and one of the orderer nodes
-            showNodesQuickPickBoxStub.resolves([{label: allNodes[0].display_name, data: allNodes[0]},
-                {label: allNodes[2].cluster_name, data: allNodes[2]}]);
+            showNodesQuickPickBoxStub.resolves([{ label: allNodes[0].display_name, data: allNodes[0] },
+            { label: allNodes[2].cluster_name, data: allNodes[2] }]);
 
             // Resulting visible nodes should be peer and all orderer nodes. Ca node should be hidden.
             const hiddenCaNode: FabricNode = allNodes[1];
@@ -992,7 +992,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.resetBehavior();
             getNodesStub.resolves(originalNodes);
             axiosGetStub.onFirstCall().resolves({data: nodesFromOpsTools});
-            showNodesQuickPickBoxStub.resolves({label: nodesFromOpsTools[0].display_name, data: nodesFromOpsTools[0]});
+            showNodesQuickPickBoxStub.resolves({ label: nodesFromOpsTools[0].display_name, data: nodesFromOpsTools[0] });
             const error: Error = new Error('Some error');
             executeCommandStub.withArgs(ExtensionCommands.DELETE_NODE).throws(error);
 
@@ -1007,6 +1007,26 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.should.have.been.calledWith(LogType.ERROR, `Error deleting node: ${error.message}`, `Error deleting node: ${error.toString()}`);
             logSpy.should.have.been.calledWith(LogType.ERROR, `Error deletinging node peer1.org1.example.com: ${error.message}`, `Error deleting node peer1.org1.example.com: ${error.toString()}`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
+        });
+
+        it('should handle user chosing not to add environment after no nodes in Ops Tool instance', async () => {
+            getNodesStub.resetBehavior();
+            getNodesStub.onFirstCall().resolves([]);
+            getNodesStub.onSecondCall().throws(new Error('should never get this far'));
+            axiosGetStub.onFirstCall().resolves([]);
+
+            const yesNoStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').resolves(UserInputUtil.NO);
+
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+
+            getCoreNodeModuleStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.not.been.called;
+            getNodesStub.should.have.been.calledOnce;
+            showNodesQuickPickBoxStub.should.not.have.been.called;
+            yesNoStub.should.have.been.calledWithExactly(`There are no nodes in ${OpsToolRegistryEntry.name}. Do you still want to add this environment?`);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, `Successfully filtered nodes`);
         });
 
         it('should handle user chosing to delete environment after all nodes have been deleted from an Ops Tool instance', async () => {
@@ -1045,8 +1065,28 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledOnce;
             getAllStub.should.have.been.calledOnce;
             showNodesQuickPickBoxStub.should.not.have.been.called;
-            showConfirmationWarningMessageStub.should.have.been.calledWithExactly(`There are no nodes in the ${OpsToolRegistryEntry.name} IBM Blockchain Platform network. Do you want to delete this environment?`);
+            showConfirmationWarningMessageStub.should.have.been.calledWithExactly(`There are no nodes in ${OpsToolRegistryEntry.name}. Do you want to delete this environment?`);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
+        });
+
+        it('should handle user choosing to add environment when no nodes in Ops Tool instance', async () => {
+            getNodesStub.resetBehavior();
+            getNodesStub.onFirstCall().resolves([]);
+            getNodesStub.onSecondCall().resolves([]);
+            axiosGetStub.onFirstCall().resolves([]);
+
+            const yesNoStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').resolves(UserInputUtil.YES);
+
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+
+            getCoreNodeModuleStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.not.been.called;
+            getNodesStub.should.have.been.calledTwice;
+            showNodesQuickPickBoxStub.should.not.have.been.called;
+            yesNoStub.should.have.been.calledWithExactly(`There are no nodes in ${OpsToolRegistryEntry.name}. Do you still want to add this environment?`);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
         it('should handle user chosing not to delete environment after all nodes have been deleted from an Ops Tool instance', async () => {
@@ -1085,33 +1125,9 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
             getAllStub.should.have.been.calledOnce;
             showNodesQuickPickBoxStub.should.not.have.been.called;
-            showConfirmationWarningMessageStub.should.have.been.calledWithExactly(`There are no nodes in the ${OpsToolRegistryEntry.name} IBM Blockchain Platform network. Do you want to delete this environment?`);
+            showConfirmationWarningMessageStub.should.have.been.calledWithExactly(`There are no nodes in ${OpsToolRegistryEntry.name}. Do you want to delete this environment?`);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
-
-        it('should handle user creating Ops Tool environment from a network with no nodes and chosing to delete environment', async () => {
-            getNodesStub.resolves([]);
-            axiosGetStub.onFirstCall().resolves([]);
-            showNodesQuickPickBoxStub.resolves([]);
-            showConfirmationWarningMessageStub.resolves(true);
-            getAllStub.resolves([]);
-            executeCommandStub.withArgs(ExtensionCommands.DELETE_NODE).resolves();
-            executeCommandStub.withArgs(ExtensionCommands.DELETE_ENVIRONMENT).resolves();
-
-            const result: boolean = await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
-
-            should.equal(result, undefined);
-            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.DELETE_NODE);
-            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
-            getCoreNodeModuleStub.should.have.been.calledOnce;
-            ensureDirStub.should.have.been.calledOnce;
-            updateNodeStub.should.have.not.been.called;
-            getNodesStub.should.have.been.calledOnce;
-            getAllStub.should.have.not.been.called;
-            showConfirmationWarningMessageStub.should.have.been.calledWithExactly(`There are no nodes in the ${OpsToolRegistryEntry.name} IBM Blockchain Platform network. Do you want to delete this environment?`);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
-        });
-
     });
 });

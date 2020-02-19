@@ -244,12 +244,15 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                     }
                 }
             }
-            if (nodesToUpdate.length === 0) {
-                const deleteEnvironment: boolean = await UserInputUtil.showConfirmationWarningMessage(`There are no nodes in the ${environment.getName()} IBM Blockchain Platform network. Do you want to delete this environment?`);
-                if (deleteEnvironment && fromAddEnvironment) {
-                    return;
-                } else if (deleteEnvironment) {
+            if (nodesToUpdate.length === 0 && !fromAddEnvironment) {
+                const deleteEnvironment: boolean = await UserInputUtil.showConfirmationWarningMessage(`There are no nodes in ${environment.getName()}. Do you want to delete this environment?`);
+                if (deleteEnvironment) {
                     await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT, environmentRegistryEntry, true);
+                }
+            } else if (nodesToUpdate.length === 0) {
+                const addEnvironment: string = await UserInputUtil.showQuickPickYesNo(`There are no nodes in ${environment.getName()}. Do you still want to add this environment?`);
+                if (addEnvironment !== UserInputUtil.YES) {
+                    return;
                 }
             }
             const currentEnvironents: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll(false);
