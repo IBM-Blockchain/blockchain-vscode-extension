@@ -58,6 +58,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
     let getConnectedEnvironmentRegistryEntry: sinon.SinonStub;
     let getAllStub: sinon.SinonStub;
     let showConfirmationWarningMessageStub: sinon.SinonStub;
+    let stopEnvironmentRefreshStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
@@ -165,6 +166,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             });
 
             getConnectedEnvironmentRegistryEntry = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(undefined);
+            stopEnvironmentRefreshStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'stopEnvironmentRefresh');
             getAllStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([environmentRegistryEntry, OpsToolRegistryEntry]);
             showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
             showConfirmationWarningMessageStub.callThrough();
@@ -185,6 +187,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.been.calledOnce;
             getNodesStub.should.have.been.calledTwice;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            stopEnvironmentRefreshStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
         });
@@ -218,8 +221,9 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
-            showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, true, false, IncludeEnvironmentOptions.OPSTOOLSENV);
+            showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, false, false, IncludeEnvironmentOptions.OPSTOOLSENV);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, OpsToolRegistryEntry);
+            stopEnvironmentRefreshStub.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
@@ -236,8 +240,9 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
-            showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, true, false, IncludeEnvironmentOptions.OPSTOOLSENV);
+            showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, false, false, IncludeEnvironmentOptions.OPSTOOLSENV);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            stopEnvironmentRefreshStub.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
@@ -253,6 +258,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, OpsToolRegistryEntry);
+            stopEnvironmentRefreshStub.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
@@ -269,6 +275,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, OpsToolRegistryEntry);
+            stopEnvironmentRefreshStub.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
@@ -374,6 +381,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            stopEnvironmentRefreshStub.should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
@@ -390,6 +398,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            stopEnvironmentRefreshStub.should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
@@ -408,6 +417,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            stopEnvironmentRefreshStub.should.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
@@ -427,6 +437,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            stopEnvironmentRefreshStub.should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
@@ -467,6 +478,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            stopEnvironmentRefreshStub.should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
@@ -506,6 +518,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            stopEnvironmentRefreshStub.should.not.have.been.called;
 
             const error: Error = new Error('A node should have a name property');
 
@@ -533,6 +546,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             addMoreStub.should.have.been.calledTwice;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            stopEnvironmentRefreshStub.should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');

@@ -14,16 +14,16 @@
 'use strict';
 import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem, IncludeEnvironmentOptions } from './UserInputUtil';
-import {VSCodeBlockchainOutputAdapter} from '../logging/VSCodeBlockchainOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import * as fs from 'fs-extra';
 import * as https from 'https';
 import * as path from 'path';
-import { FabricEnvironmentRegistryEntry, FabricNode, LogType, FabricEnvironment, FabricNodeType, FabricEnvironmentRegistry, EnvironmentType} from 'ibm-blockchain-platform-common';
-import {ExtensionCommands} from '../../ExtensionCommands';
-import {FabricEnvironmentManager} from '../fabric/environments/FabricEnvironmentManager';
-import {EnvironmentFactory} from '../fabric/environments/EnvironmentFactory';
+import { FabricEnvironmentRegistryEntry, FabricNode, LogType, FabricEnvironment, FabricNodeType, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { ExtensionCommands } from '../../ExtensionCommands';
+import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
+import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import Axios from 'axios';
-import {ModuleUtil} from '../util/ModuleUtil';
+import { ModuleUtil } from '../util/ModuleUtil';
 
 export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false, createMethod?: string, informOfChanges: boolean = false, showSuccess: boolean = true): Promise<boolean> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -43,9 +43,9 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
         let chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
         if (!environmentRegistryEntry) {
             if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS) {
-                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an OpsTool environment to filter nodes', false, true, false, IncludeEnvironmentOptions.OPSTOOLSENV) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an OpsTool environment to filter nodes', false, false, false, IncludeEnvironmentOptions.OPSTOOLSENV) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             } else {
-                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to import nodes to', false, true, false, IncludeEnvironmentOptions.OTHERENV) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to import nodes to', false, false, false, IncludeEnvironmentOptions.OTHERENV) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             }
 
             if (!chosenEnvironment) {
@@ -53,6 +53,13 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             }
 
             environmentRegistryEntry = chosenEnvironment.data;
+        }
+
+        const connectedRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+
+        // need to stop it refreshing if we are editting the one we are connected to
+        if (connectedRegistryEntry && connectedRegistryEntry.name === environmentRegistryEntry.name) {
+            FabricEnvironmentManager.instance().stopEnvironmentRefresh();
         }
 
         if (!fromAddEnvironment) {
@@ -141,8 +148,8 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                 const apiSecret: string = credentialsArray[1];
                 const rejectUnauthorized: boolean = credentialsArray[2] === 'true';
                 const requestOptions: any = {
-                    headers: {'Content-Type': 'application/json'},
-                    auth: {username: apiKey, password: apiSecret}
+                    headers: { 'Content-Type': 'application/json' },
+                    auth: { username: apiKey, password: apiSecret }
                 };
                 requestOptions.httpsAgent = new https.Agent({rejectUnauthorized: rejectUnauthorized});
                 response = await Axios.get(api, requestOptions);
@@ -276,7 +283,6 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             outputAdapter.log(LogType.WARNING, `Finished ${methodMessageString}ing nodes but some nodes could not be ${methodMessageString}ed`);
         }
 
-        const connectedRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
         if (connectedRegistryEntry && connectedRegistryEntry.name === environmentRegistryEntry.name && !informOfChanges) {
             // only do this if we run the command if we are connected to the one we are updating
             if (newNodes.length > 0) {
