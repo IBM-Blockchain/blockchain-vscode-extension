@@ -1,0 +1,11 @@
+{
+    "api_url": "http://localhost:17055",
+    "ca_name": "ca",
+    "container_name": "fabricvscodelocalfabric_ca.orderer.example.com",
+    "identity": "admin",
+    "msp_id": "OrdererMSP",
+    "name": "OrdererCA",
+    "short_name": "OrdererCA",
+    "type": "fabric-ca",
+    "wallet": "Orderer"
+}

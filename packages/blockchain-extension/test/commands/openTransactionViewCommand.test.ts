@@ -86,7 +86,7 @@ describe('OpenTransactionViewCommand', () => {
             gatewayRegistryEntry = new FabricGatewayRegistryEntry();
             gatewayRegistryEntry.name = 'myGateway';
             getGatewayRegistryStub = mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry');
-            getGatewayRegistryStub.returns(gatewayRegistryEntry);
+            getGatewayRegistryStub.resolves(gatewayRegistryEntry);
 
             mySandBox.stub(FabricGatewayHelper, 'getConnectionProfilePath').resolves(path.join('myPath', 'connection.json'));
 
@@ -157,7 +157,7 @@ describe('OpenTransactionViewCommand', () => {
             const localGatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             localGatewayRegistryEntry.name = `Org1`;
             localGatewayRegistryEntry.displayName = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`;
-            getGatewayRegistryStub.returns(localGatewayRegistryEntry);
+            getGatewayRegistryStub.resolves(localGatewayRegistryEntry);
 
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE);
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Open Transaction View`);

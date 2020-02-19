@@ -21,7 +21,6 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { FabricGatewayRegistryEntry } from '../../src/registries/FabricGatewayRegistryEntry';
 import { FabricRuntimeUtil } from '../../src/util/FabricRuntimeUtil';
-import { FabricWalletUtil } from '../../src/util/FabricWalletUtil';
 import { FabricEnvironmentRegistry } from '../../src/registries/FabricEnvironmentRegistry';
 import { FabricEnvironmentRegistryEntry, EnvironmentType } from '../../src/registries/FabricEnvironmentRegistryEntry';
 
@@ -50,7 +49,7 @@ describe('FabricGatewayRegistry', () => {
         await environmentRegistry.clear();
     });
 
-    it('should get all the gateways and put local fabric first', async () => {
+    it('should get all the gateways and put local fabrics first', async () => {
         const gatewayOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
             name: 'gatewayOne',
             associatedWallet: ''
@@ -58,12 +57,18 @@ describe('FabricGatewayRegistry', () => {
 
         await registry.getAll().should.eventually.deep.equal([]);
 
-        const localFabricEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: FabricRuntimeUtil.LOCAL_FABRIC, associatedWallet: FabricWalletUtil.OLD_LOCAL_WALLET, displayName: `${FabricRuntimeUtil.LOCAL_FABRIC} - org1` });
+        await FabricEnvironmentRegistry.instance().add({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: '', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true});
+        await FabricEnvironmentRegistry.instance().add({name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, environmentDirectory : ''});
+
+        const localFabricEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: FabricRuntimeUtil.LOCAL_FABRIC, fromEnvironment: FabricRuntimeUtil.LOCAL_FABRIC, associatedWallet: 'Org1', displayName: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1` });
+        const otherLocalEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'otherLocal', fromEnvironment: 'otherLocalEnv', associatedWallet: 'Org1', displayName: `otherLocal - Org1` });
 
         await registry.add(gatewayOne);
         await registry.add(localFabricEntry);
+        await registry.add(otherLocalEntry);
+
         const gateways: FabricGatewayRegistryEntry[] = await registry.getAll();
-        gateways.should.deep.equal([localFabricEntry, gatewayOne]);
+        gateways.should.deep.equal([otherLocalEntry, localFabricEntry, gatewayOne]);
     });
 
     it('should get all gateways but not show local fabric', async () => {
@@ -74,10 +79,15 @@ describe('FabricGatewayRegistry', () => {
 
         await registry.getAll().should.eventually.deep.equal([]);
 
-        const localFabricEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: FabricRuntimeUtil.LOCAL_FABRIC, associatedWallet: FabricWalletUtil.OLD_LOCAL_WALLET, displayName: `${FabricRuntimeUtil.LOCAL_FABRIC} - org1` });
+        await FabricEnvironmentRegistry.instance().add({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: '', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true});
+        await FabricEnvironmentRegistry.instance().add({name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, environmentDirectory : ''});
+
+        const localFabricEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: FabricRuntimeUtil.LOCAL_FABRIC, fromEnvironment: FabricRuntimeUtil.LOCAL_FABRIC, associatedWallet: 'Org1', displayName: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1` });
+        const otherLocalEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'otherLocal', fromEnvironment: 'otherLocalEnv', associatedWallet: 'Org1', displayName: `otherLocal - Org1` });
 
         await registry.add(gatewayOne);
         await registry.add(localFabricEntry);
+        await registry.add(otherLocalEntry);
         await registry.getAll(false).should.eventually.deep.equal([gatewayOne]);
     });
 

@@ -20,7 +20,7 @@ import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { IBlockchainQuickPickItem, UserInputUtil, IncludeEnvironmentOptions } from './UserInputUtil';
 import { LogType, FabricEnvironmentRegistryEntry, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
-import { ExtensionUtil } from '../util/ExtensionUtil';
+import { TimerUtil } from '../util/TimerUtil';
 
 export async function startFabricRuntime(registryEntry?: FabricEnvironmentRegistryEntry): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -60,7 +60,7 @@ export async function startFabricRuntime(registryEntry?: FabricEnvironmentRegist
             outputAdapter.log(LogType.ERROR, `Failed to start ${runtime.getName()}: ${error.message}`, `Failed to start ${runtime.getName()}: ${error.toString()}`);
         }
 
-        await ExtensionUtil.sleep(1000);
+        await TimerUtil.sleep(1000);
 
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);

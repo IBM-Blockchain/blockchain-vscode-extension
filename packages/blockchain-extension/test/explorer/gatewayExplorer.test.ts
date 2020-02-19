@@ -180,7 +180,7 @@ describe('gatewayExplorer', () => {
             it('should display the managed runtime', async () => {
                 await FabricGatewayRegistry.instance().clear();
 
-                mySandBox.stub(LocalEnvironmentManager.instance().getRuntime(), 'isRunning').resolves(true);
+                mySandBox.stub(LocalEnvironmentManager.instance().getRuntime(FabricRuntimeUtil.LOCAL_FABRIC), 'isRunning').resolves(true);
                 const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
 
@@ -229,7 +229,7 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
 
                 const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
                 registryEntry.name = 'myGateway';
-                mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
+                mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').resolves(registryEntry);
 
                 const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
 
@@ -254,7 +254,7 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
                 const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
                 registryEntry.name = 'myGateway';
                 registryEntry.associatedWallet = 'some_wallet';
-                mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
+                mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').resolves(registryEntry);
 
                 const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
 
@@ -385,7 +385,7 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
                 registryEntry = new FabricGatewayRegistryEntry();
                 registryEntry.name = 'myGateway';
                 registryEntry.associatedWallet = 'some_wallet';
-                getGatewayRegistryEntryStub = mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
+                getGatewayRegistryEntryStub = mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').resolves(registryEntry);
                 allChildren = await blockchainGatewayExplorerProvider.getChildren();
             });
 
@@ -435,7 +435,7 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
                 await TestUtil.setupLocalFabric();
 
                 registryEntry = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
-                getGatewayRegistryEntryStub.returns(registryEntry);
+                getGatewayRegistryEntryStub.resolves(registryEntry);
                 allChildren = await ExtensionUtil.getBlockchainGatewayExplorerProvider().getChildren();
 
                 allChildren.length.should.equal(3);

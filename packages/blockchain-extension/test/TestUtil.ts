@@ -62,7 +62,7 @@ export class TestUtil {
         const environmentDir: string = path.join(this.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_ENVIRONMENTS, FabricRuntimeUtil.LOCAL_FABRIC);
         await fs.ensureDir(environmentDir);
 
-        // Copy the generated 'Local Fabric' directory into the environments directory.
+        // Copy the generated '1 Org Local Fabric' directory into the environments directory.
         const localFabricDir: string = path.join(this.EXTENSION_TEST_DIR, '..', 'data', FabricRuntimeUtil.LOCAL_FABRIC);
         await fs.copy(localFabricDir, environmentDir);
         const envReg: FabricEnvironmentRegistryEntry = await fs.readJSON(path.join(environmentDir, '.config.json'));

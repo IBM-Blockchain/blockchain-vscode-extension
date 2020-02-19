@@ -15,7 +15,7 @@ Feature: Fabric Gateways
 
     Scenario: Connect with another identity
         Given the Local Fabric is running
-        And the 'Local Fabric' environment is connected
+        And the '1 Org Local Fabric' environment is connected
         And the 'Org1' wallet
         And the identity 'new_identity' exists
         When connecting to the 'Local Fabric - Org1' gateway
@@ -26,10 +26,10 @@ Feature: Fabric Gateways
 
     Scenario: Export connection profile
         Given the Local Fabric is running
-        And the 'Local Fabric' environment is connected
+        And the '1 Org Local Fabric' environment is connected
         And the 'Org1' wallet
         And the identity 'new_identity' exists
-        And the gateway 'Local Fabric - Org1' is created
+        And the gateway '1 Org Local Fabric - Org1' is created
         When I export the connection profile
         Then a connection profile exists
 
@@ -86,7 +86,7 @@ Feature: Fabric Gateways
 
     Scenario Outline: Generating tests for a contract (local fabric)
         Given the Local Fabric is running
-        And the 'Local Fabric' environment is connected
+        And the '1 Org Local Fabric' environment is connected
         And the 'Org1' wallet
         And the 'Local Fabric Admin' identity
         And I'm connected to the 'Local Fabric - Org1' gateway

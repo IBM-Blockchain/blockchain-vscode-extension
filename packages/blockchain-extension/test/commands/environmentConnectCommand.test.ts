@@ -324,7 +324,7 @@ describe('EnvironmentConnectCommand', () => {
                 localEnvironment = EnvironmentFactory.getEnvironment(localFabricRegistryEntry) as LocalEnvironment;
 
                 isRunningStub = mySandBox.stub(localEnvironment, 'isRunning').resolves(true);
-                mySandBox.stub(localEnvironment, 'startLogs').resolves();
+                // mySandBox.stub(localEnvironment, 'startLogs').resolves();
 
                 getEnvironmentStub = mySandBox.stub(EnvironmentFactory, 'getEnvironment');
                 getEnvironmentStub.callThrough();

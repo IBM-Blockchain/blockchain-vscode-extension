@@ -28,6 +28,8 @@ import { EnvironmentFactory } from '../../extension/fabric/environments/Environm
 import { RuntimeTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
+import { ManagedAnsibleEnvironmentManager } from '../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -56,7 +58,7 @@ describe('teardownFabricRuntime', () => {
         const localGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
 
         getGatewayRegistryEntryStub = sandbox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry');
-        getGatewayRegistryEntryStub.returns(localGateway);
+        getGatewayRegistryEntryStub.resolves(localGateway);
 
         getEnvironmentRegistryEntryStub = sandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry');
         getConnectionStub = sandbox.stub(FabricEnvironmentManager.instance(), 'getConnection');
@@ -73,6 +75,8 @@ describe('teardownFabricRuntime', () => {
         showFabricEnvironmentQuickPickBoxStub.resolves({ label: FabricRuntimeUtil.LOCAL_FABRIC, data: localRegistryEntry });
         showConfirmationWarningMessageStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage');
         showConfirmationWarningMessageStub.resolves(true);
+
+        // sandbox.stub(LocalEnvironment.prototype, 'stopLogs').returns(undefined);
     });
 
     afterEach(async () => {
@@ -95,10 +99,14 @@ describe('teardownFabricRuntime', () => {
             }
         );
 
-        getGatewayRegistryEntryStub.returns(undefined);
+        getGatewayRegistryEntryStub.resolves();
         getEnvironmentRegistryEntryStub.returns(undefined);
 
+        const removeRuntimeStub: sinon.SinonStub = sandbox.stub(LocalEnvironmentManager.instance(), 'removeRuntime').returns(undefined);
+
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, treeItem);
+
+        removeRuntimeStub.should.have.been.calledOnce;
 
         showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`All world state and ledger data for the Fabric runtime ${environment.getName()} will be destroyed. Do you want to continue?`);
 
@@ -129,7 +137,11 @@ describe('teardownFabricRuntime', () => {
 
         getEnvironmentRegistryEntryStub.returns(undefined);
 
+        const removeRuntimeStub: sinon.SinonStub = sandbox.stub(LocalEnvironmentManager.instance(), 'removeRuntime').returns(undefined);
+
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, treeItem);
+
+        removeRuntimeStub.should.have.been.calledOnce;
 
         showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`All world state and ledger data for the Fabric runtime ${environment.getName()} will be destroyed. Do you want to continue?`);
 
@@ -159,9 +171,13 @@ describe('teardownFabricRuntime', () => {
             }
         );
 
-        getGatewayRegistryEntryStub.returns(undefined);
+        getGatewayRegistryEntryStub.resolves();
+
+        const removeRuntimeStub: sinon.SinonStub = sandbox.stub(LocalEnvironmentManager.instance(), 'removeRuntime').returns(undefined);
 
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, treeItem);
+
+        removeRuntimeStub.should.have.been.calledOnce;
 
         showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`All world state and ledger data for the Fabric runtime ${environment.getName()} will be destroyed. Do you want to continue?`);
 
@@ -193,10 +209,14 @@ describe('teardownFabricRuntime', () => {
 
         teardownStub = sandbox.stub(environment, 'teardown').rejects(error);
 
-        getGatewayRegistryEntryStub.returns(undefined);
+        getGatewayRegistryEntryStub.resolves();
         getEnvironmentRegistryEntryStub.returns(undefined);
 
+        const removeRuntimeStub: sinon.SinonStub = sandbox.stub(LocalEnvironmentManager.instance(), 'removeRuntime').returns(undefined);
+
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, treeItem);
+
+        removeRuntimeStub.should.have.been.calledOnce;
 
         showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`All world state and ledger data for the Fabric runtime ${environment.getName()} will be destroyed. Do you want to continue?`);
 
@@ -216,10 +236,14 @@ describe('teardownFabricRuntime', () => {
         const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         teardownStub = sandbox.stub(environment, 'teardown').resolves();
 
-        getGatewayRegistryEntryStub.returns(undefined);
+        getGatewayRegistryEntryStub.resolves();
         getEnvironmentRegistryEntryStub.returns(undefined);
 
+        const removeRuntimeStub: sinon.SinonStub = sandbox.stub(LocalEnvironmentManager.instance(), 'removeRuntime').returns(undefined);
+
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
+
+        removeRuntimeStub.should.have.been.calledOnce;
 
         showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`All world state and ledger data for the Fabric runtime ${environment.getName()} will be destroyed. Do you want to continue?`);
 
@@ -243,10 +267,14 @@ describe('teardownFabricRuntime', () => {
         const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         teardownStub = sandbox.stub(environment, 'teardown').resolves();
 
-        getGatewayRegistryEntryStub.returns(undefined);
+        getGatewayRegistryEntryStub.resolves();
         getEnvironmentRegistryEntryStub.returns(localRegistryEntry);
 
+        const removeRuntimeStub: sinon.SinonStub = sandbox.stub(LocalEnvironmentManager.instance(), 'removeRuntime').returns(undefined);
+
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
+
+        removeRuntimeStub.should.have.been.calledOnce;
 
         showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`All world state and ledger data for the Fabric runtime ${environment.getName()} will be destroyed. Do you want to continue?`);
 
@@ -271,9 +299,13 @@ describe('teardownFabricRuntime', () => {
         const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         teardownStub = sandbox.stub(environment, 'teardown').resolves();
 
-        getGatewayRegistryEntryStub.returns(undefined);
+        getGatewayRegistryEntryStub.resolves();
+
+        const removeRuntimeStub: sinon.SinonStub = sandbox.stub(LocalEnvironmentManager.instance(), 'removeRuntime').returns(undefined);
 
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
+
+        removeRuntimeStub.should.have.been.calledOnce;
 
         showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`All world state and ledger data for the Fabric runtime ${environment.getName()} will be destroyed. Do you want to continue?`);
 
@@ -292,8 +324,11 @@ describe('teardownFabricRuntime', () => {
 
     it('should be able to cancel choosing an environment to teardown', async () => {
         showFabricEnvironmentQuickPickBoxStub.resolves(undefined);
+        const removeRuntimeStub: sinon.SinonStub = sandbox.stub(LocalEnvironmentManager.instance(), 'removeRuntime').returns(undefined);
 
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
+
+        removeRuntimeStub.should.not.have.been.called;
 
         showConfirmationWarningMessageStub.should.not.have.been.called;
 
@@ -314,12 +349,16 @@ describe('teardownFabricRuntime', () => {
         const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         teardownStub = sandbox.stub(environment, 'teardown').resolves();
 
-        getGatewayRegistryEntryStub.returns(undefined);
+        getGatewayRegistryEntryStub.resolves();
         getEnvironmentRegistryEntryStub.returns(undefined);
 
         showConfirmationWarningMessageStub.resolves(false);
 
+        const removeRuntimeStub: sinon.SinonStub = sandbox.stub(LocalEnvironmentManager.instance(), 'removeRuntime').returns(undefined);
+
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
+
+        removeRuntimeStub.should.not.have.been.called;
 
         showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`All world state and ledger data for the Fabric runtime ${environment.getName()} will be destroyed. Do you want to continue?`);
 
@@ -351,9 +390,13 @@ describe('teardownFabricRuntime', () => {
 
         getEnvironmentRegistryEntryStub.returns(undefined);
 
+        const removeRuntimeStub: sinon.SinonStub = sandbox.stub(ManagedAnsibleEnvironmentManager.instance(), 'removeRuntime').returns(undefined);
+
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
 
         showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to teardown', false, true, true, IncludeEnvironmentOptions.ALLENV, true);
+
+        removeRuntimeStub.should.have.been.calledOnce;
 
         showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`All world state and ledger data for the Fabric runtime ${environment.getName()} will be destroyed. Do you want to continue?`);
 
@@ -374,10 +417,14 @@ describe('teardownFabricRuntime', () => {
         const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         teardownStub = sandbox.stub(environment, 'teardown').resolves();
 
-        getGatewayRegistryEntryStub.returns(undefined);
+        getGatewayRegistryEntryStub.resolves();
         getEnvironmentRegistryEntryStub.returns(undefined);
 
+        const removeRuntimeStub: sinon.SinonStub = sandbox.stub(LocalEnvironmentManager.instance(), 'removeRuntime').returns(undefined);
+
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
+
+        removeRuntimeStub.should.have.been.calledOnce;
 
         showConfirmationWarningMessageStub.should.not.have.been.called;
 
@@ -400,10 +447,14 @@ describe('teardownFabricRuntime', () => {
         const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         teardownStub = sandbox.stub(environment, 'teardown').resolves();
 
-        getGatewayRegistryEntryStub.returns(undefined);
+        getGatewayRegistryEntryStub.resolves();
         getEnvironmentRegistryEntryStub.returns(undefined);
 
+        const removeRuntimeStub: sinon.SinonStub = sandbox.stub(LocalEnvironmentManager.instance(), 'removeRuntime').returns(undefined);
+
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
+
+        removeRuntimeStub.should.have.been.calledOnce;
 
         showConfirmationWarningMessageStub.should.not.have.been.called;
 

@@ -13,7 +13,6 @@
 */
 
 import { FabricEnvironmentRegistryEntry, EnvironmentType } from './FabricEnvironmentRegistryEntry';
-import { FabricRuntimeUtil } from '../util/FabricRuntimeUtil';
 import { FileConfigurations } from './FileConfigurations';
 import { FileRegistry } from './FileRegistry';
 
@@ -32,16 +31,16 @@ export class FabricEnvironmentRegistry extends FileRegistry<FabricEnvironmentReg
     public async getAll(showLocalFabric: boolean = true, onlyShowManagedEnvironment: boolean = false, onlyShowNonAnsible: boolean = false): Promise<FabricEnvironmentRegistryEntry[]> {
         let entries: FabricEnvironmentRegistryEntry[] = await super.getAll();
 
-        let local: FabricEnvironmentRegistryEntry;
+        const local: FabricEnvironmentRegistryEntry[] = [];
 
         entries = entries.filter((entry: FabricEnvironmentRegistryEntry) => {
             // TODO change all this for fabric 2 to just filter by environment types
             if (onlyShowNonAnsible) {
-                return entry.environmentType !== EnvironmentType.ANSIBLE_ENVIRONMENT;
+                return entry.environmentType !== EnvironmentType.ANSIBLE_ENVIRONMENT && entry.environmentType !== EnvironmentType.LOCAL_ENVIRONMENT ;
             }
 
-            if (entry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
-                local = entry;
+            if (entry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                local.push(entry);
                 return false;
             }
             if (entry.managedRuntime && onlyShowManagedEnvironment) {
@@ -54,7 +53,9 @@ export class FabricEnvironmentRegistry extends FileRegistry<FabricEnvironmentReg
         });
 
         if (showLocalFabric && local) {
-            entries.unshift(local);
+            for (const entry of local) {
+                entries.unshift(entry);
+            }
         }
 
         return entries;

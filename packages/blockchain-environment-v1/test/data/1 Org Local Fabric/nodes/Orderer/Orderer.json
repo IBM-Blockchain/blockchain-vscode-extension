@@ -1,0 +1,10 @@
+{
+    "api_url": "grpc://localhost:17056",
+    "container_name": "fabricvscodelocalfabric_orderer.example.com",
+    "identity": "ordererAdmin",
+    "msp_id": "OrdererMSP",
+    "name": "Orderer",
+    "short_name": "Orderer",
+    "type": "fabric-orderer",
+    "wallet": "Orderer"
+}

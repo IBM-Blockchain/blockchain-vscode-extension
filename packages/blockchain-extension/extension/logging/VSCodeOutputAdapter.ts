@@ -16,12 +16,13 @@ import { LogType, OutputAdapter } from 'ibm-blockchain-platform-common';
 import * as vscode from 'vscode';
 
 export abstract class VSCodeOutputAdapter extends OutputAdapter {
+    public channelName: string;
 
     private outputChannel: vscode.OutputChannel;
     private console: boolean = !!process.env.BLOCKCHAIN_VSCODE_CONSOLE_OUTPUT;
-
     protected constructor(channelName: string) {
         super();
+        this.channelName = channelName;
         this.outputChannel = vscode.window.createOutputChannel(channelName);
     }
 

@@ -260,7 +260,7 @@ describe('UserInputUtil', () => {
             const localFabricEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             localFabricEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             localFabricEntry.managedRuntime = true;
-            localFabricEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+            localFabricEntry.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
 
             await FabricEnvironmentRegistry.instance().clear();
 

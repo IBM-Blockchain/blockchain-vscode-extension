@@ -66,4 +66,17 @@ describe('TimerUtil Test', () => {
             clearIntervalStub.should.have.been.calledWith(timeoutObj);
         });
     });
+
+    describe('sleep', () => {
+
+        it('should delay for the specified time', async () => {
+            const stub: sinon.SinonStub = mySandBox.stub();
+            const p: Promise<any> = TimerUtil.sleep(2000).then(stub);
+            sinon.assert.notCalled(stub);
+
+            clock.tick(2300);
+            await p.should.be.eventually.fulfilled;
+            sinon.assert.calledOnce(stub);
+        });
+    });
 });

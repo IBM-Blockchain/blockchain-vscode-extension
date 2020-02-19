@@ -82,7 +82,7 @@ describe('createNewIdentityCommand', () => {
         const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         environmentRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
         environmentRegistryEntry.managedRuntime = true;
-        environmentRegistryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+        environmentRegistryEntry.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
 
         mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistryEntry);
         mySandBox.stub(FabricEnvironmentManager.instance(), 'getState').returns(ConnectedState.CONNECTED);

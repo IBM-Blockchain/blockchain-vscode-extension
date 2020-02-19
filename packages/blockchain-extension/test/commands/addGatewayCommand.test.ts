@@ -64,6 +64,7 @@ describe('AddGatewayCommand', () => {
         beforeEach(async () => {
             // reset the available gateways
             await FabricGatewayRegistry.instance().clear();
+            await FabricEnvironmentRegistry.instance().clear();
 
             browseStub = mySandBox.stub(UserInputUtil, 'browse');
             copyConnectionProfileStub = mySandBox.stub(FabricGatewayHelper, 'copyConnectionProfile');
@@ -201,8 +202,13 @@ describe('AddGatewayCommand', () => {
 
             methodChooserStub.resolves(UserInputUtil.ADD_GATEWAY_FROM_ENVIRONMENT);
 
+            await FabricEnvironmentRegistry.instance().clear();
+
             environmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistryEntry.name = 'myEnv';
+
+            await FabricEnvironmentRegistry.instance().add(environmentRegistryEntry);
+
             showEnvironmentQuickPickStub = mySandBox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox').resolves({ label: 'myEnv', data: environmentRegistryEntry });
 
             peerNode = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'Org1', 'admin', 'Org1MSP');
@@ -215,6 +221,10 @@ describe('AddGatewayCommand', () => {
             generateConnectionProfileStub = mySandBox.stub(FabricGatewayHelper, 'generateConnectionProfile').resolves(connectionProfilePath);
 
             showInputBoxStub.resolves('myGateway');
+        });
+
+        afterEach(async () => {
+            await FabricEnvironmentRegistry.instance().clear();
         });
 
         it('should create a gateway from an environment', async () => {

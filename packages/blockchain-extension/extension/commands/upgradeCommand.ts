@@ -22,7 +22,7 @@ import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
 import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
-import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { PackageRegistry } from '../registries/PackageRegistry';
@@ -253,8 +253,8 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
             progress.report({ message: 'Upgrading Smart Contract' });
 
             const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
-            if (fabricEnvironmentRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
-                VSCodeBlockchainDockerOutputAdapter.instance().show();
+            if (fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                VSCodeBlockchainDockerOutputAdapter.instance(fabricEnvironmentRegistryEntry.name).show();
             }
 
             await connection.upgradeChaincode(smartContractName, smartContractVersion, peerNames, channelName, fcn, args, collectionPath, contractEP);

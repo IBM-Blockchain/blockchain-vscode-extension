@@ -11,7 +11,7 @@ Feature: Fabric Environments
 
     Scenario Outline: There should be a tree item (connected)
         Given the Local Fabric is running
-        And the 'Local Fabric' environment is connected
+        And the '1 Org Local Fabric' environment is connected
         Then there should be a <treeItem> tree item with a label '<label>' in the 'Fabric Environments' panel
         And the tree item should have a tooltip equal to '<tooltip>'
         Examples:
@@ -29,7 +29,7 @@ Feature: Fabric Environments
 
      Scenario Outline: It should open the terminal
          Given the Local Fabric is running
-         And the 'Local Fabric' environment is connected
+         And the '1 Org Local Fabric' environment is connected
          When I open the terminal for node '<nodeType>'
          Then there should be a terminal open
          Examples:
@@ -40,7 +40,7 @@ Feature: Fabric Environments
 
      Scenario Outline: It should persist data after being stopped
          Given the Local Fabric is running
-         And the 'Local Fabric' environment is connected
+         And the '1 Org Local Fabric' environment is connected
          And a <language> smart contract for <assetType> assets with the name <name> and version <version>
          And the contract has been created
          And the contract has been packaged
@@ -50,7 +50,7 @@ Feature: Fabric Environments
          Then there should be a tree item with a label '<label>' in the 'Fabric Environments' panel
          Then the tree item should have a tooltip equal to '<tooltip>'
          When I start the Local Fabric
-         And the 'Local Fabric' environment is connected
+         And the '1 Org Local Fabric' environment is connected
          Then there should be a instantiated smart contract tree item with a label '<instantiatedName>' in the 'Fabric Environments' panel
          Examples:
          | language   | assetType | name               | instantiatedName         | version | label                            | tooltip                                                                    |
@@ -58,7 +58,7 @@ Feature: Fabric Environments
 
      Scenario Outline: After teardown and start there are no smart contracts
          Given the Local Fabric is running
-         And the 'Local Fabric' environment is connected
+         And the '1 Org Local Fabric' environment is connected
          And a <language> smart contract for <assetType> assets with the name <name> and version <version>
          And the contract has been created
          And the contract has been packaged

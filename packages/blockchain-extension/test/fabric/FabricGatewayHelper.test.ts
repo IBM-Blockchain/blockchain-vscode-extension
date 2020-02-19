@@ -324,13 +324,17 @@ describe('FabricGatewayHelper', () => {
             gatewayA = {
                 name: 'gatewayA',
                 connectionProfilePath: `${TestUtil.EXTENSION_TEST_DIR}/gateways/gatewayA/file.json`,
-                associatedWallet: ''
+                associatedWallet: '',
+
             };
             gatewayB = {
                 name: 'gatewayB',
                 connectionProfilePath: `${TestUtil.EXTENSION_TEST_DIR}/gatewayB/anotherFile.json`,
                 associatedWallet: ''
             };
+
+            // await FabricGatewayRegistry.instance().add(gatewayA);
+            // await FabricGatewayRegistry.instance().add(gatewayB);
 
             getSettingsStub = mySandBox.stub();
             updateSettingsStub = mySandBox.stub();

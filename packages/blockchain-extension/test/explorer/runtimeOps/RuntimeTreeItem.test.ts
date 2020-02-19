@@ -48,7 +48,7 @@ describe('RuntimeTreeItem', () => {
         environmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         environmentRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
         environmentRegistryEntry.managedRuntime = true;
-        environmentRegistryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+        environmentRegistryEntry.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
 
         provider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
@@ -82,7 +82,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('Local Fabric  ○ (click to start)');
+            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○ (click to start)`);
             treeItem.command.should.deep.equal(command);
             treeItem.tooltip.should.equal('Creates a local development runtime using Hyperledger Fabric Docker images');
         });
@@ -96,7 +96,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('Local Fabric runtime is starting... ◐');
+            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC} runtime is starting... ◐`);
             treeItem.tooltip.should.equal('The local development runtime is starting...');
             treeItem.command.should.deep.equal(command);
         });
@@ -110,7 +110,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('Local Fabric runtime is stopping... ◐');
+            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC} runtime is stopping... ◐`);
             treeItem.tooltip.should.equal('The local development runtime is stopping...');
             treeItem.command.should.deep.equal(command);
         });
@@ -124,7 +124,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('Local Fabric runtime is restarting... ◐');
+            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC} runtime is restarting... ◐`);
             treeItem.tooltip.should.equal('The local development runtime is restarting...');
             treeItem.command.should.deep.equal(command);
         });
@@ -140,7 +140,7 @@ describe('RuntimeTreeItem', () => {
             });
             const states: string[] = ['◐', '◓', '◑', '◒', '◐'];
             for (const state of states) {
-                treeItem.label.should.equal(`Local Fabric runtime is starting... ${state}`);
+                treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC} runtime is starting... ${state}`);
                 clock.tick(500);
                 await new Promise((resolve: any): any => {
                     setTimeout(resolve, 0);
@@ -170,7 +170,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('Local Fabric  ○ (click to start)');
+            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○ (click to start)`);
             treeItem.command.should.deep.equal({
                 command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
                 title: ''
@@ -182,7 +182,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('Local Fabric runtime is starting... ◐');
+            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC} runtime is starting... ◐`);
             treeItem.tooltip.should.equal('The local development runtime is starting...');
             treeItem.command.should.deep.equal(command);
         });
@@ -203,7 +203,7 @@ describe('RuntimeTreeItem', () => {
             });
             const states: string[] = ['◐', '◓', '◑', '◒', '◐'];
             for (const state of states) {
-                treeItem.label.should.equal(`Local Fabric runtime is starting... ${state}`);
+                treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC} runtime is starting... ${state}`);
                 clock.tick(500);
                 await new Promise((resolve: any): any => {
                     setTimeout(resolve, 0);
@@ -222,14 +222,14 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('Local Fabric runtime is starting... ◐');
+            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC} runtime is starting... ◐`);
             treeItem.tooltip.should.equal('The local development runtime is starting...');
             mockRuntime.isBusy.returns(false);
             onBusyCallback(false);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('Local Fabric  ○ (click to start)');
+            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○ (click to start)`);
             treeItem.command.should.deep.equal(command);
             treeItem.tooltip.should.equal('Creates a local development runtime using Hyperledger Fabric Docker images');
         });
@@ -246,7 +246,7 @@ describe('RuntimeTreeItem', () => {
             });
             const states: string[] = ['◐', '◓', '◑', '◒', '◐'];
             for (const state of states) {
-                treeItem.label.should.equal(`Local Fabric runtime is starting... ${state}`);
+                treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC} runtime is starting... ${state}`);
                 clock.tick(500);
                 await new Promise((resolve: any): any => {
                     setTimeout(resolve, 0);

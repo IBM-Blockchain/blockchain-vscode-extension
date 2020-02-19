@@ -57,7 +57,7 @@ describe('stopFabricRuntime', () => {
         const localGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
 
         getGatewayRegistryEntryStub = sandbox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry');
-        getGatewayRegistryEntryStub.returns(localGateway);
+        getGatewayRegistryEntryStub.resolves(localGateway);
 
         getEnvironmentRegistryEntryStub = sandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry');
         getConnectionStub = sandbox.stub(FabricEnvironmentManager.instance(), 'getConnection');
@@ -94,7 +94,7 @@ describe('stopFabricRuntime', () => {
             }
         );
 
-        getGatewayRegistryEntryStub.returns(undefined);
+        getGatewayRegistryEntryStub.resolves();
         getEnvironmentRegistryEntryStub.returns(undefined);
 
         await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC, treeItem);
@@ -153,7 +153,7 @@ describe('stopFabricRuntime', () => {
             }
         );
 
-        getGatewayRegistryEntryStub.returns(undefined);
+        getGatewayRegistryEntryStub.resolves();
 
         await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC, treeItem);
 
@@ -184,7 +184,7 @@ describe('stopFabricRuntime', () => {
             }
         );
 
-        getGatewayRegistryEntryStub.returns(undefined);
+        getGatewayRegistryEntryStub.resolves();
         getEnvironmentRegistryEntryStub.returns(undefined);
 
         await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC, treeItem);
@@ -205,7 +205,7 @@ describe('stopFabricRuntime', () => {
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         stopStub = sandbox.stub(environment, 'stop').resolves();
         sandbox.stub(environment, 'startLogs').resolves();
-        getGatewayRegistryEntryStub.returns(undefined);
+        getGatewayRegistryEntryStub.resolves();
         getEnvironmentRegistryEntryStub.returns(undefined);
 
         await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
@@ -226,10 +226,10 @@ describe('stopFabricRuntime', () => {
         getConnectionStub.returns({});
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         stopStub = sandbox.stub(environment, 'stop').resolves();
-        sandbox.stub(environment, 'startLogs').resolves();
-        sandbox.stub(environment, 'stopLogs').returns(undefined);
+        // sandbox.stub(LocalEnvironment.prototype, 'startLogs').resolves();
+        // sandbox.stub(LocalEnvironment.prototype, 'stopLogs').returns(undefined);
 
-        getGatewayRegistryEntryStub.returns(undefined);
+        getGatewayRegistryEntryStub.resolves();
 
         await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
 
@@ -247,10 +247,10 @@ describe('stopFabricRuntime', () => {
 
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         stopStub = sandbox.stub(environment, 'stop').resolves();
-        sandbox.stub(environment, 'startLogs').resolves();
-        sandbox.stub(environment, 'stopLogs').returns(undefined);
+        // sandbox.stub(LocalEnvironment.prototype, 'startLogs').resolves();
+        // sandbox.stub(LocalEnvironment.prototype, 'stopLogs').returns(undefined);
 
-        getGatewayRegistryEntryStub.returns(undefined);
+        getGatewayRegistryEntryStub.resolves();
         showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localRegistryEntry} as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>);
 
         await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);

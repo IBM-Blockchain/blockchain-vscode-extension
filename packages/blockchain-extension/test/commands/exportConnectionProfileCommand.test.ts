@@ -161,7 +161,7 @@ describe('exportConnectionProfileCommand', () => {
     });
 
     it('should handle exporting the connection profile of a connected gateway', async () => {
-        sandbox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistryEntry);
+        sandbox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').resolves(gatewayRegistryEntry);
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE_CONNECTED);
         delete connectionProfile.wallet;
         showGatewayQuickPickStub.should.not.have.been.calledOnceWithExactly('Choose a gateway to export a connection profile from', false, true);

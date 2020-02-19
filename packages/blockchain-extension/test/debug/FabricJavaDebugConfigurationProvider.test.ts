@@ -81,7 +81,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
             const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             environmentRegistry.managedRuntime = true;
-            environmentRegistry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+            environmentRegistry.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
 
             mySandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
 

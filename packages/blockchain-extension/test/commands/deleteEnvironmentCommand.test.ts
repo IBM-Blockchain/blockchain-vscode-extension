@@ -84,6 +84,8 @@ describe('DeleteEnvironmentCommand', () => {
             commandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
             logSpy = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
+            // mySandBox.stub(LocalEnvironment.prototype, 'stopLogs');
+
         });
 
         afterEach(() => {

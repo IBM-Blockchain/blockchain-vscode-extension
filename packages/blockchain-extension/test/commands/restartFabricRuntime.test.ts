@@ -56,7 +56,7 @@ describe('restartFabricRuntime', () => {
         const localGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
 
         getGatewayRegistryEntryStub = sandbox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry');
-        getGatewayRegistryEntryStub.returns(localGateway);
+        getGatewayRegistryEntryStub.resolves(localGateway);
 
         getEnvironmentRegistryEntryStub = sandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry');
         getConnectionStub = sandbox.stub(FabricEnvironmentManager.instance(), 'getConnection');
@@ -71,6 +71,9 @@ describe('restartFabricRuntime', () => {
         localRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
         showFabricEnvironmentQuickPickBoxStub = sandbox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox');
         showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localRegistryEntry});
+
+        // sandbox.stub(LocalEnvironment.prototype, 'startLogs').resolves();
+        // sandbox.stub(LocalEnvironment.prototype, 'stopLogs').returns(undefined);
     });
 
     afterEach(async () => {
@@ -81,8 +84,7 @@ describe('restartFabricRuntime', () => {
     it('should restart a Fabric environment from the tree', async () => {
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         restartStub = sandbox.stub(environment, 'restart').resolves();
-        sandbox.stub(environment, 'startLogs').resolves();
-        sandbox.stub(environment, 'stopLogs').returns(undefined);
+
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainEnvironmentExplorerProvider,
             environment.getName(),
@@ -94,7 +96,7 @@ describe('restartFabricRuntime', () => {
             }
         );
 
-        getGatewayRegistryEntryStub.returns(undefined);
+        getGatewayRegistryEntryStub.resolves();
         getEnvironmentRegistryEntryStub.returns(undefined);
 
         await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC, treeItem);
@@ -110,8 +112,7 @@ describe('restartFabricRuntime', () => {
     it('should restart a Fabric runtime, disconnect from gateway and refresh the view', async () => {
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         restartStub = sandbox.stub(environment, 'restart').resolves();
-        sandbox.stub(environment, 'startLogs').resolves();
-        sandbox.stub(environment, 'stopLogs').returns(undefined);
+
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainEnvironmentExplorerProvider,
             environment.getName(),
@@ -138,8 +139,7 @@ describe('restartFabricRuntime', () => {
     it('should restart a Fabric runtime, disconnect from environment and refresh the view', async () => {
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         restartStub = sandbox.stub(environment, 'restart').resolves();
-        sandbox.stub(environment, 'startLogs').resolves();
-        sandbox.stub(environment, 'stopLogs').returns(undefined);
+
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainEnvironmentExplorerProvider,
             environment.getName(),
@@ -151,7 +151,7 @@ describe('restartFabricRuntime', () => {
             }
         );
 
-        getGatewayRegistryEntryStub.returns(undefined);
+        getGatewayRegistryEntryStub.resolves();
 
         await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC, treeItem);
 
@@ -167,10 +167,8 @@ describe('restartFabricRuntime', () => {
         getConnectionStub.returns({});
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         restartStub = sandbox.stub(environment, 'restart').resolves();
-        sandbox.stub(environment, 'startLogs').resolves();
-        sandbox.stub(environment, 'stopLogs').returns(undefined);
 
-        getGatewayRegistryEntryStub.returns(undefined);
+        getGatewayRegistryEntryStub.resolves();
 
         await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC);
 
@@ -188,10 +186,8 @@ describe('restartFabricRuntime', () => {
 
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         restartStub = sandbox.stub(environment, 'restart').resolves();
-        sandbox.stub(environment, 'startLogs').resolves();
-        sandbox.stub(environment, 'stopLogs').returns(undefined);
 
-        getGatewayRegistryEntryStub.returns(undefined);
+        getGatewayRegistryEntryStub.resolves();
         showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localRegistryEntry} as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>);
 
         await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC);
@@ -210,8 +206,7 @@ describe('restartFabricRuntime', () => {
 
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         restartStub = sandbox.stub(environment, 'restart').throws(error);
-        sandbox.stub(environment, 'startLogs').resolves();
-        sandbox.stub(environment, 'stopLogs').returns(undefined);
+
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainEnvironmentExplorerProvider,
             environment.getName(),
@@ -223,7 +218,7 @@ describe('restartFabricRuntime', () => {
             }
         );
 
-        getGatewayRegistryEntryStub.returns(undefined);
+        getGatewayRegistryEntryStub.resolves();
         getEnvironmentRegistryEntryStub.returns(undefined);
 
         await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC, treeItem);
@@ -241,9 +236,8 @@ describe('restartFabricRuntime', () => {
         showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localRegistryEntry} as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>);
         const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         restartStub = sandbox.stub(environment, 'restart').resolves();
-        sandbox.stub(environment, 'startLogs').resolves();
-        sandbox.stub(environment, 'stopLogs').returns(undefined);
-        getGatewayRegistryEntryStub.returns(undefined);
+
+        getGatewayRegistryEntryStub.resolves();
         getEnvironmentRegistryEntryStub.returns(undefined);
 
         await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC);

@@ -135,12 +135,13 @@ describe('Metadata ConnectionProfileUtil tests', () => {
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
         localGateway = new FabricGatewayRegistryEntry();
-        localGateway.name = FabricRuntimeUtil.LOCAL_FABRIC;
+        localGateway.name = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`;
+        localGateway.fromEnvironment = FabricRuntimeUtil.LOCAL_FABRIC;
 
         otherGateway = new FabricGatewayRegistryEntry();
         otherGateway.name = 'myFabric';
 
-        getGatewayRegistryEntryStub = mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(otherGateway);
+        getGatewayRegistryEntryStub = mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').resolves(otherGateway);
 
         debugSessionStub = mySandBox.stub(vscode.debug, 'activeDebugSession');
 
@@ -197,7 +198,7 @@ describe('Metadata ConnectionProfileUtil tests', () => {
     });
 
     it('should kill the chaincode if running in debug', async () => {
-        getGatewayRegistryEntryStub.returns(localGateway);
+        getGatewayRegistryEntryStub.resolves(localGateway);
 
         const activeDebugSessionStub: any = {
             configuration: {
@@ -215,7 +216,7 @@ describe('Metadata ConnectionProfileUtil tests', () => {
     });
 
     it('should not kill if not running', async () => {
-        getGatewayRegistryEntryStub.returns(localGateway);
+        getGatewayRegistryEntryStub.resolves(localGateway);
 
         mockRuntime.isRunning.resolves(false);
 
@@ -236,7 +237,7 @@ describe('Metadata ConnectionProfileUtil tests', () => {
     });
 
     it('should not kill if getting meta data for another contract if running in debug', async () => {
-        getGatewayRegistryEntryStub.returns(localGateway);
+        getGatewayRegistryEntryStub.resolves(localGateway);
 
         const activeDebugSessionStub: any = {
             configuration: {
@@ -254,7 +255,7 @@ describe('Metadata ConnectionProfileUtil tests', () => {
     });
 
     it('should not kill if debugging different thing', async () => {
-        getGatewayRegistryEntryStub.returns(localGateway);
+        getGatewayRegistryEntryStub.resolves(localGateway);
 
         const activeDebugSessionStub: any = {
             configuration: {
@@ -270,7 +271,7 @@ describe('Metadata ConnectionProfileUtil tests', () => {
     });
 
     it('should not kill if debugging different thing no env', async () => {
-        getGatewayRegistryEntryStub.returns(localGateway);
+        getGatewayRegistryEntryStub.resolves(localGateway);
 
         const activeDebugSessionStub: any = {
             configuration: {}

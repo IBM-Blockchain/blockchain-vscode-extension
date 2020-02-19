@@ -52,21 +52,22 @@ describe('EnvironmentFactory', () => {
         }
     });
 
-    it(`should return the ${FabricRuntimeUtil.LOCAL_FABRIC} environment`, async () => {
+    it(`should return a local environment`, async () => {
         await TestUtil.setupLocalFabric();
-
-        const getRuntimeSpy: sinon.SinonSpy = sandbox.spy(LocalEnvironmentManager.instance(), 'getRuntime');
 
         const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
         registryEntry.managedRuntime = true;
-        registryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+        registryEntry.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
         registryEntry.environmentDirectory = '/some/path';
+
+        const localEnvironment: LocalEnvironment = new LocalEnvironment(registryEntry.name, {startPort: 17050, endPort: 17069}, 1);
+        const ensureRuntimeStub: sinon.SinonStub = sandbox.stub(LocalEnvironmentManager.instance(), 'ensureRuntime').resolves(localEnvironment);
 
         const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = await EnvironmentFactory.getEnvironment(registryEntry);
         environment.should.be.an.instanceOf(LocalEnvironment);
 
-        getRuntimeSpy.should.have.been.calledOnce;
+        ensureRuntimeStub.should.have.been.calledOnce;
     });
 
     it('should return a managed ansible environment', async () => {

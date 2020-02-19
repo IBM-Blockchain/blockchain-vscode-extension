@@ -1,0 +1,97 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+- name: Deploy blockchain infrastructure
+  hosts: localhost
+  vars:
+    infrastructure:
+      type: docker
+      docker:
+        network: "fabricvscodelocalfabric_network"
+        labels:
+          fabric-environment-name: "Local Fabric"
+    organizations:
+      - &Org1
+        msp:
+          id: "Org1MSP"
+          admin:
+            identity: "org1Admin"
+            secret: "org1Adminpw"
+        ca: &Org1CA
+          id: "Org1CA"
+          admin_identity: "admin"
+          admin_secret: "adminpw"
+          tls:
+            enabled: false
+          docker:
+            name: "fabricvscodelocalfabric_ca.org1.example.com"
+            port: 17050
+        peers:
+          - &Org1Peer1
+            id: "Org1Peer1"
+            identity: "org1peer1"
+            secret: "org1peer1pw"
+            database_type: couchdb
+            tls:
+              enabled: false
+            docker:
+              name: "fabricvscodelocalfabric_peer0.org1.example.com"
+              port: 17051
+              chaincode_name_prefix: "fabricvscodelocalfabric"
+              chaincode_port: 17052
+              operations_port: 17053
+              couchdb:
+                name: "fabricvscodelocalfabric_couchdb0.org1.example.com"
+                port: 17054
+        nodes: "{{ playbook_dir }}/nodes/Org1"
+        wallet: "{{ playbook_dir }}/wallets/Org1"
+        gateways: "{{ playbook_dir }}/gateways/Org1"
+      - &OrdererOrg
+        msp:
+          id: "OrdererMSP"
+          admin:
+            identity: "ordererAdmin"
+            secret: "ordererAdminpw"
+        ca: &OrdererCA
+          id: "OrdererCA"
+          admin_identity: "admin"
+          admin_secret: "adminpw"
+          tls:
+            enabled: false
+          docker:
+            name: "fabricvscodelocalfabric_ca.orderer.example.com"
+            port: 17055
+        orderer: &Orderer
+          id: "Orderer"
+          identity: "orderer"
+          secret: "ordererpw"
+          tls:
+            enabled: false
+          consortium:
+            members:
+              - *Org1
+          docker:
+            name: "fabricvscodelocalfabric_orderer.example.com"
+            port: 17056
+            operations_port: 17057
+        nodes: "{{ playbook_dir }}/nodes/Orderer"
+        wallet: "{{ playbook_dir }}/wallets/Orderer"
+        gateways: "{{ playbook_dir }}/gateways/Orderer"
+    gateways:
+      - name: Org1
+        organization:
+          <<: *Org1
+          gateway_peers:
+            - *Org1Peer1
+    channels:
+      - name: mychannel
+        orderer: *Orderer
+        members:
+          - <<: *Org1
+            committing_peers:
+              - *Org1Peer1
+            anchor_peers:
+              - *Org1Peer1
+  roles:
+    - ibm.blockchain_platform_manager

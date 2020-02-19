@@ -69,7 +69,10 @@ describe('UpgradeCommand', () => {
         let openDialogOptions: any;
         let policyObject: any;
         let policyString: string;
-        beforeEach(async () => {
+        beforeEach(async function(): Promise<void> {
+
+            // TODO JAKE: does this actually work though
+            this.timeout(90000);
 
             reporterStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
@@ -95,7 +98,7 @@ describe('UpgradeCommand', () => {
             showInputBoxStub.onSecondCall().resolves('["arg1" ,"arg2" , "arg3"]');
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            dockerLogSpy = mySandBox.spy(VSCodeBlockchainDockerOutputAdapter.instance(), 'show');
+            dockerLogSpy = mySandBox.spy(VSCodeBlockchainDockerOutputAdapter.instance(FabricRuntimeUtil.LOCAL_FABRIC), 'show');
 
             fabricRuntimeMock.getAllPeerNames.returns(['peerOne']);
 
@@ -128,7 +131,7 @@ describe('UpgradeCommand', () => {
             const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             environmentRegistry.managedRuntime = true;
-            environmentRegistry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+            environmentRegistry.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
 
             registryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
             mySandBox.stub(FabricEnvironmentManager.instance(), 'getState').returns(ConnectedState.CONNECTED);

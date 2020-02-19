@@ -16,7 +16,7 @@ Feature: Fabric Wallets
 
     Scenario: create an identity with attributes
         Given the Local Fabric is running
-        And the 'Local Fabric' environment is connected
+        And the '1 Org Local Fabric' environment is connected
         And the 'Org1' wallet
         When I register a new identity 'attributes_user' with the attributes '[{"name": "hello", "value": "world", "ecert": true}]'
         Then there should be an identity tree item with a label 'attributes_user' in the 'Fabric Wallets' panel for item Local Fabric - Org1 Wallet
@@ -24,7 +24,7 @@ Feature: Fabric Wallets
 
     Scenario: delete an identity
         Given the Local Fabric is running
-        And the 'Local Fabric' environment is connected
+        And the '1 Org Local Fabric' environment is connected
         And the 'Org1' wallet
         And the identity 'example_identity' exists
         When I delete the identity 'example_identity'

@@ -29,6 +29,7 @@ import * as ejs from 'ejs';
 import { LogType } from 'ibm-blockchain-platform-common';
 import { View } from './View';
 import { RepositoryRegistryEntry } from '../registries/RepositoryRegistryEntry';
+import { TimerUtil } from '../util/TimerUtil';
 
 export class SampleView extends View {
 
@@ -402,7 +403,7 @@ export class SampleView extends View {
         }
 
         // Ask the user if they want to open the project now
-        await ExtensionUtil.sleep(500);
+        await TimerUtil.sleep(500);
         const openMethod: string = await UserInputUtil.showFolderOptions('Choose how to open the sample files');
         if (!openMethod) {
             // User cancelled dialog

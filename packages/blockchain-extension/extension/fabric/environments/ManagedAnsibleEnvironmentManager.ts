@@ -22,13 +22,19 @@ export class ManagedAnsibleEnvironmentManager {
 
     private static _instance: ManagedAnsibleEnvironmentManager = new ManagedAnsibleEnvironmentManager();
 
-    private runtimes: Map<string, ManagedAnsibleEnvironment> = new Map();
+    private runtimes: Map<string, ManagedAnsibleEnvironment>;
 
     private constructor() {
+        this.runtimes = new Map();
     }
 
     public getRuntime(name: string): ManagedAnsibleEnvironment {
         return this.runtimes.get(name);
+    }
+
+    public removeRuntime(name: string): void {
+        // Delete from map if it exists
+        this.runtimes.delete(name);
     }
 
     public ensureRuntime(name: string, environmentDirectory: string): ManagedAnsibleEnvironment {

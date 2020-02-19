@@ -4,7 +4,7 @@ Feature: Install Smart Contract
     Scenario Outline: Install a smart contract
         Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
         And the Local Fabric is running
-        And the 'Local Fabric' environment is connected
+        And the '1 Org Local Fabric' environment is connected
         And the contract has been created
         And the contract has been packaged
         When I install the package

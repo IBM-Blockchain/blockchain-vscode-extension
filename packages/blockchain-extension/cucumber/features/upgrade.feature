@@ -4,7 +4,7 @@ Feature: Upgrade Smart Contracts
     Scenario Outline: Upgrade a smart contract
         Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
         And the Local Fabric is running
-        And the 'Local Fabric' environment is connected
+        And the '1 Org Local Fabric' environment is connected
         And the contract has been created
         And the contract has been packaged
         And the package has been installed

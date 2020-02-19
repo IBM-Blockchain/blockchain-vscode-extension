@@ -37,7 +37,7 @@ import { InstantiatedContractTreeItem } from '../../extension/explorer/model/Ins
 import { InstantiatedChaincodeTreeItem } from '../../extension/explorer/model/InstantiatedChaincodeTreeItem';
 import { InstantiatedUnknownTreeItem } from '../../extension/explorer/model/InstantiatedUnknownTreeItem';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FabricRuntimeUtil, LogType, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, LogType, FabricGatewayRegistryEntry, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType } from 'ibm-blockchain-platform-common';
 
 chai.use(sinonChai);
 chai.should();
@@ -128,7 +128,7 @@ describe('SubmitTransactionCommand', () => {
             showChannelPeersQuickPickStub = mySandBox.stub(UserInputUtil, 'showChannelPeersQuickPick');
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            dockerLogsOutputSpy = mySandBox.spy(VSCodeBlockchainDockerOutputAdapter.instance(), 'show');
+            dockerLogsOutputSpy = mySandBox.spy(VSCodeBlockchainDockerOutputAdapter.instance(FabricRuntimeUtil.LOCAL_FABRIC), 'show');
 
             fabricClientConnectionMock.submitTransaction.resolves();
 
@@ -170,7 +170,7 @@ describe('SubmitTransactionCommand', () => {
 
             const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             registryEntry.name = 'myConnection';
-            registryStub = mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
+            registryStub = mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').resolves(registryEntry);
 
             blockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
 
@@ -252,11 +252,28 @@ describe('SubmitTransactionCommand', () => {
 
         it('should show logs if local runtime', async () => {
             const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-            registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
-            registryStub.returns(registryEntry);
+            registryEntry.name = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`;
+            registryEntry.fromEnvironment = FabricRuntimeUtil.LOCAL_FABRIC;
+            registryStub.resolves(registryEntry);
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
             dockerLogsOutputSpy.should.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
+        });
+
+        it('should not show logs if gateway came from non-local runtime', async () => {
+            await FabricEnvironmentRegistry.instance().add({name: 'nonLocalEnvironment', environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT, managedRuntime: false, environmentDirectory: ''} as FabricEnvironmentRegistryEntry);
+            const instanceSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainDockerOutputAdapter, 'instance');
+            const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            registryEntry.name = `nonLocalGateway`;
+            registryEntry.fromEnvironment = 'nonLocalEnvironment';
+            registryStub.resolves(registryEntry);
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
+            instanceSpy.should.not.have.been.called;
+            dockerLogsOutputSpy.should.not.have.been.called;
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.have.been.calledWith('submit transaction');
@@ -923,7 +940,7 @@ describe('SubmitTransactionCommand', () => {
                     transactionDataPath
                 }
             ];
-            registryStub.returns(gatewayWithTestData);
+            registryStub.resolves(gatewayWithTestData);
 
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
 
@@ -944,7 +961,7 @@ describe('SubmitTransactionCommand', () => {
                     transactionDataPath
                 }
             ];
-            registryStub.returns(gatewayWithTestData);
+            registryStub.resolves(gatewayWithTestData);
 
             showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves({
                 label: 'No (manual entry)',
@@ -971,7 +988,7 @@ describe('SubmitTransactionCommand', () => {
                     transactionDataPath
                 }
             ];
-            registryStub.returns(gatewayWithTestData);
+            registryStub.resolves(gatewayWithTestData);
 
             showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves(undefined);
 
@@ -994,7 +1011,7 @@ describe('SubmitTransactionCommand', () => {
                     transactionDataPath
                 }
             ];
-            registryStub.returns(gatewayWithTestData);
+            registryStub.resolves(gatewayWithTestData);
 
             showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves({
                 label: 'No (manual entry)',
@@ -1022,7 +1039,7 @@ describe('SubmitTransactionCommand', () => {
                     transactionDataPath
                 }
             ];
-            registryStub.returns(gatewayWithTestData);
+            registryStub.resolves(gatewayWithTestData);
 
             showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves({
                 label: 'transactionData.txdata',
@@ -1059,7 +1076,7 @@ describe('SubmitTransactionCommand', () => {
                     transactionDataPath
                 }
             ];
-            registryStub.returns(gatewayWithTestData);
+            registryStub.resolves(gatewayWithTestData);
 
             showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves({
                 label: 'transactionData.txdata',
@@ -1089,7 +1106,7 @@ describe('SubmitTransactionCommand', () => {
                     transactionDataPath
                 }
             ];
-            registryStub.returns(gatewayWithTestData);
+            registryStub.resolves(gatewayWithTestData);
 
             showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves({
                 label: 'transactionData.txdata',
@@ -1124,7 +1141,7 @@ describe('SubmitTransactionCommand', () => {
                     transactionDataPath: notTransactionDataPath
                 }
             ];
-            registryStub.returns(gatewayWithTestData);
+            registryStub.resolves(gatewayWithTestData);
 
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
 
@@ -1148,7 +1165,7 @@ describe('SubmitTransactionCommand', () => {
                     transactionDataPath
                 }
             ];
-            registryStub.returns(gatewayWithTestData);
+            registryStub.resolves(gatewayWithTestData);
 
             showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves(undefined);
 
@@ -1184,7 +1201,7 @@ describe('SubmitTransactionCommand', () => {
                 }
             ];
 
-            registryStub.returns(gatewayWithTestData);
+            registryStub.resolves(gatewayWithTestData);
 
             const error: Error = new Error('nah');
             mySandBox.stub(fs, 'readJSON').onFirstCall().rejects(error);
@@ -1210,7 +1227,7 @@ describe('SubmitTransactionCommand', () => {
                     transactionDataPath
                 }
             ];
-            registryStub.returns(gatewayWithTestData);
+            registryStub.resolves(gatewayWithTestData);
 
             showTransactionQuickPickStub.withArgs(sinon.match.any, 'myContract', 'myChannel').resolves({
                 label: 'my-contract - instantiate',
