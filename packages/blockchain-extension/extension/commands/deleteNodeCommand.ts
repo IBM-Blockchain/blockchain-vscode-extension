@@ -141,7 +141,9 @@ export async function deleteNode(nodeTreeItem: NodeTreeItem | FabricNode, hideNo
                 outputAdapter.log(LogType.SUCCESS, `Successfully hid nodes`);
             }
         } else {
-            if (nodesToDelete.length === 1) {
+            if (nodesToDelete.length === 1 && environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT) {
+                outputAdapter.log(LogType.SUCCESS, `Node ${nodesToDelete[0].name} was removed from ${environmentRegistryEntry.name}`);
+            } else if (nodesToDelete.length === 1) {
                 outputAdapter.log(LogType.SUCCESS, `Successfully deleted node ${nodesToDelete[0].name}`);
             } else {
                 outputAdapter.log(LogType.SUCCESS, `Successfully deleted nodes`);

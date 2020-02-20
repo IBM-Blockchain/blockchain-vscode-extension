@@ -126,7 +126,7 @@ describe('EnvironmentConnectCommand', () => {
             opsToolsEnvRegistryEntry.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
             executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).resolves(true);
 
-            warningNoNodesEditFilterStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').withArgs(`Error connecting to environment ${opsToolsEnvRegistryEntry.name}: no visible nodes. Would you like to filter nodes?`);
+            warningNoNodesEditFilterStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').withArgs(`Problem connecting to environment ${opsToolsEnvRegistryEntry.name}: no visible nodes. Would you like to filter nodes?`);
             getStateStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getState');
 
         });

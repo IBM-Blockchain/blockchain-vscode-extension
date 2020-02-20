@@ -61,10 +61,10 @@ export class EnvironmentHelper {
             if (process.env.OPSTOOLS_FABRIC) {
                 // Connect to OpsTools and create environment without nodes
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
-                this.userInputUtilHelper.inputBoxStub.withArgs('Enter the url of the ops tools you want to connect to').resolves(process.env.MAP_OPSTOOLS_URL);
-                this.userInputUtilHelper.inputBoxStub.withArgs('Enter the api key of the ops tools you want to connect to').resolves(process.env.MAP_OPSTOOLS_KEY);
-                this.userInputUtilHelper.inputBoxStub.withArgs('Enter the api secret of the ops tools you want to connect to').resolves(process.env.MAP_OPSTOOLS_SECRET);
-                this.userInputUtilHelper.showQuickPickStub.withArgs('Unable to perform certificate verification. Please choose how to proceed', [UserInputUtil.ADD_CA_CERT_CHAIN, UserInputUtil.CONNECT_NO_CA_CERT_CHAIN]).resolves(UserInputUtil.CONNECT_NO_CA_CERT_CHAIN);
+                this.userInputUtilHelper.inputBoxStub.withArgs('Enter the URL of the IBM Blockchain Platform Console you want to connect to').resolves(process.env.MAP_OPSTOOLS_URL);
+                this.userInputUtilHelper.inputBoxStub.withArgs('Enter the API key of the IBM Blockchain Platform Console you want to connect to').resolves(process.env.MAP_OPSTOOLS_KEY);
+                this.userInputUtilHelper.inputBoxStub.withArgs('Enter the API secret of the IBM Blockchain Platform Console you want to connect to').resolves(process.env.MAP_OPSTOOLS_SECRET);
+                this.userInputUtilHelper.showQuickPickItemStub.withArgs('Unable to perform certificate verification. Please choose how to proceed', [{ label: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN, data: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN }, { label: UserInputUtil.CANCEL_NO_CERT_CHAIN, data: UserInputUtil.CANCEL_NO_CERT_CHAIN, description: UserInputUtil.CANCEL_NO_CERT_CHAIN_DESCRIPTION }]).resolves({ label: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN, data: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN });
                 this.userInputUtilHelper.opsToolsNodeQuickPickStub.resolves([]);
             } else if (process.env.ANSIBLE_FABRIC) {
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR});
@@ -179,10 +179,11 @@ export class EnvironmentHelper {
     }
 
     public async editNodeFilters(nodesToImport: IBlockchainQuickPickItem<FabricNode>[], environmentName: string): Promise<void> {
+        const environmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
+        this.userInputUtilHelper.showEnvironmentQuickPickStub.resolves({label: environmentName, data: environmentRegistryEntry});
         this.userInputUtilHelper.opsToolsNodeQuickPickStub.resolves(nodesToImport);
         await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, undefined, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
-        const environmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
         const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
         const nodes: FabricNode[] = await environment.getNodes();
         nodes.length.should.equal(nodesToImport.length);

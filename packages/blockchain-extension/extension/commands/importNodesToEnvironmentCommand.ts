@@ -14,21 +14,27 @@
 'use strict';
 import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem, IncludeEnvironmentOptions } from './UserInputUtil';
-import {VSCodeBlockchainOutputAdapter} from '../logging/VSCodeBlockchainOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import * as fs from 'fs-extra';
 import * as https from 'https';
 import * as path from 'path';
-import { FabricEnvironmentRegistryEntry, FabricNode, LogType, FabricEnvironment, FabricNodeType, FabricEnvironmentRegistry, EnvironmentType} from 'ibm-blockchain-platform-common';
-import {ExtensionCommands} from '../../ExtensionCommands';
-import {FabricEnvironmentManager} from '../fabric/environments/FabricEnvironmentManager';
-import {EnvironmentFactory} from '../fabric/environments/EnvironmentFactory';
+import { FabricEnvironmentRegistryEntry, FabricNode, LogType, FabricEnvironment, FabricNodeType, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { ExtensionCommands } from '../../ExtensionCommands';
+import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
+import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import Axios from 'axios';
-import {ModuleUtil} from '../util/ModuleUtil';
+import { ModuleUtil } from '../util/ModuleUtil';
 
-export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false, createMethod?: string, informOfChanges: boolean = false): Promise<boolean> {
+export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false, createMethod?: string, informOfChanges: boolean = false, showSuccess: boolean = true): Promise<boolean> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     const methodMessageString: string = createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS ? 'import' : 'filter';
-    outputAdapter.log(LogType.INFO, undefined, 'Import nodes to environment');
+    if (showSuccess) {
+        if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_NODES) {
+            outputAdapter.log(LogType.INFO, undefined, 'Import nodes to environment');
+        } else {
+            outputAdapter.log(LogType.INFO, undefined, 'Edit node filters');
+        }
+    }
 
     try {
 
@@ -37,9 +43,9 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
         let chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
         if (!environmentRegistryEntry) {
             if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS) {
-                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an OpsTool environment to filter nodes', false, true, false, IncludeEnvironmentOptions.OPSTOOLSENV) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an OpsTool environment to filter nodes', false, false, false, IncludeEnvironmentOptions.OPSTOOLSENV) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             } else {
-                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to import nodes to', false, true, false, IncludeEnvironmentOptions.OTHERENV) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to import nodes to', false, false, false, IncludeEnvironmentOptions.OTHERENV) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             }
 
             if (!chosenEnvironment) {
@@ -47,6 +53,13 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             }
 
             environmentRegistryEntry = chosenEnvironment.data;
+        }
+
+        const connectedRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+
+        // need to stop it refreshing if we are editting the one we are connected to
+        if (connectedRegistryEntry && connectedRegistryEntry.name === environmentRegistryEntry.name) {
+            FabricEnvironmentManager.instance().stopEnvironmentRefresh();
         }
 
         if (!fromAddEnvironment) {
@@ -128,42 +141,18 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                 // establish connection to Ops Tools and retrieve json file
                 const credentials: string = await keytar.getPassword('blockchain-vscode-ext', environmentRegistryEntry.url);
                 const credentialsArray: string[] = credentials.split(':');
-                if (credentialsArray.length !== 2) {
+                if (credentialsArray.length !== 3) {
                     throw new Error(`Unable to retrieve the stored credentials`);
                 }
                 const apiKey: string = credentialsArray[0];
                 const apiSecret: string = credentialsArray[1];
+                const rejectUnauthorized: boolean = credentialsArray[2] === 'true';
                 const requestOptions: any = {
-                    headers: {'Content-Type': 'application/json'},
-                    auth: {username: apiKey, password: apiSecret}
+                    headers: { 'Content-Type': 'application/json' },
+                    auth: { username: apiKey, password: apiSecret }
                 };
-                try {
-                    response = await Axios.get(api, requestOptions);
-                } catch (error) {
-                    // This needs to be fixed - exactly what codes can we get that will require this behaviour?
-                    if (error.code === 'DEPTH_ZERO_SELF_SIGNED_CERT') {
-                        const environmentBaseDirExists: boolean = await fs.pathExists(environmentBaseDir);
-                        let caCertificate: string;
-                        if (environmentBaseDirExists) {
-                            let certificateFiles: string[] = await fs.readdir(environmentBaseDir);
-                            certificateFiles = certificateFiles.filter((fileName: string) => fileName.endsWith('.pem')).map((fileName: string) => path.resolve(environmentBaseDir, fileName));
-
-                            if (certificateFiles.length > 1) {
-                                throw new Error(`Unable to connect: There are multiple certificates in ${environmentBaseDir}`);
-                            } else if (certificateFiles.length === 1) {
-                                caCertificate = await fs.readFile(certificateFiles[0], 'utf8');
-                                requestOptions.httpsAgent = new https.Agent({ca: caCertificate});
-                            }
-                        }
-                        if (!caCertificate) {
-                            requestOptions.httpsAgent = new https.Agent({rejectUnauthorized: false});
-                        }
-                        response = await Axios.get(api, requestOptions);
-
-                    } else {
-                        throw error;
-                    }
-                }
+                requestOptions.httpsAgent = new https.Agent({rejectUnauthorized: rejectUnauthorized});
+                response = await Axios.get(api, requestOptions);
 
                 const data: any = response.data;
                 let filteredData: FabricNode[] = [];
@@ -182,7 +171,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                         });
 
                     let chosenNodes: IBlockchainQuickPickItem<FabricNode>[];
-                    chosenNodes = await UserInputUtil.showNodesQuickPickBox(`Which nodes would you like to ${methodMessageString}?`, filteredData, true, allNodes, informOfChanges) as IBlockchainQuickPickItem<FabricNode>[];
+                    chosenNodes = await UserInputUtil.showNodesQuickPickBox('Edit filters: Which nodes would you like to include?', filteredData, true, allNodes, informOfChanges) as IBlockchainQuickPickItem<FabricNode>[];
 
                     let chosenNodesNames: string[] = [];
                     let chosenNodesUrls: string[] = [];
@@ -262,12 +251,15 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                     }
                 }
             }
-            if (nodesToUpdate.length === 0) {
-                const deleteEnvironment: boolean = await UserInputUtil.showConfirmationWarningMessage(`There are no nodes in the ${environment.getName()} IBM Blockchain Platform network. Do you want to delete this environment?`);
-                if (deleteEnvironment && fromAddEnvironment) {
-                    return;
-                } else if (deleteEnvironment) {
+            if (nodesToUpdate.length === 0 && !fromAddEnvironment) {
+                const deleteEnvironment: boolean = await UserInputUtil.showConfirmationWarningMessage(`There are no nodes in ${environment.getName()}. Do you want to delete this environment?`);
+                if (deleteEnvironment) {
                     await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT, environmentRegistryEntry, true);
+                }
+            } else if (nodesToUpdate.length === 0) {
+                const addEnvironment: string = await UserInputUtil.showQuickPickYesNo(`There are no nodes in ${environment.getName()}. Do you still want to add this environment?`);
+                if (addEnvironment !== UserInputUtil.YES) {
+                    return;
                 }
             }
             const currentEnvironents: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll(false);
@@ -291,7 +283,6 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             outputAdapter.log(LogType.WARNING, `Finished ${methodMessageString}ing nodes but some nodes could not be ${methodMessageString}ed`);
         }
 
-        const connectedRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
         if (connectedRegistryEntry && connectedRegistryEntry.name === environmentRegistryEntry.name && !informOfChanges) {
             // only do this if we run the command if we are connected to the one we are updating
             if (newNodes.length > 0) {

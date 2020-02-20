@@ -19,14 +19,13 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import Axios from 'axios';
-import {TestUtil} from '../TestUtil';
+import { TestUtil } from '../TestUtil';
 import { UserInputUtil, IncludeEnvironmentOptions } from '../../extension/commands/UserInputUtil';
-import {VSCodeBlockchainOutputAdapter} from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import {ExtensionCommands} from '../../ExtensionCommands';
-import {FabricEnvironmentRegistryEntry, LogType, FabricEnvironment, FabricNode, FabricEnvironmentRegistry, EnvironmentType} from 'ibm-blockchain-platform-common';
-import {FabricEnvironmentManager} from '../../extension/fabric/environments/FabricEnvironmentManager';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { ExtensionCommands } from '../../ExtensionCommands';
+import { FabricEnvironmentRegistryEntry, LogType, FabricEnvironment, FabricNode, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { ModuleUtil } from '../../extension/util/ModuleUtil';
-import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -49,19 +48,17 @@ describe('ImportNodesToEnvironmentCommand', () => {
     let showNodesQuickPickBoxStub: sinon.SinonStub;
     let getPasswordStub: sinon.SinonStub;
     let getCoreNodeModuleStub: sinon.SinonStub;
-    let readFileStub: sinon.SinonStub;
     let fsPathExistsStub: sinon.SinonStub;
-    let fsReaddirStub: sinon.SinonStub;
     let localFabricNodes: any;
     let opsToolNodes: any;
     let url: string;
     let key: string;
     let secret: string;
-    let certVerificationError: any;
-    let caCertChainUri: vscode.Uri;
+    let rejectUnauthorized: string;
     let getConnectedEnvironmentRegistryEntry: sinon.SinonStub;
     let getAllStub: sinon.SinonStub;
     let showConfirmationWarningMessageStub: sinon.SinonStub;
+    let stopEnvironmentRefreshStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
@@ -121,6 +118,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             url = 'my/OpsTool/url';
             key = 'myOpsToolKey';
             secret = 'myOpsToolSecret';
+            rejectUnauthorized = 'false';
             OpsToolRegistryEntry = new FabricEnvironmentRegistryEntry();
             OpsToolRegistryEntry.name = 'myOpsToolInstance';
             OpsToolRegistryEntry.url = url;
@@ -159,23 +157,16 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             fsPathExistsStub = mySandBox.stub(fs, 'pathExists');
             fsPathExistsStub.resolves(true);
-            caCertChainUri = vscode.Uri.file(path.join('myCaCert.pem'));
-            fsReaddirStub = mySandBox.stub(fs, 'readdir');
-            fsReaddirStub.resolves([caCertChainUri.fsPath]);
-            readFileStub = mySandBox.stub(fs, 'readFile');
-            readFileStub.resolves('-----BEGIN CERTIFICATE-----\nsomeInfo\n-----END CERTIFICATE-----');
 
-            certVerificationError = new Error('Certificate Verification Error');
-            certVerificationError.code = 'DEPTH_ZERO_SELF_SIGNED_CERT';
-            axiosGetStub.onFirstCall().rejects(certVerificationError);
-            axiosGetStub.onSecondCall().resolves({data: opsToolNodes});
+            axiosGetStub.onFirstCall().resolves({data: opsToolNodes});
             showNodesQuickPickBoxStub.resolves(opsToolNodes.map((_node: any) => ({ label: _node.display_name, data: _node })));
-            getPasswordStub = mySandBox.stub().resolves(`${key}:${secret}`);
+            getPasswordStub = mySandBox.stub().resolves(`${key}:${secret}:${rejectUnauthorized}`);
             getCoreNodeModuleStub = mySandBox.stub(ModuleUtil, 'getCoreNodeModule').returns({
                 getPassword: getPasswordStub
             });
 
             getConnectedEnvironmentRegistryEntry = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(undefined);
+            stopEnvironmentRefreshStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'stopEnvironmentRefresh');
             getAllStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([environmentRegistryEntry, OpsToolRegistryEntry]);
             showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
             showConfirmationWarningMessageStub.callThrough();
@@ -196,8 +187,14 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.been.calledOnce;
             getNodesStub.should.have.been.calledTwice;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            stopEnvironmentRefreshStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
+        });
+
+        it('should update environment periodically and not show the log message saying filter nodes has been run', async () => {
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, false, false);
+            logSpy.should.not.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
         });
 
         it('should test nodes can be added to a new OpsTool instance', async () => {
@@ -209,7 +206,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -224,9 +221,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
-            showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, true, false, IncludeEnvironmentOptions.OPSTOOLSENV);
+            showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, false, false, IncludeEnvironmentOptions.OPSTOOLSENV);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, OpsToolRegistryEntry);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            stopEnvironmentRefreshStub.should.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -242,9 +240,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
-            showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, true, false, IncludeEnvironmentOptions.OPSTOOLSENV);
+            showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, false, false, IncludeEnvironmentOptions.OPSTOOLSENV);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            stopEnvironmentRefreshStub.should.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -259,7 +258,8 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, OpsToolRegistryEntry);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            stopEnvironmentRefreshStub.should.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -275,7 +275,8 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, OpsToolRegistryEntry);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            stopEnvironmentRefreshStub.should.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -288,9 +289,9 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.have.been.calledOnce;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: Error importing the keytar module`);
-            });
+        });
 
         it('should handle when the api key and secret cannot be retrieved when creating new OpsTool instance', async () => {
             const error: Error = new Error('newError');
@@ -302,12 +303,12 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.have.been.calledOnce;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${error.message}`, `Failed to acquire nodes from ${url}, with error ${error.toString()}`);
         });
 
         it('should handle when the api key/secret stored have the wrong number of entries (separated by ":") when edditing filters on existing OpsTool instance', async () => {
-            getPasswordStub.resolves(`${key}:${secret}:someMoreInfo`);
+            getPasswordStub.resolves(`${key}:${secret}:${rejectUnauthorized}:someMoreInfo`);
             const error: Error = new Error('Unable to retrieve the stored credentials');
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
@@ -316,7 +317,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.have.been.calledOnce;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${error.message}`, `Failed to acquire nodes from ${url}, with error ${error.toString()}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: ${error.message}`);
 
@@ -365,56 +366,8 @@ describe('ImportNodesToEnvironmentCommand', () => {
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
 
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
-        });
-
-        it('should handle no certificate verification on a new Ops Tool instance', async () => {
-            // when creating a new environment from ops tools, if a certificate was not provided the environment folder will not exist.
-            fsPathExistsStub.resolves(false);
-
-            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
-
-            readFileStub.withArgs(caCertChainUri.fsPath, 'utf8').should.have.not.been.called;
-            ensureDirStub.should.have.been.calledOnce;
-            updateNodeStub.should.have.been.calledTwice;
-            getNodesStub.should.have.been.calledTwice;
-            readFileStub.should.have.not.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
-        });
-
-        it('should handle no certificate verification on an existing Ops Tool instance', async () => {
-            // when editing filters on an existing environment from ops tools, if a certificate was not provided the environment folder will exist, but no certificate will be present.
-            fsReaddirStub.resolves([]);
-
-            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
-
-            readFileStub.should.have.not.been.called;
-            ensureDirStub.should.have.been.calledOnce;
-            updateNodeStub.should.have.been.calledTwice;
-            getNodesStub.should.have.been.calledTwice;
-            readFileStub.should.have.not.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
-        });
-
-        it('should throw error when multiple certificates present when editing filters on an existing Ops Tool instance', async () => {
-            const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(OpsToolRegistryEntry);
-            const environmentBaseDir: string = path.resolve(environment.getPath());
-            fsReaddirStub.resolves(['myCaCert.pem', 'myCaCert2.pem']);
-            const expectedError: Error = new Error(`Unable to connect: There are multiple certificates in ${environmentBaseDir}`);
-
-            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
-
-            readFileStub.should.have.not.been.called;
-            ensureDirStub.should.have.not.been.called;
-            updateNodeStub.should.have.not.been.called;
-            getNodesStub.should.have.been.calledOnce;
-            readFileStub.should.have.not.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${expectedError.message}`, `Failed to acquire nodes from ${url}, with error ${expectedError.toString()}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: ${expectedError.message}`);
         });
 
         it('should test nodes can be added with environment chosen', async () => {
@@ -428,6 +381,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            stopEnvironmentRefreshStub.should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
@@ -444,6 +398,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            stopEnvironmentRefreshStub.should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
@@ -462,13 +417,14 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            stopEnvironmentRefreshStub.should.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
         });
 
         it('should test that connect command is not called when connected to an environment you are not updating', async () => {
-            const anotherEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({name: 'anotherNetwork'});
+            const anotherEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({ name: 'anotherNetwork' });
             getConnectedEnvironmentRegistryEntry.returns(anotherEnvironmentRegistryEntry);
 
             const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
@@ -481,6 +437,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            stopEnvironmentRefreshStub.should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
@@ -498,17 +455,17 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 msp_id: 'Org1MSP',
                 container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
             },
-                {
-                    short_name: 'ca.org1.example.com',
-                    name: 'ca.org1.example.com',
-                    api_url: 'http://localhost:17054',
-                    type: 'fabric-ca',
-                    ca_name: 'ca.org1.example.com',
-                    wallet: 'Org1',
-                    identity: 'admin',
-                    msp_id: 'Org1MSP',
-                    container_name: 'fabricvscodelocalfabric_ca.org1.example.com'
-                }
+            {
+                short_name: 'ca.org1.example.com',
+                name: 'ca.org1.example.com',
+                api_url: 'http://localhost:17054',
+                type: 'fabric-ca',
+                ca_name: 'ca.org1.example.com',
+                wallet: 'Org1',
+                identity: 'admin',
+                msp_id: 'Org1MSP',
+                container_name: 'fabricvscodelocalfabric_ca.org1.example.com'
+            }
             ]);
 
             const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
@@ -521,6 +478,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            stopEnvironmentRefreshStub.should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
@@ -537,17 +495,17 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 msp_id: 'Org1MSP',
                 container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
             },
-                {
-                    short_name: 'ca.org1.example.com',
-                    name: 'peer0.org1.example.com',
-                    api_url: 'http://localhost:17054',
-                    type: 'fabric-ca',
-                    ca_name: 'ca.org1.example.com',
-                    wallet: 'Org1',
-                    identity: 'admin',
-                    msp_id: 'Org1MSP',
-                    container_name: 'fabricvscodelocalfabric_ca.org1.example.com'
-                }
+            {
+                short_name: 'ca.org1.example.com',
+                name: 'peer0.org1.example.com',
+                api_url: 'http://localhost:17054',
+                type: 'fabric-ca',
+                ca_name: 'ca.org1.example.com',
+                wallet: 'Org1',
+                identity: 'admin',
+                msp_id: 'Org1MSP',
+                container_name: 'fabricvscodelocalfabric_ca.org1.example.com'
+            }
             ]);
 
             const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
@@ -560,6 +518,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            stopEnvironmentRefreshStub.should.not.have.been.called;
 
             const error: Error = new Error('A node should have a name property');
 
@@ -587,6 +546,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             addMoreStub.should.have.been.calledTwice;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            stopEnvironmentRefreshStub.should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
@@ -668,7 +628,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.getCall(2).should.have.been.calledWith(LogType.WARNING, 'Finished importing nodes but some nodes could not be imported');
         });
 
-        it('should throw error when failing to connect to Ops Tool URL when edditing nodes in existing environment', async () => {
+        it('should throw error when failing to connect to Ops Tool URL when editing nodes in existing environment', async () => {
             getNodesStub.onSecondCall().resolves([]);
             const connectionError: Error = new Error('some error');
             axiosGetStub.onFirstCall().rejects(connectionError);
@@ -679,7 +639,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.have.been.calledOnce;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${connectionError.message}`, `Failed to acquire nodes from ${url}, with error ${connectionError.toString()}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: ${connectionError.message}`);
         });
@@ -694,7 +654,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.have.been.calledOnce;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${error.message}`, `Failed to acquire nodes from ${url}, with error ${error.toString()}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: ${error.message}`);
         });
@@ -707,7 +667,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.called;
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -722,7 +682,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.called;
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.should.have.not.been.calledWith(LogType.SUCCESS, 'Successfully filtered all nodes');
         });
 
@@ -755,7 +715,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             }].concat(opsToolNodes);
             getNodesStub.reset();
             getNodesStub.resolves(someNodes);
-            axiosGetStub.onSecondCall().resolves({data: someNodes});
+            axiosGetStub.onFirstCall().resolves({data: someNodes});
             showNodesQuickPickBoxStub.resolves();
 
             const result: boolean = await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
@@ -764,7 +724,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.called;
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.should.have.not.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -776,12 +736,12 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.have.not.been.called;
             getNodesStub.should.have.been.calledOnce;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.should.have.not.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
         it('should handle user choosing a subset of nodes from Ops Tool from a new Ops Tool instance', async () => {
-            showNodesQuickPickBoxStub.resolves({label: opsToolNodes[0].display_name, data: opsToolNodes[0]});
+            showNodesQuickPickBoxStub.resolves({ label: opsToolNodes[0].display_name, data: opsToolNodes[0] });
 
             await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
@@ -789,7 +749,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -825,8 +785,8 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ];
             allNodes.push(...orderer);
             // User chooses peer and one of the orderer nodes
-            showNodesQuickPickBoxStub.resolves([{label: allNodes[0].display_name, data: allNodes[0]},
-                {label: allNodes[2].cluster_name, data: allNodes[2]}]);
+            showNodesQuickPickBoxStub.resolves([{ label: allNodes[0].display_name, data: allNodes[0] },
+            { label: allNodes[2].cluster_name, data: allNodes[2] }]);
 
             // Resulting visible nodes should be peer and all orderer nodes. Ca node should be hidden.
             const hiddenCaNode: FabricNode = allNodes[1];
@@ -854,7 +814,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
@@ -1045,8 +1005,8 @@ describe('ImportNodesToEnvironmentCommand', () => {
             }];
             getNodesStub.resetBehavior();
             getNodesStub.resolves(originalNodes);
-            axiosGetStub.onSecondCall().resolves({data: nodesFromOpsTools});
-            showNodesQuickPickBoxStub.resolves({label: nodesFromOpsTools[0].display_name, data: nodesFromOpsTools[0]});
+            axiosGetStub.onFirstCall().resolves({data: nodesFromOpsTools});
+            showNodesQuickPickBoxStub.resolves({ label: nodesFromOpsTools[0].display_name, data: nodesFromOpsTools[0] });
             const error: Error = new Error('Some error');
             executeCommandStub.withArgs(ExtensionCommands.DELETE_NODE).throws(error);
 
@@ -1057,10 +1017,30 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.called;
             getNodesStub.should.have.been.calledTwice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.should.have.been.calledWith(LogType.ERROR, `Error deleting node: ${error.message}`, `Error deleting node: ${error.toString()}`);
             logSpy.should.have.been.calledWith(LogType.ERROR, `Error deletinging node peer1.org1.example.com: ${error.message}`, `Error deleting node peer1.org1.example.com: ${error.toString()}`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
+        });
+
+        it('should handle user chosing not to add environment after no nodes in Ops Tool instance', async () => {
+            getNodesStub.resetBehavior();
+            getNodesStub.onFirstCall().resolves([]);
+            getNodesStub.onSecondCall().throws(new Error('should never get this far'));
+            axiosGetStub.onFirstCall().resolves([]);
+
+            const yesNoStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').resolves(UserInputUtil.NO);
+
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+
+            getCoreNodeModuleStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.not.been.called;
+            getNodesStub.should.have.been.calledOnce;
+            showNodesQuickPickBoxStub.should.not.have.been.called;
+            yesNoStub.should.have.been.calledWithExactly(`There are no nodes in ${OpsToolRegistryEntry.name}. Do you still want to add this environment?`);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, `Successfully filtered nodes`);
         });
 
         it('should handle user chosing to delete environment after all nodes have been deleted from an Ops Tool instance', async () => {
@@ -1083,7 +1063,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.resetBehavior();
             getNodesStub.onFirstCall().resolves(originalNodes);
             getNodesStub.onSecondCall().throws(new Error('should never get this far'));
-            axiosGetStub.onSecondCall().resolves([]);
+            axiosGetStub.onFirstCall().resolves([]);
             showConfirmationWarningMessageStub.resolves(true);
             getAllStub.resolves([]);
             executeCommandStub.withArgs(ExtensionCommands.DELETE_NODE).resolves();
@@ -1099,8 +1079,28 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledOnce;
             getAllStub.should.have.been.calledOnce;
             showNodesQuickPickBoxStub.should.not.have.been.called;
-            showConfirmationWarningMessageStub.should.have.been.calledWithExactly(`There are no nodes in the ${OpsToolRegistryEntry.name} IBM Blockchain Platform network. Do you want to delete this environment?`);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            showConfirmationWarningMessageStub.should.have.been.calledWithExactly(`There are no nodes in ${OpsToolRegistryEntry.name}. Do you want to delete this environment?`);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
+        });
+
+        it('should handle user choosing to add environment when no nodes in Ops Tool instance', async () => {
+            getNodesStub.resetBehavior();
+            getNodesStub.onFirstCall().resolves([]);
+            getNodesStub.onSecondCall().resolves([]);
+            axiosGetStub.onFirstCall().resolves([]);
+
+            const yesNoStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').resolves(UserInputUtil.YES);
+
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+
+            getCoreNodeModuleStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.not.been.called;
+            getNodesStub.should.have.been.calledTwice;
+            showNodesQuickPickBoxStub.should.not.have.been.called;
+            yesNoStub.should.have.been.calledWithExactly(`There are no nodes in ${OpsToolRegistryEntry.name}. Do you still want to add this environment?`);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
         it('should handle user chosing not to delete environment after all nodes have been deleted from an Ops Tool instance', async () => {
@@ -1123,7 +1123,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.resetBehavior();
             getNodesStub.onFirstCall().resolves(originalNodes);
             getNodesStub.onSecondCall().resolves([]);
-            axiosGetStub.onSecondCall().resolves([]);
+            axiosGetStub.onFirstCall().resolves([]);
             showConfirmationWarningMessageStub.resolves(false);
             getAllStub.resolves([OpsToolRegistryEntry]);
             executeCommandStub.withArgs(ExtensionCommands.DELETE_NODE).resolves();
@@ -1139,33 +1139,9 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.should.have.been.calledTwice;
             getAllStub.should.have.been.calledOnce;
             showNodesQuickPickBoxStub.should.not.have.been.called;
-            showConfirmationWarningMessageStub.should.have.been.calledWithExactly(`There are no nodes in the ${OpsToolRegistryEntry.name} IBM Blockchain Platform network. Do you want to delete this environment?`);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            showConfirmationWarningMessageStub.should.have.been.calledWithExactly(`There are no nodes in ${OpsToolRegistryEntry.name}. Do you want to delete this environment?`);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
-
-        it('should handle user creating Ops Tool environment from a network with no nodes and chosing to delete environment', async () => {
-            getNodesStub.resolves([]);
-            axiosGetStub.onSecondCall().resolves([]);
-            showNodesQuickPickBoxStub.resolves([]);
-            showConfirmationWarningMessageStub.resolves(true);
-            getAllStub.resolves([]);
-            executeCommandStub.withArgs(ExtensionCommands.DELETE_NODE).resolves();
-            executeCommandStub.withArgs(ExtensionCommands.DELETE_ENVIRONMENT).resolves();
-
-            const result: boolean = await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
-
-            should.equal(result, undefined);
-            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.DELETE_NODE);
-            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
-            getCoreNodeModuleStub.should.have.been.calledOnce;
-            ensureDirStub.should.have.been.calledOnce;
-            updateNodeStub.should.have.not.been.called;
-            getNodesStub.should.have.been.calledOnce;
-            getAllStub.should.have.not.been.called;
-            showConfirmationWarningMessageStub.should.have.been.calledWithExactly(`There are no nodes in the ${OpsToolRegistryEntry.name} IBM Blockchain Platform network. Do you want to delete this environment?`);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
-        });
-
     });
 });

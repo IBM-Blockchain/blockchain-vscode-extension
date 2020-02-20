@@ -27,7 +27,9 @@ import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 
 export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry, showSuccess: boolean = true): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-    outputAdapter.log(LogType.INFO, undefined, `connecting to fabric environment`);
+    if (showSuccess) {
+        outputAdapter.log(LogType.INFO, undefined, `connecting to fabric environment`);
+    }
 
     let fabricEnvironment: FabricEnvironment | AnsibleEnvironment | ManagedAnsibleEnvironment | LocalEnvironment;
 
@@ -67,13 +69,13 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
         if (fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT) {
             let informOfChanges: boolean = true;
             if (nodes.length === 0) {
-                const importNodes: boolean = await UserInputUtil.showConfirmationWarningMessage(`Error connecting to environment ${fabricEnvironmentRegistryEntry.name}: no visible nodes. Would you like to filter nodes?`);
+                const importNodes: boolean = await UserInputUtil.showConfirmationWarningMessage(`Problem connecting to environment ${fabricEnvironmentRegistryEntry.name}: no visible nodes. Would you like to filter nodes?`);
                 if (!importNodes) {
                     return;
                 }
                 informOfChanges = false;
             }
-            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, fabricEnvironmentRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, informOfChanges);
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, fabricEnvironmentRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, informOfChanges, showSuccess);
             nodes = await fabricEnvironment.getNodes();
             if (nodes.length === 0) {
                 FabricEnvironmentManager.instance().disconnect();
