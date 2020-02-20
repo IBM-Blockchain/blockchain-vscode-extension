@@ -1,5 +1,5 @@
-# IBM Blockchain Platform Extension updated to v1.0.19
-_Release date: February 10th 2020_
+# IBM Blockchain Platform Extension updated to v1.0.20
+_Release date: February 20th 2020_
 
 Announcements
 ---
