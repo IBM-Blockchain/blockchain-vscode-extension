@@ -1608,6 +1608,46 @@ describe('UserInputUtil', () => {
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Local runtime has no instantiated chaincodes');
 
         });
+
+        it('should only show smart contracts that have associations with transaction data directories on dissociate', async () => {
+            const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            registryEntry.name = 'myFabric';
+            registryEntry.transactionDataDirectories = [{
+                chaincodeName: 'biscuit-network',
+                channelName: 'channelOne',
+                transactionDataPath: 'some/file/path'
+            }];
+            mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
+
+            quickPickStub.resolves({
+                label: 'biscuit-network@0.0.1',
+                data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }
+            });
+
+            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to dissociate a transaction data directory from', undefined, true);
+            result.should.deep.equal({
+                label: 'biscuit-network@0.0.1',
+                data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }
+            });
+
+        });
+
+        it('should not show instantiated chaincodes that are not associated with a transaction data directory on dissociate', async () => {
+            const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            registryEntry.name = 'myFabric';
+            registryEntry.transactionDataDirectories = [];
+            mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
+            await UserInputUtil.showClientInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to dissociate a transaction data directory from', undefined, true);
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'No smart contracts with associations to transaction data directories found');
+        });
+
+        it('should not show instantiated chaincodes for dissociation if no associations exist', async () => {
+            const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            registryEntry.name = 'myFabric';
+            mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
+            await UserInputUtil.showClientInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to dissociate a transaction data directory from', undefined, true);
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'No smart contracts with associations to transaction data directories found');
+        });
     });
 
     describe('showRuntimeInstantiatedSmartContractsQuickPick', () => {

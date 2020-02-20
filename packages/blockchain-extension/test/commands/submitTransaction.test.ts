@@ -930,7 +930,7 @@ describe('SubmitTransactionCommand', () => {
             registryStub.returns(gatewayWithTestData);
 
             showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves({
-                label: 'None (manual entry)',
+                label: 'No (manual entry)',
                 description: '',
                 data: undefined
             });
@@ -980,7 +980,7 @@ describe('SubmitTransactionCommand', () => {
             registryStub.returns(gatewayWithTestData);
 
             showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves({
-                label: 'None (manual entry)',
+                label: 'No (manual entry)',
                 description: '',
                 data: undefined
             });
