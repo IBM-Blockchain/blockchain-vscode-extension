@@ -914,6 +914,13 @@ describe('UserInputUtil', () => {
 
             logSpy.should.have.been.calledWith(LogType.ERROR, undefined, 'No connection to a blockchain found');
         });
+
+        it('should not show quickpick if there are no packaged/installed contracts to instantiate', async () => {
+            fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerOne').resolves([]);
+            fabricRuntimeConnectionStub.getInstantiatedChaincode.withArgs(['myPeerOne'], 'myChannel').resolves([]);
+
+            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', 'myChannel', ['myPeerOne']).should.eventually.be.rejectedWith('No contracts found');
+        });
     });
 
     describe('showGeneratorOptions', () => {
