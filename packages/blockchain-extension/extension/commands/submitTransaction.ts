@@ -141,14 +141,14 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
                 // shouldn't show quickpick if there is no valid transaction data to submit
                 if (quickPickItems.length > 0) {
                     quickPickItems.push({
-                        label: 'None (manual entry)',
+                        label: 'No (manual entry)',
                         description: '',
                         data: undefined
                     });
                     const chosenTransaction: IBlockchainQuickPickItem = await UserInputUtil.showQuickPickItem('Do you want to provide a file of transaction data for this transaction?', quickPickItems, false) as IBlockchainQuickPickItem;
                     if (!chosenTransaction) {
                         return;
-                    } else if  (chosenTransaction.label !== 'None (manual entry)') {
+                    } else if  (chosenTransaction.label !== 'No (manual entry)') {
                         const txnDataObject: ITransactionData = chosenTransaction.data;
 
                         if (txnDataObject.arguments) {

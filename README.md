@@ -65,7 +65,11 @@ The extension allow you to connect to any Hyperledger Fabric instance and perfor
 
 To connect to a Hyperledger Fabric instance on the `Fabric Environments` panel click the `+` button. This will ask you for JSON node files that describe how to connect to a Hyperledger Fabric Node i.e. peer, orderer, or certificate authority.
 
-If you are connecting to an instance of IBM Blockchain platform the JSON node files can be exported from the operational console, (see the tutorials for more information). For other instances of Hyperledger Fabric you can create the JSON node files yourself.
+If you are connecting to an instance of IBM Blockchain Platform console on IBM Cloud the JSON node files can be exported, (see the tutorials for more information).
+
+If connecting to an IBM Blockchain Platform console software version, you can add an environment by connecting directly to the console.
+
+For other instances of Hyperledger Fabric you can create the JSON node files yourself.
 
 ##### JSON Node Files
 All node files must contain a `name`, `type`, and `api_url` property. There are three types: `fabric-peer`, `fabric-ca` and `fabric-orderer`. `Peer` and `Orderer` nodes must also contain an `msp_id` property. While `Certificate Authority` nodes must contain a `ca_name` property. If you have `TLS` enabled then then the `pem` property must also be set.
