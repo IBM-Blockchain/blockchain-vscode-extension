@@ -43,7 +43,7 @@ export async function dissociateTransactionDataDirectory(chaincode?: Instantiate
         }
 
         // Ask for instantiated smart contract
-        chosenChaincode = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to dissociate a transaction data directory from');
+        chosenChaincode = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to dissociate a transaction data directory from', undefined, true);
         if (!chosenChaincode) {
             return;
         }
@@ -68,11 +68,17 @@ export async function dissociateTransactionDataDirectory(chaincode?: Instantiate
     try {
         // Dissociate the transaction data directory by removing the entry from the array
         const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
+
+        if (!gateway.transactionDataDirectories) {
+            throw new Error(`no transaction data directories associated with ${chaincodeLabel}`);
+        }
+
         const indexToRemove: number = gateway.transactionDataDirectories.findIndex((item: {chaincodeName: string, channelName: string, transactionDataPath: string}) => {
             return item.chaincodeName === chaincodeName && item.channelName === channelName;
         });
+
         if (indexToRemove === -1) {
-            throw new Error(`no transaction data directory associated with ${chaincodeLabel}`);
+            throw new Error(`no transaction data directories associated with ${chaincodeLabel}`);
         }
         gateway.transactionDataDirectories.splice(indexToRemove, 1);
         await fabricGatewayRegistry.update(gateway);

@@ -539,12 +539,12 @@ export class UserInputUtil {
         return reallyDoIt.title === 'Yes';
     }
 
-    public static async showClientInstantiatedSmartContractsQuickPick(prompt: string, channelName?: string): Promise<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> | undefined> {
+    public static async showClientInstantiatedSmartContractsQuickPick(prompt: string, channelName?: string, showAssociated?: boolean): Promise<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> | undefined> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         const connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
         const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
 
-        const instantiatedChaincodes: Array<{ name: string, version: string, channel: string }> = [];
+        let instantiatedChaincodes: Array<{ name: string, version: string, channel: string }> = [];
 
         for (const [thisChannelName] of channelMap) {
             if (channelName && (channelName !== thisChannelName)) {
@@ -554,6 +554,23 @@ export class UserInputUtil {
             for (const chaincode of chaincodes) {
                 const data: { name: string, version: string, channel: string } = { name: chaincode.name, version: chaincode.version, channel: thisChannelName };
                 instantiatedChaincodes.push(data);
+            }
+        }
+
+        // if calling from dissociateTransactionDataDirectory, filter so that we only show chaincodes that have associations
+        if (showAssociated === true) {
+            const gateway: FabricGatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
+            const  transactionDataDirectories: Array<{chaincodeName: string, channelName: string, transactionDataPath: string}> = gateway.transactionDataDirectories;
+            if (transactionDataDirectories === undefined || transactionDataDirectories.length === 0) {
+                outputAdapter.log(LogType.ERROR, 'No smart contracts with associations to transaction data directories found');
+                return;
+            } else {
+                const tempChaincodes: Array<{ name: string, version: string, channel: string }> = instantiatedChaincodes.filter((chaincode: FabricChaincode) => {
+                    return transactionDataDirectories.some((directory: {chaincodeName: string, channelName: string, transactionDataPath: string}) => {
+                        return directory.chaincodeName === chaincode.name;
+                    });
+                });
+                instantiatedChaincodes = tempChaincodes;
             }
         }
 
