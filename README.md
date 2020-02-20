@@ -361,7 +361,7 @@ The `startPort` and `endPort` are used when attempting to start the Local Fabric
 If you decide to change these ports, you will need to run the `Teardown Fabric Runtime` command before starting it again. This is required in order to regenerate the files containing the new port range.
 
 ## Using transaction data files to submit a transaction
-Instead of manually typing in your arguments when you want to submit or evaluate a transaction, you can instead associate a directory of transaction data with your smart contract, and use the data files in that directory to submit your transaction instead.
+Instead of manually typing in your arguments when you want to submit or evaluate a transaction, you can instead associate a directory of transaction data with your smart contract, and use the data files in that directory to submit your transaction instead. These associations are stored on the gateway that you are connected to when you associate - if you connect to a different gateway that has the same smart contract installed and instantiated, you will have to associate your transaction data directory again.
 
 To associate a directory of transaction data with your smart contract, run the `Associate Directory for Transaction Data` command, and choose the directory that you want to associate. When you submit or evaluate a transaction when you have associated a transaction data directory, you will be able to submit any transaction data in that directory instead of inputting the informattion manually.
 
