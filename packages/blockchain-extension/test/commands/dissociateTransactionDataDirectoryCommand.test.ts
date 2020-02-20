@@ -256,10 +256,25 @@ describe('DissociateTestDataDirectoryCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY);
 
-            const error: Error = new Error(`no transaction data directory associated with ${instantiatedSmartContract.label}`);
+            const error: Error = new Error(`no transaction data directories associated with ${instantiatedSmartContract.label}`);
 
             logSpy.getCall(2).should.have.been.calledWithExactly(LogType.INFO, undefined, 'dissociateTestDataDirectory');
             logSpy.getCall(3).should.have.been.calledWithExactly(LogType.ERROR, `Unable to dissociate transaction data directory: ${error.message}`, `Unable to dissociate transaction data directory: ${error.toString()}`);
+        });
+
+        it('should error if trying to dissociate a smart contract when no associations exists', async () => {
+            gatewayRegistryEntry = new FabricGatewayRegistryEntry({
+                name: 'myGateway',
+                associatedWallet: '',
+            });
+            getGatewayRegistryStub.returns(gatewayRegistryEntry);
+
+            await vscode.commands.executeCommand(ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY);
+
+            const error: Error = new Error(`no transaction data directories associated with ${instantiatedSmartContract.label}`);
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'dissociateTestDataDirectory');
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Unable to dissociate transaction data directory: ${error.message}`, `Unable to dissociate transaction data directory: ${error.toString()}`);
         });
     });
 });

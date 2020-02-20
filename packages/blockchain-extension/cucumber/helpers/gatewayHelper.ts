@@ -135,7 +135,7 @@ export class GatewayHelper {
                 });
             } else {
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Do you want to provide a file of transaction data for this transaction?').resolves({
-                    label: 'None (manual entry)',
+                    label: 'No (manual entry)',
                     description: '',
                     data: undefined
                 });
