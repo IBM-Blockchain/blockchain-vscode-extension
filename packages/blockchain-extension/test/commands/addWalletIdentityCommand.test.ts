@@ -66,6 +66,7 @@ describe('AddWalletIdentityCommand', () => {
         let sendTelemetryEventStub: sinon.SinonStub;
         let browseStub: sinon.SinonStub;
         let connectionProfilePathStub: sinon.SinonStub;
+        let walletExistsStub: sinon.SinonStub;
 
         beforeEach(async () => {
 
@@ -127,6 +128,7 @@ describe('AddWalletIdentityCommand', () => {
             sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
             browseStub = mySandBox.stub(UserInputUtil, 'browse');
 
+            walletExistsStub = mySandBox.stub(fabricWallet, 'exists').resolves(false);
         });
 
         afterEach(async () => {
@@ -304,6 +306,21 @@ describe('AddWalletIdentityCommand', () => {
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to wallet`);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addWalletIdentityCommand', { method: 'enrollmentID' });
+        });
+
+        it('should error when user tries to add an identity with the same name as one that already exists', async () => {
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
+            showWalletsQuickPickStub.resolves({
+                label: 'externalWallet',
+                data: externalWallet
+            });
+            const identityName: string = 'greenConga';
+            inputBoxStub.onFirstCall().resolves(identityName);
+            walletExistsStub.resolves(true);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `An identity called ${identityName} already exists`);
         });
 
         it('should return when user cancels when selecting a CA to enroll with', async () => {
