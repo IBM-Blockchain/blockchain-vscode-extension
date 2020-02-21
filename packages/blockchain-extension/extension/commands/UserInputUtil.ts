@@ -425,7 +425,12 @@ export class UserInputUtil {
             placeHolder: prompt
         };
 
-        return await vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+        if (quickPickItems.length === 0) {
+            throw new Error('No contracts found');
+        } else {
+            return await vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+        }
+
     }
 
     public static async showChannelQuickPickBox(prompt: string, channelMap?: Map<string, Array<string>>): Promise<IBlockchainQuickPickItem<Array<string>>> {
