@@ -1990,6 +1990,12 @@ describe('UserInputUtil', () => {
             ]);
         });
 
+        it('should throw error if no packages found to install', async () => {
+            mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([]);
+            await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', new Set(['myPeerOne'])).should.eventually.be.rejectedWith(`No packages found to install on peer`);
+            quickPickStub.should.not.have.been.called;
+        });
+
         it('should give error if no connection', async () => {
             environmentStub.returns(undefined);
             await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', new Set(['myPeerOne']));
