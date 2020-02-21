@@ -1,0 +1,51 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+# http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+steps:
+  - bash: |
+      set -ev
+      cd ./packages/blockchain-extension
+      npm run productionFlag
+    displayName: Set production flag
+    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags')
+
+  - bash: |
+      set -ev
+      lerna run createModule
+    displayName: npm pack the modules
+
+  - bash: |
+      set -ev
+      cp ./README.md ./packages/blockchain-extension/README.md
+      cp ./CHANGELOG.md ./packages/blockchain-extension/CHANGELOG.md
+      cp -r ./media ./packages/blockchain-extension/media
+      cd ./packages/blockchain-extension
+      npm install ../blockchain-ui/ibm-blockchain-platform-ui-*.tgz
+      npm install ../blockchain-common/ibm-blockchain-platform-common-*.tgz
+      npm install ../blockchain-wallet/ibm-blockchain-platform-wallet-*.tgz
+      npm install ../blockchain-environment-v1/ibm-blockchain-platform-environment-v1-*.tgz
+      npm install ../blockchain-gateway-v1/ibm-blockchain-platform-gateway-v1-*.tgz
+      npm run package
+
+    displayName: package extension
+
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Build.SourcesDirectory)/packages/blockchain-extension'
+      contents: |
+        ibm-blockchain-platform-*.vsix
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: vscode-package

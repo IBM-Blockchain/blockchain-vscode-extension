@@ -117,10 +117,10 @@ export class DependencyManager {
             if (!this.isValidDependency(dependencies.dockerCompose)) {
                 return false;
             }
-        }
 
-        if (!this.isValidDependency(dependencies.systemRequirements)) {
-            return false;
+            if (!this.isValidDependency(dependencies.systemRequirements)) {
+                return false;
+            }
         }
 
         if (process.platform === 'win32') {
@@ -134,10 +134,10 @@ export class DependencyManager {
                 if (!this.isValidDependency(dependencies.buildTools)) {
                     return false;
                 }
-            }
 
-            if (!this.isValidDependency(dependencies.dockerForWindows)) {
-                return false;
+                if (!this.isValidDependency(dependencies.dockerForWindows)) {
+                    return false;
+                }
             }
 
         }
@@ -239,14 +239,22 @@ export class DependencyManager {
                 dependencies.dockerCompose.version = composeVersion;
             }
 
+            dependencies.systemRequirements = { name: 'System Requirements', id: 'systemRequirements', complete: undefined, checkbox: true, required: true, text: 'In order to support the local runtime, please confirm your system has at least 4GB of RAM' };
+
+            if (!extensionData.systemRequirements) {
+                dependencies.systemRequirements.complete = false;
+            } else {
+                dependencies.systemRequirements.complete = true;
+            }
+
         }
 
         if (process.platform === 'win32') {
             // Windows
 
-            dependencies.dockerForWindows = { name: 'Docker for Windows', id: 'dockerForWindows', complete: undefined, checkbox: true, required: true, text: 'Docker for Windows must be configured to use Linux containers (this is the default)' };
-
             if (localFabricEnabled) {
+                dependencies.dockerForWindows = { name: 'Docker for Windows', id: 'dockerForWindows', complete: undefined, checkbox: true, required: true, text: 'Docker for Windows must be configured to use Linux containers (this is the default)' };
+
                 dependencies.openssl = { name: 'OpenSSL', required: true, version: undefined, url: 'http://slproweb.com/products/Win32OpenSSL.html', requiredVersion: Dependencies.OPENSSL_REQUIRED, requiredLabel: 'for Node 8.x and Node 10.x respectively' };
                 dependencies.buildTools = { name: 'C++ Build Tools', required: true, version: undefined, url: 'https://github.com/felixrieseberg/windows-build-tools#windows-build-tools', requiredVersion: undefined, requiredLabel: undefined };
                 try {
@@ -281,12 +289,12 @@ export class DependencyManager {
                 } catch (error) {
                     // Ignore
                 }
-            }
 
-            if (!extensionData.dockerForWindows) {
-                dependencies.dockerForWindows.complete = false;
-            } else {
-                dependencies.dockerForWindows.complete = true;
+                if (!extensionData.dockerForWindows) {
+                    dependencies.dockerForWindows.complete = false;
+                } else {
+                    dependencies.dockerForWindows.complete = true;
+                }
             }
 
         }
@@ -306,14 +314,6 @@ export class DependencyManager {
             } catch (error) {
                 // Ignore
             }
-        }
-
-        dependencies.systemRequirements = { name: 'System Requirements', id: 'systemRequirements', complete: undefined, checkbox: true, required: true, text: 'In order to support the local runtime, please confirm your system has at least 4GB of RAM' };
-
-        if (!extensionData.systemRequirements) {
-            dependencies.systemRequirements.complete = false;
-        } else {
-            dependencies.systemRequirements.complete = true;
         }
 
         // We want to display the optional dependencies last
