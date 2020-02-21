@@ -59,7 +59,8 @@ export async function addWallet(createIdentity: boolean = true): Promise<FabricW
             // Check if a wallet with the same name already exists
             const exists: boolean = await fabricWalletRegistry.exists(walletName);
             if (exists) {
-                throw new Error('A wallet with this name already exists.');
+                outputAdapter.log(LogType.ERROR, `A wallet with this name already exists.`);
+                return;
             }
 
             // Add the wallet to the registry
@@ -87,7 +88,8 @@ export async function addWallet(createIdentity: boolean = true): Promise<FabricW
             // Check if a wallet with the same name already exists
             const exists: boolean = await fabricWalletRegistry.exists(walletName);
             if (exists) {
-                throw new Error('A wallet with this name already exists.');
+                outputAdapter.log(LogType.ERROR, `A wallet with this name already exists.`);
+                return;
             }
 
             // Add the wallet to the registry
