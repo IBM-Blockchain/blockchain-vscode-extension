@@ -61,6 +61,12 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
         return;
     }
 
+    const identityExists: boolean = await wallet.exists(identityName);
+    if (identityExists) {
+        outputAdapter.log(LogType.ERROR, `An identity called ${identityName} already exists`);
+        return;
+    }
+
     let isManagedWallet: boolean;
     if (walletRegistryEntry && walletRegistryEntry.managedWallet) {
         isManagedWallet = true;
