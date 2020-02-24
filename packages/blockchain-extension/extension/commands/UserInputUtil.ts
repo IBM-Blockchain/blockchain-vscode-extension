@@ -425,7 +425,12 @@ export class UserInputUtil {
             placeHolder: prompt
         };
 
-        return await vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+        if (quickPickItems.length === 0) {
+            throw new Error('No contracts found');
+        } else {
+            return await vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+        }
+
     }
 
     public static async showChannelQuickPickBox(prompt: string, channelMap?: Map<string, Array<string>>): Promise<IBlockchainQuickPickItem<Array<string>>> {
@@ -751,7 +756,11 @@ export class UserInputUtil {
             placeHolder: prompt
         };
 
-        return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+        if (quickPickItems.length === 0) {
+            throw new Error('No packages found to install on peer');
+        } else {
+            return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+        }
     }
 
     public static async openNewProject(openMethod: string, uri: vscode.Uri, workspaceLabel?: string): Promise<void> {

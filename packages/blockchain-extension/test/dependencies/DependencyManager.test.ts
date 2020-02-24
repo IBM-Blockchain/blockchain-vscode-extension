@@ -1093,14 +1093,6 @@ describe('DependencyManager Tests', () => {
                         name: 'npm',
                         version: '6.4.1',
                         requiredVersion: Dependencies.NPM_REQUIRED
-                    },
-                    systemRequirements: {
-                        name: 'System Requirements',
-                        complete: true
-                    },
-                    dockerForWindows: {
-                        name: 'Docker for Windows',
-                        complete: true
                     }
                 };
 

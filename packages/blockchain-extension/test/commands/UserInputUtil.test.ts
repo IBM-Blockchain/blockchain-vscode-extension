@@ -914,6 +914,13 @@ describe('UserInputUtil', () => {
 
             logSpy.should.have.been.calledWith(LogType.ERROR, undefined, 'No connection to a blockchain found');
         });
+
+        it('should not show quickpick if there are no packaged/installed contracts to instantiate', async () => {
+            fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerOne').resolves([]);
+            fabricRuntimeConnectionStub.getInstantiatedChaincode.withArgs(['myPeerOne'], 'myChannel').resolves([]);
+
+            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', 'myChannel', ['myPeerOne']).should.eventually.be.rejectedWith('No contracts found');
+        });
     });
 
     describe('showGeneratorOptions', () => {
@@ -1981,6 +1988,12 @@ describe('UserInputUtil', () => {
                     data: { packageEntry: undefined, workspace: { name: workspaceTwo.name, uri: workspaceTwo.uri } }
                 }
             ]);
+        });
+
+        it('should throw error if no packages found to install', async () => {
+            mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([]);
+            await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', new Set(['myPeerOne'])).should.eventually.be.rejectedWith(`No packages found to install on peer`);
+            quickPickStub.should.not.have.been.called;
         });
 
         it('should give error if no connection', async () => {

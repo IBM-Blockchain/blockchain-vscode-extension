@@ -118,15 +118,14 @@ describe('AddWalletCommand', () => {
             choseWalletAddMethod.resolves(UserInputUtil.IMPORT_WALLET);
             browseStub.resolves(uri);
             mySandBox.stub(FabricWalletRegistry.instance(), 'exists').resolves(true);
-            const error: Error = new Error('A wallet with this name already exists.');
 
-            const result: FabricWalletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
-            should.not.exist(result);
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
 
             showInputBoxStub.should.not.have.been.called;
             const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll();
             wallets.length.should.equal(0);
-            logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to add a new wallet: ${error.message}`, `Failed to add a new wallet: ${error.message}`);
+            logSpy.should.have.been.calledWith(LogType.ERROR, `A wallet with this name already exists.`);
+
         });
 
     });
@@ -224,16 +223,14 @@ describe('AddWalletCommand', () => {
             choseWalletAddMethod.resolves(UserInputUtil.WALLET_NEW_ID);
             showInputBoxStub.resolves('someWalletName');
             mySandBox.stub(FabricWalletRegistry.instance(), 'exists').resolves(true);
-            const error: Error = new Error('A wallet with this name already exists.');
 
-            const result: FabricWalletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
-            should.not.exist(result);
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
 
             browseStub.should.not.have.been.called;
             showInputBoxStub.should.have.been.calledOnce;
             const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll();
             wallets.length.should.equal(0);
-            logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to add a new wallet: ${error.message}`, `Failed to add a new wallet: ${error.message}`);
+            logSpy.should.have.been.calledWith(LogType.ERROR, `A wallet with this name already exists.`);
         });
     });
 });

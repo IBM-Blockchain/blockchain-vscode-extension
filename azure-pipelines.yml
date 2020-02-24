@@ -13,7 +13,7 @@ trigger:
 
 stages:
   - stage: unitTest
-    condition: ne(variables['Build.Reason'], 'Schedule')
+    condition: in(variables['Build.Reason'], 'PullRequest', 'IndividualCI')
     dependsOn: []
     jobs:
       - job: unit
@@ -41,11 +41,39 @@ stages:
           - template: azure-templates/extension-unit-test-steps.yml
 
   - stage: cucumberTest
-    condition: ne(variables['Build.Reason'], 'Schedule')
+    condition: in(variables['Build.Reason'], 'PullRequest', 'IndividualCI')
     dependsOn: []
 
     jobs:
       - job: cucumber
+        condition: eq(variables['Build.Reason'], 'PullRequest')
+        strategy:
+          matrix:
+            cucumber:
+              imageName: 'ubuntu-16.04'
+              VERSION: '1.39.2'
+            cucumber_other:
+              imageName: 'ubuntu-16.04'
+              OTHER_FABRIC: 'true'
+              VERSION: '1.39.2'
+            cucumber_ansible:
+              imageName: 'ubuntu-16.04'
+              ANSIBLE_FABRIC: 'true'
+              VERSION: '1.39.2'
+            cucumber_opsTools:
+              imageName: 'ubuntu-16.04'
+              OPSTOOLS_FABRIC: 'true'
+              VERSION: '1.39.2'
+
+        pool:
+          vmImage: $(imageName)
+
+        steps:
+          - template: azure-templates/setup-steps.yml
+          - template: azure-templates/cucumber-steps.yml
+
+      - job: cucumberLatest
+        condition: startsWith(variables['Build.SourceBranch'], 'refs/tags')
         strategy:
           matrix:
             cucumber:
@@ -68,7 +96,7 @@ stages:
           - template: azure-templates/cucumber-steps.yml
 
   - stage: cypressTest
-    condition: ne(variables['Build.Reason'], 'Schedule')
+    condition: in(variables['Build.Reason'], 'PullRequest', 'IndividualCI')
     dependsOn: []
     jobs:
       - job: cypress
@@ -94,8 +122,6 @@ stages:
           - template: azure-templates/rebuild-steps.yml
           - template: azure-templates/cypress-steps.yml
 
-
-
   - stage: buildPackage
     dependsOn:
       - unitTest
@@ -109,45 +135,7 @@ stages:
 
         steps:
           - template: azure-templates/setup-steps.yml
-
-          - bash: |
-              set -ev
-              cd ./packages/blockchain-extension
-              npm run productionFlag
-            displayName: Set production flag
-            condition: startsWith(variables['Build.SourceBranch'], 'refs/tags')
-
-          - bash: |
-              set -ev
-              lerna run createModule
-            displayName: npm pack the modules
-
-          - bash: |
-              set -ev
-              cp ./README.md ./packages/blockchain-extension/README.md
-              cp ./CHANGELOG.md ./packages/blockchain-extension/CHANGELOG.md
-              cp -r ./media ./packages/blockchain-extension/media
-              cd ./packages/blockchain-extension
-              npm install ../blockchain-ui/ibm-blockchain-platform-ui-*.tgz
-              npm install ../blockchain-common/ibm-blockchain-platform-common-*.tgz
-              npm install ../blockchain-wallet/ibm-blockchain-platform-wallet-*.tgz
-              npm install ../blockchain-environment-v1/ibm-blockchain-platform-environment-v1-*.tgz
-              npm install ../blockchain-gateway-v1/ibm-blockchain-platform-gateway-v1-*.tgz
-              npm run package
-
-            displayName: package extension
-
-          - task: CopyFiles@2
-            inputs:
-              sourceFolder: '$(Build.SourcesDirectory)/packages/blockchain-extension'
-              contents: |
-                ibm-blockchain-platform-*.vsix
-              targetFolder: '$(Build.ArtifactStagingDirectory)'
-
-          - task: PublishBuildArtifacts@1
-            inputs:
-              pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-              artifactName: vscode-package
+          - template: azure-templates/build-package.yml
 
   - stage: buildChePackage
     dependsOn:
@@ -186,88 +174,7 @@ stages:
         pool:
           vmImage: 'ubuntu-16.04'
         steps:
-          - task: DownloadPipelineArtifact@2
-            inputs:
-              artifact: vscode-package
-              path: $(Build.SourcesDirectory)
-
-          - task: DownloadPipelineArtifact@2
-            inputs:
-              artifact: vscode-che-package
-              path: $(Build.SourcesDirectory)
-
-          - bash: |
-              set -ev
-              export tag=$(git tag --sort=-creatordate | head -n 1)
-              echo "##vso[task.setvariable variable=github_tag] $tag"
-            displayName: Get github tag
-
-          - task: GitHubRelease@1
-            inputs:
-              gitHubConnection: 'github.com_cazfletch'
-              repositoryName: '$(Build.Repository.Name)'
-              action: 'edit'
-              tag: '$(github_tag)'
-              target: '$(Build.SourceVersion)'
-              assetUploadMode: 'replace'
-              isPreRelease: true
-              addChangeLog: false
-              assets: |
-                $(Build.SourcesDirectory)/ibm-blockchain-platform-*.vsix
-                $(Build.SourcesDirectory)/ibm-blockchain-platform-*.yaml
-
-          - bash: |
-              set -ev
-              npm install vsce
-              git checkout package.json
-              node ./node_modules/vsce/out/vsce publish -p $(VSCETOKEN) --packagePath ibm-blockchain-platform-1*
-            displayName: Publish extension
-            condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v1'))
-
-
-          - script: |
-              set -ex
-              npm install dateformat
-              git checkout package.json
-              cd ./packages/blockchain-extension
-              npm run checkReleaseNotes
-            displayName: Check release notes
-            condition: succeeded()
-
-          - script: |
-              set -ex
-              git config --global user.name $(GITHUB_USER_NAME)
-              git config --global user.email $(GITHUB_USER_EMAIL)
-            displayName: Set GitHub user name and email
-            condition: succeeded()
-
-          - script: |
-              set -ex
-              npm install lerna
-              git checkout package.json
-              node ./node_modules/lerna/cli.js version patch --yes --no-git-tag-version
-            displayName: Use lerna to bump version
-            condition: succeeded()
-
-          - script: |
-              set -ex
-              VERSION=$(jq -r ".version" ./packages/blockchain-extension/package.json)
-              git commit -asm "Automatic version bump to ${VERSION}"
-            displayName: Commit version bump
-            condition: succeeded()
-
-          - script: |
-              set -ex
-
-              if [[ $(Build.SourceBranchName) == v1* ]]; then
-                export branch_name=master
-              else
-                export branch_name=v2
-              fi
-
-              git -c http.extraheader="Authorization: Basic $(GITHUB_BASIC_AUTH)" push $(Build.Repository.Uri) HEAD:$branch_name -f
-            displayName: Push commit to GitHub
-            condition: succeeded()
+          - template: azure-templates/deploy.yml
 
   - stage: otherVersionsUnitTest
     condition: eq(variables['Build.Reason'], 'Schedule')
@@ -311,6 +218,14 @@ stages:
               imageName: 'ubuntu-16.04'
               OTHER_FABRIC: 'true'
               VERSION: 'insiders'
+            insiders_cucumber_ansible:
+              imageName: 'ubuntu-16.04'
+              ANSIBLE_FABRIC: 'true'
+              VERSION: 'insiders'
+            insiders_cucumber_opsTools:
+              imageName: 'ubuntu-16.04'
+              OPSTOOLS_FABRIC: 'true'
+              VERSION: 'insiders'
             old_cucumber:
               imageName: 'ubuntu-16.04'
               VERSION: '1.38.1'
@@ -318,6 +233,25 @@ stages:
               imageName: 'ubuntu-16.04'
               OTHER_FABRIC: 'true'
               VERSION: '1.38.1'
+            old_cucumber_ansible:
+              imageName: 'ubuntu-16.04'
+              ANSIBLE_FABRIC: 'true'
+              VERSION: '1.38.1'
+            old_cucumber_opsTools:
+              imageName: 'ubuntu-16.04'
+              OPSTOOLS_FABRIC: 'true'
+              VERSION: '1.38.1'
+            latest_cucumber:
+              imageName: 'ubuntu-16.04'
+            latest_cucumber_other:
+              imageName: 'ubuntu-16.04'
+              OTHER_FABRIC: 'true'
+            latest_cucumber_ansible:
+              imageName: 'ubuntu-16.04'
+              ANSIBLE_FABRIC: 'true'
+            lateat_cucumber_opsTools:
+              imageName: 'ubuntu-16.04'
+              OPSTOOLS_FABRIC: 'true'
         pool:
           vmImage: $(imageName)
 
