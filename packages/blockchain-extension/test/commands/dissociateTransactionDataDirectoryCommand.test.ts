@@ -26,11 +26,12 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { InstantiatedContractTreeItem } from '../../extension/explorer/model/InstantiatedContractTreeItem';
+import { InstantiatedAssociatedContractTreeItem } from '../../extension/explorer/model/InstantiatedAssociatedContractTreeItem';
 import { FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
 import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { ChannelTreeItem } from '../../extension/explorer/model/ChannelTreeItem';
 import { InstantiatedTreeItem } from '../../extension/explorer/model/InstantiatedTreeItem';
-import { InstantiatedUnknownTreeItem } from '../../extension/explorer/model/InstantiatedUnknownTreeItem';
+import { InstantiatedAssociatedTreeItem } from '../../extension/explorer/model/InstantiatedAssociatedTreeItem';
 import { ContractTreeItem } from '../../extension/explorer/model/ContractTreeItem';
 
 // tslint:disable no-unused-expression
@@ -233,10 +234,10 @@ describe('DissociateTestDataDirectoryCommand', () => {
             const channelChildren: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
             channelChildren[0].tooltip.should.equal('Associated peers: peerOne');
 
-            const instantiatedUnknownChainCodes: Array<InstantiatedUnknownTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedUnknownTreeItem>;
-            await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);
+            const instantiatedAssociatedChainCodes: Array<InstantiatedAssociatedTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedAssociatedTreeItem>;
+            await blockchainGatewayExplorerProvider.getChildren(instantiatedAssociatedChainCodes[0]);
 
-            const instantiatedTreeItems: Array<InstantiatedContractTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedContractTreeItem>;
+            const instantiatedTreeItems: Array<InstantiatedAssociatedContractTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedAssociatedContractTreeItem>;
             const contractTreeItems: Array<ContractTreeItem> = await blockchainGatewayExplorerProvider.getChildren(instantiatedTreeItems[0]) as Array<ContractTreeItem>;
 
             await vscode.commands.executeCommand(ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY, contractTreeItems[0]);
