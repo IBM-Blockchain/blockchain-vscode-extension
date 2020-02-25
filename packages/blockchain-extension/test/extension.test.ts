@@ -55,7 +55,7 @@ describe('Extension Tests', () => {
     let completeActivationStub: sinon.SinonStub;
     let setExtensionContextStub: sinon.SinonStub;
     let hasPreReqsInstalledStub: sinon.SinonStub;
-    let registerOpenPreReqsCommandStub: sinon.SinonStub;
+    let registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub;
     let createTempCommandsStub: sinon.SinonStub;
 
     before(async () => {
@@ -90,7 +90,7 @@ describe('Extension Tests', () => {
         completeActivationStub = mySandBox.stub(ExtensionUtil, 'completeActivation');
         setExtensionContextStub = mySandBox.stub(GlobalState, 'setExtensionContext');
         hasPreReqsInstalledStub = mySandBox.stub(DependencyManager.instance(), 'hasPreReqsInstalled');
-        registerOpenPreReqsCommandStub = mySandBox.stub(ExtensionUtil, 'registerOpenPreReqsCommand');
+        registerPreReqAndReleaseNotesCommandStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand');
         createTempCommandsStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'createTempCommands');
     });
 
@@ -154,7 +154,7 @@ describe('Extension Tests', () => {
             hasPreReqsInstalledStub.resolves(true);
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-            registerOpenPreReqsCommandStub.resolves(context);
+            registerPreReqAndReleaseNotesCommandStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -182,7 +182,7 @@ describe('Extension Tests', () => {
 
             hasPreReqsInstalledStub.should.have.been.calledOnce;
 
-            registerOpenPreReqsCommandStub.should.have.been.calledOnce;
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
 
             executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
 
@@ -203,7 +203,7 @@ describe('Extension Tests', () => {
             hasPreReqsInstalledStub.resolves(true);
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-            registerOpenPreReqsCommandStub.resolves(context);
+            registerPreReqAndReleaseNotesCommandStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -227,7 +227,7 @@ describe('Extension Tests', () => {
 
             hasPreReqsInstalledStub.should.have.been.calledOnce;
 
-            registerOpenPreReqsCommandStub.should.have.been.calledOnce;
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
 
             executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
 
@@ -249,7 +249,7 @@ describe('Extension Tests', () => {
             executeCommandStub.withArgs(ExtensionCommands.OPEN_PRE_REQ_PAGE).resolves();
 
             hasPreReqsInstalledStub.resolves(true);
-            registerOpenPreReqsCommandStub.resolves(context);
+            registerPreReqAndReleaseNotesCommandStub.resolves(context);
 
             createTempCommandsStub.returns(undefined);
             const updateGlobalStateSpy: sinon.SinonSpy = mySandBox.spy(GlobalState, 'update');
@@ -274,7 +274,7 @@ describe('Extension Tests', () => {
             setupCommandsStub.should.have.been.calledOnce;
 
             hasPreReqsInstalledStub.should.have.been.calledOnce;
-            registerOpenPreReqsCommandStub.should.have.been.calledOnce;
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
 
@@ -298,7 +298,7 @@ describe('Extension Tests', () => {
             executeCommandStub.withArgs(ExtensionCommands.OPEN_PRE_REQ_PAGE).resolves();
 
             hasPreReqsInstalledStub.resolves(false);
-            registerOpenPreReqsCommandStub.resolves(context);
+            registerPreReqAndReleaseNotesCommandStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -321,7 +321,7 @@ describe('Extension Tests', () => {
             createTempCommandsStub.should.have.been.calledOnceWith(false, ExtensionCommands.OPEN_PRE_REQ_PAGE);
             setupCommandsStub.should.not.have.been.called;
 
-            registerOpenPreReqsCommandStub.should.have.been.calledOnce;
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
 
@@ -340,7 +340,7 @@ describe('Extension Tests', () => {
             executeCommandStub.callThrough();
             executeCommandStub.withArgs('markdown.showPreview', releaseNotesUri).resolves();
             hasPreReqsInstalledStub.resolves(true);
-            registerOpenPreReqsCommandStub.resolves(context);
+            registerPreReqAndReleaseNotesCommandStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -366,7 +366,7 @@ describe('Extension Tests', () => {
             setupCommandsStub.should.have.been.calledOnce;
 
             hasPreReqsInstalledStub.should.have.been.calledOnce;
-            registerOpenPreReqsCommandStub.should.have.been.calledOnce;
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
             executeCommandStub.should.have.been.calledWith('markdown.showPreview', releaseNotesUri);
@@ -384,7 +384,7 @@ describe('Extension Tests', () => {
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
             hasPreReqsInstalledStub.resolves(true);
-            registerOpenPreReqsCommandStub.resolves(context);
+            registerPreReqAndReleaseNotesCommandStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -412,7 +412,7 @@ describe('Extension Tests', () => {
             setupCommandsStub.should.have.been.calledOnce;
 
             hasPreReqsInstalledStub.should.have.been.calledOnce;
-            registerOpenPreReqsCommandStub.should.have.been.calledOnce;
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
 
             executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
             executeCommandSpy.should.not.have.been.calledWith('markdown.showPreview');
@@ -434,7 +434,7 @@ describe('Extension Tests', () => {
             const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
             setExtensionContextStub.returns(undefined);
             hasPreReqsInstalledStub.resolves(true);
-            registerOpenPreReqsCommandStub.resolves(context);
+            registerPreReqAndReleaseNotesCommandStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -461,7 +461,7 @@ describe('Extension Tests', () => {
             setupCommandsStub.should.have.been.calledOnce;
 
             hasPreReqsInstalledStub.should.have.been.calledOnce;
-            registerOpenPreReqsCommandStub.should.have.been.calledOnce;
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
             executeCommandStub.should.have.been.calledWith('markdown.showPreview', releaseNotesUri);
@@ -480,7 +480,7 @@ describe('Extension Tests', () => {
             setExtensionContextStub.returns(undefined);
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
             hasPreReqsInstalledStub.resolves(true);
-            registerOpenPreReqsCommandStub.resolves(context);
+            registerPreReqAndReleaseNotesCommandStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -503,7 +503,7 @@ describe('Extension Tests', () => {
             hasPreReqsInstalledStub.should.not.have.been.called;
             createTempCommandsStub.should.have.been.calledOnceWith(true);
             setupCommandsStub.should.have.been.calledOnce;
-            registerOpenPreReqsCommandStub.should.have.been.calledOnce;
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
 
             executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
 
@@ -522,7 +522,7 @@ describe('Extension Tests', () => {
             executeCommandStub.callThrough();
 
             hasPreReqsInstalledStub.resolves(true);
-            registerOpenPreReqsCommandStub.resolves(context);
+            registerPreReqAndReleaseNotesCommandStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -546,7 +546,7 @@ describe('Extension Tests', () => {
             createTempCommandsStub.should.have.been.calledOnceWith(true);
             hasPreReqsInstalledStub.should.have.been.calledOnce;
             setupCommandsStub.should.have.been.calledOnce;
-            registerOpenPreReqsCommandStub.should.have.been.calledOnce;
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
 
@@ -590,7 +590,7 @@ describe('Extension Tests', () => {
 
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-            registerOpenPreReqsCommandStub.resolves(context);
+            registerPreReqAndReleaseNotesCommandStub.resolves(context);
 
             createTempCommandsStub.returns(undefined);
 
@@ -615,7 +615,7 @@ describe('Extension Tests', () => {
 
             hasPreReqsInstalledStub.should.have.been.calledOnce;
 
-            registerOpenPreReqsCommandStub.should.have.been.calledOnce;
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
 
             executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
 

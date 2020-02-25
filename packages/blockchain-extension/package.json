@@ -93,6 +93,7 @@
             "gatewaysExplorer.dissociateTransactionDataDirectoryEntry",
             "extensionHome.open",
             "preReq.open",
+            "releaseNotes.open",
             "tutorialGallery.open",
             "transactionPage.open"
         ]
@@ -227,6 +228,11 @@
             {
                 "command": "preReq.open",
                 "title": "View Prerequisites",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "releaseNotes.open",
+                "title": "Open Release Notes",
                 "category": "IBM Blockchain Platform"
             },
             {

@@ -18,7 +18,6 @@
 // configured
 import * as nls from 'vscode-nls';
 nls.config({ messageFormat: nls.MessageFormat.both })();
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { Reporter } from './util/Reporter';
 import { ExtensionUtil } from './util/ExtensionUtil';
@@ -77,21 +76,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     const extensionUpdated: boolean = newExtensionData.version !== originalExtensionData.version;
 
-    // Only show the release notes if the extension has updated. This doesn't include the very first install.
-    if (extensionUpdated && originalExtensionData.version) {
-        try {
-
-            // Open up Release Notes markdown
-            const getExtensionPath: string = ExtensionUtil.getExtensionPath();
-            const releaseNotes: string = path.join(getExtensionPath, 'RELEASE-NOTES.md');
-            const uri: vscode.Uri = vscode.Uri.file(releaseNotes);
-
-            await vscode.commands.executeCommand('markdown.showPreview', uri);
-        } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Unable to open release notes: ${error.toString()}`);
-        }
-    }
-
     await GlobalState.update(newExtensionData);
 
     const packageJson: any = ExtensionUtil.getPackageJSON();
@@ -128,7 +112,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         const tempCommandRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
 
         // Register the 'Open Pre Req' command
-        context = await ExtensionUtil.registerOpenPreReqsCommand(context);
+        context = await ExtensionUtil.registerPreReqAndReleaseNotesCommand(context);
+
+        // Only show the release notes if the extension has updated. This doesn't include the very first install.
+        if (extensionUpdated && originalExtensionData.version) {
+            await vscode.commands.executeCommand(ExtensionCommands.OPEN_RELEASE_NOTES);
+        }
 
         if (dependenciesInstalled || bypassPreReqs) {
 

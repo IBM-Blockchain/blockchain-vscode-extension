@@ -101,6 +101,7 @@ import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/Runtime
 import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { associateTransactionDataDirectory } from '../commands/associateTransactionDataDirectoryCommand';
 import { dissociateTransactionDataDirectory } from '../commands/dissociateTransactionDataDirectoryCommand';
+import { openReleaseNotes } from '../commands/openReleaseNotesCommand';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -466,7 +467,7 @@ export class ExtensionUtil {
                                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
                                 this.disposeExtension(ctx);
-                                await this.registerOpenPreReqsCommand(ctx);
+                                await this.registerPreReqAndReleaseNotesCommand(ctx);
                                 const tempCommandRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
 
                                 tempCommandRegistry.createTempCommands(false, ExtensionCommands.OPEN_PRE_REQ_PAGE);
@@ -515,7 +516,7 @@ export class ExtensionUtil {
             }
         });
 
-        context = await this.registerOpenPreReqsCommand(context);
+        context = await this.registerPreReqAndReleaseNotesCommand(context);
 
         const packageJson: any = ExtensionUtil.getPackageJSON();
 
@@ -679,11 +680,12 @@ export class ExtensionUtil {
         context.subscriptions.splice(0, context.subscriptions.length);
     }
 
-    public static async registerOpenPreReqsCommand(context: vscode.ExtensionContext): Promise<vscode.ExtensionContext> {
+    public static async registerPreReqAndReleaseNotesCommand(context: vscode.ExtensionContext): Promise<vscode.ExtensionContext> {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_PRE_REQ_PAGE, async () => {
             const preReqView: PreReqView = new PreReqView(context);
             await preReqView.openView(true);
         }));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_RELEASE_NOTES, () => openReleaseNotes()));
 
         return context;
     }
