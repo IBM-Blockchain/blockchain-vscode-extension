@@ -13,7 +13,7 @@
 */
 
 import { VSCodeBlockchainDockerOutputAdapter } from '../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
-import { LogType } from 'ibm-blockchain-platform-common';
+import { LogType, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -23,7 +23,7 @@ chai.should();
 // tslint:disable no-unused-expression
 describe('VSCodeBlockchainDockerOutputAdapter', () => {
 
-    const outputAdapter: VSCodeBlockchainDockerOutputAdapter = VSCodeBlockchainDockerOutputAdapter.instance();
+    const outputAdapter: VSCodeBlockchainDockerOutputAdapter = VSCodeBlockchainDockerOutputAdapter.instance(FabricRuntimeUtil.LOCAL_FABRIC);
     let sandbox: sinon.SinonSandbox;
 
     beforeEach(async () => {
@@ -34,6 +34,32 @@ describe('VSCodeBlockchainDockerOutputAdapter', () => {
     afterEach(async () => {
         sandbox.restore();
         outputAdapter.setConsole(false);
+    });
+
+    describe('#instance', () => {
+        it(`should create new channel if it doesn't already exist`, () => {
+
+            VSCodeBlockchainDockerOutputAdapter.channels = [];
+            VSCodeBlockchainDockerOutputAdapter.channels.length.should.equal(0);
+
+            VSCodeBlockchainDockerOutputAdapter.instance('newChannel');
+
+            VSCodeBlockchainDockerOutputAdapter.channels.length.should.equal(1);
+            VSCodeBlockchainDockerOutputAdapter.channels[0].channelName.should.equal('newChannel');
+
+        });
+
+        it(`should get channel if it already exist`, () => {
+
+            VSCodeBlockchainDockerOutputAdapter.channels = [{channelName: 'existingChannel'} as VSCodeBlockchainDockerOutputAdapter];
+            VSCodeBlockchainDockerOutputAdapter.channels.length.should.equal(1);
+
+            VSCodeBlockchainDockerOutputAdapter.instance('existingChannel');
+
+            VSCodeBlockchainDockerOutputAdapter.channels.length.should.equal(1);
+            VSCodeBlockchainDockerOutputAdapter.channels[0].channelName.should.equal('existingChannel');
+
+        });
     });
 
     describe('#log', () => {

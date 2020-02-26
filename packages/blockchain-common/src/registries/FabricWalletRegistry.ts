@@ -15,7 +15,6 @@
 import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
 import { FileConfigurations } from './FileConfigurations';
 import { FileRegistry } from './FileRegistry';
-import { FabricRuntimeUtil } from '../util/FabricRuntimeUtil';
 import { FabricEnvironmentRegistryEntry, EnvironmentType } from './FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentRegistry } from './FabricEnvironmentRegistry';
 import { AnsibleEnvironment } from '../environments/AnsibleEnvironment';
@@ -33,26 +32,31 @@ export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry
     }
 
     public async getAll(showLocalFabric: boolean = true): Promise<FabricWalletRegistryEntry[]> {
-        let entries: FabricWalletRegistryEntry[] = await super.getAll();
+        const entries: FabricWalletRegistryEntry[] = await super.getAll();
 
-        const local: FabricWalletRegistryEntry[] = [];
+        let wallets: FabricWalletRegistryEntry[] = [];
+        const localWallets: FabricWalletRegistryEntry[] = [];
 
-        entries = entries.filter((entry: FabricWalletRegistryEntry) => {
-            if (entry.displayName && entry.displayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
-                local.push(entry);
-                return false;
+        for (const entry of entries) {
+            const envName: string = entry.fromEnvironment;
+            let environmentType: EnvironmentType;
+            if (envName) {
+                const environment: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(envName);
+                environmentType = environment.environmentType;
+            }
+            if (environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                localWallets.push(entry);
+                continue;
             }
 
-            return true;
-        });
-
-        if (showLocalFabric && local.length > 0) {
-            for (const entry of local) {
-                entries.unshift(entry);
-            }
+            wallets.push(entry);
         }
 
-        return entries;
+        if (showLocalFabric && localWallets.length > 0) {
+            wallets = [...localWallets, ...wallets];
+        }
+
+        return wallets;
     }
 
     public async get(name: string, fromEnvironment?: string): Promise<FabricWalletRegistryEntry> {
@@ -83,7 +87,7 @@ export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry
 
         // just get the ansible ones
         environmentEntries = environmentEntries.filter((entry: FabricEnvironmentRegistryEntry) => {
-            return entry.environmentType === EnvironmentType.ANSIBLE_ENVIRONMENT;
+            return entry.environmentType === EnvironmentType.ANSIBLE_ENVIRONMENT || entry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT;
         });
 
         for (const environmentEntry of environmentEntries) {

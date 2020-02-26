@@ -14,21 +14,14 @@
 
 import * as vscode from 'vscode';
 import { CommandUtil } from '../../util/CommandUtil';
-import * as request from 'request';
 import { SettingConfigurations } from '../../../configurations';
 import { FabricRuntimeState } from '../FabricRuntimeState';
-import { AnsibleEnvironment, OutputAdapter, FabricNode, FabricNodeType, ConsoleOutputAdapter, LogType } from 'ibm-blockchain-platform-common';
-import * as loghose from 'docker-loghose';
-import * as through from 'through2';
-import stripAnsi = require('strip-ansi');
+import { AnsibleEnvironment, OutputAdapter, FabricNode, FabricNodeType, ConsoleOutputAdapter } from 'ibm-blockchain-platform-common';
 
 export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
-    public ourLoghose: any = loghose;
     protected busy: boolean = false;
     protected state: FabricRuntimeState;
     protected isRunningPromise: Promise<boolean>;
-
-    protected logsRequest: request.Request;
     protected lh: any = null;
 
     constructor(name: string, environmentPath: string) {
@@ -119,7 +112,6 @@ export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
         try {
             this.setBusy(true);
             this.setState(FabricRuntimeState.RESTARTING);
-            this.stopLogs();
             await this.stopInner(outputAdapter);
             await this.startInner(outputAdapter);
         } finally {
@@ -162,41 +154,8 @@ export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
         return peer.container_name;
     }
 
-    public async startLogs(outputAdapter: OutputAdapter): Promise<void> {
-        const opts: any = {
-            attachFilter: (_id: any, dockerInspectInfo: any): boolean => {
-                if (dockerInspectInfo.Name.startsWith('/fabricvscodelocalfabric')) {
-                    return true;
-                } else {
-                    const labels: object = dockerInspectInfo.Config.Labels;
-                    const environmentName: string = labels['fabric-environment-name'];
-                    return environmentName === this.name;
-                }
-            },
-            newline: true
-        };
-        const lh: any = this.ourLoghose(opts);
-
-        lh.pipe(through.obj((chunk: any, _enc: any, cb: any) => {
-            const name: string = chunk.name;
-            const line: string = stripAnsi(chunk.line);
-            outputAdapter.log(LogType.INFO, undefined, `${name}|${line}`);
-            cb();
-        }));
-
-        this.lh = lh;
-    }
-
-    public stopLogs(): void {
-        if (this.lh) {
-            this.lh.destroy();
-        }
-        this.lh = null;
-    }
-
     public setState(state: FabricRuntimeState): void {
         this.state = state;
-
     }
 
     public async execute(script: string, args: string[] = [], outputAdapter?: OutputAdapter): Promise<void> {
@@ -236,7 +195,6 @@ export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
     protected async teardownInner(outputAdapter?: OutputAdapter): Promise<void> {
         this.setBusy(true);
         this.setState(FabricRuntimeState.STOPPING);
-        this.stopLogs();
         await this.execute('teardown', [], outputAdapter);
     }
 
@@ -249,13 +207,12 @@ export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
         }
     }
 
-    private async startInner(outputAdapter?: OutputAdapter): Promise<void> {
-        await this.execute('start', [], outputAdapter);
+    protected async stopInner(outputAdapter?: OutputAdapter): Promise<void> {
+        await this.execute('stop', [], outputAdapter);
     }
 
-    private async stopInner(outputAdapter?: OutputAdapter): Promise<void> {
-        this.stopLogs();
-        await this.execute('stop', [], outputAdapter);
+    private async startInner(outputAdapter?: OutputAdapter): Promise<void> {
+        await this.execute('start', [], outputAdapter);
     }
 
     private getChaincodeTimeout(): number {

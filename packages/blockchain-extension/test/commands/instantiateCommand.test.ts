@@ -87,7 +87,7 @@ describe('InstantiateCommand', () => {
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             environmentRegistryEntry.managedRuntime = true;
-            environmentRegistryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+            environmentRegistryEntry.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
 
             environmentRegistryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistryEntry);
 
@@ -119,7 +119,7 @@ describe('InstantiateCommand', () => {
             showYesNo = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').resolves(UserInputUtil.NO);
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            dockerLogsOutputSpy = mySandBox.spy(VSCodeBlockchainDockerOutputAdapter.instance(), 'show');
+            dockerLogsOutputSpy = mySandBox.spy(VSCodeBlockchainDockerOutputAdapter.instance(FabricRuntimeUtil.LOCAL_FABRIC), 'show');
             sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
             fabricRuntimeMock.getAllPeerNames.returns(['peerOne']);

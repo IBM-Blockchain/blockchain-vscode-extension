@@ -16,7 +16,6 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { FabricGatewayRegistryEntry } from './FabricGatewayRegistryEntry';
 import { AnsibleEnvironment } from '../environments/AnsibleEnvironment';
-import { FabricRuntimeUtil } from '../util/FabricRuntimeUtil';
 import { FileConfigurations } from '../registries/FileConfigurations';
 import { FileRegistry } from '../registries/FileRegistry';
 import { FabricEnvironmentRegistryEntry, EnvironmentType } from '../registries/FabricEnvironmentRegistryEntry';
@@ -35,26 +34,31 @@ export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEnt
     }
 
     public async getAll(showLocalFabric: boolean = true): Promise<FabricGatewayRegistryEntry[]> {
-        let entries: FabricGatewayRegistryEntry[] = await super.getAll();
+        const entries: FabricGatewayRegistryEntry[] = await super.getAll();
 
-        const local: FabricGatewayRegistryEntry[] = [];
+        let gateways: FabricGatewayRegistryEntry[] = [];
+        const localGateways: FabricGatewayRegistryEntry[] = [];
 
-        entries = entries.filter((entry: FabricGatewayRegistryEntry) => {
-            if (entry.displayName && entry.displayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
-                local.push(entry);
-                return false;
+        for (const entry of entries) {
+            const envName: string = entry.fromEnvironment;
+            let environmentType: EnvironmentType;
+            if (envName) {
+                const environment: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(envName);
+                environmentType = environment.environmentType;
+            }
+            if (environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                localGateways.push(entry);
+                continue;
             }
 
-            return true;
-        });
-
-        if (showLocalFabric && local.length > 0) {
-            for (const entry of local) {
-                entries.unshift(entry);
-            }
+            gateways.push(entry);
         }
 
-        return entries;
+        if (showLocalFabric && localGateways.length > 0) {
+            gateways = [...localGateways, ...gateways];
+        }
+
+        return gateways;
     }
 
     public async getEntries(): Promise<FabricGatewayRegistryEntry[]> {
@@ -65,7 +69,7 @@ export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEnt
 
         // just get the ansible ones
         environmentEntries = environmentEntries.filter((entry: FabricEnvironmentRegistryEntry) => {
-            return entry.environmentType === EnvironmentType.ANSIBLE_ENVIRONMENT;
+            return entry.environmentType === EnvironmentType.ANSIBLE_ENVIRONMENT || entry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT;
         });
 
         for (const environmentEntry of environmentEntries) {

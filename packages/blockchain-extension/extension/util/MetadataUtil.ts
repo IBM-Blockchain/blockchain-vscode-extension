@@ -91,7 +91,7 @@ export class MetadataUtil {
 
     private static async killChaincodeContainer(chaincodeName: string): Promise<void> {
         const gatewayRegistryEntry: FabricGatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
-        if (gatewayRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+        if (gatewayRegistryEntry.fromEnvironment === FabricRuntimeUtil.LOCAL_FABRIC) {
             // make sure there is a debug session and its from a smart contract
             const activeSession: vscode.DebugSession = vscode.debug.activeDebugSession;
             if (activeSession && activeSession.configuration.env && activeSession.configuration.env.CORE_CHAINCODE_ID_NAME) {
@@ -102,7 +102,8 @@ export class MetadataUtil {
                 // make sure we are debugging the one getting we are getting meta data for
                 if (chaincodeName === name) {
 
-                    const runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime();
+                    // TODO: Update this when we allow debugging for multiple local Fabrics
+                    const runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime(FabricRuntimeUtil.LOCAL_FABRIC);
                     const isContainerRunning: boolean = await runtime.isRunning([name, version]);
                     if (isContainerRunning) {
                         await runtime.killChaincode([name, version]);

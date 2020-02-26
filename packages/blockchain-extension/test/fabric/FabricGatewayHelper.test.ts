@@ -324,7 +324,8 @@ describe('FabricGatewayHelper', () => {
             gatewayA = {
                 name: 'gatewayA',
                 connectionProfilePath: `${TestUtil.EXTENSION_TEST_DIR}/gateways/gatewayA/file.json`,
-                associatedWallet: ''
+                associatedWallet: '',
+
             };
             gatewayB = {
                 name: 'gatewayB',

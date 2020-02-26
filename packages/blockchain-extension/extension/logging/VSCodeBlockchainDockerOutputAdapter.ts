@@ -13,15 +13,25 @@
 */
 
 import { VSCodeOutputAdapter } from './VSCodeOutputAdapter';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 
 export class VSCodeBlockchainDockerOutputAdapter extends VSCodeOutputAdapter {
 
-    public static instance(): VSCodeBlockchainDockerOutputAdapter {
-        return VSCodeBlockchainDockerOutputAdapter._instance;
-    }
+    public static channels: VSCodeBlockchainDockerOutputAdapter[] = [];
 
-    private static _instance: VSCodeBlockchainDockerOutputAdapter = new VSCodeBlockchainDockerOutputAdapter(FabricRuntimeUtil.LOCAL_FABRIC);
+    public static instance(name: string): VSCodeBlockchainDockerOutputAdapter {
+        // Get channel if created already
+        let channel: VSCodeBlockchainDockerOutputAdapter = this.channels.find((_channel: VSCodeBlockchainDockerOutputAdapter) => {
+            return name === _channel.channelName;
+        });
+
+        if (!channel) {
+            // Create if not
+            channel = new VSCodeBlockchainDockerOutputAdapter(name);
+            this.channels.push(channel);
+        }
+
+        return channel;
+    }
 
     private constructor(channelName: string) {
         super(channelName);

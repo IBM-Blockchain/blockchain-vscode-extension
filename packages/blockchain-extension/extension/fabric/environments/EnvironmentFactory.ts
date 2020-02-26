@@ -13,7 +13,7 @@
 */
 'use strict';
 import { ManagedAnsibleEnvironment } from './ManagedAnsibleEnvironment';
-import { FabricRuntimeUtil, FabricEnvironmentRegistryEntry, EnvironmentType, FabricEnvironment, FileSystemUtil, AnsibleEnvironment, FileConfigurations } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, EnvironmentType, FabricEnvironment, FileSystemUtil, AnsibleEnvironment, FileConfigurations } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from './LocalEnvironment';
 import { LocalEnvironmentManager } from './LocalEnvironmentManager';
 import * as vscode from 'vscode';
@@ -36,10 +36,12 @@ export class EnvironmentFactory {
 
         const type: EnvironmentType = environmentRegistryEntry.environmentType;
 
-        if (managedRuntime && type === EnvironmentType.ANSIBLE_ENVIRONMENT && name === FabricRuntimeUtil.LOCAL_FABRIC) {
-            return LocalEnvironmentManager.instance().getRuntime();
+        if (managedRuntime && type === EnvironmentType.LOCAL_ENVIRONMENT) {
+            const runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime(name);
+            return runtime;
         } else if (managedRuntime && type === EnvironmentType.ANSIBLE_ENVIRONMENT) {
-            return ManagedAnsibleEnvironmentManager.instance().ensureRuntime(name, environmentRegistryEntry.environmentDirectory);
+            const runtime: ManagedAnsibleEnvironment = ManagedAnsibleEnvironmentManager.instance().getRuntime(name);
+            return runtime;
         } else if (!managedRuntime && type === EnvironmentType.ANSIBLE_ENVIRONMENT) {
             return new AnsibleEnvironment(name, environmentRegistryEntry.environmentDirectory);
         } else {

@@ -34,7 +34,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { TemporaryCommandRegistry } from '../../extension/dependencies/TemporaryCommandRegistry';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FabricWalletRegistryEntry, LogType, FabricWalletRegistry, FabricGatewayRegistry, FabricWalletUtil } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FabricWalletRegistryEntry, LogType, FabricWalletRegistry, FabricGatewayRegistry, FabricWalletUtil, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
 import { TestUtil } from '../TestUtil';
 import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistry';
@@ -517,6 +517,11 @@ describe('ExtensionUtil Tests', () => {
             }
         });
 
+        let purgeOldRuntimesStub: sinon.SinonStub;
+        beforeEach(async () => {
+            purgeOldRuntimesStub = mySandBox.stub(ExtensionUtil, 'purgeOldRuntimes').resolves();
+        });
+
         it('should check all the commands are registered', async () => {
             const allCommands: Array<string> = await vscode.commands.getCommands();
 
@@ -655,62 +660,7 @@ describe('ExtensionUtil Tests', () => {
 
             disposeExtensionSpy.should.have.been.calledOnceWith(ctx);
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
-        });
-
-        it(`should delete old ${FabricRuntimeUtil.OLD_LOCAL_FABRIC} and teardown if it exists`, async () => {
-            const disposeExtensionSpy: sinon.SinonSpy = mySandBox.spy(ExtensionUtil, 'disposeExtension');
-
-            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
-
-            const deleteEnvironmentStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'delete').resolves();
-            const deleteGatewayStub: sinon.SinonStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'delete').resolves();
-            const deleteWalletStub: sinon.SinonStub = mySandBox.stub(FabricWalletRegistry.instance(), 'delete').resolves();
-
-            mySandBox.stub(fs, 'pathExists').resolves(true);
-
-            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'update').resolves();
-
-            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
-            executeCommandStub.callThrough();
-            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC).resolves();
-
-            await ExtensionUtil.registerCommands(ctx);
-
-            disposeExtensionSpy.should.have.been.calledOnceWith(ctx);
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC);
-            deleteEnvironmentStub.should.have.been.calledOnceWith(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
-            deleteGatewayStub.should.have.been.calledOnceWith(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
-            deleteWalletStub.should.have.been.calledOnceWith(FabricWalletUtil.OLD_LOCAL_WALLET, true);
-        });
-
-        it(`should not delete old ${FabricRuntimeUtil.OLD_LOCAL_FABRIC} and teardown if it doesn't exist`, async () => {
-            const disposeExtensionSpy: sinon.SinonSpy = mySandBox.spy(ExtensionUtil, 'disposeExtension');
-
-            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
-
-            const deleteEnvironmentStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'delete').resolves();
-            const deleteGatewayStub: sinon.SinonStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'delete').resolves();
-            const deleteWalletStub: sinon.SinonStub = mySandBox.stub(FabricWalletRegistry.instance(), 'delete').resolves();
-
-            mySandBox.stub(fs, 'pathExists').resolves(false);
-
-            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'update').resolves();
-
-            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
-            executeCommandStub.callThrough();
-            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC).resolves();
-
-            await ExtensionUtil.registerCommands(ctx);
-
-            disposeExtensionSpy.should.have.been.calledOnceWith(ctx);
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC);
-            deleteEnvironmentStub.should.not.have.been.calledOnceWith(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
-            deleteGatewayStub.should.not.have.been.calledOnceWith(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
-            deleteWalletStub.should.not.have.been.calledOnceWith(FabricWalletUtil.OLD_LOCAL_WALLET, true);
+            purgeOldRuntimesStub.should.have.been.calledOnce;
         });
 
         it('should register and show home page', async () => {
@@ -721,6 +671,7 @@ describe('ExtensionUtil Tests', () => {
             const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
 
             await ExtensionUtil.registerCommands(ctx);
+            purgeOldRuntimesStub.should.have.been.calledOnce;
 
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_HOME_PAGE);
 
@@ -736,6 +687,7 @@ describe('ExtensionUtil Tests', () => {
             const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
 
             await ExtensionUtil.registerCommands(ctx);
+            purgeOldRuntimesStub.should.have.been.calledOnce;
 
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_TUTORIAL_GALLERY);
 
@@ -750,7 +702,7 @@ describe('ExtensionUtil Tests', () => {
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
             await ExtensionUtil.registerCommands(ctx);
-
+            purgeOldRuntimesStub.should.have.been.calledOnce;
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE);
 
             openTransactionViewStub.should.have.been.calledOnce;
@@ -764,6 +716,7 @@ describe('ExtensionUtil Tests', () => {
             const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
 
             await ExtensionUtil.registerCommands(ctx);
+            purgeOldRuntimesStub.should.have.been.calledOnce;
 
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_TUTORIAL_PAGE, 'IBMCode/Code-Tutorials', 'Developing smart contracts with IBM Blockchain VSCode Extension');
 
@@ -779,6 +732,7 @@ describe('ExtensionUtil Tests', () => {
             const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
 
             await ExtensionUtil.registerCommands(ctx);
+            purgeOldRuntimesStub.should.have.been.calledOnce;
 
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_SAMPLE_PAGE, 'hyperledger/fabric-samples', 'FabCar');
 
@@ -805,6 +759,7 @@ describe('ExtensionUtil Tests', () => {
             await ExtensionUtil.registerCommands(ctx);
 
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            purgeOldRuntimesStub.should.have.been.calledOnce;
 
             executeCommand.should.have.been.calledOnce;
             executeCommand.should.have.been.calledOnceWith('setContext', 'blockchain-debug', true);
@@ -845,6 +800,8 @@ describe('ExtensionUtil Tests', () => {
             await Promise.all(promises);
 
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            purgeOldRuntimesStub.should.have.been.calledOnce;
+
             executeCommand.should.have.been.calledThrice;
             executeCommand.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
             executeCommand.should.have.been.calledWithExactly(ExtensionCommands.REFRESH_GATEWAYS);
@@ -886,6 +843,7 @@ describe('ExtensionUtil Tests', () => {
             await Promise.all(promises);
 
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            purgeOldRuntimesStub.should.have.been.calledOnce;
 
             executeCommand.should.have.been.calledThrice;
             executeCommand.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
@@ -916,6 +874,7 @@ describe('ExtensionUtil Tests', () => {
             await ExtensionUtil.registerCommands(ctx);
 
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            purgeOldRuntimesStub.should.have.been.calledOnce;
 
             executeCommand.should.have.been.calledTwice;
             executeCommand.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
@@ -954,6 +913,7 @@ describe('ExtensionUtil Tests', () => {
             await ExtensionUtil.registerCommands(ctx);
 
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            purgeOldRuntimesStub.should.have.been.calledOnce;
 
             executeCommand.should.have.been.calledOnceWith('setContext', 'blockchain-debug', false);
         });
@@ -975,6 +935,7 @@ describe('ExtensionUtil Tests', () => {
             await ExtensionUtil.registerCommands(ctx);
 
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            purgeOldRuntimesStub.should.have.been.calledOnce;
 
             executeCommand.should.have.been.calledOnceWith('setContext', 'blockchain-debug', false);
         });
@@ -1009,6 +970,7 @@ describe('ExtensionUtil Tests', () => {
             await ExtensionUtil.registerCommands(ctx);
 
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            purgeOldRuntimesStub.should.have.been.calledOnce;
 
             reporterStub.should.not.have.been.called;
         });
@@ -1229,9 +1191,11 @@ describe('ExtensionUtil Tests', () => {
         let executeCommandStub: sinon.SinonStub;
         let showConfirmationWarningMessageStub: sinon.SinonStub;
         let mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment>;
-        let getRuntimeStub: sinon.SinonStub;
+        let getAllRuntimesStub: sinon.SinonStub;
         let globalStateUpdateStub: sinon.SinonStub;
-        beforeEach(() => {
+        let ensureRuntimeStub: sinon.SinonStub;
+        const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
+        beforeEach(async () => {
             mySandBox.restore();
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
@@ -1240,9 +1204,14 @@ describe('ExtensionUtil Tests', () => {
 
             showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
             mockRuntime = mySandBox.createStubInstance(LocalEnvironment);
-
-            getRuntimeStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
+            mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
+            getAllRuntimesStub = mySandBox.stub(runtimeManager, 'getAllRuntimes').returns([mockRuntime]);
+            // TODO JAKE: do we want this?
+            ensureRuntimeStub = mySandBox.stub(runtimeManager, 'ensureRuntime').returns(undefined);
             globalStateUpdateStub = mySandBox.stub(GlobalState, 'update');
+
+            await FabricEnvironmentRegistry.instance().clear();
+            await TestUtil.setupLocalFabric();
         });
 
         it(`shouldn't open home page if disabled in user settings`, async () => {
@@ -1259,7 +1228,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getRuntimeStub.should.not.have.been.called;
+            getAllRuntimesStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
         });
 
@@ -1276,7 +1245,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getRuntimeStub.should.not.have.been.called;
+            getAllRuntimesStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
         });
 
@@ -1294,7 +1263,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getRuntimeStub.should.not.have.been.called;
+            getAllRuntimesStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
             const showOnNext: boolean = await vscode.workspace.getConfiguration().get(SettingConfigurations.HOME_SHOW_ON_NEXT_ACTIVATION);
             showOnNext.should.be.false;
@@ -1314,7 +1283,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getRuntimeStub.should.not.have.been.called;
+            getAllRuntimesStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
         });
 
@@ -1332,7 +1301,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getRuntimeStub.should.not.have.been.called;
+            getAllRuntimesStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
         });
 
@@ -1350,7 +1319,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getRuntimeStub.should.not.have.been.called;
+            getAllRuntimesStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
             const showOnNext: boolean = await vscode.workspace.getConfiguration().get(SettingConfigurations.HOME_SHOW_ON_NEXT_ACTIVATION);
             showOnNext.should.be.false;
@@ -1367,21 +1336,22 @@ describe('ExtensionUtil Tests', () => {
 
             executeCommandStub.resolves();
             mockRuntime.isGenerated.resolves(false);
+            showConfirmationWarningMessageStub.resolves(true);
 
             await ExtensionUtil.completeActivation(false);
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getRuntimeStub.should.have.been.calledOnce;
+            getAllRuntimesStub.should.have.been.calledOnce;
             mockRuntime.isGenerated.should.have.been.calledOnce;
-            showConfirmationWarningMessageStub.should.not.have.been.called;
+            showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
             globalStateUpdateStub.should.have.been.calledWith({
                 generatorVersion: dependencies['generator-fabric']
             });
         });
 
-        it(`should set generated to 'false' if runtime can't be retrieved`, async () => {
-            getRuntimeStub.returns(undefined);
+        it(`should set generated to 'false' if there are no local runtimes`, async () => {
+            getAllRuntimesStub.returns([]);
             await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
 
             dependencies['generator-fabric'] = '0.0.2';
@@ -1392,13 +1362,15 @@ describe('ExtensionUtil Tests', () => {
             executeCommandStub.resolves();
             mockRuntime.isGenerated.resolves(false);
 
+            showConfirmationWarningMessageStub.resolves(true);
+
             await ExtensionUtil.completeActivation(false);
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getRuntimeStub.should.have.been.calledOnce;
+            getAllRuntimesStub.should.have.been.calledOnce;
             mockRuntime.isGenerated.should.not.have.been.calledOnce;
-            showConfirmationWarningMessageStub.should.not.have.been.called;
+            showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
             globalStateUpdateStub.should.have.been.calledWith({
                 generatorVersion: dependencies['generator-fabric']
             });
@@ -1416,6 +1388,7 @@ describe('ExtensionUtil Tests', () => {
 
             executeCommandStub.resolves();
             mockRuntime.isGenerated.resolves(true);
+            mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
             showConfirmationWarningMessageStub.resolves(true);
             mockRuntime.isRunning.resolves(false);
 
@@ -1423,9 +1396,9 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getRuntimeStub.should.have.been.calledOnce;
+            getAllRuntimesStub.should.have.been.calledOnce;
             mockRuntime.isGenerated.should.have.been.calledOnce;
-            showConfirmationWarningMessageStub.should.have.been.calledOnce;
+            showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
             mockRuntime.isRunning.should.have.been.calledOnce;
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
@@ -1448,18 +1421,92 @@ describe('ExtensionUtil Tests', () => {
             mockRuntime.isGenerated.resolves(true);
             showConfirmationWarningMessageStub.resolves(true);
             mockRuntime.isRunning.resolves(true);
+            mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
 
             await ExtensionUtil.completeActivation(false);
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
 
-            getRuntimeStub.should.have.been.calledOnce;
+            getAllRuntimesStub.should.have.been.calledOnce;
             mockRuntime.isGenerated.should.have.been.calledOnce;
-            showConfirmationWarningMessageStub.should.have.been.calledOnce;
+            showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
             mockRuntime.isRunning.should.have.been.calledOnce;
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
+            globalStateUpdateStub.should.have.been.calledWith({
+                generatorVersion: dependencies['generator-fabric']
+            });
+        });
+
+        it(`should update generator version to latest when the user selects 'Yes' (and started) for multiple local fabrics`, async () => {
+            mockRuntime.isGenerated.resolves(true);
+            mockRuntime.isRunning.resolves(true);
+
+            const generatedLocalEnvironment: LocalEnvironment = new LocalEnvironment('generatedLocal', undefined, 1);
+            const nonGeneratedLocalEnvironment: LocalEnvironment = new LocalEnvironment('nonGeneratedLocal', undefined, 1);
+
+            const isGeneratedStub: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isGenerated');
+            isGeneratedStub.onCall(0).resolves(true); // generatedLocal
+            isGeneratedStub.onCall(1).resolves(false); // nonGeneratedLocal
+
+            const isRunningStub: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isRunning').resolves(true);
+            isRunningStub.onCall(0).resolves(true); // generatedLocal
+            isRunningStub.onCall(1).resolves(false); // nonGeneratedLocal
+
+            // TODO JAKE: Should I try to move this after we add them to env registry - that way we can call getEnvironment and put it in this array
+            getAllRuntimesStub.returns([mockRuntime, generatedLocalEnvironment, nonGeneratedLocalEnvironment]);
+
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
+
+            dependencies['generator-fabric'] = '0.0.2';
+            globalStateGetStub.returns({
+                generatorVersion: '0.0.1'
+            });
+
+            executeCommandStub.resolves();
+
+            showConfirmationWarningMessageStub.resolves(true);
+
+            // We'll just use the local fabrics env directory
+            const localEnv: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+
+            const generatedLocal: FabricEnvironmentRegistryEntry = {name: 'generatedLocal', environmentDirectory: localEnv.environmentDirectory, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, numberOfOrgs: 1};
+            const nonGeneratedLocal: FabricEnvironmentRegistryEntry = {name: 'nonGeneratedLocal', environmentDirectory: '', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, numberOfOrgs: 1};
+            await FabricEnvironmentRegistry.instance().add(generatedLocal);
+            await FabricEnvironmentRegistry.instance().add(nonGeneratedLocal);
+
+            // const ensureRuntimeSpy: sinon.SinonSpy = mySandBox.spy(LocalEnvironmentManager.instance(), 'ensureRuntime');
+
+            // const readDirSpy: sinon.SinonSpy = mySandBox.spy(fs, 'readdir');
+
+            await ExtensionUtil.completeActivation(false);
+
+            // readDirSpy.should.have.been.calledTwice;
+            // readDirSpy.should.have.been.calledWithExactly(path.join(localEnv.environmentDirectory, 'nodes'));
+
+            ensureRuntimeStub.should.have.been.calledThrice;
+            ensureRuntimeStub.should.have.been.calledWithExactly(generatedLocal.name, undefined, 1);
+            ensureRuntimeStub.should.have.been.calledWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1);
+            ensureRuntimeStub.should.have.been.calledWith(nonGeneratedLocal.name, undefined, 1);
+
+            logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+
+            getAllRuntimesStub.should.have.been.calledOnce;
+            isGeneratedStub.should.have.been.calledTwice;
+            showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
+
+            mockRuntime.isRunning.should.have.been.calledOnce;
+            isRunningStub.should.have.been.calledOnce; // generatedLocal
+
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, generatedLocal.name);
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, nonGeneratedLocal.name);
+
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.START_FABRIC, generatedLocal);
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.START_FABRIC, localEnv);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC, nonGeneratedLocal);
             globalStateUpdateStub.should.have.been.calledWith({
                 generatorVersion: dependencies['generator-fabric']
             });
@@ -1480,9 +1527,9 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getRuntimeStub.should.have.been.calledOnce;
-            mockRuntime.isGenerated.should.have.been.calledOnce;
-            showConfirmationWarningMessageStub.should.have.been.calledOnce;
+            getAllRuntimesStub.should.have.been.calledOnce;
+            mockRuntime.isGenerated.should.not.have.been.called;
+            showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
             mockRuntime.isRunning.should.not.have.been.called;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
@@ -1505,11 +1552,13 @@ describe('ExtensionUtil Tests', () => {
             showConfirmationWarningMessageStub.resolves(true);
             mockRuntime.isRunning.resolves(false);
 
+            mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
+
             await ExtensionUtil.completeActivation(false);
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            showConfirmationWarningMessageStub.should.have.been.calledOnce;
+            showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
             globalStateUpdateStub.should.have.been.calledWith({
@@ -1532,12 +1581,13 @@ describe('ExtensionUtil Tests', () => {
             mockRuntime.isGenerated.resolves(true);
             showConfirmationWarningMessageStub.resolves(true);
             mockRuntime.isRunning.resolves(false);
+            mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
 
             await ExtensionUtil.completeActivation(false);
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            showConfirmationWarningMessageStub.should.have.been.calledOnce;
+            showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
             globalStateUpdateStub.should.have.been.calledWith({
@@ -1578,7 +1628,10 @@ describe('ExtensionUtil Tests', () => {
         let hasPreReqsInstalledStub: sinon.SinonStub;
         let registerStub: sinon.SinonStub;
         let disposeExtensionStub: sinon.SinonStub;
-        let getRuntimeStub: sinon.SinonStub;
+        let getAllRuntimesStub: sinon.SinonStub;
+        let purgeOldRuntimesStub: sinon.SinonStub;
+        let initializeStub: sinon.SinonStub;
+        const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
         beforeEach(async () => {
             mySandBox.restore();
 
@@ -1593,8 +1646,16 @@ describe('ExtensionUtil Tests', () => {
             mockRuntime.isRunning.resolves(true);
             mockRuntime.getGateways.resolves([]);
             // mySandBox.stub(LocalEnvironment.prototype, 'getGateways').resolves();
-            getRuntimeStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime');
-            getRuntimeStub.returns(mockRuntime);
+            getAllRuntimesStub = mySandBox.stub(runtimeManager, 'getAllRuntimes');
+            getAllRuntimesStub.returns([mockRuntime]);
+
+            runtimeManager['runtimes'] = new Map();
+            runtimeManager['runtimes'].set(FabricRuntimeUtil.LOCAL_FABRIC, mockRuntime as unknown as LocalEnvironment);
+
+            // mySandBox.stub(LocalEnvironmentManager.instance()['runtimes']
+
+            initializeStub = mySandBox.stub(runtimeManager, 'initialize');
+            initializeStub.resolves();
 
             affectsConfigurationStub = mySandBox.stub().resolves(true);
 
@@ -1641,15 +1702,26 @@ describe('ExtensionUtil Tests', () => {
             registerStub.callThrough();
             disposeExtensionStub = mySandBox.stub(ExtensionUtil, 'disposeExtension');
             disposeExtensionStub.callThrough();
+
+            purgeOldRuntimesStub = mySandBox.stub(ExtensionUtil, 'purgeOldRuntimes').resolves();
+
         });
 
         afterEach(() => {
             promises = [];
         });
 
-        describe(`${FabricRuntimeUtil.LOCAL_FABRIC} functionality is enabled`, () => {
+        describe(`local fabric functionality is enabled`, () => {
             beforeEach(async () => {
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_LOCAL_FABRIC).returns(true);
+                getSettingsStub.withArgs(SettingConfigurations.FABRIC_RUNTIME).returns({
+                    '1 Org Local Fabric': {
+                        ports: {
+                            startPort: 17050,
+                            endPort: 17070
+                        }
+                    }
+                });
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(TestUtil.EXTENSION_TEST_DIR);
                 updateSettingsStub.withArgs(SettingConfigurations.EXTENSION_LOCAL_FABRIC, false, vscode.ConfigurationTarget.Global).resolves();
             });
@@ -1660,12 +1732,13 @@ describe('ExtensionUtil Tests', () => {
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
                 await ExtensionUtil.registerCommands(ctx);
+                purgeOldRuntimesStub.should.have.been.calledOnce;
+
                 await Promise.all(promises);
 
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 hasPreReqsInstalledStub.should.not.have.been.called;
-                mockRuntime.isGenerated.should.have.been.calledOnce;
-                logSpy.should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'true'.`);
+
                 executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', true);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
@@ -1675,19 +1748,19 @@ describe('ExtensionUtil Tests', () => {
             it('should initialize runtime if not generated', async () => {
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_BYPASS_PREREQS).returns(true);
 
-                const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').resolves();
                 mockRuntime.isGenerated.resolves(false);
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
                 await ExtensionUtil.registerCommands(ctx);
+                purgeOldRuntimesStub.should.have.been.calledOnce;
+
                 await Promise.all(promises);
 
                 initializeStub.should.have.been.calledOnce;
                 logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Initializing local runtime manager');
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 hasPreReqsInstalledStub.should.not.have.been.called;
-                mockRuntime.isGenerated.should.have.been.calledOnce;
-                logSpy.should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'true'.`);
+
                 executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', true);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
@@ -1701,12 +1774,13 @@ describe('ExtensionUtil Tests', () => {
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
                 await ExtensionUtil.registerCommands(ctx);
+                purgeOldRuntimesStub.should.have.been.calledOnce;
+
                 await Promise.all(promises);
 
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 hasPreReqsInstalledStub.should.have.been.calledOnce;
-                mockRuntime.isGenerated.should.have.been.calledOnce;
-                logSpy.should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'true'.`);
+
                 disposeExtensionStub.should.have.been.calledOnce;
                 disposeExtensionStub.should.not.have.been.calledTwice;
                 executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', true);
@@ -1716,6 +1790,7 @@ describe('ExtensionUtil Tests', () => {
             });
 
             it('should open pre-req page if not all pre-reqs are installed', async () => {
+
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_BYPASS_PREREQS).returns(false);
                 hasPreReqsInstalledStub.resolves(false);
                 disposeExtensionStub.returns(undefined);
@@ -1725,12 +1800,13 @@ describe('ExtensionUtil Tests', () => {
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
                 await ExtensionUtil.registerCommands(ctx);
+                purgeOldRuntimesStub.should.have.been.calledOnce;
+
                 await Promise.all(promises);
 
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 hasPreReqsInstalledStub.should.have.been.calledOnce;
-                mockRuntime.isGenerated.should.have.been.calledOnce;
-                logSpy.should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'true'.`);
+
                 disposeExtensionStub.should.have.been.calledTwice;
                 registerStub.should.have.been.called;
                 createTempCommands.should.have.been.calledWith(false, ExtensionCommands.OPEN_PRE_REQ_PAGE);
@@ -1741,23 +1817,23 @@ describe('ExtensionUtil Tests', () => {
                 executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
             });
 
-            it(`should initalize if runtime cannot be retrieved and dependencies installed`, async () => {
-                const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').resolves();
+            it(`should initalize if runtimes cannot be retrieved and dependencies installed`, async () => {
 
-                getRuntimeStub.returns(undefined);
+                getAllRuntimesStub.returns([]);
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_BYPASS_PREREQS).returns(false);
-                hasPreReqsInstalledStub.resolves(true);
                 disposeExtensionStub.resetHistory();
+                hasPreReqsInstalledStub.resolves(true);
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
                 await ExtensionUtil.registerCommands(ctx);
+                purgeOldRuntimesStub.should.have.been.calledOnce;
+
                 await Promise.all(promises);
 
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 hasPreReqsInstalledStub.should.have.been.calledOnce;
-                mockRuntime.isGenerated.should.not.have.been.calledOnce;
-                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'true'.`);
-                logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'Initializing local runtime manager');
+
+                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Initializing local runtime manager');
                 disposeExtensionStub.should.have.been.calledOnce;
                 disposeExtensionStub.should.not.have.been.calledTwice;
                 initializeStub.should.have.been.calledOnce;
@@ -1768,40 +1844,64 @@ describe('ExtensionUtil Tests', () => {
 
             });
 
-            it('should should handle any errors', async () => {
-                getSettingsStub.withArgs(SettingConfigurations.EXTENSION_BYPASS_PREREQS).returns(true);
+            it('should should handle any errors when toggling functionality', async () => {
+                getSettingsStub.withArgs(SettingConfigurations.EXTENSION_BYPASS_PREREQS).returns(false);
 
-                const error: Error = new Error('Unable to initalize');
-                const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').throws(error);
-                mockRuntime.isGenerated.resolves(false);
+                const error: Error = new Error('Unable to get prereqs');
+                hasPreReqsInstalledStub.throws(error);
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
                 await ExtensionUtil.registerCommands(ctx);
+                purgeOldRuntimesStub.should.have.been.calledOnce;
+
                 await Promise.all(promises);
 
-                initializeStub.should.have.been.calledOnce;
-                logSpy.should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'true'.`);
-                logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Initializing local runtime manager');
-                logSpy.should.have.been.calledWith(LogType.ERROR, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC} functionality to true: ${error.message}`, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC} functionality to true: ${error.toString()}`);
+                logSpy.should.have.been.calledWith(LogType.ERROR, `Error whilst toggling local Fabric functionality to true: ${error.message}`, `Error whilst toggling local Fabric functionality to true: ${error.toString()}`);
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
-                hasPreReqsInstalledStub.should.not.have.been.called;
-                mockRuntime.isGenerated.should.have.been.calledOnce;
+                hasPreReqsInstalledStub.should.have.been.called;
+
                 executeCommandStub.should.not.have.been.calledWith('setContext', 'local-fabric-enabled', true);
+                executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+                executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+                executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+            });
+
+            it('should should handle any errors when initializing', async () => {
+                getSettingsStub.withArgs(SettingConfigurations.EXTENSION_BYPASS_PREREQS).returns(false);
+                const error: Error = new Error('Unable to initialize');
+                initializeStub.throws(error);
+                getAllRuntimesStub.returns([]);
+                hasPreReqsInstalledStub.resolves(true);
+                const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+
+                await ExtensionUtil.registerCommands(ctx);
+                purgeOldRuntimesStub.should.have.been.calledOnce;
+
+                await Promise.all(promises);
+
+                hasPreReqsInstalledStub.should.have.been.calledOnce;
+                initializeStub.should.have.been.calledOnce;
+
+                logSpy.should.have.been.calledWith(LogType.ERROR, `Error initializing ${FabricRuntimeUtil.LOCAL_FABRIC}: ${error.message}`, `Error initializing ${FabricRuntimeUtil.LOCAL_FABRIC}: ${error.toString()}`);
+                affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
+
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
             });
         });
 
-        describe(`${FabricRuntimeUtil.LOCAL_FABRIC} functionality is disabled`, () => {
+        describe(`local fabric functionality is disabled`, () => {
             let deleteEnvironmentSpy: sinon.SinonSpy;
             beforeEach(async () => {
 
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_LOCAL_FABRIC).returns(false);
                 getSettingsStub.withArgs(SettingConfigurations.FABRIC_RUNTIME).returns({
-                    ports: {
-                        startPort: 17050,
-                        endPort: 17070
+                    '1 Org Local Fabric': {
+                        ports: {
+                            startPort: 17050,
+                            endPort: 17070
+                        }
                     }
                 });
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(TestUtil.EXTENSION_TEST_DIR);
@@ -1819,15 +1919,15 @@ describe('ExtensionUtil Tests', () => {
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
                 await ExtensionUtil.registerCommands(ctx);
+                purgeOldRuntimesStub.should.have.been.calledOnce;
+
                 await Promise.all(promises);
 
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
-                mockRuntime.isGenerated.should.have.been.calledOnce;
-                mockRuntime.isRunning.should.have.been.calledOnce;
-                showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`Toggling this feature will remove the world state and ledger data for the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime. Do you want to continue?`);
+                mockRuntime.isGenerated.should.not.have.been.called;
+                mockRuntime.isRunning.should.not.have.been.called;
+                showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`Toggling this feature will remove the world state and ledger data for all local runtimes. Do you want to continue?`);
                 updateSettingsStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
-                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'false'.`);
-                logSpy.getCall(1).should.have.been.calledWith(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC} functionality back to 'true'.`);
             });
 
             it(`should set context if runtime is running and user does teardown`, async () => {
@@ -1838,15 +1938,16 @@ describe('ExtensionUtil Tests', () => {
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
                 await ExtensionUtil.registerCommands(ctx);
+                purgeOldRuntimesStub.should.have.been.calledOnce;
+
                 await Promise.all(promises);
 
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 mockRuntime.isGenerated.should.have.been.calledOnce;
                 mockRuntime.isRunning.should.have.been.calledOnce;
-                showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`Toggling this feature will remove the world state and ledger data for the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime. Do you want to continue?`);
+                showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`Toggling this feature will remove the world state and ledger data for all local runtimes. Do you want to continue?`);
                 updateSettingsStub.should.not.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
-                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'false'.`);
-                logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC} functionality back to 'true'.`);
+
                 deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
                 executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
@@ -1864,15 +1965,16 @@ describe('ExtensionUtil Tests', () => {
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
                 await ExtensionUtil.registerCommands(ctx);
+                purgeOldRuntimesStub.should.have.been.calledOnce;
+
                 await Promise.all(promises);
 
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 mockRuntime.isGenerated.should.have.been.calledOnce;
                 mockRuntime.isRunning.should.have.been.calledOnce;
-                showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`Toggling this feature will remove the world state and ledger data for the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime. Do you want to continue?`);
+                showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`Toggling this feature will remove the world state and ledger data for all local runtimes. Do you want to continue?`);
                 updateSettingsStub.should.not.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
-                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'false'.`);
-                logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC} functionality back to 'true'.`);
+
                 deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
 
                 executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
@@ -1889,15 +1991,16 @@ describe('ExtensionUtil Tests', () => {
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
                 await ExtensionUtil.registerCommands(ctx);
+                purgeOldRuntimesStub.should.have.been.calledOnce;
+
                 await Promise.all(promises);
 
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 mockRuntime.isGenerated.should.have.been.calledOnce;
                 mockRuntime.isRunning.should.have.been.calledOnce;
-                showConfirmationWarningMessageStub.should.not.have.been.calledOnceWith(`Toggling this feature will remove the world state and ledger data for the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime. Do you want to continue?`);
+                showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`Toggling this feature will remove the world state and ledger data for all local runtimes. Do you want to continue?`);
                 updateSettingsStub.should.not.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
-                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'false'.`);
-                logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC} functionality back to 'true'.`);
+
                 deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
 
                 executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
@@ -1907,24 +2010,21 @@ describe('ExtensionUtil Tests', () => {
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
             });
 
-            it(`should delete registry entries if runtime cannot be retrieved`, async () => {
-                getRuntimeStub.returns(undefined);
+            it(`should no nothing if there are no runtimes`, async () => {
+                getAllRuntimesStub.returns([]);
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
                 await ExtensionUtil.registerCommands(ctx);
+                purgeOldRuntimesStub.should.have.been.calledOnce;
+
                 await Promise.all(promises);
 
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 mockRuntime.isGenerated.should.not.have.been.calledOnce;
                 mockRuntime.isRunning.should.not.have.been.called;
-                showConfirmationWarningMessageStub.should.not.have.been.calledOnceWith(`Toggling this feature will remove the world state and ledger data for the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime. Do you want to continue?`);
+                showConfirmationWarningMessageStub.should.not.have.been.calledOnceWith(`Toggling this feature will remove the world state and ledger data for all local runtimes. Do you want to continue?`);
                 updateSettingsStub.should.not.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
-                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'false'.`);
-                logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC} functionality back to 'true'.`);
-                deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
 
-                executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
-                executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
@@ -1938,16 +2038,16 @@ describe('ExtensionUtil Tests', () => {
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
                 await ExtensionUtil.registerCommands(ctx);
+                purgeOldRuntimesStub.should.have.been.calledOnce;
+
                 await Promise.all(promises);
 
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 mockRuntime.isGenerated.should.have.been.calledOnce;
                 mockRuntime.isRunning.should.have.been.calledOnce;
-                showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`Toggling this feature will remove the world state and ledger data for the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime. Do you want to continue?`);
+                showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`Toggling this feature will remove the world state and ledger data for all local runtimes. Do you want to continue?`);
                 updateSettingsStub.should.not.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
-                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'false'.`);
-                logSpy.should.not.have.been.calledWith(LogType.WARNING, `Changed ${FabricRuntimeUtil.LOCAL_FABRIC} functionality back to 'true'.`);
-                logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC} functionality to false: ${error.message}`, `Error whilst toggling ${FabricRuntimeUtil.LOCAL_FABRIC} functionality to false: ${error.toString()}`);
+
                 deleteEnvironmentSpy.should.not.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
 
                 executeCommandStub.should.not.have.been.calledWith('setContext', 'local-fabric-enabled', false);
@@ -1959,26 +2059,117 @@ describe('ExtensionUtil Tests', () => {
         });
     });
 
-    describe('sleep', () => {
+    describe('#purgeOldRuntimes', () => {
 
-        let clock: sinon.SinonFakeTimers;
+        it(`should delete old ${FabricRuntimeUtil.OLD_LOCAL_FABRIC} and teardown if it exists`, async () => {
 
-        beforeEach(() => {
-            clock = sinon.useFakeTimers({ toFake: ['setTimeout'] });
+            const deleteEnvironmentStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'delete').resolves();
+            const deleteGatewayStub: sinon.SinonStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'delete').resolves();
+            const deleteWalletStub: sinon.SinonStub = mySandBox.stub(FabricWalletRegistry.instance(), 'delete').resolves();
+
+            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
+            pathExistsStub.onCall(0).resolves(true);
+            pathExistsStub.onCall(1).resolves(false);
+
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'update').resolves();
+
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC).resolves();
+
+            await ExtensionUtil.purgeOldRuntimes();
+
+            pathExistsStub.should.have.been.calledTwice;
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC);
+            deleteEnvironmentStub.should.have.been.calledOnceWith(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
+            deleteGatewayStub.should.have.been.calledOnceWith(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
+            deleteWalletStub.should.have.been.calledOnceWith(FabricWalletUtil.OLD_LOCAL_WALLET, true);
         });
 
-        afterEach(() => {
-            clock.restore();
+        it(`should delete old ${FabricRuntimeUtil.LOCAL_SPACE_FABRIC} and teardown if it exists`, async () => {
+
+            const deleteEnvironmentStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'delete').resolves();
+            const deleteGatewayStub: sinon.SinonStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'delete').resolves();
+            const deleteWalletStub: sinon.SinonStub = mySandBox.stub(FabricWalletRegistry.instance(), 'delete').resolves();
+
+            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
+            pathExistsStub.onCall(0).resolves(false);
+            pathExistsStub.onCall(1).resolves(true);
+
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'update').resolves();
+
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_SPACE_FABRIC).resolves();
+
+            await ExtensionUtil.purgeOldRuntimes();
+
+            pathExistsStub.should.have.been.calledTwice;
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_SPACE_FABRIC);
+            deleteEnvironmentStub.should.have.been.calledOnceWith(FabricRuntimeUtil.LOCAL_SPACE_FABRIC, true);
+            deleteGatewayStub.should.not.have.been.called;
+            deleteWalletStub.should.not.have.been.called;
         });
 
-        it('should delay for the specified time', async () => {
-            const stub: sinon.SinonStub = mySandBox.stub();
-            const p: Promise<any> = ExtensionUtil.sleep(2000).then(stub);
-            sinon.assert.notCalled(stub);
+        it(`should delete the ${FabricRuntimeUtil.OLD_LOCAL_FABRIC} and ${FabricRuntimeUtil.LOCAL_SPACE_FABRIC} if they exist`, async () => {
+            const deleteEnvironmentStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'delete').resolves();
+            const deleteGatewayStub: sinon.SinonStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'delete').resolves();
+            const deleteWalletStub: sinon.SinonStub = mySandBox.stub(FabricWalletRegistry.instance(), 'delete').resolves();
 
-            clock.tick(2300);
-            await p.should.be.eventually.fulfilled;
-            sinon.assert.calledOnce(stub);
+            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
+            pathExistsStub.onCall(0).resolves(true);
+            pathExistsStub.onCall(1).resolves(true);
+
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'update').resolves();
+
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_SPACE_FABRIC).resolves();
+
+            await ExtensionUtil.purgeOldRuntimes();
+
+            pathExistsStub.should.have.been.calledTwice;
+
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC);
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_SPACE_FABRIC);
+
+            deleteEnvironmentStub.should.have.been.calledTwice;
+
+            deleteEnvironmentStub.getCall(0).should.have.been.calledWithExactly(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
+            deleteEnvironmentStub.getCall(1).should.have.been.calledWithExactly(FabricRuntimeUtil.LOCAL_SPACE_FABRIC, true);
+
+            deleteGatewayStub.should.have.been.calledOnceWith(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
+            deleteWalletStub.should.have.been.calledOnceWith(FabricWalletUtil.OLD_LOCAL_WALLET, true);
+
         });
+
+        it(`should nothing if older runtimes don't exist`, async () => {
+            const deleteEnvironmentStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'delete').resolves();
+            const deleteGatewayStub: sinon.SinonStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'delete').resolves();
+            const deleteWalletStub: sinon.SinonStub = mySandBox.stub(FabricWalletRegistry.instance(), 'delete').resolves();
+
+            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').resolves(false);
+
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'update').resolves();
+
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_SPACE_FABRIC).resolves();
+
+            await ExtensionUtil.purgeOldRuntimes();
+
+            pathExistsStub.should.have.been.calledTwice;
+
+            executeCommandStub.should.not.have.been.calledWithExactly(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC);
+            executeCommandStub.should.not.have.been.calledWithExactly(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_SPACE_FABRIC);
+
+            deleteEnvironmentStub.should.not.have.been.called;
+
+            deleteGatewayStub.should.not.have.been.called;
+            deleteWalletStub.should.not.have.been.called;
+        });
+
     });
 });

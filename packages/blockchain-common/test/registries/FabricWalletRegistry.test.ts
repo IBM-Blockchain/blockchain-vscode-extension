@@ -18,7 +18,6 @@ import * as sinon from 'sinon';
 import * as chaiAsPromised from 'chai-as-promised';
 import { FabricWalletRegistryEntry } from '../../src/registries/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../../src/registries/FabricWalletRegistry';
-import { FabricWalletUtil } from '../../src/util/FabricWalletUtil';
 import { FabricRuntimeUtil } from '../../src/util/FabricRuntimeUtil';
 import { FabricEnvironmentRegistryEntry, EnvironmentType } from '../../src/registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentRegistry } from '../../src/registries/FabricEnvironmentRegistry';
@@ -66,17 +65,35 @@ describe('FabricWalletRegistry', () => {
         it('should get all the wallets and put local fabric first', async () => {
             const walletOne: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
                 name: 'walletOne',
-                walletPath: 'myPath'
+                walletPath: 'myPath',
+            });
+            const walletTwo: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+                name: 'walletTwo',
+                walletPath: 'otherPath',
             });
 
             await registry.getAll().should.eventually.deep.equal([]);
 
-            await registry.add(new FabricWalletRegistryEntry({ name: FabricWalletUtil.OLD_LOCAL_WALLET, walletPath: 'myOtherPath', displayName: `${FabricRuntimeUtil.LOCAL_FABRIC} - org1` }));
+            await FabricEnvironmentRegistry.instance().add({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: path.join(__dirname, '..', '..', '..', '..', 'test', 'data', FabricRuntimeUtil.LOCAL_FABRIC), environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1, managedRuntime: true});
+            await FabricEnvironmentRegistry.instance().add({name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, environmentDirectory : path.join(__dirname, '..', 'data', 'otherLocalEnv'), numberOfOrgs: 1});
 
-            const localFabricEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(FabricWalletUtil.OLD_LOCAL_WALLET);
+            const localFabricOrgEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Org1', FabricRuntimeUtil.LOCAL_FABRIC);
+            const localFabricOrdererEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Orderer', FabricRuntimeUtil.LOCAL_FABRIC);
+            const otherLocalOrgEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Org1', 'otherLocalEnv');
+            const otherLocalOrdererEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Orderer', 'otherLocalEnv');
 
             await registry.add(walletOne);
-            await registry.getAll().should.eventually.deep.equal([localFabricEntry, walletOne]);
+            await registry.add(walletTwo);
+
+            const wallets: any = await registry.getAll();
+            wallets.length.should.equal(6);
+
+            wallets[0].should.deep.equal(localFabricOrdererEntry);
+            wallets[1].should.deep.equal(localFabricOrgEntry);
+            wallets[2].should.deep.equal(otherLocalOrdererEntry);
+            wallets[3].should.deep.equal(otherLocalOrgEntry);
+            wallets[4].should.deep.equal(walletOne);
+            wallets[5].should.deep.equal(walletTwo);
         });
 
         it('should get all wallets but not show local fabric', async () => {
@@ -87,7 +104,9 @@ describe('FabricWalletRegistry', () => {
 
             await registry.getAll().should.eventually.deep.equal([]);
 
-            await registry.add(new FabricWalletRegistryEntry({ name: FabricWalletUtil.OLD_LOCAL_WALLET, walletPath: 'myOtherPath', displayName: `${FabricRuntimeUtil.LOCAL_FABRIC} - org1` }));
+            await FabricEnvironmentRegistry.instance().add({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: path.join(__dirname, '..', 'data', FabricRuntimeUtil.LOCAL_FABRIC), environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, numberOfOrgs: 1});
+            await FabricEnvironmentRegistry.instance().add({name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, environmentDirectory : path.join(__dirname, '..', 'data', 'otherLocalEnv'), numberOfOrgs: 1});
+
             await registry.add(walletOne);
             await registry.getAll(false).should.eventually.deep.equal([walletOne]);
         });

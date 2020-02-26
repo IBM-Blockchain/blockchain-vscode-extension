@@ -22,9 +22,10 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { NodeTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { FabricRuntimeUtil, FabricNode } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricNode, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { IBlockchainQuickPickItem } from '../../extension/commands/UserInputUtil';
+import { TimerUtil } from '../../extension/util/TimerUtil';
 
 // tslint:disable:no-unused-expression
 
@@ -38,22 +39,38 @@ module.exports = function(): any {
      * Given
      */
 
-    this.Given(`the ${FabricRuntimeUtil.LOCAL_FABRIC} is running`, this.timeout, async () => {
+    this.Given(`the {string} environment is running`, this.timeout, async (environmentName: string) => {
 
         const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
-        const runtime: LocalEnvironment = runtimeManager.getRuntime();
+        const runtime: LocalEnvironment = runtimeManager.getRuntime(environmentName);
+        let isRunning: boolean;
+        if (!runtime) {
+            isRunning = false;
+        } else {
+            isRunning = await runtime.isRunning();
+        }
 
-        let isRunning: boolean = await runtime.isRunning();
         if (!isRunning) {
-            await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
+
+            const environmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
+            await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC, environmentEntry);
             isRunning = await runtime.isRunning();
         }
 
         isRunning.should.equal(true);
     });
 
+    this.Given(`a 2 org local environment called '{string}' has been created`, this.timeout, async (environmentName: string) => {
+        const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
+        const runtime: LocalEnvironment = runtimeManager.getRuntime(environmentName);
+        if (!runtime) {
+            await this.fabricEnvironmentHelper.createEnvironment(environmentName);
+        }
+
+    });
+
     this.Given("the '{string}' environment is connected", this.timeout, async (environment: string) => {
-        await ExtensionUtil.sleep(3000);
+        await TimerUtil.sleep(3000);
         this.environmentName = environment;
         await this.fabricEnvironmentHelper.connectToEnvironment(environment);
     });
@@ -126,28 +143,25 @@ module.exports = function(): any {
     });
 
     this.When(`I stop the ${FabricRuntimeUtil.LOCAL_FABRIC}`, this.timeout, async () => {
-        const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
-        const runtime: LocalEnvironment = runtimeManager.getRuntime();
-
         await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
+        const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
+        const runtime: LocalEnvironment = runtimeManager.getRuntime(FabricRuntimeUtil.LOCAL_FABRIC);
         const isRunning: boolean = await runtime.isRunning();
         isRunning.should.equal(false);
     });
 
     this.When(`I start the ${FabricRuntimeUtil.LOCAL_FABRIC}`, this.timeout, async () => {
-        const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
-        const runtime: LocalEnvironment = runtimeManager.getRuntime();
-
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
+        const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
+        const runtime: LocalEnvironment = runtimeManager.getRuntime(FabricRuntimeUtil.LOCAL_FABRIC);
         const isRunning: boolean = await runtime.isRunning();
         isRunning.should.equal(true);
     });
 
     this.When(`I teardown the ${FabricRuntimeUtil.LOCAL_FABRIC}`, this.timeout, async () => {
-        const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
-        const runtime: LocalEnvironment = runtimeManager.getRuntime();
-
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
+        const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
+        const runtime: LocalEnvironment = runtimeManager.getRuntime(FabricRuntimeUtil.LOCAL_FABRIC);
         const isRunning: boolean = await runtime.isRunning();
         isRunning.should.equal(false);
     });

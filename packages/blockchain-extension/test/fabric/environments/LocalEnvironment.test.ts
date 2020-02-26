@@ -23,9 +23,12 @@ import { YeomanUtil } from '../../../extension/util/YeomanUtil';
 import { SettingConfigurations } from '../../../configurations';
 import { FabricRuntimeState } from '../../../extension/fabric/FabricRuntimeState';
 import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';
-import { OutputAdapter, LogType, FabricEnvironmentRegistry, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { OutputAdapter, LogType, FabricEnvironmentRegistry, FabricRuntimeUtil, FabricEnvironmentRegistryEntry, EnvironmentType } from 'ibm-blockchain-platform-common';
+import * as stream from 'stream';
+import { VSCodeBlockchainDockerOutputAdapter } from '../../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
+import { ManagedAnsibleEnvironment } from '../../../extension/fabric/environments/ManagedAnsibleEnvironment';
 
-chai.should();
+const should: Chai.Should = chai.should();
 chai.use(chaiAsPromised);
 
 // tslint:disable no-unused-expression
@@ -39,6 +42,7 @@ describe('LocalEnvironment', () => {
     let environment: LocalEnvironment;
     let sandbox: sinon.SinonSandbox;
 
+    let stopLogsStub: sinon.SinonStub;
     // tslint:disable max-classes-per-file
     // tslint:disable no-console
     class TestFabricOutputAdapter implements OutputAdapter {
@@ -75,15 +79,26 @@ describe('LocalEnvironment', () => {
     beforeEach(async () => {
         sandbox = sinon.createSandbox();
 
-        environment = new LocalEnvironment();
-        environment.ports = {
+        environment = new LocalEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, {
             startPort: 17050,
             endPort: 17070
-        };
+        }, 1);
 
         await TestUtil.setupLocalFabric();
 
         environment['path'] = environmentPath;
+
+        const localSetting: any = {};
+        localSetting[FabricRuntimeUtil.LOCAL_FABRIC] = {
+            ports: {
+                startPort: 17050,
+                endPort: 17070
+            }
+        };
+
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, localSetting,  vscode.ConfigurationTarget.Global);
+
+        stopLogsStub = sandbox.stub(LocalEnvironment.prototype, 'stopLogs').returns(undefined);
     });
 
     afterEach(async () => {
@@ -91,17 +106,108 @@ describe('LocalEnvironment', () => {
     });
 
     describe('#create', () => {
-        it('should create a new network', async () => {
+        it('should create a new network for the first time', async () => {
+            const localSetting: any = {};
+
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, localSetting,  vscode.ConfigurationTarget.Global);
+
+            const addSpy: sinon.SinonSpy = sandbox.spy(FabricEnvironmentRegistry.instance(), 'add');
+            const deleteSpy: sinon.SinonSpy = sandbox.spy(FabricEnvironmentRegistry.instance(), 'delete');
+
             const runStub: sinon.SinonStub = sandbox.stub(YeomanUtil, 'run').resolves();
+
             await environment.create();
+
+            environment.ports.should.deep.equal({
+                startPort: 17050,
+                endPort: 17070
+            });
+
+            deleteSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
+
+            addSpy.should.have.been.calledOnceWithExactly({
+                name: FabricRuntimeUtil.LOCAL_FABRIC,
+                managedRuntime: true,
+                environmentType: EnvironmentType.LOCAL_ENVIRONMENT,
+                environmentDirectory: path.join(environmentPath),
+                numberOfOrgs: 1
+            } as FabricEnvironmentRegistryEntry);
 
             runStub.should.have.been.calledOnceWithExactly('fabric:network', {
                 destination: environment.getPath(),
-                dockerName: 'fabricvscodelocalfabric',
+                dockerName: FabricRuntimeUtil.LOCAL_FABRIC.replace(/[^A-Za-z0-9]/g, ''),
                 name: FabricRuntimeUtil.LOCAL_FABRIC,
                 numOrganizations: 1,
                 startPort: 17050,
                 endPort: 17070
+            });
+        });
+        it('should create a new network using the ports in the settings', async () => {
+
+            const addSpy: sinon.SinonSpy = sandbox.spy(FabricEnvironmentRegistry.instance(), 'add');
+            const deleteSpy: sinon.SinonSpy = sandbox.spy(FabricEnvironmentRegistry.instance(), 'delete');
+
+            const runStub: sinon.SinonStub = sandbox.stub(YeomanUtil, 'run').resolves();
+            await environment.create();
+
+            deleteSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
+
+            addSpy.should.have.been.calledOnceWithExactly({
+                name: FabricRuntimeUtil.LOCAL_FABRIC,
+                managedRuntime: true,
+                environmentType: EnvironmentType.LOCAL_ENVIRONMENT,
+                environmentDirectory: path.join(environmentPath),
+                numberOfOrgs: 1
+            } as FabricEnvironmentRegistryEntry);
+
+            runStub.should.have.been.calledOnceWithExactly('fabric:network', {
+                destination: environment.getPath(),
+                dockerName: FabricRuntimeUtil.LOCAL_FABRIC.replace(/[^A-Za-z0-9]/g, ''),
+                name: FabricRuntimeUtil.LOCAL_FABRIC,
+                numOrganizations: 1,
+                startPort: 17050,
+                endPort: 17070
+            });
+        });
+
+        it('should create a new network using ports which have been updated in the settings', async () => {
+            const localSetting: any = {};
+            localSetting[FabricRuntimeUtil.LOCAL_FABRIC] = {
+                ports: {
+                    startPort: 18050,
+                    endPort: 18070
+                }
+            };
+
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, localSetting,  vscode.ConfigurationTarget.Global);
+
+            const addSpy: sinon.SinonSpy = sandbox.spy(FabricEnvironmentRegistry.instance(), 'add');
+            const deleteSpy: sinon.SinonSpy = sandbox.spy(FabricEnvironmentRegistry.instance(), 'delete');
+
+            const runStub: sinon.SinonStub = sandbox.stub(YeomanUtil, 'run').resolves();
+            await environment.create();
+            environment.ports.should.deep.equal({
+                startPort: 18050,
+                endPort: 18070
+            });
+
+            deleteSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
+
+            addSpy.should.have.been.calledOnceWithExactly({
+                name: FabricRuntimeUtil.LOCAL_FABRIC,
+                managedRuntime: true,
+                environmentType: EnvironmentType.LOCAL_ENVIRONMENT,
+                environmentDirectory: path.join(environmentPath),
+                numberOfOrgs: 1
+            } as FabricEnvironmentRegistryEntry);
+
+            runStub.should.have.been.calledOnceWithExactly('fabric:network', {
+                destination: environment.getPath(),
+                dockerName: FabricRuntimeUtil.LOCAL_FABRIC.replace(/[^A-Za-z0-9]/g, ''),
+                name: FabricRuntimeUtil.LOCAL_FABRIC,
+                numOrganizations: 1,
+                startPort: 18050,
+                endPort: 18070
             });
         });
 
@@ -114,7 +220,6 @@ describe('LocalEnvironment', () => {
             let createStub: sinon.SinonStub;
             let isRunningStub: sinon.SinonStub;
             let setStateSpy: sinon.SinonSpy;
-            let stopLogsStub: sinon.SinonStub;
             let getConfigurationStub: sinon.SinonStub;
             let getSettingsStub: sinon.SinonStub;
 
@@ -122,8 +227,7 @@ describe('LocalEnvironment', () => {
                 createStub = sandbox.stub(environment, 'create');
                 sandbox.stub(environment, 'isGenerated').resolves(true);
                 isRunningStub = sandbox.stub(environment, 'isRunning').resolves(false);
-                setStateSpy = sandbox.spy(environment, 'setState');
-                stopLogsStub = sandbox.stub(environment, 'stopLogs');
+                setStateSpy = sandbox.spy(ManagedAnsibleEnvironment.prototype, 'setState');
                 getSettingsStub = sandbox.stub();
                 getSettingsStub.withArgs(SettingConfigurations.FABRIC_CHAINCODE_TIMEOUT).returns(120);
 
@@ -491,6 +595,18 @@ describe('LocalEnvironment', () => {
         });
     });
 
+    describe('#delete', () => {
+        it('shouldnt recreate the runtime after deleting it', async () => {
+            const createStub: sinon.SinonStub = sandbox.stub(environment, 'create');
+
+            sandbox.stub(child_process, 'spawn').callsFake(() => {
+                return mockSuccessCommand();
+            });
+            await environment.delete();
+            createStub.should.not.have.been.called;
+        });
+    });
+
     describe('#isCreated', () => {
 
         it('should return true if the runtime directory exists', async () => {
@@ -565,21 +681,74 @@ describe('LocalEnvironment', () => {
     });
 
     describe('#updateUserSettings', () => {
-        it('should update the user settings', async () => {
+        it('should update the user settings if the runtime exists', async () => {
             const updateStub: sinon.SinonStub = sandbox.stub();
             const getConfigurationStub: sinon.SinonStub = sandbox.stub(vscode.workspace, 'getConfiguration');
+            const setting: any = {};
+            setting[FabricRuntimeUtil.LOCAL_FABRIC] = {
+                ports: {
+                    startPort: 10000,
+                    endPort: 10069
+                }
+            };
             getConfigurationStub.returns({
-                get: sandbox.stub().callThrough,
+                get: sandbox.stub().resolves(setting),
                 update: updateStub
             });
 
-            await environment.updateUserSettings();
+            await environment.updateUserSettings(FabricRuntimeUtil.LOCAL_FABRIC);
+
+            updateStub.should.have.been.calledWith(SettingConfigurations.FABRIC_RUNTIME, setting);
+        });
+
+        it(`should delete old 'ports' property and update the user settings if the runtime exists`, async () => {
+            const updateStub: sinon.SinonStub = sandbox.stub();
+            const getConfigurationStub: sinon.SinonStub = sandbox.stub(vscode.workspace, 'getConfiguration');
+            getConfigurationStub.returns({
+                get: sandbox.stub().resolves({
+                    'ports': {
+                        hello: 'world'
+                    },
+                    '1 Org Local Fabric': {
+                        ports: {
+                            startPort: 10000,
+                            endPort: 10069
+                        }
+                    }
+                }),
+                update: updateStub
+            });
+
+            await environment.updateUserSettings(FabricRuntimeUtil.LOCAL_FABRIC);
+
+            updateStub.should.have.been.calledOnceWithExactly(SettingConfigurations.FABRIC_RUNTIME,
+                {
+                    '1 Org Local Fabric': {
+                        ports: {
+                            startPort: 17050,
+                            endPort: 17070
+                        }
+                    }
+                }, 1);
+        });
+
+        it(`should update the user settings if the runtime doesn't exist`, async () => {
+            const updateStub: sinon.SinonStub = sandbox.stub();
+            const getConfigurationStub: sinon.SinonStub = sandbox.stub(vscode.workspace, 'getConfiguration');
+            getConfigurationStub.returns({
+                get: sandbox.stub().resolves({}),
+                update: updateStub
+            });
+
+            await environment.updateUserSettings(FabricRuntimeUtil.LOCAL_FABRIC);
 
             updateStub.should.have.been.calledWith(SettingConfigurations.FABRIC_RUNTIME,
                 {
-                    ports: {
-                        startPort: 17050,
-                        endPort: 17070
+                    '1 Org Local Fabric': {
+                        ports: {
+                            startPort: 17050,
+                            endPort: 17070
+                        }
                     }
                 });
         });
@@ -671,5 +840,89 @@ describe('LocalEnvironment', () => {
             spawnStub.should.have.been.calledWith('cmd', ['/c', 'is_running.cmd'], sinon.match.any);
         });
 
+    });
+
+    describe('#startLogs', () => {
+
+        it('should start the logs', async () => {
+            const fakeStream: stream.Readable = new stream.Readable();
+            fakeStream._read = (_size: any): any => {
+                //
+            };
+            const logHoseStub: sinon.SinonStub = sandbox.stub(environment, 'getLoghose');
+            logHoseStub.returns(fakeStream);
+            const adapter: VSCodeBlockchainDockerOutputAdapter = VSCodeBlockchainDockerOutputAdapter.instance(FabricRuntimeUtil.LOCAL_FABRIC);
+            const outputAdapter: sinon.SinonSpy = sandbox.spy(adapter, 'log');
+
+            environment.startLogs(adapter);
+
+            fakeStream.emit('data', { name: 'jake', line: 'simon dodges his unit tests' });
+            outputAdapter.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `jake|simon dodges his unit tests`);
+
+            const opts: any = logHoseStub.args[0][0];
+            opts.attachFilter('someid', {
+                Name: '/something',
+                Config: {
+                    Labels: {
+
+                    }
+                }
+            }).should.be.false;
+            opts.attachFilter('someid', {
+                Name: '/something',
+                Config: {
+                    Labels: {
+                        'fabric-environment-name': 'jake'
+                    }
+                }
+            }).should.be.false;
+            opts.attachFilter('someid', {
+                Name: '/something',
+                Config: {
+                    Labels: {
+                        'fabric-environment-name': FabricRuntimeUtil.LOCAL_FABRIC
+                    }
+                }
+            }).should.be.true;
+
+            opts.attachFilter('someid', {
+                Name: '/fabricvscodelocalfabric'
+            }).should.be.true;
+        });
+    });
+
+    describe('#stopLogs', () => {
+        it('should stop the logs if loghose is active', () => {
+            stopLogsStub.restore();
+
+            const fakeStream: stream.Readable = new stream.Readable();
+            fakeStream._read = (_size: any): any => {
+                //
+            };
+            environment['lh'] = fakeStream;
+
+            const destroyStub: sinon.SinonStub = sandbox.stub(fakeStream, 'destroy').resolves();
+
+            environment.stopLogs();
+            destroyStub.should.have.been.calledOnce;
+
+        });
+
+        it('should set loghose to null', () => {
+            stopLogsStub.restore();
+
+            environment['lh'] = undefined;
+            environment.stopLogs();
+            should.not.exist(environment['lh]']);
+        });
+
+    });
+    describe('getLoghose', () => {
+
+        it('should get loghose', async () => {
+            const fakeStream: stream.Readable = new stream.Readable();
+            const result: any = environment.getLoghose({events: fakeStream});
+            should.exist(result);
+        });
     });
 });

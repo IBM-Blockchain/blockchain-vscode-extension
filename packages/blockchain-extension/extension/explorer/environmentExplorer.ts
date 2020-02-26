@@ -42,10 +42,12 @@ import { FabricEnvironmentTreeItem } from './runtimeOps/disconnectedTree/FabricE
 import { SetupTreeItem } from './runtimeOps/identitySetupTree/SetupTreeItem';
 import { EnvironmentConnectedTreeItem } from './runtimeOps/connectedTree/EnvironmentConnectedTreeItem';
 import { TextTreeItem } from './model/TextTreeItem';
-import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { EditFiltersTreeItem } from './runtimeOps/connectedTree/EditFiltersTreeItem';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
+import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
+import { ManagedAnsibleEnvironmentManager } from '../fabric/environments/ManagedAnsibleEnvironmentManager';
+import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 
 export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorerProvider {
 
@@ -214,7 +216,15 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             } else {
                 for (const environmentEntry of environmentEntries) {
                     if (environmentEntry.managedRuntime) {
-                        const runtime: ManagedAnsibleEnvironment | LocalEnvironment = await EnvironmentFactory.getEnvironment(environmentEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+
+                        let runtime: LocalEnvironment | ManagedAnsibleEnvironment;
+                        if (environmentEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                            runtime = await LocalEnvironmentManager.instance().ensureRuntime(environmentEntry.name, undefined, environmentEntry.numberOfOrgs);
+                        } else {
+                            // Managed ansible
+                            runtime = ManagedAnsibleEnvironmentManager.instance().ensureRuntime(environmentEntry.name, environmentEntry.environmentDirectory);
+                        }
+
                         const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
                             runtime.getName(),
                             environmentEntry,
@@ -222,7 +232,8 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                                 command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
                                 title: '',
                                 arguments: [environmentEntry]
-                            }
+                            },
+                            runtime
                         );
                         tree.push(treeItem);
 

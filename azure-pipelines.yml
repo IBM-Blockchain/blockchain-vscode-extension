@@ -64,6 +64,10 @@ stages:
               imageName: 'ubuntu-16.04'
               OPSTOOLS_FABRIC: 'true'
               VERSION: '1.39.2'
+            cucumber_two_org:
+              imageName: 'ubuntu-16.04'
+              TWO_ORG_FABRIC: 'true'
+              VERSION: '1.39.2'
 
         pool:
           vmImage: $(imageName)
@@ -87,6 +91,9 @@ stages:
             cucumber_opsTools:
               imageName: 'ubuntu-16.04'
               OPSTOOLS_FABRIC: 'true'
+            cucumber_two_org:
+              imageName: 'ubuntu-16.04'
+              TWO_ORG_FABRIC: 'true'
 
         pool:
           vmImage: $(imageName)
@@ -226,6 +233,10 @@ stages:
               imageName: 'ubuntu-16.04'
               OPSTOOLS_FABRIC: 'true'
               VERSION: 'insiders'
+            insiders_cucumber_two_org:
+              imageName: 'ubuntu-16.04'
+              TWO_ORG_FABRIC: 'true'
+              VERSION: 'insiders'
             old_cucumber:
               imageName: 'ubuntu-16.04'
               VERSION: '1.38.1'
@@ -236,6 +247,10 @@ stages:
             old_cucumber_ansible:
               imageName: 'ubuntu-16.04'
               ANSIBLE_FABRIC: 'true'
+              VERSION: '1.38.1'
+            old_cucumber_two_org:
+              imageName: 'ubuntu-16.04'
+              TWO_ORG_FABRIC: 'true'
               VERSION: '1.38.1'
             old_cucumber_opsTools:
               imageName: 'ubuntu-16.04'
@@ -252,6 +267,9 @@ stages:
             lateat_cucumber_opsTools:
               imageName: 'ubuntu-16.04'
               OPSTOOLS_FABRIC: 'true'
+            latest_cucumber_two_org:
+              imageName: 'ubuntu-16.04'
+              TWO_ORG_FABRIC: 'true'
         pool:
           vmImage: $(imageName)
 

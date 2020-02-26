@@ -69,6 +69,7 @@ export class GeneratedTestsHelper {
             this.userInputUtilHelper.showConfirmationWarningMessageStub.withArgs(`This task might overwrite ${path.join(contractDirectory, 'build.gradle')}. Do you wish to continue?`).resolves(true);
             this.userInputUtilHelper.showWarningMessageStub.withArgs('A build file was modified. Do you want to synchronize the Java classpath/configuration?').resolves('Now');
         }
+
         await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
     }
 

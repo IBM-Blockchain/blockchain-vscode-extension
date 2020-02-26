@@ -23,7 +23,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
-import { IFabricGatewayConnection, FabricRuntimeUtil, LogType, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { IFabricGatewayConnection, LogType, FabricGatewayRegistryEntry, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
 
 interface ITransactionData {
     transactionName: string;
@@ -291,10 +291,12 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
                 outputAdapter.log(LogType.INFO, undefined, `${actioning} transaction ${transactionName} with args ${args} on channel ${channelName}${peerTargetMessage}`);
             }
 
-            gatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
+            if (gatewayRegistryEntry.fromEnvironment) {
+                const environmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(gatewayRegistryEntry.fromEnvironment);
+                if (environmentEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                    VSCodeBlockchainDockerOutputAdapter.instance(environmentEntry.name).show();
+                }
 
-            if (gatewayRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
-                VSCodeBlockchainDockerOutputAdapter.instance().show();
             }
 
             let result: string | undefined;

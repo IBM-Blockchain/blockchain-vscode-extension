@@ -26,4 +26,14 @@ export class TimerUtil {
     public static cancelInterval(timeoutObject: NodeJS.Timeout): void {
         clearInterval(timeoutObject);
     }
+
+    /** Delay for a set number of ms; this code is added in order to workaround the VSCode issue
+     * https://github.com/Microsoft/vscode/issues/52778
+     *
+     * See comment on this post for discussion.
+     * @param {number} milliseconds milliseconds to pause for
+     */
+    public static async sleep(milliseconds: number): Promise<void> {
+        await new Promise((resolve: any): any => setTimeout(resolve, milliseconds));
+    }
 }

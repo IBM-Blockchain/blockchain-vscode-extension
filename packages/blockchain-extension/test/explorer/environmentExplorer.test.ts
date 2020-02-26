@@ -16,6 +16,7 @@ import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import * as path from 'path';
 
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
@@ -45,6 +46,7 @@ import { ImportNodesTreeItem } from '../../extension/explorer/runtimeOps/connect
 import { InstalledChainCodeOpsTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/InstalledChainCodeOpsTreeItem';
 import { InstallCommandTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/InstallCommandTreeItem';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
+import { ManagedAnsibleEnvironmentManager } from '../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -80,6 +82,8 @@ describe('environmentExplorer', () => {
             });
 
             it('should display all environments', async () => {
+                const ensureRuntimeLocalSpy: sinon.SinonSpy = mySandBox.spy(LocalEnvironmentManager.instance(), 'ensureRuntime');
+                const ensureRuntimeManagedSpy: sinon.SinonSpy = mySandBox.spy(ManagedAnsibleEnvironmentManager.instance(), 'ensureRuntime');
                 const registryEntryOne: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
                 registryEntryOne.name = 'myFabric';
                 registryEntryOne.managedRuntime = false;
@@ -88,9 +92,16 @@ describe('environmentExplorer', () => {
                 registryEntryTwo.name = 'myFabric2';
                 registryEntryTwo.managedRuntime = false;
 
+                const managedAnsible: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                managedAnsible.name = 'managedAnsible';
+                managedAnsible.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+                managedAnsible.managedRuntime = true;
+                managedAnsible.environmentDirectory = path.join(__dirname, '..', '..', 'data', 'managedAnsible');
+
                 await FabricEnvironmentRegistry.instance().clear();
                 await FabricEnvironmentRegistry.instance().add(registryEntryOne);
                 await FabricEnvironmentRegistry.instance().add(registryEntryTwo);
+                await FabricEnvironmentRegistry.instance().add(managedAnsible);
 
                 await TestUtil.setupLocalFabric();
 
@@ -103,17 +114,22 @@ describe('environmentExplorer', () => {
                 const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
 
-                allChildren.length.should.equal(3);
+                allChildren.length.should.equal(4);
                 allChildren[0].label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○ (click to start)`);
                 allChildren[0].tooltip.should.equal('Creates a local development runtime using Hyperledger Fabric Docker images');
-                allChildren[1].label.should.equal('myFabric');
-                allChildren[1].tooltip.should.equal('myFabric');
-                allChildren[2].label.should.equal('myFabric2');
-                allChildren[2].tooltip.should.equal('myFabric2');
+                allChildren[1].label.should.equal(`managedAnsible  ○ (click to start)`);
+                allChildren[1].tooltip.should.equal(`Creates a local development runtime using Hyperledger Fabric Docker images`);
+                allChildren[2].label.should.equal('myFabric');
+                allChildren[2].tooltip.should.equal('myFabric');
+                allChildren[3].label.should.equal('myFabric2');
+                allChildren[3].tooltip.should.equal('myFabric2');
 
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-environment-connected', false);
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', false);
+
+                ensureRuntimeLocalSpy.should.have.been.calledOnce;
+                ensureRuntimeManagedSpy.should.have.been.calledOnce;
             });
 
             it('should say that there are no environments', async () => {
@@ -160,7 +176,7 @@ describe('environmentExplorer', () => {
                 const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
                 environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
                 environmentRegistry.managedRuntime = true;
-                environmentRegistry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+                environmentRegistry.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
 
                 environmentRegistryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry');
                 environmentRegistryStub.returns(environmentRegistry);
@@ -404,14 +420,14 @@ describe('environmentExplorer', () => {
                 const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
                 environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
                 environmentRegistry.managedRuntime = true;
-                environmentRegistry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+                environmentRegistry.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
 
                 environmentStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
 
                 blockchainRuntimeExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const fabricRuntimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
                 mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns((fabricConnection as any) as FabricEnvironmentConnection);
-                mySandBox.stub(fabricRuntimeManager.getRuntime(), 'isRunning').resolves(true);
+                mySandBox.stub(fabricRuntimeManager.getRuntime(FabricRuntimeUtil.LOCAL_FABRIC), 'isRunning').resolves(true);
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
 
                 const getTransactionNamesStub: sinon.SinonStub = mySandBox.stub(MetadataUtil, 'getTransactionNames');
@@ -1015,15 +1031,16 @@ describe('environmentExplorer', () => {
             registryEntry = new FabricEnvironmentRegistryEntry();
             registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             registryEntry.managedRuntime = true;
-            registryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
 
-            const fabricRuntimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
-            mySandBox.stub(fabricRuntimeManager.getRuntime(), 'startLogs').resolves();
-            mySandBox.stub(fabricRuntimeManager.getRuntime(), 'stopLogs').returns(undefined);
-            getEnvRegEntryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry');
-            getEnvRegEntryStub.returns(registryEntry);
+            mySandBox.stub(LocalEnvironment.prototype, 'startLogs').resolves();
+            mySandBox.stub(LocalEnvironment.prototype, 'stopLogs').returns(undefined);
+
             commandStub = mySandBox.stub(vscode.commands, 'executeCommand');
             commandStub.callThrough();
+
+            registryEntry.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
+            getEnvRegEntryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry');
+            getEnvRegEntryStub.returns(registryEntry);
 
         });
 
@@ -1181,8 +1198,10 @@ describe('environmentExplorer', () => {
         it('should get a tree item', async () => {
 
             await TestUtil.setupLocalFabric();
+            await ExtensionUtil.activateExtension();
 
-            mySandBox.stub(LocalEnvironmentManager.instance().getRuntime(), 'isRunning').resolves(false);
+            mySandBox.stub(LocalEnvironmentManager.instance().getRuntime(FabricRuntimeUtil.LOCAL_FABRIC), 'isRunning').resolves(false);
+            mySandBox.stub(LocalEnvironmentManager.instance().getRuntime(FabricRuntimeUtil.LOCAL_FABRIC), 'getName').returns(FabricRuntimeUtil.LOCAL_FABRIC);
             const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren();
 

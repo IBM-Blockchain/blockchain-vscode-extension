@@ -23,7 +23,7 @@ import * as sinonChai from 'sinon-chai';
 import { CommandUtil } from '../../extension/util/CommandUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { OutputAdapter, LogType } from 'ibm-blockchain-platform-common';
+import { OutputAdapter, LogType, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
 
 chai.should();
@@ -167,7 +167,7 @@ describe('CommandUtil Tests', () => {
     describe('sendRequestWithOutput', () => {
         let outputSpy: sinon.SinonSpy;
 
-        const outputAdapter: OutputAdapter = VSCodeBlockchainDockerOutputAdapter.instance();
+        const outputAdapter: OutputAdapter = VSCodeBlockchainDockerOutputAdapter.instance(FabricRuntimeUtil.LOCAL_FABRIC);
 
         beforeEach(() => {
             outputSpy = mySandBox.spy(outputAdapter, 'log');

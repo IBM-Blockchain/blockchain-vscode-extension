@@ -2,7 +2,7 @@
 ## **Local Smart Contract Development**
 `20-30 mins`
 
-Follow the typical workflow from generating a new default smart contract project, deploying code to the _Local Fabric_ environment, and testing out your transactions via an application gateway.
+Follow the typical workflow from generating a new default smart contract project, deploying code to the _1 Org Local Fabric_ environment, and testing out your transactions via an application gateway.
 
 
 ## Learning Objectives
@@ -10,7 +10,7 @@ Follow the typical workflow from generating a new default smart contract project
 * Create a new default smart contract project
 * Package a smart contract
 * Start and use the local, pre-configured Hyperledger Fabric environment
-* Deploy the smart contract on _Local Fabric_
+* Deploy the smart contract on _1 Org Local Fabric_
 * Edit and upgrade the contract
 * Transact on your locally-deployed smart contract
 
@@ -140,26 +140,26 @@ Now, take a look at the next transaction:
 
 This one starts with `@Transaction(false)` - the "false" means that this function is not typically intended to change the contents of the ledger. Transactions like this are typically __evaluated__. You'll often hear such transactions referred to as "queries".  As you can see, this function only takes `myAssetId`, and will return the value of the whatever state that key points to.
 
-Take a look at the other transactions in the contract at your leisure, then when you're happy, let's move on to starting the Local Fabric environment...
+Take a look at the other transactions in the contract at your leisure, then when you're happy, let's move on to starting the 1 Org Local Fabric environment...
 </details>
 
 ---
 
 
 <details>
-<summary><b>3. Start the Local Fabric environment</b></summary>
+<summary><b>3. Start the 1 Org Local Fabric environment</b></summary>
 
 The panel titled `FABRIC ENVIRONMENTS` (in the IBM Blockchain Platform view) allows you to operate a simple Hyperledger Fabric runtime using Docker on your local machine. Initially, it will be stopped, and you should see:
 
 ```
-Local Fabric  ○ (click to start).
+1 Org Local Fabric  ○ (click to start).
 ```
 
-1. Click that message and the extension will start spinning up Docker containers for you. The message "Local Fabric runtime is starting..." will appear, with a loading spinner, and when the task is complete you will see a set of expandable/collapsible sections labelled `Smart Contracts`, `Channels`, `Nodes` and `Organizations`.
+1. Click that message and the extension will start spinning up Docker containers for you. The message "1 Org Local Fabric runtime is starting..." will appear, with a loading spinner, and when the task is complete you will see a set of expandable/collapsible sections labelled `Smart Contracts`, `Channels`, `Nodes` and `Organizations`.
 
 > Command Palette alternative: `Connect to a Fabric Environment`
 
-That's all you need to do in this step, but before moving on let's learn a little more about what _Local Fabric_ comprises.  We won't go into _too_ much detail in this tutorial, but here are a few handy facts to know:
+That's all you need to do in this step, but before moving on let's learn a little more about what _1 Org Local Fabric_ comprises.  We won't go into _too_ much detail in this tutorial, but here are a few handy facts to know:
 
 <!-- TO DO: Replace this with a link to the Fabric docs and a diagram perhaps?? -->
 
@@ -185,7 +185,7 @@ There are 3 necessary steps to go from a smart contract project (like the one we
 2. Use the package to install the smart contract on Fabric peers
 3. Instantiate the smart contract on a Fabric channel
 
-Using this extension, developers can complete all 3 steps in a single action (on a simple environment like _Local Fabric_). Alternatively, you could perform each step individually - this is a little slower, but may help you understand the steps better. We'll _instantiate_ the contract using the "1-step method", then make a small change and _upgrade_ it using the "3-step method" - once you've tried both, you can pick which one you prefer to use going forward.
+Using this extension, developers can complete all 3 steps in a single action (on a simple environment like _1 Org Local Fabric_). Alternatively, you could perform each step individually - this is a little slower, but may help you understand the steps better. We'll _instantiate_ the contract using the "1-step method", then make a small change and _upgrade_ it using the "3-step method" - once you've tried both, you can pick which one you prefer to use going forward.
 
 Here is how to package, install and instantiate from your open smart contract project:
 
@@ -265,11 +265,11 @@ We've now got an updated smart contract package. Let's use it to upgrade our exi
 
 2. You should see a new package on the list: `demoContract@0.0.2`.
 
-The package you just created can be installed onto any Hyperledger Fabric peer (running at the correct version). For example, you could right-click and choose "Export Package", then deploy it into a cloud environment using the IBM Blockchain Platform operational tooling console. We'll learn how to do this later: for now, we'll use it to upgrade the contract on our Local Fabric network, so there's no need to export your package just yet!
+The package you just created can be installed onto any Hyperledger Fabric peer (running at the correct version). For example, you could right-click and choose "Export Package", then deploy it into a cloud environment using the IBM Blockchain Platform operational tooling console. We'll learn how to do this later: for now, we'll use it to upgrade the contract on our 1 Org Local Fabric network, so there's no need to export your package just yet!
 
 ### Step two: install
 
-In a real network, each of the organizations that will be endorsing transactions will install the smart contract on their own peers. Our basic local Fabric runtime only has a single peer-owning organization (`Org1`) with a single peer (`Org1Peer1`) and a single channel (`mychannel`).
+In a real network, each of the organizations that will be endorsing transactions will install the smart contract on their own peers. Our basic 1 Org Local Fabric runtime only has a single peer-owning organization (`Org1`) with a single peer (`Org1Peer1`) and a single channel (`mychannel`).
 
 So, we only have to install the new version of the contract on that single peer, then we will be able to upgrade the instance in `mychannel`.
 To do this...
@@ -312,13 +312,13 @@ Note that the old version `demoContract@0.0.1` is _replaced_ with `demoContract@
 <details>
 <summary><b>6. Submit and evaluate transactions</b></summary>
 
-Fabric gateways are connections to peers participating in Hyperledger Fabric networks, which can be used by client applications to submit transactions. When you started the local runtime in `LOCAL FABRIC OPS`, a gateway was automatically created for you also. You'll find it under `FABRIC GATEWAYS`, and it's called `Local Fabric`.
+Fabric gateways are connections to peers participating in Hyperledger Fabric networks, which can be used by client applications to submit transactions. When you started the local runtime in `LOCAL FABRIC OPS`, a gateway was automatically created for you also. You'll find it under `FABRIC GATEWAYS`, and it's called `1 Org Local Fabric`.
 
-To _use_ a gateway, you also need an identity valid for transacting on the network in question. Again, for the local Fabric runtime, this has already been set up for you!  Observe that under `FABRIC WALLETS` there is a wallet called `Local Fabric - Org1 Wallet  `, which contains an ID called `org1Admin`. If you hover your mouse over `Local Fabric` in the `FABRIC GATEWAYS` panel, you will see that it tells you "Associated wallet: Local Fabric - Org1 Wallet".
+To _use_ a gateway, you also need an identity valid for transacting on the network in question. Again, for the local Fabric runtime, this has already been set up for you!  Observe that under `FABRIC WALLETS` there is a wallet called `1 Org Local Fabric - Org1 Wallet  `, which contains an ID called `org1Admin`. If you hover your mouse over `1 Org Local Fabric` in the `FABRIC GATEWAYS` panel, you will see that it tells you "Associated wallet: 1 Org Local Fabric - Org1 Wallet".
 
 So, you've got a Gateway, and an associated wallet with a single identity in it - this means the Gateway is ready to be used!
 
-1. Click on `Local Fabric - Org1` (under `FABRIC GATEWAYS`) to connect via this gateway. You will now see `Connected via gateway: Local Fabric - Org1, Using ID: org1Admin` and a collapsed section labelled  `Channels`.
+1. Click on `1 Org Local Fabric - Org1` (under `FABRIC GATEWAYS`) to connect via this gateway. You will now see `Connected via gateway: 1 Org Local Fabric - Org1, Using ID: org1Admin` and a collapsed section labelled  `Channels`.
 
 2. Expand `Channels`, then expand `mychannel` and `demoContract@0.0.2`. You will see a list of all the transactions that were defined in your smart contract.
 

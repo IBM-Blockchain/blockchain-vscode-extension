@@ -153,6 +153,42 @@
       "env": {
         "ANSIBLE_FABRIC": "true"
       }
-    }
+    },
+    {
+      "name": "Cucumber Two Org fabric",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "${workspaceFolder}/cucumber/data/cucumber.code-workspace",
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--extensionTestsPath=${workspaceFolder}/build/cucumber/"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/build/cucumber/**/*.feature"
+      ],
+      "preLaunchTask": "npm: watch",
+      "env": {
+        "TWO_ORG_FABRIC": "true"
+      }
+    },
+    {
+      "name": "Cucumber Two Org fabric (new fabric)",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "${workspaceFolder}/cucumber/data/cucumber.code-workspace",
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--extensionTestsPath=${workspaceFolder}/build/cucumber/"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/build/cucumber/**/*.feature"
+      ],
+      "preLaunchTask": "npm: cucumberTests",
+      "env": {
+        "TWO_ORG_FABRIC": "true"
+      }
+    },
   ]
 }

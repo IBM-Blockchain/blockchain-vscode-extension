@@ -14,8 +14,9 @@
 'use strict';
 
 export class FabricRuntimeUtil {
-    public static readonly LOCAL_FABRIC: string = 'Local Fabric';
+    public static readonly LOCAL_FABRIC: string = '1 Org Local Fabric';
     public static readonly ADMIN_USER: string = 'admin';
 
+    public static readonly LOCAL_SPACE_FABRIC: string = 'Local Fabric';
     public static readonly OLD_LOCAL_FABRIC: string = 'local_fabric';
 }

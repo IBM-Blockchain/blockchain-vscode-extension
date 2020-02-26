@@ -31,7 +31,7 @@ import { LocalGatewayTreeItem } from './model/LocalGatewayTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedContractTreeItem } from './model/InstantiatedContractTreeItem';
 import { InstantiatedTreeItem } from './model/InstantiatedTreeItem';
-import { FabricChaincode, IFabricGatewayConnection, LogType, FabricGatewayRegistryEntry, FabricGatewayRegistry, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
+import { FabricChaincode, IFabricGatewayConnection, LogType, FabricGatewayRegistryEntry, FabricGatewayRegistry, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { InstantiatedMultiContractTreeItem } from './model/InstantiatedMultiContractTreeItem';
 import { InstantiatedUnknownTreeItem } from './model/InstantiatedUnknownTreeItem';
 import { InstantiatedAssociatedTreeItem } from './model/InstantiatedAssociatedTreeItem';
@@ -39,6 +39,10 @@ import { InstantiatedAssociatedContractTreeItem } from './model/InstantiatedAsso
 import { InstantiatedAssociatedChaincodeTreeItem } from './model/InstantiatedAssociatedChaincodeTreeItem';
 import { InstantiatedAssociatedMultiContractTreeItem } from './model/InstantiatedAssociatedMultiContractTreeItem';
 import { TextTreeItem } from './model/TextTreeItem';
+import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
+import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
+import { ManagedAnsibleEnvironmentManager } from '../fabric/environments/ManagedAnsibleEnvironmentManager';
+import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 
 export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProvider {
 
@@ -179,17 +183,27 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
 
                 const gatewayName: string = gateway.displayName ? gateway.displayName : gateway.name;
 
-                let environentEntry: FabricEnvironmentRegistryEntry;
+                let environmentEntry: FabricEnvironmentRegistryEntry;
+                let runtime: LocalEnvironment | ManagedAnsibleEnvironment;
                 if (gateway.fromEnvironment) {
-                    environentEntry = await FabricEnvironmentRegistry.instance().get(gateway.fromEnvironment);
+                    environmentEntry = await FabricEnvironmentRegistry.instance().get(gateway.fromEnvironment);
+
                 }
 
-                if (environentEntry && environentEntry.managedRuntime) {
+                if (environmentEntry && environmentEntry.managedRuntime) {
+
+                    if (environmentEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                        runtime = await LocalEnvironmentManager.instance().ensureRuntime(environmentEntry.name, undefined, environmentEntry.numberOfOrgs);
+                    } else {
+                        runtime = ManagedAnsibleEnvironmentManager.instance().ensureRuntime(environmentEntry.name, environmentEntry.environmentDirectory);
+                    }
+
                     const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(
                         this,
                         gatewayName,
                         gateway,
                         vscode.TreeItemCollapsibleState.None,
+                        runtime,
                         command
                     );
 

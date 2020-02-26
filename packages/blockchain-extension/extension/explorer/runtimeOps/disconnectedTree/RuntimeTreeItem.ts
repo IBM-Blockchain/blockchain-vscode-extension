@@ -20,30 +20,34 @@ import { VSCodeBlockchainOutputAdapter } from '../../../logging/VSCodeBlockchain
 import { FabricEnvironmentTreeItem } from './FabricEnvironmentTreeItem';
 import { FabricEnvironmentRegistryEntry, LogType } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../../fabric/environments/LocalEnvironment';
+import { LocalEnvironmentManager } from '../../../fabric/environments/LocalEnvironmentManager';
 import { ManagedAnsibleEnvironment } from '../../../fabric/environments/ManagedAnsibleEnvironment';
-import { EnvironmentFactory } from '../../../fabric/environments/EnvironmentFactory';
+import { ManagedAnsibleEnvironmentManager } from '../../../fabric/environments/ManagedAnsibleEnvironmentManager';
 
 export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
 
-    static async newRuntimeTreeItem(provider: BlockchainExplorerProvider, label: string, environmentRegistryEntry: FabricEnvironmentRegistryEntry, command: vscode.Command): Promise<RuntimeTreeItem> {
-        const treeItem: RuntimeTreeItem = new RuntimeTreeItem(provider, label, environmentRegistryEntry, command);
+    static async newRuntimeTreeItem(provider: BlockchainExplorerProvider, label: string, environmentRegistryEntry: FabricEnvironmentRegistryEntry, command: vscode.Command, _runtime: LocalEnvironment | ManagedAnsibleEnvironment): Promise<RuntimeTreeItem> {
+        const treeItem: RuntimeTreeItem = new RuntimeTreeItem(provider, label, environmentRegistryEntry, command, _runtime);
+
         await treeItem.updateProperties();
+
         return treeItem;
     }
 
     contextValue: string = 'blockchain-runtime-item';
     private name: string;
-    private runtime: ManagedAnsibleEnvironment | LocalEnvironment;
+    private runtime: LocalEnvironment | ManagedAnsibleEnvironment;
     private busyTicker: NodeJS.Timer;
     private busyTicks: number = 0;
 
-    private constructor(provider: BlockchainExplorerProvider, public readonly label: string, environmentRegistryEntry: FabricEnvironmentRegistryEntry, public readonly command: vscode.Command) {
+    private constructor(provider: BlockchainExplorerProvider, public readonly label: string, environmentRegistryEntry: FabricEnvironmentRegistryEntry, public readonly command: vscode.Command, public _runtime: LocalEnvironment | ManagedAnsibleEnvironment) {
         super(provider, label, environmentRegistryEntry, command);
         this.name = label;
-        this.runtime = EnvironmentFactory.getEnvironment(environmentRegistryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+        this.runtime = _runtime;
         this.runtime.on('busy', () => {
             this.safelyUpdateProperties();
         });
+
     }
 
     private safelyUpdateProperties(): void {
@@ -78,6 +82,12 @@ export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
         }
 
         this.setLabel(newLabel);
+        if (this.runtime instanceof LocalEnvironment) {
+            LocalEnvironmentManager.instance().updateRuntime(this.name, this.runtime);
+        } else {
+            ManagedAnsibleEnvironmentManager.instance().updateRuntime(this.name, this.runtime);
+        }
+
         this.refresh();
     }
 

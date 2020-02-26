@@ -69,6 +69,9 @@ export class EnvironmentHelper {
             } else if (process.env.ANSIBLE_FABRIC) {
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR});
                 this.userInputUtilHelper.openFileBrowserStub.resolves(vscode.Uri.file(path.join(__dirname, '..', '..', '..', 'cucumber', 'ansible')));
+            } else if (process.env.TWO_ORG_FABRIC) {
+                this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE});
+                this.userInputUtilHelper.showQuickPickItemStub.withArgs('Choose a configuration for a new local network').resolves({data: 2});
             } else {
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES});
 

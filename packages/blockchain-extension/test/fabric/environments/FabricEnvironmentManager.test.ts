@@ -40,6 +40,7 @@ describe('FabricEnvironmentManager', () => {
         registryEntry = new FabricEnvironmentRegistryEntry();
         registryEntry.name = 'myConnection';
         registryEntry.managedRuntime = false;
+
     });
 
     before(async () => {
@@ -58,7 +59,7 @@ describe('FabricEnvironmentManager', () => {
         });
     });
 
-    describe('#getGatewayRegistryEntry', () => {
+    describe('#getEnvironmentRegistryEntry', () => {
         it('should get the registry entry', () => {
             environmentManager['environmentRegistryEntry'] = registryEntry;
             environmentManager.getEnvironmentRegistryEntry().should.equal(registryEntry);

@@ -34,6 +34,7 @@ import { EnvironmentHelper } from '../helpers/environmentHelper';
 import { SampleHelper } from '../helpers/sampleHelper';
 import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 import { ModuleUtilHelper } from '../helpers/moduleUtilHelper';
+import { TimerUtil } from '../../extension/util/TimerUtil';
 
 // tslint:disable:no-unused-expression
 
@@ -75,6 +76,8 @@ module.exports = function(): any {
             await TestUtil.storeBypassPreReqs();
             await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
 
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
+
             this.userInputUtilHelper.showConfirmationWarningMessageStub.reset();
             firstTime = false;
 
@@ -90,7 +93,7 @@ module.exports = function(): any {
             await vscode.commands.executeCommand('environmentExplorer.focus');
 
             // sleep to allow the panels to refresh
-            await ExtensionUtil.sleep(3000);
+            await TimerUtil.sleep(3000);
 
             // check there were no errors on activation
             this.userInputUtilHelper.logSpy.should.not.have.been.calledWith(LogType.ERROR);

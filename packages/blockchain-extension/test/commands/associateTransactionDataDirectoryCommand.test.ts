@@ -149,7 +149,7 @@ describe('AssociateTestDataDirectoryCommand', () => {
                 associatedWallet: ''
             });
             getGatewayRegistryStub = mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry');
-            getGatewayRegistryStub.returns(gatewayRegistryEntry);
+            getGatewayRegistryStub.resolves(gatewayRegistryEntry);
 
             await FabricGatewayRegistry.instance().clear();
             await FabricGatewayRegistry.instance().add(gatewayRegistryEntry);

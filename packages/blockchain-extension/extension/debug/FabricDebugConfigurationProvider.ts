@@ -84,7 +84,8 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                 return;
             }
 
-            this.runtime = LocalEnvironmentManager.instance().getRuntime();
+            // TODO: Handle debugging for other fabrics
+            this.runtime = LocalEnvironmentManager.instance().getRuntime(FabricRuntimeUtil.LOCAL_FABRIC);
 
             const isRunning: boolean = await this.runtime.isRunning();
 

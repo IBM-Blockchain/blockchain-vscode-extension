@@ -22,7 +22,7 @@ import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
-import { LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 
@@ -141,7 +141,7 @@ describe('DebugCommandListCommand', () => {
     });
 
     it('should connect to Org1 wallet before running the submit or evaluate commands', async () => {
-        const registryEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('Local Fabric - Org1');
+        const registryEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
 
         connectionManagerGetConnectionStub.onCall(0).returns(undefined);
         connectionManagerGetConnectionStub.onCall(1).returns(runtimeStub);

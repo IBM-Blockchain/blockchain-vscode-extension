@@ -23,7 +23,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { FabricCertificate, FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricEnvironmentConnection, IFabricGatewayConnection, LogType, FabricEnvironment, FabricGatewayRegistryEntry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
-import { ExtensionUtil } from '../util/ExtensionUtil';
+import { TimerUtil } from '../util/TimerUtil';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -77,6 +77,8 @@ export class UserInputUtil {
     static readonly ADD_IDENTITY: string = '+ Add identity';
     static readonly ADD_GATEWAY_FROM_ENVIRONMENT: string = 'Create a gateway from a Fabric environment';
     static readonly ADD_GATEWAY_FROM_CCP: string = 'Create a gateway from a connection profile';
+    static readonly ADD_ENVIRONMENT_FROM_TEMPLATE: string = 'Create new from template';
+    static readonly ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION: string = '(uses Docker on your local machine)';
     static readonly ADD_ENVIRONMENT_FROM_NODES: string = 'Add any other Fabric network';
     static readonly ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION: string = '(by providing node JSON files)';
     static readonly ADD_ENVIRONMENT_FROM_DIR: string = 'Add an Ansible-created network';
@@ -90,6 +92,10 @@ export class UserInputUtil {
     static readonly GENERATE_DEFAULT_CONTRACT_DESCRIPTION: string = 'CRUD operations to a ledger shared by all network members';
     static readonly GENERATE_PD_CONTRACT: string = 'Private Data Contract';
     static readonly GENERATE_PD_CONTRACT_DESCRIPTION: string = 'CRUD and verify operations to a collection, private to a single network member';
+
+    static readonly ONE_ORG_TEMPLATE: string = `1 Org template (1 CA, 1 peer, 1 channel)`;
+    static readonly TWO_ORG_TEMPLATE: string = `2 Org template (2 CAs, 2 peers, 1 channel)`;
+    static readonly CREATE_ADDITIONAL_LOCAL_NETWORKS: string = `Create additional local networks (tutorial)`;
 
     public static async showQuickPick(prompt: string, items: string[], canPickMany: boolean = false): Promise<string | string[]> {
         const quickPickOptions: vscode.QuickPickOptions = {
@@ -853,7 +859,7 @@ export class UserInputUtil {
         try {
             // Browse file and get path
             // work around for #135
-            await ExtensionUtil.sleep(500);
+            await TimerUtil.sleep(500);
 
             const fileBrowser: vscode.Uri[] = await vscode.window.showOpenDialog(openDialogOptions);
 

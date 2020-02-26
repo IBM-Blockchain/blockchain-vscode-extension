@@ -16,8 +16,9 @@ import { RegistryEntry } from './RegistryEntry';
 
 export enum EnvironmentType {
     ENVIRONMENT = 1, // Standard remote environment
-    ANSIBLE_ENVIRONMENT = 2, // Ansible environment (non-managed or managed) - includes Local environment
-    OPS_TOOLS_ENVIRONMENT = 3
+    ANSIBLE_ENVIRONMENT = 2, // Ansible environment (non-managed or managed)
+    OPS_TOOLS_ENVIRONMENT = 3,
+    LOCAL_ENVIRONMENT = 4 // Local environments
 }
 
 export class FabricEnvironmentRegistryEntry extends RegistryEntry {
@@ -26,6 +27,7 @@ export class FabricEnvironmentRegistryEntry extends RegistryEntry {
     public environmentType?: EnvironmentType;
     public environmentDirectory?: string; // the dir where the ansible output is
     public url?: string;
+    public numberOfOrgs?: number;
     constructor(fields?: FabricEnvironmentRegistryEntry) {
         super();
         Object.assign(this, fields);

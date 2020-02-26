@@ -19,14 +19,12 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import { TestUtil } from '../../TestUtil';
 import * as path from 'path';
-import { VSCodeBlockchainDockerOutputAdapter } from '../../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
 import { SettingConfigurations } from '../../../configurations';
 import { FabricRuntimeState } from '../../../extension/fabric/FabricRuntimeState';
 import { ManagedAnsibleEnvironment } from '../../../extension/fabric/environments/ManagedAnsibleEnvironment';
 import { OutputAdapter, FabricWalletRegistry, LogType } from 'ibm-blockchain-platform-common';
-import * as stream from 'stream';
 
-const should: Chai.Should = chai.should();
+chai.should();
 chai.use(chaiAsPromised);
 
 // tslint:disable no-unused-expression
@@ -127,7 +125,6 @@ describe('ManagedAnsibleEnvironment', () => {
 
             let isRunningStub: sinon.SinonStub;
             let setStateSpy: sinon.SinonSpy;
-            let stopLogsStub: sinon.SinonStub;
             let getConfigurationStub: sinon.SinonStub;
             let getSettingsStub: sinon.SinonStub;
 
@@ -135,7 +132,6 @@ describe('ManagedAnsibleEnvironment', () => {
                 sandbox.stub(environment, 'isGenerated').resolves(true);
                 isRunningStub = sandbox.stub(environment, 'isRunning').resolves(false);
                 setStateSpy = sandbox.spy(environment, 'setState');
-                stopLogsStub = sandbox.stub(environment, 'stopLogs');
                 getSettingsStub = sandbox.stub();
                 getSettingsStub.withArgs(SettingConfigurations.FABRIC_CHAINCODE_TIMEOUT).returns(120);
 
@@ -161,10 +157,6 @@ describe('ManagedAnsibleEnvironment', () => {
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_EXECUTETIMEOUT.should.equal('120s');
 
-                if (verb !== 'generate' && verb !== 'start') {
-                    stopLogsStub.should.have.been.called;
-                }
-
                 spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`], sinon.match.any);
 
             });
@@ -183,9 +175,6 @@ describe('ManagedAnsibleEnvironment', () => {
 
                 spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`], sinon.match.any);
 
-                if (verb !== 'generate' && verb !== 'start') {
-                    stopLogsStub.should.have.been.called;
-                }
             });
 
             it(`should execute the ${verb}.sh script using a custom output adapter (Linux/MacOS)`, async () => {
@@ -201,10 +190,6 @@ describe('ManagedAnsibleEnvironment', () => {
 
                 outputAdapter.log.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
                 outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
-
-                if (verb !== 'generate' && verb !== 'start') {
-                    stopLogsStub.should.have.been.called;
-                }
             });
 
             it(`should publish busy events and set state before and after handling success (Linux/MacOS)`, async () => {
@@ -239,7 +224,6 @@ describe('ManagedAnsibleEnvironment', () => {
                     setStateSpy.should.have.been.calledTwice;
                     setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STOPPING);
                     setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STOPPED);
-                    stopLogsStub.should.have.been.called;
                 }
             });
 
@@ -275,7 +259,6 @@ describe('ManagedAnsibleEnvironment', () => {
                     setStateSpy.should.have.been.calledTwice;
                     setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STOPPING);
                     setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
-                    stopLogsStub.should.have.been.called;
                 }
             });
 
@@ -294,10 +277,6 @@ describe('ManagedAnsibleEnvironment', () => {
 
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_EXECUTETIMEOUT.should.equal('120s');
-
-                if (verb !== 'generate' && verb !== 'start') {
-                    stopLogsStub.should.have.been.called;
-                }
             });
 
             it(`should execute the ${verb}.cmd script and handle an error (Windows)`, async () => {
@@ -313,9 +292,6 @@ describe('ManagedAnsibleEnvironment', () => {
 
                 spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
 
-                if (verb !== 'generate' && verb !== 'start') {
-                    stopLogsStub.should.have.been.called;
-                }
             });
 
             it(`should execute the ${verb}.cmd script using a custom output adapter (Windows)`, async () => {
@@ -331,9 +307,6 @@ describe('ManagedAnsibleEnvironment', () => {
                 outputAdapter.log.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
                 outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
 
-                if (verb !== 'generate' && verb !== 'start') {
-                    stopLogsStub.should.have.been.called;
-                }
             });
 
             it(`should publish busy events and set state before and after handling success (Windows)`, async () => {
@@ -368,7 +341,6 @@ describe('ManagedAnsibleEnvironment', () => {
                     setStateSpy.should.have.been.calledTwice;
                     setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STOPPING);
                     setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STOPPED);
-                    stopLogsStub.should.have.been.called;
                 }
             });
 
@@ -403,7 +375,6 @@ describe('ManagedAnsibleEnvironment', () => {
                     setStateSpy.should.have.been.calledTwice;
                     setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STOPPING);
                     setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
-                    stopLogsStub.should.have.been.called;
                 }
             });
         });
@@ -435,11 +406,9 @@ describe('ManagedAnsibleEnvironment', () => {
     describe('#restart', () => {
 
         let isRunningStub: sinon.SinonStub;
-        let stopLogsStub: sinon.SinonStub;
 
         beforeEach(() => {
             isRunningStub = sandbox.stub(environment, 'isRunning').resolves(false);
-            stopLogsStub = sandbox.stub(environment, 'stopLogs');
         });
 
         it('should execute the start.sh and stop.sh scripts and handle success (Linux/MacOS)', async () => {
@@ -455,8 +424,6 @@ describe('ManagedAnsibleEnvironment', () => {
             spawnStub.should.have.been.calledTwice;
             spawnStub.should.have.been.calledWith('/bin/sh', ['start.sh'], sinon.match.any);
             spawnStub.should.have.been.calledWith('/bin/sh', ['stop.sh'], sinon.match.any);
-
-            stopLogsStub.should.have.been.called;
         });
 
         it('should execute the start.sh and stop.sh scripts using a custom output adapter (Linux/MacOS)', async () => {
@@ -476,7 +443,6 @@ describe('ManagedAnsibleEnvironment', () => {
             outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
             outputAdapter.log.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
             outputAdapter.log.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
-            stopLogsStub.should.have.been.called;
         });
 
         it('should publish busy events and set state before and after handling success (Linux/MacOS)', async () => {
@@ -501,7 +467,6 @@ describe('ManagedAnsibleEnvironment', () => {
             setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.RESTARTING);
             setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
             environment.getState().should.equal(FabricRuntimeState.STARTED);
-            stopLogsStub.should.have.been.called;
         });
 
         it('should publish busy events and set state before and after handling an error, failure to stop (Linux/MacOS)', async () => {
@@ -526,7 +491,6 @@ describe('ManagedAnsibleEnvironment', () => {
             setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.RESTARTING);
             setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
             environment.getState().should.equal(FabricRuntimeState.STARTED);
-            stopLogsStub.should.have.been.called;
         });
 
         it('should publish busy events and set state before and after handling an error, failure to start (Linux/MacOS)', async () => {
@@ -551,7 +515,6 @@ describe('ManagedAnsibleEnvironment', () => {
             setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.RESTARTING);
             setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STOPPED);
             environment.getState().should.equal(FabricRuntimeState.STOPPED);
-            stopLogsStub.should.have.been.called;
         });
 
         it('should execute the start.cmd and stop.cmd scripts and handle success (Windows)', async () => {
@@ -567,7 +530,6 @@ describe('ManagedAnsibleEnvironment', () => {
             spawnStub.should.have.been.calledTwice;
             spawnStub.should.have.been.calledWith('cmd', ['/c', 'start.cmd'], sinon.match.any);
             spawnStub.should.have.been.calledWith('cmd', ['/c', 'stop.cmd'], sinon.match.any);
-            stopLogsStub.should.have.been.called;
         });
 
         it('should execute the start.sh and stop.sh scripts using a custom output adapter (Windows)', async () => {
@@ -586,7 +548,6 @@ describe('ManagedAnsibleEnvironment', () => {
             outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
             outputAdapter.log.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
             outputAdapter.log.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
-            stopLogsStub.should.have.been.called;
         });
 
         it('should publish busy events and set state before and after handling success (Windows)', async () => {
@@ -611,7 +572,6 @@ describe('ManagedAnsibleEnvironment', () => {
             setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.RESTARTING);
             setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
             environment.getState().should.equal(FabricRuntimeState.STARTED);
-            stopLogsStub.should.have.been.called;
         });
 
         it('should publish busy events and set state before and after handling an error, on stopping (Windows)', async () => {
@@ -636,7 +596,6 @@ describe('ManagedAnsibleEnvironment', () => {
             setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.RESTARTING);
             setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
             environment.getState().should.equal(FabricRuntimeState.STARTED);
-            stopLogsStub.should.have.been.called;
         });
 
         it('should publish busy events and set state before and after handling an error, on starting (Windows)', async () => {
@@ -661,7 +620,6 @@ describe('ManagedAnsibleEnvironment', () => {
             setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.RESTARTING);
             setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STOPPED);
             environment.getState().should.equal(FabricRuntimeState.STOPPED);
-            stopLogsStub.should.have.been.called;
         });
     });
 
@@ -811,78 +769,6 @@ describe('ManagedAnsibleEnvironment', () => {
         it('should throw an error if there are no peer nodes', async () => {
             sandbox.stub(environment, 'getNodes').resolves([]);
             await environment.getPeerContainerName().should.be.rejectedWith(/There are no Fabric peer nodes/);
-        });
-
-    });
-
-    describe('#startLogs', () => {
-
-        it('should start the logs', async () => {
-            const fakeStream: stream.Readable = new stream.Readable();
-            fakeStream._read = (_size: any): any => {
-                //
-            };
-            const logHoseStub: sinon.SinonStub = sandbox.stub(environment, 'ourLoghose');
-            logHoseStub.returns(fakeStream);
-            const adapter: VSCodeBlockchainDockerOutputAdapter = VSCodeBlockchainDockerOutputAdapter.instance();
-            const outputAdapter: sinon.SinonSpy = sandbox.spy(adapter, 'log');
-
-            await environment.startLogs(adapter);
-
-            fakeStream.emit('data', { name: 'jake', line: 'simon dodges his unit tests' });
-            outputAdapter.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `jake|simon dodges his unit tests`);
-
-            const opts: any = logHoseStub.args[0][0];
-            opts.attachFilter('someid', {
-                Name: '/something',
-                Config: {
-                    Labels: {
-
-                    }
-                }
-            }).should.be.false;
-            opts.attachFilter('someid', {
-                Name: '/something',
-                Config: {
-                    Labels: {
-                        'fabric-environment-name': 'jake'
-                    }
-                }
-            }).should.be.false;
-            opts.attachFilter('someid', {
-                Name: '/something',
-                Config: {
-                    Labels: {
-                        'fabric-environment-name': 'managedAnsible'
-                    }
-                }
-            }).should.be.true;
-
-            opts.attachFilter('someid', {
-                Name: '/fabricvscodelocalfabric'
-            }).should.be.true;
-        });
-    });
-
-    describe('#stopLogs', () => {
-        it('should stop the logs if loghose is active', () => {
-            const fakeStream: stream.Readable = new stream.Readable();
-            fakeStream._read = (_size: any): any => {
-                //
-            };
-            environment['lh'] = fakeStream;
-
-            const destroyStub: sinon.SinonStub = sandbox.stub(fakeStream, 'destroy').resolves();
-
-            environment.stopLogs();
-            destroyStub.should.have.been.calledOnce;
-
-        });
-
-        it('should set loghose to null', () => {
-            environment['lh'] = undefined;
-            environment.stopLogs();
-            should.not.exist(environment['lh]']);
         });
 
     });

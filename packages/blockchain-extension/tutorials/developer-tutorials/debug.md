@@ -66,7 +66,7 @@ For the purposes of this tutorial, we'll use TypeScript as the example language.
 
 Normal workflow is to package, then install, then instantiate a smart contract. This usual flow results in the smart contract running in a docker container on the peer(s)… But to debug we do things a little differently! We need to create a situation whereby the smart contract is running in the VS Code debugger rather than on the peer. Fortunately, this extension makes that easy to do: let’s learn how!
 
-1. In the left sidebar, click on the __IBM Blockchain Platform__ icon, on the `Fabric Environments` panel, check that `Local Fabric` is started, if it's stopped click on it to start.
+1. In the left sidebar, click on the __IBM Blockchain Platform__ icon, on the `Fabric Environments` panel, check that `1 Org Local Fabric` is started, if it's stopped click on it to start.
 
 2. In the left sidebar, click on the __Debug__ icon (it looks like a circle with a bug in it)
 
