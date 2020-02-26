@@ -57,6 +57,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
     let gatewayRegistryEntry: FabricGatewayRegistryEntry;
     let errorMessage: string;
     let fileJson: ITransactionData[];
+    let connection: IFabricGatewayConnection;
 
     if (transactionObject) {
         channelName = transactionObject.channelName;
@@ -77,13 +78,17 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
                     return;
                 }
             }
+            const chosenChannel: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelFromGatewayQuickPickBox(`Choose a channel to select a smart contract from`);
+            if (!chosenChannel) {
+                return;
+            }
+            channelName = chosenChannel.label;
 
-            const chosenSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick(`Choose a smart contract to ${action} a transaction from`, null);
+            const chosenSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick(`Choose a smart contract to ${action} a transaction from`, channelName);
             if (!chosenSmartContract) {
                 return;
             }
 
-            channelName = chosenSmartContract.data.channel;
             smartContract = chosenSmartContract.data.name;
         } else if (treeItem instanceof InstantiatedTreeItem) {
             channelName = treeItem.channels[0].label;
@@ -236,7 +241,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
         }
     }
 
-    const connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
+    connection = FabricGatewayConnectionManager.instance().getConnection();
     const channelPeerInfo: {name: string, mspID: string}[] = await connection.getChannelPeersInfo(channelName);
 
     let selectPeers: string;

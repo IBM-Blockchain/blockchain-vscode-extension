@@ -63,6 +63,7 @@ describe('SubmitTransactionCommand', () => {
         let showQuickPickItemStub: sinon.SinonStub;
         let showChannelPeersQuickPickStub: sinon.SinonStub;
         let reporterStub: sinon.SinonStub;
+        let showChannelFromGatewayStub: sinon.SinonStub;
 
         let allChildren: Array<BlockchainTreeItem>;
         let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
@@ -83,6 +84,11 @@ describe('SubmitTransactionCommand', () => {
             fabricClientConnectionMock.connect.resolves();
             const fabricConnectionManager: FabricGatewayConnectionManager = FabricGatewayConnectionManager.instance();
             getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionMock);
+
+            showChannelFromGatewayStub = mySandBox.stub(UserInputUtil, 'showChannelFromGatewayQuickPickBox').resolves({
+                label: 'myChannel',
+                data: ['peerOne']
+            });
 
             showInstantiatedSmartContractQuickPickStub = mySandBox.stub(UserInputUtil, 'showClientInstantiatedSmartContractsQuickPick').resolves({
                 label: 'myContract',
@@ -264,6 +270,17 @@ describe('SubmitTransactionCommand', () => {
             fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
             reporterStub.should.not.have.been.called;
             dockerLogsOutputSpy.should.not.have.been.called;
+        });
+
+        it('should handle choosing channel being cancelled', async () => {
+            showChannelFromGatewayStub.resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+
+            fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
+            reporterStub.should.not.have.been.called;
+            dockerLogsOutputSpy.should.not.have.been.called;
+            showInstantiatedSmartContractQuickPickStub.should.not.have.been.called;
         });
 
         it('should handle choosing smart contract being cancelled', async () => {

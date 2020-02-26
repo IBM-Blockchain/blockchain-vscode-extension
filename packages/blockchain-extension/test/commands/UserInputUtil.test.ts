@@ -751,6 +751,41 @@ describe('UserInputUtil', () => {
         });
     });
 
+    describe('showChannelFromGatewayQuickPick', () => {
+        it('should show quickpick with channels from gateway', async () => {
+            const map: Map<string, Array<string>> = new Map<string, Array<string>>();
+            map.set('channelOne', ['myPeerOne', 'myPeerTwo']);
+            map.set('channelTwo', ['myPeerOne']);
+            fabricClientConnectionStub.createChannelMap.resolves(map);
+            quickPickStub.resolves({ label: 'channelOne', data: ['myPeerOne', 'myPeerTwo'] });
+
+            const result: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelFromGatewayQuickPickBox('Choose a channel');
+            result.should.deep.equal({ label: 'channelOne', data: ['myPeerOne', 'myPeerTwo'] });
+
+            quickPickStub.should.have.been.calledWith([{ label: 'channelOne', data: ['myPeerOne', 'myPeerTwo'] }, { label: 'channelTwo', data: ['myPeerOne'] }], {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Choose a channel'
+            });
+        });
+
+        it('should not show quick pick if only one channel', async () => {
+            const result: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelFromGatewayQuickPickBox('Choose a channel');
+            result.should.deep.equal({ label: 'channelOne', data: ['myPeerOne', 'myPeerTwo'] });
+
+            quickPickStub.should.not.have.been.called;
+        });
+
+        it('should give error if no connection', async () => {
+            getConnectionStub.returns(undefined);
+
+            const result: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelFromGatewayQuickPickBox('Choose a channel');
+            should.not.exist(result);
+
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Must be connected to a gateway');
+        });
+    });
+
     describe('showChaincodeAndVersionQuickPick', () => {
         it('should show chaincode and version quick pick', async () => {
             const packagedOne: PackageRegistryEntry = new PackageRegistryEntry({

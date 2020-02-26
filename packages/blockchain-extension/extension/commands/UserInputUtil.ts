@@ -464,6 +464,34 @@ export class UserInputUtil {
         }
     }
 
+    public static async showChannelFromGatewayQuickPickBox(prompt: string): Promise<IBlockchainQuickPickItem<Array<string>>> {
+        const connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
+        if (!connection) {
+            VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, 'Must be connected to a gateway');
+            return;
+        }
+
+        const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
+
+        const channels: Array<string> = Array.from(channelMap.keys());
+
+        const quickPickItems: Array<IBlockchainQuickPickItem<Array<string>>> = channels.map((channel: string) => {
+            return { label: channel, data: channelMap.get(channel) };
+        });
+
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: true,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        if (quickPickItems.length > 1) {
+            return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+        } else {
+            return quickPickItems[0];
+        }
+    }
+
     public static async showSmartContractPackagesQuickPickBox(prompt: string, canPickMany: boolean): Promise<Array<IBlockchainQuickPickItem<PackageRegistryEntry>> | IBlockchainQuickPickItem<PackageRegistryEntry> | undefined> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         const packages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
