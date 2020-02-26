@@ -507,6 +507,7 @@ export class ExtensionUtil {
             } else {
                 // debug has stopped so set the context to false
                 await vscode.commands.executeCommand('setContext', 'blockchain-debug', false);
+                FabricDebugConfigurationProvider.environmentName = undefined;
             }
         });
 

@@ -29,12 +29,14 @@ import { FabricEnvironmentManager } from '../../extension/fabric/environments/Fa
 import { GlobalState } from '../../extension/util/GlobalState';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
+import { TestUtil } from '../TestUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
 describe('FabricGoDebugConfigurationProvider', () => {
+    let mySandbox: sinon.SinonSandbox;
 
     describe('provideDebugConfigurations', () => {
 
@@ -50,9 +52,13 @@ describe('FabricGoDebugConfigurationProvider', () => {
 
     });
 
+    before(async () => {
+        mySandbox = sinon.createSandbox();
+        await TestUtil.setupTests(mySandbox);
+    });
+
     describe('resolveDebugConfiguration', () => {
 
-        let mySandbox: sinon.SinonSandbox;
         let fabricDebugConfig: FabricGoDebugConfigurationProvider;
         let workspaceFolder: any;
         let debugConfig: any;
@@ -63,7 +69,7 @@ describe('FabricGoDebugConfigurationProvider', () => {
         let sendTelemetryEventStub: sinon.SinonStub;
         let showInputBoxStub: sinon.SinonStub;
         let getExtensionLocalFabricSetting: sinon.SinonStub;
-
+        let showQuickPickStub: sinon.SinonStub;
         beforeEach(async () => {
 
             mySandbox = sinon.createSandbox();
@@ -134,6 +140,8 @@ describe('FabricGoDebugConfigurationProvider', () => {
                 generatorVersion: '0.0.36'
             });
 
+            showQuickPickStub = mySandbox.stub(UserInputUtil, 'showQuickPick').resolves(FabricRuntimeUtil.LOCAL_FABRIC);
+
         });
 
         afterEach(() => {
@@ -144,6 +152,7 @@ describe('FabricGoDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'go',
                 mode: 'auto',
@@ -164,6 +173,7 @@ describe('FabricGoDebugConfigurationProvider', () => {
             debugConfig.mode = null;
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
             should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'go',
@@ -185,6 +195,7 @@ describe('FabricGoDebugConfigurationProvider', () => {
             debugConfig.program = null;
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
             should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'go',
@@ -206,6 +217,7 @@ describe('FabricGoDebugConfigurationProvider', () => {
             debugConfig.cwd = null;
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
             should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'go',
@@ -225,6 +237,7 @@ describe('FabricGoDebugConfigurationProvider', () => {
             debugConfig.args = null;
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
             should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'go',
@@ -245,6 +258,7 @@ describe('FabricGoDebugConfigurationProvider', () => {
             debugConfig.args = ['--myArgs', 'myValue'];
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
             should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'go',
@@ -265,6 +279,7 @@ describe('FabricGoDebugConfigurationProvider', () => {
             debugConfig.request = null;
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
             should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'go',
@@ -286,6 +301,7 @@ describe('FabricGoDebugConfigurationProvider', () => {
             showInputBoxStub.withArgs('Enter a name for your Go package').resolves();
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
             should.not.exist(config);
             sendTelemetryEventStub.should.not.have.been.called;
         });

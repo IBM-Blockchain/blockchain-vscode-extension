@@ -28,6 +28,8 @@ import { FabricEnvironmentManager } from '../../extension/fabric/environments/Fa
 import { GlobalState } from '../../extension/util/GlobalState';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import { TestUtil } from '../TestUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -91,7 +93,6 @@ describe('FabricNodeDebugConfigurationProvider', () => {
 
     describe('resolveDebugConfiguration', () => {
 
-        let mySandbox: sinon.SinonSandbox;
         let fabricDebugConfig: FabricNodeDebugConfigurationProvider;
         let workspaceFolder: any;
         let debugConfig: any;
@@ -101,10 +102,14 @@ describe('FabricNodeDebugConfigurationProvider', () => {
         let startDebuggingStub: sinon.SinonStub;
         let sendTelemetryEventStub: sinon.SinonStub;
         let getExtensionLocalFabricSetting: sinon.SinonStub;
+        let showQuickPickStub: sinon.SinonStub;
+        let mySandbox: sinon.SinonSandbox;
 
         beforeEach(async () => {
 
             mySandbox = sinon.createSandbox();
+            await TestUtil.setupTests(mySandbox);
+
             getExtensionLocalFabricSetting = mySandbox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting');
             getExtensionLocalFabricSetting.returns(true);
 
@@ -167,6 +172,9 @@ describe('FabricNodeDebugConfigurationProvider', () => {
             mySandbox.stub(GlobalState, 'get').returns({
                 generatorVersion: '0.0.36'
             });
+
+            showQuickPickStub = mySandbox.stub(UserInputUtil, 'showQuickPick').resolves(FabricRuntimeUtil.LOCAL_FABRIC);
+
         });
 
         afterEach(() => {
@@ -177,6 +185,8 @@ describe('FabricNodeDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
+
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'node',
                 request: 'myLaunch',
@@ -197,6 +207,8 @@ describe('FabricNodeDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
+
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'node',
                 request: 'myLaunch',
@@ -217,6 +229,8 @@ describe('FabricNodeDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
+
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'node',
                 request: 'myLaunch',
@@ -237,6 +251,8 @@ describe('FabricNodeDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
+
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'node',
                 request: 'myLaunch',
@@ -257,6 +273,8 @@ describe('FabricNodeDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
+
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'node',
                 request: 'myLaunch',
@@ -276,6 +294,8 @@ describe('FabricNodeDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
+
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'node',
                 request: 'myLaunch',
@@ -295,6 +315,8 @@ describe('FabricNodeDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
+
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'node',
                 request: 'myLaunch',
@@ -314,6 +336,8 @@ describe('FabricNodeDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
+
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'node',
                 request: 'launch',

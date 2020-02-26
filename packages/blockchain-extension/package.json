@@ -666,7 +666,7 @@
                 },
                 {
                     "command": "environmentExplorer.deleteEnvironmentEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-environment-item"
+                    "when": "view == environmentExplorer && viewItem == blockchain-environment-item || view == environmentExplorer && viewItem == blockchain-runtime-item"
                 },
                 {
                     "command": "environmentExplorer.stopFabricRuntime",

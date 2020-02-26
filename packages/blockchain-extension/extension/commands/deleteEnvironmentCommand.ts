@@ -15,11 +15,12 @@
 import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, FabricGatewayRegistryEntry, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentTreeItem } from '../explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
+import { SettingConfigurations } from '../../configurations';
 
 export async function deleteEnvironment(environment: FabricEnvironmentTreeItem | FabricEnvironmentRegistryEntry, force: boolean = false): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -30,14 +31,14 @@ export async function deleteEnvironment(environment: FabricEnvironmentTreeItem |
         if (!environment) {
             // If called from command palette
             // Ask for environment to delete
-            // First check there is at least one that isn't local_fabric
-            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll(false);
+            // Get all environments, including local environments.
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll(true);
             if (environments.length === 0) {
-                outputAdapter.log(LogType.ERROR, `No environments to delete. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be deleted.`);
+                outputAdapter.log(LogType.ERROR, `No environments to delete.`);
                 return;
             }
 
-            const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[] = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose the environment(s) that you want to delete', true, false) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[];
+            const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[] = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose the environment(s) that you want to delete', true, false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[];
             if (!chosenEnvironment || chosenEnvironment.length === 0) {
                 return;
             }
@@ -64,6 +65,8 @@ export async function deleteEnvironment(environment: FabricEnvironmentTreeItem |
         const connectedEnvironmentRegistry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
         const connectedGatewayRegistry: FabricGatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
 
+        const localSettings: any = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
+
         for (const _environment of environmentsToDelete) {
             if (connectedEnvironmentRegistry && connectedEnvironmentRegistry.name === _environment.name) {
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
@@ -73,8 +76,23 @@ export async function deleteEnvironment(environment: FabricEnvironmentTreeItem |
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
             }
 
+            if (_environment.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                delete localSettings[_environment.name];
+
+                try {
+                    await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, _environment.name);
+                } catch (error) {
+                    // Ignore
+                    outputAdapter.log(LogType.WARNING, undefined, `Error whilst tearing down ${_environment.name} environment: ${error.message}`);
+                }
+
+            }
+
             await FabricEnvironmentRegistry.instance().delete(_environment.name);
+
         }
+
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, localSettings, vscode.ConfigurationTarget.Global);
 
         if (environmentsToDelete.length > 1) {
             outputAdapter.log(LogType.SUCCESS, `Successfully deleted environments`);

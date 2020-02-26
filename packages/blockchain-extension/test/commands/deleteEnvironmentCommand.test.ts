@@ -26,6 +26,8 @@ import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
+import { RuntimeTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
+import { SettingConfigurations } from '../../configurations';
 
 chai.should();
 chai.use(sinonChai);
@@ -49,6 +51,7 @@ describe('DeleteEnvironmentCommand', () => {
         let commandSpy: sinon.SinonSpy;
         let geConnectedEnvironmentRegistryStub: sinon.SinonStub;
         let getConnectedGatewayRegistryStub: sinon.SinonStub;
+        let getAllSpy: sinon.SinonSpy;
 
         beforeEach(async () => {
             mySandBox.restore();
@@ -56,6 +59,17 @@ describe('DeleteEnvironmentCommand', () => {
 
             // reset the available environments
             await FabricEnvironmentRegistry.instance().clear();
+
+            await TestUtil.setupLocalFabric();
+
+            const settings: any = {};
+            settings[FabricRuntimeUtil.LOCAL_FABRIC] = {
+                ports: {
+                    startPort: 17050,
+                    endPort: 17070
+                }
+            };
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, settings, vscode.ConfigurationTarget.Global);
 
             environments = [];
 
@@ -86,6 +100,7 @@ describe('DeleteEnvironmentCommand', () => {
             logSpy = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
             // mySandBox.stub(LocalEnvironment.prototype, 'stopLogs');
 
+            getAllSpy = mySandBox.spy(FabricEnvironmentRegistry.instance(), 'getAll');
         });
 
         afterEach(() => {
@@ -96,6 +111,8 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
+            getAllSpy.should.have.been.calledOnceWithExactly(true);
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(2);
             environments[0].name.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
@@ -118,6 +135,9 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
+            getAllSpy.should.have.been.calledOnceWithExactly(true);
+
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(1);
 
@@ -135,6 +155,8 @@ describe('DeleteEnvironmentCommand', () => {
             const environmentToDelete: BlockchainTreeItem = allChildren[1];
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT, environmentToDelete);
 
+            showFabricEnvironmentQuickPickBoxStub.should.not.have.been.called;
+
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(2);
 
@@ -150,6 +172,9 @@ describe('DeleteEnvironmentCommand', () => {
         it('should test an environment can be deleted from environment registry', async () => {
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get('myEnvironmentA');
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT, environmentRegistryEntry);
+
+            showFabricEnvironmentQuickPickBoxStub.should.not.have.been.called;
+            getAllSpy.should.not.have.been.called;
 
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(2);
@@ -169,6 +194,9 @@ describe('DeleteEnvironmentCommand', () => {
             geConnectedEnvironmentRegistryStub.returns(environmentRegistryEntry);
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
+
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
+            getAllSpy.should.have.been.calledOnceWithExactly(true);
 
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(2);
@@ -191,6 +219,9 @@ describe('DeleteEnvironmentCommand', () => {
             getConnectedGatewayRegistryStub.resolves(gatewayRegistryEntry);
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
+
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
+            getAllSpy.should.have.been.calledOnceWithExactly(true);
 
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(2);
@@ -215,6 +246,9 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
+            getAllSpy.should.have.been.calledOnceWithExactly(true);
+
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(2);
 
@@ -231,6 +265,9 @@ describe('DeleteEnvironmentCommand', () => {
         it('should test an environment can be forcefully deleted', async () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT, undefined, true);
+
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
+            getAllSpy.should.have.been.calledOnceWithExactly(true);
 
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(2);
@@ -251,6 +288,9 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
+            getAllSpy.should.have.been.calledOnceWithExactly(true);
+
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(3);
 
@@ -260,6 +300,10 @@ describe('DeleteEnvironmentCommand', () => {
         it('should handle the user not selecting an environment to delete', async () => {
             showFabricEnvironmentQuickPickBoxStub.resolves([]);
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
+
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
+            getAllSpy.should.have.been.calledOnceWithExactly(true);
+
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(3);
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `delete environment`);
@@ -271,14 +315,19 @@ describe('DeleteEnvironmentCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
             showFabricEnvironmentQuickPickBoxStub.should.not.have.been.called;
+            getAllSpy.should.have.been.calledOnceWithExactly(true);
+
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
-            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No environments to delete. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be deleted.`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No environments to delete.`);
         });
 
         it('should handle no from confirmation message', async () => {
             showConfirmationWarningMessage.resolves(false);
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
+
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
+            getAllSpy.should.have.been.calledOnceWithExactly(true);
 
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(3);
@@ -296,6 +345,9 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
+            getAllSpy.should.have.been.calledOnceWithExactly(true);
+
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(3);
 
@@ -303,6 +355,108 @@ describe('DeleteEnvironmentCommand', () => {
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Error deleting environment: ${error.message}`, `Error deleting environment: ${error.toString()}`);
+        });
+
+        it('should be able to delete a local environment from the tree', async () => {
+            commandSpy.restore();
+
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC).resolves();
+            const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+
+            const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
+
+            const environmentToDelete: BlockchainTreeItem = allChildren[0];
+
+            environmentToDelete.should.be.an.instanceOf(RuntimeTreeItem);
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT, environmentToDelete);
+
+            showFabricEnvironmentQuickPickBoxStub.should.not.have.been.called;
+            environments =  await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(2);
+
+            environments[0].should.deep.equal(myEnvironmentA);
+            environments[1].should.deep.equal(myEnvironmentB);
+
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ${FabricRuntimeUtil.LOCAL_FABRIC} environment`);
+
+            const localSettings: any = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
+            localSettings.should.deep.equal({});
+
+        });
+
+        it('should be able to delete a local environment from the command', async () => {
+            commandSpy.restore();
+
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC).resolves();
+
+            const localEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+            showFabricEnvironmentQuickPickBoxStub.resolves([{
+                label: FabricRuntimeUtil.LOCAL_FABRIC,
+                data: localEntry
+            }]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
+
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
+            getAllSpy.should.have.been.calledOnceWithExactly(true);
+
+            environments =  await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(2);
+            environments[0].should.deep.equal(myEnvironmentA);
+            environments[1].should.deep.equal(myEnvironmentB);
+
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ${FabricRuntimeUtil.LOCAL_FABRIC} environment`);
+
+            const localSettings: any = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
+            localSettings.should.deep.equal({});
+        });
+
+        it('should warn user if error occurs whilst tearing down local environment during deletion', async () => {
+            commandSpy.restore();
+
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+
+            const error: Error = new Error('something went wrong');
+            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC).throws(error);
+
+            const localEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+            showFabricEnvironmentQuickPickBoxStub.resolves([{
+                label: FabricRuntimeUtil.LOCAL_FABRIC,
+                data: localEntry
+            }]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
+
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
+            getAllSpy.should.have.been.calledOnceWithExactly(true);
+
+            environments =  await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(2);
+            environments[0].should.deep.equal(myEnvironmentA);
+            environments[1].should.deep.equal(myEnvironmentB);
+
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.WARNING, undefined, `Error whilst tearing down ${FabricRuntimeUtil.LOCAL_FABRIC} environment: ${error.message}`);
+            logSpy.getCall(2).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ${FabricRuntimeUtil.LOCAL_FABRIC} environment`);
+
+            const localSettings: any = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
+            localSettings.should.deep.equal({});
         });
     });
 });
