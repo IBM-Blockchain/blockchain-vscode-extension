@@ -46,7 +46,7 @@ describe('EnvironmentFactory', () => {
         const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
 
         try {
-            await EnvironmentFactory.getEnvironment(registryEntry);
+            EnvironmentFactory.getEnvironment(registryEntry);
         } catch (error) {
             error.message.should.equal('Unable to get environment, a name must be provided');
         }
@@ -64,7 +64,7 @@ describe('EnvironmentFactory', () => {
         const localEnvironment: LocalEnvironment = new LocalEnvironment(registryEntry.name, {startPort: 17050, endPort: 17069}, 1);
         const getRuntimeStub: sinon.SinonStub = sandbox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(localEnvironment);
 
-        const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = await EnvironmentFactory.getEnvironment(registryEntry);
+        const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = EnvironmentFactory.getEnvironment(registryEntry);
         environment.should.be.an.instanceOf(LocalEnvironment);
 
         getRuntimeStub.should.have.been.calledOnce;
@@ -78,10 +78,10 @@ describe('EnvironmentFactory', () => {
         registryEntry.environmentDirectory = '/some/path';
 
         const managedAnsibleEnvironment: ManagedAnsibleEnvironment = new ManagedAnsibleEnvironment(registryEntry.name, registryEntry.environmentDirectory);
-        const ensureRuntimeStub: sinon.SinonStub = sandbox.stub(ManagedAnsibleEnvironmentManager.instance(), 'ensureRuntime').resolves(managedAnsibleEnvironment);
+        const getRuntimeStub: sinon.SinonStub = sandbox.stub(ManagedAnsibleEnvironmentManager.instance(), 'getRuntime').returns(managedAnsibleEnvironment);
 
-        const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = await EnvironmentFactory.getEnvironment(registryEntry);
-        ensureRuntimeStub.should.have.been.calledOnceWithExactly(registryEntry.name, registryEntry.environmentDirectory);
+        const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = EnvironmentFactory.getEnvironment(registryEntry);
+        getRuntimeStub.should.have.been.calledOnceWithExactly(registryEntry.name);
         environment.should.be.an.instanceOf(ManagedAnsibleEnvironment);
         environment.should.deep.equal(managedAnsibleEnvironment);
 
@@ -94,7 +94,7 @@ describe('EnvironmentFactory', () => {
         registryEntry.managedRuntime = false;
         registryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
 
-        const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = await EnvironmentFactory.getEnvironment(registryEntry);
+        const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = EnvironmentFactory.getEnvironment(registryEntry);
         environment.should.be.an.instanceOf(AnsibleEnvironment);
 
     });
@@ -105,7 +105,7 @@ describe('EnvironmentFactory', () => {
         registryEntry.managedRuntime = false;
         registryEntry.environmentType = EnvironmentType.ENVIRONMENT;
 
-        const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = await EnvironmentFactory.getEnvironment(registryEntry);
+        const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = EnvironmentFactory.getEnvironment(registryEntry);
         environment.should.be.an.instanceOf(FabricEnvironment);
     });
 
@@ -113,7 +113,7 @@ describe('EnvironmentFactory', () => {
         const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         registryEntry.name = 'fabricEnvironment';
 
-        const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = await EnvironmentFactory.getEnvironment(registryEntry);
+        const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = EnvironmentFactory.getEnvironment(registryEntry);
         environment.should.be.an.instanceOf(FabricEnvironment);
     });
 
@@ -122,7 +122,7 @@ describe('EnvironmentFactory', () => {
         registryEntry.name = 'ansibleEnvironment';
         registryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
 
-        const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = await EnvironmentFactory.getEnvironment(registryEntry);
+        const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = EnvironmentFactory.getEnvironment(registryEntry);
         environment.should.be.an.instanceOf(AnsibleEnvironment);
     });
 

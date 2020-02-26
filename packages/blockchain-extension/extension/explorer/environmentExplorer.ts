@@ -164,7 +164,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
     private async setupIdentities(environmentRegistryEntry: FabricEnvironmentRegistryEntry): Promise<BlockchainTreeItem[]> {
         const tree: BlockchainTreeItem[] = [];
 
-        const environment: FabricEnvironment = await EnvironmentFactory.getEnvironment(environmentRegistryEntry);
+        const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
 
         const nodes: FabricNode[] = await environment.getNodes(true);
 
@@ -210,14 +210,6 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
         try {
             const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
-            // Initialize the local environment map
-            // for (const entry of environmentEntries) {
-            //     if (entry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
-            //         await LocalEnvironmentManager.instance().ensureRuntime(entry.name, undefined, entry.numberOfOrgs);
-            //     } else if(entry.environmentType === EnvironmentType.ANSIBLE_ENVIRONMENT && entry.managedRuntime){
-            //         await ManagedAnsibleEnvironmentManager.instance().ensureRuntime(entry.name, entry.environmentDirectory);
-            //     }
-            // }
 
             if (environmentEntries.length === 0) {
                 tree.push(new TextTreeItem(this, 'No environments found'));
@@ -233,8 +225,6 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                             runtime = ManagedAnsibleEnvironmentManager.instance().ensureRuntime(environmentEntry.name, environmentEntry.environmentDirectory);
                         }
 
-                        // TODO: Will need to make it support ManagedAnsibleEnvironments presumably at some point
-                        // const runtime: LocalEnvironment = await LocalEnvironmentManager.instance().getRuntime(environmentEntry.name);
                         const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
                             runtime.getName(),
                             environmentEntry,

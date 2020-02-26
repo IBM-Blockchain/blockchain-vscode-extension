@@ -43,7 +43,7 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
             fabricEnvironmentRegistryEntry = chosenEntry.data;
         }
 
-        fabricEnvironment = await EnvironmentFactory.getEnvironment(fabricEnvironmentRegistryEntry);
+        fabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentRegistryEntry);
 
         if (fabricEnvironmentRegistryEntry.managedRuntime) {
 

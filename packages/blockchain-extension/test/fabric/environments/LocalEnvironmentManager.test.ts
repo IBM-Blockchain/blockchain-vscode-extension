@@ -244,7 +244,7 @@ describe('LocalEnvironmentManager', () => {
             const getEnvironmentStub: sinon.SinonStub = sandbox.stub(EnvironmentFactory, 'getEnvironment');
             getEnvironmentStub.callThrough();
             getEnvironmentRegistryEntryStub = sandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(registryEntry);
-            getEnvironmentStub.withArgs(registryEntry).resolves(originalRuntime);
+            getEnvironmentStub.withArgs(registryEntry).returns(originalRuntime);
 
             isCreatedStub = sandbox.stub(LocalEnvironment.prototype, 'isCreated').resolves(true);
             updateUserSettingsStub = sandbox.stub(LocalEnvironment.prototype, 'updateUserSettings').resolves(); // these need to be on the runtime we retrieve

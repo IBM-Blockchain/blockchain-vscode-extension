@@ -18,10 +18,9 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { IBlockchainQuickPickItem, UserInputUtil, IncludeEnvironmentOptions } from './UserInputUtil';
-import { LogType, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { LogType, FabricEnvironmentRegistryEntry, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { TimerUtil } from '../util/TimerUtil';
-import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
-import { ManagedAnsibleEnvironmentManager } from '../fabric/environments/ManagedAnsibleEnvironmentManager';
+import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 
 export async function startFabricRuntime(registryEntry?: FabricEnvironmentRegistryEntry): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -37,12 +36,7 @@ export async function startFabricRuntime(registryEntry?: FabricEnvironmentRegist
 
     }
 
-    let runtime: LocalEnvironment | ManagedAnsibleEnvironment;
-    if (registryEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
-        runtime = LocalEnvironmentManager.instance().getRuntime(registryEntry.name);
-    } else {
-        runtime = ManagedAnsibleEnvironmentManager.instance().getRuntime(registryEntry.name);
-    }
+    const runtime: LocalEnvironment | ManagedAnsibleEnvironment = EnvironmentFactory.getEnvironment(registryEntry) as LocalEnvironment | ManagedAnsibleEnvironment;
 
     if (registryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
         VSCodeBlockchainOutputAdapter.instance().show();
@@ -59,7 +53,7 @@ export async function startFabricRuntime(registryEntry?: FabricEnvironmentRegist
             if (runtime instanceof LocalEnvironment) {
                 const isCreated: boolean = await runtime.isCreated();
                 if (!isCreated) {
-                    await runtime.create(runtime.numberOfOrgs);
+                    await runtime.create();
                 }
             }
             await runtime.start(outputAdapter);

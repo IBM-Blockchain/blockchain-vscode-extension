@@ -124,7 +124,7 @@ export class UserInputUtil {
             placeHolder: prompt
         };
 
-        const environment: FabricEnvironment = await EnvironmentFactory.getEnvironment(environmentRegistryEntry);
+        const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
         let nodes: FabricNode[] = await environment.getNodes();
 
         nodes = nodes.filter((node: FabricNode) => node.type === FabricNodeType.PEER);
@@ -1011,7 +1011,7 @@ export class UserInputUtil {
     }
 
     public static async showNodesInEnvironmentQuickPick(prompt: string, environmentRegistryEntry: FabricEnvironmentRegistryEntry, nodeTypefilter: FabricNodeType[], showAsociatedIdentity: boolean = false, canPickMany: boolean = false, showUnassociatedNodes: boolean = false): Promise<Array<IBlockchainQuickPickItem<FabricNode>> | IBlockchainQuickPickItem<FabricNode>> {
-        const environment: FabricEnvironment = await EnvironmentFactory.getEnvironment(environmentRegistryEntry);
+        const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
         let nodes: FabricNode[] = await environment.getNodes(showUnassociatedNodes);
 
         if (nodeTypefilter.length > 0) {

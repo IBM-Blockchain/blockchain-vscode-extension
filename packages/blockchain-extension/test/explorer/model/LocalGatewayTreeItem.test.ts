@@ -73,12 +73,7 @@ describe('LocalGatewayTreeItem', () => {
             name.should.equal('busy');
             onBusyCallback = callback;
         });
-        // mockRuntime = sandbox.createStubInstance(LocalEnvironment);
-        // on.callsFake((name: string, callback: any) => {
-        //     name.should.equal('busy');
-        //     onBusyCallback = callback;
-        // });
-        // sandbox.stub(EnvironmentFactory, 'getEnvironment').returns(mockRuntime);
+
         clock = sinon.useFakeTimers({toFake: ['setInterval', 'clearInterval']});
     });
 

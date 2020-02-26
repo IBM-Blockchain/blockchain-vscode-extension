@@ -45,9 +45,7 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
 
     }
 
-    public async create(numberOfOrgs: number): Promise<void> {
-
-        this.numberOfOrgs = numberOfOrgs;
+    public async create(): Promise<void> {
 
         // Delete any existing runtime directory, and then recreate it.
         await FabricEnvironmentRegistry.instance().delete(this.name, true);
@@ -115,7 +113,15 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
     public async teardown(outputAdapter?: OutputAdapter): Promise<void> {
         try {
             await this.teardownInner(outputAdapter);
-            await this.create(this.numberOfOrgs);
+            await this.create();
+        } finally {
+            await super.setTeardownState();
+        }
+    }
+
+    public async delete(outputAdapter?: OutputAdapter): Promise<void> {
+        try {
+            await this.teardownInner(outputAdapter);
         } finally {
             await super.setTeardownState();
         }

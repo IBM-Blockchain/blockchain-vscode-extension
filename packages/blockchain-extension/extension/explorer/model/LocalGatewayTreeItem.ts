@@ -104,10 +104,11 @@ ${this.gateway.fromEnvironment} - ${this.gateway.associatedWallet} Wallet`;
         this.setLabel(newLabel);
         this.setTooltip(newTooltip);
         this.setCommand(newCommand);
+        const runtimeName: string = this.runtime.getName();
         if (this.runtime instanceof LocalEnvironment) {
-            LocalEnvironmentManager.instance().updateRuntime(this.name, this.runtime);
+            LocalEnvironmentManager.instance().updateRuntime(runtimeName, this.runtime);
         } else {
-            ManagedAnsibleEnvironmentManager.instance().updateRuntime(this.name, this.runtime);
+            ManagedAnsibleEnvironmentManager.instance().updateRuntime(runtimeName, this.runtime);
         }
         this.refresh();
     }

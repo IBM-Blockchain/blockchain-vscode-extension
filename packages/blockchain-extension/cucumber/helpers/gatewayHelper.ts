@@ -62,7 +62,7 @@ export class GatewayHelper {
                 const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
                 this.userInputUtilHelper.showEnvironmentQuickPickStub.resolves({ label: environmentName, data: fabricEnvironmentRegistryEntry });
 
-                const environment: FabricEnvironment = await EnvironmentFactory.getEnvironment(fabricEnvironmentRegistryEntry);
+                const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentRegistryEntry);
                 const nodes: FabricNode[] = await environment.getNodes();
 
                 const peerNode: FabricNode = nodes.find((_node: FabricNode) => {

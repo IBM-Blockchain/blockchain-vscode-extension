@@ -140,10 +140,10 @@ describe('EnvironmentConnectCommand', () => {
 
             beforeEach(async () => {
 
-                fabricEnvironment = await EnvironmentFactory.getEnvironment(environmentRegistryEntry);
+                fabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
                 getEnvironmentStub = mySandBox.stub(EnvironmentFactory, 'getEnvironment');
                 getEnvironmentStub.callThrough();
-                getEnvironmentStub.withArgs(environmentRegistryEntry).resolves(fabricEnvironment);
+                getEnvironmentStub.withArgs(environmentRegistryEntry).returns(fabricEnvironment);
                 requireSetupStub = mySandBox.stub(FabricEnvironment.prototype, 'requireSetup').resolves(false);
             });
 
@@ -321,14 +321,14 @@ describe('EnvironmentConnectCommand', () => {
                     data: localFabricRegistryEntry
                 });
 
-                localEnvironment = await EnvironmentFactory.getEnvironment(localFabricRegistryEntry) as LocalEnvironment;
+                localEnvironment = EnvironmentFactory.getEnvironment(localFabricRegistryEntry) as LocalEnvironment;
 
                 isRunningStub = mySandBox.stub(localEnvironment, 'isRunning').resolves(true);
                 mySandBox.stub(localEnvironment, 'startLogs').resolves();
 
                 getEnvironmentStub = mySandBox.stub(EnvironmentFactory, 'getEnvironment');
                 getEnvironmentStub.callThrough();
-                getEnvironmentStub.withArgs(localFabricRegistryEntry).resolves(localEnvironment);
+                getEnvironmentStub.withArgs(localFabricRegistryEntry).returns(localEnvironment);
                 requireSetupStub = mySandBox.stub(localEnvironment, 'requireSetup').resolves(false);
 
                 getNodesStub.resolves([ordererNode, caNode]);

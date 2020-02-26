@@ -85,15 +85,15 @@ describe('FabricWalletRegistry', () => {
             await registry.add(walletOne);
             await registry.add(walletTwo);
 
-            const gateways: any = await registry.getAll();
-            gateways.length.should.equal(6);
+            const wallets: any = await registry.getAll();
+            wallets.length.should.equal(6);
 
-            gateways[0].should.deep.equal(otherLocalOrgEntry);
-            gateways[1].should.deep.equal(otherLocalOrdererEntry);
-            gateways[2].should.deep.equal(localFabricOrgEntry);
-            gateways[3].should.deep.equal(localFabricOrdererEntry);
-            gateways[4].should.deep.equal(walletOne);
-            gateways[5].should.deep.equal(walletTwo);
+            wallets[0].should.deep.equal(localFabricOrdererEntry);
+            wallets[1].should.deep.equal(localFabricOrgEntry);
+            wallets[2].should.deep.equal(otherLocalOrdererEntry);
+            wallets[3].should.deep.equal(otherLocalOrgEntry);
+            wallets[4].should.deep.equal(walletOne);
+            wallets[5].should.deep.equal(walletTwo);
         });
 
         it('should get all wallets but not show local fabric', async () => {

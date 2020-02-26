@@ -56,21 +56,6 @@ Feature: Fabric Environments
          | language   | assetType | name               | instantiatedName         | version | label                            | tooltip                                                                    |
          | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.2 | 0.0.2   | 1 Org Local Fabric  ○ (click to start) | Creates a local development runtime using Hyperledger Fabric Docker images |
 
-    # Does deleting this speed things up much?
-    #  Scenario Outline: After teardown and start there are no smart contracts
-    #      Given the 1 Org Local Fabric environment is running
-    #      And the '1 Org Local Fabric' environment is connected
-    #      And a <language> smart contract for <assetType> assets with the name <name> and version <version>
-    #      And the contract has been created
-    #      And the contract has been packaged
-    #      And the package has been installed
-    #      And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
-    #      When I teardown the 1 Org Local Fabric
-    #      Then there should be a tree item with a label '1 Org Local Fabric  ○ (click to start)' in the 'Fabric Environments' panel
-    #      Examples:
-    #      | language   | assetType | name               | version |
-    #      | JavaScript | Conga     | JavaScriptContract | 0.0.2   |
-
      @otherFabric
      Scenario: It should create an environment
          When I create an environment 'myFabric'

@@ -52,7 +52,7 @@ export async function teardownFabricRuntime(runtimeTreeItem: RuntimeTreeItem, fo
         registryEntry = runtimeTreeItem.environmentRegistryEntry;
     }
 
-    const runtime: ManagedAnsibleEnvironment | LocalEnvironment = await EnvironmentFactory.getEnvironment(registryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+    let runtime: ManagedAnsibleEnvironment | LocalEnvironment = EnvironmentFactory.getEnvironment(registryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
 
     if (!force) {
         const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`All world state and ledger data for the Fabric runtime ${runtime.getName()} will be destroyed. Do you want to continue?`);
@@ -61,15 +61,25 @@ export async function teardownFabricRuntime(runtimeTreeItem: RuntimeTreeItem, fo
         }
     }
 
-    const runtimeName: string = runtime.getName();
+    let runtimeName: string;
+    let oldRuntime: boolean = false;
 
-    // The order matters here as technically a LocalEnvironment is an instanceof a ManagedAnsibleEnvironment
-    if (runtime instanceof LocalEnvironment) {
-        // Delete from manager
-        LocalEnvironmentManager.instance().removeRuntime(runtimeName);
+    if (runtime) {
+        runtimeName = runtime.getName();
+
+        // The order matters here as technically a LocalEnvironment is an instanceof a ManagedAnsibleEnvironment
+        if (runtime instanceof LocalEnvironment) {
+            // Delete from manager
+            LocalEnvironmentManager.instance().removeRuntime(runtimeName);
+        } else {
+            // Runtime is an instanceof ManagedAnsibleEnvironment
+            ManagedAnsibleEnvironmentManager.instance().removeRuntime(runtimeName);
+        }
     } else {
-        // Runtime is an instanceof ManagedAnsibleEnvironment
-        ManagedAnsibleEnvironmentManager.instance().removeRuntime(runtimeName);
+        // This is the case when we try to teardown an old 'Local Fabric' runtime, which won't be returned from getEnvironment.
+        runtimeName = registryEntry.name;
+        runtime = new LocalEnvironment(runtimeName, undefined, undefined);
+        oldRuntime = true;
     }
 
     await vscode.window.withProgress({
@@ -90,7 +100,11 @@ export async function teardownFabricRuntime(runtimeTreeItem: RuntimeTreeItem, fo
         }
 
         try {
-            await runtime.teardown(outputAdapter);
+            if (oldRuntime) {
+                await (runtime as LocalEnvironment).delete();
+            } else {
+                await runtime.teardown(outputAdapter);
+            }
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Failed to teardown ${runtimeName}: ${error.message}`, `Failed to teardown ${runtimeName}: ${error.toString()}`);
         }

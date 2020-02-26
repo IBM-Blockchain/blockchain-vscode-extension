@@ -155,13 +155,13 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
             if (isManagedWallet) {
                 // make sure environment is running
 
-                let environment: ManagedAnsibleEnvironment | LocalEnvironment = await EnvironmentFactory.getEnvironment(environmentEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+                let environment: ManagedAnsibleEnvironment | LocalEnvironment = EnvironmentFactory.getEnvironment(environmentEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
 
                 let isRunning: boolean = await environment.isRunning();
                 if (!isRunning) {
                     // Start local_fabric to enroll identity
                     await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC, environmentEntry);
-                    environment = await EnvironmentFactory.getEnvironment(environmentEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+                    environment = EnvironmentFactory.getEnvironment(environmentEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
                     isRunning = await environment.isRunning();
                     if (!isRunning) {
                         // Start local_fabric failed so return

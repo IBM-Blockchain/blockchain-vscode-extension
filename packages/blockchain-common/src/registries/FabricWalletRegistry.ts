@@ -34,7 +34,7 @@ export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry
     public async getAll(showLocalFabric: boolean = true): Promise<FabricWalletRegistryEntry[]> {
         const entries: FabricWalletRegistryEntry[] = await super.getAll();
 
-        const wallets: FabricWalletRegistryEntry[] = [];
+        let wallets: FabricWalletRegistryEntry[] = [];
         const localWallets: FabricWalletRegistryEntry[] = [];
 
         for (const entry of entries) {
@@ -53,9 +53,7 @@ export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry
         }
 
         if (showLocalFabric && localWallets.length > 0) {
-            for (const entry of localWallets) {
-                wallets.unshift(entry);
-            }
+            wallets = [...localWallets, ...wallets];
         }
 
         return wallets;

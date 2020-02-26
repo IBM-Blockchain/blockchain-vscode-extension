@@ -53,9 +53,7 @@ export class FabricEnvironmentRegistry extends FileRegistry<FabricEnvironmentReg
         });
 
         if (showLocalFabric && local) {
-            for (const entry of local) {
-                entries.unshift(entry);
-            }
+            entries = [...local, ...entries];
         }
 
         return entries;

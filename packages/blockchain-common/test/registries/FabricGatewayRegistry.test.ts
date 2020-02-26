@@ -68,7 +68,7 @@ describe('FabricGatewayRegistry', () => {
         await registry.add(otherLocalEntry);
 
         const gateways: FabricGatewayRegistryEntry[] = await registry.getAll();
-        gateways.should.deep.equal([otherLocalEntry, localFabricEntry, gatewayOne]);
+        gateways.should.deep.equal([localFabricEntry, otherLocalEntry, gatewayOne]);
     });
 
     it('should get all gateways but not show local fabric', async () => {

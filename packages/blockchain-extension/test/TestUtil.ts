@@ -25,7 +25,7 @@ import { FabricRuntimeUtil, FileConfigurations, FabricEnvironmentRegistryEntry }
 import { GlobalState, ExtensionData } from '../extension/util/GlobalState';
 import { UserInputUtil } from '../extension/commands/UserInputUtil';
 import { LocalEnvironment } from '../extension/fabric/environments/LocalEnvironment';
-// import { dependencies } from '../package.json';
+
 export class TestUtil {
 
     public static EXTENSION_TEST_DIR: string = path.join(__dirname, '..', '..', 'test', 'tmp');
@@ -48,7 +48,6 @@ export class TestUtil {
             let showConfirmationWarningMessage: SinonStub;
             let createStub: SinonStub;
 
-            // Uncommenting this showConfirmationWarningMessage stuff makes the test run correctly now for some reason. Maybe because the local fabric name changed?
             showConfirmationWarningMessage = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage');
             showConfirmationWarningMessage.withArgs(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`).resolves(true);
 

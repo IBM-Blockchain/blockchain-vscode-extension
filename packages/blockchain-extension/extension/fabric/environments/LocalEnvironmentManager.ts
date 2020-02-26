@@ -142,10 +142,6 @@ export class LocalEnvironmentManager {
             runtime = await this.addRuntime(name, ports, numberOfOrgs);
         }
 
-        // if (!runtime) {
-        //     runtime = this.getRuntime(name);
-        // }
-
         if (updatedPorts) {
             await runtime.updateUserSettings(name);
         }
@@ -153,15 +149,13 @@ export class LocalEnvironmentManager {
         // Check to see if the runtime has been created.
         const created: boolean = await runtime.isCreated();
         if (!created) {
-            await runtime.create(numberOfOrgs);
+            await runtime.create();
         }
 
         let _runtime: LocalEnvironment; // Currently connected environment entry
 
         FabricEnvironmentManager.instance().on('connected', async () => {
             const registryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
-            // When we connect to an environment, we need to get the runtime.
-            // _runtime = await EnvironmentFactory.getEnvironment(registryEntry) as LocalEnvironment;
             _runtime = this.getRuntime(registryEntry.name);
             if (_runtime instanceof LocalEnvironment) {
                 const outputAdapter: VSCodeBlockchainDockerOutputAdapter = VSCodeBlockchainDockerOutputAdapter.instance(registryEntry.name);

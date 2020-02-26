@@ -28,7 +28,6 @@ import { EnvironmentFactory } from '../../extension/fabric/environments/Environm
 import { RuntimeTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
-import { ManagedAnsibleEnvironmentManager } from '../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -81,7 +80,7 @@ describe('stopFabricRuntime', () => {
     });
 
     it('should stop a Fabric environment from the tree', async () => {
-        const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         stopStub = sandbox.stub(environment, 'stop').resolves();
         sandbox.stub(environment, 'startLogs').resolves();
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -112,7 +111,7 @@ describe('stopFabricRuntime', () => {
     });
 
     it('should stop a Fabric runtime, disconnect from gateway and refresh the view', async () => {
-        const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         stopStub = sandbox.stub(environment, 'stop').resolves();
         sandbox.stub(environment, 'startLogs').resolves();
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -142,7 +141,7 @@ describe('stopFabricRuntime', () => {
     });
 
     it('should stop a Fabric runtime, disconnect from environment and refresh the view', async () => {
-        const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         stopStub = sandbox.stub(environment, 'stop').resolves();
         sandbox.stub(environment, 'startLogs').resolves();
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -174,7 +173,7 @@ describe('stopFabricRuntime', () => {
     it('should display an error if stopping Fabric Runtime fails', async () => {
         const error: Error = new Error('what the fabric has happened');
 
-        const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         stopStub = sandbox.stub(environment, 'stop').throws(error);
         sandbox.stub(environment, 'startLogs').resolves();
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -207,7 +206,7 @@ describe('stopFabricRuntime', () => {
 
     it('should be able to stop the an environment from the command', async () => {
         showFabricEnvironmentQuickPickBoxStub.resolves({ label: FabricRuntimeUtil.LOCAL_FABRIC, data: localRegistryEntry } as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>);
-        const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         stopStub = sandbox.stub(environment, 'stop').resolves();
         sandbox.stub(environment, 'startLogs').resolves();
         getGatewayRegistryEntryStub.resolves();
@@ -229,7 +228,7 @@ describe('stopFabricRuntime', () => {
 
     it('should stop local connected environment (called from three dot menu)', async () => {
         getConnectionStub.returns({});
-        const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         stopStub = sandbox.stub(environment, 'stop').resolves();
 
         getGatewayRegistryEntryStub.resolves();
@@ -248,7 +247,7 @@ describe('stopFabricRuntime', () => {
     it('should ask what environment to stop if connected to non-managed environment', async () => {
         getEnvironmentRegistryEntryStub.returns({name: 'otherEnvironment'} as FabricEnvironmentRegistryEntry);
 
-        const environment: LocalEnvironment = await EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
+        const environment: LocalEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
         stopStub = sandbox.stub(environment, 'stop').resolves();
 
         getGatewayRegistryEntryStub.resolves();
@@ -296,7 +295,7 @@ describe('stopFabricRuntime', () => {
 
         getEnvironmentRegistryEntryStub.returns(undefined);
 
-        sandbox.stub(ManagedAnsibleEnvironmentManager.instance(), 'getRuntime').returns(managedEnvironment);
+        sandbox.stub(EnvironmentFactory, 'getEnvironment').returns(managedEnvironment);
 
         await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
 

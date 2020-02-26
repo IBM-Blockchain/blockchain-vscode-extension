@@ -116,7 +116,7 @@ describe('LocalEnvironment', () => {
 
             const runStub: sinon.SinonStub = sandbox.stub(YeomanUtil, 'run').resolves();
 
-            await environment.create(1);
+            await environment.create();
 
             environment.ports.should.deep.equal({
                 startPort: 17050,
@@ -148,7 +148,7 @@ describe('LocalEnvironment', () => {
             const deleteSpy: sinon.SinonSpy = sandbox.spy(FabricEnvironmentRegistry.instance(), 'delete');
 
             const runStub: sinon.SinonStub = sandbox.stub(YeomanUtil, 'run').resolves();
-            await environment.create(1);
+            await environment.create();
 
             deleteSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
 
@@ -185,7 +185,7 @@ describe('LocalEnvironment', () => {
             const deleteSpy: sinon.SinonSpy = sandbox.spy(FabricEnvironmentRegistry.instance(), 'delete');
 
             const runStub: sinon.SinonStub = sandbox.stub(YeomanUtil, 'run').resolves();
-            await environment.create(1);
+            await environment.create();
             environment.ports.should.deep.equal({
                 startPort: 18050,
                 endPort: 18070
@@ -592,6 +592,18 @@ describe('LocalEnvironment', () => {
                     createStub.should.have.been.calledOnce;
                 });
             }
+        });
+    });
+
+    describe('#delete', () => {
+        it('shouldnt recreate the runtime after deleting it', async () => {
+            const createStub: sinon.SinonStub = sandbox.stub(environment, 'create');
+
+            sandbox.stub(child_process, 'spawn').callsFake(() => {
+                return mockSuccessCommand();
+            });
+            await environment.delete();
+            createStub.should.not.have.been.called;
         });
     });
 
