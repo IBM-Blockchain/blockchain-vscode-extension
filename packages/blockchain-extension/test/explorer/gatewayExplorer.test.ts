@@ -676,7 +676,7 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
                 instantiatedChaincodeItemThree.channels[0].should.equal(channelTwo);
                 instantiatedChaincodeItemThree.channels.length.should.equal(1);
                 instantiatedChaincodeItemThree.version.should.equal('2.34');
-                should.equal(instantiatedChaincodeItemThree.contracts, null);
+                should.equal(instantiatedChaincodeItemThree.contracts, undefined);
 
                 const instantiatedTreeItemFour: InstantiatedContractTreeItem = channelChildrenTwo[2] as InstantiatedContractTreeItem;
                 instantiatedTreeItemFour.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
@@ -916,6 +916,156 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
                 transactionsTwoMyContract[1].channelName.should.equal('channelTwo');
                 transactionsTwoMyContract[1].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 transactionsTwoMyContract[1].contractName.should.equal('someOtherContract');
+
+                logSpy.should.not.have.been.calledWith(LogType.ERROR);
+            });
+
+            it(`should create instantiated chaincode correctly when there are txdata associations`, async () => {
+                const gateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+                gateway.name = 'myGateway';
+                gateway.associatedWallet = 'some_wallet';
+                gateway.transactionDataDirectories = [{
+                    chaincodeName: 'cake-network',
+                    channelName: 'channelTwo',
+                    transactionDataPath: 'some/file/path'
+                }, {
+                    chaincodeName: 'legacy-network',
+                    channelName: 'channelTwo',
+                    transactionDataPath: 'some/other/file/path'
+                }, {
+                    chaincodeName: 'biscuit-network',
+                    channelName: 'channelOne',
+                    transactionDataPath: 'different/file/path'
+                }, {
+                    chaincodeName: 'biscuit-network',
+                    channelName: 'channelTwo',
+                    transactionDataPath: 'different/file/path'
+                }];
+                getGatewayRegistryEntryStub.returns(gateway);
+
+                allChildren = await blockchainGatewayExplorerProvider.getChildren();
+                allChildren.length.should.equal(3);
+
+                const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+
+                let instantiatedUnknownChainCodes: Array<InstantiatedUnknownTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channels[0]) as Array<InstantiatedUnknownTreeItem>;
+                instantiatedUnknownChainCodes.length.should.equal(1);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);
+
+                const channelOne: ChannelTreeItem = channels[0];
+                channelOne.tooltip.should.equal('Associated peers: peerOne');
+
+                const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelOne);
+                channelChildrenOne.length.should.equal(1);
+
+                const instantiatedChaincodeItemOne: InstantiatedContractTreeItem = channelChildrenOne[0] as InstantiatedContractTreeItem;
+
+                instantiatedChaincodeItemOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
+                instantiatedChaincodeItemOne.contextValue.should.equal('blockchain-instantiated-associated-multi-contract-item');
+                instantiatedChaincodeItemOne.label.should.equal('biscuit-network@0.7');
+                instantiatedChaincodeItemOne.channels[0].should.equal(channelOne);
+                instantiatedChaincodeItemOne.channels.length.should.equal(1);
+                instantiatedChaincodeItemOne.version.should.equal('0.7');
+                instantiatedChaincodeItemOne.contracts.should.deep.equal(['my-contract', 'someOtherContract']);
+
+                const channelTwo: ChannelTreeItem = channels[1];
+                channelTwo.tooltip.should.equal('Associated peers: peerOne, peerTwo');
+
+                instantiatedUnknownChainCodes = await blockchainGatewayExplorerProvider.getChildren(channels[1]) as Array<InstantiatedUnknownTreeItem>;
+                instantiatedUnknownChainCodes.length.should.equal(3);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[1]);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[2]);
+
+                const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelTwo);
+                channelChildrenTwo.length.should.equal(3);
+
+                const instantiatedChaincodeItemTwo: InstantiatedContractTreeItem = channelChildrenTwo[0] as InstantiatedContractTreeItem;
+
+                instantiatedChaincodeItemTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                instantiatedChaincodeItemTwo.contextValue.should.equal('blockchain-instantiated-associated-contract-item');
+                instantiatedChaincodeItemTwo.label.should.equal('cake-network@0.10');
+                instantiatedChaincodeItemTwo.channels[0].should.equal(channelTwo);
+                instantiatedChaincodeItemTwo.channels.length.should.equal(1);
+                instantiatedChaincodeItemTwo.version.should.equal('0.10');
+                instantiatedChaincodeItemTwo.contracts.should.deep.equal([]);
+
+                const instantiatedChaincodeItemThree: InstantiatedChaincodeTreeItem = channelChildrenTwo[1] as InstantiatedChaincodeTreeItem;
+
+                instantiatedChaincodeItemThree.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                instantiatedChaincodeItemThree.contextValue.should.equal('blockchain-instantiated-associated-chaincode-item');
+                instantiatedChaincodeItemThree.label.should.equal('legacy-network@2.34');
+                instantiatedChaincodeItemThree.channels[0].should.equal(channelTwo);
+                instantiatedChaincodeItemThree.channels.length.should.equal(1);
+                instantiatedChaincodeItemThree.version.should.equal('2.34');
+                should.equal(instantiatedChaincodeItemThree.contracts, undefined);
+
+                const instantiatedTreeItemFour: InstantiatedContractTreeItem = channelChildrenTwo[2] as InstantiatedContractTreeItem;
+                instantiatedTreeItemFour.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
+                instantiatedTreeItemFour.name.should.equal('biscuit-network');
+                instantiatedTreeItemFour.version.should.equal('0.7');
+                instantiatedTreeItemFour.label.should.equal('biscuit-network@0.7');
+                instantiatedTreeItemFour.contextValue.should.equal('blockchain-instantiated-associated-multi-contract-item');
+                instantiatedTreeItemFour.channels[0].label.should.equal('channelTwo');
+                instantiatedTreeItemFour.channels.length.should.equal(1);
+
+                logSpy.should.not.have.been.calledWith(LogType.ERROR);
+            });
+
+            it('should show transactions correctly when there is a txdata association', async () => {
+                const gateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+                gateway.name = 'myGateway';
+                gateway.associatedWallet = 'some_wallet';
+                gateway.transactionDataDirectories = [{
+                    chaincodeName: 'cake-network',
+                    channelName: 'channelTwo',
+                    transactionDataPath: 'some/file/path'
+                }];
+                getGatewayRegistryEntryStub.returns(gateway);
+
+                fabricConnection.getMetadata.withArgs('cake-network', 'channelTwo').resolves(
+                    {
+                        contracts: {
+                            'my-contract': {
+                                name: 'my-contract',
+                                transactions: [
+                                    {
+                                        name: 'garabaldi'
+                                    },
+                                    {
+                                        name: 'shortbread'
+                                    }
+                                ],
+                            }
+                        }
+                    }
+                );
+                const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+                channels[0].tooltip.should.equal('Associated peers: peerOne');
+                channels[1].tooltip.should.equal('Associated peers: peerOne, peerTwo');
+
+                const instantiatedUnknownChainCodes: Array<InstantiatedUnknownTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channels[1]) as Array<InstantiatedUnknownTreeItem>;
+                instantiatedUnknownChainCodes.length.should.equal(3);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[1]);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[2]);
+
+                const channelChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channels[1]);
+
+                const instantiatedChaincodeItemOne: InstantiatedContractTreeItem = channelChildren[0] as InstantiatedContractTreeItem;
+
+                const transactions: Array<TransactionTreeItem> = await blockchainGatewayExplorerProvider.getChildren(instantiatedChaincodeItemOne) as Array<TransactionTreeItem>;
+                transactions.length.should.equal(2);
+                transactions[0].label.should.equal('garabaldi');
+                transactions[0].chaincodeName.should.equal('cake-network');
+                transactions[0].channelName.should.equal('channelTwo');
+                transactions[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                transactions[0].contractName.should.equal('my-contract');
+                transactions[1].label.should.equal('shortbread');
+                transactions[1].chaincodeName.should.equal('cake-network');
+                transactions[1].channelName.should.equal('channelTwo');
+                transactions[1].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                transactions[1].contractName.should.equal('my-contract');
 
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
             });

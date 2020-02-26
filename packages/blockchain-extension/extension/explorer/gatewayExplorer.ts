@@ -34,6 +34,10 @@ import { InstantiatedTreeItem } from './model/InstantiatedTreeItem';
 import { FabricChaincode, IFabricGatewayConnection, LogType, FabricGatewayRegistryEntry, FabricGatewayRegistry, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { InstantiatedMultiContractTreeItem } from './model/InstantiatedMultiContractTreeItem';
 import { InstantiatedUnknownTreeItem } from './model/InstantiatedUnknownTreeItem';
+import { InstantiatedAssociatedTreeItem } from './model/InstantiatedAssociatedTreeItem';
+import { InstantiatedAssociatedContractTreeItem } from './model/InstantiatedAssociatedContractTreeItem';
+import { InstantiatedAssociatedChaincodeTreeItem } from './model/InstantiatedAssociatedChaincodeTreeItem';
+import { InstantiatedAssociatedMultiContractTreeItem } from './model/InstantiatedAssociatedMultiContractTreeItem';
 import { TextTreeItem } from './model/TextTreeItem';
 
 export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProvider {
@@ -224,26 +228,44 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
                 tree.push(this.instantiatedChaincodeTreeItems[index]);
             } else {
                 // Chaincode isn't stored
-                // Populate tree with generic instantiatedUnknownTreeItem and type them properly when vscode calls getTreeItem on each one
-                tree.push(new InstantiatedUnknownTreeItem(this, chaincode.name, [channelTreeElement], chaincode.version, vscode.TreeItemCollapsibleState.Collapsed, undefined, true));
+                // Populate tree with generic instantiatedUnknownTreeItem or instantiatedAssociatedTreeItem and type them properly when vscode calls getTreeItem on each one
+                const gateway: FabricGatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
+                if (!gateway.transactionDataDirectories || gateway.transactionDataDirectories.length === 0) {
+                    tree.push(new InstantiatedUnknownTreeItem(this, chaincode.name, [channelTreeElement], chaincode.version, vscode.TreeItemCollapsibleState.Collapsed, undefined, true));
+                } else {
+                    if (this.checkForTxdataAssociations(gateway, chaincode.name, [channelTreeElement])) {
+                        tree.push(new InstantiatedAssociatedTreeItem(this, chaincode.name, [channelTreeElement], chaincode.version, vscode.TreeItemCollapsibleState.Collapsed, undefined, true));
+                    } else {
+                        tree.push(new InstantiatedUnknownTreeItem(this, chaincode.name, [channelTreeElement], chaincode.version, vscode.TreeItemCollapsibleState.Collapsed, undefined, true));
+                    }
+                }
             }
         }
         return tree;
     }
 
-    private async populateInstantiatedTreeItems(unknownTreItem: InstantiatedUnknownTreeItem): Promise<void> {
+    private async populateInstantiatedTreeItems(unknownTreeItem: InstantiatedAssociatedTreeItem): Promise<void> {
         // Determine contracts for each instantiated chaincode and properly assign element
         const connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
-        const contracts: Array<string> = await MetadataUtil.getContractNames(connection, unknownTreItem.name, unknownTreItem.channels[0].label);
+        const gateway: FabricGatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
+        const contracts: Array<string> = await MetadataUtil.getContractNames(connection, unknownTreeItem.name, unknownTreeItem.channels[0].label);
         let newElement: BlockchainTreeItem;
         if (!contracts) {
-            newElement = new InstantiatedChaincodeTreeItem(this, unknownTreItem.name, unknownTreItem.channels, unknownTreItem.version, vscode.TreeItemCollapsibleState.None, contracts, true);
+            newElement = (this.checkForTxdataAssociations(gateway, unknownTreeItem.name, unknownTreeItem.channels)) ?
+                new InstantiatedAssociatedChaincodeTreeItem(this, unknownTreeItem.name, unknownTreeItem.channels, unknownTreeItem.version, vscode.TreeItemCollapsibleState.None, undefined, true) :
+                new InstantiatedChaincodeTreeItem(this, unknownTreeItem.name, unknownTreeItem.channels, unknownTreeItem.version, vscode.TreeItemCollapsibleState.None, undefined, true);
         } else if (contracts.length === 0) {
-            newElement = new InstantiatedContractTreeItem(this, unknownTreItem.name, unknownTreItem.channels, unknownTreItem.version, vscode.TreeItemCollapsibleState.None, contracts, true);
+            newElement = (this.checkForTxdataAssociations(gateway, unknownTreeItem.name, unknownTreeItem.channels)) ?
+                new InstantiatedAssociatedContractTreeItem(this, unknownTreeItem.name, unknownTreeItem.channels, unknownTreeItem.version, vscode.TreeItemCollapsibleState.None, contracts, true) :
+                new InstantiatedContractTreeItem(this, unknownTreeItem.name, unknownTreeItem.channels, unknownTreeItem.version, vscode.TreeItemCollapsibleState.None, contracts, true);
         } else if (contracts.length === 1) {
-            newElement = new InstantiatedContractTreeItem(this, unknownTreItem.name, unknownTreItem.channels, unknownTreItem.version, vscode.TreeItemCollapsibleState.Collapsed, contracts, true);
+            newElement = (this.checkForTxdataAssociations(gateway, unknownTreeItem.name, unknownTreeItem.channels)) ?
+                new InstantiatedAssociatedContractTreeItem(this, unknownTreeItem.name, unknownTreeItem.channels, unknownTreeItem.version, vscode.TreeItemCollapsibleState.Collapsed, contracts, true) :
+                new InstantiatedContractTreeItem(this, unknownTreeItem.name, unknownTreeItem.channels, unknownTreeItem.version, vscode.TreeItemCollapsibleState.Collapsed, contracts, true);
         } else {
-            newElement = new InstantiatedMultiContractTreeItem(this, unknownTreItem.name, unknownTreItem.channels, unknownTreItem.version, vscode.TreeItemCollapsibleState.Collapsed, contracts, true);
+            newElement = (this.checkForTxdataAssociations(gateway, unknownTreeItem.name, unknownTreeItem.channels)) ?
+                new InstantiatedAssociatedMultiContractTreeItem(this, unknownTreeItem.name, unknownTreeItem.channels, unknownTreeItem.version, vscode.TreeItemCollapsibleState.Collapsed, contracts, true) :
+                new InstantiatedMultiContractTreeItem(this, unknownTreeItem.name, unknownTreeItem.channels, unknownTreeItem.version, vscode.TreeItemCollapsibleState.Collapsed, contracts, true);
         }
 
         // Populate and store instantiatedChaincodeTreeItems with correct tree items
@@ -326,6 +348,18 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
             FabricGatewayConnectionManager.instance().disconnect();
 
             throw error;
+        }
+    }
+
+    private checkForTxdataAssociations(gateway: FabricGatewayRegistryEntry, chaincodeName: string, channels: Array<ChannelTreeItem>): boolean {
+        if (!gateway.transactionDataDirectories || gateway.transactionDataDirectories.length === 0) {
+            return false;
+        } else {
+            return gateway.transactionDataDirectories.some((association: any) => {
+                for (const channel of channels) {
+                    return association.chaincodeName === chaincodeName && association.channelName === channel.label;
+                }
+            });
         }
     }
 }
