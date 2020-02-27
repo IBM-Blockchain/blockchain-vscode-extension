@@ -163,6 +163,8 @@ describe('Extension Tests', () => {
             extensionData.systemRequirements = true;
             extensionData.version = currentExtensionVersion;
             extensionData.generatorVersion = dependencies['generator-fabric'];
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -213,6 +215,8 @@ describe('Extension Tests', () => {
             extensionData.migrationCheck = 2;
             extensionData.version = currentExtensionVersion;
             extensionData.generatorVersion = dependencies['generator-fabric'];
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -261,6 +265,9 @@ describe('Extension Tests', () => {
             extensionData.version = currentExtensionVersion;
             extensionData.generatorVersion = dependencies['generator-fabric'];
             extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -308,6 +315,9 @@ describe('Extension Tests', () => {
             extensionData.version = currentExtensionVersion;
             extensionData.generatorVersion = dependencies['generator-fabric'];
             extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -350,6 +360,9 @@ describe('Extension Tests', () => {
             extensionData.version = '1.0.6';
             extensionData.generatorVersion = dependencies['generator-fabric'];
             extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -394,6 +407,9 @@ describe('Extension Tests', () => {
             extensionData.version = null;
             extensionData.generatorVersion = null;
             extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
             await GlobalState.update(extensionData);
 
             await GlobalState.update(extensionData);
@@ -444,6 +460,9 @@ describe('Extension Tests', () => {
             extensionData.version = '1.0.6';
             extensionData.generatorVersion = dependencies['generator-fabric'];
             extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -490,6 +509,9 @@ describe('Extension Tests', () => {
             extensionData.version = '1.0.6';
             extensionData.generatorVersion = dependencies['generator-fabric'];
             extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -532,6 +554,9 @@ describe('Extension Tests', () => {
             extensionData.version = null;
             extensionData.generatorVersion = null;
             extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -564,6 +589,9 @@ describe('Extension Tests', () => {
             extensionData.version = currentExtensionVersion;
             extensionData.generatorVersion = '1.0.6';
             extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
             await GlobalState.update(extensionData);
             const error: Error = new Error('some error');
 
@@ -601,6 +629,9 @@ describe('Extension Tests', () => {
             extensionData.version = currentExtensionVersion;
             extensionData.migrationCheck = 0;
             extensionData.generatorVersion = dependencies['generator-fabric'];
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);

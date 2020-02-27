@@ -93,6 +93,7 @@ describe('AddWalletIdentityCommand', () => {
             connectionProfilePathStub = mySandBox.stub(FabricGatewayHelper, 'getConnectionProfilePath').resolves(path.join('myPath', 'connection.json'));
 
             await FabricWalletRegistry.instance().clear();
+            await FabricEnvironmentRegistry.instance().clear();
             await TestUtil.setupLocalFabric();
 
             const connectionOneWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
