@@ -17,17 +17,19 @@ import * as semver from 'semver';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType } from 'ibm-blockchain-platform-common';
 import { URL } from 'url';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
+import { UserInputUtil } from '../commands/UserInputUtil';
 
 export abstract class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
     static readonly debugEvent: string = 'contractDebugging';
+    static environmentName: string;
 
     public static async getInstantiatedChaincode(chaincodeName: string): Promise<FabricChaincode> {
         // Determine what smart contracts are instantiated already
@@ -47,19 +49,19 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             let environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
             if (!environmentRegistryEntry.managedRuntime) {
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
-                environmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+                environmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricDebugConfigurationProvider.environmentName);
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
                 connection = FabricEnvironmentManager.instance().getConnection();
 
             }
         } else {
-            const environmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+            const environmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricDebugConfigurationProvider.environmentName);
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
             connection = FabricEnvironmentManager.instance().getConnection();
         }
 
         if (!connection) {
-            throw new Error(`Could not create connection to ${FabricRuntimeUtil.LOCAL_FABRIC}`);
+            throw new Error(`Could not create connection to ${FabricDebugConfigurationProvider.environmentName}`);
         }
 
         return connection;
@@ -80,12 +82,30 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
 
             // Stop debug if not got late enough version
             if (!extensionData.generatorVersion || semver.lt(extensionData.generatorVersion, '0.0.36')) {
-                outputAdapter.log(LogType.ERROR, `To debug a smart contract, you must update the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime. Teardown and start the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime, and try again.`);
+                outputAdapter.log(LogType.ERROR, `To debug a smart contract, you must update the local runtimes. Teardown all local runtimes, start the runtime to debug, and try again.`);
                 return;
             }
 
-            // TODO: Handle debugging for other fabrics
-            this.runtime = LocalEnvironmentManager.instance().getRuntime(FabricRuntimeUtil.LOCAL_FABRIC);
+            const runtimes: LocalEnvironment[] = LocalEnvironmentManager.instance().getAllRuntimes();
+
+            // At the moment, we only want the user to debug with 1-org environments.
+            // See https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1995 for the issue of supporting 2-org environments.
+            const oneOrgRuntimes: string[] = [];
+            for (const _runtime of runtimes) {
+                if (_runtime.numberOfOrgs === 1) {
+                    const runtimeName: string = _runtime.getName();
+                    oneOrgRuntimes.push(runtimeName);
+                }
+            }
+
+            if (oneOrgRuntimes.length === 0) {
+                outputAdapter.log(LogType.ERROR, `No 1-org local environments found.`);
+                return;
+            }
+
+            const chosenEnvironment: string = await UserInputUtil.showQuickPick('Select a 1-org environment to debug', oneOrgRuntimes) as string;
+
+            this.runtime = LocalEnvironmentManager.instance().getRuntime(chosenEnvironment);
 
             const isRunning: boolean = await this.runtime.isRunning();
 
@@ -149,6 +169,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             resolvedConfig.debugEvent = FabricDebugConfigurationProvider.debugEvent;
 
             await vscode.commands.executeCommand('setContext', 'blockchain-debug', true);
+            FabricDebugConfigurationProvider.environmentName = chosenEnvironment;
             vscode.debug.startDebugging(folder, resolvedConfig);
 
             // Cancel the current debug session - the user will never know!

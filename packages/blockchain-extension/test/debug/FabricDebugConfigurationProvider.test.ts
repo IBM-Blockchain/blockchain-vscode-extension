@@ -64,7 +64,6 @@ describe('FabricDebugConfigurationProvider', () => {
     before(async () => {
         mySandbox = sinon.createSandbox();
         await TestUtil.setupTests(mySandbox);
-        await TestUtil.setupLocalFabric();
     });
     describe('resolveDebugConfiguration', () => {
         let fabricDebugConfig: TestFabricDebugConfigurationProvider;
@@ -83,7 +82,11 @@ describe('FabricDebugConfigurationProvider', () => {
         let isRunning: sinon.SinonStub;
         let killChaincode: sinon.SinonStub;
         let getGateways: sinon.SinonStub;
+        let showQuickPickStub: sinon.SinonStub;
         beforeEach(async () => {
+            await FabricEnvironmentRegistry.instance().clear();
+            await TestUtil.setupLocalFabric();
+
             getExtensionLocalFabricSetting = mySandbox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting');
             getExtensionLocalFabricSetting.returns(true);
 
@@ -137,6 +140,8 @@ describe('FabricDebugConfigurationProvider', () => {
             generatorVersionStub = mySandbox.stub(GlobalState, 'get').returns({
                 generatorVersion: '0.0.36'
             });
+
+            showQuickPickStub = mySandbox.stub(UserInputUtil, 'showQuickPick').resolves(FabricRuntimeUtil.LOCAL_FABRIC);
         });
 
         afterEach(() => {
@@ -144,8 +149,10 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should create a new debug configuration', async () => {
+
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
@@ -158,12 +165,50 @@ describe('FabricDebugConfigurationProvider', () => {
             commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
         });
 
+        it('should only show 1-org local environments to debug for', async () => {
+
+            getName.restore();
+
+            const localEnvironment: LocalEnvironment = new LocalEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1);
+            const otherLocalEnvironment: LocalEnvironment = new LocalEnvironment('OtherLocalEnv', undefined, 1);
+            const twoOrgEnvironment: LocalEnvironment = new LocalEnvironment('twoOrgEnvironment', undefined, 2);
+
+            mySandbox.stub(LocalEnvironmentManager.instance(), 'getAllRuntimes').returns([localEnvironment, otherLocalEnvironment, twoOrgEnvironment]);
+
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC, 'OtherLocalEnv']);
+            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+                type: 'fake',
+                request: 'launch',
+                env: {
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
+                },
+                args: ['127.0.0.1:54321'],
+                debugEvent: FabricDebugConfigurationProvider.debugEvent
+            });
+            commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
+        });
+
+        it('should return if there are no 1-org local environments to select', async () => {
+
+            mySandbox.stub(LocalEnvironmentManager.instance(), 'getAllRuntimes').returns([]);
+
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.equal(config, undefined);
+            showQuickPickStub.should.not.have.been.called;
+            startDebuggingStub.should.not.have.been.called;
+            commandStub.should.not.have.been.called;
+            logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `No 1-org local environments found.`);
+        });
+
         it('should create a new debug configuration if smart contract has a scoped name', async () => {
             const scopedDebugConfig: TestFabricDebugConfigurationProvider = new TestFabricDebugConfigurationProvider();
             scopedDebugConfig.chaincodeName = '@removeThis/mySmartContract';
 
             const config: vscode.DebugConfiguration = await scopedDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
@@ -186,6 +231,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
@@ -205,6 +251,7 @@ describe('FabricDebugConfigurationProvider', () => {
             getConnectionStub.onFirstCall().returns(undefined);
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
@@ -223,6 +270,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
@@ -258,6 +306,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
@@ -275,6 +324,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
@@ -292,6 +342,7 @@ describe('FabricDebugConfigurationProvider', () => {
             getConnectionStub.returns(undefined);
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.not.exist(config);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
             commandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistry);
         });
 
@@ -306,9 +357,10 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.not.have.been.called;
             startDebuggingStub.should.not.have.been.called;
             commandStub.should.not.have.been.called;
-            logSpy.should.have.been.calledWith(LogType.ERROR, `To debug a smart contract, you must update the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime. Teardown and start the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime, and try again.`);
+            logSpy.should.have.been.calledWith(LogType.ERROR, `To debug a smart contract, you must update the local runtimes. Teardown all local runtimes, start the runtime to debug, and try again.`);
         });
 
         it('should give an error if generator version is unknown', async () => {
@@ -322,9 +374,10 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.not.have.been.called;
             startDebuggingStub.should.not.have.been.called;
             commandStub.should.not.have.been.called;
-            logSpy.should.have.been.calledWith(LogType.ERROR, `To debug a smart contract, you must update the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime. Teardown and start the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime, and try again.`);
+            logSpy.should.have.been.calledWith(LogType.ERROR, `To debug a smart contract, you must update the local runtimes. Teardown all local runtimes, start the runtime to debug, and try again.`);
         });
 
         it('should not run if the chaincode name is not provided', async () => {
@@ -332,6 +385,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
             startDebuggingStub.should.not.have.been.called;
             commandStub.should.not.have.been.called;
         });
@@ -342,7 +396,7 @@ describe('FabricDebugConfigurationProvider', () => {
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
 
             should.not.exist(config);
-
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
             logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Please ensure "${FabricRuntimeUtil.LOCAL_FABRIC}" is running before trying to debug a smart contract`);
         });
 
@@ -354,6 +408,7 @@ describe('FabricDebugConfigurationProvider', () => {
             isRunning.onSecondCall().resolves(false);
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
@@ -376,6 +431,7 @@ describe('FabricDebugConfigurationProvider', () => {
             isRunning.resolves(true);
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
@@ -397,15 +453,16 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
 
             logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Failed to launch debug: ${error.message}`);
         });
 
-        it(`should error if ${FabricRuntimeUtil.LOCAL_FABRIC} is not enabled`, async () => {
-            mySandbox.stub(UserInputUtil, 'showConfirmationWarningMessage').withArgs(`Toggling this feature will remove the world state and ledger data for the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime. Do you want to continue?`).resolves(true);
+        it(`should error if local fabric functionality is not enabled`, async () => {
+            mySandbox.stub(UserInputUtil, 'showConfirmationWarningMessage').withArgs(`Toggling this feature will remove the world state and ledger data for all local runtimes. Do you want to continue?`).resolves(true);
             getExtensionLocalFabricSetting.returns(false);
             await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-
+            showQuickPickStub.should.not.have.been.called;
             logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Setting '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' must be set to 'true' to enable debugging.`);
         });
     });

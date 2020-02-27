@@ -29,12 +29,14 @@ import { FabricEnvironmentManager } from '../../extension/fabric/environments/Fa
 import { GlobalState } from '../../extension/util/GlobalState';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
+import { TestUtil } from '../TestUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
 describe('FabricJavaDebugConfigurationProvider', () => {
+    let mySandbox: sinon.SinonSandbox;
 
     describe('provideDebugConfigurations', () => {
 
@@ -51,9 +53,13 @@ describe('FabricJavaDebugConfigurationProvider', () => {
 
     });
 
+    before(async () => {
+        mySandbox = sinon.createSandbox();
+        await TestUtil.setupTests(mySandbox);
+    });
+
     describe('resolveDebugConfiguration', () => {
 
-        let mySandbox: sinon.SinonSandbox;
         let fabricDebugConfig: FabricJavaDebugConfigurationProvider;
         let workspaceFolder: any;
         let debugConfig: any;
@@ -64,6 +70,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
         let sendTelemetryEventStub: sinon.SinonStub;
         let showInputBoxStub: sinon.SinonStub;
         let getExtensionLocalFabricSetting: sinon.SinonStub;
+        let showQuickPickStub: sinon.SinonStub;
         beforeEach(async () => {
 
             mySandbox = sinon.createSandbox();
@@ -131,6 +138,9 @@ describe('FabricJavaDebugConfigurationProvider', () => {
             mySandbox.stub(GlobalState, 'get').returns({
                 generatorVersion: '0.0.36'
             });
+
+            showQuickPickStub = mySandbox.stub(UserInputUtil, 'showQuickPick').resolves(FabricRuntimeUtil.LOCAL_FABRIC);
+
         });
 
         afterEach(() => {
@@ -141,6 +151,8 @@ describe('FabricJavaDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
+
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'java',
                 request: 'myLaunch',
@@ -160,6 +172,8 @@ describe('FabricJavaDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
+
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'java',
                 request: 'myLaunch',
@@ -178,6 +192,8 @@ describe('FabricJavaDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
+
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'java',
                 request: 'myLaunch',
@@ -196,6 +212,8 @@ describe('FabricJavaDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
+
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'java',
                 request: 'myLaunch',
@@ -214,6 +232,8 @@ describe('FabricJavaDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
+
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'java',
                 request: 'launch',
@@ -231,6 +251,8 @@ describe('FabricJavaDebugConfigurationProvider', () => {
             showInputBoxStub.withArgs('Enter a name for your Java package').resolves();
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.not.exist(config);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
+
             sendTelemetryEventStub.should.not.have.been.called;
         });
     });
