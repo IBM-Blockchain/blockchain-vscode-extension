@@ -165,7 +165,7 @@ describe('CreateSmartContractProjectCommand', () => {
             executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, true);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Smart Contract Project');
             await checkSmartContract();
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label });
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label, contractType: 'default' });
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in current window`, async () => {
@@ -182,7 +182,7 @@ describe('CreateSmartContractProjectCommand', () => {
             executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, false);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Smart Contract Project');
             await checkSmartContract();
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label });
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label, contractType: 'default' });
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in current window with unsaved files and save`, async () => {
@@ -205,7 +205,7 @@ describe('CreateSmartContractProjectCommand', () => {
             saveDialogStub.should.have.been.calledWith(true);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Smart Contract Project');
             await checkSmartContract();
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label });
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label, contractType: 'default' });
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in current window with unsaved files and not save`, async () => {
@@ -228,7 +228,7 @@ describe('CreateSmartContractProjectCommand', () => {
             saveDialogStub.should.not.have.been.called;
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Smart Contract Project');
             await checkSmartContract();
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label });
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label, contractType: 'default' });
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in a new workspace with no folders`, async () => {
@@ -247,7 +247,7 @@ describe('CreateSmartContractProjectCommand', () => {
             updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, { uri: uri });
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Smart Contract Project');
             await checkSmartContract();
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label });
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label, contractType: 'default' });
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in a new workspace with folders`, async () => {
@@ -264,7 +264,7 @@ describe('CreateSmartContractProjectCommand', () => {
             updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, { uri: uri });
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Smart Contract Project');
             await checkSmartContract();
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label });
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label, contractType: 'default' });
         });
 
     }
@@ -282,7 +282,7 @@ describe('CreateSmartContractProjectCommand', () => {
         executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
         executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, true);
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Private Data Smart Contract Project');
-        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createPrivateDataSmartContractProject', { contractLanguage: 'typescript' });
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: 'typescript', contractType: 'private' });
     });
 
     it('should have the correct default asset name when user selects private data smart contract', async () => {
@@ -300,7 +300,7 @@ describe('CreateSmartContractProjectCommand', () => {
         executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
         executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, true);
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Private Data Smart Contract Project');
-        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createPrivateDataSmartContractProject', { contractLanguage: 'typescript' });
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: 'typescript', contractType: 'private' });
     });
 
     it('should not do anything if the user cancels when asked for the mspID', async () => {
