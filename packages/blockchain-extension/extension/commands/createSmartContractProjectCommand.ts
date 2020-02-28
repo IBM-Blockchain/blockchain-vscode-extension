@@ -147,11 +147,8 @@ export async function createSmartContractProject(): Promise<void> {
 
         outputAdapter.log(LogType.SUCCESS, `Successfully generated${privateOrDefault}Smart Contract Project`);
 
-        if (contractType.data === typeDefault) {
-            Reporter.instance().sendTelemetryEvent('createSmartContractProject', { contractLanguage: smartContractLanguage });
-        } else {
-            Reporter.instance().sendTelemetryEvent('createPrivateDataSmartContractProject', { contractLanguage: smartContractLanguage });
-        }
+        Reporter.instance().sendTelemetryEvent('createSmartContractProject', { contractLanguage: smartContractLanguage, contractType: contractType.data });
+
         // Open the returned folder in explorer, in a new window
         await UserInputUtil.openNewProject(openMethod, folderUri);
         await vscode.commands.executeCommand('workbench.files.action.focusFilesExplorer');
