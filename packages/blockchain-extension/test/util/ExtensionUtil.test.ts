@@ -986,6 +986,15 @@ describe('ExtensionUtil Tests', () => {
 
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
         });
+
+        it('should add home page button to the status bar', async () => {
+            const newContext: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const homePageButton: any = newContext.subscriptions.find((subscription: any) => {
+                return subscription.text === 'Blockchain home';
+            });
+            homePageButton.tooltip.should.equal('View Homepage');
+            homePageButton.command.should.equal(ExtensionCommands.OPEN_HOME_PAGE);
+        });
     });
 
     describe('registerPreReqAndReleaseNotesCommand', () => {

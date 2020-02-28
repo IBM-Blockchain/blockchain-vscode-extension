@@ -356,6 +356,15 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.window.registerTreeDataProvider('aPackagesExplorer', blockchainPackageExplorerProvider));
         context.subscriptions.push(vscode.window.registerTreeDataProvider('walletExplorer', blockchainWalletExplorerProvider));
 
+        // add homepage button in status bar
+        const homePageButton: vscode.StatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+        homePageButton.command = ExtensionCommands.OPEN_HOME_PAGE;
+        homePageButton.text = 'Blockchain home';
+        homePageButton.tooltip = 'View Homepage';
+
+        context.subscriptions.push(homePageButton);
+        homePageButton.show();
+
         FabricWalletRegistry.instance().on(FileRegistry.EVENT_NAME, (async (): Promise<void> => {
             try {
                 await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
