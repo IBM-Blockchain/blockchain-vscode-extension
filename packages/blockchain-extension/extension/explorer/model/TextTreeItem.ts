@@ -20,7 +20,7 @@ import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 
 export class TextTreeItem extends BlockchainTreeItem {
 
-    constructor(provider: BlockchainExplorerProvider, public readonly label: string) {
+    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly command?: vscode.Command) {
         super(provider, label, vscode.TreeItemCollapsibleState.None);
     }
 }

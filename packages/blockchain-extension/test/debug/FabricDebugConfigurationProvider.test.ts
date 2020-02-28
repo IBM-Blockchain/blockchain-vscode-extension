@@ -83,6 +83,8 @@ describe('FabricDebugConfigurationProvider', () => {
         let killChaincode: sinon.SinonStub;
         let getGateways: sinon.SinonStub;
         let showQuickPickStub: sinon.SinonStub;
+        let getAllRuntimesStub: sinon.SinonStub;
+        const localEnvironment: LocalEnvironment = new LocalEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1);
         beforeEach(async () => {
             await FabricEnvironmentRegistry.instance().clear();
             await TestUtil.setupLocalFabric();
@@ -142,6 +144,10 @@ describe('FabricDebugConfigurationProvider', () => {
             });
 
             showQuickPickStub = mySandbox.stub(UserInputUtil, 'showQuickPick').resolves(FabricRuntimeUtil.LOCAL_FABRIC);
+
+            getAllRuntimesStub = mySandbox.stub(LocalEnvironmentManager.instance(), 'getAllRuntimes');
+            getAllRuntimesStub.returns([localEnvironment]);
+
         });
 
         afterEach(() => {
@@ -169,11 +175,10 @@ describe('FabricDebugConfigurationProvider', () => {
 
             getName.restore();
 
-            const localEnvironment: LocalEnvironment = new LocalEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1);
             const otherLocalEnvironment: LocalEnvironment = new LocalEnvironment('OtherLocalEnv', undefined, 1);
             const twoOrgEnvironment: LocalEnvironment = new LocalEnvironment('twoOrgEnvironment', undefined, 2);
 
-            mySandbox.stub(LocalEnvironmentManager.instance(), 'getAllRuntimes').returns([localEnvironment, otherLocalEnvironment, twoOrgEnvironment]);
+            getAllRuntimesStub.returns([localEnvironment, otherLocalEnvironment, twoOrgEnvironment]);
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
@@ -192,7 +197,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
         it('should return if there are no 1-org local environments to select', async () => {
 
-            mySandbox.stub(LocalEnvironmentManager.instance(), 'getAllRuntimes').returns([]);
+            getAllRuntimesStub.returns([]);
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);

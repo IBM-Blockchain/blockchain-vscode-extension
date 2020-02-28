@@ -469,11 +469,16 @@ export class ExtensionUtil {
                     return _env.getName() === FabricRuntimeUtil.LOCAL_FABRIC;
                 });
 
-                if (!localRuntime && localFabricEnabled) {
+                const extensionData: ExtensionData = GlobalState.get();
+
+                if (!localRuntime && localFabricEnabled && !extensionData.deletedOneOrgLocalFabric) {
                     // Just been set to true and there is no local runtime.
                     outputAdapter.log(LogType.INFO, undefined, 'Initializing local runtime manager');
                     try {
                         await runtimeManager.initialize(FabricRuntimeUtil.LOCAL_FABRIC, 1);
+
+                        extensionData.createOneOrgLocalFabric = false;
+                        await GlobalState.update(extensionData);
 
                     } catch (error) {
                         outputAdapter.log(LogType.ERROR, `Error initializing ${FabricRuntimeUtil.LOCAL_FABRIC}: ${error.message}`, `Error initializing ${FabricRuntimeUtil.LOCAL_FABRIC}: ${error.toString()}`);
@@ -558,7 +563,11 @@ export class ExtensionUtil {
         await ExtensionUtil.registerCommands(context);
 
         if (localFabricEnabled) {
-            await ExtensionUtil.setupLocalRuntime(extensionData.version);
+            if (extensionData.createOneOrgLocalFabric) {
+                await ExtensionUtil.setupLocalRuntime(extensionData.version);
+                extensionData.createOneOrgLocalFabric = false;
+                await GlobalState.update(extensionData);
+            }
         } else {
             await FabricEnvironmentRegistry.instance().delete(FabricRuntimeUtil.LOCAL_FABRIC, true);
         }
@@ -666,6 +675,11 @@ export class ExtensionUtil {
             await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', true);
         } else {
             await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', false);
+        }
+
+        if (extensionData.generatorVersion === null) {
+            extensionData.generatorVersion = generatorVersion;
+            await GlobalState.update(extensionData);
         }
     }
 
