@@ -129,15 +129,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             tempCommandRegistry.createTempCommands(false, ExtensionCommands.OPEN_PRE_REQ_PAGE);
         }
 
-        // add homepage button in status bar
-        const homePageButton: vscode.StatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-        homePageButton.command = ExtensionCommands.OPEN_HOME_PAGE;
-        homePageButton.text = 'Blockchain home';
-        homePageButton.tooltip = 'View Homepage';
-
-        context.subscriptions.push(homePageButton);
-        homePageButton.show();
-
         // Open the PreReq page if the user hasn't got all the required dependencies OR if the user has never seen the PreReq page before
         if (!bypassPreReqs) {
             if (!originalExtensionData.preReqPageShown) {
