@@ -137,7 +137,12 @@ describe('environmentExplorer', () => {
                 const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const environments: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
                 environments.length.should.equal(1);
-                environments[0].label.should.equal(`No environments found`);
+                environments[0].label.should.equal(`Click + to add environments`);
+                environments[0].command.should.deep.equal({
+                    command: ExtensionCommands.ADD_ENVIRONMENT,
+                    title: '',
+                    arguments: []
+                });
             });
 
             it('should handle errors populating the tree with runtimeTreeItems', async () => {

@@ -23,7 +23,7 @@ import { PackageRegistryEntry } from '../../extension/registries/PackageRegistry
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricJavaDebugConfigurationProvider } from '../../extension/debug/FabricJavaDebugConfigurationProvider';
-import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, EnvironmentType, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { Reporter } from '../../extension/util/Reporter';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { GlobalState } from '../../extension/util/GlobalState';
@@ -71,7 +71,10 @@ describe('FabricJavaDebugConfigurationProvider', () => {
         let showInputBoxStub: sinon.SinonStub;
         let getExtensionLocalFabricSetting: sinon.SinonStub;
         let showQuickPickStub: sinon.SinonStub;
+        let getAllRuntimesStub: sinon.SinonStub;
+        const localEnvironment: LocalEnvironment = new LocalEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1);
         beforeEach(async () => {
+            await FabricEnvironmentRegistry.instance().clear();
 
             mySandbox = sinon.createSandbox();
             getExtensionLocalFabricSetting = mySandbox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting');
@@ -140,7 +143,8 @@ describe('FabricJavaDebugConfigurationProvider', () => {
             });
 
             showQuickPickStub = mySandbox.stub(UserInputUtil, 'showQuickPick').resolves(FabricRuntimeUtil.LOCAL_FABRIC);
-
+            getAllRuntimesStub = mySandbox.stub(LocalEnvironmentManager.instance(), 'getAllRuntimes');
+            getAllRuntimesStub.returns([localEnvironment]);
         });
 
         afterEach(() => {

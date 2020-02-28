@@ -15,12 +15,13 @@
 import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, FabricGatewayRegistryEntry, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, FabricGatewayRegistryEntry, EnvironmentType, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentTreeItem } from '../explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { SettingConfigurations } from '../../configurations';
+import { GlobalState, ExtensionData } from '../util/GlobalState';
 
 export async function deleteEnvironment(environment: FabricEnvironmentTreeItem | FabricEnvironmentRegistryEntry, force: boolean = false): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -84,6 +85,12 @@ export async function deleteEnvironment(environment: FabricEnvironmentTreeItem |
                 } catch (error) {
                     // Ignore
                     outputAdapter.log(LogType.WARNING, undefined, `Error whilst tearing down ${_environment.name} environment: ${error.message}`);
+                }
+
+                if (_environment.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+                    const extensionData: ExtensionData = GlobalState.get();
+                    extensionData.deletedOneOrgLocalFabric = true;
+                    await GlobalState.update(extensionData);
                 }
 
             }

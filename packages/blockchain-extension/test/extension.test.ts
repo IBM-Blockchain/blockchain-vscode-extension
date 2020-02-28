@@ -163,6 +163,8 @@ describe('Extension Tests', () => {
             extensionData.systemRequirements = true;
             extensionData.version = currentExtensionVersion;
             extensionData.generatorVersion = dependencies['generator-fabric'];
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -213,6 +215,8 @@ describe('Extension Tests', () => {
             extensionData.migrationCheck = 2;
             extensionData.version = currentExtensionVersion;
             extensionData.generatorVersion = dependencies['generator-fabric'];
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -261,6 +265,9 @@ describe('Extension Tests', () => {
             extensionData.version = currentExtensionVersion;
             extensionData.generatorVersion = dependencies['generator-fabric'];
             extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -308,6 +315,9 @@ describe('Extension Tests', () => {
             extensionData.version = currentExtensionVersion;
             extensionData.generatorVersion = dependencies['generator-fabric'];
             extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -350,6 +360,9 @@ describe('Extension Tests', () => {
             extensionData.version = '1.0.6';
             extensionData.generatorVersion = dependencies['generator-fabric'];
             extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -394,6 +407,9 @@ describe('Extension Tests', () => {
             extensionData.version = null;
             extensionData.generatorVersion = null;
             extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
             await GlobalState.update(extensionData);
 
             await GlobalState.update(extensionData);
@@ -444,6 +460,9 @@ describe('Extension Tests', () => {
             extensionData.version = '1.0.6';
             extensionData.generatorVersion = dependencies['generator-fabric'];
             extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -490,6 +509,9 @@ describe('Extension Tests', () => {
             extensionData.version = '1.0.6';
             extensionData.generatorVersion = dependencies['generator-fabric'];
             extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -532,6 +554,9 @@ describe('Extension Tests', () => {
             extensionData.version = null;
             extensionData.generatorVersion = null;
             extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -564,6 +589,9 @@ describe('Extension Tests', () => {
             extensionData.version = currentExtensionVersion;
             extensionData.generatorVersion = '1.0.6';
             extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
             await GlobalState.update(extensionData);
             const error: Error = new Error('some error');
 
@@ -601,6 +629,9 @@ describe('Extension Tests', () => {
             extensionData.version = currentExtensionVersion;
             extensionData.migrationCheck = 0;
             extensionData.generatorVersion = dependencies['generator-fabric'];
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -622,6 +653,45 @@ describe('Extension Tests', () => {
             completeActivationStub.should.have.been.called;
 
             migrateSettingConfigurations.should.have.been.calledOnce;
+        });
+
+        it('should add home page button to the status bar', async () => {
+            setupCommandsStub.resolves();
+            completeActivationStub.resolves();
+            const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            setExtensionContextStub.returns(undefined);
+            hasPreReqsInstalledStub.resolves(true);
+            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            createTempCommandsStub.returns(undefined);
+
+            const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
+            extensionData.preReqPageShown = true;
+            extensionData.dockerForWindows = true;
+            extensionData.systemRequirements = true;
+            extensionData.version = '1.0.6';
+            extensionData.generatorVersion = dependencies['generator-fabric'];
+            extensionData.migrationCheck = 2;
+            await GlobalState.update(extensionData);
+
+            await myExtension.activate(context);
+
+            sendTelemetryStub.should.have.been.calledWith('updatedInstall', { IBM: sinon.match.string });
+
+            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
+
+            setExtensionContextStub.should.have.been.calledTwice;
+            createTempCommandsStub.should.have.been.calledOnceWith(true);
+            setupCommandsStub.should.have.been.calledOnce;
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+
+            completeActivationStub.should.have.been.calledOnce;
+
+            const newContext: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const homePageButton: any = newContext.subscriptions.pop();
+            homePageButton.text.should.equal('Blockchain home');
+            homePageButton.tooltip.should.equal('View Homepage');
+            homePageButton.command.should.equal(ExtensionCommands.OPEN_HOME_PAGE);
         });
     });
 

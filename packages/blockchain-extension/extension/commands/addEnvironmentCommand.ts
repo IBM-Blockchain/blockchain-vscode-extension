@@ -19,7 +19,7 @@ import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, EnvironmentType, FabricEnvironment, FabricNode } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, EnvironmentType, FabricEnvironment, FabricNode, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { ModuleUtil } from '../util/ModuleUtil';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
@@ -27,6 +27,7 @@ import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironment
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../util/ExtensionUtil';
+import { GlobalState, ExtensionData } from '../util/GlobalState';
 
 export async function addEnvironment(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -191,6 +192,14 @@ export async function addEnvironment(): Promise<void> {
             const environment: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime(environmentName);
             // Generate all nodes, gateways and wallets
             await environment.generate(outputAdapter);
+
+            if (environmentName === FabricRuntimeUtil.LOCAL_FABRIC) {
+                // If the user has deleted their 1 Org Local Fabric and wants to recreate it, we need to set this flag to true.
+                // This means that after toggling the local functionality off and back on again, the 1 Org Local Fabric will recreate.
+                const extensionData: ExtensionData = GlobalState.get();
+                extensionData.deletedOneOrgLocalFabric = false;
+                await GlobalState.update(extensionData);
+            }
 
         }
 
