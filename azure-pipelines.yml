@@ -45,62 +45,19 @@ stages:
     dependsOn: []
 
     jobs:
-      - job: cucumber
-        condition: eq(variables['Build.Reason'], 'PullRequest')
-        strategy:
-          matrix:
-            cucumber:
-              imageName: 'ubuntu-16.04'
-              VERSION: '1.39.2'
-            cucumber_other:
-              imageName: 'ubuntu-16.04'
-              OTHER_FABRIC: 'true'
-              VERSION: '1.39.2'
-            cucumber_ansible:
-              imageName: 'ubuntu-16.04'
-              ANSIBLE_FABRIC: 'true'
-              VERSION: '1.39.2'
-            cucumber_opsTools:
-              imageName: 'ubuntu-16.04'
-              OPSTOOLS_FABRIC: 'true'
-              VERSION: '1.39.2'
-            cucumber_two_org:
-              imageName: 'ubuntu-16.04'
-              TWO_ORG_FABRIC: 'true'
-              VERSION: '1.39.2'
+      - template: azure-templates/cucumber-job.yml
+        parameters:
+          name: cucumber
+          ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
+            version: '1.39.2'
+          ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags') }}:
+            version: 'stable'
 
-        pool:
-          vmImage: $(imageName)
+  - stage: cucumberReport
+    dependsOn: [cucumberTest]
 
-        steps:
-          - template: azure-templates/setup-steps.yml
-          - template: azure-templates/cucumber-steps.yml
-
-      - job: cucumberLatest
-        condition: startsWith(variables['Build.SourceBranch'], 'refs/tags')
-        strategy:
-          matrix:
-            cucumber:
-              imageName: 'ubuntu-16.04'
-            cucumber_other:
-              imageName: 'ubuntu-16.04'
-              OTHER_FABRIC: 'true'
-            cucumber_ansible:
-              imageName: 'ubuntu-16.04'
-              ANSIBLE_FABRIC: 'true'
-            cucumber_opsTools:
-              imageName: 'ubuntu-16.04'
-              OPSTOOLS_FABRIC: 'true'
-            cucumber_two_org:
-              imageName: 'ubuntu-16.04'
-              TWO_ORG_FABRIC: 'true'
-
-        pool:
-          vmImage: $(imageName)
-
-        steps:
-          - template: azure-templates/setup-steps.yml
-          - template: azure-templates/cucumber-steps.yml
+    jobs:
+      - template: azure-templates/cucumber-report-job.yml
 
   - stage: cypressTest
     condition: in(variables['Build.Reason'], 'PullRequest', 'IndividualCI')
@@ -135,14 +92,7 @@ stages:
       - cucumberTest
       - cypressTest
     jobs:
-      - job: buildPackage
-
-        pool:
-          vmImage: 'ubuntu-16.04'
-
-        steps:
-          - template: azure-templates/setup-steps.yml
-          - template: azure-templates/build-package.yml
+      - template: azure-templates/build-package-job.yml
 
   - stage: buildChePackage
     dependsOn:
@@ -177,11 +127,7 @@ stages:
       - buildPackage
       - buildChePackage
     jobs:
-      - job:
-        pool:
-          vmImage: 'ubuntu-16.04'
-        steps:
-          - template: azure-templates/deploy.yml
+      - template: azure-templates/deploy-job.yml
 
   - stage: otherVersionsUnitTest
     condition: eq(variables['Build.Reason'], 'Schedule')
@@ -215,67 +161,21 @@ stages:
     condition: eq(variables['Build.Reason'], 'Schedule')
     dependsOn: []
     jobs:
-      - job: cucumber
-        strategy:
-          matrix:
-            insiders_cucumber:
-              imageName: 'ubuntu-16.04'
-              VERSION: 'insiders'
-            insiders_cucumber_other:
-              imageName: 'ubuntu-16.04'
-              OTHER_FABRIC: 'true'
-              VERSION: 'insiders'
-            insiders_cucumber_ansible:
-              imageName: 'ubuntu-16.04'
-              ANSIBLE_FABRIC: 'true'
-              VERSION: 'insiders'
-            insiders_cucumber_opsTools:
-              imageName: 'ubuntu-16.04'
-              OPSTOOLS_FABRIC: 'true'
-              VERSION: 'insiders'
-            insiders_cucumber_two_org:
-              imageName: 'ubuntu-16.04'
-              TWO_ORG_FABRIC: 'true'
-              VERSION: 'insiders'
-            old_cucumber:
-              imageName: 'ubuntu-16.04'
-              VERSION: '1.38.1'
-            old_cucumber_other:
-              imageName: 'ubuntu-16.04'
-              OTHER_FABRIC: 'true'
-              VERSION: '1.38.1'
-            old_cucumber_ansible:
-              imageName: 'ubuntu-16.04'
-              ANSIBLE_FABRIC: 'true'
-              VERSION: '1.38.1'
-            old_cucumber_two_org:
-              imageName: 'ubuntu-16.04'
-              TWO_ORG_FABRIC: 'true'
-              VERSION: '1.38.1'
-            old_cucumber_opsTools:
-              imageName: 'ubuntu-16.04'
-              OPSTOOLS_FABRIC: 'true'
-              VERSION: '1.38.1'
-            latest_cucumber:
-              imageName: 'ubuntu-16.04'
-            latest_cucumber_other:
-              imageName: 'ubuntu-16.04'
-              OTHER_FABRIC: 'true'
-            latest_cucumber_ansible:
-              imageName: 'ubuntu-16.04'
-              ANSIBLE_FABRIC: 'true'
-            lateat_cucumber_opsTools:
-              imageName: 'ubuntu-16.04'
-              OPSTOOLS_FABRIC: 'true'
-            latest_cucumber_two_org:
-              imageName: 'ubuntu-16.04'
-              TWO_ORG_FABRIC: 'true'
-        pool:
-          vmImage: $(imageName)
+      - template: azure-templates/cucumber-job.yml
+        parameters:
+          name: insiders
+          version: 'insiders'
 
-        steps:
-          - template: azure-templates/setup-steps.yml
-          - template: azure-templates/cucumber-steps.yml
+      - template: azure-templates/cucumber-job.yml
+        parameters:
+          name: old
+          version: '1.38.1'
+
+      - template: azure-templates/cucumber-job.yml
+        parameters:
+          name: latest
+          version: 'stable'
+
   # - stage: docker
   #   dependsOn:
   #     - unitTest
