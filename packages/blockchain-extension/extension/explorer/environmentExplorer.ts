@@ -212,7 +212,12 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
 
             if (environmentEntries.length === 0) {
-                tree.push(new TextTreeItem(this, 'No environments found'));
+                const command: vscode.Command = {
+                    command: ExtensionCommands.ADD_ENVIRONMENT,
+                    title: '',
+                    arguments: []
+                };
+                tree.push(new TextTreeItem(this, 'Click + to add environments', command));
             } else {
                 for (const environmentEntry of environmentEntries) {
                     if (environmentEntry.managedRuntime) {
