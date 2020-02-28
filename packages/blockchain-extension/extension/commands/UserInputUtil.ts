@@ -614,7 +614,8 @@ export class UserInputUtil {
         }
 
         if (instantiatedChaincodes.length === 0) {
-            outputAdapter.log(LogType.ERROR, 'Local runtime has no instantiated chaincodes');
+            const gatewayRegistryEntry: FabricGatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
+            outputAdapter.log(LogType.ERROR, `${gatewayRegistryEntry.name} has no instantiated chaincodes`);
             return;
         }
 
@@ -657,7 +658,8 @@ export class UserInputUtil {
         }
 
         if (instantiatedChaincodes.length === 0) {
-            outputAdapter.log(LogType.ERROR, 'Local runtime has no instantiated chaincodes');
+            const environmentName: string = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry().name;
+            outputAdapter.log(LogType.ERROR, `${environmentName} has no instantiated chaincodes`);
             return;
         }
 
