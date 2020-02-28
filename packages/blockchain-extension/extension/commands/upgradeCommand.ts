@@ -87,6 +87,9 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
         peerNames = chosenChannel.data;
         // We should now ask for the instantiated smart contract to upgrade
         const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showRuntimeInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName);
+        if (!initialSmartContract) {
+            return;
+        }
         contractName = initialSmartContract.data.name;
         contractVersion = initialSmartContract.data.version;
 
@@ -98,9 +101,9 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
         let chosenChaincode: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>;
 
         if (vscode.debug.activeDebugSession && vscode.debug.activeDebugSession.configuration.debugEvent === FabricDebugConfigurationProvider.debugEvent) {
-             // Upgrade command called from debug session - get the chaincode ID name
-             smartContractName = vscode.debug.activeDebugSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[0];
-             smartContractVersion = vscode.debug.activeDebugSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
+            // Upgrade command called from debug session - get the chaincode ID name
+            smartContractName = vscode.debug.activeDebugSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[0];
+            smartContractVersion = vscode.debug.activeDebugSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
         } else {
             // If not called from debug session, ask for smart contract to upgrade with
             chosenChaincode = await UserInputUtil.showChaincodeAndVersionQuickPick('Select the smart contract version to perform an upgrade with', channelName, peerNames, contractName, contractVersion);
