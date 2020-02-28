@@ -53,6 +53,7 @@ describe('UserInputUtil', () => {
     let getConnectionStub: sinon.SinonStub;
     let fabricRuntimeConnectionStub: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
     let fabricClientConnectionStub: sinon.SinonStubbedInstance<FabricGatewayConnection>;
+    let getConnectedGatewayEntryStub: sinon.SinonStub;
 
     let environmentStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
@@ -133,7 +134,9 @@ describe('UserInputUtil', () => {
         fabricClientConnectionStub.createChannelMap.resolves(map);
         fabricClientConnectionStub.getInstantiatedChaincode.withArgs('channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
         getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionStub);
+        getConnectedGatewayEntryStub = mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry').resolves(gatewayEntryOne);
         environmentStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns(fabricRuntimeConnectionStub);
+        mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentEntryOne);
 
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
     });
@@ -1647,7 +1650,7 @@ describe('UserInputUtil', () => {
         it('should handle no instantiated chaincodes in connection', async () => {
             fabricRuntimeConnectionStub.getInstantiatedChaincode.returns([]);
             await UserInputUtil.showClientInstantiatedSmartContractsQuickPick('Choose an instantiated smart contract to test', 'channelTwo');
-            logSpy.should.have.been.calledWith(LogType.ERROR, 'Local runtime has no instantiated chaincodes');
+            logSpy.should.have.been.calledWith(LogType.ERROR, `${gatewayEntryOne.name} has no instantiated chaincodes`);
 
         });
 
@@ -1659,7 +1662,7 @@ describe('UserInputUtil', () => {
                 channelName: 'channelOne',
                 transactionDataPath: 'some/file/path'
             }];
-            mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
+            getConnectedGatewayEntryStub.resolves(registryEntry);
 
             quickPickStub.resolves({
                 label: 'biscuit-network@0.0.1',
@@ -1678,7 +1681,7 @@ describe('UserInputUtil', () => {
             const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             registryEntry.name = 'myFabric';
             registryEntry.transactionDataDirectories = [];
-            mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
+            getConnectedGatewayEntryStub.resolves(registryEntry);
             await UserInputUtil.showClientInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to dissociate a transaction data directory from', undefined, true);
             logSpy.should.have.been.calledWith(LogType.ERROR, 'No smart contracts with associations to transaction data directories found');
         });
@@ -1686,7 +1689,7 @@ describe('UserInputUtil', () => {
         it('should not show instantiated chaincodes for dissociation if no associations exist', async () => {
             const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             registryEntry.name = 'myFabric';
-            mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
+            getConnectedGatewayEntryStub.resolves(registryEntry);
             await UserInputUtil.showClientInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to dissociate a transaction data directory from', undefined, true);
             logSpy.should.have.been.calledWith(LogType.ERROR, 'No smart contracts with associations to transaction data directories found');
         });
@@ -1751,7 +1754,7 @@ describe('UserInputUtil', () => {
         it('should handle no instantiated chaincodes in connection', async () => {
             fabricRuntimeConnectionStub.getInstantiatedChaincode.returns([]);
             await UserInputUtil.showRuntimeInstantiatedSmartContractsQuickPick('Choose an instantiated smart contract to test', 'channelTwo');
-            logSpy.should.have.been.calledWith(LogType.ERROR, 'Local runtime has no instantiated chaincodes');
+            logSpy.should.have.been.calledWith(LogType.ERROR, `${environmentEntryOne.name} has no instantiated chaincodes`);
         });
 
         it('should handle no instantiated chaincodes in connection', async () => {
@@ -1815,7 +1818,7 @@ describe('UserInputUtil', () => {
             });
             const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             registryEntry.name = 'myFabric';
-            mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
+            getConnectedGatewayEntryStub.resolves(registryEntry);
             fabricClientConnectionStub.getMetadata.resolves(
                 {
                     contracts: {

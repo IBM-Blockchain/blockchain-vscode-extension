@@ -69,6 +69,7 @@ describe('UpgradeCommand', () => {
         let openDialogOptions: any;
         let policyObject: any;
         let policyString: string;
+        let showRuntimeInstantiatedSmartContractsQuickPickStub: sinon.SinonStub;
         beforeEach(async function(): Promise<void> {
 
             // TODO JAKE: does this actually work though
@@ -122,7 +123,7 @@ describe('UpgradeCommand', () => {
                 }
             );
 
-            mySandBox.stub(UserInputUtil, 'showRuntimeInstantiatedSmartContractsQuickPick').withArgs('Select the instantiated smart contract to upgrade', 'channelOne').resolves(
+            showRuntimeInstantiatedSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showRuntimeInstantiatedSmartContractsQuickPick').withArgs('Select the instantiated smart contract to upgrade', 'channelOne').resolves(
                 { label: 'biscuit-network@0.0.1', data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' } }
             );
 
@@ -372,6 +373,15 @@ describe('UpgradeCommand', () => {
         });
 
         it('should handle choosing channel being cancelled', async () => {
+            showRuntimeInstantiatedSmartContractsQuickPickStub.resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
+
+            fabricRuntimeMock.upgradeChaincode.should.not.have.been.called;
+            dockerLogSpy.should.not.have.been.called;
+        });
+
+        it('should handle choosing cancel when choosing contract to upgrade', async () => {
             showChannelQuickPickStub.resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
