@@ -35,7 +35,6 @@ export class ExtensionCommands {
     static readonly DISCONNECT_ENVIRONMENT: string = 'environmentExplorer.disconnectEntry';
     static readonly INSTALL_SMART_CONTRACT: string = 'environmentExplorer.installSmartContractEntry';
     static readonly INSTANTIATE_SMART_CONTRACT: string = 'environmentExplorer.instantiateSmartContractEntry';
-    static readonly OPEN_NEW_TERMINAL: string = 'environmentExplorer.openNewTerminal';
     static readonly REFRESH_ENVIRONMENTS: string = 'environmentExplorer.refreshEntry';
     static readonly RESTART_FABRIC: string = 'environmentExplorer.restartFabricRuntime';
     static readonly START_FABRIC: string = 'environmentExplorer.startFabricRuntime';

@@ -80,7 +80,6 @@
             "environmentExplorer.stopFabricRuntime",
             "environmentExplorer.restartFabricRuntime",
             "environmentExplorer.teardownFabricRuntime",
-            "environmentExplorer.openNewTerminal",
             "environmentExplorer.upgradeSmartContractEntry",
             "environmentExplorer.createNewIdentityEntry",
             "walletExplorer.refreshEntry",
@@ -408,11 +407,6 @@
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "environmentExplorer.openNewTerminal",
-                "title": "Open New Terminal",
-                "category": "IBM Blockchain Platform"
-            },
-            {
                 "command": "aPackagesExplorer.deleteSmartContractPackageEntry",
                 "title": "Delete Package",
                 "category": "IBM Blockchain Platform"
@@ -538,9 +532,6 @@
                 }
             ],
             "commandPalette": [
-                {
-                    "command": "environmentExplorer.openNewTerminal"
-                },
                 {
                     "command": "sample.open",
                     "when": "false"
@@ -695,19 +686,7 @@
                 {
                     "command": "environmentExplorer.installSmartContractEntry",
                     "when": "view == environmentExplorer && viewItem == blockchain-runtime-installed-item"
-                },
-                {
-                    "command": "environmentExplorer.openNewTerminal",
-                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-environment-connected && blockchain-runtime-connected"
-                },
-                {
-                    "command": "environmentExplorer.openNewTerminal",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item && blockchain-environment-connected && blockchain-runtime-connected"
-                },
-                {
-                    "command": "environmentExplorer.openNewTerminal",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item && blockchain-environment-connected && blockchain-runtime-connected"
-                },
+                },                         
                 {
                     "command": "environmentExplorer.instantiateSmartContractEntry",
                     "when": "view == environmentExplorer && viewItem == blockchain-channel-item || viewItem == blockchain-runtime-instantiated-item"
