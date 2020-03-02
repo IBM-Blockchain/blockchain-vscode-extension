@@ -21,7 +21,7 @@ import * as fs from 'fs-extra';
 import * as chaiAsPromised from 'chai-as-promised';
 import { dependencies, version as currentExtensionVersion } from '../../package.json';
 import { SettingConfigurations } from '../../configurations';
-import { GlobalState } from '../../extension/util/GlobalState';
+import { GlobalState, ExtensionData } from '../../extension/util/GlobalState';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { TutorialGalleryView } from '../../extension/webview/TutorialGalleryView';
 import { HomeView } from '../../extension/webview/HomeView';
@@ -986,6 +986,15 @@ describe('ExtensionUtil Tests', () => {
 
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
         });
+
+        it('should add home page button to the status bar', async () => {
+            const newContext: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const homePageButton: any = newContext.subscriptions.find((subscription: any) => {
+                return subscription.text === 'Blockchain home';
+            });
+            homePageButton.tooltip.should.equal('View Homepage');
+            homePageButton.command.should.equal(ExtensionCommands.OPEN_HOME_PAGE);
+        });
     });
 
     describe('registerPreReqAndReleaseNotesCommand', () => {
@@ -1010,7 +1019,7 @@ describe('ExtensionUtil Tests', () => {
         let installNativeDependenciesStub: sinon.SinonStub;
         let getPackageJsonStub: sinon.SinonStub;
         let rewritePackageJsonStub: sinon.SinonStub;
-        let globalStateStub: sinon.SinonStub;
+        let globalStateGetStub: sinon.SinonStub;
         let setupLocalRuntimeStub: sinon.SinonStub;
         let restoreCommandsStub: sinon.SinonStub;
         let getExtensionContextStub: sinon.SinonStub;
@@ -1019,13 +1028,14 @@ describe('ExtensionUtil Tests', () => {
         let logSpy: sinon.SinonSpy;
         let getExtensionLocalFabricSettingStub: sinon.SinonStub;
         let fabricConnectionFactorySpy: sinon.SinonSpy;
+        let globalStateUpdateSpy: sinon.SinonSpy;
 
         beforeEach(() => {
             hasNativeDependenciesInstalledStub = mySandBox.stub(DependencyManager.instance(), 'hasNativeDependenciesInstalled');
             installNativeDependenciesStub = mySandBox.stub(DependencyManager.instance(), 'installNativeDependencies');
             getPackageJsonStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON');
             rewritePackageJsonStub = mySandBox.stub(DependencyManager.instance(), 'rewritePackageJson');
-            globalStateStub = mySandBox.stub(GlobalState, 'get');
+            globalStateGetStub = mySandBox.stub(GlobalState, 'get');
             setupLocalRuntimeStub = mySandBox.stub(ExtensionUtil, 'setupLocalRuntime');
             restoreCommandsStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'restoreCommands');
             getExtensionContextStub = mySandBox.stub(GlobalState, 'getExtensionContext');
@@ -1034,6 +1044,7 @@ describe('ExtensionUtil Tests', () => {
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             getExtensionLocalFabricSettingStub = mySandBox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting');
             fabricConnectionFactorySpy = mySandBox.spy(FabricConnectionFactory, 'createFabricWallet');
+            globalStateUpdateSpy = mySandBox.spy(GlobalState, 'update');
         });
 
         it('should install native dependencies if not installed', async () => {
@@ -1041,7 +1052,7 @@ describe('ExtensionUtil Tests', () => {
             installNativeDependenciesStub.resolves();
             getPackageJsonStub.returns({ activationEvents: ['*'] });
             rewritePackageJsonStub.resolves();
-            globalStateStub.returns({
+            globalStateGetStub.returns({
                 version: '1.0.0'
             });
             setupLocalRuntimeStub.resolves();
@@ -1051,11 +1062,22 @@ describe('ExtensionUtil Tests', () => {
             executeStoredCommandsStub.resolves();
             getExtensionLocalFabricSettingStub.returns(true);
 
+            const globalState: ExtensionData = GlobalState.get();
+            globalState.createOneOrgLocalFabric = true;
+            await GlobalState.update(globalState);
+
+            globalStateUpdateSpy.resetHistory();
+            globalStateGetStub.resetHistory();
+
             await ExtensionUtil.setupCommands();
+
+            globalStateUpdateSpy.should.have.been.calledOnce;
+            const updateCall: any = globalStateUpdateSpy.getCall(0).args[0];
+            updateCall.createOneOrgLocalFabric.should.equal(false);
 
             hasNativeDependenciesInstalledStub.should.have.been.calledOnce;
             installNativeDependenciesStub.should.have.been.calledOnce;
-            globalStateStub.should.have.been.calledOnce;
+            globalStateGetStub.should.have.been.calledOnce;
             getExtensionLocalFabricSettingStub.should.have.been.calledOnce;
             setupLocalRuntimeStub.should.have.been.calledOnceWithExactly('1.0.0');
 
@@ -1076,7 +1098,7 @@ describe('ExtensionUtil Tests', () => {
             installNativeDependenciesStub.resolves();
             getPackageJsonStub.returns({ activationEvents: ['activationEvent1', 'activationEvent2'] });
             rewritePackageJsonStub.resolves();
-            globalStateStub.returns({
+            globalStateGetStub.returns({
                 version: '1.0.0'
             });
             setupLocalRuntimeStub.resolves();
@@ -1086,11 +1108,21 @@ describe('ExtensionUtil Tests', () => {
             executeStoredCommandsStub.resolves();
             getExtensionLocalFabricSettingStub.returns(true);
 
+            const globalState: ExtensionData = GlobalState.get();
+            globalState.createOneOrgLocalFabric = true;
+            await GlobalState.update(globalState);
+
+            globalStateUpdateSpy.resetHistory();
+            globalStateGetStub.resetHistory();
+
             await ExtensionUtil.setupCommands();
 
+            globalStateUpdateSpy.should.have.been.calledOnce;
+            const updateCall: any = globalStateUpdateSpy.getCall(0).args[0];
+            updateCall.createOneOrgLocalFabric.should.equal(false);
             hasNativeDependenciesInstalledStub.should.have.been.calledOnce;
             installNativeDependenciesStub.should.not.have.been.called;
-            globalStateStub.should.have.been.calledOnce;
+            globalStateGetStub.should.have.been.calledOnce;
             getExtensionLocalFabricSettingStub.should.have.been.calledOnce;
             setupLocalRuntimeStub.should.have.been.calledOnceWithExactly('1.0.0');
 
@@ -1111,7 +1143,7 @@ describe('ExtensionUtil Tests', () => {
             installNativeDependenciesStub.resolves();
             getPackageJsonStub.returns({ activationEvents: ['*'] });
             rewritePackageJsonStub.resolves();
-            globalStateStub.returns({
+            globalStateGetStub.returns({
                 version: '1.0.0'
             });
             setupLocalRuntimeStub.resolves();
@@ -1121,13 +1153,67 @@ describe('ExtensionUtil Tests', () => {
             executeStoredCommandsStub.resolves();
             getExtensionLocalFabricSettingStub.returns(true);
 
+            const globalState: ExtensionData = GlobalState.get();
+            globalState.createOneOrgLocalFabric = true;
+            await GlobalState.update(globalState);
+
+            globalStateUpdateSpy.resetHistory();
+            globalStateGetStub.resetHistory();
+
             await ExtensionUtil.setupCommands();
 
+            globalStateUpdateSpy.should.have.been.calledOnce;
+            const updateCall: any = globalStateUpdateSpy.getCall(0).args[0];
+            updateCall.createOneOrgLocalFabric.should.equal(false);
             hasNativeDependenciesInstalledStub.should.have.been.calledOnce;
             installNativeDependenciesStub.should.not.have.been.called;
-            globalStateStub.should.have.been.calledOnce;
+            globalStateGetStub.should.have.been.calledOnce;
             getExtensionLocalFabricSettingStub.should.have.been.calledOnce;
             setupLocalRuntimeStub.should.have.been.calledOnceWithExactly('1.0.0');
+
+            logSpy.should.have.been.calledThrice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Restoring command registry');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'Registering commands');
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'Execute stored commands in the registry');
+
+            restoreCommandsStub.should.have.been.calledOnce;
+            getExtensionContextStub.should.have.been.calledOnce;
+            registerCommandsStub.should.have.been.calledOnceWithExactly({ hello: 'world' });
+            executeStoredCommandsStub.should.have.been.calledOnce;
+            fabricConnectionFactorySpy.should.have.been.called;
+        });
+
+        it('should not created one org local fabric if it has already been created', async () => {
+            hasNativeDependenciesInstalledStub.returns(false);
+            installNativeDependenciesStub.resolves();
+            getPackageJsonStub.returns({ activationEvents: ['*'] });
+            rewritePackageJsonStub.resolves();
+            globalStateGetStub.returns({
+                version: '1.0.0'
+            });
+            setupLocalRuntimeStub.resolves();
+            restoreCommandsStub.resolves();
+            getExtensionContextStub.returns({ hello: 'world' });
+            registerCommandsStub.resolves();
+            executeStoredCommandsStub.resolves();
+            getExtensionLocalFabricSettingStub.returns(true);
+
+            const globalState: ExtensionData = GlobalState.get();
+            globalState.createOneOrgLocalFabric = false;
+            await GlobalState.update(globalState);
+
+            globalStateUpdateSpy.resetHistory();
+            globalStateGetStub.resetHistory();
+
+            await ExtensionUtil.setupCommands();
+
+            globalStateUpdateSpy.should.not.have.been.called;
+
+            hasNativeDependenciesInstalledStub.should.have.been.calledOnce;
+            installNativeDependenciesStub.should.have.been.calledOnce;
+            globalStateGetStub.should.have.been.calledOnce;
+            getExtensionLocalFabricSettingStub.should.have.been.calledOnce;
+            setupLocalRuntimeStub.should.not.have.been.called;
 
             logSpy.should.have.been.calledThrice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Restoring command registry');
@@ -1150,7 +1236,7 @@ describe('ExtensionUtil Tests', () => {
             installNativeDependenciesStub.resolves();
             getPackageJsonStub.returns({ activationEvents: ['activationEvent1', 'activationEvent2'] });
             rewritePackageJsonStub.resolves();
-            globalStateStub.returns({
+            globalStateGetStub.returns({
                 version: '1.0.0'
             });
             setupLocalRuntimeStub.resolves();
@@ -1162,11 +1248,20 @@ describe('ExtensionUtil Tests', () => {
 
             const deleteEnvironmentSpy: sinon.SinonSpy = mySandBox.spy(FabricEnvironmentRegistry.instance(), 'delete');
 
+            const globalState: ExtensionData = GlobalState.get();
+            globalState.createOneOrgLocalFabric = true;
+            await GlobalState.update(globalState);
+
+            globalStateUpdateSpy.resetHistory();
+            globalStateGetStub.resetHistory();
+
             await ExtensionUtil.setupCommands();
+
+            globalStateUpdateSpy.should.not.have.been.called;
 
             hasNativeDependenciesInstalledStub.should.have.been.calledOnce;
             installNativeDependenciesStub.should.not.have.been.called;
-            globalStateStub.should.have.been.calledOnce;
+            globalStateGetStub.should.have.been.calledOnce;
             getExtensionLocalFabricSettingStub.should.have.been.calledOnce;
             setupLocalRuntimeStub.should.not.have.been.calledOnceWithExactly('1.0.0');
 
@@ -1538,6 +1633,30 @@ describe('ExtensionUtil Tests', () => {
             });
         });
 
+        it(`shouldn't update the generator version to latest when null`, async () => {
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
+
+            globalStateGetStub.returns({
+                generatorVersion: null
+            });
+
+            executeCommandStub.resolves();
+
+            await ExtensionUtil.completeActivation(false);
+
+            logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+            getAllRuntimesStub.should.not.have.been.called;
+            mockRuntime.isGenerated.should.not.have.been.called;
+            showConfirmationWarningMessageStub.should.not.have.been.called;
+            mockRuntime.isRunning.should.not.have.been.called;
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
+            globalStateUpdateStub.should.have.been.calledWith({
+                generatorVersion: dependencies['generator-fabric']
+            });
+        });
+
         it(`should set context of ${FabricRuntimeUtil.LOCAL_FABRIC} functionality to true`, async () => {
 
             mySandBox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting').returns(true);
@@ -1751,10 +1870,20 @@ describe('ExtensionUtil Tests', () => {
                 mockRuntime.isGenerated.resolves(false);
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
+                const state: ExtensionData = GlobalState.get();
+                state.createOneOrgLocalFabric = true;
+                state.deletedOneOrgLocalFabric = false;
+                await GlobalState.update(state);
+
+                const globalStateUpdateSpy: sinon.SinonSpy = mySandBox.spy(GlobalState, 'update');
                 await ExtensionUtil.registerCommands(ctx);
                 purgeOldRuntimesStub.should.have.been.calledOnce;
 
                 await Promise.all(promises);
+
+                globalStateUpdateSpy.should.have.been.calledOnce;
+                const updateCall: any = globalStateUpdateSpy.getCall(0).args[0];
+                updateCall.createOneOrgLocalFabric.should.equal(false);
 
                 initializeStub.should.have.been.calledOnce;
                 logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Initializing local runtime manager');
@@ -1773,10 +1902,19 @@ describe('ExtensionUtil Tests', () => {
                 disposeExtensionStub.resetHistory();
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
+                const state: ExtensionData = GlobalState.get();
+                state.deletedOneOrgLocalFabric = true;
+                await GlobalState.update(state);
+
+                const globalStateUpdateSpy: sinon.SinonSpy = mySandBox.spy(GlobalState, 'update');
                 await ExtensionUtil.registerCommands(ctx);
                 purgeOldRuntimesStub.should.have.been.calledOnce;
 
                 await Promise.all(promises);
+
+                globalStateUpdateSpy.should.not.have.been.called;
+
+                initializeStub.should.not.have.been.called;
 
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 hasPreReqsInstalledStub.should.have.been.calledOnce;
@@ -1799,10 +1937,18 @@ describe('ExtensionUtil Tests', () => {
                 const createTempCommands: sinon.SinonStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'createTempCommands').returns(undefined);
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
+                const state: ExtensionData = GlobalState.get();
+                state.deletedOneOrgLocalFabric = true;
+                await GlobalState.update(state);
+
+                const globalStateUpdateSpy: sinon.SinonSpy = mySandBox.spy(GlobalState, 'update');
                 await ExtensionUtil.registerCommands(ctx);
                 purgeOldRuntimesStub.should.have.been.calledOnce;
 
                 await Promise.all(promises);
+
+                globalStateUpdateSpy.should.not.have.been.called;
+                initializeStub.should.not.have.been.called;
 
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 hasPreReqsInstalledStub.should.have.been.calledOnce;
@@ -1825,11 +1971,20 @@ describe('ExtensionUtil Tests', () => {
                 hasPreReqsInstalledStub.resolves(true);
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
+                const state: ExtensionData = GlobalState.get();
+                state.createOneOrgLocalFabric = true;
+                state.deletedOneOrgLocalFabric = false;
+                await GlobalState.update(state);
+
+                const globalStateUpdateSpy: sinon.SinonSpy = mySandBox.spy(GlobalState, 'update');
                 await ExtensionUtil.registerCommands(ctx);
                 purgeOldRuntimesStub.should.have.been.calledOnce;
 
                 await Promise.all(promises);
 
+                globalStateUpdateSpy.should.have.been.calledOnce;
+                const updateCall: any = globalStateUpdateSpy.getCall(0).args[0];
+                updateCall.createOneOrgLocalFabric.should.equal(false);
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 hasPreReqsInstalledStub.should.have.been.calledOnce;
 
@@ -1851,10 +2006,18 @@ describe('ExtensionUtil Tests', () => {
                 hasPreReqsInstalledStub.throws(error);
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
+                const state: ExtensionData = GlobalState.get();
+                state.deletedOneOrgLocalFabric = true;
+                await GlobalState.update(state);
+
+                const globalStateUpdateSpy: sinon.SinonSpy = mySandBox.spy(GlobalState, 'update');
                 await ExtensionUtil.registerCommands(ctx);
                 purgeOldRuntimesStub.should.have.been.calledOnce;
 
                 await Promise.all(promises);
+
+                globalStateUpdateSpy.should.not.have.been.called;
+                initializeStub.should.not.have.been.called;
 
                 logSpy.should.have.been.calledWith(LogType.ERROR, `Error whilst toggling local Fabric functionality to true: ${error.message}`, `Error whilst toggling local Fabric functionality to true: ${error.toString()}`);
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
@@ -1874,10 +2037,18 @@ describe('ExtensionUtil Tests', () => {
                 hasPreReqsInstalledStub.resolves(true);
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
+                const state: ExtensionData = GlobalState.get();
+                state.createOneOrgLocalFabric = true;
+                state.deletedOneOrgLocalFabric = false;
+                await GlobalState.update(state);
+
+                const globalStateUpdateSpy: sinon.SinonSpy = mySandBox.spy(GlobalState, 'update');
                 await ExtensionUtil.registerCommands(ctx);
                 purgeOldRuntimesStub.should.have.been.calledOnce;
 
                 await Promise.all(promises);
+
+                globalStateUpdateSpy.should.not.have.been.called;
 
                 hasPreReqsInstalledStub.should.have.been.calledOnce;
                 initializeStub.should.have.been.calledOnce;

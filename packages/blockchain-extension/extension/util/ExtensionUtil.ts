@@ -356,6 +356,15 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.window.registerTreeDataProvider('aPackagesExplorer', blockchainPackageExplorerProvider));
         context.subscriptions.push(vscode.window.registerTreeDataProvider('walletExplorer', blockchainWalletExplorerProvider));
 
+        // add homepage button in status bar
+        const homePageButton: vscode.StatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+        homePageButton.command = ExtensionCommands.OPEN_HOME_PAGE;
+        homePageButton.text = 'Blockchain home';
+        homePageButton.tooltip = 'View Homepage';
+
+        context.subscriptions.push(homePageButton);
+        homePageButton.show();
+
         FabricWalletRegistry.instance().on(FileRegistry.EVENT_NAME, (async (): Promise<void> => {
             try {
                 await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
@@ -469,11 +478,16 @@ export class ExtensionUtil {
                     return _env.getName() === FabricRuntimeUtil.LOCAL_FABRIC;
                 });
 
-                if (!localRuntime && localFabricEnabled) {
+                const extensionData: ExtensionData = GlobalState.get();
+
+                if (!localRuntime && localFabricEnabled && !extensionData.deletedOneOrgLocalFabric) {
                     // Just been set to true and there is no local runtime.
                     outputAdapter.log(LogType.INFO, undefined, 'Initializing local runtime manager');
                     try {
                         await runtimeManager.initialize(FabricRuntimeUtil.LOCAL_FABRIC, 1);
+
+                        extensionData.createOneOrgLocalFabric = false;
+                        await GlobalState.update(extensionData);
 
                     } catch (error) {
                         outputAdapter.log(LogType.ERROR, `Error initializing ${FabricRuntimeUtil.LOCAL_FABRIC}: ${error.message}`, `Error initializing ${FabricRuntimeUtil.LOCAL_FABRIC}: ${error.toString()}`);
@@ -558,7 +572,11 @@ export class ExtensionUtil {
         await ExtensionUtil.registerCommands(context);
 
         if (localFabricEnabled) {
-            await ExtensionUtil.setupLocalRuntime(extensionData.version);
+            if (extensionData.createOneOrgLocalFabric) {
+                await ExtensionUtil.setupLocalRuntime(extensionData.version);
+                extensionData.createOneOrgLocalFabric = false;
+                await GlobalState.update(extensionData);
+            }
         } else {
             await FabricEnvironmentRegistry.instance().delete(FabricRuntimeUtil.LOCAL_FABRIC, true);
         }
@@ -666,6 +684,11 @@ export class ExtensionUtil {
             await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', true);
         } else {
             await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', false);
+        }
+
+        if (extensionData.generatorVersion === null) {
+            extensionData.generatorVersion = generatorVersion;
+            await GlobalState.update(extensionData);
         }
     }
 
