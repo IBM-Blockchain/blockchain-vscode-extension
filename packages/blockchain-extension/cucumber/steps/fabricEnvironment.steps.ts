@@ -19,9 +19,6 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as vscode from 'vscode';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { NodeTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/NodeTreeItem';
-import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
-import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricRuntimeUtil, FabricNode, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { IBlockchainQuickPickItem } from '../../extension/commands/UserInputUtil';
@@ -96,7 +93,7 @@ module.exports = function(): any {
     });
 
     this.Given('the opstools environment is setup', this.timeout, async () => {
-        const nodeMap: Map<string, string> = new Map< string, string>();
+        const nodeMap: Map<string, string> = new Map<string, string>();
         nodeMap.set('Ordering Service CA', 'OrderingServiceCAAdmin');
         nodeMap.set('Ordering Service_1', 'OrderingServiceMSPAdmin');
         nodeMap.set('Org1 CA', 'Org1CAAdmin');
@@ -166,28 +163,8 @@ module.exports = function(): any {
         isRunning.should.equal(false);
     });
 
-    this.When("I open the terminal for node '{string}'", this.timeout, async (nodeType: string) => {
-        const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
-        const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
-        const nodeItems: NodeTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[3]) as Array<NodeTreeItem>;
-
-        const treeItem: NodeTreeItem = nodeItems.find((nodeItem: NodeTreeItem) => nodeItem.node.type === nodeType);
-        treeItem.should.not.be.null;
-        this.treeItem = treeItem;
-        await vscode.commands.executeCommand(ExtensionCommands.OPEN_NEW_TERMINAL, treeItem);
-    });
-
     this.When("I edit filters and import all nodes to environment '{string}'", this.timeout, async (environmentName: string) => {
         await this.fabricEnvironmentHelper.editNodeFilters(opsToolsAllNodesQuickPick, environmentName);
 
-    });
-
-    /**
-     * Then
-     */
-
-    this.Then('there should be a terminal open', this.timeout, () => {
-        const terminal: vscode.Terminal = vscode.window.terminals.find((item: vscode.Terminal) => item.name === `Fabric runtime - ${this.treeItem.label}`);
-        terminal.should.not.be.null;
     });
 };

@@ -35,7 +35,6 @@ import { exportWallet } from '../commands/exportWalletCommand';
 import { importSmartContractPackageCommand } from '../commands/importSmartContractPackageCommand';
 import { installSmartContract } from '../commands/installCommand';
 import { instantiateSmartContract } from '../commands/instantiateCommand';
-import { openNewTerminal } from '../commands/openNewTerminal';
 import { packageSmartContract } from '../commands/packageSmartContractCommand';
 import { removeWallet } from '../commands/removeWalletCommand';
 import { restartFabricRuntime } from '../commands/restartFabricRuntime';
@@ -276,7 +275,6 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.STOP_FABRIC, (runtimeTreeItem?: RuntimeTreeItem) => stopFabricRuntime(runtimeTreeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.RESTART_FABRIC, (runtimeTreeItem?: RuntimeTreeItem) => restartFabricRuntime(runtimeTreeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEARDOWN_FABRIC, (runtimeTreeItem?: RuntimeTreeItem, force: boolean = false, environmentName?: string) => teardownFabricRuntime(runtimeTreeItem, force, environmentName)));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_NEW_TERMINAL, (nodeItem: NodeTreeItem) => openNewTerminal(nodeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, (gatewayItem: GatewayTreeItem, isConnected?: boolean) => exportConnectionProfile(gatewayItem, isConnected)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE_CONNECTED, (gatewayItem: GatewayTreeItem, isConnected: boolean = true) => exportConnectionProfile(gatewayItem, isConnected)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_SMART_CONTRACT, (project: PackageTreeItem) => deleteSmartContractPackage(project)));

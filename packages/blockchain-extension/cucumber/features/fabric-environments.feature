@@ -27,17 +27,6 @@ Feature: Fabric Environments
         | Organizations               | OrdererMSP                             | OrdererMSP                                                                   |
         | Organizations               | Org1MSP                                | Org1MSP                                                                      |
 
-     Scenario Outline: It should open the terminal
-         Given the 1 Org Local Fabric environment is running
-         And the '1 Org Local Fabric' environment is connected
-         When I open the terminal for node '<nodeType>'
-         Then there should be a terminal open
-         Examples:
-         | nodeType       |
-         | fabric-peer    |
-         | fabric-ca      |
-         | fabric-orderer |
-
      Scenario Outline: It should persist data after being stopped
          Given the 1 Org Local Fabric environment is running
          And the '1 Org Local Fabric' environment is connected
