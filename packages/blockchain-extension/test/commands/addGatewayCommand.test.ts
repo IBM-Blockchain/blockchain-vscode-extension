@@ -238,8 +238,7 @@ describe('AddGatewayCommand', () => {
             gateways[0].should.deep.equal({
                 name: 'myGateway',
                 connectionProfilePath,
-                associatedWallet: 'Org1',
-                fromEnvironment: 'myEnv'
+                associatedWallet: 'Org1'
             });
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             generateConnectionProfileStub.should.have.been.calledOnceWith('myGateway', peerNode, caNode);
@@ -343,8 +342,7 @@ describe('AddGatewayCommand', () => {
             gateways[0].should.deep.equal({
                 name: 'myGateway',
                 connectionProfilePath,
-                associatedWallet: 'Org1',
-                fromEnvironment: 'myEnv'
+                associatedWallet: 'Org1'
             });
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
