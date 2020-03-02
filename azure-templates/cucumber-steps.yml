@@ -10,6 +10,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+parameters:
+  - name: type
+
 steps:
   - bash: |
       set -ev
@@ -70,3 +73,14 @@ steps:
       JSON_DIR: $(Agent.TempDirectory)
     displayName: Run cucumber tests
     condition: succeeded()
+
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Build.SourcesDirectory)/packages/blockchain-extension/cucumber/report'
+      contents: "**"
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: 'cucumber-${{ parameters.type }}-report'

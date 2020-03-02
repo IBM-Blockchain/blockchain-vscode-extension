@@ -21,12 +21,11 @@ import * as fs from 'fs-extra';
 import * as chai from 'chai';
 import { TestUtil } from '../test/TestUtil';
 
-// tslint:disable-next-line:typedef
-const reporter = require('cucumber-html-reporter');
 chai.should();
 chai.use(require('chai-as-promised'));
 
 let jsonResult: any;
+let cucumberType: string = '';
 
 /**
  * Programmatically execute Cucumber against the specified feature source.
@@ -49,14 +48,19 @@ async function runCucumberTest(): Promise<any> {
 
     if (process.env.OTHER_FABRIC) {
         tags = '@otherFabric';
+        cucumberType = 'other';
     } else if (process.env.ANSIBLE_FABRIC) {
         tags = '@ansibleFabric';
+        cucumberType = 'ansible';
     } else if (process.env.TWO_ORG_FABRIC) {
         tags = '@twoOrgFabric';
+        cucumberType = 'twoOrg';
     } else if (process.env.OPSTOOLS_FABRIC) {
         tags = '@opsToolsFabric';
+        cucumberType = 'opsTools';
     } else {
         tags = 'not @otherFabric and not @ansibleFabric and not @opsToolsFabric and not @twoOrgFabric';
+        cucumberType = 'oneOrg';
     }
 
     for (const file of featureFiles) {
@@ -152,17 +156,8 @@ export async function run(testsRoot: string, clb: (error: any, failures?: number
 
         await fs.remove(path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'contracts'));
 
-        fs.ensureFileSync(path.join(__dirname, '..', '..', 'cucumber', 'cucumber-report.json'));
-        fs.writeFileSync(path.join(__dirname, '..', '..', 'cucumber', 'cucumber-report.json'), jsonResult);
-
-        await reporter.generate({
-            theme: 'bootstrap',
-            name: 'IBM Blockchain Platform Extension',
-            jsonFile: path.join(__dirname, '..', '..', 'cucumber', 'cucumber-report.json'),
-            output: path.join(__dirname, '..', '..', 'cucumber', 'cucumber-report.html'),
-            reportSuiteAsScenarios: true,
-            launchReport: false
-        });
+        fs.ensureFileSync(path.join(__dirname, '..', '..', 'cucumber', 'report', `cucumber-report-${cucumberType}.json`));
+        fs.writeFileSync(path.join(__dirname, '..', '..', 'cucumber', 'report', `cucumber-report-${cucumberType}.json`), jsonResult);
 
         if (result) {
             clb(null, 0);

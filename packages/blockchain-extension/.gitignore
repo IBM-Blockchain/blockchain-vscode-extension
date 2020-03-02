@@ -22,10 +22,11 @@ coverage
 /test/data/smartContractDir/
 /test/tmp/
 /cucumber/cucumber-report.html
-/cucumber/cucumber-report.json
+/cucumber/cucumber-report-*.html
 /cucumber/hfc-key-store/
 /cucumber/tmp/
 /unit-tests.xml
 /cucumber/ansible/wallets/
 /cucumber/ansible/nodes/
 /cucumber/ansible/gateways/
+/cucumber/report/
