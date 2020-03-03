@@ -28,6 +28,13 @@
       "difficulty": "moderate",
       "description": "Learn how to make iterative changes to your smart contract using the VS Code debugger",
       "file": "developer-tutorials/debug.md"
+    },
+    {
+      "title": "Getting Started with Private Data",
+      "length": "30-40 mins",
+      "difficulty": "moderate",
+      "shortDescription": "Generate a private data smart contract, deploy it to a 2 Org Local Fabric network, and submit and evaluate transactions using private data",
+      "file": "developer-tutorials/privateData.md"
     }
   ],
   "series": [
