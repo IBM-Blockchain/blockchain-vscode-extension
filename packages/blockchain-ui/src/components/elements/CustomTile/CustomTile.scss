@@ -1,0 +1,21 @@
+@import '@carbon/layout/scss/_spacing';
+
+.custom-tile {
+    width: 90%;
+
+    p {
+        margin-bottom: $spacing-05;
+        width: 80%
+    }
+}
+
+.new-tab-img {
+    float: right;
+    width: 24px;
+    height: 24px;
+
+    &:hover {
+        cursor: pointer;
+    }
+}
+

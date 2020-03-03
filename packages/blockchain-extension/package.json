@@ -1342,7 +1342,7 @@
         "cucumberTests": "./cucumber/hlfv1/start.sh",
         "cucumberAnsibleTests": "./cucumber/ansibleScripts/start.sh",
         "localize": "vscl build/src/**/*.js",
-        "build": "tsc -p tsconfig.extension.json"
+        "build": "tsc -p tsconfig.extension.json && cp -r ../blockchain-ui/build/static ./build"
     },
     "devDependencies": {
         "@types/chai": "4.1.4",

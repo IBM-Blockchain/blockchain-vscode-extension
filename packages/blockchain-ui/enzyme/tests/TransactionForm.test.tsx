@@ -2,7 +2,7 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
 import { mount } from 'enzyme';
-import TransactionForm from '../../src/components/TransactionForm/TransactionForm';
+import TransactionForm from '../../src/components/transactionView/TransactionForm/TransactionForm';
 import chai from 'chai';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';

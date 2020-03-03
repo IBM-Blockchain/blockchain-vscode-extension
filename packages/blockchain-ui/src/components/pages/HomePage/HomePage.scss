@@ -1,0 +1,66 @@
+@import '@carbon/colors/scss/colors';
+@import '@carbon/layout/scss/_spacing';
+@import '../../../mixins/layout-mixins.scss';
+
+.home-page-container {
+    @include default-page-styling;
+    margin-left: $spacing-05;
+    margin-top: $spacing-05;
+
+    .home-title-container {
+        .extension-version {
+            margin-left: $spacing-05;
+            font-size: 1rem;
+            color: $gray-50;
+        }
+
+        .home-title-description {
+            margin-top: $spacing-05;
+            margin-bottom: $spacing-06;
+        }
+    }
+
+    .resources-title-container {
+        margin-top: $spacing-07;
+        display: table;
+    }
+
+    .resources-links-container {
+        margin-top: $spacing-06;
+        margin-bottom: $spacing-07;
+
+        .link-list-container {
+            &:first-of-type {
+                padding: 0;
+            }
+    
+            .bx--link {
+                display: table;
+                padding-bottom: $spacing-03;
+                
+                &:last-of-type {
+                    padding-bottom: 0;
+                }
+
+                color: $blue-60;
+
+                &:hover {
+                    color: $blue-60;
+                }
+            
+                &:focus {
+                    outline: none;
+                }
+            }
+        }
+    }
+
+    .dev-image {
+        max-width: 90%;
+        margin-top: $spacing-09;
+    }
+
+    .dev-image-hidden {
+        display: none;
+    }
+}

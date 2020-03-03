@@ -2,24 +2,24 @@ import React, { Component } from 'react';
 import './TransactionPage.scss';
 import TransactionForm from '../TransactionForm/TransactionForm';
 import TransactionOutput from '../TransactionOutput/TransactionOutput';
-import ISmartContract from '../../interfaces/ISmartContract';
+import ISmartContract from '../../../interfaces/ISmartContract';
 
-interface PageProps {
+interface IProps {
     gatewayName: string;
     smartContract: ISmartContract;
     transactionOutput: string;
     postMessageHandler: (command: string, data?: any) => void;
 }
 
-interface PageState {
+interface IState {
     gatewayName: string;
     smartContract: ISmartContract;
     transactionOutput: string;
     postMessageHandler: (command: string, data?: any) => void;
 }
 
-class TransactionPage extends Component<PageProps, PageState> {
-    constructor(props: Readonly<PageProps>) {
+class TransactionPage extends Component<IProps, IState> {
+    constructor(props: Readonly<IProps>) {
         super(props);
         this.state = {
             gatewayName: this.props.gatewayName,
@@ -29,7 +29,7 @@ class TransactionPage extends Component<PageProps, PageState> {
         };
     }
 
-    componentDidUpdate(prevProps: PageProps): void {
+    componentDidUpdate(prevProps: IProps): void {
         if (prevProps.transactionOutput !== this.props.transactionOutput) {
             this.setState({
                 transactionOutput: this.props.transactionOutput

@@ -1,63 +1,28 @@
-import * as React from 'react';
+import React, { Component } from 'react';
 import './App.scss';
 import { HashRouter as Router, Route, Redirect } from 'react-router-dom';
-import TransactionPage from './components/TransactionPage/TransactionPage';
-import ISmartContract from './interfaces/ISmartContract';
-import Utils from './Utils';
+import HomePage from './components/pages/HomePage/HomePage';
 
 interface AppState {
     redirectPath: string;
-    gatewayName: string;
-    smartContract: ISmartContract;
-    transactionOutput: string;
+    extensionVersion: string;
 }
 
-class App extends React.Component<{}, AppState> {
+class App extends Component<{}, AppState> {
     constructor(props: {}) {
         super(props);
         this.state = {
             redirectPath: '',
-            gatewayName: '',
-            smartContract: {
-                name: '',
-                version: '',
-                channel: '',
-                label: '',
-                transactions: [],
-                namespace: ''
-            },
-            transactionOutput: ''
+            extensionVersion: '',
         };
-        this.postMessageHandler = this.postMessageHandler.bind(this);
     }
 
     componentDidMount(): void {
         window.addEventListener('message', (event: MessageEvent) => {
-            if (event.data.output) {
-                this.setState({
-                    transactionOutput: event.data.output
-                });
-            } else {
-                this.setState({
-                    redirectPath: event.data.path,
-                    gatewayName: event.data.state ? event.data.state.gatewayName : this.state.gatewayName,
-                    smartContract: event.data.state ? event.data.state.smartContract : this.state.smartContract
-                });
-            }
-        });
-    }
-
-    postMessageHandler(command: string, data?: any): void {
-        if (data === undefined) {
-            data = {
-                gatewayName: this.state.gatewayName,
-                smartContract: this.state.smartContract,
-            };
-        }
-
-        Utils.postToVSCode({
-            command: command,
-            data: data
+            this.setState({
+                redirectPath: event.data.path,
+                extensionVersion: event.data.version
+            });
         });
     }
 
@@ -69,9 +34,8 @@ class App extends React.Component<{}, AppState> {
                 <Router>
                     <div>
                         <Route render={(): JSX.Element => <Redirect push to={this.state.redirectPath}/>}></Route>
-                        <Route exact path='/transaction' render={(): JSX.Element =>
-                            <TransactionPage gatewayName={this.state.gatewayName} smartContract={this.state.smartContract} transactionOutput={this.state.transactionOutput}
-                                postMessageHandler={this.postMessageHandler}/>}>
+                        <Route exact path='/home' render={(): JSX.Element =>
+                            <HomePage extensionVersion={this.state.extensionVersion}/>}>
                         </Route>
                     </div>
                 </Router>

@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TelemetryLink component should render the expected snapshot 1`] = `
+<a
+  className="bx--link"
+  href="www.someurl.com"
+  onClick={[Function]}
+>
+  my link
+</a>
+`;

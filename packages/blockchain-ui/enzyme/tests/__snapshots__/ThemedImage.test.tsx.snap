@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ThemedImage component should render the expected snapshot 1`] = `
+<div
+  id="test-themed-image-themed-image"
+>
+  <img
+    alt=""
+    className=""
+    src="test-file-stub"
+  />
+  <img
+    alt=""
+    className=""
+    src="test-file-stub"
+  />
+</div>
+`;

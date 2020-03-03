@@ -1,0 +1,18 @@
+@import '@carbon/colors/scss/colors';
+@import '@carbon/layout/scss/_spacing';
+
+.heading-combo-container {
+    h3 {
+        margin-bottom: $spacing-05;
+        line-height: inherit;
+        font-size: 1.25rem;
+        font-weight: 900;
+        color: inherit;
+    }
+
+    p {
+        margin-bottom: $spacing-06;
+        color: $gray-70;
+        color: inherit;
+    }
+}

@@ -2,23 +2,16 @@ import React, { Component } from 'react';
 import './InlineSelect.scss';
 import { Select } from 'carbon-components-react';
 
-interface InlineSelectProps {
+interface IProps {
     id: string;
     labelText: string;
     contents: Array<JSX.Element>;
     onChangeCallback: (event: React.FormEvent<HTMLSelectElement>) => void;
 }
 
-interface InlineSelectState {
-    id: string;
-    labelText: string;
-    contents: Array<JSX.Element>;
-    onChangeCallback: (event: React.FormEvent<HTMLSelectElement>) => void;
-}
+class InlineSelect extends Component<IProps> {
 
-class InlineSelect extends Component<InlineSelectProps, InlineSelectState> {
-
-    constructor(props: Readonly<InlineSelectProps>) {
+    constructor(props: Readonly<IProps>) {
         super(props);
         this.state = {
             id: this.props.id,
@@ -30,9 +23,9 @@ class InlineSelect extends Component<InlineSelectProps, InlineSelectState> {
 
     render(): JSX.Element {
         return (
-            <div id={this.state.id + '-wrapper'}>
-                <Select id={this.state.id} labelText={this.state.labelText} className='inline-select' onChange={this.state.onChangeCallback}>
-                    {this.state.contents}
+            <div id={this.props.id + '-wrapper'}>
+                <Select id={this.props.id} labelText={this.props.labelText} className='inline-select' onChange={this.props.onChangeCallback}>
+                    {this.props.contents}
                 </Select>
             </div>
         );
