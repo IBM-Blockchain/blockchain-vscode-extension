@@ -12,6 +12,7 @@
 parameters:
   - name: name
   - name: version
+    default: 'stable'
 
 jobs:
   - job: ${{ parameters.name }}
