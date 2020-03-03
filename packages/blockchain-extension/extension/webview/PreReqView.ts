@@ -23,7 +23,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { SettingConfigurations } from '../../configurations';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { LogType } from 'ibm-blockchain-platform-common';
 
 export class PreReqView extends View {
 
@@ -98,7 +98,7 @@ export class PreReqView extends View {
                     await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_LOCAL_FABRIC, localFabricFunctionality, vscode.ConfigurationTarget.Global);
                     if (message.toggle) {
                         outputAdapter = VSCodeBlockchainOutputAdapter.instance();
-                        outputAdapter.log(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to '${localFabricFunctionality.toString()}'.`);
+                        outputAdapter.log(LogType.INFO, `Local Fabric functionality set to '${localFabricFunctionality.toString()}'.`);
                     }
                     await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', localFabricFunctionality);
 

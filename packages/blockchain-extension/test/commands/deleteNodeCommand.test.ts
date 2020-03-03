@@ -24,7 +24,7 @@ import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { PeerTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/PeerTreeItem';
-import { FabricNode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, FabricEnvironment, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricNode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, FabricEnvironment, EnvironmentType } from 'ibm-blockchain-platform-common';
 
 chai.should();
 chai.use(sinonChai);
@@ -367,7 +367,7 @@ describe('DeleteNodeCommand', () => {
             deleteNodeStub.should.not.have.been.called;
 
             logSpy.should.have.been.calledWithExactly(LogType.INFO, undefined, `delete node`);
-            logSpy.should.have.been.calledWithExactly(LogType.ERROR,  `No environments to choose from. Nodes from ${FabricRuntimeUtil.LOCAL_FABRIC} environments and environments created using ansible cannot be modified.`);
+            logSpy.should.have.been.calledWithExactly(LogType.ERROR,  `No environments to choose from. Nodes from local environments and environments created using ansible cannot be modified.`);
         });
 
         it('should test can handle selecting no nodes when choosing node', async () => {

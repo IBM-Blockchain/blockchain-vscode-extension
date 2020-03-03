@@ -41,7 +41,7 @@ export async function addGateway(): Promise<{} | void> {
 
             const environments: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(false, false, true);
             if (environments.length === 0) {
-                throw new Error(`No environments to choose from. Gateways cannot be created from managed Ansible or ${FabricRuntimeUtil.LOCAL_FABRIC} environments.`);
+                throw new Error(`No environments to choose from. Gateways cannot be created from managed Ansible or local environments.`);
             }
 
             chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to create a gateway from', false, true, false, IncludeEnvironmentOptions.ALLENV, false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;

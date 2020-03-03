@@ -157,7 +157,7 @@ describe('DeleteEnvironmentCommand', () => {
             const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
 
             const environmentToDelete: BlockchainTreeItem = allChildren[1];
-            await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT, environmentToDelete);
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT_SHORT, environmentToDelete);
 
             showFabricEnvironmentQuickPickBoxStub.should.not.have.been.called;
 
@@ -381,7 +381,7 @@ describe('DeleteEnvironmentCommand', () => {
 
             globalStateUpdateSpy.resetHistory();
 
-            await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT, environmentToDelete);
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT_SHORT, environmentToDelete);
 
             globalStateUpdateSpy.should.have.been.calledOnce;
             const updateCall: any = globalStateUpdateSpy.getCall(0).args[0];

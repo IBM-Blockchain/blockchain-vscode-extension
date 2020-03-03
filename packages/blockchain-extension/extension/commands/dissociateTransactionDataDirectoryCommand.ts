@@ -14,9 +14,8 @@
 'use strict';
 import * as vscode from 'vscode';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricGatewayRegistryEntry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
+import { FabricGatewayRegistryEntry, FabricGatewayRegistry, LogType } from 'ibm-blockchain-platform-common';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { LogType } from 'ibm-blockchain-platform-common';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 import { ContractTreeItem } from '../explorer/model/ContractTreeItem';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';

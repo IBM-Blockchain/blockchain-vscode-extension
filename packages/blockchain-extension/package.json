@@ -68,6 +68,7 @@
             "environmentExplorer.addEnvironmentEntry",
             "environmentExplorer.importNodesEntry",
             "environmentExplorer.deleteEnvironmentEntry",
+            "environmentExplorer.deleteEnvironmentEntryShort",
             "environmentExplorer.associateIdentityNodeEntry",
             "environmentExplorer.replaceAssociatedIdentityEntry",
             "environmentExplorer.deleteNodeEntry",
@@ -78,8 +79,11 @@
             "environmentExplorer.refreshEntry",
             "environmentExplorer.startFabricRuntime",
             "environmentExplorer.stopFabricRuntime",
+            "environmentExplorer.stopFabricRuntimeShort",
             "environmentExplorer.restartFabricRuntime",
+            "environmentExplorer.restartFabricRuntimeShort",
             "environmentExplorer.teardownFabricRuntime",
+            "environmentExplorer.teardownFabricRuntimeShort",
             "environmentExplorer.upgradeSmartContractEntry",
             "environmentExplorer.createNewIdentityEntry",
             "walletExplorer.refreshEntry",
@@ -316,6 +320,11 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "environmentExplorer.deleteEnvironmentEntryShort",
+                "title": "Delete",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "environmentExplorer.associateIdentityNodeEntry",
                 "title": "Associate Identitiy with a Node",
                 "category": "IBM Blockchain Platform"
@@ -397,13 +406,28 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "environmentExplorer.stopFabricRuntimeShort",
+                "title": "Stop",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "environmentExplorer.restartFabricRuntime",
                 "title": "Restart Fabric Runtime",
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "environmentExplorer.restartFabricRuntimeShort",
+                "title": "Restart",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "environmentExplorer.teardownFabricRuntime",
-                "title": "Teardown Fabric Runtime",
+                "title": "Teardown Fabric Environment",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "environmentExplorer.teardownFabricRuntimeShort",
+                "title": "Teardown",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -551,6 +575,22 @@
                 {
                     "command": "transactionPage.open",
                     "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.stopFabricRuntimeShort",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.teardownFabricRuntimeShort",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.restartFabricRuntimeShort",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.deleteEnvironmentEntryShort",
+                    "when": "false"
                 }
             ],
             "view/title": [
@@ -619,8 +659,18 @@
                     "group": "blockchain"
                 },
                 {
+                    "command": "environmentExplorer.restartFabricRuntimeShort",
+                    "when": "false",
+                    "group": "blockchain"
+                },
+                {
                     "command": "environmentExplorer.teardownFabricRuntime",
                     "when": "view == environmentExplorer && blockchain-runtime-connected",
+                    "group": "blockchain"
+                },
+                {
+                    "command": "environmentExplorer.teardownFabricRuntimeShort",
+                    "when": "false",
                     "group": "blockchain"
                 },
                 {
@@ -657,18 +707,38 @@
                 },
                 {
                     "command": "environmentExplorer.deleteEnvironmentEntry",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.deleteEnvironmentEntryShort",
                     "when": "view == environmentExplorer && viewItem == blockchain-environment-item || view == environmentExplorer && viewItem == blockchain-runtime-item"
                 },
                 {
                     "command": "environmentExplorer.stopFabricRuntime",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.stopFabricRuntimeShort",
                     "when": "view == environmentExplorer && viewItem == blockchain-runtime-item"
                 },
                 {
                     "command": "environmentExplorer.restartFabricRuntime",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.restartFabricRuntime",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.restartFabricRuntimeShort",
                     "when": "view == environmentExplorer && viewItem == blockchain-runtime-item"
                 },
                 {
                     "command": "environmentExplorer.teardownFabricRuntime",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.teardownFabricRuntimeShort",
                     "when": "view == environmentExplorer && viewItem == blockchain-runtime-item"
                 },
                 {
@@ -1364,6 +1434,7 @@
             "coverage",
             "resources",
             "test/data",
+            "test/tmp",
             ".DS_Store",
             "config/.DS_Store",
             "test/.DS_Store",
@@ -1373,6 +1444,8 @@
             "cucumber/hlfv1",
             "cucumber/ansible",
             "cucumber/ansibleScripts",
+            "cucumber/cucumber-report.html",
+            ".scannerwork",
             "basic-network",
             "CHANGELOG.md",
             "RELEASE-NOTES.md",

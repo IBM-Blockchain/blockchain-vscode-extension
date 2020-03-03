@@ -18,7 +18,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { NodeTreeItem } from '../explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, LogType, FabricEnvironment, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, LogType, FabricEnvironment, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 
 export async function deleteNode(nodeTreeItem: NodeTreeItem | FabricNode, hideNode?: boolean): Promise<void> {
@@ -45,7 +45,7 @@ export async function deleteNode(nodeTreeItem: NodeTreeItem | FabricNode, hideNo
             // First check there is at least one that isn't local_fabric
             const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll(false, false, true);
             if (environments.length === 0) {
-                outputAdapter.log(LogType.ERROR, `No environments to choose from. Nodes from ${FabricRuntimeUtil.LOCAL_FABRIC} environments and environments created using ansible cannot be modified.`);
+                outputAdapter.log(LogType.ERROR, `No environments to choose from. Nodes from local environments and environments created using ansible cannot be modified.`);
                 return;
             }
 
