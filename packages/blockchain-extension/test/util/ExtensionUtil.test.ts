@@ -545,9 +545,12 @@ describe('ExtensionUtil Tests', () => {
                 ExtensionCommands.REFRESH_PACKAGES,
                 ExtensionCommands.REFRESH_ENVIRONMENTS,
                 ExtensionCommands.START_FABRIC,
+                ExtensionCommands.STOP_FABRIC_SHORT,
                 ExtensionCommands.STOP_FABRIC,
                 ExtensionCommands.RESTART_FABRIC,
+                ExtensionCommands.RESTART_FABRIC_SHORT,
                 ExtensionCommands.TEARDOWN_FABRIC,
+                ExtensionCommands.TEARDOWN_FABRIC_SHORT,
                 ExtensionCommands.EXPORT_CONNECTION_PROFILE,
                 ExtensionCommands.EXPORT_CONNECTION_PROFILE_CONNECTED,
                 ExtensionCommands.DELETE_SMART_CONTRACT,
@@ -555,6 +558,7 @@ describe('ExtensionUtil Tests', () => {
                 ExtensionCommands.IMPORT_SMART_CONTRACT,
                 ExtensionCommands.ADD_ENVIRONMENT,
                 ExtensionCommands.DELETE_ENVIRONMENT,
+                ExtensionCommands.DELETE_ENVIRONMENT_SHORT,
                 ExtensionCommands.ASSOCIATE_IDENTITY_NODE,
                 ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT,
                 ExtensionCommands.EDIT_NODE_FILTERS,
@@ -617,6 +621,7 @@ describe('ExtensionUtil Tests', () => {
                 `onCommand:${ExtensionCommands.ADD_ENVIRONMENT}`,
                 `onCommand:${ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT}`,
                 `onCommand:${ExtensionCommands.DELETE_ENVIRONMENT}`,
+                `onCommand:${ExtensionCommands.DELETE_ENVIRONMENT_SHORT}`,
                 `onCommand:${ExtensionCommands.ASSOCIATE_IDENTITY_NODE}`,
                 `onCommand:${ExtensionCommands.REPLACE_ASSOCIATED_IDENTITY}`,
                 `onCommand:${ExtensionCommands.DELETE_NODE}`,
@@ -627,8 +632,11 @@ describe('ExtensionUtil Tests', () => {
                 `onCommand:${ExtensionCommands.REFRESH_ENVIRONMENTS}`,
                 `onCommand:${ExtensionCommands.START_FABRIC}`,
                 `onCommand:${ExtensionCommands.STOP_FABRIC}`,
+                `onCommand:${ExtensionCommands.STOP_FABRIC_SHORT}`,
                 `onCommand:${ExtensionCommands.RESTART_FABRIC}`,
+                `onCommand:${ExtensionCommands.RESTART_FABRIC_SHORT}`,
                 `onCommand:${ExtensionCommands.TEARDOWN_FABRIC}`,
+                `onCommand:${ExtensionCommands.TEARDOWN_FABRIC_SHORT}`,
                 `onCommand:${ExtensionCommands.UPGRADE_SMART_CONTRACT}`,
                 `onCommand:${ExtensionCommands.CREATE_NEW_IDENTITY}`,
                 `onCommand:${ExtensionCommands.REFRESH_WALLETS}`,
@@ -1762,14 +1770,12 @@ describe('ExtensionUtil Tests', () => {
             mockRuntime.isGenerated.resolves(true);
             mockRuntime.isRunning.resolves(true);
             mockRuntime.getGateways.resolves([]);
-            // mySandBox.stub(LocalEnvironment.prototype, 'getGateways').resolves();
+
             getAllRuntimesStub = mySandBox.stub(runtimeManager, 'getAllRuntimes');
             getAllRuntimesStub.returns([mockRuntime]);
 
             runtimeManager['runtimes'] = new Map();
             runtimeManager['runtimes'].set(FabricRuntimeUtil.LOCAL_FABRIC, mockRuntime as unknown as LocalEnvironment);
-
-            // mySandBox.stub(LocalEnvironmentManager.instance()['runtimes']
 
             initializeStub = mySandBox.stub(runtimeManager, 'initialize');
             initializeStub.resolves();

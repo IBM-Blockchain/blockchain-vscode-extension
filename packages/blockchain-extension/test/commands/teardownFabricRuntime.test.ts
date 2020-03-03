@@ -124,7 +124,7 @@ describe('teardownFabricRuntime', () => {
 
         const removeRuntimeStub: sinon.SinonStub = sandbox.stub(LocalEnvironmentManager.instance(), 'removeRuntime').returns(undefined);
 
-        await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, treeItem);
+        await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC_SHORT, treeItem);
 
         removeRuntimeStub.should.have.been.calledOnce;
 
@@ -159,7 +159,7 @@ describe('teardownFabricRuntime', () => {
 
         const removeRuntimeStub: sinon.SinonStub = sandbox.stub(LocalEnvironmentManager.instance(), 'removeRuntime').returns(undefined);
 
-        await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, treeItem);
+        await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC_SHORT, treeItem);
 
         removeRuntimeStub.should.have.been.calledOnce;
 
@@ -196,7 +196,7 @@ describe('teardownFabricRuntime', () => {
 
         const removeRuntimeStub: sinon.SinonStub = sandbox.stub(LocalEnvironmentManager.instance(), 'removeRuntime').returns(undefined);
 
-        await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, treeItem);
+        await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC_SHORT, treeItem);
 
         removeRuntimeStub.should.have.been.calledOnce;
 
@@ -235,7 +235,7 @@ describe('teardownFabricRuntime', () => {
 
         const removeRuntimeStub: sinon.SinonStub = sandbox.stub(LocalEnvironmentManager.instance(), 'removeRuntime').returns(undefined);
 
-        await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, treeItem);
+        await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC_SHORT, treeItem);
 
         removeRuntimeStub.should.have.been.calledOnce;
 

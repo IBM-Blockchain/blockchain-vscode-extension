@@ -22,7 +22,7 @@ import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gate
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { FabricRuntimeUtil, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
+import { LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 chai.should();
@@ -154,7 +154,7 @@ describe('DeleteGatewayCommand', () => {
 
             showGatewayQuickPickBoxStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteGateway`);
-            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No gateways to delete. ${FabricRuntimeUtil.LOCAL_FABRIC} gateways cannot be deleted.`, `No gateways to delete. ${FabricRuntimeUtil.LOCAL_FABRIC} gateways cannot be deleted.`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No gateways to delete. Local gateways cannot be deleted.`);
         });
 
         it('should handle no from confirmation message', async () => {

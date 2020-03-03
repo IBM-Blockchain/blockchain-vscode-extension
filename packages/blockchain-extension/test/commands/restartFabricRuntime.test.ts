@@ -98,7 +98,7 @@ describe('restartFabricRuntime', () => {
         getGatewayRegistryEntryStub.resolves();
         getEnvironmentRegistryEntryStub.returns(undefined);
 
-        await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC, treeItem);
+        await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC_SHORT, treeItem);
 
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
 
@@ -126,7 +126,7 @@ describe('restartFabricRuntime', () => {
 
         getEnvironmentRegistryEntryStub.returns(undefined);
 
-        await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC, treeItem);
+        await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC_SHORT, treeItem);
 
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
 
@@ -154,7 +154,7 @@ describe('restartFabricRuntime', () => {
 
         getGatewayRegistryEntryStub.resolves();
 
-        await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC, treeItem);
+        await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC_SHORT, treeItem);
 
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
 
@@ -223,7 +223,7 @@ describe('restartFabricRuntime', () => {
         getGatewayRegistryEntryStub.resolves();
         getEnvironmentRegistryEntryStub.returns(undefined);
 
-        await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC, treeItem);
+        await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC_SHORT, treeItem);
 
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
 

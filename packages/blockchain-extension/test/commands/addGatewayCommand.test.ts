@@ -23,7 +23,7 @@ import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper'
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
-import { FabricEnvironmentRegistryEntry, FabricNode, LogType , FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry, FabricRuntimeUtil} from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricNode, LogType , FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -250,7 +250,7 @@ describe('AddGatewayCommand', () => {
         it('should error if there are no non-ansible environments to create the gateway from', async () => {
             mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([]);
 
-            const error: Error = new Error(`No environments to choose from. Gateways cannot be created from managed Ansible or ${FabricRuntimeUtil.LOCAL_FABRIC} environments.`);
+            const error: Error = new Error(`No environments to choose from. Gateways cannot be created from managed Ansible or local environments.`);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
