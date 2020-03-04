@@ -387,6 +387,59 @@ describe('Extension Tests', () => {
             completeActivationStub.should.have.been.calledOnce;
         });
 
+        it('should set global state properties if a previous version has been used', async () => {
+            const releaseNotesPath: string = path.join(ExtensionUtil.getExtensionPath(), 'RELEASE-NOTES.md');
+            const releaseNotesUri: vscode.Uri = vscode.Uri.file(releaseNotesPath);
+            setupCommandsStub.resolves();
+            completeActivationStub.resolves();
+
+            const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            setExtensionContextStub.returns(undefined);
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs('markdown.showPreview', releaseNotesUri).resolves();
+            hasPreReqsInstalledStub.resolves(true);
+            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            createTempCommandsStub.returns(undefined);
+
+            const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
+            extensionData.preReqPageShown = true;
+            extensionData.dockerForWindows = true;
+            extensionData.systemRequirements = true;
+            extensionData.version = '1.0.6';
+            extensionData.generatorVersion = dependencies['generator-fabric'];
+            extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = undefined;
+            extensionData.deletedOneOrgLocalFabric = undefined;
+
+            await GlobalState.update(extensionData);
+
+            await myExtension.activate(context);
+
+            const newExtData: ExtensionData = GlobalState.get();
+            newExtData.createOneOrgLocalFabric.should.equal(true);
+            newExtData.deletedOneOrgLocalFabric.should.equal(false);
+
+            sendTelemetryStub.should.have.been.calledWith('updatedInstall', { IBM: sinon.match.string });
+
+            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
+
+            setExtensionContextStub.should.have.been.calledTwice;
+
+            hasPreReqsInstalledStub.should.have.been.calledOnce;
+            createTempCommandsStub.should.have.been.calledOnceWith(true);
+            setupCommandsStub.should.have.been.calledOnce;
+
+            hasPreReqsInstalledStub.should.have.been.calledOnce;
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
+            executeCommandStub.should.have.been.calledWith('markdown.showPreview', releaseNotesUri);
+
+            completeActivationStub.should.have.been.calledOnce;
+        });
+
         it('should not open release notes on first ever install', async () => {
 
             setupCommandsStub.resolves();
