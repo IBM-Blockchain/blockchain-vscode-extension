@@ -1,7 +1,0 @@
-{
-    "short_name": "logspout",
-    "name": "logspout",
-    "api_url": "http://localhost:17056",
-    "type": "logspout",
-    "container_name": "yofn_logspout"
-}

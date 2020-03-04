@@ -1,7 +1,0 @@
-{
-    "short_name": "couchdb",
-    "name": "couchdb",
-    "api_url": "http://localhost:17055",
-    "type": "couchdb",
-    "container_name": "yofn_couchdb"
-}
