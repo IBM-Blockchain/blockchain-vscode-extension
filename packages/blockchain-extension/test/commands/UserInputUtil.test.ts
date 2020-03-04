@@ -2614,15 +2614,24 @@ describe('UserInputUtil', () => {
         it('should display failed to activate message', async () => {
             const showErrorMessageStub: sinon.SinonSpy = mySandBox.stub(vscode.window, 'showErrorMessage').resolves();
             await UserInputUtil.failedActivationWindow('some error');
-            showErrorMessageStub.should.have.been.calledOnceWithExactly('Failed to activate extension: some error', 'Retry activation');
+            showErrorMessageStub.should.have.been.calledOnceWithExactly('Failed to activate extension: some error', 'Check status website', 'Retry activation');
         });
 
         it('should reload window if selected', async () => {
             const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
             const showErrorMessageStub: sinon.SinonSpy = mySandBox.stub(vscode.window, 'showErrorMessage').resolves('Retry activation');
             await UserInputUtil.failedActivationWindow('some error');
-            showErrorMessageStub.should.have.been.calledOnceWithExactly('Failed to activate extension: some error', 'Retry activation');
+            showErrorMessageStub.should.have.been.calledOnceWithExactly('Failed to activate extension: some error', 'Check status website', 'Retry activation');
             executeCommandStub.should.have.been.calledOnceWithExactly('workbench.action.reloadWindow');
+        });
+
+        it('should go to status page website if selected', async () => {
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
+            const uri: vscode.Uri = vscode.Uri.parse('https://ibm-blockchain.github.io/blockchain-vscode-extension/');
+            const showErrorMessageStub: sinon.SinonSpy = mySandBox.stub(vscode.window, 'showErrorMessage').resolves('Check status website');
+            await UserInputUtil.failedActivationWindow('some error');
+            showErrorMessageStub.should.have.been.calledOnceWithExactly('Failed to activate extension: some error', 'Check status website', 'Retry activation');
+            executeCommandStub.should.have.been.calledOnceWithExactly('vscode.open', uri);
         });
     });
 
