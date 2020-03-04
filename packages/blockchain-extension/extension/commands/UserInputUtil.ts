@@ -1064,10 +1064,14 @@ export class UserInputUtil {
 
     public static async failedActivationWindow(error: string): Promise<void> {
 
+        const statusPagePrompt: string = 'Check status website';
         const retryPrompt: string = 'Retry activation';
-        const response: string = await vscode.window.showErrorMessage(`Failed to activate extension: ${error}`, retryPrompt);
+        const response: string = await vscode.window.showErrorMessage(`Failed to activate extension: ${error}`, statusPagePrompt, retryPrompt);
         if (response === retryPrompt) {
             await vscode.commands.executeCommand('workbench.action.reloadWindow');
+        } else if (response === statusPagePrompt) {
+            const uri: vscode.Uri = vscode.Uri.parse('https://ibm-blockchain.github.io/blockchain-vscode-extension/');
+            await vscode.commands.executeCommand('vscode.open', uri);
         }
     }
 
