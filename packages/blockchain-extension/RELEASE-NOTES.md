@@ -1,5 +1,5 @@
 # IBM Blockchain Platform Extension updated to v1.0.21
-_Release date: March 5th 2020_
+_Release date: March 9th 2020_
 
 Announcements
 ---
@@ -26,7 +26,7 @@ Features & Enhancements
    > From the Command Palette it's now possible to open up the latest release notes by running the '`Open Release Notes`' command.
 
 * Ability to open up Home page from the status bar [#1983](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1983).
-   > On the bottom status bar, you can now click '`Blockchain home`' to open up the home page.
+   > On the bottom status bar, you can now click '`Blockchain Home`' to open up the home page.
 
 * Newly generated smart contracts will use version 1.4.5 of the `fabric-contract-api` and `fabric-shim`. Any local environments created will also use 1.4.6 of the Fabric Docker images.
    > This also fixes the packaging issue [#2014](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2014)
@@ -47,7 +47,7 @@ Fixes
 
 * Fixed error when attempting to upgrade from command palette when there are no smart contracts [#1970](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1970).
 
-* Fixed error when attempting to delete a gateway which was created from an environment [#1966](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1966).
+* Fixed error when attempting to delete an environment which has a gateway created from it [#1966](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1966).
 
 * Removed broken `Open New Terminal` command [#1858](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1858).
 

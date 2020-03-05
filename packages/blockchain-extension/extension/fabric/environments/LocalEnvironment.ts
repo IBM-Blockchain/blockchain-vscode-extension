@@ -59,7 +59,6 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
         });
 
         await FabricEnvironmentRegistry.instance().add(registryEntry);
-
         const settings: any = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
         const portObject: any = settings[this.name];
 

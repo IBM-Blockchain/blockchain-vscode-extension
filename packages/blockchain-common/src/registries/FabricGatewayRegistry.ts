@@ -94,6 +94,7 @@ export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEnt
             const connectionProfilePath: string = newEntry.connectionProfilePath;
             const gatewayFolderPath: string = connectionProfilePath.substr(0, connectionProfilePath.lastIndexOf('/'));
             await fs.writeJson(path.join(gatewayFolderPath, '.config.json'), newEntry);
+            this.emit(FileRegistry.EVENT_NAME, FileConfigurations.FABRIC_GATEWAYS); //
         } else {
             await super.update(newEntry);
         }

@@ -996,7 +996,7 @@ describe('ExtensionUtil Tests', () => {
         it('should add home page button to the status bar', async () => {
             const newContext: vscode.ExtensionContext = GlobalState.getExtensionContext();
             const homePageButton: any = newContext.subscriptions.find((subscription: any) => {
-                return subscription.text === 'Blockchain home';
+                return subscription.text === 'Blockchain Home';
             });
             homePageButton.tooltip.should.equal('View Homepage');
             homePageButton.command.should.equal(ExtensionCommands.OPEN_HOME_PAGE);
@@ -1251,7 +1251,7 @@ describe('ExtensionUtil Tests', () => {
             registerCommandsStub.resolves();
             executeStoredCommandsStub.resolves();
             getExtensionLocalFabricSettingStub.returns(false);
-
+            const removeRuntimeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'removeRuntime').returns(undefined);
             const deleteEnvironmentSpy: sinon.SinonSpy = mySandBox.spy(FabricEnvironmentRegistry.instance(), 'delete');
 
             const globalState: ExtensionData = GlobalState.get();
@@ -1283,6 +1283,7 @@ describe('ExtensionUtil Tests', () => {
             fabricConnectionFactorySpy.should.have.been.called;
 
             deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
+            removeRuntimeStub.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC);
         });
     });
 
@@ -1292,7 +1293,6 @@ describe('ExtensionUtil Tests', () => {
         let executeCommandStub: sinon.SinonStub;
         let showConfirmationWarningMessageStub: sinon.SinonStub;
         let mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment>;
-        let getAllRuntimesStub: sinon.SinonStub;
         let globalStateUpdateStub: sinon.SinonStub;
         let ensureRuntimeStub: sinon.SinonStub;
         const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
@@ -1306,9 +1306,9 @@ describe('ExtensionUtil Tests', () => {
             showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
             mockRuntime = mySandBox.createStubInstance(LocalEnvironment);
             mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
-            getAllRuntimesStub = mySandBox.stub(runtimeManager, 'getAllRuntimes').returns([mockRuntime]);
-            // TODO JAKE: do we want this?
+
             ensureRuntimeStub = mySandBox.stub(runtimeManager, 'ensureRuntime').returns(undefined);
+            ensureRuntimeStub.withArgs(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1).resolves(mockRuntime);
             globalStateUpdateStub = mySandBox.stub(GlobalState, 'update');
 
             await FabricEnvironmentRegistry.instance().clear();
@@ -1329,7 +1329,6 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getAllRuntimesStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
         });
 
@@ -1346,7 +1345,6 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getAllRuntimesStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
         });
 
@@ -1364,7 +1362,6 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getAllRuntimesStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
             const showOnNext: boolean = await vscode.workspace.getConfiguration().get(SettingConfigurations.HOME_SHOW_ON_NEXT_ACTIVATION);
             showOnNext.should.be.false;
@@ -1384,7 +1381,6 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getAllRuntimesStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
         });
 
@@ -1402,7 +1398,6 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getAllRuntimesStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
         });
 
@@ -1420,7 +1415,6 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getAllRuntimesStub.should.not.have.been.called;
             globalStateUpdateStub.should.not.have.been.called;
             const showOnNext: boolean = await vscode.workspace.getConfiguration().get(SettingConfigurations.HOME_SHOW_ON_NEXT_ACTIVATION);
             showOnNext.should.be.false;
@@ -1443,7 +1437,6 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getAllRuntimesStub.should.have.been.calledOnce;
             mockRuntime.isGenerated.should.have.been.calledOnce;
             showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
             globalStateUpdateStub.should.have.been.calledWith({
@@ -1452,7 +1445,8 @@ describe('ExtensionUtil Tests', () => {
         });
 
         it(`should set generated to 'false' if there are no local runtimes`, async () => {
-            getAllRuntimesStub.returns([]);
+            await FabricEnvironmentRegistry.instance().clear();
+
             await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
 
             dependencies['generator-fabric'] = '0.0.2';
@@ -1469,7 +1463,6 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getAllRuntimesStub.should.have.been.calledOnce;
             mockRuntime.isGenerated.should.not.have.been.calledOnce;
             showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
             globalStateUpdateStub.should.have.been.calledWith({
@@ -1497,7 +1490,6 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getAllRuntimesStub.should.have.been.calledOnce;
             mockRuntime.isGenerated.should.have.been.calledOnce;
             showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
             mockRuntime.isRunning.should.have.been.calledOnce;
@@ -1529,7 +1521,6 @@ describe('ExtensionUtil Tests', () => {
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
 
-            getAllRuntimesStub.should.have.been.calledOnce;
             mockRuntime.isGenerated.should.have.been.calledOnce;
             showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
             mockRuntime.isRunning.should.have.been.calledOnce;
@@ -1555,8 +1546,8 @@ describe('ExtensionUtil Tests', () => {
             isRunningStub.onCall(0).resolves(true); // generatedLocal
             isRunningStub.onCall(1).resolves(false); // nonGeneratedLocal
 
-            // TODO JAKE: Should I try to move this after we add them to env registry - that way we can call getEnvironment and put it in this array
-            getAllRuntimesStub.returns([mockRuntime, generatedLocalEnvironment, nonGeneratedLocalEnvironment]);
+            ensureRuntimeStub.withArgs('generatedLocal', undefined, 1).resolves(generatedLocalEnvironment);
+            ensureRuntimeStub.withArgs('nonGeneratedLocal', undefined, 1).resolves(nonGeneratedLocalEnvironment);
 
             await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
 
@@ -1577,14 +1568,7 @@ describe('ExtensionUtil Tests', () => {
             await FabricEnvironmentRegistry.instance().add(generatedLocal);
             await FabricEnvironmentRegistry.instance().add(nonGeneratedLocal);
 
-            // const ensureRuntimeSpy: sinon.SinonSpy = mySandBox.spy(LocalEnvironmentManager.instance(), 'ensureRuntime');
-
-            // const readDirSpy: sinon.SinonSpy = mySandBox.spy(fs, 'readdir');
-
             await ExtensionUtil.completeActivation(false);
-
-            // readDirSpy.should.have.been.calledTwice;
-            // readDirSpy.should.have.been.calledWithExactly(path.join(localEnv.environmentDirectory, 'nodes'));
 
             ensureRuntimeStub.should.have.been.calledThrice;
             ensureRuntimeStub.should.have.been.calledWithExactly(generatedLocal.name, undefined, 1);
@@ -1594,7 +1578,6 @@ describe('ExtensionUtil Tests', () => {
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
 
-            getAllRuntimesStub.should.have.been.calledOnce;
             isGeneratedStub.should.have.been.calledTwice;
             showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
 
@@ -1628,7 +1611,6 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getAllRuntimesStub.should.have.been.calledOnce;
             mockRuntime.isGenerated.should.not.have.been.called;
             showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
             mockRuntime.isRunning.should.not.have.been.called;
@@ -1652,7 +1634,6 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            getAllRuntimesStub.should.not.have.been.called;
             mockRuntime.isGenerated.should.not.have.been.called;
             showConfirmationWarningMessageStub.should.not.have.been.called;
             mockRuntime.isRunning.should.not.have.been.called;
@@ -1753,10 +1734,10 @@ describe('ExtensionUtil Tests', () => {
         let hasPreReqsInstalledStub: sinon.SinonStub;
         let registerStub: sinon.SinonStub;
         let disposeExtensionStub: sinon.SinonStub;
-        let getAllRuntimesStub: sinon.SinonStub;
         let purgeOldRuntimesStub: sinon.SinonStub;
         let initializeStub: sinon.SinonStub;
         const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
+        let ensureRuntimeStub: sinon.SinonStub;
         beforeEach(async () => {
             mySandBox.restore();
 
@@ -1771,8 +1752,8 @@ describe('ExtensionUtil Tests', () => {
             mockRuntime.isRunning.resolves(true);
             mockRuntime.getGateways.resolves([]);
 
-            getAllRuntimesStub = mySandBox.stub(runtimeManager, 'getAllRuntimes');
-            getAllRuntimesStub.returns([mockRuntime]);
+            ensureRuntimeStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'ensureRuntime');
+            ensureRuntimeStub.withArgs(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1).resolves(mockRuntime);
 
             runtimeManager['runtimes'] = new Map();
             runtimeManager['runtimes'].set(FabricRuntimeUtil.LOCAL_FABRIC, mockRuntime as unknown as LocalEnvironment);
@@ -1869,9 +1850,10 @@ describe('ExtensionUtil Tests', () => {
             });
 
             it('should initialize runtime if not generated', async () => {
+                runtimeManager['runtimes'].clear();
+
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_BYPASS_PREREQS).returns(true);
 
-                mockRuntime.isGenerated.resolves(false);
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
                 const state: ExtensionData = GlobalState.get();
@@ -1968,8 +1950,8 @@ describe('ExtensionUtil Tests', () => {
             });
 
             it(`should initalize if runtimes cannot be retrieved and dependencies installed`, async () => {
-
-                getAllRuntimesStub.returns([]);
+                runtimeManager['runtimes'].clear();
+                await FabricEnvironmentRegistry.instance().clear();
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_BYPASS_PREREQS).returns(false);
                 disposeExtensionStub.resetHistory();
                 hasPreReqsInstalledStub.resolves(true);
@@ -2034,10 +2016,11 @@ describe('ExtensionUtil Tests', () => {
             });
 
             it('should should handle any errors when initializing', async () => {
+                runtimeManager['runtimes'].clear();
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_BYPASS_PREREQS).returns(false);
                 const error: Error = new Error('Unable to initialize');
                 initializeStub.throws(error);
-                getAllRuntimesStub.returns([]);
+                await FabricEnvironmentRegistry.instance().clear();
                 hasPreReqsInstalledStub.resolves(true);
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
@@ -2099,8 +2082,6 @@ describe('ExtensionUtil Tests', () => {
                 await Promise.all(promises);
 
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
-                mockRuntime.isGenerated.should.not.have.been.called;
-                mockRuntime.isRunning.should.not.have.been.called;
                 showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`Toggling this feature will remove the world state and ledger data for all local runtimes. Do you want to continue?`);
                 updateSettingsStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
             });
@@ -2119,7 +2100,6 @@ describe('ExtensionUtil Tests', () => {
 
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 mockRuntime.isGenerated.should.have.been.calledOnce;
-                mockRuntime.isRunning.should.have.been.calledOnce;
                 showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`Toggling this feature will remove the world state and ledger data for all local runtimes. Do you want to continue?`);
                 updateSettingsStub.should.not.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
 
@@ -2131,38 +2111,9 @@ describe('ExtensionUtil Tests', () => {
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
             });
 
-            it(`should set context if runtime is not running but generated and user does teardown`, async () => {
-
-                executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC).resolves();
-                showConfirmationWarningMessageStub.resolves(true);
-                mockRuntime.isGenerated.resolves(true);
-                mockRuntime.isRunning.resolves(false);
-                const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-
-                await ExtensionUtil.registerCommands(ctx);
-                purgeOldRuntimesStub.should.have.been.calledOnce;
-
-                await Promise.all(promises);
-
-                affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
-                mockRuntime.isGenerated.should.have.been.calledOnce;
-                mockRuntime.isRunning.should.have.been.calledOnce;
-                showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`Toggling this feature will remove the world state and ledger data for all local runtimes. Do you want to continue?`);
-                updateSettingsStub.should.not.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
-
-                deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
-
-                executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
-                executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
-                executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
-                executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-                executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
-            });
-
-            it(`should set context if runtime is not running or generated`, async () => {
+            it(`should not set context if there are no generated runtimes`, async () => {
 
                 mockRuntime.isGenerated.resolves(false);
-                mockRuntime.isRunning.resolves(false);
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
                 await ExtensionUtil.registerCommands(ctx);
@@ -2172,13 +2123,12 @@ describe('ExtensionUtil Tests', () => {
 
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 mockRuntime.isGenerated.should.have.been.calledOnce;
-                mockRuntime.isRunning.should.have.been.calledOnce;
-                showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`Toggling this feature will remove the world state and ledger data for all local runtimes. Do you want to continue?`);
+                showConfirmationWarningMessageStub.should.not.have.been.calledOnceWith(`Toggling this feature will remove the world state and ledger data for all local runtimes. Do you want to continue?`);
                 updateSettingsStub.should.not.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
 
-                deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
+                deleteEnvironmentSpy.should.not.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
 
-                executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
+                executeCommandStub.should.not.have.been.calledWith('setContext', 'local-fabric-enabled', false);
                 executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
@@ -2186,7 +2136,7 @@ describe('ExtensionUtil Tests', () => {
             });
 
             it(`should no nothing if there are no runtimes`, async () => {
-                getAllRuntimesStub.returns([]);
+                await FabricEnvironmentRegistry.instance().clear();
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
                 await ExtensionUtil.registerCommands(ctx);
@@ -2207,11 +2157,11 @@ describe('ExtensionUtil Tests', () => {
 
             it(`should handle any errors`, async () => {
                 const error: Error = new Error('Unable to teardown');
-                executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC).throws(error);
+                executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC).resolves();
                 showConfirmationWarningMessageStub.resolves(true);
 
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-
+                mySandBox.stub(LocalEnvironmentManager.instance(), 'removeRuntime').throws(error);
                 await ExtensionUtil.registerCommands(ctx);
                 purgeOldRuntimesStub.should.have.been.calledOnce;
 
@@ -2219,11 +2169,10 @@ describe('ExtensionUtil Tests', () => {
 
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 mockRuntime.isGenerated.should.have.been.calledOnce;
-                mockRuntime.isRunning.should.have.been.calledOnce;
                 showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`Toggling this feature will remove the world state and ledger data for all local runtimes. Do you want to continue?`);
                 updateSettingsStub.should.not.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
 
-                deleteEnvironmentSpy.should.not.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
+                deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
 
                 executeCommandStub.should.not.have.been.calledWith('setContext', 'local-fabric-enabled', false);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
