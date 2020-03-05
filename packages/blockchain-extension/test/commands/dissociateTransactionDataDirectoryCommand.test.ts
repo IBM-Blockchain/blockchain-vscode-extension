@@ -181,6 +181,7 @@ describe('DissociateTestDataDirectoryCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY);
             const result: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGateway');
             result.transactionDataDirectories.should.deep.equal([]);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'dissociateTestDataDirectory');
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully dissociated "${instantiatedSmartContract.label}" from its transaction data directory`);
         });
@@ -189,6 +190,7 @@ describe('DissociateTestDataDirectoryCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY);
             const result: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGateway');
             result.transactionDataDirectories.should.deep.equal([]);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'dissociateTestDataDirectory');
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully dissociated "${instantiatedSmartContract.label}" from its transaction data directory`);
         });
@@ -223,6 +225,7 @@ describe('DissociateTestDataDirectoryCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY, instantiatedSmartContract);
             const result: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGateway');
             result.transactionDataDirectories.should.deep.equal([]);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'dissociateTestDataDirectory');
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully dissociated "${instantiatedSmartContract.label}" from its transaction data directory`);
         });
@@ -244,6 +247,8 @@ describe('DissociateTestDataDirectoryCommand', () => {
 
             const result: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGateway');
             result.transactionDataDirectories.should.deep.equal([]);
+
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'dissociateTestDataDirectory');
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully dissociated "${instantiatedSmartContract.label}" from its transaction data directory`);
         });

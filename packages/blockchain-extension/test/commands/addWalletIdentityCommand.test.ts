@@ -35,6 +35,7 @@ import { Reporter } from '../../extension/util/Reporter';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
+import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -835,6 +836,7 @@ describe('AddWalletIdentityCommand', () => {
                     type: 'fabric-peer',
                     wallet: 'Org1',
                 }});
+                mySandBox.stub(EnvironmentFactory, 'getEnvironment').returns(new LocalEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1));
                 const localGatewayEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
                 const localEnvironmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC}`);
 
@@ -866,6 +868,7 @@ describe('AddWalletIdentityCommand', () => {
                         }
                     }
                 }`);
+                mySandBox.stub(EnvironmentFactory, 'getEnvironment').returns(new LocalEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1));
 
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
