@@ -15,4 +15,7 @@ test/tmp
 *.tgz
 /lerna-debug.log
 /node_modules/
+/docs/node_modules
+/docs/build
+/docs/coverage
 .scannerwork
