@@ -1,0 +1,124 @@
+.label {
+    border-radius: 4px;
+    display: inline;
+    background-color: #b5b5b5;
+    color: #fff;
+    font-size: 12px;
+    font-size: 0.75rem;
+    line-height: 2;
+    font-weight: bold;
+    padding: 3px 7px;
+    text-align: center;
+    vertical-align: baseline;
+    white-space: nowrap;
+}
+
+.bg-bug {
+    background-color: #d73a4a !important;
+}
+  
+.bg-feature {
+    background-color: #02ccbf !important;
+}
+
+.panel-danger {
+    .panel-heading h3, .panel-body p {
+      font-weight: 600;
+    }
+}
+  
+.panel {
+    margin-bottom: 20px;
+    background-color: #fff;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+  
+.panel-body {
+    padding: 15px;
+}
+  
+.panel-heading {
+    padding: 10px 15px;
+    border-bottom: 1px solid transparent;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+  
+    > .dropdown .dropdown-toggle {
+      color: inherit;
+    }
+}
+  
+.panel-title {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 16px;
+    color: inherit;
+}
+  
+.panel-bug {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 16px;
+    color: #d73a4a;
+}
+  
+.panel-feature {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 16px;
+    color: #a2eeef;
+}
+  
+.panel-success {
+    border-color: #d6e9c6;
+  
+    > {
+    .panel-heading {
+        color: #3c763d;
+        background-color: #dff0d8;
+        border-color: #d6e9c6;
+  
+    + .panel-collapse > .panel-body {
+          border-top-color: #d6e9c6;
+        }
+  
+    .badge {
+          color: #dff0d8;
+          background-color: #3c763d;
+        }
+    }
+  
+    .panel-footer + .panel-collapse > .panel-body {
+        border-bottom-color: #d6e9c6;
+        }
+    }
+}
+  
+.panel-danger {
+    border-color: #ebccd1;
+  
+    > {
+    .panel-heading {
+        color: #a94442;
+        background-color: #f2dede;
+        border-color: #ebccd1;
+  
+    + .panel-collapse > .panel-body {
+          border-top-color: #ebccd1;
+        }
+  
+    .badge {
+          color: #f2dede;
+          background-color: #a94442;
+        }
+    }
+  
+    .panel-footer + .panel-collapse > .panel-body {
+        border-bottom-color: #ebccd1;
+        }
+    }
+}
+  
