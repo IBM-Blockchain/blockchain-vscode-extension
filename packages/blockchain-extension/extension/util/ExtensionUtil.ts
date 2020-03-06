@@ -277,7 +277,8 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.RESTART_FABRIC, (runtimeTreeItem?: RuntimeTreeItem) => restartFabricRuntime(runtimeTreeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.RESTART_FABRIC_SHORT, (runtimeTreeItem?: RuntimeTreeItem) => restartFabricRuntime(runtimeTreeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEARDOWN_FABRIC, (runtimeTreeItem?: RuntimeTreeItem, force: boolean = false, environmentName?: string) => teardownFabricRuntime(runtimeTreeItem, force, environmentName)));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEARDOWN_FABRIC_SHORT, (runtimeTreeItem?: RuntimeTreeItem, force: boolean = false, environmentName?: string) => teardownFabricRuntime(runtimeTreeItem, force, environmentName)));        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, (gatewayItem: GatewayTreeItem, isConnected?: boolean) => exportConnectionProfile(gatewayItem, isConnected)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEARDOWN_FABRIC_SHORT, (runtimeTreeItem?: RuntimeTreeItem, force: boolean = false, environmentName?: string) => teardownFabricRuntime(runtimeTreeItem, force, environmentName)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, (gatewayItem: GatewayTreeItem, isConnected?: boolean) => exportConnectionProfile(gatewayItem, isConnected)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE_CONNECTED, (gatewayItem: GatewayTreeItem, isConnected: boolean = true) => exportConnectionProfile(gatewayItem, isConnected)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_SMART_CONTRACT, (project: PackageTreeItem) => deleteSmartContractPackage(project)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_SMART_CONTRACT, (project: PackageTreeItem) => exportSmartContractPackage(project)));
@@ -295,7 +296,7 @@ export class ExtensionUtil {
                 await associateIdentityWithNode(true, undefined, undefined);
             }
         }));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_NODE, (nodeTreeItem: NodeTreeItem| FabricNode) => deleteNode(nodeTreeItem)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_NODE, (nodeTreeItem: NodeTreeItem | FabricNode) => deleteNode(nodeTreeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.HIDE_NODE, (nodeTreeItem: NodeTreeItem) => deleteNode(nodeTreeItem, true)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, (fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry, showSuccessMessage: boolean) => fabricEnvironmentConnect(fabricEnvironmentRegistryEntry, showSuccessMessage)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT, () => FabricEnvironmentManager.instance().disconnect()));
@@ -360,7 +361,7 @@ export class ExtensionUtil {
         // add homepage button in status bar
         const homePageButton: vscode.StatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
         homePageButton.command = ExtensionCommands.OPEN_HOME_PAGE;
-        homePageButton.text = 'Blockchain home';
+        homePageButton.text = 'Blockchain Home';
         homePageButton.tooltip = 'View Homepage';
 
         context.subscriptions.push(homePageButton);
@@ -403,7 +404,15 @@ export class ExtensionUtil {
 
                 const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
 
-                let runtimes: LocalEnvironment[] = runtimeManager.getAllRuntimes();
+                const runtimes: LocalEnvironment[] = [];
+                const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(true); // Get only local entries
+                for (const entry of environmentEntries) {
+                    const _runtime: LocalEnvironment = await LocalEnvironmentManager.instance().ensureRuntime(entry.name, undefined, entry.numberOfOrgs);
+                    const isGenerated: boolean = await _runtime.isGenerated();
+                    if (isGenerated) {
+                        runtimes.push(_runtime); // We only want to teardown started or stopped runtimes.
+                    }
+                }
 
                 if (!localFabricEnabled) {
                     // Just got set to false
@@ -419,13 +428,11 @@ export class ExtensionUtil {
                             for (const runtime of runtimes) {
 
                                 const runtimeName: string = runtime.getName();
-                                const isGenerated: boolean = await runtime.isGenerated();
 
-                                // If Local Fabric is running, warn the user that it will be torndown
-                                const isRunning: boolean = await runtime.isRunning();
-
-                                if (isRunning || isGenerated) {
+                                try {
                                     await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, runtimeName);
+                                } catch (err) {
+                                    // Ignore
                                 }
 
                                 // If disabled, delete the local environment, gateway and wallet.
@@ -434,9 +441,10 @@ export class ExtensionUtil {
 
                                 runtimeManager.removeRuntime(runtimeName);
 
-                                await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', false);
-
                             }
+
+                            await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', false);
+
                         }
 
                     } catch (error) {
@@ -471,27 +479,25 @@ export class ExtensionUtil {
                         outputAdapter.log(LogType.ERROR, `Error whilst toggling local Fabric functionality to true: ${error.message}`, `Error whilst toggling local Fabric functionality to true: ${error.toString()}`);
                     }
                 }
-                // }
-
-                runtimes = runtimeManager.getAllRuntimes();
-
-                const localRuntime: LocalEnvironment = runtimes.find((_env: LocalEnvironment) => {
-                    return _env.getName() === FabricRuntimeUtil.LOCAL_FABRIC;
-                });
 
                 const extensionData: ExtensionData = GlobalState.get();
 
-                if (!localRuntime && localFabricEnabled && !extensionData.deletedOneOrgLocalFabric) {
-                    // Just been set to true and there is no local runtime.
-                    outputAdapter.log(LogType.INFO, undefined, 'Initializing local runtime manager');
-                    try {
-                        await runtimeManager.initialize(FabricRuntimeUtil.LOCAL_FABRIC, 1);
+                if (localFabricEnabled && !extensionData.deletedOneOrgLocalFabric) {
 
-                        extensionData.createOneOrgLocalFabric = false;
-                        await GlobalState.update(extensionData);
+                    const localRuntime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime(FabricRuntimeUtil.LOCAL_FABRIC);
 
-                    } catch (error) {
-                        outputAdapter.log(LogType.ERROR, `Error initializing ${FabricRuntimeUtil.LOCAL_FABRIC}: ${error.message}`, `Error initializing ${FabricRuntimeUtil.LOCAL_FABRIC}: ${error.toString()}`);
+                    if (!localRuntime) {
+                        // Just been set to true and there is no local runtime.
+                        outputAdapter.log(LogType.INFO, undefined, 'Initializing local runtime manager');
+                        try {
+                            await runtimeManager.initialize(FabricRuntimeUtil.LOCAL_FABRIC, 1);
+
+                            extensionData.createOneOrgLocalFabric = false;
+                            await GlobalState.update(extensionData);
+
+                        } catch (error) {
+                            outputAdapter.log(LogType.ERROR, `Error initializing ${FabricRuntimeUtil.LOCAL_FABRIC}: ${error.message}`, `Error initializing ${FabricRuntimeUtil.LOCAL_FABRIC}: ${error.toString()}`);
+                        }
                     }
                 }
 
@@ -580,6 +586,7 @@ export class ExtensionUtil {
             }
         } else {
             await FabricEnvironmentRegistry.instance().delete(FabricRuntimeUtil.LOCAL_FABRIC, true);
+            LocalEnvironmentManager.instance().removeRuntime(FabricRuntimeUtil.LOCAL_FABRIC);
         }
 
         outputAdapter.log(LogType.INFO, undefined, 'Execute stored commands in the registry');
@@ -628,13 +635,12 @@ export class ExtensionUtil {
 
             const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
 
+            const runtimes: LocalEnvironment[] = [];
             for (const entry of envEntries) {
 
-                // TODO JAKE: Try out this generator version if/else branch to check this works / if it is needed.
-                await runtimeManager.ensureRuntime(entry.name, undefined, entry.numberOfOrgs);
+                const localRuntime: LocalEnvironment = await runtimeManager.ensureRuntime(entry.name, undefined, entry.numberOfOrgs);
+                runtimes.push(localRuntime);
             }
-
-            const runtimes: LocalEnvironment[] = runtimeManager.getAllRuntimes();
 
             const response: boolean = await UserInputUtil.showConfirmationWarningMessage(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
 
@@ -755,6 +761,8 @@ export class ExtensionUtil {
                 await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, oldName);
 
                 await FabricEnvironmentRegistry.instance().delete(oldName, true);
+
+                LocalEnvironmentManager.instance().removeRuntime(oldName); // Just in case.
 
                 if (oldName === FabricRuntimeUtil.OLD_LOCAL_FABRIC) {
                     await FabricGatewayRegistry.instance().delete(oldName, true);

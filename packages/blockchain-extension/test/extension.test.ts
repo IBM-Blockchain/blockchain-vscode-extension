@@ -742,7 +742,7 @@ describe('Extension Tests', () => {
 
             const newContext: vscode.ExtensionContext = GlobalState.getExtensionContext();
             const homePageButton: any = newContext.subscriptions.find((subscription: any) => {
-                return subscription.text === 'Blockchain home';
+                return subscription.text === 'Blockchain Home';
             });
             homePageButton.tooltip.should.equal('View Homepage');
             homePageButton.command.should.equal(ExtensionCommands.OPEN_HOME_PAGE);

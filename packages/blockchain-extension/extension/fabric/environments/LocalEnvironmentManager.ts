@@ -40,14 +40,6 @@ export class LocalEnvironmentManager {
     private constructor() {
     }
 
-    public getAllRuntimes(): LocalEnvironment[] {
-        const runtimes: LocalEnvironment[] = [];
-        for (const runtime of this.runtimes.values()) {
-            runtimes.push(runtime);
-        }
-        return runtimes;
-    }
-
     public updateRuntime(name: string, runtime: LocalEnvironment): void {
         this.runtimes.set(name, runtime);
     }

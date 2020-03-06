@@ -188,9 +188,15 @@ In this step we will interact with the network as Org2 through a series of trans
 
 2. Connect to Org2 the same way you connected to Org1 previously. Select `newNetwork – Org2` under `FABRIC GATEWAYS` and select `org2Admin`. Now navigate to the list of available transactions for Org2 under `FABRIC GATEWAYS > Channels > mychannel`. This list of transactions will be the same as for Org1.
 
-3. Org2 is able to see that Org1 created an asset with the asset ID of 001. So let's see what happens when Org2 tries to read the transaction. As in step 4.3, evaluate a `readMyPrivateAsset` transaction using the argument `["001"]` and no transient data. This will throw an error into your notifications and in the output.
+3. Org2 is able to see that Org1 created an asset with the asset ID of 001. So let's see what happens when Org2 tries to read the transaction. As in step 5.3, evaluate a `readMyPrivateAsset` transaction using the argument `["001"]` and no transient data. This will throw an error into your notifications and in the output.
 
-You should now feel more comfortable with the differences between transacting as an organisation that has access to a private asset and one that doesn't. But what if Org2 wanted to check what Org1 had stored in their private data collection with the permission of Org1?
+4. What if Org2 wanted to create their own private asset? As in step 5.2, submit a `createMyPrivateAsset` transaction. As the asset ID 001 has already been used (when Org1 created their asset), enter `[002]` for the assetID. Enter `{"privateValue":"150"}` as the transient data, and choose default peer targeting. This transaction should then succeed with the output `[TIMESTAMP] [SUCCESS] No value returned from createMyPrivateAsset`.
+
+It's likely that you were expecting this transaction to fail. Org2 wasn't able to read from Org1's private data collection, so why should it be able to write to it? 
+
+Imagine that a transaction is sent to both Org1 and Org2 at the same time, in order to meet the endorsement policy. Both of the peers need write access to the same set of private data collections to achieve endorsement, otherwise there will be difference between the transactions signatures that Org1 and Org2 end up with. As such, Org2 is able to submit a `createMyPrivateAsset` transaction to Org1's private data collection without any issues.
+
+You should now feel more comfortable with the differences between transacting as an organisation that is a member of a private data collection and one that isn't. But what if Org2 wanted to check what Org1 had stored in their private data collection with the permission of Org1? 
 
 </details>
 
@@ -199,7 +205,7 @@ You should now feel more comfortable with the differences between transacting as
 <details>
 <summary><b>7. Using the verify transaction to check what is stored in a Private Data Collection</b></summary>
 
-So if Org2 was a regulatory body and wanted to make sure that Org1&#39;s private asset was legally sound; Org1 could tell Org2 what the original value of the asset was, and Org2 could run a verify transaction to confirm this. This is what we will do in this step; please remain connected to the Org2 Fabric Gateway. Before carrying out this step, let us give you a bit of information about the verify transaction. The function appears in the contract like this;
+So if Org2 was a regulatory body and wanted to make sure that Org1's private asset was legally sound; Org1 could tell Org2 what the original value of the asset was, and Org2 could run a verify transaction to confirm this. This is what we will do in this step; please remain connected to the Org2 Fabric Gateway. Before carrying out this step, let us give you a bit of information about the verify transaction. The function appears in the contract like this;
 
     @Transactions(false)
 

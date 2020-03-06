@@ -53,12 +53,12 @@ If you wish to control which files in the project are packaged, you can create a
 
 The extension is compatible with connecting to and interacting with any Fabric 1.4.x network.
 
-#### Local Fabric
-The extension contains a pre-configured local instance of Hyperledger Fabric named `Local Fabric`, which the extension will automatically pull and use the correct Docker images for. It is a pre-configured network with one organization, one peer and one channel. It can be enabled and operated under the `Fabric Environments` panel. The first time it is started, Fabric 1.4.4 images will be installed and an admin identity created in the `Local Fabric - Org1 Wallet` wallet.
+#### 1 Org Local Fabric
+The extension contains a pre-configured local instance of Hyperledger Fabric named `1 Org Local Fabric`, which the extension will automatically pull and use the correct Docker images for. It is a pre-configured network with one organization, one peer and one channel. It can be enabled and operated under the `Fabric Environments` panel. The first time it is started, Fabric 1.4.6 images will be installed and an admin identity created in the `1 Org Local Fabric - Org1 Wallet` wallet.
 
-For `Local Fabric` management tasks such as restart and teardown, right click on `Local Fabric` in the `Fabric Environments` panel.
+For `1 Org Local Fabric` management tasks such as restart and teardown, right click on `1 Org Local Fabric` in the `Fabric Environments` panel.
 
-The `Local Fabric` currently uses Fabric 1.4.4 images.
+The `1 Org Local Fabric` currently uses Fabric 1.4.6 images.
 
 #### Connecting to another instance of Hyperledger Fabric
 The extension allow you to connect to any Hyperledger Fabric instance and perform some operational tasks. The tasks available are: install, instantiate and registering and enrolling identities.
@@ -194,10 +194,10 @@ After creating an environment, the next step before connecting is to associate a
 You can import more nodes to an existing environment by connecting to the environment, expand `nodes` and then click on `+ Import nodes`. 
 
 ### Install and Instantiate smart contract packages
-Deploying a smart contract package is a two step process: install the package on a peer and instantiate it on a channel. Run the `Install Smart Contract` command, followed by the `Instantiate Smart Contract` command to deploy your smart contract package on the `Local Fabric` runtime. The deployed smart contracts are listed in the `Fabric Environments` panel.
+Deploying a smart contract package is a two step process: install the package on a peer and instantiate it on a channel. Run the `Install Smart Contract` command, followed by the `Instantiate Smart Contract` command to deploy your smart contract package on the `1 Org Local Fabric` runtime. The deployed smart contracts are listed in the `Fabric Environments` panel.
 
 ### Debugging a smart contract
-Debugging your smart contract allows you to run through the smart contract transactions with breakpoints and output, to ensure your transaction works as intended. ***Note: This is only currently available for the Local Fabric, remote debug is not currently available***
+Debugging your smart contract allows you to run through the smart contract transactions with breakpoints and output, to ensure your transaction works as intended. ***Note: This is only currently available for the local Fabrics such as the `1 Org Local Fabric` or any other created from a template. Remote debug is not currently available***
 
 To debug Go smart contracts, please install the [Go extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.Go).
 
@@ -217,7 +217,7 @@ where `start.js` contains the line `Shim.start(new Chaincode());`.
 
 To debug your smart contract follow these steps:
 
-1. Ensure you are connected to the `Local Fabric` runtime.
+1. Ensure you are connected to the `1 Org Local Fabric` runtime.
 2. Open your smart contract project in your workspace.
 3. Open the debug view in Visual Studio Code using the left-hand navigation bar.
 4. Select the `Debug Smart Contract` configuration by using the dropdown in the upper-left and click the **play** button on the debug toolbar. The extension will automatically instantiate or upgrade the smart contract as appropriate. If you want to test out a function that is called on instantiate or upgrade add the following to the launch configuration, where `name` is the name of the smart contract and `version` is different to the previous version used. Alternatively if you are using JavaScript or TypeScript then you can update the `version` in the package.json file.
@@ -290,18 +290,15 @@ Add the following dependencies:
 
 All functional tests will be created in `<yourProject>/src/test/java/org/example`.
 
-**_If you have previously generated Java functional tests during its BETA, please update the fabric-gateway-java dependency from 1.4.1-SNAPSHOT to 1.4.2_**
-
-
 ### Wallet Management
-The extension creates a `Local Fabric - Org1 Wallet` file system wallet when the `Local Fabric` runtime instance is started and is automatically associated with the `Local Fabric - Org1` gateway. When `Local Fabric` is started, an admin identity is added to the `Local Fabric - Org1 Wallet` and cannot be deleted unless the `Local Fabric` runtime is torn down.
+The extension creates a `1 Org Local Fabric - Org1 Wallet` file system wallet when the `1 Org Local Fabric` runtime instance is started and is automatically associated with the `1 Org Local Fabric - Org1` gateway. When `1 Org Local Fabric` is started, an admin identity is added to the `1 Org Local Fabric - Org1 Wallet` and cannot be deleted unless the `1 Org Local Fabric` runtime is torn down.
 
 The `Add Identity to Wallet` command will ask for a name, MSPID and a method to add an identity. These methods include providing a certificate and private key, a JSON identity file, or a gateway, enrollment id and secret.
 
 For wallets associated with other remote Fabric gateways, the `Add Wallet`, `Export Wallet` and `Remove Wallet` commands are available in the `Fabric Wallets` panel for wallet management.
 
 ### Creating an identity with attributes
-Identities can be registered and enrolled with attributes from the `Local Fabric` certificate authority.
+Identities can be registered and enrolled with attributes from the `1 Org Local Fabric` certificate authority.
 
 The `Create Identity (register and enroll)` command will ask for an identity name and whether the identity should have any attributes added.
 Selecting `Yes` will ask for the identity's attributes that should be provided in the following format:
@@ -321,31 +318,15 @@ However, when debugging a transaction it might be necessary to change the time t
 
 The following settings can be changed in the user settings to increase or decrease the time taken for a transaction to timeout:
 - `ibm-blockchain-platform.fabric.client.timeout` - timeout value used for communication to the peers and orderers (changes `request-timeout`)
-- `ibm-blockchain-platform.fabric.chaincode.timeout` - timeout value for chaincode that's been started by the Local Fabric (changes `CORE_CHAINCODE_EXECUTETIMEOUT`)
+- `ibm-blockchain-platform.fabric.chaincode.timeout` - timeout value for chaincode that's been started by the 1 Org Local Fabric (changes `CORE_CHAINCODE_EXECUTETIMEOUT`)
 
 ***Note: If the value of `ibm-blockchain-platform.fabric.client.timeout` is changed, you must disconnect from a connected gateway before the new value takes affect***
 
-***Note: If the value of `ibm-blockchain-platform.fabric.chaincode.timeout` is changed, you must restart the Local Fabric before the new value takes affect***
+***Note: If the value of `ibm-blockchain-platform.fabric.chaincode.timeout` is changed, you must restart the 1 Org Local Fabric before the new value takes affect***
 
-### Local Fabric Runtime ports
+### 1 Org Local Fabric Runtime ports
 
-As of `v1.0.19` the `ibm-blockchain-platform.fabric.runtime` user setting has changed format from:
-
-```
-"ibm-blockchain-platform.fabric.runtime": {
-    "ports": {
-        "orderer": 17050,
-        "peerRequest": 17051,
-        "peerChaincode": 17052,
-        "peerEventHub": 17053,
-        "certificateAuthority": 17054,
-        "couchDB": 17055,
-        "logs": 17056
-    }
-}
-```
-
-to
+As of `v1.0.21` the `ibm-blockchain-platform.fabric.runtime` user setting has changed format from:
 
 ```
 "ibm-blockchain-platform.fabric.runtime": {
@@ -356,7 +337,20 @@ to
 }
 ```
 
-The `startPort` and `endPort` are used when attempting to start the Local Fabric, to determine which ports to try and run the Docker containers on.
+to
+
+```
+"ibm-blockchain-platform.fabric.runtime": {
+    "1 Org Local Fabric": {
+        "ports": {
+            "startPort": 17050,
+            "endPort": 17069
+        }
+    }
+}
+```
+
+The `startPort` and `endPort` are used when attempting to start the 1 Org Local Fabric, to determine which ports to try and run the Docker containers on.
 
 If you decide to change these ports, you will need to run the `Teardown Fabric Runtime` command before starting it again. This is required in order to regenerate the files containing the new port range.
 
@@ -400,7 +394,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Associate Identity with a Node | Associate an identity with a node to enable the extension to connect to that node |
 | Connect Via Gateway | Connect to a Hyperledger Fabric instance using a gateway |
 | Create New Project | Create a new smart contract project |
-| Create Identity (register and enroll) | Create, register and enroll a new identity from the Local Fabric runtime certificate authority |
+| Create Identity (register and enroll) | Create, register and enroll a new identity from the local Fabric runtime certificate authority |
 | Debug | Debug a Smart Contract |
 | Delete Environment | Delete a Hyperledger Fabric instance environment |
 | Delete Identity | Delete an identity from a wallet |
@@ -417,17 +411,17 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Generate Smart Contract Tests | Create functional level test files for single or multiple contracts |
 | Import a Package | Import a smart contract package |
 | Import nodes into environment | Import more nodes into an environment |
-| Install Smart Contract | Install a smart contract package onto a Local Fabric runtime peer |
+| Install Smart Contract | Install a smart contract package onto a local Fabric runtime peer |
 | Instantiate Smart Contract | Instantiate an installed smart contract package onto a channel |
 | Open Release Notes | Open the release notes page |
 | Package Open Project | Create a new smart contract package from a project in the Explorer |
 | Remove Wallet | Remove a wallet from the Fabric Wallets view |
 | Replace Identity Associated with a Node | Replace which identity is associated with a node |
-| Restart Fabric Runtime | Restart the Local Fabric instance |
-| Start Fabric Runtime | Start the Local Fabric instance |
-| Stop Fabric Runtime | Stop the Local Fabric instance |
+| Restart Fabric Runtime | Restart the local Fabric instance |
+| Start Fabric Runtime | Start the local Fabric instance |
+| Stop Fabric Runtime | Stop the local Fabric instance |
 | Submit Transaction | Submit a transaction to a smart contract |
-| Teardown Fabric Runtime | Teardown the Local Fabric runtime (hard reset) |
+| Teardown Fabric Runtime | Teardown the local Fabric runtime (hard reset) |
 | Upgrade Smart Contract | Upgrade an instantiated smart contract |
 | View Homepage | View the extensions homepage |
 | View Prerequisites | View the required and optional dependencies on the prerequisites page |
@@ -466,7 +460,7 @@ The following dependencies are optional:
 
 - You are using Windows 10 Pro or Enterprise and have the Anniversary Update 1607
 
-### Local Fabric functionality
+### 1 Org Local Fabric functionality
 
 This extension can use Docker and Docker Compose to run a simple pre-configured local Hyperledger Fabric network on your machine. By default this feature is enabled as we highly recommend using it, however you may disable this feature if required.
 
@@ -487,7 +481,7 @@ You will need the following:
   - Install the Win32 version into `C:\OpenSSL-Win32` on 32-bit systems
   - Install the Win64 version into `C:\OpenSSL-Win64` on 64-bit systems
 
-For more information see the [Local Fabric](#local-fabric) section.
+For more information see the [1 Org Local Fabric](#1-org-local-fabric) section.
 
 ### Additional information
 To open the Prerequisites page manually, run the `View Prerequisites` command inside VS Code from the Command Palette.

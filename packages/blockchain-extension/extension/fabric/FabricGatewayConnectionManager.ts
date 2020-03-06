@@ -38,7 +38,7 @@ export class FabricGatewayConnectionManager extends EventEmitter {
     }
 
     public async getGatewayRegistryEntry(): Promise<FabricGatewayRegistryEntry> {
-        if (this.gatewayRegistryEntry === undefined) {
+        if (!this.gatewayRegistryEntry) {
             return this.gatewayRegistryEntry;
         } else {
             if (this.gatewayRegistryEntry.fromEnvironment) {

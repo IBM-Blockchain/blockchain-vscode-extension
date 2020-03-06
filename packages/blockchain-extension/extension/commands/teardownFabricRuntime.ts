@@ -23,8 +23,6 @@ import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsible
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
-import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
-import { ManagedAnsibleEnvironmentManager } from '../fabric/environments/ManagedAnsibleEnvironmentManager';
 
 export async function teardownFabricRuntime(runtimeTreeItem: RuntimeTreeItem, force: boolean = false, environmentName?: string): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -66,15 +64,6 @@ export async function teardownFabricRuntime(runtimeTreeItem: RuntimeTreeItem, fo
 
     if (runtime) {
         runtimeName = runtime.getName();
-
-        // The order matters here as technically a LocalEnvironment is an instanceof a ManagedAnsibleEnvironment
-        if (runtime instanceof LocalEnvironment) {
-            // Delete from manager
-            LocalEnvironmentManager.instance().removeRuntime(runtimeName);
-        } else {
-            // Runtime is an instanceof ManagedAnsibleEnvironment
-            ManagedAnsibleEnvironmentManager.instance().removeRuntime(runtimeName);
-        }
     } else {
         // This is the case when we try to teardown an old 'Local Fabric' runtime, which won't be returned from getEnvironment.
         runtimeName = registryEntry.name;

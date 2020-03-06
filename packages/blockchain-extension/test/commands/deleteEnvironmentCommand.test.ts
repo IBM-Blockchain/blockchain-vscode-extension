@@ -30,6 +30,9 @@ import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGat
 import { RuntimeTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { SettingConfigurations } from '../../configurations';
 import { GlobalState, ExtensionData } from '../../extension/util/GlobalState';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
+import { ManagedAnsibleEnvironmentManager } from '../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
+import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 
 chai.should();
 chai.use(sinonChai);
@@ -55,6 +58,8 @@ describe('DeleteEnvironmentCommand', () => {
         let getConnectedGatewayRegistryStub: sinon.SinonStub;
         let getAllSpy: sinon.SinonSpy;
         let globalStateUpdateSpy: sinon.SinonSpy;
+        let removeLocalRuntimeSpy: sinon.SinonSpy;
+        let removeManagedRuntimeSpy: sinon.SinonSpy;
 
         beforeEach(async () => {
             mySandBox.restore();
@@ -62,8 +67,6 @@ describe('DeleteEnvironmentCommand', () => {
 
             // reset the available environments
             await FabricEnvironmentRegistry.instance().clear();
-
-            await TestUtil.setupLocalFabric();
 
             const settings: any = {};
             settings[FabricRuntimeUtil.LOCAL_FABRIC] = {
@@ -105,6 +108,11 @@ describe('DeleteEnvironmentCommand', () => {
 
             getAllSpy = mySandBox.spy(FabricEnvironmentRegistry.instance(), 'getAll');
             globalStateUpdateSpy = mySandBox.spy(GlobalState, 'update');
+
+            removeLocalRuntimeSpy = mySandBox.spy(LocalEnvironmentManager.instance(), 'removeRuntime');
+            removeManagedRuntimeSpy = mySandBox.spy(ManagedAnsibleEnvironmentManager.instance(), 'removeRuntime');
+
+            mySandBox.stub(LocalEnvironment.prototype, 'isRunning').resolves(false);
         });
 
         afterEach(() => {
@@ -311,6 +319,7 @@ describe('DeleteEnvironmentCommand', () => {
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(3);
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `delete environment`);
+
         });
 
         it('should show an error message if no environments have been added', async () => {
@@ -340,6 +349,7 @@ describe('DeleteEnvironmentCommand', () => {
             environments[2].should.deep.equal(myEnvironmentB);
 
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `delete environment`);
+
         });
 
         it('should handle error from deleting environment', async () => {
@@ -395,6 +405,9 @@ describe('DeleteEnvironmentCommand', () => {
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+
+            removeLocalRuntimeSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC);
+            removeManagedRuntimeSpy.should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ${FabricRuntimeUtil.LOCAL_FABRIC} environment`);
@@ -459,6 +472,9 @@ describe('DeleteEnvironmentCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, 'otherLocal');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
 
+            removeLocalRuntimeSpy.should.have.been.calledOnceWithExactly('otherLocal');
+            removeManagedRuntimeSpy.should.not.have.been.called;
+
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted otherLocal environment`);
 
@@ -502,6 +518,9 @@ describe('DeleteEnvironmentCommand', () => {
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+
+            removeLocalRuntimeSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC);
+            removeManagedRuntimeSpy.should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ${FabricRuntimeUtil.LOCAL_FABRIC} environment`);
@@ -562,11 +581,103 @@ describe('DeleteEnvironmentCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, 'otherLocal');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
 
+            removeLocalRuntimeSpy.should.have.been.calledOnceWithExactly('otherLocal');
+            removeManagedRuntimeSpy.should.not.have.been.called;
+
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted otherLocal environment`);
 
             const localSettings: any = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
             localSettings.should.deep.equal({});
+        });
+
+        it(`should be able to delete a managed ansible environment from the tree`, async () => {
+
+            const otherLocalEnvEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
+                name: 'otherLocal',
+                managedRuntime: true,
+                environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
+                environmentDirectory: path.join(__dirname, '..', 'data', 'managedAnsible')
+            });
+
+            await FabricEnvironmentRegistry.instance().add(otherLocalEnvEntry);
+
+            showFabricEnvironmentQuickPickBoxStub.resolves([{
+                label: 'otherLocal',
+                data: otherLocalEnvEntry
+            }]);
+
+            commandSpy.restore();
+
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+
+            const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
+
+            const environmentToDelete: BlockchainTreeItem = allChildren[3];
+
+            environmentToDelete.should.be.an.instanceOf(RuntimeTreeItem);
+
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT, environmentToDelete);
+
+            showFabricEnvironmentQuickPickBoxStub.should.not.have.been.called;
+            environments =  await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(3);
+
+            environments[0].name.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
+            environments[1].should.deep.equal(myEnvironmentA);
+            environments[2].should.deep.equal(myEnvironmentB);
+
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, 'otherLocal');
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+
+            removeLocalRuntimeSpy.should.not.have.been.called;
+            removeManagedRuntimeSpy.should.have.been.calledOnceWithExactly('otherLocal');
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted otherLocal environment`);
+
+        });
+
+        it('should be able to delete a managed ansible environment from the command', async () => {
+
+            const otherLocalEnvEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
+                name: 'otherLocal',
+                managedRuntime: true,
+                environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
+                environmentDirectory: path.join(__dirname, '..', 'data', 'managedAnsible')
+            });
+
+            await FabricEnvironmentRegistry.instance().add(otherLocalEnvEntry);
+            commandSpy.restore();
+
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+
+            showFabricEnvironmentQuickPickBoxStub.resolves([{
+                label: 'otherLocal',
+                data: otherLocalEnvEntry
+            }]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
+
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
+
+            environments =  await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(3);
+            environments[0].name.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
+            environments[1].should.deep.equal(myEnvironmentA);
+            environments[2].should.deep.equal(myEnvironmentB);
+
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, 'otherLocal');
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+
+            removeLocalRuntimeSpy.should.not.have.been.called;
+            removeManagedRuntimeSpy.should.have.been.calledOnceWithExactly('otherLocal');
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted otherLocal environment`);
         });
 
         it('should warn user if error occurs whilst tearing down local environment during deletion', async () => {

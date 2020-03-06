@@ -24,7 +24,6 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { ModuleUtil } from '../util/ModuleUtil';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
-import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
@@ -189,9 +188,9 @@ export async function addEnvironment(): Promise<void> {
 
             await LocalEnvironmentManager.instance().initialize(environmentName, configurationChosen);
 
-            const environment: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime(environmentName);
+            const environmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
             // Generate all nodes, gateways and wallets
-            await environment.generate(outputAdapter);
+            await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC, environmentEntry);
 
             if (environmentName === FabricRuntimeUtil.LOCAL_FABRIC) {
                 // If the user has deleted their 1 Org Local Fabric and wants to recreate it, we need to set this flag to true.
@@ -230,6 +229,7 @@ export async function addEnvironment(): Promise<void> {
 
             if (addedAllNodes === undefined) {
                 await fabricEnvironmentRegistry.delete(fabricEnvironmentEntry.name);
+                // No need to try and delete from LocalEnvironmentManager, as it can't be a LocalEnvironment entry.
                 return;
             } else if (addedAllNodes) {
                 const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentEntry);
@@ -249,8 +249,6 @@ export async function addEnvironment(): Promise<void> {
     } catch (error) {
 
         if (fabricEnvironmentEntry.name) {
-            // If we error after providing a valid name
-            await fabricEnvironmentRegistry.delete(fabricEnvironmentEntry.name, true);
 
             if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE) {
 
@@ -265,11 +263,20 @@ export async function addEnvironment(): Promise<void> {
                 try {
                     await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, fabricEnvironmentEntry.name);
                 } catch (err) {
-                            // Try to delete anything related to the container if possible.
+                    // Try to delete anything related to the container if possible.
                     // This is because containers might have been started but then another step in the playbook fails.
                     // This is assuming that the error thrown from the playbook is detailed enough that a user won't need to look at broken/stopped containers.
                 }
 
+            }
+
+            // If we error after providing a valid name
+            await fabricEnvironmentRegistry.delete(fabricEnvironmentEntry.name, true);
+
+            if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE) {
+                // Can only be a LocalEnvironment if created using template.
+                // Need to remove runtime after deleting entry.
+                LocalEnvironmentManager.instance().removeRuntime(fabricEnvironmentEntry.name);
             }
 
         }

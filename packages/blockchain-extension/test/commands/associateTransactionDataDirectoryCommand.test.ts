@@ -189,7 +189,6 @@ describe('AssociateTestDataDirectoryCommand', () => {
                 transactionDataPath
             }]);
 
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateTestDataDirectory');
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated the directory "${transactionDataPath}" with "${instantiatedSmartContract.label}"`);
         });
@@ -205,7 +204,6 @@ describe('AssociateTestDataDirectoryCommand', () => {
                 transactionDataPath
             }]);
 
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateTestDataDirectory');
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated the directory "${transactionDataPath}" with "${instantiatedSmartContract.label}"`);
         });
@@ -254,7 +252,6 @@ describe('AssociateTestDataDirectoryCommand', () => {
                 transactionDataPath
             }]);
 
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateTestDataDirectory');
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated the directory "${transactionDataPath}" with "${instantiatedSmartContract.label}"`);
         });
@@ -283,7 +280,6 @@ describe('AssociateTestDataDirectoryCommand', () => {
                 transactionDataPath
             }]);
 
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateTestDataDirectory');
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated the directory "${transactionDataPath}" with "${instantiatedSmartContract.label}"`);
         });
@@ -312,7 +308,6 @@ describe('AssociateTestDataDirectoryCommand', () => {
                 transactionDataPath: otherPath
             }]);
 
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             logSpy.getCall(2).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateTestDataDirectory');
             logSpy.getCall(3).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated the directory "${otherPath}" with "${instantiatedSmartContract.label}"`);
         });
@@ -341,7 +336,6 @@ describe('AssociateTestDataDirectoryCommand', () => {
                 transactionDataPath: workspaceTxDataPath
             }]);
 
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateTestDataDirectory');
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated the directory "${workspaceTxDataPath}" with "${instantiatedSmartContract.label}"`);
         });
@@ -368,7 +362,6 @@ describe('AssociateTestDataDirectoryCommand', () => {
                 transactionDataPath
             }]);
 
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateTestDataDirectory');
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated the directory "${transactionDataPath}" with "${instantiatedSmartContract.label}"`);
         });
