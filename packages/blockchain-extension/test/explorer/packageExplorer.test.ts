@@ -83,7 +83,7 @@ describe('packageExplorer', () => {
 
         const firstTestPackage: PackageTreeItem = blockchainPackageExplorerProvider.getTreeItem(testPackages[0]) as PackageTreeItem;
         firstTestPackage.label.should.equal('vscode-pkg-1@0.0.1');
-        firstTestPackage.tooltip.should.equal('vscode-pkg-1@0.0.1');
+        firstTestPackage.tooltip.should.equal('vscode-pkg-1@0.0.1\nFile size: 3 KB');
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
     });
 });

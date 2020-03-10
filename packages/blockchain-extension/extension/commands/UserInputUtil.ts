@@ -1216,7 +1216,7 @@ export class UserInputUtil {
             const chaincodes: Map<string, Array<string>> = await connection.getInstalledChaincode(peer);
             chaincodes.forEach((versions: string[], chaincodeName: string) => {
                 versions.forEach((version: string) => {
-                    const _package: PackageRegistryEntry = new PackageRegistryEntry({ name: chaincodeName, version: version, path: undefined });
+                    const _package: PackageRegistryEntry = new PackageRegistryEntry({ name: chaincodeName, version: version, path: undefined, sizeKB: undefined });
                     const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = { packageEntry: _package, workspace: undefined };
                     const label: string = `${chaincodeName}@${version}`;
                     const foundItem: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = tempQuickPickItems.find((item: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>) => {

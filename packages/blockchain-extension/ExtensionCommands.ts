@@ -21,6 +21,7 @@ export class ExtensionCommands {
     static readonly PACKAGE_SMART_CONTRACT: string = 'aPackagesExplorer.packageSmartContractProjectEntry';
     static readonly IMPORT_SMART_CONTRACT: string = 'aPackagesExplorer.importSmartContractPackageEntry';
     static readonly CREATE_SMART_CONTRACT_PROJECT: string = 'aPackagesExplorer.createSmartContractProjectEntry';
+    static readonly VIEW_PACKAGE_INFORMATION: string = 'aPackagesExplorer.viewPackageInformationEntry';
 
     // ENVIRONMENT VIEW
     static readonly ADD_ENVIRONMENT: string = 'environmentExplorer.addEnvironmentEntry';

@@ -276,4 +276,11 @@ export class SmartContractHelper {
 
         await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
     }
+
+    public async viewContractInformation(name: string, version: string): Promise<void> {
+        const _package: PackageRegistryEntry = await PackageRegistry.instance().get(name, version);
+        this.userInputUtilHelper.showSmartContractPackagesQuickPickBoxStub.resolves({ label: _package.name, description: _package.version, data: _package });
+        await vscode.commands.executeCommand(ExtensionCommands.VIEW_PACKAGE_INFORMATION);
+    }
+
 }

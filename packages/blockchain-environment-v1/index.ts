@@ -16,3 +16,4 @@
 export * from './src/FabricEnvironmentConnection';
 export * from './src/PackageSmartContract';
 export * from './src/FabricCertificateAuthority';
+export * from './src/ListFilesInPackage';

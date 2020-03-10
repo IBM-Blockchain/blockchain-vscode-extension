@@ -41,6 +41,10 @@ module.exports = function(): any {
         await this.smartContractHelper.packageSmartContract(this.contractName, this.contractVersion, this.contractLanguage, this.contractDirectory);
     });
 
+    this.When(/I run the command View package Information for package with name (.*) and version (.\S+)/, this.timeout, async (packagedName: string, version: string) => {
+        await this.smartContractHelper.viewContractInformation(packagedName, version);
+    });
+
     /**
      * Then
      */
