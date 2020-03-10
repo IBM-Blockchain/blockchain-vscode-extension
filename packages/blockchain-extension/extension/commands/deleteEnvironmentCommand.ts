@@ -69,7 +69,8 @@ export async function deleteEnvironment(environment: FabricEnvironmentTreeItem |
         const connectedEnvironmentRegistry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
         const connectedGatewayRegistry: FabricGatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
 
-        const localSettings: any = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
+        const _settings: any = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
+        const localSettings: any = JSON.parse(JSON.stringify(_settings));
 
         for (const _environment of environmentsToDelete) {
             if (connectedEnvironmentRegistry && connectedEnvironmentRegistry.name === _environment.name) {

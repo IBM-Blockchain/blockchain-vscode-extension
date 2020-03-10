@@ -235,7 +235,8 @@ export class LocalEnvironmentManager {
     }
 
     private async migrateRuntimeConfiguration(oldRuntimeSetting: any): Promise<void> {
-        const runtimeObj: any = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME); // {} || {ports: {}}
+        const _runtimeObj: any = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME); // {} || {ports: {}}
+        const runtimeObj: any = JSON.parse(JSON.stringify(_runtimeObj));
         if (oldRuntimeSetting && !runtimeObj.ports && !runtimeObj[FabricRuntimeUtil.LOCAL_FABRIC]) {
 
             const runtimeToCopy: any = {
