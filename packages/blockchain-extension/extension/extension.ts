@@ -41,6 +41,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
     const originalExtensionData: ExtensionData = GlobalState.get();
+
+    if (originalExtensionData.createOneOrgLocalFabric === undefined) {
+        originalExtensionData.createOneOrgLocalFabric = true;
+    }
+
+    if (originalExtensionData.deletedOneOrgLocalFabric === undefined) {
+        originalExtensionData.deletedOneOrgLocalFabric = false;
+    }
+
     const newExtensionData: ExtensionData = {
         activationCount: originalExtensionData.activationCount + 1,
         version: currentExtensionVersion,

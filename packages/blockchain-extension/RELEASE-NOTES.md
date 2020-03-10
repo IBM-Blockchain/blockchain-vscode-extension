@@ -1,43 +1,59 @@
-# IBM Blockchain Platform Extension updated to v1.0.20
-_Release date: February 20th 2020_
+# IBM Blockchain Platform Extension updated to v1.0.21
+_Release date: March 9th 2020_
 
 Announcements
 ---
 * We’re still waiting for the gRPC v1.25.0 binaries to be published so you may be affected by [this issue](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621), where gRPC fails to rebuild when using VS Code 1.40.x.
    > Please see [this comment](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621#issuecomment-552926559) for a workaround.
 
-Features & Enhancements
+* As part of our new feature for creating new 1-Organisation or 2-Organisation local Fabric environments locally, we have renamed the 'Local Fabric' environment to '1 Org Local Fabric'.
+
+* If you have generated any functional tests for the old 'Local Fabric', you will need to change any paths to use the '1 Org Local Fabric' environment now.
+
+Features & Enhancements
 ---
-* Ability to use transaction data files to make submitting transactions easier [#1822](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1822) [#1823](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1823) [#1801](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1801).
-   > It’s now possible to create transaction data files, removing the need to manually type in arguments every time you submit a transaction.
+* Ability to create new 1-Organisation or 2-Organisation local Fabric environments locally [#1898](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1898), [#1862](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1862), [#1863](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1863), [#1558](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1558).
+   > It's now possible to create a new local runtime from either a 1-Organisation or 2-Organisation template, when adding a new environment.
    >
-   > For information on how to write and use transaction data files, check out the [README](https://github.com/IBM-Blockchain/blockchain-vscode-extension#using-transaction-data-files-to-submit-a-transaction).
+   > A 2-Organisation local environment can be used to try out generated private data smart contracts.
 
-* Ability to add an environment by connecting to a IBM Blockchain Platform console software instance [#1334](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1334) [#1335](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1335).
-   > In addition to this we are currently working on making it possible to connect to the IBM Blockchain Platform console on IBM Cloud.
+* Added a new `Getting Started with Private Data` tutorial [#1988](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1988).
+   > This tutorial goes through a private data scenario, creating the 2 Organisation network and generating a starting private data smart contract using the extension.
    >
-   > A tutorial which goes into detail on connecting to the IBM Blockchain Platform console within the extension will be published in a future release. 
+   > This tutorial can be accessed from the Tutorial Gallery by running the '`View Tutorial Gallery`' command. 
 
-* Ability to generate a 'private data' smart contract [#1826](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1826)
-   > When creating a new smart contract project, you now have the ability to generate a 'private data' smart contract.
-   >
-   > This project includes a collections file which can be provided at instantiation time, as well as a smart contract which demonstrates how to read and write to a private data collection.
-   >
-   > A tutorial which goes into more detail on private data will be added at a later date!
-   
+* Ability to open up the latest release notes [#1898](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1898).
+   > From the Command Palette it's now possible to open up the latest release notes by running the '`Open Release Notes`' command.
+
+* Ability to open up Home page from the status bar [#1983](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1983).
+   > On the bottom status bar, you can now click '`Blockchain Home`' to open up the home page.
+
+* Newly generated smart contracts will use version 1.4.5 of the `fabric-contract-api` and `fabric-shim`. Any local environments created will also use 1.4.6 of the Fabric Docker images.
+   > This also fixes the packaging issue [#2014](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2014)
+
 Fixes
 ---
-* Fixed adding a wallet using a gateway [#1894](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1894).
+* Should show error if there are no packages to install [#1701](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1701).
 
-* Fixed problem loading wallets on activation [#1888](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1888).
+* Should show error if there are no smart contracts to instantiate [#1702](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1702).
 
-* Fixed 'View on GitHub' links in sample gallery [#1776](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1776).
+* Disabling local functionality shouldn't make Docker for Windows or the System Requirements required [#1843](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1843).
 
-* Fixed gateway and wallet panels to refresh when an environment updates [#1877](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1877).
+* Fixed adding a wallet with the same name deleting the original wallet [#1838](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1838).
+
+* Fixed being able to replace an identity [#1846](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1846).
+
+* Fixed asking the user to select the channel when submitting/evaluating a transaction, when the contract is instantied on multiple channels [#1777](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1777).
+
+* Fixed error when attempting to upgrade from command palette when there are no smart contracts [#1970](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1970).
+
+* Fixed error when attempting to delete an environment which has a gateway created from it [#1966](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1966).
+
+* Removed broken `Open New Terminal` command [#1858](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1858).
 
 
 This release's Conga Comic:
 ---
-<img src="https://congacomic.github.io/assets/img/blockheight-67.jpg" width="800">
+<img src="https://congacomic.github.io/assets/img/blockheight-68.jpg" width="800">
 
 For the full history of all releases, see the [change log](https://marketplace.visualstudio.com/items/IBMBlockchain.ibm-blockchain-platform/changelog).

@@ -30,3 +30,4 @@ coverage
 /cucumber/ansible/nodes/
 /cucumber/ansible/gateways/
 /cucumber/report/
+/cucumber/cucumber-report.json

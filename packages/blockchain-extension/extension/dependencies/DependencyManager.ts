@@ -23,7 +23,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { CommandUtil } from '../util/CommandUtil';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { Dependencies } from './Dependencies';
-import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { LogType } from 'ibm-blockchain-platform-common';
 
 export class DependencyManager {
 
@@ -224,8 +224,8 @@ export class DependencyManager {
 
         const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
         if (localFabricEnabled) {
-            dependencies.docker = { name: 'Docker', required: true, version: undefined, url: 'https://docs.docker.com/install/#supported-platforms', requiredVersion: Dependencies.DOCKER_REQUIRED, requiredLabel: '', tooltip: `Used to download Hyperledger Fabric images and manage containers for the ${FabricRuntimeUtil.LOCAL_FABRIC}.` };
-            dependencies.dockerCompose = { name: 'Docker Compose', required: true, version: undefined, url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '', tooltip: `Used for managing and operating the individual ${FabricRuntimeUtil.LOCAL_FABRIC} components.` };
+            dependencies.docker = { name: 'Docker', required: true, version: undefined, url: 'https://docs.docker.com/install/#supported-platforms', requiredVersion: Dependencies.DOCKER_REQUIRED, requiredLabel: '', tooltip: `Used to download Hyperledger Fabric images and manage containers for local environments.` };
+            dependencies.dockerCompose = { name: 'Docker Compose', required: true, version: undefined, url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '', tooltip: `Used for managing and operating the individual local environment components.` };
 
             // Docker
             const dockerVersion: string = await this.getDockerVersion();

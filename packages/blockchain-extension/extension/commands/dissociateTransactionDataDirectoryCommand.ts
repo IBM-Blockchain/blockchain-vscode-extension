@@ -14,9 +14,8 @@
 'use strict';
 import * as vscode from 'vscode';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricGatewayRegistryEntry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
+import { FabricGatewayRegistryEntry, FabricGatewayRegistry, LogType } from 'ibm-blockchain-platform-common';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { LogType } from 'ibm-blockchain-platform-common';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 import { ContractTreeItem } from '../explorer/model/ContractTreeItem';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
@@ -84,6 +83,7 @@ export async function dissociateTransactionDataDirectory(chaincode?: Instantiate
         await fabricGatewayRegistry.update(gateway);
 
         outputAdapter.log(LogType.SUCCESS, `Successfully dissociated "${chaincodeLabel}" from its transaction data directory`);
+
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Unable to dissociate transaction data directory: ${error.message}`, `Unable to dissociate transaction data directory: ${error.toString()}`);
     }

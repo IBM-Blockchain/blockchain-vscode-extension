@@ -20,7 +20,7 @@ import { LocalEnvironmentManager } from '../../extension/fabric/environments/Loc
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
-import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
+import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { GlobalState } from '../../extension/util/GlobalState';
@@ -29,6 +29,7 @@ import { SettingConfigurations } from '../../configurations';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
+import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -82,9 +83,7 @@ describe('FabricDebugConfigurationProvider', () => {
         let isRunning: sinon.SinonStub;
         let killChaincode: sinon.SinonStub;
         let getGateways: sinon.SinonStub;
-        let showQuickPickStub: sinon.SinonStub;
-        let getAllRuntimesStub: sinon.SinonStub;
-        const localEnvironment: LocalEnvironment = new LocalEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1);
+        let showQuickPickItemStub: sinon.SinonStub;
         beforeEach(async () => {
             await FabricEnvironmentRegistry.instance().clear();
             await TestUtil.setupLocalFabric();
@@ -143,10 +142,8 @@ describe('FabricDebugConfigurationProvider', () => {
                 generatorVersion: '0.0.36'
             });
 
-            showQuickPickStub = mySandbox.stub(UserInputUtil, 'showQuickPick').resolves(FabricRuntimeUtil.LOCAL_FABRIC);
-
-            getAllRuntimesStub = mySandbox.stub(LocalEnvironmentManager.instance(), 'getAllRuntimes');
-            getAllRuntimesStub.returns([localEnvironment]);
+            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            showQuickPickItemStub = mySandbox.stub(UserInputUtil, 'showQuickPickItem').resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment});
 
         });
 
@@ -158,7 +155,8 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
+            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
@@ -168,21 +166,26 @@ describe('FabricDebugConfigurationProvider', () => {
                 args: ['127.0.0.1:54321'],
                 debugEvent: FabricDebugConfigurationProvider.debugEvent
             });
-            commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
+            commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         });
 
-        it('should only show 1-org local environments to debug for', async () => {
+        it('should only show running 1-org local environments to debug for', async () => {
 
             getName.restore();
 
-            const otherLocalEnvironment: LocalEnvironment = new LocalEnvironment('OtherLocalEnv', undefined, 1);
-            const twoOrgEnvironment: LocalEnvironment = new LocalEnvironment('twoOrgEnvironment', undefined, 2);
+            isRunning.onCall(2).resolves(false);
 
-            getAllRuntimesStub.returns([localEnvironment, otherLocalEnvironment, twoOrgEnvironment]);
+            const otherLocalEntry: FabricEnvironmentRegistryEntry = {name: 'OtherLocalEnv', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1};
+            await FabricEnvironmentRegistry.instance().add(otherLocalEntry);
+            await FabricEnvironmentRegistry.instance().add({name: 'stoppedLocalEnv', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1});
+            await FabricEnvironmentRegistry.instance().add({name: 'twoOrgEnvironment', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 2});
+
+            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            const otherLocalEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(otherLocalEntry) as LocalEnvironment;
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC, 'OtherLocalEnv']);
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}, {label: 'OtherLocalEnv', data: otherLocalEnvironment}]);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
@@ -192,19 +195,37 @@ describe('FabricDebugConfigurationProvider', () => {
                 args: ['127.0.0.1:54321'],
                 debugEvent: FabricDebugConfigurationProvider.debugEvent
             });
-            commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
+            commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
+        });
+
+        it(`should return if user doesn't select an environment`, async () => {
+
+            getName.restore();
+
+            const otherEntry: FabricEnvironmentRegistryEntry = {name: 'OtherLocalEnv', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1};
+            await FabricEnvironmentRegistry.instance().add(otherEntry);
+            await FabricEnvironmentRegistry.instance().add({name: 'twoOrgEnvironment', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 2});
+
+            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            const otherLocalEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(otherEntry) as LocalEnvironment;
+            showQuickPickItemStub.resolves();
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.equal(config, undefined);
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}, {label: 'OtherLocalEnv', data: otherLocalEnvironment}]);
+            startDebuggingStub.should.not.have.been.called;
+            commandStub.should.not.have.been.calledWith('setContext', 'blockchain-debug', true);
         });
 
         it('should return if there are no 1-org local environments to select', async () => {
 
-            getAllRuntimesStub.returns([]);
+            await FabricEnvironmentRegistry.instance().clear();
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            showQuickPickStub.should.not.have.been.called;
+            showQuickPickItemStub.should.not.have.been.called;
             startDebuggingStub.should.not.have.been.called;
-            commandStub.should.not.have.been.called;
-            logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `No 1-org local environments found.`);
+            commandStub.should.not.have.been.calledWith('setContext', 'blockchain-debug', true);
+            logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `No 1-org local environments found that are started.`);
         });
 
         it('should create a new debug configuration if smart contract has a scoped name', async () => {
@@ -213,7 +234,8 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await scopedDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
+            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
@@ -223,7 +245,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 args: ['127.0.0.1:54321'],
                 debugEvent: FabricDebugConfigurationProvider.debugEvent
             });
-            commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
+            commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         });
 
         it('should disconnect and connect to local fabric', async () => {
@@ -236,8 +258,8 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
-            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
                 env: {
@@ -256,8 +278,8 @@ describe('FabricDebugConfigurationProvider', () => {
             getConnectionStub.onFirstCall().returns(undefined);
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
-            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
                 env: {
@@ -275,8 +297,8 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
-            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
                 env: {
@@ -285,7 +307,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 args: ['127.0.0.1:54321'],
                 debugEvent: FabricDebugConfigurationProvider.debugEvent
             });
-            commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
+            commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         });
 
         it('should add CORE_CHAINCODE_ID_NAME to an existing env', async () => {
@@ -303,7 +325,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 args: ['127.0.0.1:54321'],
                 debugEvent: FabricDebugConfigurationProvider.debugEvent
             });
-            commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
+            commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         });
 
         it('should use CORE_CHAINCODE_ID_NAME if defined', async () => {
@@ -311,8 +333,8 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
-            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
                 env: {
@@ -321,7 +343,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 args: ['127.0.0.1:54321'],
                 debugEvent: FabricDebugConfigurationProvider.debugEvent
             });
-            commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
+            commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         });
 
         it('should use CORE_CHAINCODE_EXECUTETIMEOUT if defined', async () => {
@@ -329,8 +351,8 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
-            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
                 env: {
@@ -340,15 +362,15 @@ describe('FabricDebugConfigurationProvider', () => {
                 args: ['127.0.0.1:54321'],
                 debugEvent: FabricDebugConfigurationProvider.debugEvent
             });
-            commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
+            commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         });
 
         it('should return if cannot connect', async () => {
             getConnectionStub.returns(undefined);
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.not.exist(config);
-            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
-            commandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistry);
+            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            commandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistry);
         });
 
         it('should give an error if generator version is too old', async () => {
@@ -362,9 +384,9 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            showQuickPickStub.should.not.have.been.called;
+            showQuickPickItemStub.should.not.have.been.called;
             startDebuggingStub.should.not.have.been.called;
-            commandStub.should.not.have.been.called;
+            commandStub.should.not.have.been.calledWith('setContext', 'blockchain-debug', true);
             logSpy.should.have.been.calledWith(LogType.ERROR, `To debug a smart contract, you must update the local runtimes. Teardown all local runtimes, start the runtime to debug, and try again.`);
         });
 
@@ -379,9 +401,9 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            showQuickPickStub.should.not.have.been.called;
+            showQuickPickItemStub.should.not.have.been.called;
             startDebuggingStub.should.not.have.been.called;
-            commandStub.should.not.have.been.called;
+            commandStub.should.not.have.been.calledWith('setContext', 'blockchain-debug', true);
             logSpy.should.have.been.calledWith(LogType.ERROR, `To debug a smart contract, you must update the local runtimes. Teardown all local runtimes, start the runtime to debug, and try again.`);
         });
 
@@ -390,19 +412,9 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
-            startDebuggingStub.should.not.have.been.called;
-            commandStub.should.not.have.been.called;
-        });
-
-        it('should give an error if runtime isnt running', async () => {
-            isRunning.returns(false);
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-
-            should.not.exist(config);
-            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
-            logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Please ensure "${FabricRuntimeUtil.LOCAL_FABRIC}" is running before trying to debug a smart contract`);
+            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            startDebuggingStub.should.not.have.been.called;
+            commandStub.should.not.have.been.calledWith('setContext', 'blockchain-debug', true);
         });
 
         it('should restore from a previous debug session and use the last instantiated package of the same name', async () => {
@@ -413,7 +425,8 @@ describe('FabricDebugConfigurationProvider', () => {
             isRunning.onSecondCall().resolves(false);
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
+            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
@@ -426,7 +439,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             isRunning.should.have.been.calledWith(['mySmartContract', '0.0.1']);
             killChaincode.should.not.have.been.called;
-            commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
+            commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         });
 
         it('should kill the container if there is a container running with the smart contract already', async () => {
@@ -436,8 +449,8 @@ describe('FabricDebugConfigurationProvider', () => {
             isRunning.resolves(true);
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
-            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
                 env: {
@@ -449,7 +462,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             killChaincode.should.have.been.called;
 
-            commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
+            commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         });
 
         it('should handle errors with the debug session failing to start', async () => {
@@ -458,8 +471,8 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            showQuickPickStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [FabricRuntimeUtil.LOCAL_FABRIC]);
-
+            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);
             logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Failed to launch debug: ${error.message}`);
         });
 
@@ -467,7 +480,7 @@ describe('FabricDebugConfigurationProvider', () => {
             mySandbox.stub(UserInputUtil, 'showConfirmationWarningMessage').withArgs(`Toggling this feature will remove the world state and ledger data for all local runtimes. Do you want to continue?`).resolves(true);
             getExtensionLocalFabricSetting.returns(false);
             await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            showQuickPickStub.should.not.have.been.called;
+            showQuickPickItemStub.should.not.have.been.called;
             logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Setting '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' must be set to 'true' to enable debugging.`);
         });
     });

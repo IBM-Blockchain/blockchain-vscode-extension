@@ -31,7 +31,7 @@ import { GlobalState, DEFAULT_EXTENSION_DATA, ExtensionData } from '../../extens
 import { SettingConfigurations } from '../../configurations';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { Dependencies } from '../../extension/dependencies/Dependencies';
-import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
+import { LogType } from 'ibm-blockchain-platform-common';
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
@@ -678,7 +678,7 @@ describe('PreReqView', () => {
             getHTMLStringStub.should.have.been.calledWith(expectedMockDependencies, true, true);
 
             logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Finished checking installed dependencies');
-            logSpy.should.not.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'true'.`);
+            logSpy.should.not.have.been.calledWith(LogType.INFO, `Local Fabric functionality set to 'true'.`);
         });
 
         it(`should handle 'check' message where System Requirements has been confirmed`, async () => {
@@ -765,7 +765,7 @@ describe('PreReqView', () => {
 
             getHTMLStringStub.should.have.been.calledWith(expectedMockDependencies, true, false);
 
-            logSpy.should.have.been.calledWith(LogType.INFO, `${FabricRuntimeUtil.LOCAL_FABRIC} functionality set to 'false'.`);
+            logSpy.should.have.been.calledWith(LogType.INFO, `Local Fabric functionality set to 'false'.`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Finished checking installed dependencies');
         });
 

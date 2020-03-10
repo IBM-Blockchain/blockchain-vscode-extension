@@ -87,14 +87,6 @@ describe('LocalEnvironmentManager', () => {
         });
     });
 
-    describe('#getAllRuntimes', () => {
-        it('should return the runtime', () => {
-            const otherRuntime: LocalEnvironment = new LocalEnvironment('otherRuntime', {startPort: 1, endPort: 2}, 1);
-            runtimeManager['runtimes'].set('otherRuntime', otherRuntime);
-            runtimeManager.getAllRuntimes().should.deep.equal([originalRuntime, otherRuntime]);
-        });
-    });
-
     describe('#updateRuntime', () => {
         it('should return the runtime', async () => {
             runtimeManager['runtimes'].size.should.equal(1);

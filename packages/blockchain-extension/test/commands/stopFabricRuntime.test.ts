@@ -98,7 +98,7 @@ describe('stopFabricRuntime', () => {
         getGatewayRegistryEntryStub.resolves();
         getEnvironmentRegistryEntryStub.returns(undefined);
 
-        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC, treeItem);
+        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC_SHORT, treeItem);
 
         stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
 
@@ -128,7 +128,7 @@ describe('stopFabricRuntime', () => {
 
         getEnvironmentRegistryEntryStub.returns(undefined);
 
-        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC, treeItem);
+        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC_SHORT, treeItem);
 
         stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
 
@@ -158,7 +158,7 @@ describe('stopFabricRuntime', () => {
 
         getGatewayRegistryEntryStub.resolves();
 
-        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC, treeItem);
+        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC_SHORT, treeItem);
 
         stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
 
@@ -191,7 +191,7 @@ describe('stopFabricRuntime', () => {
         getGatewayRegistryEntryStub.resolves();
         getEnvironmentRegistryEntryStub.returns(undefined);
 
-        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC, treeItem);
+        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC_SHORT, treeItem);
 
         stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
 

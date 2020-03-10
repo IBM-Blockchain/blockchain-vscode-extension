@@ -27,6 +27,7 @@ export class ExtensionCommands {
     static readonly IMPORT_NODES_TO_ENVIRONMENT: string = 'environmentExplorer.importNodesEntry';
     static readonly EDIT_NODE_FILTERS: string = 'environmentExplorer.editNodeFiltersEntry';
     static readonly DELETE_ENVIRONMENT: string = 'environmentExplorer.deleteEnvironmentEntry';
+    static readonly DELETE_ENVIRONMENT_SHORT: string = 'environmentExplorer.deleteEnvironmentEntryShort';
     static readonly ASSOCIATE_IDENTITY_NODE: string = 'environmentExplorer.associateIdentityNodeEntry';
     static readonly REPLACE_ASSOCIATED_IDENTITY: string = 'environmentExplorer.replaceAssociatedIdentityEntry';
     static readonly DELETE_NODE: string = 'environmentExplorer.deleteNodeEntry';
@@ -37,9 +38,12 @@ export class ExtensionCommands {
     static readonly INSTANTIATE_SMART_CONTRACT: string = 'environmentExplorer.instantiateSmartContractEntry';
     static readonly REFRESH_ENVIRONMENTS: string = 'environmentExplorer.refreshEntry';
     static readonly RESTART_FABRIC: string = 'environmentExplorer.restartFabricRuntime';
+    static readonly RESTART_FABRIC_SHORT: string = 'environmentExplorer.restartFabricRuntimeShort';
     static readonly START_FABRIC: string = 'environmentExplorer.startFabricRuntime';
     static readonly STOP_FABRIC: string = 'environmentExplorer.stopFabricRuntime';
+    static readonly STOP_FABRIC_SHORT: string = 'environmentExplorer.stopFabricRuntimeShort';
     static readonly TEARDOWN_FABRIC: string = 'environmentExplorer.teardownFabricRuntime';
+    static readonly TEARDOWN_FABRIC_SHORT: string = 'environmentExplorer.teardownFabricRuntimeShort';
     static readonly UPGRADE_SMART_CONTRACT: string = 'environmentExplorer.upgradeSmartContractEntry';
     static readonly CREATE_NEW_IDENTITY: string = 'environmentExplorer.createNewIdentityEntry';
 

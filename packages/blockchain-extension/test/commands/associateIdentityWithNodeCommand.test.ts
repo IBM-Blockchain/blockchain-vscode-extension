@@ -23,7 +23,7 @@ import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { FabricCertificateAuthority } from 'ibm-blockchain-platform-environment-v1';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, LogType, FabricEnvironment } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistry, FabricWalletRegistryEntry, LogType, FabricEnvironment } from 'ibm-blockchain-platform-common';
 import { NodeTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
@@ -362,7 +362,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
 
                 logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
-                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Add an environment to associate identities with nodes. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be editted.`);
+                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Add an environment to associate identities with nodes. Local environments cannot be edited.`);
                 logSpy.should.not.have.been.calledWith(LogType.SUCCESS);
             });
 
@@ -579,7 +579,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
 
                 updateStub.should.not.have.been.called;
 
-                logSpy.should.have.been.calledWith(LogType.ERROR, `No Environments found to use for replacing the identity associated with a node  ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be editted.`);
+                logSpy.should.have.been.calledWith(LogType.ERROR, `No environments found to use for replacing the identity associated with a node. Local environments cannot be edited.`);
             });
         });
     });

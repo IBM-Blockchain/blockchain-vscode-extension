@@ -119,6 +119,7 @@ export async function associateTransactionDataDirectory(chaincode?: Instantiated
             await fabricGatewayRegistry.update(gateway);
 
             outputAdapter.log(LogType.SUCCESS, `Successfully associated the directory "${transactionDataPath}" with "${chaincodeLabel}"`);
+
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Unable to associate transaction data directory: ${error.message}`, `Unable to associate transaction data directory: ${error.toString()}`);
         }

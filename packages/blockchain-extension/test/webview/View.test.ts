@@ -324,26 +324,33 @@ describe('View', () => {
                         file: 'developer-tutorials/add-environment.md'
                     },
                     {
-                      title: 'Create a new identity',
-                      length: '5-10 mins',
-                      difficulty: 'simple',
-                      description: 'Learn how to create new identities for any Fabric environment',
-                      file: 'developer-tutorials/createNewIdentity.md'
+                        title: 'Create a new identity',
+                        length: '5-10 mins',
+                        difficulty: 'simple',
+                        description: 'Learn how to create new identities for any Fabric environment',
+                        file: 'developer-tutorials/createNewIdentity.md'
                     },
                     {
-                      title: 'Create a new identity with attributes',
-                      length: '15-20 mins',
-                      difficulty: 'moderate',
-                      description: 'Learn how to create new identities with attributes for any Fabric environment',
-                      shortDescription: 'Create an identity with attributes and implement attribute-based access control',
-                      file: 'developer-tutorials/createNewIdentityAttributes.md'
+                        title: 'Create a new identity with attributes',
+                        length: '15-20 mins',
+                        difficulty: 'moderate',
+                        description: 'Learn how to create new identities with attributes for any Fabric environment',
+                        shortDescription: 'Create an identity with attributes and implement attribute-based access control',
+                        file: 'developer-tutorials/createNewIdentityAttributes.md'
                     },
                     {
-                      title: 'Debug a smart contract',
-                      length: '30-40 mins',
-                      difficulty: 'moderate',
-                      description: 'Learn how to make iterative changes to your smart contract using the VS Code debugger',
-                      file: 'developer-tutorials/debug.md'
+                        title: 'Debug a smart contract',
+                        length: '30-40 mins',
+                        difficulty: 'moderate',
+                        description: 'Learn how to make iterative changes to your smart contract using the VS Code debugger',
+                        file: 'developer-tutorials/debug.md'
+                    },
+                    {
+                        difficulty: 'moderate',
+                        file: 'developer-tutorials/privateData.md',
+                        length: '30-40 mins',
+                        shortDescription: 'Generate a private data smart contract, deploy it to a 2 Org Local Fabric network, and submit and evaluate transactions using private data',
+                        title: 'Getting Started with Private Data',
                     }
                 ]
             });

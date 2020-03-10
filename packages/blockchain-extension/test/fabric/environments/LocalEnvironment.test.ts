@@ -99,6 +99,7 @@ describe('LocalEnvironment', () => {
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, localSetting,  vscode.ConfigurationTarget.Global);
 
         stopLogsStub = sandbox.stub(LocalEnvironment.prototype, 'stopLogs').returns(undefined);
+
     });
 
     afterEach(async () => {
@@ -124,7 +125,6 @@ describe('LocalEnvironment', () => {
             });
 
             deleteSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
-
             addSpy.should.have.been.calledOnceWithExactly({
                 name: FabricRuntimeUtil.LOCAL_FABRIC,
                 managedRuntime: true,
@@ -151,7 +151,6 @@ describe('LocalEnvironment', () => {
             await environment.create();
 
             deleteSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
-
             addSpy.should.have.been.calledOnceWithExactly({
                 name: FabricRuntimeUtil.LOCAL_FABRIC,
                 managedRuntime: true,

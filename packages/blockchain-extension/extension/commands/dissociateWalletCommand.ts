@@ -15,7 +15,7 @@
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { GatewayAssociatedTreeItem } from '../explorer/model/GatewayAssociatedTreeItem';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { FabricRuntimeUtil, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 
 export async function dissociateWallet(associatedGatewayTreeItem: GatewayAssociatedTreeItem): Promise<any> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -31,7 +31,7 @@ export async function dissociateWallet(associatedGatewayTreeItem: GatewayAssocia
         let gateways: Array<FabricGatewayRegistryEntry> = [];
         gateways = await FabricGatewayRegistry.instance().getAll(false);
         if (gateways.length === 0) {
-            outputAdapter.log(LogType.ERROR, `No gateways to dissociate found. ${FabricRuntimeUtil.LOCAL_FABRIC} gateways cannot be dissociated from their wallet.`, `No gateways to dissociate found. ${FabricRuntimeUtil.LOCAL_FABRIC} gateways cannot be dissociated from their wallet.`);
+            outputAdapter.log(LogType.ERROR, `No gateways to dissociate found. Local gateways cannot be dissociated from their wallet.`);
             return;
         }
 

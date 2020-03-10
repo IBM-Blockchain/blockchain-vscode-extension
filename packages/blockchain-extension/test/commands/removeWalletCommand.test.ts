@@ -20,7 +20,7 @@ import * as path from 'path';
 import { TestUtil } from '../TestUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType, FileSystemUtil, FabricRuntimeUtil, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
+import { LogType, FileSystemUtil, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricWalletRegistry, FabricWalletRegistryEntry, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { BlockchainWalletExplorerProvider } from '../../extension/explorer/walletExplorer';
@@ -139,7 +139,7 @@ describe('removeWalletCommand', () => {
 
         showWalletsQuickPickStub.should.not.have.been.called;
         logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `removeWallet`);
-        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No wallets to remove. ${FabricRuntimeUtil.LOCAL_FABRIC} wallets cannot be removed.`, `No wallets to remove. ${FabricRuntimeUtil.LOCAL_FABRIC} wallets cannot be removed.`);
+        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No wallets to remove. Local wallets cannot be removed.`);
     });
 
     it('should handle the user cancelling selecting a wallet', async () => {

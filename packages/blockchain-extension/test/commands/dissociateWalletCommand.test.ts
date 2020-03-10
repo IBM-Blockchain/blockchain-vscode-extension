@@ -25,7 +25,7 @@ import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTre
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistry, FabricWalletRegistryEntry, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 // tslint:disable no-unused-expression
@@ -96,7 +96,7 @@ describe('DissociateWalletCommand', () => {
 
             showGatewayQuickPickBoxStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'dissociateWallet');
-            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No gateways to dissociate found. ${FabricRuntimeUtil.LOCAL_FABRIC} gateways cannot be dissociated from their wallet.`, `No gateways to dissociate found. ${FabricRuntimeUtil.LOCAL_FABRIC} gateways cannot be dissociated from their wallet.`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No gateways to dissociate found. Local gateways cannot be dissociated from their wallet.`);
         });
 
         it('should test dissociating a wallet can be cancelled when asked to select a gateway', async () => {

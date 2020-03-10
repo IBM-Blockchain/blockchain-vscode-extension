@@ -12,7 +12,7 @@
     ],
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
-    "version": "1.0.21",
+    "version": "1.0.22",
     "publisher": "IBMBlockchain",
     "icon": "resources/blockchain_marketplace.png",
     "galleryBanner": {
@@ -68,6 +68,7 @@
             "environmentExplorer.addEnvironmentEntry",
             "environmentExplorer.importNodesEntry",
             "environmentExplorer.deleteEnvironmentEntry",
+            "environmentExplorer.deleteEnvironmentEntryShort",
             "environmentExplorer.associateIdentityNodeEntry",
             "environmentExplorer.replaceAssociatedIdentityEntry",
             "environmentExplorer.deleteNodeEntry",
@@ -78,8 +79,11 @@
             "environmentExplorer.refreshEntry",
             "environmentExplorer.startFabricRuntime",
             "environmentExplorer.stopFabricRuntime",
+            "environmentExplorer.stopFabricRuntimeShort",
             "environmentExplorer.restartFabricRuntime",
+            "environmentExplorer.restartFabricRuntimeShort",
             "environmentExplorer.teardownFabricRuntime",
+            "environmentExplorer.teardownFabricRuntimeShort",
             "environmentExplorer.upgradeSmartContractEntry",
             "environmentExplorer.createNewIdentityEntry",
             "walletExplorer.refreshEntry",
@@ -316,6 +320,11 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "environmentExplorer.deleteEnvironmentEntryShort",
+                "title": "Delete",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "environmentExplorer.associateIdentityNodeEntry",
                 "title": "Associate Identitiy with a Node",
                 "category": "IBM Blockchain Platform"
@@ -397,13 +406,28 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "environmentExplorer.stopFabricRuntimeShort",
+                "title": "Stop",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "environmentExplorer.restartFabricRuntime",
                 "title": "Restart Fabric Runtime",
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "environmentExplorer.restartFabricRuntimeShort",
+                "title": "Restart",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "environmentExplorer.teardownFabricRuntime",
-                "title": "Teardown Fabric Runtime",
+                "title": "Teardown Fabric Environment",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "environmentExplorer.teardownFabricRuntimeShort",
+                "title": "Teardown",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -551,6 +575,22 @@
                 {
                     "command": "transactionPage.open",
                     "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.stopFabricRuntimeShort",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.teardownFabricRuntimeShort",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.restartFabricRuntimeShort",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.deleteEnvironmentEntryShort",
+                    "when": "false"
                 }
             ],
             "view/title": [
@@ -619,8 +659,18 @@
                     "group": "blockchain"
                 },
                 {
+                    "command": "environmentExplorer.restartFabricRuntimeShort",
+                    "when": "false",
+                    "group": "blockchain"
+                },
+                {
                     "command": "environmentExplorer.teardownFabricRuntime",
                     "when": "view == environmentExplorer && blockchain-runtime-connected",
+                    "group": "blockchain"
+                },
+                {
+                    "command": "environmentExplorer.teardownFabricRuntimeShort",
+                    "when": "false",
                     "group": "blockchain"
                 },
                 {
@@ -657,18 +707,38 @@
                 },
                 {
                     "command": "environmentExplorer.deleteEnvironmentEntry",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.deleteEnvironmentEntryShort",
                     "when": "view == environmentExplorer && viewItem == blockchain-environment-item || view == environmentExplorer && viewItem == blockchain-runtime-item"
                 },
                 {
                     "command": "environmentExplorer.stopFabricRuntime",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.stopFabricRuntimeShort",
                     "when": "view == environmentExplorer && viewItem == blockchain-runtime-item"
                 },
                 {
                     "command": "environmentExplorer.restartFabricRuntime",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.restartFabricRuntime",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.restartFabricRuntimeShort",
                     "when": "view == environmentExplorer && viewItem == blockchain-runtime-item"
                 },
                 {
                     "command": "environmentExplorer.teardownFabricRuntime",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.teardownFabricRuntimeShort",
                     "when": "view == environmentExplorer && viewItem == blockchain-runtime-item"
                 },
                 {
@@ -686,7 +756,7 @@
                 {
                     "command": "environmentExplorer.installSmartContractEntry",
                     "when": "view == environmentExplorer && viewItem == blockchain-runtime-installed-item"
-                },                         
+                },
                 {
                     "command": "environmentExplorer.instantiateSmartContractEntry",
                     "when": "view == environmentExplorer && viewItem == blockchain-channel-item || viewItem == blockchain-runtime-instantiated-item"
@@ -1283,7 +1353,6 @@
         "chai": "4.1.2",
         "chai-as-promised": "7.1.1",
         "cucumber": "2.2.0",
-        "multiple-cucumber-html-reporter": "1.15.1",
         "decache": "4.4.0",
         "glob": "7.1.2",
         "grpc": "^1.23.3",
@@ -1293,6 +1362,7 @@
         "mocha": "^6.1.4",
         "mocha-junit-reporter": "^1.23.1",
         "mocha-multi-reporters": "^1.1.7",
+        "multiple-cucumber-html-reporter": "1.15.1",
         "raf": "^3.4.1",
         "react-scripts": "^3.3.1",
         "remap-istanbul": "0.11.1",
@@ -1322,11 +1392,11 @@
         "generator-fabric": "0.1.11",
         "handlebars": "^4.5.3",
         "home-dir": "1.0.0",
-        "ibm-blockchain-platform-common": "^1.0.21",
-        "ibm-blockchain-platform-environment-v1": "^1.0.21",
-        "ibm-blockchain-platform-gateway-v1": "^1.0.21",
-        "ibm-blockchain-platform-ui": "^1.0.21",
-        "ibm-blockchain-platform-wallet": "^1.0.21",
+        "ibm-blockchain-platform-common": "^1.0.22",
+        "ibm-blockchain-platform-environment-v1": "^1.0.22",
+        "ibm-blockchain-platform-gateway-v1": "^1.0.22",
+        "ibm-blockchain-platform-ui": "^1.0.22",
+        "ibm-blockchain-platform-wallet": "^1.0.22",
         "request": "^2.88.0",
         "semver": "^6.3.0",
         "shelljs": "^0.8.3",
@@ -1364,6 +1434,7 @@
             "coverage",
             "resources",
             "test/data",
+            "test/tmp",
             ".DS_Store",
             "config/.DS_Store",
             "test/.DS_Store",
@@ -1373,6 +1444,8 @@
             "cucumber/hlfv1",
             "cucumber/ansible",
             "cucumber/ansibleScripts",
+            "cucumber/cucumber-report.html",
+            ".scannerwork",
             "basic-network",
             "CHANGELOG.md",
             "RELEASE-NOTES.md",

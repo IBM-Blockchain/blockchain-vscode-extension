@@ -24,7 +24,7 @@ import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
-import { UserInputUtil } from '../commands/UserInputUtil';
+import { UserInputUtil, IBlockchainQuickPickItem } from '../commands/UserInputUtil';
 
 export abstract class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
@@ -86,33 +86,35 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                 return;
             }
 
-            const runtimes: LocalEnvironment[] = LocalEnvironmentManager.instance().getAllRuntimes();
-
             // At the moment, we only want the user to debug with 1-org environments.
             // See https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1995 for the issue of supporting 2-org environments.
-            const oneOrgRuntimes: string[] = [];
-            for (const _runtime of runtimes) {
-                if (_runtime.numberOfOrgs === 1) {
-                    const runtimeName: string = _runtime.getName();
-                    oneOrgRuntimes.push(runtimeName);
+            const oneOrgRuntimes: IBlockchainQuickPickItem<LocalEnvironment>[] = [];
+            const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(true); // Get only local entries
+
+            const oneOrgEntries: FabricEnvironmentRegistryEntry[] = environmentEntries.filter((entry: FabricEnvironmentRegistryEntry) => {
+                return entry.numberOfOrgs === 1;
+            });
+
+            for (const entry of oneOrgEntries) {
+                const runtime: LocalEnvironment = await LocalEnvironmentManager.instance().ensureRuntime(entry.name, undefined, 1); // Filtered out 2-org environments.
+                const isRunning: boolean = await runtime.isRunning();
+                if (isRunning) {
+                    oneOrgRuntimes.push({label: entry.name, data: runtime});
                 }
             }
 
             if (oneOrgRuntimes.length === 0) {
-                outputAdapter.log(LogType.ERROR, `No 1-org local environments found.`);
+                outputAdapter.log(LogType.ERROR, `No 1-org local environments found that are started.`);
                 return;
             }
 
-            const chosenEnvironment: string = await UserInputUtil.showQuickPick('Select a 1-org environment to debug', oneOrgRuntimes) as string;
-
-            this.runtime = LocalEnvironmentManager.instance().getRuntime(chosenEnvironment);
-
-            const isRunning: boolean = await this.runtime.isRunning();
-
-            if (!isRunning) {
-                outputAdapter.log(LogType.ERROR, `Please ensure "${this.runtime.getName()}" is running before trying to debug a smart contract`);
+            const chosenEnvironment: IBlockchainQuickPickItem<LocalEnvironment> = await UserInputUtil.showQuickPickItem('Select a 1-org environment to debug', oneOrgRuntimes) as IBlockchainQuickPickItem<LocalEnvironment>;
+            if (!chosenEnvironment) {
                 return;
             }
+
+            this.runtime = chosenEnvironment.data;
+            FabricDebugConfigurationProvider.environmentName = this.runtime.getName();
 
             if (!config.env) {
                 config.env = {};
@@ -169,7 +171,6 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             resolvedConfig.debugEvent = FabricDebugConfigurationProvider.debugEvent;
 
             await vscode.commands.executeCommand('setContext', 'blockchain-debug', true);
-            FabricDebugConfigurationProvider.environmentName = chosenEnvironment;
             vscode.debug.startDebugging(folder, resolvedConfig);
 
             // Cancel the current debug session - the user will never know!

@@ -58,6 +58,7 @@ describe('AddEnvironmentCommand', () => {
     let certVerificationError2: any;
     let chooseMethodStub: sinon.SinonStub;
     let getExtensionLocalFabricSettingStub: sinon.SinonStub;
+    let removeRuntimeSpy: sinon.SinonSpy;
 
     before(async () => {
         mySandBox = sinon.createSandbox();
@@ -93,6 +94,7 @@ describe('AddEnvironmentCommand', () => {
             executeCommandStub.withArgs(ExtensionCommands.REFRESH_ENVIRONMENTS).resolves();
             executeCommandStub.withArgs(ExtensionCommands.REFRESH_GATEWAYS).resolves();
             executeCommandStub.withArgs(ExtensionCommands.REFRESH_WALLETS).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
             sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
             deleteEnvironmentSpy = mySandBox.spy(FabricEnvironmentRegistry.instance(), 'delete');
 
@@ -120,6 +122,8 @@ describe('AddEnvironmentCommand', () => {
             getNodesStub.resolves([{nodeOneData: {}}, {nodeTwoData: {}}]);
             getExtensionLocalFabricSettingStub = mySandBox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting');
             getExtensionLocalFabricSettingStub.returns(true);
+
+            removeRuntimeSpy = mySandBox.spy(LocalEnvironmentManager.instance(), 'removeRuntime');
         });
 
         afterEach(async () => {
@@ -143,6 +147,8 @@ describe('AddEnvironmentCommand', () => {
             });
 
             deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
 
@@ -160,6 +166,8 @@ describe('AddEnvironmentCommand', () => {
             environments.length.should.equal(0);
             showInputBoxStub.should.not.have.been.called;
             deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Add environment');
             sendTelemetryEventStub.should.not.have.been.called;
         });
@@ -178,6 +186,8 @@ describe('AddEnvironmentCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
 
             deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
@@ -207,6 +217,8 @@ describe('AddEnvironmentCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
@@ -235,6 +247,8 @@ describe('AddEnvironmentCommand', () => {
             const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(0);
             deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Add environment');
             sendTelemetryEventStub.should.not.have.been.called;
         });
@@ -249,6 +263,8 @@ describe('AddEnvironmentCommand', () => {
             environments.length.should.equal(0);
             logSpy.should.have.been.calledTwice;
             deleteEnvironmentSpy.should.have.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${error.message}`, `Failed to add a new environment: ${error.toString()}`);
             sendTelemetryEventStub.should.not.have.been.called;
@@ -266,6 +282,8 @@ describe('AddEnvironmentCommand', () => {
             environments.length.should.equal(0);
             logSpy.should.have.been.calledTwice;
             deleteEnvironmentSpy.should.have.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${error.message}`, `Failed to add a new environment: ${error.toString()}`);
             sendTelemetryEventStub.should.not.have.been.called;
@@ -289,6 +307,8 @@ describe('AddEnvironmentCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
 
             deleteEnvironmentSpy.should.not.have.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
@@ -314,6 +334,8 @@ describe('AddEnvironmentCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
 
             deleteEnvironmentSpy.should.not.have.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
@@ -336,6 +358,8 @@ describe('AddEnvironmentCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
 
             deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.should.have.been.calledWith(LogType.WARNING, 'Added a new environment, but some nodes could not be added');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
@@ -349,6 +373,8 @@ describe('AddEnvironmentCommand', () => {
             const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(0);
             deleteEnvironmentSpy.should.have.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Add environment');
             sendTelemetryEventStub.should.not.have.been.called;
         });
@@ -374,6 +400,8 @@ describe('AddEnvironmentCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
             deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
@@ -404,6 +432,8 @@ describe('AddEnvironmentCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
             deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
@@ -436,6 +466,8 @@ describe('AddEnvironmentCommand', () => {
             showInputBoxStub.withArgs('Enter the API secret of the IBM Blockchain Platform Console you want to connect to').should.not.have.been.called;
             axiosGetStub.should.not.have.been.called;
             deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Add environment');
         });
 
@@ -451,6 +483,8 @@ describe('AddEnvironmentCommand', () => {
             showInputBoxStub.withArgs('Enter the API secret of the IBM Blockchain Platform Console you want to connect to').should.not.have.been.called;
             axiosGetStub.should.not.have.been.called;
             deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Add environment');
         });
 
@@ -465,6 +499,8 @@ describe('AddEnvironmentCommand', () => {
             environments.length.should.equal(0);
             axiosGetStub.should.not.have.been.called;
             deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Add environment');
         });
 
@@ -480,6 +516,8 @@ describe('AddEnvironmentCommand', () => {
 
             getCoreNodeModuleStub.should.have.been.calledOnce;
             deleteEnvironmentSpy.should.not.have.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: Error importing the keytar module`, `Failed to add a new environment: Error: Error importing the keytar module`);
         });
@@ -494,6 +532,8 @@ describe('AddEnvironmentCommand', () => {
 
             getCoreNodeModuleStub.should.have.been.calledOnce;
             deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
         });
@@ -509,6 +549,8 @@ describe('AddEnvironmentCommand', () => {
 
             getCoreNodeModuleStub.should.have.been.calledOnce;
             deleteEnvironmentSpy.should.not.have.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${thrownError.message}`, `Failed to add a new environment: ${thrownError.toString()}`);
         });
@@ -524,6 +566,8 @@ describe('AddEnvironmentCommand', () => {
 
             getCoreNodeModuleStub.should.have.been.calledOnce;
             deleteEnvironmentSpy.should.not.have.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${caughtError.message}`, `Failed to add a new environment: ${caughtError.toString()}`);
         });
@@ -563,6 +607,8 @@ describe('AddEnvironmentCommand', () => {
 
             getCoreNodeModuleStub.should.have.been.calledOnce;
             deleteEnvironmentSpy.should.not.have.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             axiosGetStub.should.have.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${thrownError.message}`, `Failed to add a new environment: ${thrownError.toString()}`);
@@ -578,6 +624,8 @@ describe('AddEnvironmentCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
             deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment. No nodes included in current filters, click myOpsToolsEnvironment to edit filters');
         });
@@ -598,6 +646,8 @@ describe('AddEnvironmentCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
 
             deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             showQuickPickItemStub.should.have.been.calledWith('Select a method to add an environment', [{ label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }]);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
@@ -608,17 +658,22 @@ describe('AddEnvironmentCommand', () => {
             getNodesStub.restore();
 
             const envName: string = 'New 1 Org Network';
+
             chooseMethodStub.onCall(0).resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE});
             showQuickPickItemStub.onCall(1).resolves({data: 1});
 
             chooseNameStub.resolves(envName);
-            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').resolves();
+
+            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT};
+
+            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').callsFake(async () => {
+                await FabricEnvironmentRegistry.instance().add(envEntry);
+            });
 
             const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
             mockRuntime.getName.returns(envName);
-            mockRuntime.generate.resolves();
 
-            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
+            executeCommandStub.withArgs(ExtensionCommands.START_FABRIC, envEntry).resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
@@ -627,12 +682,12 @@ describe('AddEnvironmentCommand', () => {
             showQuickPickItemStub.should.have.been.calledWith('Choose a configuration for a new local network', [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: 1}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: 2}]);
             chooseNameStub.should.have.been.calledOnceWithExactly(`Enter a name for the environment`);
             initializeStub.should.have.been.calledWith(envName, 1);
-            getRuntimeStub.should.have.been.calledOnceWith(envName);
-            mockRuntime.generate.should.have.been.calledOnce;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
-
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC, envEntry);
             deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
@@ -646,19 +701,22 @@ describe('AddEnvironmentCommand', () => {
             showQuickPickItemStub.onCall(1).resolves({data: 1});
 
             chooseNameStub.resolves(envName);
-            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').resolves();
+            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT};
+
+            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').callsFake(async () => {
+                await FabricEnvironmentRegistry.instance().add(envEntry);
+            });
 
             const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
             mockRuntime.getName.returns(envName);
-            mockRuntime.generate.resolves();
-
-            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
 
             const globalState: ExtensionData = GlobalState.get();
             globalState.deletedOneOrgLocalFabric = true;
             await GlobalState.update(globalState);
 
             const globalStateUpdateSpy: sinon.SinonSpy = mySandBox.spy(GlobalState, 'update');
+
+            executeCommandStub.withArgs(ExtensionCommands.START_FABRIC, envEntry).resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
@@ -671,12 +729,13 @@ describe('AddEnvironmentCommand', () => {
             showQuickPickItemStub.should.have.been.calledWith('Choose a configuration for a new local network', [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: 1}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: 2}]);
             chooseNameStub.should.have.been.calledOnceWithExactly(`Enter a name for the environment`);
             initializeStub.should.have.been.calledWith(envName, 1);
-            getRuntimeStub.should.have.been.calledOnceWith(envName);
-            mockRuntime.generate.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC, envEntry);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
 
             deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
@@ -690,13 +749,16 @@ describe('AddEnvironmentCommand', () => {
             showQuickPickItemStub.resolves({data: 2});
 
             chooseNameStub.resolves(envName);
-            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').resolves();
+            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT};
+
+            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').callsFake(async () => {
+                await FabricEnvironmentRegistry.instance().add(envEntry);
+            });
 
             const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
             mockRuntime.getName.returns(envName);
-            mockRuntime.generate.resolves();
 
-            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
+            executeCommandStub.withArgs(ExtensionCommands.START_FABRIC, envEntry).resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
@@ -705,12 +767,13 @@ describe('AddEnvironmentCommand', () => {
 
             showInputBoxStub.should.have.been.calledOnceWithExactly(`Enter a name for the environment`);
             initializeStub.should.have.been.calledWith(envName, 2);
-            getRuntimeStub.should.have.been.calledOnceWith(envName);
-            mockRuntime.generate.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC, envEntry);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
 
             deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
@@ -723,8 +786,6 @@ describe('AddEnvironmentCommand', () => {
 
             const initializeSpy: sinon.SinonSpy = mySandBox.spy(LocalEnvironmentManager.instance(), 'initialize');
 
-            const getRuntimeSpy: sinon.SinonSpy = mySandBox.spy(LocalEnvironmentManager.instance(), 'getRuntime');
-
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
             chooseMethodStub.should.have.been.calledWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION}, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }]);
@@ -732,11 +793,12 @@ describe('AddEnvironmentCommand', () => {
 
             showInputBoxStub.should.not.have.been.calledOnceWithExactly(`Enter a name for the environment`);
             initializeSpy.should.not.have.been.called;
-            getRuntimeSpy.should.not.have.been.called;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
 
             deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
             sendTelemetryEventStub.should.not.have.been.calledOnceWithExactly('addEnvironmentCommand');
@@ -765,15 +827,17 @@ describe('AddEnvironmentCommand', () => {
             showQuickPickItemStub.resolves({data: 1});
 
             chooseNameStub.resolves(envName);
-            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').resolves();
+            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT};
+
+            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').callsFake(async () => {
+                await FabricEnvironmentRegistry.instance().add(envEntry);
+            });
 
             const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
             mockRuntime.getName.returns(envName);
 
             const error: Error = new Error(`unable to create new environment`);
-            mockRuntime.generate.throws(error);
-
-            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
+            executeCommandStub.withArgs(ExtensionCommands.START_FABRIC, envEntry).throws(error);
 
             executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, envName).resolves();
 
@@ -793,12 +857,12 @@ describe('AddEnvironmentCommand', () => {
             showQuickPickItemStub.should.have.been.calledWithExactly('Choose a configuration for a new local network', [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: 1}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: 2}]);
             chooseNameStub.should.have.been.calledOnceWithExactly(`Enter a name for the environment`);
             initializeStub.should.have.been.calledWith(envName, 1);
-            getRuntimeStub.should.have.been.calledOnceWith(envName);
-            mockRuntime.generate.should.have.been.calledOnce;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
 
             deleteEnvironmentSpy.should.been.calledOnceWithExactly(envName, true);
+            removeRuntimeSpy.should.have.been.calledOnceWithExactly(envName);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${error.message}`, `Failed to add a new environment: ${error.toString()}`);
             sendTelemetryEventStub.should.not.have.been.called;
@@ -821,15 +885,17 @@ describe('AddEnvironmentCommand', () => {
             showQuickPickItemStub.resolves({data: 1});
 
             chooseNameStub.resolves(envName);
-            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').resolves();
+            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT};
+
+            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').callsFake(async () => {
+                await FabricEnvironmentRegistry.instance().add(envEntry);
+            });
 
             const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
             mockRuntime.getName.returns(envName);
 
             const error: Error = new Error(`unable to create new environment`);
-            mockRuntime.generate.throws(error);
-
-            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
+            executeCommandStub.withArgs(ExtensionCommands.START_FABRIC, envEntry).throws(error);
 
             executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, envName).resolves();
 
@@ -849,12 +915,10 @@ describe('AddEnvironmentCommand', () => {
             showQuickPickItemStub.should.have.been.calledWithExactly('Choose a configuration for a new local network', [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: 1}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: 2}]);
             chooseNameStub.should.have.been.calledOnceWithExactly(`Enter a name for the environment`);
             initializeStub.should.have.been.calledWith(envName, 1);
-            getRuntimeStub.should.have.been.calledOnceWith(envName);
-            mockRuntime.generate.should.have.been.calledOnce;
-
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
 
             deleteEnvironmentSpy.should.been.calledOnceWithExactly(envName, true);
+            removeRuntimeSpy.should.have.been.calledOnceWithExactly(envName);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${error.message}`, `Failed to add a new environment: ${error.toString()}`);
             sendTelemetryEventStub.should.not.have.been.called;
@@ -868,15 +932,12 @@ describe('AddEnvironmentCommand', () => {
 
         //     const initializeSpy: sinon.SinonSpy = mySandBox.spy(LocalEnvironmentManager.instance(), 'initialize');
 
-        //     const getRuntimeSpy: sinon.SinonSpy = mySandBox.spy(LocalEnvironmentManager.instance(), 'getRuntime');
-
         //     await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
         //     chooseMethodStub.should.have.been.calledWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION}, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }]);
         //     showQuickPickItemStub.should.have.been.calledWithExactly('Choose a configuration for a new local network', [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: 1}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: 2}]);
         //     showInputBoxStub.should.not.have.been.calledOnceWithExactly(`Enter a name for the environment`);
         //     initializeSpy.should.not.have.been.called;
-        //     getRuntimeSpy.should.not.have.been.called;
 
         //     executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
 

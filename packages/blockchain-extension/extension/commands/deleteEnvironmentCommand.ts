@@ -22,6 +22,8 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { SettingConfigurations } from '../../configurations';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
+import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
+import { ManagedAnsibleEnvironmentManager } from '../fabric/environments/ManagedAnsibleEnvironmentManager';
 
 export async function deleteEnvironment(environment: FabricEnvironmentTreeItem | FabricEnvironmentRegistryEntry, force: boolean = false): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -29,6 +31,7 @@ export async function deleteEnvironment(environment: FabricEnvironmentTreeItem |
     let environmentsToDelete: FabricEnvironmentRegistryEntry[];
 
     try {
+
         if (!environment) {
             // If called from command palette
             // Ask for environment to delete
@@ -96,7 +99,11 @@ export async function deleteEnvironment(environment: FabricEnvironmentTreeItem |
             }
 
             await FabricEnvironmentRegistry.instance().delete(_environment.name);
-
+            if (_environment.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                LocalEnvironmentManager.instance().removeRuntime(_environment.name);
+            } else if (_environment.environmentType === EnvironmentType.ANSIBLE_ENVIRONMENT && _environment.managedRuntime === true) {
+                ManagedAnsibleEnvironmentManager.instance().removeRuntime(_environment.name);
+            }
         }
 
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, localSettings, vscode.ConfigurationTarget.Global);
