@@ -34,6 +34,24 @@ steps:
       lerna bootstrap
     displayName: run lerna bootstrap
 
+
+  - bash: |
+      set -ev
+      lerna run compile
+      lerna run createModule
+      cp ./README.md ./packages/blockchain-extension/README.md
+      cp ./CHANGELOG.md ./packages/blockchain-extension/CHANGELOG.md
+      cp -r ./media ./packages/blockchain-extension/media
+      cd ./packages/blockchain-extension
+      npm install ../blockchain-ui/ibm-blockchain-platform-ui-*.tgz
+      npm install ../blockchain-common/ibm-blockchain-platform-common-*.tgz
+      npm install ../blockchain-wallet/ibm-blockchain-platform-wallet-*.tgz
+      npm install ../blockchain-environment-v1/ibm-blockchain-platform-environment-v1-*.tgz
+      npm install ../blockchain-gateway-v1/ibm-blockchain-platform-gateway-v1-*.tgz
+    displayName: compile packages
+    env:
+      DISPLAY: ':99.0'
+
   - script: |
       set -ev
       function runNpmAudit() {
@@ -54,10 +72,3 @@ steps:
       runNpmAudit
       exit $?
     displayName: run npm audit
-
-  - bash: |
-      set -ev
-      lerna run compile
-    displayName: compile packages
-    env:
-      DISPLAY: ':99.0'
