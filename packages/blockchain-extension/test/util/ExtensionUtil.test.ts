@@ -1565,8 +1565,10 @@ describe('ExtensionUtil Tests', () => {
 
             const generatedLocal: FabricEnvironmentRegistryEntry = {name: 'generatedLocal', environmentDirectory: localEnv.environmentDirectory, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, numberOfOrgs: 1};
             const nonGeneratedLocal: FabricEnvironmentRegistryEntry = {name: 'nonGeneratedLocal', environmentDirectory: '', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, numberOfOrgs: 1};
+            const opsTool: FabricEnvironmentRegistryEntry = {url: 'some_website', environmentType: 3, name: 'consoleEnv'};
             await FabricEnvironmentRegistry.instance().add(generatedLocal);
             await FabricEnvironmentRegistry.instance().add(nonGeneratedLocal);
+            await FabricEnvironmentRegistry.instance().add(opsTool);
 
             await ExtensionUtil.completeActivation(false);
 
@@ -1574,6 +1576,7 @@ describe('ExtensionUtil Tests', () => {
             ensureRuntimeStub.should.have.been.calledWithExactly(generatedLocal.name, undefined, 1);
             ensureRuntimeStub.should.have.been.calledWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1);
             ensureRuntimeStub.should.have.been.calledWith(nonGeneratedLocal.name, undefined, 1);
+            ensureRuntimeStub.should.not.have.been.calledWith(opsTool.name);
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
@@ -1740,6 +1743,7 @@ describe('ExtensionUtil Tests', () => {
         let ensureRuntimeStub: sinon.SinonStub;
         beforeEach(async () => {
             mySandBox.restore();
+            await FabricEnvironmentRegistry.instance().clear();
 
             if (!ExtensionUtil.isActive()) {
                 await ExtensionUtil.activateExtension();
@@ -1809,6 +1813,8 @@ describe('ExtensionUtil Tests', () => {
 
             purgeOldRuntimesStub = mySandBox.stub(ExtensionUtil, 'purgeOldRuntimes').resolves();
 
+            await FabricEnvironmentRegistry.instance().add({url: 'some_website', environmentType: 3, name: 'consoleEnv'});
+
         });
 
         afterEach(() => {
@@ -1847,6 +1853,9 @@ describe('ExtensionUtil Tests', () => {
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+
+                ensureRuntimeStub.should.have.been.calledOnce;
+
             });
 
             it('should initialize runtime if not generated', async () => {
@@ -1880,6 +1889,9 @@ describe('ExtensionUtil Tests', () => {
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+
+                ensureRuntimeStub.should.have.been.calledOnce;
+
             });
 
             it('should continue if all pre-reqs installed', async () => {
@@ -1911,10 +1923,13 @@ describe('ExtensionUtil Tests', () => {
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+
+                ensureRuntimeStub.should.have.been.calledOnce;
+
             });
 
             it('should open pre-req page if not all pre-reqs are installed', async () => {
-
+                executeCommandStub.resetHistory();
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_BYPASS_PREREQS).returns(false);
                 hasPreReqsInstalledStub.resolves(false);
                 disposeExtensionStub.returns(undefined);
@@ -1947,6 +1962,9 @@ describe('ExtensionUtil Tests', () => {
                 executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
                 executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+
+                ensureRuntimeStub.should.have.been.calledOnce;
+
             });
 
             it(`should initalize if runtimes cannot be retrieved and dependencies installed`, async () => {
@@ -1982,6 +2000,7 @@ describe('ExtensionUtil Tests', () => {
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+                ensureRuntimeStub.should.not.have.been.called;
 
             });
 
@@ -2013,6 +2032,8 @@ describe('ExtensionUtil Tests', () => {
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+                ensureRuntimeStub.should.have.been.calledOnce;
+
             });
 
             it('should should handle any errors when initializing', async () => {
@@ -2046,6 +2067,8 @@ describe('ExtensionUtil Tests', () => {
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+                ensureRuntimeStub.should.not.have.been.called;
+
             });
         });
 
@@ -2084,6 +2107,8 @@ describe('ExtensionUtil Tests', () => {
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
                 showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`Toggling this feature will remove the world state and ledger data for all local runtimes. Do you want to continue?`);
                 updateSettingsStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
+                ensureRuntimeStub.should.have.been.calledOnce;
+
             });
 
             it(`should set context if runtime is running and user does teardown`, async () => {
@@ -2109,6 +2134,8 @@ describe('ExtensionUtil Tests', () => {
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+                ensureRuntimeStub.should.have.been.calledOnce;
+
             });
 
             it(`should not set context if there are no generated runtimes`, async () => {
@@ -2133,6 +2160,8 @@ describe('ExtensionUtil Tests', () => {
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+                ensureRuntimeStub.should.have.been.calledOnce;
+
             });
 
             it(`should no nothing if there are no runtimes`, async () => {
@@ -2153,6 +2182,7 @@ describe('ExtensionUtil Tests', () => {
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+                ensureRuntimeStub.should.not.have.been.called;
             });
 
             it(`should handle any errors`, async () => {
@@ -2179,6 +2209,8 @@ describe('ExtensionUtil Tests', () => {
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+                ensureRuntimeStub.should.have.been.calledOnce;
+
             });
         });
     });

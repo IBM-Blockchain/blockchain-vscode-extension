@@ -405,7 +405,7 @@ export class ExtensionUtil {
                 const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
 
                 const runtimes: LocalEnvironment[] = [];
-                const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(true); // Get only local entries
+                const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(true, true); // Get only local entries
                 for (const entry of environmentEntries) {
                     const _runtime: LocalEnvironment = await LocalEnvironmentManager.instance().ensureRuntime(entry.name, undefined, entry.numberOfOrgs);
                     const isGenerated: boolean = await _runtime.isGenerated();
@@ -631,7 +631,7 @@ export class ExtensionUtil {
 
             let updateGeneratorVersion: boolean = true;
 
-            const envEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(true);
+            const envEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(true, true);
 
             const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
 
