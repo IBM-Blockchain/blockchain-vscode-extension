@@ -49,7 +49,7 @@ stages:
         parameters:
           name: cucumber
           ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
-            version: '1.39.2'
+            version: 'stable'
           ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags') }}:
             version: 'stable'
 
