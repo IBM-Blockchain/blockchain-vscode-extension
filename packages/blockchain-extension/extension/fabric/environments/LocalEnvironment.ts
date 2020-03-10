@@ -127,7 +127,8 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
     }
 
     public async updateUserSettings(name: string): Promise<void> {
-        const settings: any = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
+        const _settings: any = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
+        const settings: any = JSON.parse(JSON.stringify(_settings));
         if (settings.ports) {
             // Delete old ports - the object should now have names, which have their own port range.
             delete settings.ports;
