@@ -82,6 +82,9 @@ export class PackageRegistry {
                 continue;
             }
 
+            // get size
+            const sizeKB: number = Math.round(stat.size / 1000);
+
             // Catch all errors (can't read file, file is not a valid package, etc) and log
             // them instead of having them break the listing of valid packages.
             try {
@@ -98,7 +101,8 @@ export class PackageRegistry {
                 pkgRegistryEntries.push(new PackageRegistryEntry({
                     name: pkgInfo.name,
                     version: pkgInfo.version,
-                    path: pkgPath
+                    path: pkgPath,
+                    sizeKB: sizeKB
                 }));
 
             } catch (error) {

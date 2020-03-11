@@ -65,6 +65,7 @@
             "aPackagesExplorer.exportSmartContractPackageEntry",
             "aPackagesExplorer.importSmartContractPackageEntry",
             "aPackagesExplorer.refreshEntry",
+            "aPackagesExplorer.viewPackageInformationEntry",
             "environmentExplorer.addEnvironmentEntry",
             "environmentExplorer.importNodesEntry",
             "environmentExplorer.deleteEnvironmentEntry",
@@ -446,6 +447,11 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "aPackagesExplorer.viewPackageInformationEntry",
+                "title": "View Package Information",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "gatewaysExplorer.testAllSmartContractEntry",
                 "title": "Generate Tests For All Smart Contracts",
                 "category": "IBM Blockchain Platform"
@@ -703,6 +709,10 @@
                 },
                 {
                     "command": "aPackagesExplorer.exportSmartContractPackageEntry",
+                    "when": "view == aPackagesExplorer && viewItem == blockchain-package-item"
+                },
+                {
+                    "command": "aPackagesExplorer.viewPackageInformationEntry",
                     "when": "view == aPackagesExplorer && viewItem == blockchain-package-item"
                 },
                 {
@@ -1482,7 +1492,8 @@
             ".log",
             ".pid",
             ".port",
-            ".feature"
+            ".feature",
+            ".xml"
         ],
         "insert_license": false,
         "clear_license": false,

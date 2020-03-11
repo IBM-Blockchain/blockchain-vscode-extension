@@ -98,7 +98,8 @@ describe('InstallCommand', () => {
             packageRegistryEntry = new PackageRegistryEntry({
                 name: 'vscode-pkg-1@0.0.1',
                 path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-1@0.0.1.cds'),
-                version: '0.0.1'
+                version: '0.0.1',
+                sizeKB: 23.45
             });
 
             showInstallableSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showInstallableSmartContractsQuickPick').resolves({

@@ -105,6 +105,9 @@ module.exports = function(): any {
     });
 
     this.Then("the logger should have been called with '{string}', '{string}' and '{string}'", this.timeout, async (type: string, popupMessage: string, outputMessage: string) => {
+        if (popupMessage === 'undefined') {
+            popupMessage = undefined;
+        }
         this.userInputUtilHelper.logSpy.should.have.been.calledWith(type, popupMessage, outputMessage);
     });
 

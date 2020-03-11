@@ -22,5 +22,6 @@ export class PackageTreeItem extends BlockchainTreeItem {
 
     constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly packageEntry: PackageRegistryEntry) {
         super(provider, name, vscode.TreeItemCollapsibleState.None);
+        this.tooltip = `${name}\nFile size: ${packageEntry.sizeKB} KB`;
     }
 }
