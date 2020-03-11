@@ -52,8 +52,8 @@ describe('AddEnvironmentCommand', () => {
     let getCoreNodeModuleStub: sinon.SinonStub;
     let getNodesStub: sinon.SinonStub;
     let url: string;
-    let key: string;
-    let secret: string;
+    let userAuth1: string;
+    let userAuth2: string;
     let certVerificationError: any;
     let certVerificationError2: any;
     let chooseMethodStub: sinon.SinonStub;
@@ -102,11 +102,11 @@ describe('AddEnvironmentCommand', () => {
             axiosGetStub = mySandBox.stub(Axios, 'get');
 
             url = 'my/OpsTool/url';
-            key = 'myOpsToolKey';
-            secret = 'myOpsToolSecret';
+            userAuth1 = 'myOpsToolKey';
+            userAuth2 = 'myOpsToolSecret';
             showInputBoxStub.withArgs('Enter the URL of the IBM Blockchain Platform Console you want to connect to').resolves(url);
-            showInputBoxStub.withArgs('Enter the API key of the IBM Blockchain Platform Console you want to connect to').resolves(key);
-            showInputBoxStub.withArgs('Enter the API secret of the IBM Blockchain Platform Console you want to connect to').resolves(secret);
+            showInputBoxStub.withArgs('Enter the API key or the User ID of the IBM Blockchain Platform Console you want to connect to').resolves(userAuth1);
+            showInputBoxStub.withArgs('Enter the API secret or the password of the IBM Blockchain Platform Console you want to connect to').resolves(userAuth2);
             chooseCertVerificationStub = showQuickPickItemStub.withArgs('Unable to perform certificate verification. Please choose how to proceed', [{ label: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN, data: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN }, { label: UserInputUtil.CANCEL_NO_CERT_CHAIN, data: UserInputUtil.CANCEL_NO_CERT_CHAIN, description: UserInputUtil.CANCEL_NO_CERT_CHAIN_DESCRIPTION }]);
             chooseCertVerificationStub.resolves({ label: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN, data: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN });
             certVerificationError = new Error('Certificate Verification Error');
@@ -462,8 +462,8 @@ describe('AddEnvironmentCommand', () => {
 
             const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(0);
-            showInputBoxStub.withArgs('Enter the API key of the IBM Blockchain Platform Console you want to connect to').should.not.have.been.called;
-            showInputBoxStub.withArgs('Enter the API secret of the IBM Blockchain Platform Console you want to connect to').should.not.have.been.called;
+            showInputBoxStub.withArgs('Enter the API key or the User ID of the IBM Blockchain Platform Console you want to connect to').should.not.have.been.called;
+            showInputBoxStub.withArgs('Enter the API secret or the password of the IBM Blockchain Platform Console you want to connect to').should.not.have.been.called;
             axiosGetStub.should.not.have.been.called;
             deleteEnvironmentSpy.should.have.not.been.called;
             removeRuntimeSpy.should.not.have.been.called;
@@ -495,16 +495,16 @@ describe('AddEnvironmentCommand', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
         });
 
-        it('should handle user cancelling when asked for api key when creating an OpsTool instance', async () => {
+        it('should handle user cancelling when asked for api key/user id when creating an OpsTool instance', async () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
-            showInputBoxStub.withArgs('Enter the API key of the IBM Blockchain Platform Console you want to connect to').resolves(undefined);
+            showInputBoxStub.withArgs('Enter the API key or the User ID of the IBM Blockchain Platform Console you want to connect to').resolves(undefined);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
             const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(0);
-            showInputBoxStub.withArgs('Enter the API secret of the IBM Blockchain Platform Console you want to connect to').should.not.have.been.called;
+            showInputBoxStub.withArgs('Enter the API secret or the password of the IBM Blockchain Platform Console you want to connect to').should.not.have.been.called;
             axiosGetStub.should.not.have.been.called;
             deleteEnvironmentSpy.should.have.not.been.called;
             removeRuntimeSpy.should.not.have.been.called;
@@ -512,10 +512,10 @@ describe('AddEnvironmentCommand', () => {
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Add environment');
         });
 
-        it('should handle when user cancels when asked for api secret when creating an OpsTool instance', async () => {
+        it('should handle when user cancels when asked for api secret/password when creating an OpsTool instance', async () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
-            showInputBoxStub.withArgs('Enter the API secret of the IBM Blockchain Platform Console you want to connect to').resolves(undefined);
+            showInputBoxStub.withArgs('Enter the API secret or the password of the IBM Blockchain Platform Console you want to connect to').resolves(undefined);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
@@ -562,12 +562,12 @@ describe('AddEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
         });
 
-        it('should handle when the api key or secret are incorrect when creating new OpsTool instance', async () => {
+        it('should handle when the api key + secret/user id + password are incorrect when creating new OpsTool instance', async () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
             const error: Error = new Error('invalid credentials error');
             axiosGetStub.onThirdCall().rejects(error);
-            const thrownError: Error = new Error(`Problem detected with API key and/or secret: ${error.message}`);
+            const thrownError: Error = new Error(`Problem detected with the authentication information provided: ${error.message}`);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
@@ -579,7 +579,7 @@ describe('AddEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${thrownError.message}`, `Failed to add a new environment: ${thrownError.toString()}`);
         });
 
-        it('should handle when the api key, api secret and rejectUnauthorized cannot be stored saved securely onto the keychain using the setPassword function when creating new OpsTool instance', async () => {
+        it('should handle when the api key/user id, api secret/password and rejectUnauthorized cannot be stored saved securely onto the keychain using the setPassword function when creating new OpsTool instance', async () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
             const error: Error = new Error('newError');

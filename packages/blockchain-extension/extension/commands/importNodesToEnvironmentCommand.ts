@@ -144,12 +144,12 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                 if (credentialsArray.length !== 3) {
                     throw new Error(`Unable to retrieve the stored credentials`);
                 }
-                const apiKey: string = credentialsArray[0];
-                const apiSecret: string = credentialsArray[1];
+                const userAuth1: string = credentialsArray[0];
+                const userAuth2: string = credentialsArray[1];
                 const rejectUnauthorized: boolean = credentialsArray[2] === 'true';
                 const requestOptions: any = {
                     headers: { 'Content-Type': 'application/json' },
-                    auth: { username: apiKey, password: apiSecret }
+                    auth: { username: userAuth1, password: userAuth2 }
                 };
                 requestOptions.httpsAgent = new https.Agent({rejectUnauthorized: rejectUnauthorized});
                 response = await Axios.get(api, requestOptions);

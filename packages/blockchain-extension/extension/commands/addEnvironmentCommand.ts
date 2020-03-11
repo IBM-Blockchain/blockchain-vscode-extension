@@ -111,12 +111,12 @@ export async function addEnvironment(): Promise<void> {
                 url = userUrl.split('/', 3).join('/');
             }
 
-            const apiKey: string = await UserInputUtil.showInputBox('Enter the API key of the IBM Blockchain Platform Console you want to connect to');
-            if (!apiKey) {
+            const userAuth1: string = await UserInputUtil.showInputBox('Enter the API key or the User ID of the IBM Blockchain Platform Console you want to connect to');
+            if (!userAuth1) {
                 return;
             }
-            const apiSecret: string = await UserInputUtil.showInputBox('Enter the API secret of the IBM Blockchain Platform Console you want to connect to');
-            if (!apiSecret) {
+            const userAuth2: string = await UserInputUtil.showInputBox('Enter the API secret or the password of the IBM Blockchain Platform Console you want to connect to');
+            if (!userAuth2) {
                 return;
             }
 
@@ -151,14 +151,14 @@ export async function addEnvironment(): Promise<void> {
             }
             // We will now atempt to connect using key and secret. If it fails, there is a problem with the key and secret provided.
             try {
-                requestOptions.auth = { username: apiKey, password: apiSecret };
+                requestOptions.auth = { username: userAuth1, password: userAuth2 };
                 await Axios.get(api, requestOptions);
             } catch (errorConnecting) {
-                throw new Error(`Problem detected with API key and/or secret: ${errorConnecting.message}`);
+                throw new Error(`Problem detected with the authentication information provided: ${errorConnecting.message}`);
             }
             // Securely store API key and secret
             try {
-                await keytar.setPassword('blockchain-vscode-ext', url, `${apiKey}:${apiSecret}:${requestOptions.httpsAgent.options.rejectUnauthorized}`);
+                await keytar.setPassword('blockchain-vscode-ext', url, `${userAuth1}:${userAuth2}:${requestOptions.httpsAgent.options.rejectUnauthorized}`);
             } catch (errorStorePass) {
                 throw new Error(`Unable to store the required credentials: ${errorStorePass.message}`);
             }

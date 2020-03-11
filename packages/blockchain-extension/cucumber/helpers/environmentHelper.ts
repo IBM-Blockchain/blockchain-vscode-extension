@@ -62,8 +62,8 @@ export class EnvironmentHelper {
                 // Connect to OpsTools and create environment without nodes
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
                 this.userInputUtilHelper.inputBoxStub.withArgs('Enter the URL of the IBM Blockchain Platform Console you want to connect to').resolves(process.env.MAP_OPSTOOLS_URL);
-                this.userInputUtilHelper.inputBoxStub.withArgs('Enter the API key of the IBM Blockchain Platform Console you want to connect to').resolves(process.env.MAP_OPSTOOLS_KEY);
-                this.userInputUtilHelper.inputBoxStub.withArgs('Enter the API secret of the IBM Blockchain Platform Console you want to connect to').resolves(process.env.MAP_OPSTOOLS_SECRET);
+                this.userInputUtilHelper.inputBoxStub.withArgs('Enter the API key or the User ID of the IBM Blockchain Platform Console you want to connect to').resolves(process.env.MAP_OPSTOOLS_KEY);
+                this.userInputUtilHelper.inputBoxStub.withArgs('Enter the API secret or the password of the IBM Blockchain Platform Console you want to connect to').resolves(process.env.MAP_OPSTOOLS_SECRET);
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Unable to perform certificate verification. Please choose how to proceed', [{ label: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN, data: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN }, { label: UserInputUtil.CANCEL_NO_CERT_CHAIN, data: UserInputUtil.CANCEL_NO_CERT_CHAIN, description: UserInputUtil.CANCEL_NO_CERT_CHAIN_DESCRIPTION }]).resolves({ label: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN, data: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN });
                 this.userInputUtilHelper.opsToolsNodeQuickPickStub.resolves([]);
             } else if (process.env.ANSIBLE_FABRIC) {
