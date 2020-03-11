@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import './IssuesList.scss'; 
 import 'bootstrap/scss/bootstrap.scss';
 import 'font-awesome/scss/font-awesome.scss';
-import { Renew24 } from '@carbon/icons-react';
 
 
 let githubProject = 'IBM-Blockchain/blockchain-vscode-extension';
@@ -99,11 +98,6 @@ class IssuesList extends Component {
             }
         }
 
-        let spinnerClass = '';
-        if (this.props.refreshing) {
-            spinnerClass += ' fa-spin';
-        }
-
         let milestoneUrl = 'https://github.com/'+githubProject+'/milestone/';
         milestoneUrl += this.props.milestoneNumber;
         const seeMilestoneLink = (this.props.newestMilestone !== undefined) ? (<a href={milestoneUrl}> {'See current milestone'} </a>) : (<a href={issuesHtmlUrl}> {'See all on GitHub'}</a>);
@@ -114,9 +108,6 @@ class IssuesList extends Component {
             <div>
                 <h2>
                     {this.props.title}
-                    <a className='float-right' href='#'>
-                        <i> <Renew24 className={spinnerClass} onClick={this.props.refreshIssues}/> </i>
-                    </a>
                 </h2>
                 <p>
                     {seeMilestoneLink}
