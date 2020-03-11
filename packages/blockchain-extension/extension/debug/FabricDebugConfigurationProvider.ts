@@ -89,7 +89,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             // At the moment, we only want the user to debug with 1-org environments.
             // See https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1995 for the issue of supporting 2-org environments.
             const oneOrgRuntimes: IBlockchainQuickPickItem<LocalEnvironment>[] = [];
-            const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(true); // Get only local entries
+            const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(true, true); // Get only local entries
 
             const oneOrgEntries: FabricEnvironmentRegistryEntry[] = environmentEntries.filter((entry: FabricEnvironmentRegistryEntry) => {
                 return entry.numberOfOrgs === 1;

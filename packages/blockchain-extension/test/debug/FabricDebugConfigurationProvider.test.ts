@@ -179,7 +179,7 @@ describe('FabricDebugConfigurationProvider', () => {
             await FabricEnvironmentRegistry.instance().add(otherLocalEntry);
             await FabricEnvironmentRegistry.instance().add({name: 'stoppedLocalEnv', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1});
             await FabricEnvironmentRegistry.instance().add({name: 'twoOrgEnvironment', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 2});
-
+            await FabricEnvironmentRegistry.instance().add({url: 'some_website', environmentType: 3, name: 'consoleEnv'});
             const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
             const otherLocalEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(otherLocalEntry) as LocalEnvironment;
 
@@ -205,7 +205,7 @@ describe('FabricDebugConfigurationProvider', () => {
             const otherEntry: FabricEnvironmentRegistryEntry = {name: 'OtherLocalEnv', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1};
             await FabricEnvironmentRegistry.instance().add(otherEntry);
             await FabricEnvironmentRegistry.instance().add({name: 'twoOrgEnvironment', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 2});
-
+            await FabricEnvironmentRegistry.instance().add({url: 'some_website', environmentType: 3, name: 'consoleEnv'});
             const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
             const otherLocalEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(otherEntry) as LocalEnvironment;
             showQuickPickItemStub.resolves();
