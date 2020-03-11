@@ -471,6 +471,30 @@ describe('AddEnvironmentCommand', () => {
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Add environment');
         });
 
+        it('should handle url with trailing path after "/" when creating an OpsTool instance', async () => {
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
+            chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
+            showInputBoxStub.withArgs('Enter the URL of the IBM Blockchain Platform Console you want to connect to').resolves(`${url}/and/some/more/path`);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(1);
+            environments[0].should.deep.equal({
+                name: 'myOpsToolsEnvironment',
+                url: url,
+                environmentType: EnvironmentType.OPS_TOOLS_ENVIRONMENT
+            });
+
+            deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
+        });
+
         it('should handle user cancelling when asked for api key when creating an OpsTool instance', async () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');

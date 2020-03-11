@@ -103,10 +103,14 @@ export async function addEnvironment(): Promise<void> {
 
             const HEALTH_CHECK: string = '/ak/api/v1/health';
             const GET_ALL_COMPONENTS: string = '/ak/api/v1/components';
-            const url: string = await UserInputUtil.showInputBox('Enter the URL of the IBM Blockchain Platform Console you want to connect to');
-            if (!url) {
+            let url: string;
+            const userUrl: string = await UserInputUtil.showInputBox('Enter the URL of the IBM Blockchain Platform Console you want to connect to');
+            if (!userUrl) {
                 return;
+            } else {
+                url = userUrl.split('/', 3).join('/');
             }
+
             const apiKey: string = await UserInputUtil.showInputBox('Enter the API key of the IBM Blockchain Platform Console you want to connect to');
             if (!apiKey) {
                 return;
