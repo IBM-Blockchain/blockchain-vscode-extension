@@ -11,23 +11,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
+
 'use strict';
 
-import { RegistryEntry } from 'ibm-blockchain-platform-common';
+import * as fs from 'fs-extra';
+import { Package } from 'fabric-client';
 
-export class PackageRegistryEntry extends RegistryEntry {
+export class ListFilesInPackage {
 
-    public name: string;
+    public static async listFiles(packagePath: string): Promise<Array<string>> {
+        let fileNames: string[] = [];
+        const cdsBuffer: Buffer = await fs.readFile(packagePath);
+        const _package: Package = await Package.fromBuffer(cdsBuffer);
 
-    public path: string;
+        fileNames = _package.getFileNames();
 
-    public version: string;
-
-    public sizeKB: number;
-
-    constructor(fields?: PackageRegistryEntry) {
-        super();
-        Object.assign(this, fields);
+        return fileNames;
     }
-
 }

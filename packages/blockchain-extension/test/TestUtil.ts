@@ -60,7 +60,6 @@ export class TestUtil {
             createStub.restore();
 
             showConfirmationWarningMessage.restore();
-
         }
     }
 

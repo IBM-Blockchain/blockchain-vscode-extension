@@ -61,17 +61,20 @@ describe('PackageRegistry', () => {
                 {
                     name: 'vscode-pkg-1',
                     version: '0.0.1',
-                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-1@0.0.1.cds')
+                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-1@0.0.1.cds'),
+                    sizeKB: 3
                 },
                 {
                     name: 'vscode-pkg-2',
                     version: '0.0.2',
-                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-2@0.0.2.cds')
+                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-2@0.0.2.cds'),
+                    sizeKB: 3
                 },
                 {
                     name: 'vscode-pkg-3',
                     version: '1.2.3',
-                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-3@1.2.3.cds')
+                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-3@1.2.3.cds'),
+                    sizeKB: 24
                 }
             ]);
         });
@@ -83,17 +86,20 @@ describe('PackageRegistry', () => {
                 {
                     name: 'vscode-pkg-1',
                     version: '0.0.1',
-                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-1@0.0.1.cds')
+                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-1@0.0.1.cds'),
+                    sizeKB: 3
                 },
                 {
                     name: 'vscode-pkg-2',
                     version: '0.0.2',
-                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-2@0.0.2.cds')
+                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-2@0.0.2.cds'),
+                    sizeKB: 3
                 },
                 {
                     name: 'vscode-pkg-3',
                     version: '1.2.3',
-                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-3@1.2.3.cds')
+                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-3@1.2.3.cds'),
+                    sizeKB: 24
                 }
             ]);
         });

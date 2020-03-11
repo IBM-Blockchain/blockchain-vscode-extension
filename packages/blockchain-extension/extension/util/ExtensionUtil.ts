@@ -101,6 +101,7 @@ import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { associateTransactionDataDirectory } from '../commands/associateTransactionDataDirectoryCommand';
 import { dissociateTransactionDataDirectory } from '../commands/dissociateTransactionDataDirectoryCommand';
 import { openReleaseNotes } from '../commands/openReleaseNotesCommand';
+import { viewPackageInformation } from '../commands/viewPackageInformationCommand';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -283,6 +284,7 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_SMART_CONTRACT, (project: PackageTreeItem) => deleteSmartContractPackage(project)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_SMART_CONTRACT, (project: PackageTreeItem) => exportSmartContractPackage(project)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.IMPORT_SMART_CONTRACT, () => importSmartContractPackageCommand()));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.VIEW_PACKAGE_INFORMATION, (project: PackageTreeItem) => viewPackageInformation(project)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_ENVIRONMENT, () => addEnvironment()));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_ENVIRONMENT, (environmentTreeItem: FabricEnvironmentTreeItem | FabricEnvironmentRegistryEntry, force: boolean = false) => deleteEnvironment(environmentTreeItem, force)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_ENVIRONMENT_SHORT, (environmentTreeItem: FabricEnvironmentTreeItem | FabricEnvironmentRegistryEntry, force: boolean = false) => deleteEnvironment(environmentTreeItem, force)));

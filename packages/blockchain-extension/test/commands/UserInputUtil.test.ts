@@ -600,7 +600,8 @@ describe('UserInputUtil', () => {
             const newPackage: PackageRegistryEntry = new PackageRegistryEntry({
                 name: 'smartContractPackageBlue',
                 version: '0.0.1',
-                path: 'smartContractPackageBlue@0.0.1.cds'
+                path: 'smartContractPackageBlue@0.0.1.cds',
+                sizeKB: 12
             });
 
             mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([newPackage]);
@@ -619,7 +620,8 @@ describe('UserInputUtil', () => {
             const newPackage: PackageRegistryEntry = new PackageRegistryEntry({
                 name: 'smartContractPackageBlue',
                 version: '0.0.1',
-                path: 'smartContractPackageBlue@0.0.1.cds'
+                path: 'smartContractPackageBlue@0.0.1.cds',
+                sizeKB: 12
             });
 
             mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([newPackage]);
@@ -794,17 +796,20 @@ describe('UserInputUtil', () => {
             const packagedOne: PackageRegistryEntry = new PackageRegistryEntry({
                 name: 'biscuit-network',
                 version: '0.0.2',
-                path: 'biscuit-network@0.0.2.cds'
+                path: 'biscuit-network@0.0.2.cds',
+                sizeKB: 23
             });
             const packagedTwo: PackageRegistryEntry = new PackageRegistryEntry({
                 name: 'biscuit-network',
                 version: '0.0.3',
-                path: 'biscuit-network@0.0.3.cds'
+                path: 'biscuit-network@0.0.3.cds',
+                sizeKB: 23
             });
             const packagedThree: PackageRegistryEntry = new PackageRegistryEntry({
                 name: 'jaffa-network',
                 version: '0.0.1',
-                path: 'jaffa-network@0.0.1.cds'
+                path: 'jaffa-network@0.0.1.cds',
+                sizeKB: 34
             });
             const pathOne: string = path.join('some', 'path');
             const pathTwo: string = path.join('another', 'one');
@@ -827,7 +832,8 @@ describe('UserInputUtil', () => {
                         packageEntry: {
                             name: 'jaffa-network',
                             path: 'jaffa-network@0.0.1.cds',
-                            version: '0.0.1'
+                            version: '0.0.1',
+                            sizeKB: 34
                         },
                         workspace: undefined
                     }
@@ -859,12 +865,14 @@ describe('UserInputUtil', () => {
             const packagedOne: PackageRegistryEntry = new PackageRegistryEntry({
                 name: 'biscuit-network',
                 version: '0.0.2',
-                path: 'biscuit-network@0.0.2.cds'
+                path: 'biscuit-network@0.0.2.cds',
+                sizeKB: 23
             });
             const packagedTwo: PackageRegistryEntry = new PackageRegistryEntry({
                 name: 'biscuit-network',
                 version: '0.0.3',
-                path: 'biscuit-network@0.0.3.cds'
+                path: 'biscuit-network@0.0.3.cds',
+                sizeKB: 23
             });
 
             const pathOne: string = path.join('some', 'path');
@@ -894,12 +902,12 @@ describe('UserInputUtil', () => {
                 {
                     label: `${packagedOne.name}@${packagedOne.version}`,
                     description: 'Installed',
-                    data: { packageEntry: { name: packagedOne.name, version: packagedOne.version, path: undefined }, workspace: undefined }
+                    data: { packageEntry: { name: packagedOne.name, version: packagedOne.version, path: undefined, sizeKB: undefined }, workspace: undefined }
                 },
                 {
                     label: `${packagedTwo.name}@${packagedTwo.version}`,
                     description: 'Packaged',
-                    data: { packageEntry: { name: packagedTwo.name, version: packagedTwo.version, path: packagedTwo.path }, workspace: undefined }
+                    data: { packageEntry: { name: packagedTwo.name, version: packagedTwo.version, path: packagedTwo.path, sizeKB: 23 }, workspace: undefined }
                 },
                 {
                     label: `${workspaceOne.name}`,
@@ -933,12 +941,12 @@ describe('UserInputUtil', () => {
                 {
                     label: 'biscuit-network@0.0.2',
                     description: 'Installed',
-                    data: { packageEntry: { name: 'biscuit-network', version: '0.0.2', path: undefined }, workspace: undefined }
+                    data: { packageEntry: { name: 'biscuit-network', version: '0.0.2', path: undefined, sizeKB: undefined }, workspace: undefined }
                 },
                 {
                     label: `biscuit-network@0.0.3`,
                     description: 'Installed',
-                    data: { packageEntry: { name: 'biscuit-network', version: '0.0.3', path: undefined }, workspace: undefined }
+                    data: { packageEntry: { name: 'biscuit-network', version: '0.0.3', path: undefined, sizeKB: undefined }, workspace: undefined }
                 }
             ]);
         });
@@ -1950,27 +1958,32 @@ describe('UserInputUtil', () => {
             const packageOne: PackageRegistryEntry = new PackageRegistryEntry({
                 name: 'new-network',
                 version: '0.0.1',
-                path: 'new-network@0.0.1.cds'
+                path: 'new-network@0.0.1.cds',
+                sizeKB: 45
             });
             const packageTwo: PackageRegistryEntry = new PackageRegistryEntry({
                 name: 'biscuit-network',
                 version: '0.0.1',
-                path: 'biscuit-network@0.0.1.cds'
+                path: 'biscuit-network@0.0.1.cds',
+                sizeKB: 23
             });
             const packageThree: PackageRegistryEntry = new PackageRegistryEntry({
                 name: 'biscuit-network',
                 version: '0.0.2',
-                path: 'biscuit-network@0.0.1.cds'
+                path: 'biscuit-network@0.0.2.cds',
+                sizeKB: 23
             });
             const packageFour: PackageRegistryEntry = new PackageRegistryEntry({
                 name: 'cake-network',
                 version: '0.0.3',
-                path: 'cake-network@0.0.3.cds'
+                path: 'cake-network@0.0.3.cds',
+                sizeKB: 56
             });
             const packageFive: PackageRegistryEntry = new PackageRegistryEntry({
                 name: 'cake-network',
                 version: '0.0.2',
-                path: 'cake-network@0.0.2.cds'
+                path: 'cake-network@0.0.2.cds',
+                sizeKB: 56
             });
 
             const pathOne: string = path.join('some', 'path');
@@ -1997,7 +2010,8 @@ describe('UserInputUtil', () => {
                         {
                             name: 'new-network',
                             version: '0.0.1',
-                            path: 'new-network@0.0.1.cds'
+                            path: 'new-network@0.0.1.cds',
+                            sizeKB: 45
                         },
                         workspace: undefined
                     }
@@ -2010,7 +2024,8 @@ describe('UserInputUtil', () => {
                         {
                             name: 'cake-network',
                             version: '0.0.2',
-                            path: 'cake-network@0.0.2.cds'
+                            path: 'cake-network@0.0.2.cds',
+                            sizeKB: 56
                         },
                         workspace: undefined
                     }
