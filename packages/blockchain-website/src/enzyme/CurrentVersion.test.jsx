@@ -16,7 +16,7 @@ describe('CurrentVersion', () => {
     beforeEach(async() => {
         mySandBox = sinon.createSandbox();
         axiosGetStub = mySandBox.stub(Axios, 'get');
-        axiosGetStub.resolves({
+        axiosGetStub.returns({
             data: {name: 'someVersion'}
         });
     });
@@ -32,14 +32,14 @@ describe('CurrentVersion', () => {
         expect(component).toMatchSnapshot();
     });
 
-    it('should output latest version when successful api call', async() => {     
+    it('should output latest version when successful api call', async() => {
         const component = await mount(<CurrentVersion/>);
         axiosGetStub.should.have.been.calledOnce;
         component.state().currentVersion.should.equal('someVersion');
     });
 
     it('should output nothing when unsuccessful api call', async() => {     
-        axiosGetStub.resolves(undefined);
+        axiosGetStub.returns(undefined);
         const component = await mount(<CurrentVersion/>);
         axiosGetStub.should.have.been.calledOnce;
         component.state().should.deep.equal({
