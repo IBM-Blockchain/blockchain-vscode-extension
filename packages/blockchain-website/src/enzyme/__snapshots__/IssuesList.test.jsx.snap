@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`IssuesList should render the expected snapshot 1`] = `
+<div>
+  <h2 />
+  <p>
+    <a
+      href="https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues?q="
+    >
+       
+      See all on GitHub
+    </a>
+     // 
+    <a
+      href="https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/new"
+    >
+      Report an incident
+    </a>
+  </p>
+  <p
+    className="alert alert-info"
+  >
+    Please wait, loading status information
+  </p>
+</div>
+`;

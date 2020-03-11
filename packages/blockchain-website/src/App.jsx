@@ -13,7 +13,7 @@ class App extends Component {
         <div className="container">
             <div className="row">
                 <div>
-                    <h1 className="text-muted"><img className="logo" src={logo} alt='IBM Blockchain Logo'></img> IBM Blockchain Platform - Status Page</h1>
+                    <h1 className="text-muted"><img className="logo" src={logo} alt='IBM Blockchain Logo'></img> IBM Blockchain Platform Extension for VSCode - Status Page</h1>
                     <hr />
                     <h2 className='text-muted'> <CurrentVersion></CurrentVersion> </h2>
                     <p className="lead">

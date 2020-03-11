@@ -25,7 +25,7 @@ describe('IssuesList', () => {
             .toJSON(); 
         expect(component).toMatchSnapshot();
     });
-    
+
     it('should show error test if error is passed as a prop', async() => {
         const component = await mount(<IssuesList error={'someError'}/>);
         component.text().includes('someError').should.be.true;
