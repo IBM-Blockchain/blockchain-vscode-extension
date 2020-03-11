@@ -697,6 +697,8 @@ describe('LocalEnvironment', () => {
 
             await environment.updateUserSettings(FabricRuntimeUtil.LOCAL_FABRIC);
 
+            setting[FabricRuntimeUtil.LOCAL_FABRIC].ports = environment.ports;
+
             updateStub.should.have.been.calledWith(SettingConfigurations.FABRIC_RUNTIME, setting);
         });
 

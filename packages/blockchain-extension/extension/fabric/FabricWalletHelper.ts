@@ -24,7 +24,8 @@ export class FabricWalletHelper {
 
     public static async tidyWalletSettings(): Promise<void> {
         // Get wallets from user settings
-        const wallets: FabricWalletRegistryEntry[] = vscode.workspace.getConfiguration().get(SettingConfigurations.OLD_FABRIC_WALLETS);
+        const _wallets: FabricWalletRegistryEntry[] = vscode.workspace.getConfiguration().get(SettingConfigurations.OLD_FABRIC_WALLETS);
+        const wallets: any = JSON.parse(JSON.stringify(_wallets));
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const resolvedExtDir: string = FileSystemUtil.getDirPath(extDir);
         const walletsExtDir: string = path.join(resolvedExtDir, FileConfigurations.FABRIC_WALLETS);

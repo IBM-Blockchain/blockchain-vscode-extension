@@ -257,10 +257,12 @@ export async function addEnvironment(): Promise<void> {
             if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE) {
 
                 // If attempting to create a new environment from a template fails, we should delete the setting if it was set.
-                const settings: any = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
-                if (settings[fabricEnvironmentEntry.name]) {
-                    delete settings[fabricEnvironmentEntry.name];
-                    await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, settings, vscode.ConfigurationTarget.Global);
+                const _settings: any = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
+                const localSettings: any = JSON.parse(JSON.stringify(_settings));
+
+                if (localSettings[fabricEnvironmentEntry.name]) {
+                    delete localSettings[fabricEnvironmentEntry.name];
+                    await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, localSettings, vscode.ConfigurationTarget.Global);
 
                 }
 
