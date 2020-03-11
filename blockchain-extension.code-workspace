@@ -17,6 +17,9 @@
 		},	
 		{	
 			"path": "packages/blockchain-wallet"	
+		},
+		{
+			"path": "packages/blockchain-website"
 		}
 	],
 	"settings": {

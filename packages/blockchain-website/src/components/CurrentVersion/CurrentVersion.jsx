@@ -21,7 +21,7 @@ class CurrentVersion extends Component {
             this.setState({
                 currentVersion : response.data.name
             })
-        };
+        }
     }
 
     render(){
