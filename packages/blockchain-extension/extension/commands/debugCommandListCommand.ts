@@ -15,22 +15,20 @@
 import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
-import { FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common/src/registries/FabricGatewayRegistryEntry';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { IFabricEnvironmentConnection, LogType, FabricGatewayRegistry, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { IFabricEnvironmentConnection, LogType } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 
 export async function debugCommandList(commandName?: string): Promise<void> {
 
     // Get the debug configuration
-    const configuration: vscode.DebugConfiguration = vscode.debug.activeDebugSession.configuration;
-    if (configuration.debugEvent !== FabricDebugConfigurationProvider.debugEvent) {
+    const debugSession: vscode.DebugSession = vscode.debug.activeDebugSession;
+    if (!debugSession || debugSession.configuration.debugEvent !== FabricDebugConfigurationProvider.debugEvent) {
         VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, undefined, 'The current debug session is not debugging a smart contract, this command can only be run when debugging a smart contract');
         return;
     }
-    const chaincodeContainerName: string = configuration.env.CORE_CHAINCODE_ID_NAME;
+    const chaincodeContainerName: string = debugSession.configuration.env.CORE_CHAINCODE_ID_NAME;
     const smartContractName: string = chaincodeContainerName.split(':')[0];
 
     // Determine whether to show Instantiate or Upgrade command
@@ -66,23 +64,15 @@ export async function debugCommandList(commandName?: string): Promise<void> {
     }
 
     if (commandName === ExtensionCommands.SUBMIT_TRANSACTION || commandName === ExtensionCommands.EVALUATE_TRANSACTION) {
-
-        if (!FabricGatewayConnectionManager.instance().getConnection()) {
-            // Connect to local_fabric gateway before submitting/evaluating transaction
-            // TODO: Support multi-org debugging
-            const runtimeGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
-            // Assume one runtime gateway registry entry
-            await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY, runtimeGateway);
-            if (!FabricGatewayConnectionManager.instance().getConnection()) {
-                // either the user cancelled or ther was an error so don't carry on
-                return;
-            }
+        // Connect to the gateway for the org that was selected when debug was started.
+        const connected: boolean = await FabricDebugConfigurationProvider.connectToGateway();
+        if (!connected) {
+            return;
         }
-
-        vscode.commands.executeCommand(commandName, undefined, channelName, smartContractName);
+        await vscode.commands.executeCommand(commandName, undefined, channelName, smartContractName);
 
     } else {
         // Instantiate or Upgrade command
-        vscode.commands.executeCommand(commandName, undefined, channelName, peerNames);
+        await vscode.commands.executeCommand(commandName, undefined, channelName, peerNames);
     }
 }

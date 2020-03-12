@@ -221,7 +221,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             } else {
                 for (const environmentEntry of environmentEntries) {
                     if (environmentEntry.managedRuntime) {
-         
+
                         let runtime: LocalEnvironment | ManagedAnsibleEnvironment;
                         if (environmentEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
                             runtime = await LocalEnvironmentManager.instance().ensureRuntime(environmentEntry.name, undefined, environmentEntry.numberOfOrgs);

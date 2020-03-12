@@ -56,6 +56,9 @@ export class FabricJavaDebugConfigurationProvider extends FabricDebugConfigurati
 
         if (!config.args.includes('--peer.address')) {
             const peerAddress: string = await this.getChaincodeAddress();
+            if (!peerAddress) {
+                return;
+            }
             config.args.push('--peer.address', peerAddress);
         }
 

@@ -31,6 +31,7 @@ import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { TestUtil } from '../TestUtil';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
+import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -72,10 +73,13 @@ describe('FabricGoDebugConfigurationProvider', () => {
         let getExtensionLocalFabricSetting: sinon.SinonStub;
         let showQuickPickItemStub: sinon.SinonStub;
         let environmentRegistry: FabricEnvironmentRegistryEntry;
+        let showQuickPickStub: sinon.SinonStub;
+
         beforeEach(async () => {
+            mySandbox = sinon.createSandbox();
             await FabricEnvironmentRegistry.instance().clear();
             await TestUtil.setupLocalFabric();
-            mySandbox = sinon.createSandbox();
+
             getExtensionLocalFabricSetting = mySandbox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting');
             getExtensionLocalFabricSetting.returns(true);
 
@@ -84,6 +88,9 @@ describe('FabricGoDebugConfigurationProvider', () => {
             runtimeStub = mySandbox.createStubInstance(LocalEnvironment);
             runtimeStub.getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
+            runtimeStub.numberOfOrgs = 1;
+            runtimeStub.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
+            runtimeStub.getAllOrganizationNames.resolves(['Org1MSP', 'Org2MSP']);
 
             mySandbox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(runtimeStub);
 
@@ -91,6 +98,7 @@ describe('FabricGoDebugConfigurationProvider', () => {
             environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             environmentRegistry.managedRuntime = true;
             environmentRegistry.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
+            environmentRegistry.numberOfOrgs = 1;
 
             mySandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
 
@@ -146,6 +154,13 @@ describe('FabricGoDebugConfigurationProvider', () => {
             const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
             showQuickPickItemStub = mySandbox.stub(UserInputUtil, 'showQuickPickItem').resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment});
             mySandbox.stub(LocalEnvironmentManager.instance(), 'ensureRuntime').resolves(runtimeStub);
+
+            mySandbox.stub(FabricDebugConfigurationProvider, 'connectToGateway').resolves(true);
+
+            showQuickPickStub = mySandbox.stub(UserInputUtil, 'showQuickPick');
+
+            FabricDebugConfigurationProvider.environmentName = FabricRuntimeUtil.LOCAL_FABRIC;
+
         });
 
         afterEach(() => {
@@ -153,11 +168,11 @@ describe('FabricGoDebugConfigurationProvider', () => {
         });
 
         it('should create a debug configuration', async () => {
-
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
             const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
-            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);
+            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'go',
                 mode: 'auto',
                 request: 'myLaunch',
@@ -178,7 +193,8 @@ describe('FabricGoDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
-            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            should.equal(config, undefined);
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);
+            should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'go',
                 mode: 'auto',
@@ -200,7 +216,8 @@ describe('FabricGoDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
-            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            should.equal(config, undefined);
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);
+            should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'go',
                 mode: 'auto',
@@ -222,7 +239,8 @@ describe('FabricGoDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
-            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            should.equal(config, undefined);
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);
+            should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'go',
                 mode: 'auto',
@@ -242,7 +260,8 @@ describe('FabricGoDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
-            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            should.equal(config, undefined);
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);
+            should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'go',
                 mode: 'auto',
@@ -263,7 +282,8 @@ describe('FabricGoDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
-            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            should.equal(config, undefined);
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);
+            should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'go',
                 mode: 'auto',
@@ -279,12 +299,54 @@ describe('FabricGoDebugConfigurationProvider', () => {
             sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Go' });
         });
 
+        it('should return if peer address is undefined', async () => {
+            debugConfig.args = ['--myArgs', 'myValue'];
+            runtimeStub.numberOfOrgs = 2;
+            showQuickPickStub.resolves();
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.equal(config, undefined);
+            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);
+            startDebuggingStub.should.not.have.been.called;
+            runtimeStub.getAllOrganizationNames.should.have.been.calledOnceWithExactly(false);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select the organization to debug for', ['Org1MSP', 'Org2MSP']);
+            sendTelemetryEventStub.should.not.have.been.called;
+            should.not.exist(FabricDebugConfigurationProvider.orgName);
+        });
+
+        it('should set correct org if there are multiple', async () => {
+            debugConfig.args = [];
+            runtimeStub.numberOfOrgs = 2;
+            showQuickPickStub.resolves('Org2MSP');
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.equal(config, undefined);
+            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);
+            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+                type: 'go',
+                mode: 'auto',
+                request: 'myLaunch',
+                program: 'myProgram',
+                cwd: 'myCwd',
+                debugEvent: FabricGoDebugConfigurationProvider.debugEvent,
+                env: {
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
+                },
+                args: ['--peer.address', '127.0.0.1:54321']
+            });
+            runtimeStub.getAllOrganizationNames.should.have.been.calledOnceWithExactly(false);
+            showQuickPickStub.should.have.been.calledOnceWithExactly('Select the organization to debug for', ['Org1MSP', 'Org2MSP']);
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Go' });
+            FabricDebugConfigurationProvider.orgName.should.equal('Org2');
+        });
+
         it('should add in request if not defined', async () => {
             debugConfig.request = null;
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
-            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            should.equal(config, undefined);
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);
+            should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'go',
                 mode: 'auto',
@@ -306,7 +368,8 @@ describe('FabricGoDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
-            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a 1-org environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            should.not.exist(config);
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);
+            should.not.exist(config);
             sendTelemetryEventStub.should.not.have.been.called;
         });
     });

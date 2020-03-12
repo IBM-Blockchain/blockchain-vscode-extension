@@ -13,11 +13,11 @@
 */
 'use strict';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricRuntimeUtil, IFabricGatewayConnection, LogType, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { IFabricGatewayConnection, LogType} from 'ibm-blockchain-platform-common';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import * as vscode from 'vscode';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
-import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
+import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 
 // Functions for parsing metadata object
 export class MetadataUtil {
@@ -90,27 +90,25 @@ export class MetadataUtil {
     }
 
     private static async killChaincodeContainer(chaincodeName: string): Promise<void> {
-        const gatewayRegistryEntry: FabricGatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
-        if (gatewayRegistryEntry.fromEnvironment === FabricRuntimeUtil.LOCAL_FABRIC) {
-            // make sure there is a debug session and its from a smart contract
-            const activeSession: vscode.DebugSession = vscode.debug.activeDebugSession;
-            if (activeSession && activeSession.configuration.env && activeSession.configuration.env.CORE_CHAINCODE_ID_NAME) {
-                const chaincodeInfo: string[] = activeSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':');
-                const name: string = chaincodeInfo[0];
-                const version: string = chaincodeInfo[1];
 
-                // make sure we are debugging the one getting we are getting meta data for
-                if (chaincodeName === name) {
+        // make sure there is a debug session and its from a smart contract
+        const activeSession: vscode.DebugSession = vscode.debug.activeDebugSession;
+        if (activeSession && activeSession.configuration.debugEvent === FabricDebugConfigurationProvider.debugEvent && activeSession.configuration.env && activeSession.configuration.env.CORE_CHAINCODE_ID_NAME) {
+            const chaincodeInfo: string[] = activeSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':');
+            const name: string = chaincodeInfo[0];
+            const version: string = chaincodeInfo[1];
 
-                    // TODO: Update this when we allow debugging for multiple local Fabrics
-                    const runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime(FabricRuntimeUtil.LOCAL_FABRIC);
-                    const isContainerRunning: boolean = await runtime.isRunning([name, version]);
-                    if (isContainerRunning) {
-                        await runtime.killChaincode([name, version]);
-                    }
+            // make sure we are debugging the one getting we are getting meta data for
+            if (chaincodeName === name) {
+
+                const runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime(FabricDebugConfigurationProvider.environmentName);
+                const isContainerRunning: boolean = await runtime.isRunning([name, version]);
+                if (isContainerRunning) {
+                    await runtime.killChaincode([name, version]);
                 }
             }
         }
+
     }
 
 }

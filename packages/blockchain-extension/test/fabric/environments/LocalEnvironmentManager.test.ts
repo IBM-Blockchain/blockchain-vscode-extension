@@ -23,14 +23,11 @@ import { CommandUtil } from '../../../extension/util/CommandUtil';
 import { version } from '../../../package.json';
 import { VSCodeBlockchainOutputAdapter } from '../../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { SettingConfigurations } from '../../../configurations';
-import { FabricEnvironmentManager, ConnectedState } from '../../../extension/fabric/environments/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FileSystemUtil, FabricEnvironmentRegistry, FabricGatewayRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';
 import { EnvironmentFactory } from '../../../extension/fabric/environments/EnvironmentFactory';
-import { ManagedAnsibleEnvironment } from '../../../extension/fabric/environments/ManagedAnsibleEnvironment';
-import { ManagedAnsibleEnvironmentManager } from '../../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
 
 chai.should();
 
@@ -39,15 +36,12 @@ describe('LocalEnvironmentManager', () => {
 
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
-    // let mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment>;
     let mockConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
 
     let sandbox: sinon.SinonSandbox;
     let findFreePortStub: sinon.SinonStub;
     let backupRuntime: LocalEnvironment;
     let originalRuntime: LocalEnvironment;
-    let startLogsStub: sinon.SinonStub;
-    let stopLogsStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests(sandbox);
@@ -61,7 +55,6 @@ describe('LocalEnvironmentManager', () => {
         sandbox = sinon.createSandbox();
         await connectionRegistry.clear();
 
-        // mockRuntime = sandbox.createStubInstance(LocalEnvironment);
         runtimeManager['connection'] = runtimeManager['connectingPromise'] = undefined;
 
         runtimeManager['runtimes'] = new Map();
@@ -70,8 +63,6 @@ describe('LocalEnvironmentManager', () => {
         sandbox.stub(FabricConnectionFactory, 'createFabricEnvironmentConnection').returns(mockConnection);
         findFreePortStub = sandbox.stub().resolves([17050, 17051, 17052, 17053, 17054, 17055, 17056, 17058, 17059, 17060, 17070]);
         sandbox.stub(LocalEnvironmentManager, 'findFreePort').value(findFreePortStub);
-        startLogsStub = sandbox.stub(LocalEnvironment.prototype, 'startLogs').returns(undefined);
-        stopLogsStub = sandbox.stub(LocalEnvironment.prototype, 'stopLogs').returns(undefined);
     });
 
     afterEach(async () => {
@@ -230,12 +221,10 @@ describe('LocalEnvironmentManager', () => {
         let updateUserSettingsStub: sinon.SinonStub;
         let createStub: sinon.SinonStub;
 
-        let getEnvironmentRegistryEntryStub: sinon.SinonStub;
         beforeEach(async () => {
             const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
             const getEnvironmentStub: sinon.SinonStub = sandbox.stub(EnvironmentFactory, 'getEnvironment');
             getEnvironmentStub.callThrough();
-            getEnvironmentRegistryEntryStub = sandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(registryEntry);
             getEnvironmentStub.withArgs(registryEntry).returns(originalRuntime);
 
             isCreatedStub = sandbox.stub(LocalEnvironment.prototype, 'isCreated').resolves(true);
@@ -332,75 +321,6 @@ describe('LocalEnvironmentManager', () => {
             });
             updateUserSettingsStub.should.have.been.calledOnce;
             createStub.should.have.been.calledOnce;
-        });
-
-        it(`should start logs if ${FabricRuntimeUtil.LOCAL_FABRIC} is connected`, async () => {
-
-            sandbox.stub(LocalEnvironmentManager.instance(), 'ensureRuntime').returns(originalRuntime);
-
-            isCreatedStub.resolves(true);
-            FabricEnvironmentManager.instance().removeAllListeners(); // For some reason, there seemed to be multiple listener - as startLogsStub was being called many times.
-
-            await runtimeManager.initialize(FabricRuntimeUtil.LOCAL_FABRIC, 1);
-            const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
-
-            FabricEnvironmentManager.instance().connect(mockConnection, registryEntry, ConnectedState.CONNECTED);
-
-            startLogsStub.should.have.been.calledOnce;
-        });
-
-        it('should not start the logs when other fabric connected is not a local environment', async () => {
-            const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
-            registryEntry.name = 'myFabric';
-            registryEntry.managedRuntime = false;
-            getEnvironmentRegistryEntryStub.returns(registryEntry);
-            sandbox.stub(LocalEnvironmentManager.instance(), 'ensureRuntime').returns(originalRuntime);
-
-            isCreatedStub.resolves(false);
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
-            await runtimeManager.initialize(FabricRuntimeUtil.LOCAL_FABRIC, 1);
-
-            FabricEnvironmentManager.instance().connect(mockConnection, registryEntry, ConnectedState.CONNECTED);
-
-            startLogsStub.should.not.have.been.called;
-        });
-
-        it('should stop the logs when disconnected', async () => {
-            sandbox.stub(LocalEnvironmentManager.instance(), 'ensureRuntime').returns(originalRuntime);
-
-            FabricEnvironmentManager.instance()['connection'] = undefined;
-            isCreatedStub.resolves(false);
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
-
-            FabricEnvironmentManager.instance().removeAllListeners(); // For some reason, there seemed to be multiple listener - as stopLogsStub was being called many times.
-
-            await runtimeManager.initialize(FabricRuntimeUtil.LOCAL_FABRIC, 1);
-            const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
-
-            FabricEnvironmentManager.instance().connect(mockConnection, registryEntry, ConnectedState.CONNECTED);
-
-            FabricEnvironmentManager.instance().disconnect();
-
-            stopLogsStub.should.have.been.calledOnce;
-        });
-
-        it('should do nothing when disconnected from a non-local environment', async () => {
-            sandbox.stub(ManagedAnsibleEnvironmentManager.instance(), 'ensureRuntime').returns(new ManagedAnsibleEnvironment('managedAnsible', path.join(__dirname, '..', '..', '..', 'test', 'data', 'managedAnsible')));
-            await FabricEnvironmentRegistry.instance().add({name: 'managedAnsible', environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT, managedRuntime: true, environmentDirectory: path.join(__dirname, '..', '..', '..', 'test', 'data', 'managedAnsible') });
-
-            const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get('managedAnsible');
-            getEnvironmentRegistryEntryStub.returns(registryEntry);
-
-            FabricEnvironmentManager.instance()['connection'] = undefined;
-            isCreatedStub.resolves(false);
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
-            await runtimeManager.initialize(FabricRuntimeUtil.LOCAL_FABRIC, 1);
-
-            FabricEnvironmentManager.instance().connect(mockConnection, registryEntry, ConnectedState.CONNECTED);
-
-            FabricEnvironmentManager.instance().disconnect();
-
-            stopLogsStub.should.not.have.been.called;
         });
 
         it('should migrate if old style-ports are used and need to be updated to a start and end port range', async () => {

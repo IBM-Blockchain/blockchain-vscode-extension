@@ -37,9 +37,16 @@ export class FabricEnvironment extends EventEmitter {
         return this.path;
     }
 
-    public async getAllOrganizationNames(): Promise<string[]> {
+    public async getAllOrganizationNames(showOrderer: boolean = true): Promise<string[]> {
         const mspIDs: Set<string> = new Set<string>();
-        const nodes: FabricNode[] = await this.getNodes();
+        let nodes: FabricNode[] = await this.getNodes();
+        if (!showOrderer) {
+            // Anything using the Orderer wallet is either a 'Orderer' or 'CA' type.
+            nodes = nodes.filter((node: FabricNode) => {
+                return node.type === FabricNodeType.PEER;
+            });
+        }
+
         for (const node of nodes) {
             if (node.msp_id) {
                 mspIDs.add(node.msp_id);

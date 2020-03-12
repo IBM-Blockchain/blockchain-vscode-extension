@@ -22,9 +22,9 @@ import { FabricWalletGenerator } from 'ibm-blockchain-platform-wallet';
 import { URL } from 'url';
 
 export class FabricEnvironmentConnection implements IFabricEnvironmentConnection {
+    public environmentName: string;
 
     private outputAdapter: OutputAdapter;
-    private environmentName: string;
     private nodes: Map<string, FabricNode> = new Map<string, FabricNode>();
     private client: Client;
     private peers: Map<string, Client.Peer> = new Map<string, Client.Peer>();

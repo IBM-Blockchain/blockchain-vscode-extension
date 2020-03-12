@@ -38,6 +38,7 @@ import { InstantiatedChaincodeTreeItem } from '../../extension/explorer/model/In
 import { InstantiatedUnknownTreeItem } from '../../extension/explorer/model/InstantiatedUnknownTreeItem';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricRuntimeUtil, LogType, FabricGatewayRegistryEntry, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
 
 chai.use(sinonChai);
 chai.should();
@@ -1244,5 +1245,46 @@ describe('SubmitTransactionCommand', () => {
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.have.been.calledWith('submit transaction');
         });
+
+        it('should connect to the correct gateway when debugging and submitting a transaction', async () => {
+            const activeDebugSessionStub: any = {
+                configuration: {
+                    debugEvent: FabricDebugConfigurationProvider.debugEvent
+                }
+            };
+
+            const connectToGatewayStub: sinon.SinonStub = mySandBox.stub(FabricDebugConfigurationProvider, 'connectToGateway').resolves(true);
+
+            mySandBox.stub(vscode.debug, 'activeDebugSession').value(activeDebugSessionStub);
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+            connectToGatewayStub.should.have.been.calledOnce;
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
+        });
+
+        it('should return if unable to connect to the correct gateway when debugging and submitting a transaction', async () => {
+            const activeDebugSessionStub: any = {
+                configuration: {
+                    debugEvent: FabricDebugConfigurationProvider.debugEvent
+                }
+            };
+
+            const connectToGatewayStub: sinon.SinonStub = mySandBox.stub(FabricDebugConfigurationProvider, 'connectToGateway').resolves(false);
+
+            mySandBox.stub(vscode.debug, 'activeDebugSession').value(activeDebugSessionStub);
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+            connectToGatewayStub.should.have.been.calledOnce;
+            fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.not.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.not.have.been.calledWith('submit transaction');
+        });
+
     });
 });

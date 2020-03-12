@@ -53,7 +53,13 @@ describe('FabricEnvironment', () => {
 
     describe('#getAllOrganisationNames', () => {
         it('should get all the organisation names', async () => {
-            await environment.getAllOrganizationNames().should.eventually.deep.equal(['OrdererMSP', 'Org1MSP']);
+            const orgNames: string[] = await environment.getAllOrganizationNames();
+            orgNames.should.deep.equal(['OrdererMSP', 'Org1MSP']);
+        });
+
+        it('should get all the organisation names, excluding the orderer', async () => {
+            const orgNames: string[] = await environment.getAllOrganizationNames(false);
+            orgNames.should.deep.equal(['Org1MSP']);
         });
     });
 

@@ -36,6 +36,7 @@ import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric
 import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
 
 chai.use(sinonChai);
 
@@ -649,7 +650,7 @@ describe('InstantiateCommand', () => {
                     env: {
                         CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-123456'
                     },
-                    debugEvent: 'contractDebugging'
+                    debugEvent: FabricDebugConfigurationProvider.debugEvent
                 }
             };
 
@@ -678,7 +679,7 @@ describe('InstantiateCommand', () => {
                     env: {
                         CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-123456'
                     },
-                    debugEvent: 'contractDebugging'
+                    debugEvent: FabricDebugConfigurationProvider.debugEvent
                 }
             };
 
@@ -720,7 +721,7 @@ describe('InstantiateCommand', () => {
                     env: {
                         CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-123456'
                     },
-                    debugEvent: 'contractDebugging'
+                    debugEvent: FabricDebugConfigurationProvider.debugEvent
                 }
             };
 
@@ -756,7 +757,7 @@ describe('InstantiateCommand', () => {
                     env: {
                         CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-123456'
                     },
-                    debugEvent: 'contractDebugging'
+                    debugEvent: FabricDebugConfigurationProvider.debugEvent
                 },
                 workspaceFolder: workspaceFolder
             };

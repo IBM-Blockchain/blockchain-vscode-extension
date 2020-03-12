@@ -24,6 +24,7 @@ import { FabricRuntimeUtil, LogType, FabricGatewayRegistryEntry } from 'ibm-bloc
 import * as vscode from 'vscode';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
+import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -48,7 +49,7 @@ describe('Metadata ConnectionProfileUtil tests', () => {
     let otherGateway: FabricGatewayRegistryEntry;
     let debugSessionStub: sinon.SinonStub;
     let mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment>;
-
+    let getRuntimeStub: sinon.SinonStub;
     beforeEach(() => {
         mySandBox = sinon.createSandbox();
         fabricClientConnectionMock = mySandBox.createStubInstance(FabricGatewayConnection);
@@ -149,7 +150,8 @@ describe('Metadata ConnectionProfileUtil tests', () => {
         mockRuntime.isRunning.resolves(true);
         mockRuntime.killChaincode.resolves();
 
-        mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
+        getRuntimeStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime');
+        getRuntimeStub.returns(mockRuntime);
     });
 
     afterEach(() => {
@@ -204,13 +206,18 @@ describe('Metadata ConnectionProfileUtil tests', () => {
             configuration: {
                 env: {
                     CORE_CHAINCODE_ID_NAME: 'chaincode:0.0.1'
-                }
+                },
+                debugEvent: FabricDebugConfigurationProvider.debugEvent
             }
         };
+
+        FabricDebugConfigurationProvider.environmentName = FabricRuntimeUtil.LOCAL_FABRIC;
 
         debugSessionStub.value(activeDebugSessionStub);
         const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel', true);
         transactionsMap.should.deep.equal(testMap);
+        getRuntimeStub.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC);
+        mockRuntime.isRunning.should.have.been.calledOnceWithExactly(['chaincode', '0.0.1']);
         logSpy.should.not.have.been.called;
         mockRuntime.killChaincode.should.have.been.called;
     });
@@ -224,15 +231,19 @@ describe('Metadata ConnectionProfileUtil tests', () => {
             configuration: {
                 env: {
                     CORE_CHAINCODE_ID_NAME: 'chaincode:0.0.1'
-                }
+                },
+                debugEvent: FabricDebugConfigurationProvider.debugEvent
             }
         };
+
+        FabricDebugConfigurationProvider.environmentName = FabricRuntimeUtil.LOCAL_FABRIC;
 
         debugSessionStub.value(activeDebugSessionStub);
         const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel', true);
         transactionsMap.should.deep.equal(testMap);
+        getRuntimeStub.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC);
         logSpy.should.not.have.been.called;
-        mockRuntime.isRunning.should.have.been.called;
+        mockRuntime.isRunning.should.have.been.calledOnceWithExactly(['chaincode', '0.0.1']);
         mockRuntime.killChaincode.should.not.have.been.called;
     });
 
@@ -243,13 +254,15 @@ describe('Metadata ConnectionProfileUtil tests', () => {
             configuration: {
                 env: {
                     CORE_CHAINCODE_ID_NAME: 'different:0.0.1'
-                }
+                },
+                debugEvent: FabricDebugConfigurationProvider.debugEvent
             }
         };
 
         debugSessionStub.value(activeDebugSessionStub);
         const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel', true);
         transactionsMap.should.deep.equal(testMap);
+        getRuntimeStub.should.not.have.been.called;
         logSpy.should.not.have.been.called;
         mockRuntime.isRunning.should.not.have.been.called;
     });
@@ -266,6 +279,7 @@ describe('Metadata ConnectionProfileUtil tests', () => {
         debugSessionStub.value(activeDebugSessionStub);
         const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel', true);
         transactionsMap.should.deep.equal(testMap);
+        getRuntimeStub.should.not.have.been.called;
         logSpy.should.not.have.been.called;
         mockRuntime.isRunning.should.not.have.been.called;
     });
@@ -280,6 +294,7 @@ describe('Metadata ConnectionProfileUtil tests', () => {
         debugSessionStub.value(activeDebugSessionStub);
         const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel', true);
         transactionsMap.should.deep.equal(testMap);
+        getRuntimeStub.should.not.have.been.called;
         logSpy.should.not.have.been.called;
         mockRuntime.isRunning.should.not.have.been.called;
     });
