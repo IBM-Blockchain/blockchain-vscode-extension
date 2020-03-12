@@ -1,15 +1,15 @@
 import React, { Component } from 'react';
 import './TransactionForm.scss';
 import { Button, Form, FormGroup, TextInput, Select, SelectItem, Checkbox, TextArea } from 'carbon-components-react';
-import ITransaction from '../../interfaces/ITransaction';
-import ISmartContract from '../../interfaces/ISmartContract';
+import ITransaction from '../../../interfaces/ITransaction';
+import ISmartContract from '../../../interfaces/ISmartContract';
 
-interface CreateFormProps {
+interface IProps {
     smartContract: ISmartContract;
     postMessageHandler: (command: string, data?: any) => void;
 }
 
-interface CreateFormState {
+interface IState {
     smartContract: ISmartContract;
     postMessageHandler: (command: string, data?: any) => void;
     activeTransaction: ITransaction | undefined;
@@ -17,8 +17,8 @@ interface CreateFormState {
     transientData: string;
 }
 
-class TransactionForm extends Component<CreateFormProps, CreateFormState> {
-    constructor(props: Readonly<CreateFormProps>) {
+class TransactionForm extends Component<IProps, IState> {
+    constructor(props: Readonly<IProps>) {
         super(props);
         this.state = {
             smartContract: this.props.smartContract,

@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="371" height="518.9" viewBox="0 0 371 518.9">
+  <defs>
+    <linearGradient id="f20278de-be01-4fb9-861b-b448748ae812" data-name="New Gradient Swatch 3" x1="91.31" y1="141.34" x2="92.48" y2="141.34" gradientUnits="userSpaceOnUse">
+      <stop offset="0.1" stop-color="#20d5d2"/>
+      <stop offset="0.9" stop-color="#408bfc"/>
+    </linearGradient>
+    <linearGradient id="a8407abe-6c6f-4ded-9fdd-90f1dc30f127" x1="255.67" y1="143.03" x2="257.9" y2="143.03" xlink:href="#f20278de-be01-4fb9-861b-b448748ae812"/>
+    <linearGradient id="f3c2a9fc-caf4-4ce1-83a8-efca7cd6f715" x1="246.67" y1="300.05" x2="248.94" y2="300.05" xlink:href="#f20278de-be01-4fb9-861b-b448748ae812"/>
+    <linearGradient id="b3f987fc-5b54-40c8-a6c3-113a410516be" x1="255.67" y1="295.2" x2="257.9" y2="295.2" xlink:href="#f20278de-be01-4fb9-861b-b448748ae812"/>
+    <linearGradient id="ec3a2aaf-b5e3-4b8f-abc9-3dbeb6f3469e" x1="254.62" y1="226.5" x2="256.91" y2="226.5" xlink:href="#f20278de-be01-4fb9-861b-b448748ae812"/>
+    <linearGradient id="f4def64a-c100-4bd0-912e-a0b3dfba5ec7" x1="93.43" y1="133.46" x2="95.66" y2="133.46" xlink:href="#f20278de-be01-4fb9-861b-b448748ae812"/>
+    <clipPath id="b8badd1a-361a-48a2-8f6c-471c5f2e7289">
+      <path d="M91.9,140.7l.3.2a.5.5,0,0,1,.2.8.6.6,0,0,1-.8.2l-.3-.2Z" fill="url(#f20278de-be01-4fb9-861b-b448748ae812)"/>
+    </clipPath>
+    <clipPath id="b1b14628-ef56-4a2a-8622-2df8157053a7">
+      <path d="M257.9,143.1l-1.3.8a.5.5,0,0,1-.8-.2.6.6,0,0,1,.1-.8h.1l1.3-.9Z" fill="url(#a8407abe-6c6f-4ded-9fdd-90f1dc30f127)"/>
+    </clipPath>
+    <clipPath id="eacfa8c0-96f7-4931-994f-29645606e87a">
+      <path d="M246.7,299.9l1.4-.7a.6.6,0,0,1,.5,1.1l-1.4.6Z" fill="url(#f3c2a9fc-caf4-4ce1-83a8-efca7cd6f715)"/>
+    </clipPath>
+    <clipPath id="f2f26614-407b-438d-8404-d4001f0b0b6a">
+      <path d="M257.9,295.3l-1.3.8a.5.5,0,0,1-.8-.2.6.6,0,0,1,.1-.8h.1l1.3-.9Z" fill="url(#b3f987fc-5b54-40c8-a6c3-113a410516be)"/>
+    </clipPath>
+    <clipPath id="a9197b84-8013-4f18-a395-dcdc37a44e21">
+      <path d="M254.6,226.4l1.4-.7h0a.6.6,0,0,1,.8.3.5.5,0,0,1-.2.8l-1.4.7Z" fill="url(#ec3a2aaf-b5e3-4b8f-abc9-3dbeb6f3469e)"/>
+    </clipPath>
+    <clipPath id="f749a1b2-06e0-4285-90e9-2408f406e982">
+      <path d="M93.4,133.4l1.3-.8a.6.6,0,1,1,.7,1h-.1l-1.3.8Z" fill="url(#f4def64a-c100-4bd0-912e-a0b3dfba5ec7)"/>
+    </clipPath>
+    <linearGradient id="b0cda5bc-5a28-4b1c-8850-626aa18c145d" x1="175.65" y1="6.38" x2="175.65" y2="374.41" gradientUnits="userSpaceOnUse">
+      <stop offset="0.1" stop-color="#20d5d2" stop-opacity="0"/>
+      <stop offset="0.9" stop-color="#408bfc" stop-opacity="0.8"/>
+    </linearGradient>
+    <clipPath id="a5699760-0f43-4c08-82cf-a62d2e918b91">
+      <polygon points="119.4 108.3 119.5 57.2 164 82.9 163.9 134 119.4 108.3" fill="none"/>
+    </clipPath>
+  </defs>
+  <title>DevLearnerDark</title>
+  <g style="isolation: isolate">
+    <g id="adcf249a-7b3c-4317-9234-93333b341adb" data-name="Layer 2">
+      <g id="e3f12760-caa4-467f-900f-c3c83f215ff6" data-name="Layer 8">
+        <path d="M209.8,327.7l136.3,78.7c15.9,9.2,16.2,23.7.6,32.4L213.2,512.7c-15.7,8.6-41.4,8.2-57.3-1L19.6,433c-16-9.2-16.2-23.8-.6-32.4l133.5-73.9C168.1,318,193.8,318.5,209.8,327.7Z" fill="#121619" opacity="0.4" style="mix-blend-mode: multiply"/>
+      </g>
+      <g id="ffdb7d44-541f-46cc-9f9d-15d45c74b77b" data-name="Platform">
+        <g>
+          <polygon points="0 339.8 187.3 447.4 187.3 434.9 0 327.3 0 339.8" fill="#4d5358"/>
+          <polygon points="371 327 186.3 434.9 0 327.2 184.6 219.2 371 327" fill="#343a3f"/>
+          <polygon points="371 339.5 186.3 447.4 186.3 434.9 371 327 371 339.5" fill="#21272a"/>
+        </g>
+      </g>
+      <g id="a0af6373-32e1-4e6b-8afa-a6b41dd31316" data-name="Layer 6" opacity="0.5">
+        <g>
+          <g opacity="0.3" style="mix-blend-mode: multiply">
+            <g>
+              <path d="M91.9,140.7l.3.2a.5.5,0,0,1,.2.8.6.6,0,0,1-.8.2l-.3-.2Z" fill="url(#f20278de-be01-4fb9-861b-b448748ae812)"/>
+              <g clip-path="url(#b8badd1a-361a-48a2-8f6c-471c5f2e7289)">
+                <image width="8" height="6" transform="translate(90 140)" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAGCAYAAAD+Bd/7AAAACXBIWXMAAAsSAAALEgHS3X78AAAAQUlEQVQIW22OwQnAMAwDz9mlyf7bNO0wl5epKT4wSMgIhcp6twD7WsGPkSFA1UnUhkq2hX5Z9ziq6TagtjefW5UDAeAydTn0K08AAAAASUVORK5CYII="/>
+              </g>
+            </g>
+            <image width="230" height="114" transform="translate(61 30)" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOYAAAByCAYAAABHna3uAAAACXBIWXMAAAsSAAALEgHS3X78AAAEF0lEQVR4Xu3dXZLSQBSA0Qt7mWL/y5lyMfhgoZlISCfpv6TPedVSSO7nbQZnuD2fz6Afj1/f1W/I99fjtvZ7qOsmzDpaBJebgOsRZka54ysZQu7HGlH28Y5GmDscGeozDu9oz7cHwlyxZyhHGkbXpwxhvpE6bAZsWeo1jHAd3xFmpA2R4Tku5TpHuNYRg4aZMiCGozz3YdkwYa4NwagD0BP36J9Lh+lGn9fo9+5yYY5+Q6/q03294j29TJij3biRjXCvTx3mCDeIZVe+/6cMc+mGnP1msN/VZuJUYV7t4pPfVbboKcIUJHuceW66DvPdhT3DRaUvZwy0yzAFSQlnCrSrMAVJDWcItIswBUkLPc9d0zB7vjCMo8c5bBZmjxeDsc1nsuU8NgmzpwsAU70sjKphCpKzaD2r1cJs/URhq5bbs3iYguTsWsxw0TBbPCEoofb2LBKmILmqWrN9X/sNW9V64NDCfJ4/fTfLEVnDFCUjqBFntqOsKBnRdO5zznyWMEs9ODiDEkvp8FFWlIyuxNH2UJiihD9yx7k7TFHCTznj3BWmKOG9XHFuDlOU8FmOODeFKUpIc7SP5DD3VA8jm8a5tZ+kMEu8TwMj2BtnUphTooT9UuNcDdPrSjhmTzcfwxQl5LH1SLu6MYE8tsS5GKZtCe28DVOUUEbq1nSUhcpSlt1/YdqWUM/S1rQxoYG1pfcjTNsS6nu3NW1MaOTT8nsbpm0Jdc235t8w197wBOr5b2PallDPUm/3CNsSejDt0Bd/oLF3W/NHmI6x0AcbEzryOs7evb6E/tiY0IH5y8i/YXp9Cf2wMaFDwoQOCRM6JEzozOPX91OY0CFhQoeECZ2YvmUpTOiQMKETr/8e+/31uAkTOiRM6JAwoUPChA75KXnQkddbJnff7gXtLf5cWaAfwoQOLX6oENDOPcKPFYGWkj7ty9aENvwndujE6idKO85CO4s/vnLKcRba8tkl0Mj027zmv7b4GtPWhHZ8cC008GlbRqx8VdbWhPxSunob5rTilD8E2O7T6dT7mFBR6qJbDNPWhLymHa19LSd5Y4oT6vkY5lrVQJot2zIiYWM60sIxW6OMSAgzQpyw195eksKc2/uXwchSt2XEhjDnf6g44bM9R9iX5DAjxAmpjkQZsTHMCHHCmqNRRuwIM0KcsCRHlBE7w4wQJ8zlijLiQJgR4oSXnFFGRNyez+MtzYPM8cDgDErN/qGN+WJzMqJSUUZkCjNCnIylZJQRmY6yU++CzP2goaXSUUYUCPOlxoOHmmrOdLaj7JyjLVdSM8qIghvzxdGWs6sdZUSFMF9aPDk4ouXMVgszwvbkHHqY06phvrT8lwg+6SHKiEZhRvRzASCiv3ks9lXZNd9fj1vLJw5T81lsPZu/AanJ3wMgDt56AAAAAElFTkSuQmCC"/>
+            <g>
+              <path d="M257.9,143.1l-1.3.8a.5.5,0,0,1-.8-.2.6.6,0,0,1,.1-.8h.1l1.3-.9Z" fill="url(#a8407abe-6c6f-4ded-9fdd-90f1dc30f127)"/>
+              <g clip-path="url(#b1b14628-ef56-4a2a-8622-2df8157053a7)">
+                <image width="8" height="6" transform="translate(253 140)" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAGCAYAAAD+Bd/7AAAACXBIWXMAAAsSAAALEgHS3X78AAAAO0lEQVQIW33JsQ3AIBTEUINYJbD/NhCGcSoovgiWrrmXVGJtjn3mGwKUPwAYT0v5hgAl4oKdSn27Kqd9iiEsgYS37sUAAAAASUVORK5CYII="/>
+              </g>
+            </g>
+          </g>
+          <circle cx="104.8" cy="129.1" r="6.1" fill="#42e8e0" opacity="0.8"/>
+          <circle cx="56.3" cy="114.4" r="4.1" fill="#42e8e0" opacity="0.8"/>
+          <path d="M82.7,146.5a3.6,3.6,0,1,1-3.6-3.6A3.6,3.6,0,0,1,82.7,146.5Z" fill="#42e8e0" opacity="0.8"/>
+          <circle cx="75.9" cy="215.1" r="2.3" fill="#42e8e0" opacity="0.8"/>
+          <path d="M65.3,185.2a1.8,1.8,0,0,1,1.2,2.2,1.7,1.7,0,0,1-2.2,1.2,1.8,1.8,0,0,1-1.3-2.2A1.9,1.9,0,0,1,65.3,185.2Z" fill="#42e8e0" opacity="0.8"/>
+          <g>
+            <path d="M272.4,224.6a3.8,3.8,0,1,1-3.8-3.8A3.8,3.8,0,0,1,272.4,224.6Z" fill="#42e8e0" opacity="0.4"/>
+            <path d="M206.2,51.3a3.8,3.8,0,1,1-3.8-3.8A3.8,3.8,0,0,1,206.2,51.3Z" fill="#42e8e0" opacity="0.4"/>
+            <path d="M213.6,180.8a5.6,5.6,0,1,1-5.6-5.6A5.6,5.6,0,0,1,213.6,180.8Z" fill="#42e8e0" opacity="0.4"/>
+            <path d="M203.4,276.3a4,4,0,0,1-7.9,0,4,4,0,1,1,7.9,0Z" fill="#42e8e0" opacity="0.8"/>
+            <path d="M259.7,116.5a6.1,6.1,0,1,1-12.1,0,6.1,6.1,0,0,1,12.1,0Z" fill="#42e8e0" opacity="0.8"/>
+            <path d="M255,136.1a4.1,4.1,0,0,1-4.1,4.1,4.1,4.1,0,0,1,0-8.2A4.1,4.1,0,0,1,255,136.1Z" fill="#42e8e0" opacity="0.8"/>
+          </g>
+          <g opacity="0.3" style="mix-blend-mode: multiply">
+            <g>
+              <path d="M246.7,299.9l1.4-.7a.6.6,0,0,1,.5,1.1l-1.4.6Z" fill="url(#f3c2a9fc-caf4-4ce1-83a8-efca7cd6f715)"/>
+              <g clip-path="url(#eacfa8c0-96f7-4931-994f-29645606e87a)">
+                <image width="8" height="5" transform="translate(243 298)" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAFCAYAAAB4ka1VAAAACXBIWXMAAAsSAAALEgHS3X78AAAAOElEQVQIW3WKwQkAIAwDU3CV2v23sTrM+ROUGsgjdzFAb2Llge0nrkMlJCk9rFUyPewMQH0OAFXdnY0ogU3ZngwAAAAASUVORK5CYII="/>
+              </g>
+            </g>
+            <image width="230" height="134" transform="translate(61 182)" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOYAAACGCAYAAADJnvbhAAAACXBIWXMAAAsSAAALEgHS3X78AAAFDUlEQVR4Xu3dUVLjMBBF0Rf2QmX/y0mxmMzHlMAY25IsqdWS7vmcoajE6ksbCPB4v9+CP8+vV/ODeX0+H7G3QR8PwrRjEVsrRGyLMCtrGV9JHF4fF44R5k2lgz7KMJc8z1Geo0eEmeDOcK4wlFyXdgjzQM7AMWh/cf3KEabSB4khuo9rnGfZMFMGhSFpJ+X6S+uewVJhxoZh1SHwIHY20lrnM32YVwe+0kGPJhbq7Gc3ZZjEOJcVI50mTGJcwyrnPHyYZwc10yHh2MyRDhnmzAeCe2b7AD1UmLNdfNQ3y4wMEeYsFxt2Rp8Z12GOfnHhw9EceZ8hl2GOeCHh30hz5SpMNiQsjBCoizAJEj14DrR7mJ4vDtbgcQa7henxYmBd3uaxS5j7i9DzAgBbXmbTNExvH5WAM70DNQuz9xMFcvWcWZMwez5BoFSP+W0aZo8nBLRgPcvNwrR+IoAFq7muHqbVAwd6sZjxj9gb5LB4wEBv+7k+e+VaiWphEiVW0jrOKreyRImVbee/1uwXb0yixOq2M19rcxZtTKIEftTs4XaYLdY3MLpacd66lSVK4FitLwplh0mUwLUaXWSFSZRAmtIvCCWHeeedAysriTM5zC22JZAvJ86kMLmFBe65+8WgaJhECZS5081lmEQJ1JH7+WZ0YwKoIyfO0zDZlkA/bEzAUOrWPAyTbQn09SdMogTaStma3MoCHcSW3q8w2ZaAvaOtycYEOrlafodhsi0BW/ut+R1m7BueAOz82ZhsS8DOWW98jgk4sb1r/dj/AwBbR1vz18bkNhbwgVtZwJFw9/rBbSzgDxsTcGD/aeR3mHx+CfjBxgQcIkzAIcIEHCJMwJnn1+tNmIBDhAk4RJiAE9tvWRIm4BBhAk6El8e+Pp8PwgQcIkzAIcIEHCJMwCF+Sx7gSPiWCRsTcODP75Xl5zABf9iYgEOnf1QIQD8fEr9WBOiJv/YFOHb5InZuZwE70b8oze0s4MfhrSxbE7B1+ntlj/4TQDvbH/Pa/9/pF3/YmkA//OFaoIOrbSlFvl3C1gTqS+nqMEy2JtDeVWfRFxik1A0gTWpPp2Fua059ZwDSxO5KoxsTQB05C+4yTLYmUMe2n9i2lBI2JnECZe50Ew1TIk6glpRtKSWGuUecQJrcW9ggOcycdwrgfpRSRpgSt7RAqpIopcwwJeIEYkqjlG6EKREncKZGlNLNMCXiBPZqRSlJj/e7rKl9lKUPCBhRzSilgo0Z7B8E2xOrqR2lVCFMiTixrhZRShVuZbe4rcUqWs96lY0ZsDmxgtZRSpU3ZnAUZIsHD1iziFJqFGZg9SSA1qxnueqt7B63tpiBdZRS440ZcGuLEfUIMjAJMyBQjKJnlJJxmBJxwjcv82keZuDlAgBB7y251S3MgEDhgacoJQdhSsQJH55fr7eXuXMRZkCgwH+uwgwIFKtzGWZAoKih1U+AtOQ6zC0iRa6RZ2aYMIORLzbau3rZ50hzMlyYwdkBjHTxUc9s8zBsmMFsB4J0s2zHI8OHGcx8SPgR+wmlWc56mjC3iHQuq8S4NWWYwYoHOovVz27qMLdiBy3Nf9jexc5opfNZJsyt2AAEKw1CDynnsOoZLBnmXsqASOsOSQ1c4zyEeSB1iCQG6UjO9ZO4hkcIM0HuoEnrDFvutVnlupQizJtyB3JrpOFc5Xl6Q5gVlQzxlZoDPsJjBGGaaRWEJeKzQ5gOWUVMaH79A7g7tGznK989AAAAAElFTkSuQmCC"/>
+            <g>
+              <path d="M257.9,295.3l-1.3.8a.5.5,0,0,1-.8-.2.6.6,0,0,1,.1-.8h.1l1.3-.9Z" fill="url(#b3f987fc-5b54-40c8-a6c3-113a410516be)"/>
+              <g clip-path="url(#f2f26614-407b-438d-8404-d4001f0b0b6a)">
+                <image width="8" height="6" transform="translate(253 292)" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAGCAYAAAD+Bd/7AAAACXBIWXMAAAsSAAALEgHS3X78AAAAOElEQVQIW33LwQkAMAhD0a+4SnH/caTD2JMgxTa35BHJTKb4jgSwF1T0h7FcbIJCAJtevWsfbgQ4H6IXD/8xme8AAAAASUVORK5CYII="/>
+              </g>
+            </g>
+          </g>
+          <g opacity="0.3" style="mix-blend-mode: multiply">
+            <g>
+              <path d="M254.6,226.4l1.4-.7h0a.6.6,0,0,1,.8.3.5.5,0,0,1-.2.8l-1.4.7Z" fill="url(#ec3a2aaf-b5e3-4b8f-abc9-3dbeb6f3469e)"/>
+              <g clip-path="url(#a9197b84-8013-4f18-a395-dcdc37a44e21)">
+                <image width="8" height="5" transform="translate(251 224)" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAFCAYAAAB4ka1VAAAACXBIWXMAAAsSAAALEgHS3X78AAAANUlEQVQIW2P8//8/AzagfvvmfwYGBgYWXBIwAFeALsHAwMBwU1WdkQWbBEySgQGLFTAJGAAA+VcR6RApVv8AAAAASUVORK5CYII="/>
+              </g>
+            </g>
+            <image width="196" height="115" transform="translate(61 132)" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMQAAABzCAYAAADHaa2mAAAACXBIWXMAAAsSAAALEgHS3X78AAADNUlEQVR4Xu3dW27bMBBA0YnRrRTZ/3KCLMb9Yjp2JMuy9eDjnO8AhSneDJk6zsf1eo2zfX5/Xb/+fn4sfR3s7ePMID6/v27+cVFwtj9LX7CH+xAixEAdLktfsDUxULPDJoQQaMEhE0IMtGL3CeHiTEt2C8JUoEW7BGEq0KrN7xBioGWbBiEGWrfZkSnHIARatcmEEAO9eGtCOCLRm5cnhBjo0UtBiIFerQ5CDPRsdRCZGOjNqiD8NInePR2EGBjBU0FMvVEPerQYhEs0I1kMIhMDvXsYhHsDo5kNQgyMaNWRCXo3GYTpwKhMCEh+BWE6MDITApKbIEwHRmdCQPIThOkAJgTc+BWE6cDITAhILhF+3wGKmwnhuMToHJkguTguwX8mBCQ/Qbg/gAkBNwQBiSAgEQQkgoBEEJAIAhJBQCIISAQBiSAgEQQkk5+6AaMyISC5eNs3/GdCQDL72a4wIhMCkkuEXx+F4uEfTIHRODJB4lM3IJmcEI5NjMpnu0Iye4cwJRiRP5gCycOfMpkSjGYyiDwlRMFI/D8EJLNBmBKM6OGEEAWjWXVkEgW9WwzCj2EZyWIQEY5OjOOpICJEwRieDuKeKOjRqiDu7xOioDergogQBX1bHUSEKOjXS0FEiII+vRxEhCjoz1tBRIiCvrwdRIQo6MfH9brt3r2PwVs/aMkmEyIzLWjZ5kFEiIJ2bX5kyqZCcISiZrsGUbhX0IpDgogwLWjDLneIKVOb392C2hw2ITLTglqdEkThbkEtyl48NYgI04Jz3e+/04MohMGR5u6v1QRRCIM9zYVQ9lh1QRTCYEtLIRTVBlEIg3c8G0JRfRDF2hfG2F7dL80EUbz6Qunfo//ofXZ/NBdEscWLpw9bfpNsNohsywWhDXt9Q+wiiGKvRaIORzzfroLIjlg89rf0BtCtn2W3QWRHLyrvOfN5DRFEduZiM23pmUQc91yGCyKr6UGM5Jl1jzhn7YcO4l7ND6pVz65pRB3rKogZax5kRB0P82w9rJkgVlj7wIsaH/w7XlmHVtZAEG96ZXPcq2mz9PZ61hLETrbYWLVreePPEcRJWgimxw2/RBCN8z6ubf0DfL7cHtFmryIAAAAASUVORK5CYII="/>
+            <g>
+              <path d="M93.4,133.4l1.3-.8a.6.6,0,1,1,.7,1h-.1l-1.3.8Z" fill="url(#f4def64a-c100-4bd0-912e-a0b3dfba5ec7)"/>
+              <g clip-path="url(#f749a1b2-06e0-4285-90e9-2408f406e982)">
+                <image width="8" height="6" transform="translate(90 131)" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAGCAYAAAD+Bd/7AAAACXBIWXMAAAsSAAALEgHS3X78AAAAQElEQVQIW33NSwqAMBAE0RrJVWLuf5t8DlOulBCNAw1Nv8WEynpltGc8/hAg7QCg5RJpB3d/vZgRAJWzV1W+cgHmhCmnlpFfKAAAAABJRU5ErkJggg=="/>
+              </g>
+            </g>
+          </g>
+          <path d="M239,337.1h.1V6.4H112.2V337.5h.1c-.2,9.5,6,19,18.5,26.2,24.8,14.3,64.9,14.3,89.7,0C233.2,356.4,239.3,346.7,239,337.1Z" fill="url(#b0cda5bc-5a28-4b1c-8850-626aa18c145d)"/>
+        </g>
+      </g>
+      <g id="b4057e95-3cb8-446c-b928-2b5c0004ba33" data-name="Layer 7">
+        <g>
+          <g>
+            <polygon points="175.3 75.6 110.6 37.8 175.3 0 240 37.8 175.3 75.6" fill="#0f6fff" opacity="0.9"/>
+            <polygon points="240 113.4 175.3 151.2 175.3 75.6 240 37.8 240 113.4" fill="#0f6fff" opacity="0.5"/>
+            <polygon points="175.3 151.2 110.6 113.4 110.6 37.8 175.3 75.6 175.3 151.2" fill="#0f6fff"/>
+            <polygon points="175.3 151.2 110.6 113.4 175.3 75.6 240 113.4 175.3 151.2" fill="#0f6fff" opacity="0.29"/>
+            <polygon points="175.3 75.8 240 113.6 240 37.9 175.3 0.1 175.3 75.8" fill="#0f6fff" opacity="0.5"/>
+            <polygon points="239.9 113.5 175.1 151.3 175.1 75.7 239.9 37.9 239.9 113.5" fill="#0f6fff" opacity="0.27"/>
+          </g>
+          <g style="isolation: isolate">
+            <g clip-path="url(#a5699760-0f43-4c08-82cf-a62d2e918b91)">
+              <g>
+                <polyline points="164 91.1 159.8 88.7 159.8 123.4 163.9 125.8 164 91.1" fill="#fff"/>
+                <polyline points="123.7 67.8 119.5 65.4 119.4 100.1 123.6 102.5 123.7 67.8" fill="#fff"/>
+                <polyline points="156.9 78.8 126.7 61.3 126.7 66.1 156.9 83.5 156.9 78.8" fill="#fff"/>
+                <polyline points="156.8 125.1 126.6 107.7 126.6 112.4 156.8 129.9 156.8 125.1" fill="#fff"/>
+              </g>
+            </g>
+          </g>
+        </g>
+      </g>
+      <g id="ad74cdf8-e013-4cd5-a51b-502b18ab5754" data-name="Developer">
+        <g>
+          <path d="M51.7,458.2c-1.7,4.9-4.1,9-8.5,11.6s-4.2,2.2-9.4,4.5c-2.8,1.1-4.9,2.4-4,5.3s5.3,3.9,8.8,3.6c8.2-.8,8-2.8,15.8-5.8,3.3-1.3,7-2.9,8.2-6.3,1.8-4.9-3-10.6-1-15.6C58.2,456.3,55.1,457.5,51.7,458.2Z" fill="#408bfc"/>
+          <path d="M115.5,425.6c3.6,3,4.6,8.1,4.5,12.8s-4,4.6-6,8.6c-1.2,2.4.3,5.9,3,6s10.2-3,11-6c2-7.2,4.7-10.1,4.6-17.6,0-3.2-.2-5.3-2.6-7.4s-7.4,1.2-11-2C118.6,423.1,116,422.5,115.5,425.6Z" fill="#408bfc"/>
+          <path d="M130.8,202.2c5.5,4,8.6,10.5,13.9,14.8a21.9,21.9,0,0,0,29.1-1.5c4.2-4.1,7.4-9.7,6-15.5-.9-3.9-4-7-7.6-8.7a25.7,25.7,0,0,0-11.6-2.1C149.7,189.4,139.2,195.3,130.8,202.2Z" fill="#002297"/>
+          <path d="M183.8,206.1c-2.8-4-9.2-3.8-13.5-1.3s-7.3,6.8-11.2,9.9-9.4,5.2-13.7,2.7-5.4-7.3-9.5-8.9-9.1,1.2-13.6.6c-6.3-.7-10-8.4-8.2-14.4s7.9-10,14-11.3,12.6-.3,18.8.7,12.5,2.2,18.7,1.3,11.7-3.6,17.7-3.8,13,3.7,12.9,9.7a11.4,11.4,0,0,1,6.5,5.9,15.9,15.9,0,0,1,1.4,8.9c-.9,8.7-7.2,15.8-13.2,22.3-2.4-1.7-2.7-5.7-2.1-8.6s1.9-5.7,1.3-8.5A6.5,6.5,0,0,0,183.8,206.1Z" fill="#002297"/>
+          <path d="M174.3,310.1A185.4,185.4,0,0,0,120.8,327c-7.7,3.8-15.5,8.4-20.1,15.6s-5.5,13.8-6,21.2a100.6,100.6,0,0,0,17.2,62.3,18.3,18.3,0,0,0,11.2-4.7c.7-8.8-1-18.1-1.8-26.9s-.2-18.2,5-25.2,11.4-9.3,18.2-12.1c14-5.8,28.9-10.4,40.4-20.3,3.9-3.4,7.6-7.7,8.4-12.8a14.3,14.3,0,0,0-5.9-13.5C183.2,307.7,179.4,309.4,174.3,310.1Z" fill="#005d96"/>
+          <path d="M174.3,310.1A185.4,185.4,0,0,0,120.8,327c-7.7,3.8-15.5,8.4-20.1,15.6s-5.5,13.8-6,21.2c-1.3,21.9,7.9,50.1,20.3,68.2,4.1-.3,9-7,12-12a108.6,108.6,0,0,1-5.7-25.5c-.8-8.7-.2-18.2,5-25.2s11.4-9.3,18.2-12.1c14-5.8,28.9-10.4,40.4-20.3,3.9-3.4,7.6-7.7,8.4-12.8a14.3,14.3,0,0,0-5.9-13.5C183.2,307.7,179.4,309.4,174.3,310.1Z" fill="#061f80"/>
+          <path d="M202.5,321.8c-2.5-5.2-6.2-10.9-11.8-12.2a41.7,41.7,0,0,1-2.6,4.6c-15.9,4.9-80.3,47.4-80.3,47.4h0c-33.1,21.2-55.6,58.6-57.9,97.9a13.5,13.5,0,0,0,14.2.6c4.7-25.2,31.3-41.1,37.6-66A280,280,0,0,0,166,372.4c15.9-7.6,31.7-17.3,40.3-32.6C205.5,334.1,204.9,327,202.5,321.8Z" fill="#061f80"/>
+          <path d="M169.3,342.2c-15.5-7-32-11-48.5-15.2h0c-7.7,3.8-15.5,8.4-20.1,15.6a36.9,36.9,0,0,0-5.2,14.1,237.7,237.7,0,0,1,39.8,25c15.5-9.8,31.6-19.6,47.2-29.4C178.5,348.5,174.3,344.5,169.3,342.2Z" opacity="0.2"/>
+          <g>
+            <polygon points="184.2 342.5 135 371 76.2 337 125.4 308.5 184.2 342.5" fill="#4d5358"/>
+            <polygon points="114.8 323 90.4 337 135 362.8 159.5 348.8 114.8 323" fill="#21272a"/>
+            <polygon points="139.1 320.3 127.9 326.7 148.3 338.5 159.5 332.1 139.1 320.3" fill="#21272a"/>
+            <polygon points="184.2 342.5 184.2 345.8 135 374.3 135 371 184.2 342.5" fill="#b84b2c"/>
+            <polygon points="135 371 135 374.3 76.1 340.3 76.2 337 135 371" fill="#b84b2c"/>
+            <polygon points="184.2 342.5 184.2 345.8 135 374.3 135 371 184.2 342.5" fill="#343a3f"/>
+            <polygon points="135 371 135 374.3 76.1 340.3 76.2 337 135 371" fill="#343a3f"/>
+          </g>
+          <path d="M176.1,236.8c-10.6,6.5-18.1,17.1-23.7,28.1s-10,22.8-15.9,33.7-14,21.2-25,26.9c-.9,3.2.9,5.8,4.2,6.6,26.6-9.9,47.1-34,52.4-61.9a28.9,28.9,0,0,0,10.4-15.3C180.1,248.7,178.5,242.6,176.1,236.8Z" fill="#408bfc"/>
+          <path d="M190.5,233.5c-7.8-2-16.3,2.2-21.1,8.7s-6.4,15-6.6,23.1.8,16.2.7,24.3-2.6,17.4-7.2,24.1c19.1,4.1,37.1,15.4,46.7,32.3,8.5-9.2,13.2-20.3,15.1-32.7s3.2-24,2-36.1-5-24-12.6-33.4C202.5,237.6,198.3,235.6,190.5,233.5Z" fill="#408bfc"/>
+          <path d="M149.4,339.5c-2.1,0-4.2-.7-6.3-.9a6.6,6.6,0,0,0-5.9,1.6c-1.2,1.3-1.2,3.4-1.7,5.1a5.7,5.7,0,0,0-.1,3.4,4.1,4.1,0,0,0,2.7,2.4,14.2,14.2,0,0,0,3.6.5c4.6.1,9.3-2.6,12.8-5.7,0-1.7.3-3.6-.6-5S151.2,339.6,149.4,339.5Z" fill="#d2e4fe"/>
+          <path d="M202.5,245.7c5.8-.4,10.2,5.1,12.5,10.4,5.7,13,5.4,28,1.5,41.5-2.6,9.1-6.8,17.8-13.2,24.7-13,14-31.5,20.7-50.2,24.8.8-2.8-.8-7.3-5.4-7.5,15.6-5.5,28.5-17.8,37.6-31.6a77.5,77.5,0,0,0,12.9-47C197.9,255.6,198.8,249.6,202.5,245.7Z" fill="#408bfc"/>
+          <path d="M177,226.6l3.9,14.1c4.1,2.1,9.4.6,12.2-3.1-1.5-4.7-2.4-9.9-4-14.6C185.3,224.5,180.8,225.1,177,226.6Z" fill="#d2e4fe"/>
+          <path d="M164.1,210.5a39.2,39.2,0,0,0,8.3,22,3.9,3.9,0,0,0,4.1,1.4c5.8-1.6,11.5-4.4,15-9.1s5.5-12.6,3.5-19c-2.7-8.3-11.7-14.5-20.7-11.4C168.2,196.6,163.8,204,164.1,210.5Z" fill="#d2e4fe"/>
+          <path d="M159.4,212.1a30.3,30.3,0,0,0,21.3-6.6,12.7,12.7,0,0,0,5.7,4.8c0,1.9-.4,3.7-.4,5.6l1.2-.2a7.2,7.2,0,0,1,1.3-3.8c.7-1,2.3-1.4,3.1-.5a2.9,2.9,0,0,1,.1,2.4,16.4,16.4,0,0,1-3.8,6.8,15.3,15.3,0,0,1,1.8,6.3c.4.6.9,1,1.3,1.6a36.7,36.7,0,0,0,7-13.4,23.1,23.1,0,0,0-1.3-14.9,20.4,20.4,0,0,0-12.5-10.1,23.3,23.3,0,0,0-16.2,1.8,19.4,19.4,0,0,0-8.3,8C158,203.4,157.6,208.7,159.4,212.1Z" fill="#002297"/>
+          <g>
+            <polygon points="106.5 317.4 135 371 76.2 337 47.6 283.4 106.5 317.4" fill="#4d5358"/>
+            <polygon points="106.5 317.4 107.9 316.5 136.4 370.2 135 371 106.5 317.4" fill="#ff7a4a"/>
+            <polygon points="47.6 283.4 49.1 282.5 107.9 316.5 106.5 317.4 47.6 283.4" fill="#ff7a4a"/>
+            <polygon points="106.5 317.4 107.9 316.5 136.4 370.2 135 371 106.5 317.4" fill="#343a3f"/>
+            <polygon points="47.6 283.4 49.1 282.5 107.9 316.5 106.5 317.4 47.6 283.4" fill="#343a3f"/>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

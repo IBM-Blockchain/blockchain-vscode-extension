@@ -41,6 +41,15 @@
     }
 }
 
+@mixin custom-tile-dark {
+    div {
+        background-color: $gray-90;
+    }
+    img {
+        filter: invert(100%);
+    }
+}
+
 @mixin data-table-dark {
     @include checkbox-dark;
 
@@ -87,6 +96,13 @@
     }
 }
 
+@mixin output-panel-dark {
+    background-color: #1E2529;
+    .output-title {
+        color: #ababab;
+    }
+}
+
 @mixin select-dark {
     .bx--select  {
         border-bottom: 1px solid #8D8D8D;
@@ -120,9 +136,23 @@
     }
 }
 
-@mixin output-panel-dark {
-    background-color: #1E2529;
-    .output-title {
-        color: #ababab;
+@mixin themed-image-dark {
+    img {
+        &:first-of-type {
+            display: none;
+        }
+    }
+}
+
+
+//-------------------------
+// light theme styles
+//-------------------------
+
+@mixin themed-image-light {
+    img {
+        &:nth-of-type(2) {
+            display: none;
+        }
     }
 }

@@ -1,16 +1,16 @@
 import React, { Component } from 'react';
 import './TransactionOutput.scss';
 
-interface OutputProps {
+interface IProps {
     output: string;
 }
 
-interface OutputState {
+interface IState {
     output: string;
 }
 
-class TransactionOutput extends Component<OutputProps, OutputState> {
-    constructor(props: Readonly<OutputProps>) {
+class TransactionOutput extends Component<IProps, IState> {
+    constructor(props: Readonly<IProps>) {
         super(props);
         this.state = {
             output: this.props.output
@@ -18,7 +18,7 @@ class TransactionOutput extends Component<OutputProps, OutputState> {
         this.determineOutput = this.determineOutput.bind(this);
     }
 
-    componentDidUpdate(prevProps: OutputProps): void {
+    componentDidUpdate(prevProps: IProps): void {
         if (prevProps.output !== this.props.output) {
             this.setState({
                 output: this.props.output

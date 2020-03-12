@@ -2,8 +2,6 @@
 @import '@carbon/grid/scss/grid';
 
 @mixin default-page-styling {
-    margin: 0;
-    padding: 0;
     
     h5 {
         padding-bottom: $spacing-06;
@@ -28,5 +26,9 @@
     
     .contents-container {
         margin: $spacing-02;
+    }
+
+    .bx--link {
+        font-size: inherit;
     }
 }
