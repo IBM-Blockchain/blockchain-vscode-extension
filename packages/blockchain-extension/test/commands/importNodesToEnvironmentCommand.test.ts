@@ -52,8 +52,8 @@ describe('ImportNodesToEnvironmentCommand', () => {
     let localFabricNodes: any;
     let opsToolNodes: any;
     let url: string;
-    let key: string;
-    let secret: string;
+    let userAuth1: string;
+    let userAuth2: string;
     let rejectUnauthorized: string;
     let getConnectedEnvironmentRegistryEntry: sinon.SinonStub;
     let getAllStub: sinon.SinonStub;
@@ -116,8 +116,8 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             // Stubs required for OpsTool
             url = 'my/OpsTool/url';
-            key = 'myOpsToolKey';
-            secret = 'myOpsToolSecret';
+            userAuth1 = 'myOpsToolKey';
+            userAuth2 = 'myOpsToolSecret';
             rejectUnauthorized = 'false';
             OpsToolRegistryEntry = new FabricEnvironmentRegistryEntry();
             OpsToolRegistryEntry.name = 'myOpsToolInstance';
@@ -160,7 +160,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             axiosGetStub.onFirstCall().resolves({data: opsToolNodes});
             showNodesQuickPickBoxStub.resolves(opsToolNodes.map((_node: any) => ({ label: _node.display_name, data: _node })));
-            getPasswordStub = mySandBox.stub().resolves(`${key}:${secret}:${rejectUnauthorized}`);
+            getPasswordStub = mySandBox.stub().resolves(`${userAuth1}:${userAuth2}:${rejectUnauthorized}`);
             getCoreNodeModuleStub = mySandBox.stub(ModuleUtil, 'getCoreNodeModule').returns({
                 getPassword: getPasswordStub
             });
@@ -293,7 +293,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: Error importing the keytar module`);
         });
 
-        it('should handle when the api key and secret cannot be retrieved when creating new OpsTool instance', async () => {
+        it('should handle when the user id + password/api key + secret cannot be retrieved when creating new OpsTool instance', async () => {
             const error: Error = new Error('newError');
             getPasswordStub.throws(error);
 
@@ -307,8 +307,8 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${error.message}`, `Failed to acquire nodes from ${url}, with error ${error.toString()}`);
         });
 
-        it('should handle when the api key/secret stored have the wrong number of entries (separated by ":") when edditing filters on existing OpsTool instance', async () => {
-            getPasswordStub.resolves(`${key}:${secret}:${rejectUnauthorized}:someMoreInfo`);
+        it('should handle when the securely stored information has the wrong number of entries (separated by ":") when edditing filters on existing OpsTool instance', async () => {
+            getPasswordStub.resolves(`${userAuth1}:${userAuth2}:${rejectUnauthorized}:someMoreInfo`);
             const error: Error = new Error('Unable to retrieve the stored credentials');
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
@@ -323,7 +323,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
         });
 
-        it('should test nodes can be added from URL and key (non TLS network) when adding a new OpsTool instance', async () => {
+        it('should test nodes can be added from URL and user id + password/API key + secret (non TLS network) when adding a new OpsTool instance', async () => {
             const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
             browseStub.onSecondCall().resolves([uri]);
 

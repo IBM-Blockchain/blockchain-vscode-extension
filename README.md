@@ -67,7 +67,7 @@ To connect to a Hyperledger Fabric instance on the `Fabric Environments` panel c
 
 If you are connecting to an instance of IBM Blockchain Platform console on IBM Cloud the JSON node files can be exported, (see the tutorials for more information).
 
-If connecting to an IBM Blockchain Platform console software version, you can add an environment by connecting directly to the console.
+If connecting to an IBM Blockchain Platform console software version, you can add an environment by connecting directly to the console. When prompted for authentication credentials you can either provide User ID and password, or API key and API secret.
 
 For other instances of Hyperledger Fabric you can create the JSON node files yourself.
 
