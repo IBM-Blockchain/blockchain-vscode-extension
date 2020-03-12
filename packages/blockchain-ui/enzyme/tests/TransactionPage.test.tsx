@@ -2,7 +2,7 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
 import { mount } from 'enzyme';
-import TransactionPage from '../../src/components/TransactionPage/TransactionPage';
+import TransactionPage from '../../src/components/transactionView/TransactionPage/TransactionPage';
 import chai from 'chai';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';

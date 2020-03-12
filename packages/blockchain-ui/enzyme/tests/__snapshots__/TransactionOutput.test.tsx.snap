@@ -17,3 +17,21 @@ exports[`TransactionOutput component should render the expected snapshot 1`] = `
   </p>
 </div>
 `;
+
+exports[`TransactionOutput component should render the expected snapshot when no output is received 1`] = `
+<div
+  className="output-panel"
+  id="output-panel"
+>
+  <p
+    className="output-title"
+  >
+    Output for untitled transaction
+  </p>
+  <p
+    className="output-body"
+  >
+    No transaction output available. Submit/evaluate to produce an output.
+  </p>
+</div>
+`;

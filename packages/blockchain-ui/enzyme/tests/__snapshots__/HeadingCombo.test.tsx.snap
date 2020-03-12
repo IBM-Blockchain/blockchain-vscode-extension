@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`HeadingCombo component should render the expected snapshot 1`] = `
+<div
+  className="heading-combo-container"
+>
+  <h3>
+    Here Is A Heading
+  </h3>
+  <p>
+    And here is a subheading
+  </p>
+</div>
+`;

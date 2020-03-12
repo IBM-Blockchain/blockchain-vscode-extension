@@ -11,7 +11,7 @@ const Utils: any = {
         }));
     },
 
-    postToVSCode(message: {command: string, data: any}): void {
+    postToVSCode(message: {command: string, data?: any}): void {
         vscode.postMessage(message);
     }
 

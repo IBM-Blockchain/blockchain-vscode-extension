@@ -1,0 +1,185 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`HomePage component should render the expected snapshot 1`] = `
+<div
+  className="bx--grid home-page-container"
+>
+  <div
+    className="bx--row"
+  >
+    <div
+      className="bx--col-lg-9"
+    >
+      <div
+        className="bx--row home-title-container"
+      >
+        <h2>
+          IBM Blockchain platform
+          <span
+            className="bx--tag bx--tag--gray extension-version"
+            id="extension-version-tag"
+          >
+            v1.0.0
+          </span>
+        </h2>
+        <p
+          className="home-title-description"
+        >
+          This extension supports the complete development workflow for Hyperledger Fabric and IBM Blockchain Platform. Get started, learn best practices and earn developer qualifiactions with our tutorials.
+        </p>
+      </div>
+      <div
+        className="bx--row"
+        id="tutorial-tile-container"
+      >
+        <div
+          className="bx--tile custom-tile"
+        >
+          <div
+            className="heading-combo-container"
+          >
+            <h3>
+              Tutorials
+            </h3>
+            <p>
+              Complete tutorials to level up your Fabric development skills. Earn rewards such as badges and access to our developer community by completing lessons.
+            </p>
+          </div>
+          <img
+            alt=""
+            className="new-tab-img"
+            onClick={[Function]}
+            src="test-file-stub"
+          />
+        </div>
+      </div>
+      <div
+        className="heading-combo-container bx--row resources-title-container"
+      >
+        <h3
+          className="other-resources-title"
+        >
+          Other Resources
+        </h3>
+        <p>
+          Access these resources for reference and further learning outside the tutorials.
+        </p>
+      </div>
+      <div
+        className="bx--row resources-links-container"
+      >
+        <div
+          className="bx--col link-list-container"
+        >
+          <a
+            className="bx--link"
+            href="https://github.com/IBM-Blockchain/blockchain-vscode-extension/blob/master/README.md#features"
+            id="home-link-01"
+          >
+            Extension documentation
+          </a>
+          <a
+            className="bx--link"
+            href=""
+            id="home-link-02"
+            onClick={[Function]}
+          >
+            Release notes
+          </a>
+          <a
+            className="bx--link"
+            href="https://cloud.ibm.com/docs/blockchain?topic=blockchain-get-started-ibp"
+            id="home-link-03"
+          >
+            IBM Blockchain Platform documentation
+          </a>
+          <a
+            className="bx--link"
+            href="https://www.ibm.com/account/reg/uk-en/signup?formid=urx-38322&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+Oreilly+book+promo&cm_mmca1=000026VG&cm_mmca2=10008691"
+            id="home-link-04"
+            onClick={[Function]}
+          >
+            Free e-book: Getting Started with Enterprise Blockchain
+          </a>
+        </div>
+        <div
+          className="bx--col link-list-container"
+        >
+          <a
+            className="bx--link"
+            href=""
+            id="home-link-05"
+            onClick={[Function]}
+          >
+            Sample code: FabCar
+          </a>
+          <a
+            className="bx--link"
+            href=""
+            id="home-link-06"
+            onClick={[Function]}
+          >
+            Sample code: Commercial Paper
+          </a>
+          <a
+            className="bx--link"
+            href="https://hyperledger-fabric.readthedocs.io/en/release-2.0/"
+            id="home-link-07"
+          >
+            Fabric Documentation
+          </a>
+          <a
+            className="bx--link"
+            href="https://hyperledger.github.io/caliper-benchmarks/fabric/performance/"
+            id="home-link-08"
+          >
+            Hyperledger Fabric performance reports
+          </a>
+        </div>
+      </div>
+      <br />
+      <div
+        className="bx--row"
+      >
+        <p>
+          Problems? Search 
+          <a
+            className="bx--link"
+            href="https://stackoverflow.com/questions/tagged/ibp-vscode-extension"
+            id="home-link-10"
+          >
+            Stack Overflow
+          </a>
+          , or raise an issue on 
+          <a
+            className="bx--link"
+            href="https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues"
+            id="home-link-11"
+          >
+            GitHub
+          </a>
+          .
+        </p>
+      </div>
+    </div>
+    <div
+      className="bx--col-lg-7"
+    >
+      <div
+        id="dev-learner-themed-image"
+      >
+        <img
+          alt=""
+          className="dev-image"
+          src="test-file-stub"
+        />
+        <img
+          alt=""
+          className="dev-image"
+          src="test-file-stub"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

@@ -18,43 +18,51 @@ import * as vscode from 'vscode';
 import * as sinon from 'sinon';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
-import * as path from 'path';
 import { HomeView } from '../../extension/webview/HomeView';
 import { View } from '../../extension/webview/View';
-import * as ejs from 'ejs';
 import { Reporter } from '../../extension/util/Reporter';
-import { SettingConfigurations } from '../../configurations';
+import { TestUtil } from '../TestUtil';
+import { GlobalState } from '../../extension/util/GlobalState';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
 describe('HomeView', () => {
-    let mySandBox: sinon.SinonSandbox;
-    let onDidReceiveMessagePromises: any[];
-    let createWebviewPanelStub: sinon.SinonStub;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let context: vscode.ExtensionContext;
+    let createWebviewPanelStub: sinon.SinonStub;
+    let postMessageStub: sinon.SinonStub;
+    let executeCommandStub: sinon.SinonStub;
     let sendTelemetryEventStub: sinon.SinonStub;
+    let onDidReceiveMessagePromises: any[];
+
+    const initialMessage: {path: string, version: string} = {
+        path: '/home',
+        version: '1.0.0'
+    };
+
+    before(async () => {
+        await TestUtil.setupTests(mySandBox);
+    });
+
     beforeEach(async () => {
-        mySandBox = sinon.createSandbox();
-        context = {
-            extensionPath: '/some/path'
-        } as vscode.ExtensionContext;
+        context = GlobalState.getExtensionContext();
+        executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
+        executeCommandStub.callThrough();
+        executeCommandStub.withArgs(ExtensionCommands.OPEN_TUTORIAL_GALLERY).resolves();
+        executeCommandStub.withArgs(ExtensionCommands.OPEN_SAMPLE_PAGE).resolves();
 
         createWebviewPanelStub = mySandBox.stub(vscode.window, 'createWebviewPanel');
-        createWebviewPanelStub.returns({
-            webview: {
-                onDidReceiveMessage: mySandBox.stub(),
-                html: '<html>HomePage</html>'
-            },
-            title: 'IBM Blockchain Platform Home',
-            onDidDispose: mySandBox.stub(),
-            reveal: (): void => { return; }
+
+        postMessageStub = mySandBox.stub().resolves();
+
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').resolves({
+            version: '1.0.0'
         });
 
         sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
-
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_NEXT_ACTIVATION, false, vscode.ConfigurationTarget.Global);
 
         View['openPanels'].splice(0, View['openPanels'].length);
     });
@@ -63,17 +71,30 @@ describe('HomeView', () => {
         mySandBox.restore();
     });
 
-    it('should register and show home page', async () => {
+    it('should register and show the home page', async () => {
+        createWebviewPanelStub.returns({
+            title: 'IBM Blockchain Platform Home',
+            webview: {
+                postMessage: postMessageStub,
+                onDidReceiveMessage: mySandBox.stub()
+            },
+            reveal: mySandBox.stub(),
+            dispose: mySandBox.stub(),
+            onDidDispose: mySandBox.stub(),
+            onDidChangeViewState: mySandBox.stub()
+        });
+
         const homeView: HomeView = new HomeView(context);
-        await homeView.openView(true);
+        await homeView.openView(false);
         createWebviewPanelStub.should.have.been.called;
+        postMessageStub.should.have.been.calledWith(initialMessage);
     });
 
     it('should reveal home page if already open', async () => {
         createWebviewPanelStub.returns({
             webview: {
+                postMessage: mySandBox.stub(),
                 onDidReceiveMessage: mySandBox.stub(),
-                html: ''
             },
             title: 'IBM Blockchain Platform Home',
             onDidDispose: mySandBox.stub(),
@@ -89,69 +110,81 @@ describe('HomeView', () => {
         should.equal(createWebviewPanelStub.getCall(1), null);
     });
 
-    it('should dispose home page', async () => {
-        const filterSpy: sinon.SinonSpy = mySandBox.spy(Array.prototype, 'filter');
+    it('should execute a command specified in a received message', async () => {
+        onDidReceiveMessagePromises = [];
 
-        createWebviewPanelStub.returns({
-            webview: {
-                onDidReceiveMessage: mySandBox.stub(),
-                html: ''
-            },
-            onDidDispose: mySandBox.stub().yields()
-        });
+        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
+            createWebviewPanelStub.returns({
+                webview: {
+                    postMessage: mySandBox.stub(),
+                    onDidReceiveMessage: async (callback: any): Promise<void> => {
+                        await callback({
+                            command: ExtensionCommands.OPEN_TUTORIAL_GALLERY
+                        });
+                        resolve();
+                    }
+                },
+                reveal: (): void => {
+                    return;
+                },
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
+            });
+        }));
 
         const homeView: HomeView = new HomeView(context);
+        await homeView.openView(false);
+        await Promise.all(onDidReceiveMessagePromises);
 
-        mySandBox.stub(homeView, 'getHTMLString').resolves('<html>HomePage</html>');
-        await homeView.openView(true);
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_TUTORIAL_GALLERY);
+    });
 
-        createWebviewPanelStub.should.have.been.calledWith(
-            'extensionHome',
-            'IBM Blockchain Platform Home',
-            vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                enableCommandUris: true,
-                localResourceRoots: [
-                    vscode.Uri.file(path.join(context.extensionPath, 'resources')),
-                    vscode.Uri.file(path.join(context.extensionPath, 'build'))
+    it('should execute a command with additional data specified in a received message', async () => {
+        onDidReceiveMessagePromises = [];
+
+        const message: {command: string, data: string[]} = {
+            command: ExtensionCommands.OPEN_SAMPLE_PAGE,
+                data: [
+                    'fabric-samples',
+                    'FabCar'
                 ]
-            }
-        );
+        };
 
-        createWebviewPanelStub.should.have.been.calledOnce;
-
-        filterSpy.getCall(1).thisValue[filterSpy.getCall(1).thisValue.length - 1].webview.html.should.equal('<html>HomePage</html>');
-    });
-
-    it('getHTMLString', async () => {
-        const homeView: HomeView = new HomeView(context);
-
-        const homePageHtml: string = await  homeView.getHTMLString();
-        homePageHtml.should.contain(`<h3 class="sample-header">`);
-        homePageHtml.should.contain(`<p class="sample-description">Basic sample based on cars`);
-        homePageHtml.should.contain(`<p class="sample-description">Based on a real-world financial use-case, with multiple parties sharing a ledger.</p>`);
-    });
-
-    it('should throw error if not able to render file', async () => {
-        const error: Error = new Error('error happened');
-        mySandBox.stub(ejs, 'renderFile').yields(error);
+        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
+            createWebviewPanelStub.returns({
+                webview: {
+                    postMessage: mySandBox.stub(),
+                    onDidReceiveMessage: async (callback: any): Promise<void> => {
+                        await callback(message);
+                        resolve();
+                    }
+                },
+                reveal: (): void => {
+                    return;
+                },
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
+            });
+        }));
 
         const homeView: HomeView = new HomeView(context);
-        await homeView.openView(true).should.be.rejectedWith(error);
+        await homeView.openView(false);
+        await Promise.all(onDidReceiveMessagePromises);
+
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_SAMPLE_PAGE, ...message.data);
     });
 
     it('should send a telemetry event if a link was clicked', async () => {
         onDidReceiveMessagePromises = [];
 
         onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
-            createWebviewPanelStub.onCall(0).returns({
+            createWebviewPanelStub.returns({
                 webview: {
+                    postMessage: mySandBox.stub(),
                     onDidReceiveMessage: async (callback: any): Promise<void> => {
                         await callback({
                             command: 'telemetry',
-                            url: 'https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-console-overview&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+about+IBM+Blockchain+Platform&cm_mmca1=000026VG&cm_mmca2=10008691',
+                            data: 'https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-console-overview&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+about+IBM+Blockchain+Platform&cm_mmca1=000026VG&cm_mmca2=10008691'
                         });
                         resolve();
                     }
@@ -172,42 +205,12 @@ describe('HomeView', () => {
         sendTelemetryEventStub.should.have.been.calledWith('Referral', {source: 'homepage', destination: 'https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-console-overview&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+about+IBM+Blockchain+Platform&cm_mmca1=000026VG&cm_mmca2=10008691'});
     });
 
-    it('should not send a telemetry event if the links were not clicked', async () => {
-        onDidReceiveMessagePromises = [];
-
-        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
-            createWebviewPanelStub.onCall(0).returns({
-                webview: {
-                    onDidReceiveMessage: async (callback: any): Promise<void> => {
-                        await callback({
-                            command: 'randomting',
-                            url: 'https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-console-overview&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+about+IBM+Blockchain+Platform&cm_mmca1=000026VG&cm_mmca2=10008691',
-                        });
-                        resolve();
-                    },
-                },
-                reveal: (): void => {
-                    return;
-                },
-                onDidDispose: mySandBox.stub(),
-                onDidChangeViewState: mySandBox.stub(),
-                title: 'IBM Blockchain Platform Home'
-            });
-        }));
-
-        const homeView: HomeView = new HomeView(context);
-        await homeView.openView(false);
-
-        await Promise.all(onDidReceiveMessagePromises);
-
-        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('openedView', {openedView: 'IBM Blockchain Platform Home'});
-    });
-
     it('should send telemetry event on openPanelInner', async () => {
         const panel: vscode.WebviewPanel = {
             title: 'IBM Blockchain Platform Home',
             webview: {
-                onDidReceiveMessage: (): any => mySandBox.stub(),
+                postMessage: mySandBox.stub(),
+                onDidReceiveMessage: mySandBox.stub(),
             }
         } as any;
 
@@ -215,7 +218,5 @@ describe('HomeView', () => {
         await homeView.openPanelInner(panel);
 
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('openedView', {openedView: 'IBM Blockchain Platform Home'});
-
     });
-
 });

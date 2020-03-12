@@ -46,6 +46,8 @@ export abstract class ReactView extends View {
           );
         const styleContents: Buffer = fs.readFileSync(stylePathOnDisk.path);
 
+        const actualExtensionPath: string = ExtensionUtil.getExtensionPath();
+
         return `<!DOCTYPE html>
                   <html lang="en">
                   <head>
@@ -55,9 +57,7 @@ export abstract class ReactView extends View {
                       <title>React</title>
                       <style>${styleContents.toString()}</style>
                       <meta img-src vscode-resource: https: ;style-src vscode-resource: 'unsafe-inline' http: https: data:;">
-                      <base href="${vscode.Uri.file(path.join(this._extensionPath, 'build')).with({
-                scheme: 'vscode-resource'
-              })}/">
+                      <base href="${vscode.Uri.file(path.join(actualExtensionPath, 'build')).with({ scheme: 'vscode-resource' })}/">
               <script>
                 const vscode = acquireVsCodeApi();
               </script>
