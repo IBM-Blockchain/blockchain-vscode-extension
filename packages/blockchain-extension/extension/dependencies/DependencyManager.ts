@@ -606,7 +606,7 @@ export class DependencyManager {
 
                 for (const _version of filteredVersions) {
                     try {
-                        const preBuiltBinarypath: string = `https://node-precompiled-binaries.grpc.io/grpc/v1.23.3/electron-v${_version.shortVersion}-${os}-${arch}-${thing}.tar.gz`;
+                        const preBuiltBinarypath: string = `https://node-precompiled-binaries.grpc.io/grpc/v1.24.2/electron-v${_version.shortVersion}-${os}-${arch}-${thing}.tar.gz`;
                         await Axios.get(preBuiltBinarypath);
                         // found one that exists so use it
                         version = _version;
