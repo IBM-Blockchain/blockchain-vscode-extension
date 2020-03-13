@@ -14,7 +14,7 @@
 'use strict';
 import { FabricConnection } from './FabricConnection';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
-import { IFabricGatewayConnection, OutputAdapter, ConnectionProfileUtil } from 'ibm-blockchain-platform-common';
+import { IFabricGatewayConnection, OutputAdapter, LogType, ConnectionProfileUtil } from 'ibm-blockchain-platform-common';
 import { Network, Contract, Transaction } from 'fabric-network';
 import * as Client from 'fabric-client';
 
@@ -96,6 +96,21 @@ export class FabricGatewayConnection extends FabricConnection implements IFabric
             return result;
         }
 
+    }
+
+    public async addContractListener(channelName: string, contractName: string, eventName: string, outputAdapter: OutputAdapter): Promise<void> {
+        const network: Network = await this.gateway.getNetwork(channelName);
+        const contract: Contract = network.getContract(contractName);
+        const eventListenerName: string = `${eventName}-listener`;
+        await contract.addContractListener(eventListenerName, eventName, (error: Error, event: any) => {
+            if (error) {
+                outputAdapter.log(LogType.ERROR, `Error from event: ${error.message}`, `Error from event: ${error.toString()}`);
+                return;
+            }
+
+            const eventString: string = `chaincode_id: ${event.chaincode_id}, tx_id: ${event.tx_id}, event_name: "${event.event_name}", payload: ${event.payload.toString()}`;
+            outputAdapter.log(LogType.INFO, undefined, `Event emitted: ${eventString}`);
+        });
     }
 
 }
