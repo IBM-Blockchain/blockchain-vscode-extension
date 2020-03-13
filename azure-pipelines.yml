@@ -51,7 +51,7 @@ stages:
           ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
             version: '1.39.2'
           ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags') }}:
-            version: '1.39.2'
+            version: 'stable'
 
   - stage: cucumberReport
     dependsOn: [cucumberTest]
