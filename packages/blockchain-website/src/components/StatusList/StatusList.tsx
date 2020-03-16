@@ -1,52 +1,56 @@
-import React, { Component } from 'react'; 
+import React, { Component } from 'react';
 import IssuesList from '../IssuesList/IssuesList';
-import Axios from 'axios';
+import Axios, { AxiosResponse } from 'axios';
 
-const githubProject = 'IBM-Blockchain/blockchain-vscode-extension';
+const githubProject: string = 'IBM-Blockchain/blockchain-vscode-extension';
 
-//Github URLs
-const issuesStatusApiUrl = 'https://api.github.com/repos/'+githubProject+'/issues?labels=status'
+// Github URLs
+const issuesStatusApiUrl: string = 'https://api.github.com/repos/' + githubProject + '/issues?labels=status';
 
-class StatusList extends Component {
+interface StatusState {
+    issues: any;
+    error: string | undefined;
+}
 
-    constructor() {
-        super();
+class StatusList extends Component<{}, StatusState> {
+
+    constructor(props: Readonly<StatusState>) {
+        super(props);
         this.state = {
             issues: undefined,
             error: undefined
-        }
+        };
 
         this.refreshIssues = this.refreshIssues.bind(this);
     }
 
-    async componentDidMount(){
+    async componentDidMount(): Promise<void> {
         await this.refreshIssues();
     }
 
-    async refreshIssues() {
+    async refreshIssues(): Promise<void> {
 
-        const response = await Axios.get(issuesStatusApiUrl);
-        if (response) {
+        try {
+            const response: AxiosResponse = await Axios.get(issuesStatusApiUrl);
             this.setState({
                 issues : response.data
             });
-        } else {
+        } catch (error) {
             this.setState({
                 error : 'Cannot load incidents from Github, sorry.'
             });
         }
     }
 
-    render() {
+    render(): JSX.Element {
         if (this.state.issues || this.state.error) {
             return (
                 <div>
-                    <IssuesList 
-                        key='issues' 
+                    <IssuesList
+                        key='issues'
                         issues={this.state.issues}
                         error={this.state.error}
-                        refreshIssues={this.refreshIssues}
-                        title='Current Incidents'
+                        title='Known current issues'
                         issueLabel='status'>
                     </IssuesList>
                 </div>
