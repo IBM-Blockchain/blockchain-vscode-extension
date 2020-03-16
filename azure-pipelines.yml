@@ -11,6 +11,11 @@ trigger:
     include:
       - '*'
 
+pr: # Hopefully this causes PR's to trigger
+  branches:
+    include:
+    - '*' 
+
 stages:
   - stage: unitTest
     condition: in(variables['Build.Reason'], 'PullRequest', 'IndividualCI')
