@@ -7,10 +7,10 @@ chai.should();
 chai.use(sinonChai);
 
 describe('App', () => {
-    it('should render the expected snapshot', async() => {
-        const component = renderer
+    it('should render the expected snapshot', async () => {
+        const component: any = renderer
             .create(<App />)
-            .toJSON(); 
+            .toJSON();
         expect(component).toMatchSnapshot();
     });
 });
