@@ -1,26 +1,27 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
-import { mount } from 'enzyme';
+import { mount, ReactWrapper } from 'enzyme';
 import chai from 'chai';
 import sinon from 'sinon';
 import Axios from 'axios';
 import sinonChai from 'sinon-chai';
-import UpcomingList from '../components/UpcomingList/UpcomingList.jsx';
+import UpcomingList from '../components/UpcomingList/UpcomingList';
 
 jest.useFakeTimers();
 chai.should();
 chai.use(sinonChai);
 
-const githubProject = 'IBM-Blockchain/blockchain-vscode-extension';
+const githubProject: string = 'IBM-Blockchain/blockchain-vscode-extension';
 
-const issuesNextApiUrl = 'https://api.github.com/repos/'+githubProject+'/issues?labels=next&state=closed&per_page=100'
-const allMilestones = 'https://api.github.com/repos/'+githubProject+'/milestones'
+const issuesNextApiUrl: string = 'https://api.github.com/repos/' + githubProject + '/issues?labels=next&state=closed&per_page=100';
+const allMilestones: string = 'https://api.github.com/repos/' + githubProject + '/milestones';
+// tslint:disable: no-unused-expression
 
 describe('UpcomingList', () => {
-    let mySandBox;
-    let axiosGetStub;
+    let mySandBox: sinon.SinonSandbox;
+    let axiosGetStub: sinon.SinonStub;
 
-    beforeEach(async() => {
+    beforeEach(async () => {
         mySandBox = sinon.createSandbox();
         axiosGetStub = mySandBox.stub(Axios, 'get');
         axiosGetStub.onFirstCall().returns({data: [
@@ -43,7 +44,7 @@ describe('UpcomingList', () => {
         axiosGetStub.onSecondCall().returns({data: [
             {
                 url: 'someURL',
-                repositoryurl: 'someOtherURL',
+                repository_url: 'someOtherURL',
                 number: 1932,
                 title: 'Some completed issue',
                 state: 'closed',
@@ -60,7 +61,7 @@ describe('UpcomingList', () => {
             },
             {
                 url: 'someURL1',
-                repositoryurl: 'someOtherURL1',
+                repository_url: 'someOtherURL1',
                 number: 1922,
                 title: 'Some other completed issue',
                 state: 'closed',
@@ -82,15 +83,15 @@ describe('UpcomingList', () => {
         mySandBox.restore();
     });
 
-    it('should render the expected snapshot', async() => {
-        const component = renderer
+    it('should render the expected snapshot', async () => {
+        const component: any = renderer
             .create(<UpcomingList />)
-            .toJSON(); 
+            .toJSON();
         expect(component).toMatchSnapshot();
     });
 
-    it('should get the newest milestone with a successful api call', async() => {
-        const component = await mount(<UpcomingList/>);
+    it('should get the newest milestone with a successful api call', async () => {
+        const component: ReactWrapper<{}, {issues: any, error: any, newestMilestone: any}, UpcomingList> = await mount(<UpcomingList/>);
         axiosGetStub.should.have.been.calledTwice;
         component.state().newestMilestone.should.deep.equal({
             url: 'anotherMilestoneURL',
@@ -99,9 +100,9 @@ describe('UpcomingList', () => {
         });
     });
 
-    it('should show error when there is an unsuccessful milestone api call', async() => {
+    it('should show error when there is an unsuccessful milestone api call', async () => {
         axiosGetStub.onFirstCall().returns(undefined);
-        const component = await mount(<UpcomingList/>);
+        const component: ReactWrapper<{}, {issues: any, error: any, newestMilestone: any}, UpcomingList> = await mount(<UpcomingList/>);
         axiosGetStub.should.have.been.calledTwice;
         component.state().error.should.equal('Cannot load from Github, sorry.');
     });
@@ -113,11 +114,11 @@ describe('UpcomingList', () => {
         axiosGetStub.getCall(1).should.have.been.calledWith(issuesNextApiUrl);
     });
 
-    it('should get latest completed issues with a successful api call', async() => {   
-        const issues = [
+    it('should get latest completed issues with a successful api call', async () => {
+        const issues: any = [
             {
                 url: 'someURL',
-                repositoryurl: 'someOtherURL',
+                repository_url: 'someOtherURL',
                 number: 1932,
                 title: 'Some completed issue',
                 state: 'closed',
@@ -134,7 +135,7 @@ describe('UpcomingList', () => {
             },
             {
                 url: 'someURL1',
-                repositoryurl: 'someOtherURL1',
+                repository_url: 'someOtherURL1',
                 number: 1922,
                 title: 'Some other completed issue',
                 state: 'closed',
@@ -143,21 +144,21 @@ describe('UpcomingList', () => {
                     name: 'enhancement',
                     description: 'someOtherLabelDescription'
                 }]
-            }];  
-        const component = await mount(<UpcomingList/>);
+            }];
+        const component: ReactWrapper<{}, {issues: any, error: any, newestMilestone: any}, UpcomingList> = await mount(<UpcomingList/>);
         component.setState({
             issues: issues,
             error: undefined
-        })
+        });
         axiosGetStub.should.have.been.calledTwice;
         component.text().includes('Some completed issue').should.be.true;
         component.state().issues.should.deep.equal(issues);
     });
 
-    it('should show error when there is an unsuccessful api calls', async() => {
+    it('should show error when there is an unsuccessful api calls', async () => {
         axiosGetStub.onFirstCall().returns(undefined);
         axiosGetStub.onSecondCall().returns(undefined);
-        const component = await mount(<UpcomingList/>);
+        const component: ReactWrapper<{}, {issues: any, error: any, newestMilestone: any}, UpcomingList> = await mount(<UpcomingList/>);
         component.state().error.should.equal('Cannot load from Github, sorry.');
         axiosGetStub.should.have.been.calledTwice;
     });

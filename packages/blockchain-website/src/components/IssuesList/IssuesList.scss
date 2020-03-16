@@ -1,3 +1,110 @@
+.flex-container {
+    display: flex;
+    flex-flow: row wrap;
+}
+
+.panel {
+    background-color: white;
+    width: 309px;
+    margin: 1px;
+    position: relative;
+    height: 165px;
+}
+
+.no-issues {
+    background-image: linear-gradient(180deg, #FFFFFF 0%, #F3F3F3 100%);
+    width: 1250px;
+    height: 165px;
+    padding: 16px;
+    line-height: 16px;
+    margin: 1px; 
+}
+
+.issue-title {
+    margin-left: 16px;
+    margin-right: 21px;
+    margin-bottom: 7px;
+    font-size: 14px;
+    color: #161616;
+    letter-spacing: 0.16px;
+    line-height: 18px;
+}
+
+.div-title {
+    display: flex;
+    flex-flow: row wrap;
+    padding-top: 20px;
+    max-width: 1244px;
+    font-size: 16px;
+    color: #161616;
+    letter-spacing: 0;
+    line-height: 22px;
+    padding-bottom: 5px; 
+}
+
+.date {
+    margin-left: 16px;
+    margin-right: 21px;
+    font-size: 12px;
+    color: #525252;
+    letter-spacing: 0.32px;
+    text-align: left;
+    line-height: 16px;
+}
+
+.link {
+    text-decoration: none;
+    font-size: 14px;
+    color: #0F62FE;
+    letter-spacing: 0.16px;
+    line-height: 18px;
+}
+
+.view-issue {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+}
+
+.button-container {
+    margin-left: auto;
+    max-width: 450px;
+    max-height: 30px;
+    @media (max-width: 620px) { // If screen width small, move buttons directly below title (pin to the left of the container)
+        margin-right: auto;
+    }
+}
+
+.button {
+    text-decoration: none;
+    display: inline-block;
+    background: url('../../add.svg');
+    background-repeat: no-repeat;
+    background-size: 16px;
+    background-color: #0f62fe;
+    background-position-x: 169px;
+    background-position-y: 8px;
+    height: 19px;
+    width: 185px;
+    color: white;
+    font-size: 14px;
+    padding-top: 3px;
+    padding-bottom: 7px;
+    padding-left: 16px;
+}
+
+.new-issue-position {
+    margin-left: 2rem;
+}
+
+.view-all-position {
+    margin-left: auto;
+}
+
+.view-milestone {
+    margin-left: auto;
+}
+
 .label {
     border-radius: 4px;
     display: inline;
@@ -13,106 +120,19 @@
     white-space: nowrap;
 }
 
-.bg-bug {
-    background-color: #d73a4a !important;
+.bg-sev1 {
+    background-color: #da1e28 !important;
 }
   
-.bg-feature {
-    background-color: #02ccbf !important;
+.bg-sev2 {
+    background-color: #ff832b !important;
 }
-  
-.panel {
-    margin-bottom: 20px;
-    background-color: #fff;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+
+.bg-sev3 {
+    background-color: #f1c21b !important;
 }
-  
-.panel-body {
-    padding: 15px;
+
+.label-div {
+    margin-left: 16px;
+    margin-right: 21px;
 }
-  
-.panel-heading {
-    padding: 10px 15px;
-    border-bottom: 1px solid transparent;
-    border-top-left-radius: 3px;
-    border-top-right-radius: 3px;
-  
-    > .dropdown .dropdown-toggle {
-      color: inherit;
-    }
-}
-  
-.panel-title {
-    margin-top: 0;
-    margin-bottom: 0;
-    font-size: 16px;
-    color: inherit;
-}
-  
-.panel-bug {
-    margin-top: 0;
-    margin-bottom: 0;
-    font-size: 16px;
-    color: #d73a4a;
-}
-  
-.panel-feature {
-    margin-top: 0;
-    margin-bottom: 0;
-    font-size: 16px;
-    color: #a2eeef;
-}
-  
-.panel-success {
-    border-color: #d6e9c6;
-  
-    > {
-    .panel-heading {
-        color: #3c763d;
-        background-color: #dff0d8;
-        border-color: #d6e9c6;
-  
-    + .panel-collapse > .panel-body {
-          border-top-color: #d6e9c6;
-        }
-  
-    .badge {
-          color: #dff0d8;
-          background-color: #3c763d;
-        }
-    }
-  
-    .panel-footer + .panel-collapse > .panel-body {
-        border-bottom-color: #d6e9c6;
-        }
-    }
-}
-  
-.panel-danger {
-    border-color: #ebccd1;
-  
-    > {
-    .panel-heading {
-        color: #a94442;
-        background-color: #f2dede;
-        border-color: #ebccd1;
-  
-    + .panel-collapse > .panel-body {
-          border-top-color: #ebccd1;
-        }
-  
-    .badge {
-          color: #f2dede;
-          background-color: #a94442;
-        }
-    }
-  
-    .panel-footer + .panel-collapse > .panel-body {
-        border-bottom-color: #ebccd1;
-        }
-    }
-}
-  
