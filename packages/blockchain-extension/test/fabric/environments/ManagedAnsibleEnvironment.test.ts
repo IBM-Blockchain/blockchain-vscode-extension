@@ -750,7 +750,17 @@ describe('ManagedAnsibleEnvironment', () => {
     describe('#getPeerChaincodeURL', () => {
 
         it('should get the peer chaincode URL', async () => {
-            await environment.getPeerChaincodeURL().should.eventually.equal('grpc://localhost:17052');
+            const url: string = await environment.getPeerChaincodeURL();
+            url.should.equal('grpc://localhost:17052');
+        });
+
+        it('should be able to get peer chaincode url for an organisation', async () => {
+            // No peers for Org2
+            await environment.getPeerChaincodeURL('Org2').should.be.rejectedWith(/There are no Fabric peer nodes/);
+
+            // Should get the peer chaincode url
+            const url: string = await environment.getPeerChaincodeURL('Org1');
+            url.should.equal('grpc://localhost:17052');
         });
 
         it('should throw an error if there are no peer nodes', async () => {

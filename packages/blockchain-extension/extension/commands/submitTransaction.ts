@@ -24,6 +24,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 import { IFabricGatewayConnection, LogType, FabricGatewayRegistryEntry, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 
 interface ITransactionData {
     transactionName: string;
@@ -102,6 +103,18 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
             transactionName = chosenTransaction.data.name;
             namespace = chosenTransaction.data.contract;
         }
+    }
+
+    const debugSession: vscode.DebugSession = vscode.debug.activeDebugSession;
+    if (debugSession && debugSession.configuration.debugEvent === FabricDebugConfigurationProvider.debugEvent) {
+        // This will catch when the user is debugging 2-orgs, select 'Org2' to debug for, disconnect from the gateway, connect to 'Org1' and then try to submit from tree / command (but not debugList)
+        // Connect to the gateway for the org that was selected when debug was started.
+        const connected: boolean = await FabricDebugConfigurationProvider.connectToGateway();
+        if (!connected) {
+            return;
+        }
+
+        // If the user decides to disconnect later in the flow - then that means they've manually disconnected, and it'll be too late to connect to the correct gateway.
     }
 
     gatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();

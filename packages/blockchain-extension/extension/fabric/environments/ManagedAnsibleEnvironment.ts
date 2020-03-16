@@ -136,8 +136,15 @@ export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
         return this.isRunningPromise;
     }
 
-    public async getPeerChaincodeURL(): Promise<string> {
-        const nodes: FabricNode[] = await this.getNodes();
+    public async getPeerChaincodeURL(orgName?: string): Promise<string> {
+        let nodes: FabricNode[] = await this.getNodes();
+        if (orgName) {
+            nodes = nodes.filter((node: FabricNode) => {
+                // Can either check the wallet, or check that the node.name includes the orgName.
+                return node.wallet === orgName;
+            });
+        }
+
         const peer: FabricNode = nodes.find((node: FabricNode) => node.type === FabricNodeType.PEER);
         if (!peer) {
             throw new Error('There are no Fabric peer nodes');

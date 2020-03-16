@@ -36,6 +36,7 @@ import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, Environment
 import { VSCodeBlockchainDockerOutputAdapter } from '../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
 
 chai.use(sinonChai);
 
@@ -669,7 +670,7 @@ describe('UpgradeCommand', () => {
                     env: {
                         CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-97365870'
                     },
-                    debugEvent: 'contractDebugging'
+                    debugEvent: FabricDebugConfigurationProvider.debugEvent
                 },
                 workspaceFolder: workspaceFolder
             };
@@ -695,7 +696,7 @@ describe('UpgradeCommand', () => {
                     env: {
                         CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-97365870'
                     },
-                    debugEvent: 'contractDebugging'
+                    debugEvent: FabricDebugConfigurationProvider.debugEvent
                 },
                 workspaceFolder: workspaceFolder
             };
@@ -733,7 +734,7 @@ describe('UpgradeCommand', () => {
                     env: {
                         CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-97365870'
                     },
-                    debugEvent: 'contractDebugging'
+                    debugEvent: FabricDebugConfigurationProvider.debugEvent
                 },
                 workspaceFolder: workspaceFolder
             };
@@ -766,7 +767,7 @@ describe('UpgradeCommand', () => {
                     env: {
                         CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-97365870'
                     },
-                    debugEvent: 'contractDebugging'
+                    debugEvent: FabricDebugConfigurationProvider.debugEvent
                 },
                 workspaceFolder: workspaceFolder
             };

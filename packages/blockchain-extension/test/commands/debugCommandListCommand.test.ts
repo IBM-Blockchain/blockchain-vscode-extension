@@ -20,11 +20,11 @@ import * as sinonChai from 'sinon-chai';
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
-import { LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { LogType, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -36,7 +36,7 @@ describe('DebugCommandListCommand', () => {
     let showDebugCommandListStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
     let runtimeStub: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
-    let connectionManagerGetConnectionStub: sinon.SinonStub;
+    let connectToGatewayStub: sinon.SinonStub;
     let environmentConnectionStub: sinon.SinonStub;
     let activeDebugSession: any;
     let activeDebugSessionStub: sinon.SinonStub;
@@ -62,14 +62,13 @@ describe('DebugCommandListCommand', () => {
         executeCommandStub.withArgs(ExtensionCommands.SUBMIT_TRANSACTION).resolves();
         executeCommandStub.withArgs(ExtensionCommands.EVALUATE_TRANSACTION).resolves();
         executeCommandStub.withArgs(ExtensionCommands.UPGRADE_SMART_CONTRACT).resolves();
-        executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_GATEWAY).resolves();
 
         activeDebugSession = {
             configuration: {
                 env: {
                     CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-123456'
                 },
-                debugEvent: 'contractDebugging'
+                debugEvent: FabricDebugConfigurationProvider.debugEvent
             }
         };
 
@@ -81,7 +80,9 @@ describe('DebugCommandListCommand', () => {
         runtimeStub.getInstantiatedChaincode.resolves([]);
 
         environmentConnectionStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns(runtimeStub);
-        connectionManagerGetConnectionStub = mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getConnection').returns(runtimeStub);
+
+        connectToGatewayStub = mySandBox.stub(FabricDebugConfigurationProvider, 'connectToGateway');
+        connectToGatewayStub.resolves(true);
     });
 
     afterEach(async () => {
@@ -90,7 +91,7 @@ describe('DebugCommandListCommand', () => {
 
     it('should show the submit and evaluate', async () => {
         await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);
-
+        connectToGatewayStub.should.have.been.calledOnce;
         executeCommandStub.should.have.been.calledWith(ExtensionCommands.SUBMIT_TRANSACTION, undefined, 'mychannel', 'mySmartContract');
     });
 
@@ -102,15 +103,15 @@ describe('DebugCommandListCommand', () => {
         const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
         await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);
-
+        connectToGatewayStub.should.not.have.been.called;
         logSpy.should.have.been.calledWith(LogType.ERROR, undefined, 'The current debug session is not debugging a smart contract, this command can only be run when debugging a smart contract');
     });
 
-    it('should return if no connection', async () => {
+    it('should return if no environment connection', async () => {
         const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         environmentConnectionStub.returns(undefined);
         await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);
-
+        connectToGatewayStub.should.not.have.been.called;
         logSpy.should.have.been.calledWith(LogType.ERROR, undefined, 'No connection to a blockchain found');
         executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
     });
@@ -122,13 +123,14 @@ describe('DebugCommandListCommand', () => {
 
         showDebugCommandListStub.should.have.been.called;
         executeCommandStub.should.have.been.calledOnceWithExactly(ExtensionCommands.DEBUG_COMMAND_LIST);
+        connectToGatewayStub.should.not.have.been.called;
     });
 
     it('should submit transaction with channel name and contract name', async () => {
         showDebugCommandListStub.resolves({ label: 'Submit transaction', data: ExtensionCommands.SUBMIT_TRANSACTION });
 
         await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);
-
+        connectToGatewayStub.should.have.been.calledOnce;
         executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.SUBMIT_TRANSACTION, undefined, 'mychannel', 'mySmartContract');
     });
 
@@ -136,30 +138,27 @@ describe('DebugCommandListCommand', () => {
         showDebugCommandListStub.resolves({ label: 'Evaluate transaction', data: ExtensionCommands.EVALUATE_TRANSACTION });
 
         await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);
-
+        connectToGatewayStub.should.have.been.calledOnce;
         executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.EVALUATE_TRANSACTION, undefined, 'mychannel', 'mySmartContract');
     });
 
-    it('should connect to Org1 wallet before running the submit or evaluate commands', async () => {
-        const registryEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
+    it('should connect to Org1 gateway before running the submit or evaluate commands', async () => {
 
-        connectionManagerGetConnectionStub.onCall(0).returns(undefined);
-        connectionManagerGetConnectionStub.onCall(1).returns(runtimeStub);
         showDebugCommandListStub.resolves({ label: 'Evaluate transaction', data: ExtensionCommands.EVALUATE_TRANSACTION });
 
         await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);
 
-        executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT_TO_GATEWAY, registryEntry);
+        connectToGatewayStub.should.have.been.calledOnce;
+
         executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.EVALUATE_TRANSACTION, undefined, 'mychannel', 'mySmartContract');
     });
 
-    it('should handle connect failing', async () => {
+    it('should return if connecting to gateway fails', async () => {
         showDebugCommandListStub.resolves({ label: 'Evaluate transaction', data: ExtensionCommands.EVALUATE_TRANSACTION });
-        connectionManagerGetConnectionStub.returns(undefined);
+        connectToGatewayStub.resolves(false);
 
         await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);
-
-        executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_GATEWAY);
+        connectToGatewayStub.should.have.been.calledOnce;
         executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.EVALUATE_TRANSACTION);
     });
 
@@ -178,7 +177,7 @@ describe('DebugCommandListCommand', () => {
         await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST, ExtensionCommands.UPGRADE_SMART_CONTRACT);
 
         showDebugCommandListStub.should.not.have.been.called;
-
+        connectToGatewayStub.should.not.have.been.called;
         executeCommandStub.should.have.been.calledWith(ExtensionCommands.UPGRADE_SMART_CONTRACT, undefined, 'mychannel', ['peerOne']);
     });
 });

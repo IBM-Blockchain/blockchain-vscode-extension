@@ -13,6 +13,7 @@
 */
 import * as vscode from 'vscode';
 import * as os from 'os';
+import * as path from 'path';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -42,6 +43,10 @@ import { RepositoryRegistryEntry } from '../../extension/registries/RepositoryRe
 import * as openTransactionViewCommand from '../../extension/commands/openTransactionViewCommand';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
+import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
+import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
+import { ManagedAnsibleEnvironmentManager } from '../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
+import { ManagedAnsibleEnvironment } from '../../extension/fabric/environments/ManagedAnsibleEnvironment';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -2215,6 +2220,103 @@ describe('ExtensionUtil Tests', () => {
 
             });
         });
+    });
+
+    describe('environment logs', () => {
+
+        let purgeOldRuntimesStub: sinon.SinonStub;
+        let getEnvironmentRegistryEntryStub: sinon.SinonStub;
+        let originalRuntime: LocalEnvironment;
+        let mockConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
+        let startLogsStub: sinon.SinonStub;
+        let stopLogsStub: sinon.SinonStub;
+
+        before(async () => {
+            if (!ExtensionUtil.isActive()) {
+                await ExtensionUtil.activateExtension();
+            }
+        });
+        beforeEach(async () => {
+            await FabricEnvironmentRegistry.instance().clear();
+            await TestUtil.setupLocalFabric();
+
+            const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+            purgeOldRuntimesStub = mySandBox.stub(ExtensionUtil, 'purgeOldRuntimes').resolves();
+            getEnvironmentRegistryEntryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(registryEntry);
+            mockConnection = mySandBox.createStubInstance(FabricEnvironmentConnection);
+            startLogsStub = mySandBox.stub(LocalEnvironment.prototype, 'startLogs').returns(undefined);
+            stopLogsStub = mySandBox.stub(LocalEnvironment.prototype, 'stopLogs').returns(undefined);
+            originalRuntime = new LocalEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, {startPort: 17050, endPort: 17070}, 1);
+        });
+
+        it(`should start logs if ${FabricRuntimeUtil.LOCAL_FABRIC} is connected`, async () => {
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(originalRuntime);
+            FabricEnvironmentManager.instance().removeAllListeners(); // For some reason, there seemed to be multiple listener - as startLogsStub was being called many times.
+
+            await ExtensionUtil.registerCommands(ctx);
+            purgeOldRuntimesStub.should.have.been.calledOnce;
+
+            const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+
+            FabricEnvironmentManager.instance().connect(mockConnection, registryEntry, ConnectedState.CONNECTED);
+
+            startLogsStub.should.have.been.calledOnce;
+        });
+
+        it(`should not start the logs when other fabric connected is not a local environment`, async () => {
+            const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            registryEntry.name = 'myFabric';
+            registryEntry.managedRuntime = false;
+            getEnvironmentRegistryEntryStub.returns(registryEntry);
+
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            await ExtensionUtil.registerCommands(ctx);
+            purgeOldRuntimesStub.should.have.been.calledOnce;
+
+            FabricEnvironmentManager.instance().connect(mockConnection, registryEntry, ConnectedState.CONNECTED);
+
+            startLogsStub.should.not.have.been.called;
+        });
+
+        it('should stop the logs when disconnected', async () => {
+            mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(originalRuntime);
+
+            FabricEnvironmentManager.instance()['connection'] = undefined;
+
+            FabricEnvironmentManager.instance().removeAllListeners(); // For some reason, there seemed to be multiple listener - as stopLogsStub was being called many times.
+
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            await ExtensionUtil.registerCommands(ctx);
+
+            const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+
+            FabricEnvironmentManager.instance().connect(mockConnection, registryEntry, ConnectedState.CONNECTED);
+
+            FabricEnvironmentManager.instance().disconnect();
+
+            stopLogsStub.should.have.been.calledOnce;
+        });
+
+        it('should do nothing when disconnected from a non-local environment', async () => {
+            mySandBox.stub(ManagedAnsibleEnvironmentManager.instance(), 'getRuntime').returns(new ManagedAnsibleEnvironment('managedAnsible', path.join(__dirname, '..', '..', '..', 'test', 'data', 'managedAnsible')));
+            await FabricEnvironmentRegistry.instance().add({name: 'managedAnsible', environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT, managedRuntime: true, environmentDirectory: path.join(__dirname, '..', '..', '..', 'test', 'data', 'managedAnsible') });
+
+            const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get('managedAnsible');
+            getEnvironmentRegistryEntryStub.returns(registryEntry);
+
+            FabricEnvironmentManager.instance()['connection'] = undefined;
+
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            await ExtensionUtil.registerCommands(ctx);
+
+            FabricEnvironmentManager.instance().connect(mockConnection, registryEntry, ConnectedState.CONNECTED);
+
+            FabricEnvironmentManager.instance().disconnect();
+
+            stopLogsStub.should.not.have.been.called;
+        });
+
     });
 
     describe('#purgeOldRuntimes', () => {

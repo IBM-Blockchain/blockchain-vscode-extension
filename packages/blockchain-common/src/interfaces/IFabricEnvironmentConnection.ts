@@ -20,6 +20,8 @@ import { Attribute } from '../fabricModel/FabricCertificate';
 
 export interface IFabricEnvironmentConnection {
 
+    environmentName: string;
+
     connect(nodes: FabricNode[]): Promise<void>;
 
     disconnect(): void;

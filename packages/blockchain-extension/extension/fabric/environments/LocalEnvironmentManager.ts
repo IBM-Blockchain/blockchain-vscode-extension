@@ -21,8 +21,6 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, FileSystemUtil, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { SettingConfigurations } from '../../../configurations';
-import { FabricEnvironmentManager } from './FabricEnvironmentManager';
-import { VSCodeBlockchainDockerOutputAdapter } from '../../logging/VSCodeBlockchainDockerOutputAdapter';
 import { LocalEnvironment } from './LocalEnvironment';
 
 export class LocalEnvironmentManager {
@@ -144,22 +142,6 @@ export class LocalEnvironmentManager {
             await runtime.create();
         }
 
-        let _runtime: LocalEnvironment; // Currently connected environment entry
-
-        FabricEnvironmentManager.instance().on('connected', async () => {
-            const registryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
-            _runtime = this.getRuntime(registryEntry.name);
-            if (_runtime instanceof LocalEnvironment) {
-                const outputAdapter: VSCodeBlockchainDockerOutputAdapter = VSCodeBlockchainDockerOutputAdapter.instance(registryEntry.name);
-                _runtime.startLogs(outputAdapter);
-            }
-        });
-
-        FabricEnvironmentManager.instance().on('disconnected', async () => {
-            if (_runtime instanceof LocalEnvironment) {
-                _runtime.stopLogs();
-            }
-        });
     }
 
     public async migrate(oldVersion: string): Promise<void> {

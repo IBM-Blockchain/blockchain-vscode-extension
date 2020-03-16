@@ -1473,7 +1473,8 @@
             "templates/PreReqView.ejs",
             "tutorials",
             "docker",
-            "package.json.orig"
+            "package.json.orig",
+            "unit-tests.xml"
         ],
         "file_type_method": "EXCLUDE",
         "file_types": [

@@ -102,6 +102,7 @@ import { associateTransactionDataDirectory } from '../commands/associateTransact
 import { dissociateTransactionDataDirectory } from '../commands/dissociateTransactionDataDirectoryCommand';
 import { openReleaseNotes } from '../commands/openReleaseNotesCommand';
 import { viewPackageInformation } from '../commands/viewPackageInformationCommand';
+import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -530,7 +531,27 @@ export class ExtensionUtil {
             } else {
                 // debug has stopped so set the context to false
                 await vscode.commands.executeCommand('setContext', 'blockchain-debug', false);
-                FabricDebugConfigurationProvider.environmentName = undefined;
+            }
+        });
+
+        let connectedRuntime: LocalEnvironment; // Currently connected environment entry
+
+        FabricEnvironmentManager.instance().on('connected', async () => {
+            const registryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+            if (registryEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                connectedRuntime = LocalEnvironmentManager.instance().getRuntime(registryEntry.name);
+                const outputAdapter: VSCodeBlockchainDockerOutputAdapter = VSCodeBlockchainDockerOutputAdapter.instance(registryEntry.name);
+                connectedRuntime.startLogs(outputAdapter);
+            } else {
+                connectedRuntime = undefined;
+            }
+
+        });
+
+        FabricEnvironmentManager.instance().on('disconnected', async () => {
+            if (connectedRuntime instanceof LocalEnvironment) {
+                connectedRuntime.stopLogs();
+                connectedRuntime = undefined;
             }
         });
 
