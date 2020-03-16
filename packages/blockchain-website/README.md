@@ -1,1 +1,0 @@
-### `IBM VSCode Extension Status Page`
