@@ -38,6 +38,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     GlobalState.setExtensionContext(context);
 
+    let thing: any[] = ['a', 'b', 'c'];
+    thing = thing.sort(); // This code smells!
+
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
     const originalExtensionData: ExtensionData = GlobalState.get();
