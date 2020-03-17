@@ -16,6 +16,7 @@ import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as semver from 'semver';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { SettingConfigurations } from '../../configurations';
 import { addGateway } from '../commands/addGatewayCommand';
@@ -652,6 +653,7 @@ export class ExtensionUtil {
         if (extensionData.generatorVersion !== null && generatorVersion !== extensionData.generatorVersion) {
             // If the latest generator version is not equal to the previous used version
 
+            let teardownRuntimes: boolean = false;
             let updateGeneratorVersion: boolean = true;
 
             const envEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(true, true);
@@ -665,9 +667,23 @@ export class ExtensionUtil {
                 runtimes.push(localRuntime);
             }
 
-            const response: boolean = await UserInputUtil.showConfirmationWarningMessage(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
+            const generatorSemver: semver.SemVer = semver.coerce(generatorVersion); // Generator semver
+            const storedSemver: semver.SemVer = semver.coerce(extensionData.generatorVersion); // Stored generator semver
 
-            if (response) {
+            const generatorMajor: number = generatorSemver.major;
+            const storedMajor: number = storedSemver.major;
+            if (generatorMajor > storedMajor) {
+                // If major changes, then we should just force teardown without asking.
+                teardownRuntimes = true;
+            }
+
+            if (!teardownRuntimes) {
+                teardownRuntimes = await UserInputUtil.showConfirmationWarningMessage(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
+            } else {
+                outputAdapter.log(LogType.IMPORTANT, `A major version of the generator has been released. All local runtimes will be torn down.`);
+            }
+
+            if (teardownRuntimes) {
 
                 for (const runtime of runtimes) {
 
