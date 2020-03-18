@@ -96,6 +96,7 @@ export class UserInputUtil {
     static readonly ONE_ORG_TEMPLATE: string = `1 Org template (1 CA, 1 peer, 1 channel)`;
     static readonly TWO_ORG_TEMPLATE: string = `2 Org template (2 CAs, 2 peers, 1 channel)`;
     static readonly CREATE_ADDITIONAL_LOCAL_NETWORKS: string = `Create additional local networks (tutorial)`;
+    static readonly CREATE_ADDITIONAL_LOCAL_NETWORKS_DATA: number = 3;
 
     public static async showQuickPick(prompt: string, items: string[], canPickMany: boolean = false): Promise<string | string[]> {
         const quickPickOptions: vscode.QuickPickOptions = {

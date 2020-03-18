@@ -41,6 +41,7 @@ describe('viewPackageInformationCommand', () => {
 
     const sandbox: sinon.SinonSandbox = sinon.createSandbox();
     let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
+    let showSpy: sinon.SinonSpy;
     let logSpy: sinon.SinonStub;
     let sendTelemetryEventStub: sinon.SinonStub;
     let showSmartContractPackagesQuickPickBoxStub: sinon.SinonStub;
@@ -56,6 +57,7 @@ describe('viewPackageInformationCommand', () => {
 
     beforeEach(async () => {
         logSpy = sandbox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
+        showSpy = sandbox.stub(VSCodeBlockchainOutputAdapter.instance(), 'show');
         sendTelemetryEventStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
         blockchainPackageExplorerProvider = ExtensionUtil.getBlockchainPackageExplorerProvider();
 
@@ -99,6 +101,7 @@ describe('viewPackageInformationCommand', () => {
         logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, '- src/package.json');
         logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, '- src/test/my-contract.js');
         logSpy.getCall(5).should.have.been.calledWith(LogType.SUCCESS, `Displayed information for smart contract package ${packageRegEntry.name}@${packageRegEntry.version}.`);
+        showSpy.should.have.been.calledOnce;
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('viewPackageInformationCommand');
 
     });
@@ -115,6 +118,7 @@ describe('viewPackageInformationCommand', () => {
         logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, '- src/package.json');
         logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, '- src/test/my-contract.js');
         logSpy.getCall(5).should.have.been.calledWith(LogType.SUCCESS, `Displayed information for smart contract package ${packageRegEntry.name}@${packageRegEntry.version}.`);
+        showSpy.should.have.been.calledOnce;
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('viewPackageInformationCommand');
     });
 
@@ -126,6 +130,7 @@ describe('viewPackageInformationCommand', () => {
         showSmartContractPackagesQuickPickBoxStub.should.have.been.called;
         listFilesStub.should.have.not.been.called;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'viewPackageInformation');
+        showSpy.should.not.have.been.called;
     });
 
     it('should handle error displaying package information', async () => {
@@ -140,6 +145,7 @@ describe('viewPackageInformationCommand', () => {
         listFilesStub.should.have.been.called;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'viewPackageInformation');
         logSpy.should.have.been.calledWith(LogType.ERROR, caughtError.message, caughtError.toString());
+        showSpy.should.not.have.been.called;
     });
 
 });

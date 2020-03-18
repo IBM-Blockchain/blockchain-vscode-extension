@@ -44,6 +44,7 @@ export async function viewPackageInformation(packageTreeItem?: PackageTreeItem):
             for (const file of fileNames) {
                 outputAdapter.log(LogType.INFO, undefined, `- ${file}`);
             }
+            outputAdapter.show();
         } catch (error) {
             throw new Error(`Unable to extract file list from ${packageToView.name}@${packageToView.version}: ${error.message}`);
         }

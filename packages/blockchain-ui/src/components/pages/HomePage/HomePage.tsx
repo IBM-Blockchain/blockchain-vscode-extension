@@ -26,7 +26,7 @@ class HomePage extends Component<IProps> {
                             <h2>IBM Blockchain platform
                                 <Tag className='extension-version' id='extension-version-tag' type='gray'>{`v${this.props.extensionVersion}`}</Tag>
                             </h2>
-                            <p className='home-title-description'>This extension supports the complete development workflow for Hyperledger Fabric and IBM Blockchain Platform. Get started, learn best practices and earn developer qualifiactions with our tutorials.</p>
+                            <p className='home-title-description'>This extension supports the complete development workflow for Hyperledger Fabric and IBM Blockchain Platform. Get started, learn best practices and earn developer qualifications with our tutorials.</p>
                         </div>
                         <div className='bx--row' id='tutorial-tile-container'>
                             <CustomTile title='Tutorials' body={tutorialTileString}/>
