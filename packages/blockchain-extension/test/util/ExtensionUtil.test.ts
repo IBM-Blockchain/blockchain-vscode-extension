@@ -1606,9 +1606,76 @@ describe('ExtensionUtil Tests', () => {
             });
         });
 
-        it(`shouldn't update the generator version to latest when the user selects 'No'`, async () => {
+        it(`should force teardown and update generator version to latest when new major version is available`, async () => {
+            mockRuntime.isGenerated.resolves(true);
+            mockRuntime.isRunning.resolves(true);
+
+            const generatedLocalEnvironment: LocalEnvironment = new LocalEnvironment('generatedLocal', undefined, 1);
+            const nonGeneratedLocalEnvironment: LocalEnvironment = new LocalEnvironment('nonGeneratedLocal', undefined, 1);
+
+            const isGeneratedStub: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isGenerated');
+            isGeneratedStub.onCall(0).resolves(true); // generatedLocal
+            isGeneratedStub.onCall(1).resolves(false); // nonGeneratedLocal
+
+            const isRunningStub: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isRunning').resolves(true);
+            isRunningStub.onCall(0).resolves(true); // generatedLocal
+            isRunningStub.onCall(1).resolves(false); // nonGeneratedLocal
+
+            ensureRuntimeStub.withArgs('generatedLocal', undefined, 1).resolves(generatedLocalEnvironment);
+            ensureRuntimeStub.withArgs('nonGeneratedLocal', undefined, 1).resolves(nonGeneratedLocalEnvironment);
+
             await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
 
+            dependencies['generator-fabric'] = '1.0.0';
+            globalStateGetStub.returns({
+                generatorVersion: '0.0.1'
+            });
+
+            executeCommandStub.resolves();
+
+            // We'll just use the local fabrics env directory
+            const localEnv: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+
+            const generatedLocal: FabricEnvironmentRegistryEntry = {name: 'generatedLocal', environmentDirectory: localEnv.environmentDirectory, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, numberOfOrgs: 1};
+            const nonGeneratedLocal: FabricEnvironmentRegistryEntry = {name: 'nonGeneratedLocal', environmentDirectory: '', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, numberOfOrgs: 1};
+            const opsTool: FabricEnvironmentRegistryEntry = {url: 'some_website', environmentType: 3, name: 'consoleEnv'};
+            await FabricEnvironmentRegistry.instance().add(generatedLocal);
+            await FabricEnvironmentRegistry.instance().add(nonGeneratedLocal);
+            await FabricEnvironmentRegistry.instance().add(opsTool);
+
+            await ExtensionUtil.completeActivation(false);
+
+            ensureRuntimeStub.should.have.been.calledThrice;
+            ensureRuntimeStub.should.have.been.calledWithExactly(generatedLocal.name, undefined, 1);
+            ensureRuntimeStub.should.have.been.calledWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1);
+            ensureRuntimeStub.should.have.been.calledWith(nonGeneratedLocal.name, undefined, 1);
+            ensureRuntimeStub.should.not.have.been.calledWith(opsTool.name);
+
+            logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
+            logSpy.should.have.been.calledWith(LogType.IMPORTANT, `A major version of the generator has been released. All local runtimes will be torn down.`);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+
+            isGeneratedStub.should.have.been.calledTwice;
+            showConfirmationWarningMessageStub.should.not.have.been.called;
+
+            mockRuntime.isRunning.should.have.been.calledOnce;
+            isRunningStub.should.have.been.calledOnce; // generatedLocal
+
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, generatedLocal.name);
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, nonGeneratedLocal.name);
+
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.START_FABRIC, generatedLocal);
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.START_FABRIC, localEnv);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC, nonGeneratedLocal);
+            globalStateUpdateStub.should.have.been.calledWith({
+                generatorVersion: dependencies['generator-fabric']
+            });
+        });
+
+        it(`shouldn't update the generator version to latest when the user selects 'No'`, async () => {
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
+            dependencies['generator-fabric'] = '0.0.2';
             globalStateGetStub.returns({
                 generatorVersion: '0.0.1'
             });
@@ -1658,7 +1725,7 @@ describe('ExtensionUtil Tests', () => {
 
             mySandBox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting').returns(true);
             await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
-
+            dependencies['generator-fabric'] = '0.0.2';
             globalStateGetStub.returns({
                 generatorVersion: '0.0.1'
             });
@@ -1688,7 +1755,7 @@ describe('ExtensionUtil Tests', () => {
             mySandBox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting').returns(false);
 
             await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
-
+            dependencies['generator-fabric'] = '0.0.2';
             globalStateGetStub.returns({
                 generatorVersion: '0.0.1'
             });
