@@ -34,26 +34,6 @@ steps:
       lerna bootstrap
     displayName: run lerna bootstrap
 
-  - script: |
-      set -ev
-      function runNpmAudit() {
-        local n=0; local rc=1; local out=""
-        while [ "$n" -ne  10 ] && [ "$rc" -ne 0 ]; do
-          echo ">>> run npm audit - Attempt $n"
-          out=$((lerna exec npm audit) 2>&1 | grep -e ".*")
-          if [[ $out == *"found 0 vulnerabilities"* ]]; then
-            rc=0
-          fi
-          echo "${out}"
-          if [[ $rc -ne 0 ]] && [[ $out != *"code ENOAUDIT"* ]]; then
-            break
-          fi
-          n=$(( n + 1 ))
-        done
-        return $rc;}
-      runNpmAudit
-      exit $?
-    displayName: run npm audit
 
   - bash: |
       set -ev
@@ -61,3 +41,9 @@ steps:
     displayName: compile packages
     env:
       DISPLAY: ':99.0'
+
+
+  - script: |
+      set -ev
+      node ./.azure/audit.js
+    displayName: run npm audit
