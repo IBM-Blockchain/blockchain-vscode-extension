@@ -23,6 +23,14 @@
       "file": "developer-tutorials/createNewIdentityAttributes.md"
     },
     {
+      "title": "Create and use a custom Fabric network",
+      "length": "30-45 mins",
+      "difficulty": "moderate",
+      "description": "Learn how to create a new Fabric network using Ansible and import it",
+      "shortDescription": "Create a new Fabric network using Ansible and import it",
+      "file": "developer-tutorials/create-custom-networks.md"
+    },
+    {
       "title": "Debug a smart contract",
       "length": "30-40 mins",
       "difficulty": "moderate",
