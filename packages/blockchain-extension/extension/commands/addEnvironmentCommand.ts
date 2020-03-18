@@ -16,6 +16,7 @@ import Axios from 'axios';
 import * as fs from 'fs-extra';
 import * as https from 'https';
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
@@ -57,10 +58,9 @@ export async function addEnvironment(): Promise<void> {
 
         if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE) {
 
-            const templateItems: IBlockchainQuickPickItem<number>[] = [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: 1}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: 2}];
+            const templateItems: IBlockchainQuickPickItem<number>[] = [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: 1}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: 2}, {label: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS, data: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS_DATA}];
 
             // TODO: Add this back in when the tutorial is created
-            // const templateItems: IBlockchainQuickPickItem<string>[] = [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: UserInputUtil.ONE_ORG_TEMPLATE}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: UserInputUtil.TWO_ORG_TEMPLATE}, {label: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS, data: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS}];
             const chosenTemplate: IBlockchainQuickPickItem<number> = await UserInputUtil.showQuickPickItem('Choose a configuration for a new local network', templateItems) as IBlockchainQuickPickItem<number>;
             if (!chosenTemplate) {
                 return;
@@ -68,17 +68,15 @@ export async function addEnvironment(): Promise<void> {
 
             configurationChosen = chosenTemplate.data;
 
-            // TODO: Add this back in when the tutorial is created
-            // if (configurationChosen === UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS) {
-            //     // Open create additional networks tutorial
-            //     const extensionPath: string = ExtensionUtil.getExtensionPath();
-            //     // TODO JAKE: Change this to whatever the path ends up being!
-            //     const releaseNotes: string = path.join(extensionPath, 'packages', 'blockchain-extension', 'tutorials', 'developer-tutorials', 'create-additional-local-networks.md');
-            //     const uri: vscode.Uri = vscode.Uri.file(releaseNotes);
-            //     await vscode.commands.executeCommand('markdown.showPreview', uri);
+            if (configurationChosen === UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS_DATA) {
+                // Open 'create custom tutorial'
+                const extensionPath: string = ExtensionUtil.getExtensionPath();
+                const releaseNotes: string = path.join(extensionPath, 'tutorials', 'developer-tutorials', 'create-custom-networks.md');
+                const uri: vscode.Uri = vscode.Uri.file(releaseNotes);
+                await vscode.commands.executeCommand('markdown.showPreview', uri);
 
-            //     return;
-            // }
+                return;
+            }
 
         } else if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_DIR) {
             const options: vscode.OpenDialogOptions = {
