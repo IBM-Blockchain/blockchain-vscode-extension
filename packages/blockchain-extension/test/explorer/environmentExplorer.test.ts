@@ -117,12 +117,16 @@ describe('environmentExplorer', () => {
                 allChildren.length.should.equal(4);
                 allChildren[0].label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○ (click to start)`);
                 allChildren[0].tooltip.should.equal('Creates a local development runtime using Hyperledger Fabric Docker images');
+                allChildren[0].contextValue.should.equal('blockchain-runtime-item');
                 allChildren[1].label.should.equal(`managedAnsible  ○ (click to start)`);
                 allChildren[1].tooltip.should.equal(`Creates a local development runtime using Hyperledger Fabric Docker images`);
+                allChildren[1].contextValue.should.equal('blockchain-runtime-item');
                 allChildren[2].label.should.equal('myFabric');
                 allChildren[2].tooltip.should.equal('myFabric');
+                allChildren[2].contextValue.should.equal('blockchain-environment-item');
                 allChildren[3].label.should.equal('myFabric2');
                 allChildren[3].tooltip.should.equal('myFabric2');
+                allChildren[3].contextValue.should.equal('blockchain-environment-item');
 
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-environment-connected', false);
@@ -130,6 +134,36 @@ describe('environmentExplorer', () => {
 
                 ensureRuntimeLocalSpy.should.have.been.calledOnce;
                 ensureRuntimeManagedSpy.should.have.been.calledOnce;
+            });
+
+            it('should get correct context value for running local runtime', async () => {
+                const ensureRuntimeLocalSpy: sinon.SinonSpy = mySandBox.spy(LocalEnvironmentManager.instance(), 'ensureRuntime');
+                const ensureRuntimeManagedSpy: sinon.SinonSpy = mySandBox.spy(ManagedAnsibleEnvironmentManager.instance(), 'ensureRuntime');
+
+                await FabricEnvironmentRegistry.instance().clear();
+
+                await TestUtil.setupLocalFabric();
+
+                const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
+                mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
+                mockRuntime.isRunning.resolves(true);
+                mockRuntime.startLogs.resolves();
+                mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
+
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+                allChildren.length.should.equal(1);
+                allChildren[0].label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ●`);
+                allChildren[0].tooltip.should.equal('The local development runtime is running');
+                allChildren[0].contextValue.should.equal('blockchain-runtime-item-running');
+
+                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
+                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-environment-connected', false);
+                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', false);
+
+                ensureRuntimeLocalSpy.should.have.been.calledOnce;
+                ensureRuntimeManagedSpy.should.not.have.been.called;
             });
 
             it('should say that there are no environments', async () => {

@@ -95,6 +95,7 @@ describe('AddEnvironmentCommand', () => {
             executeCommandStub.withArgs(ExtensionCommands.REFRESH_GATEWAYS).resolves();
             executeCommandStub.withArgs(ExtensionCommands.REFRESH_WALLETS).resolves();
             executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
+            executeCommandStub.withArgs('markdown.showPreview').resolves();
             sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
             deleteEnvironmentSpy = mySandBox.spy(FabricEnvironmentRegistry.instance(), 'delete');
 
