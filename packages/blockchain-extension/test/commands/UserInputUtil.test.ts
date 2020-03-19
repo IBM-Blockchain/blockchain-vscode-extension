@@ -31,6 +31,8 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { FabricCertificate, FabricEnvironmentRegistry, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricNode, FabricNodeType, FabricEnvironmentRegistryEntry, LogType, EnvironmentType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironment } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
+import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -247,6 +249,89 @@ describe('UserInputUtil', () => {
             quickPickStub.should.have.been.calledWith([{ label: FabricRuntimeUtil.LOCAL_FABRIC, data: localFabricEntry }, { label: environmentEntryOne.name, data: environmentEntryOne }, { label: environmentEntryTwo.name, data: environmentEntryTwo }], {
                 ignoreFocusOut: true,
                 canPickMany: false,
+                placeHolder: 'choose an environment'
+            });
+        });
+
+        it('should only show local environments', async () => {
+            quickPickStub.resolves([]);
+
+            await FabricEnvironmentRegistry.instance().add({name: 'localEnv1', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1});
+            await FabricEnvironmentRegistry.instance().add({name: 'localEnv2', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 2});
+
+            const results: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[] = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', true, false, true, undefined, true, false) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[];
+
+            results.should.deep.equal([]);
+
+            const localEnvironment: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+            const localEnv1: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get('localEnv1');
+            const localEnv2: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get('localEnv2');
+
+            quickPickStub.should.have.been.calledWith([{ label: localEnvironment.name, data: localEnvironment }, { label: localEnv1.name, data: localEnv1 }, { label: localEnv2.name, data: localEnv2 }], {
+                ignoreFocusOut: true,
+                canPickMany: true,
+                placeHolder: 'choose an environment'
+            });
+        });
+
+        it('should only show running local environments', async () => {
+            quickPickStub.resolves([]);
+
+            await FabricEnvironmentRegistry.instance().add({name: 'localEnv1', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1});
+            await FabricEnvironmentRegistry.instance().add({name: 'localEnv2', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 2});
+
+            const runtimeStub: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
+
+            runtimeStub.isRunning.onCall(0).resolves(true);
+            runtimeStub.isRunning.onCall(1).resolves(false);
+            runtimeStub.isRunning.onCall(2).resolves(true);
+
+            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(runtimeStub);
+
+            const results: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[] = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', true, false, true, undefined, true, false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[];
+
+            results.should.deep.equal([]);
+
+            getRuntimeStub.should.have.been.calledThrice;
+            runtimeStub.isRunning.should.have.been.calledThrice;
+
+            const localEnvironment: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+            const localEnv2: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get('localEnv2');
+
+            quickPickStub.should.have.been.calledWith([{ label: localEnvironment.name, data: localEnvironment }, { label: localEnv2.name, data: localEnv2 }], {
+                ignoreFocusOut: true,
+                canPickMany: true,
+                placeHolder: 'choose an environment'
+            });
+        });
+
+        it('should only show non running local environments', async () => {
+            quickPickStub.resolves([]);
+
+            await FabricEnvironmentRegistry.instance().add({name: 'localEnv1', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1});
+            await FabricEnvironmentRegistry.instance().add({name: 'localEnv2', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 2});
+
+            const runtimeStub: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
+
+            runtimeStub.isRunning.onCall(0).resolves(false);
+            runtimeStub.isRunning.onCall(1).resolves(true);
+            runtimeStub.isRunning.onCall(2).resolves(false);
+
+            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(runtimeStub);
+
+            const results: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[] = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', true, false, true, undefined, true, false, false) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[];
+
+            results.should.deep.equal([]);
+
+            getRuntimeStub.should.have.been.calledThrice;
+            runtimeStub.isRunning.should.have.been.calledThrice;
+
+            const localEnvironment: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+            const localEnv2: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get('localEnv2');
+
+            quickPickStub.should.have.been.calledWith([{ label: localEnvironment.name, data: localEnvironment }, { label: localEnv2.name, data: localEnv2 }], {
+                ignoreFocusOut: true,
+                canPickMany: true,
                 placeHolder: 'choose an environment'
             });
         });

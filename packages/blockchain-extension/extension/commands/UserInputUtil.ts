@@ -24,6 +24,8 @@ import { FabricCertificate, FabricChaincode, FabricEnvironmentRegistry, FabricEn
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { TimerUtil } from '../util/TimerUtil';
+import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
+import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -149,7 +151,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(items, quickPickOptions);
     }
 
-    public static async showFabricEnvironmentQuickPickBox(prompt: string, canPickMany: boolean, autoChoose: boolean, showLocalFabric: boolean = false, envType: IncludeEnvironmentOptions = IncludeEnvironmentOptions.ALLENV, onlyShowManagedEnvironment: boolean = false, onlyShowNonAnsibleEnvironment: boolean = false): Promise<Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> | IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
+    public static async showFabricEnvironmentQuickPickBox(prompt: string, canPickMany: boolean, autoChoose: boolean, showLocalFabric: boolean = false, envType: IncludeEnvironmentOptions = IncludeEnvironmentOptions.ALLENV, onlyShowManagedEnvironment: boolean = false, onlyShowNonAnsibleEnvironment: boolean = false, isRunning?: boolean): Promise<Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> | IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
             canPickMany: canPickMany,
@@ -174,6 +176,24 @@ export class UserInputUtil {
                 environmentsFiltered = environments.filter((environment: FabricEnvironmentRegistryEntry) => !environment.url);
                 break;
             }
+        }
+
+        if (isRunning !== undefined) {
+            // If isRunning is true, we only want to show running local environments.
+            // If isRunning is false, we want to show non-running local environments.
+
+            for (let i: number = environmentsFiltered.length - 1; i >= 0; i--) {
+                const entry: FabricEnvironmentRegistryEntry = environmentsFiltered[i];
+                const _runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime(entry.name);
+                const _isRuntimeRunning: boolean = await _runtime.isRunning();
+                if (_isRuntimeRunning === isRunning) {
+                    continue;
+                } else {
+                    // Remove environment
+                    environmentsFiltered.splice(i, 1);
+                }
+            }
+
         }
 
         environmentsQuickPickItems = environmentsFiltered.map((environment: FabricEnvironmentRegistryEntry) => {

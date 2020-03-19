@@ -95,6 +95,7 @@ describe('AddEnvironmentCommand', () => {
             executeCommandStub.withArgs(ExtensionCommands.REFRESH_GATEWAYS).resolves();
             executeCommandStub.withArgs(ExtensionCommands.REFRESH_WALLETS).resolves();
             executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
+            executeCommandStub.withArgs('markdown.showPreview').resolves();
             sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
             deleteEnvironmentSpy = mySandBox.spy(FabricEnvironmentRegistry.instance(), 'delete');
 
@@ -966,10 +967,9 @@ describe('AddEnvironmentCommand', () => {
 
             const extPath: string = ExtensionUtil.getExtensionPath();
             const tutorialPath: string = path.join(extPath, 'tutorials', 'developer-tutorials', 'create-custom-networks.md');
+            const tutorialUri: vscode.Uri = vscode.Uri.file(tutorialPath);
 
-            const executeCallOne: sinon.SinonSpyCall = executeCommandStub.getCall(2);
-            executeCallOne.should.have.been.calledWith('markdown.showPreview', sinon.match.any);
-            executeCallOne.args[1].path.should.equal(tutorialPath);
+            executeCommandStub.should.have.been.calledWith('markdown.showPreview', tutorialUri);
 
             deleteEnvironmentSpy.should.have.not.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
