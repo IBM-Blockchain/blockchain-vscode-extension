@@ -658,64 +658,67 @@ export class ExtensionUtil {
 
             const envEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(true, true);
 
-            const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
+            // If the user has no local environments, we can just update the global state automatically.
+            if (envEntries.length > 0) {
+                const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
 
-            const runtimes: LocalEnvironment[] = [];
-            for (const entry of envEntries) {
+                const runtimes: LocalEnvironment[] = [];
+                for (const entry of envEntries) {
 
-                const localRuntime: LocalEnvironment = await runtimeManager.ensureRuntime(entry.name, undefined, entry.numberOfOrgs);
-                runtimes.push(localRuntime);
-            }
-
-            const generatorSemver: semver.SemVer = semver.coerce(generatorVersion); // Generator semver
-            const storedSemver: semver.SemVer = semver.coerce(extensionData.generatorVersion); // Stored generator semver
-
-            const generatorMajor: number = generatorSemver.major;
-            const storedMajor: number = storedSemver.major;
-            if (generatorMajor > storedMajor) {
-                // If major changes, then we should just force teardown without asking.
-                teardownRuntimes = true;
-            }
-
-            if (!teardownRuntimes) {
-                teardownRuntimes = await UserInputUtil.showConfirmationWarningMessage(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
-            } else {
-                outputAdapter.log(LogType.IMPORTANT, `A major version of the generator has been released. All local runtimes will be torn down.`);
-            }
-
-            if (teardownRuntimes) {
-
-                for (const runtime of runtimes) {
-
-                    const generated: boolean = await runtime.isGenerated();
-
-                    const runtimeName: string = runtime.getName();
-
-                    if (generated) {
-                        // We know the user has a generated Fabric using an older version, so we should give the user the option to teardown either now or later
-
-                        const isRunning: boolean = await runtime.isRunning();
-
-                        // Teardown and remove generated Fabric
-                        await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, runtimeName);
-
-                        // Was it running before tearing it down?
-                        if (isRunning) {
-
-                            // Find environment entry of runtime
-                            const envEntry: FabricEnvironmentRegistryEntry = envEntries.find((env: FabricEnvironmentRegistryEntry) => {
-                                return env.name === runtime.getName();
-                            });
-
-                            // Start the Fabric again
-                            await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC, envEntry);
-                        }
-
-                    }
+                    const localRuntime: LocalEnvironment = await runtimeManager.ensureRuntime(entry.name, undefined, entry.numberOfOrgs);
+                    runtimes.push(localRuntime);
                 }
-                // If they don't have a Fabric generated, we can update the version immediately
-            } else {
-                updateGeneratorVersion = false;
+
+                const generatorSemver: semver.SemVer = semver.coerce(generatorVersion); // Generator semver
+                const storedSemver: semver.SemVer = semver.coerce(extensionData.generatorVersion); // Stored generator semver
+
+                const generatorMajor: number = generatorSemver.major;
+                const storedMajor: number = storedSemver.major;
+                if (generatorMajor > storedMajor) {
+                    // If major changes, then we should just force teardown without asking.
+                    teardownRuntimes = true;
+                }
+
+                if (!teardownRuntimes) {
+                    teardownRuntimes = await UserInputUtil.showConfirmationWarningMessage(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
+                } else {
+                    outputAdapter.log(LogType.IMPORTANT, `A major version of the generator has been released. All local runtimes will be torn down.`);
+                }
+
+                if (teardownRuntimes) {
+
+                    for (const runtime of runtimes) {
+
+                        const generated: boolean = await runtime.isGenerated();
+
+                        const runtimeName: string = runtime.getName();
+
+                        if (generated) {
+                            // We know the user has a generated Fabric using an older version, so we should give the user the option to teardown either now or later
+
+                            const isRunning: boolean = await runtime.isRunning();
+
+                            // Teardown and remove generated Fabric
+                            await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, runtimeName);
+
+                            // Was it running before tearing it down?
+                            if (isRunning) {
+
+                                // Find environment entry of runtime
+                                const envEntry: FabricEnvironmentRegistryEntry = envEntries.find((env: FabricEnvironmentRegistryEntry) => {
+                                    return env.name === runtime.getName();
+                                });
+
+                                // Start the Fabric again
+                                await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC, envEntry);
+                            }
+
+                        }
+                    }
+                    // If they don't have a Fabric generated, we can update the version immediately
+                } else {
+                    updateGeneratorVersion = false;
+                }
             }
 
             // Update the generator version
