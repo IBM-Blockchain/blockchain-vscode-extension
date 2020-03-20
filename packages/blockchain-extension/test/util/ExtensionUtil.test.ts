@@ -591,6 +591,7 @@ describe('ExtensionUtil Tests', () => {
                 ExtensionCommands.EXPORT_WALLET,
                 ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY,
                 ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY,
+                ExtensionCommands.SUBSCRIBE_TO_EVENT,
                 ExtensionCommands.OPEN_HOME_PAGE,
                 ExtensionCommands.OPEN_PRE_REQ_PAGE,
                 ExtensionCommands.OPEN_RELEASE_NOTES
@@ -655,6 +656,7 @@ describe('ExtensionUtil Tests', () => {
                 `onCommand:${ExtensionCommands.EXPORT_WALLET}`,
                 `onCommand:${ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY}`,
                 `onCommand:${ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY}`,
+                `onCommand:${ExtensionCommands.SUBSCRIBE_TO_EVENT}`,
                 `onCommand:${ExtensionCommands.OPEN_HOME_PAGE}`,
                 `onCommand:${ExtensionCommands.OPEN_PRE_REQ_PAGE}`,
                 `onCommand:${ExtensionCommands.OPEN_RELEASE_NOTES}`,

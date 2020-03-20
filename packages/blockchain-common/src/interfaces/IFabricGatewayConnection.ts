@@ -14,6 +14,7 @@
 'use strict';
 
 import { IFabricWallet } from './IFabricWallet';
+import { OutputAdapter } from '../logging/OutputAdapter';
 
 export interface IFabricGatewayConnection {
 
@@ -38,5 +39,7 @@ export interface IFabricGatewayConnection {
     getMetadata(instantiatedChaincodeName: string, channel: string): Promise<any>;
 
     submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string, transientData: {[key: string]: Buffer}, evaluate?: boolean, peerTargetNames?: string[]): Promise<string | undefined>;
+
+    addContractListener(channelName: string, contractName: string, eventName: string, outputAdapter: OutputAdapter): Promise<void>;
 
 }

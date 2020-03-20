@@ -97,7 +97,8 @@ describe('FabricGatewayConnection', () => {
         fabricContractStub = {
             createTransaction: mySandBox.stub().returns(fabricTransactionStub),
             getEventHandlerOptions: mySandBox.stub().returns(eventHandlerOptions),
-            evaluateTransaction: mySandBox.stub()
+            evaluateTransaction: mySandBox.stub(),
+            addContractListener: mySandBox.stub()
         };
 
         getChannelPeerStub = mySandBox.stub().returns({} as fabricClient.ChannelPeer);
@@ -388,6 +389,40 @@ describe('FabricGatewayConnection', () => {
             fabricTransactionStub.setEndorsingPeers.should.not.have.been.called;
             fabricTransactionStub.setTransient.should.not.have.been.called;
             fabricTransactionStub.submit.should.not.have.been.called;
+        });
+    });
+
+    describe('addContractListener', () => {
+        const outputAdapter: ConsoleOutputAdapter = ConsoleOutputAdapter.instance();
+        const event: any = {
+            chaincode_id: 'mySmartContract',
+            tx_id: 'tx_001',
+            event_name: 'myEvent',
+            payload: Buffer.from('here is some stuff from an event')
+        };
+        const error: Error = new Error('nah');
+
+        it('should subscribe to a smart contract event', async () => {
+            await fabricClientConnection.addContractListener('myChannel', 'mySmartContract', 'myEvent', outputAdapter);
+            fabricContractStub.addContractListener.should.have.been.calledOnceWith('myEvent-listener', 'myEvent');
+        });
+
+        it('should log the details of an event if one is received', async () => {
+            await fabricClientConnection.addContractListener('myChannel', 'mySmartContract', 'myEvent', outputAdapter);
+            fabricContractStub.addContractListener.should.have.been.calledOnceWith('myEvent-listener', 'myEvent');
+            const callback: any = fabricContractStub.addContractListener.args[0][2];
+            callback(null, event);
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
+            const eventString: string = `chaincode_id: ${event.chaincode_id}, tx_id: ${event.tx_id}, event_name: "${event.event_name}", payload: ${event.payload.toString()}`;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Event emitted: ${eventString}`);
+        });
+
+        it('should log an error from a received event', async () => {
+            await fabricClientConnection.addContractListener('myChannel', 'mySmartContract', 'myEvent', outputAdapter);
+            fabricContractStub.addContractListener.should.have.been.calledOnceWith('myEvent-listener', 'myEvent');
+            const callback: any = fabricContractStub.addContractListener.args[0][2];
+            callback(error, event);
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Error from event: ${error.message}`, `Error from event: ${error.toString()}`);
         });
     });
 });

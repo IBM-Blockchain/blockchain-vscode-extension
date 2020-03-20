@@ -421,6 +421,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Start Fabric Runtime | Start the local Fabric instance |
 | Stop Fabric Runtime | Stop the local Fabric instance |
 | Submit Transaction | Submit a transaction to a smart contract |
+| Subscribe to Event | Subscribe to an event emitted from a smart contract |
 | Teardown Fabric Runtime | Teardown the local Fabric runtime (hard reset) |
 | Upgrade Smart Contract | Upgrade an instantiated smart contract |
 | View Homepage | View the extensions homepage |

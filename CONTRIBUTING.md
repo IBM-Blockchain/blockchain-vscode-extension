@@ -15,7 +15,7 @@ Detailed below are various instructions for getting set up with the Ibm Blockcha
 5. To launch the development version of the extension, open the debug panel (click on the bug icon in the left sidebar), make sure the value in the dropdown at the top is "Extension", and then click the play button.
 6. Follow the instructions provided on the Pre-requisites page that appears to finish getting set up
 
-_Note: If you have grpc errors when you run the extension do a `lerna clean`, then `lerna bootstrap` and `lerna run compile`
+_Note: If you have grpc errors when you run the extension do a `lerna clean`, then `lerna bootstrap` and `lerna run compile`_
 
 _Note: See [this gist](https://gist.github.com/Chaser324/ce0505fbed06b947d962) for help with setting up a forked repository_
 
