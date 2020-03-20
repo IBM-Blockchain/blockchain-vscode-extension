@@ -1471,7 +1471,7 @@ describe('ExtensionUtil Tests', () => {
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
             mockRuntime.isGenerated.should.not.have.been.calledOnce;
-            showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
+            showConfirmationWarningMessageStub.should.not.have.been.calledWith(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
             globalStateUpdateStub.should.have.been.calledWith({
                 generatorVersion: dependencies['generator-fabric']
             });
