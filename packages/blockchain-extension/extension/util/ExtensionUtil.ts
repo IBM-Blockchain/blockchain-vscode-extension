@@ -104,6 +104,7 @@ import { dissociateTransactionDataDirectory } from '../commands/dissociateTransa
 import { openReleaseNotes } from '../commands/openReleaseNotesCommand';
 import { viewPackageInformation } from '../commands/viewPackageInformationCommand';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
+import { TimerUtil } from './TimerUtil';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -555,6 +556,16 @@ export class ExtensionUtil {
                 connectedRuntime = undefined;
             }
         });
+
+        if (!process.env.REFRESH_PANELS || process.env.REFRESH_PANELS === 'true') {
+            // Refresh the panels every 60 seconds.
+
+            TimerUtil.setInterval([
+                { command: ExtensionCommands.REFRESH_ENVIRONMENTS, args: [] },
+                { command: ExtensionCommands.REFRESH_GATEWAYS, args: [] },
+                { command: ExtensionCommands.REFRESH_WALLETS, args: [] }
+            ], 60000);
+        }
 
         context = await this.registerPreReqAndReleaseNotesCommand(context);
 

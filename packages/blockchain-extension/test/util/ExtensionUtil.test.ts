@@ -47,6 +47,7 @@ import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { ManagedAnsibleEnvironmentManager } from '../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
 import { ManagedAnsibleEnvironment } from '../../extension/fabric/environments/ManagedAnsibleEnvironment';
+import { TimerUtil } from '../../extension/util/TimerUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -1007,6 +1008,31 @@ describe('ExtensionUtil Tests', () => {
             });
             homePageButton.tooltip.should.equal('View Homepage');
             homePageButton.command.should.equal(ExtensionCommands.OPEN_HOME_PAGE);
+        });
+
+        it('should refreh environments, gateways and wallets every 60 seconds', async () => {
+            const disposeExtensionSpy: sinon.SinonSpy = mySandBox.spy(ExtensionUtil, 'disposeExtension');
+
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+
+            process.env.REFRESH_PANELS = 'true';
+
+            const setIntervalStub: sinon.SinonStub = mySandBox.stub(TimerUtil, 'setInterval').returns(undefined);
+
+            await ExtensionUtil.registerCommands(ctx);
+
+            setIntervalStub.should.have.been.calledOnceWithExactly([
+                { command: ExtensionCommands.REFRESH_ENVIRONMENTS, args: [] },
+                { command: ExtensionCommands.REFRESH_GATEWAYS, args: [] },
+                { command: ExtensionCommands.REFRESH_WALLETS, args: [] }
+            ], 60000);
+
+            process.env.REFRESH_PANELS = 'false';
+
+            disposeExtensionSpy.should.have.been.calledOnceWith(ctx);
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            purgeOldRuntimesStub.should.have.been.calledOnce;
         });
     });
 

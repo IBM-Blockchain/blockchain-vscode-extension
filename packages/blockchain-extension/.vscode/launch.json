@@ -30,7 +30,11 @@
       "outFiles": [
         "${workspaceFolder}/build/test/**/*.js"
       ],
-      "preLaunchTask": "npm: watch"
+      "preLaunchTask": "npm: watch",
+      "env": {
+        "REFRESH_PANELS": "false",
+        "WITHOUTCOVERAGE": "false"
+      }
     },
     {
       "name": "Debug Unit Tests (no coverage)",
@@ -46,6 +50,7 @@
       ],
       "preLaunchTask": "npm: watch",
       "env": {
+        "REFRESH_PANELS": "false",
         "WITHOUTCOVERAGE": "true"
       }
     },

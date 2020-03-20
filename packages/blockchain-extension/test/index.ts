@@ -66,7 +66,9 @@ export async function run(testsRoot: string, cb: (error: any, failures?: number)
     }
 
     try {
-        if (!process.env.WITHOUTCOVERAGE) {
+        // Where we pass in 'env' to each launch task, we need to make sure we explicitly state each variable and their value.
+        // Before adding the 'OR' statement, `process.env.WITHOUTCOVERAGE` was using an older value when running the unit tests.
+        if (!process.env.WITHOUTCOVERAGE || process.env.WITHOUTCOVERAGE === 'false') {
             console.log('setting up coverage');
             const coverOptions: ITestRunnerOptions = _readCoverOptions();
             if (coverOptions && coverOptions.enabled) {
