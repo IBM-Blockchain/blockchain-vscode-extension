@@ -290,6 +290,17 @@ Add the following dependencies:
 
 All functional tests will be created in `<yourProject>/src/test/java/org/example`.
 
+#### Persisting generated tests after upgrading from v1.0.18 or earlier
+Any functional tests generated using version 1.0.18 of the extension or earlier will break after upgrading to a newer version. In v1.0.19 changes were made to the structure of environments stored on the file system, so some of the paths used by the older functional tests will no longer be correct.
+
+Should you wish to persist your previously generated tests:
+- Export both the wallet and the connection profile of the Hyperledger Fabric network your smart contract is instantiated on
+- Update `ts-smart-contract-util.ts` to use the filepaths of what you just exported
+
+Note that these paths broke because they are hardcoded to use our internal directories, so that the generated tests will work out of the box. It is not recommended to keep those paths, as they will break in the event of changes such as this one.
+
+
+
 ### Wallet Management
 The extension creates a `1 Org Local Fabric - Org1 Wallet` file system wallet when the `1 Org Local Fabric` runtime instance is started and is automatically associated with the `1 Org Local Fabric - Org1` gateway. When `1 Org Local Fabric` is started, an admin identity is added to the `1 Org Local Fabric - Org1 Wallet` and cannot be deleted unless the `1 Org Local Fabric` runtime is torn down.
 
@@ -395,20 +406,20 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Connect Via Gateway | Connect to a Hyperledger Fabric instance using a gateway |
 | Create New Project | Create a new smart contract project |
 | Create Identity (register and enroll) | Create, register and enroll a new identity from the local Fabric runtime certificate authority |
-| Debug | Debug a Smart Contract |
 | Delete Environment | Delete a Hyperledger Fabric instance environment |
 | Delete Identity | Delete an identity from a wallet |
 | Delete Gateway | Delete a Hyperledger Fabric instance gateway |
 | Delete Package | Delete a smart contract package |
-| Disassociate A Wallet | Remove the association between a wallet and a gateway |
-| Dissociate Directory for Transaction Data | Dissociate a directory of transasction data from a smart contract
+| Dissociate A Wallet | Remove the association between a wallet and a gateway |
+| Dissociate Directory for Transaction Data | Remove the association between a directory of transaction data and a smart contract |
 | Disconnect From Environment | Disconnect from the environment you're currently connected to |
 | Disconnect From Gateway | Disconnect from the blockchain gateway you're currently connected to |
 | Evaluate Transaction | Evaluate a smart contract transaction |
 | Export Connection Profile | Export connection profile for a blockchain gateway |
 | Export Package | Export a smart contract package to use outside VS Code |
 | Export Wallet | Export a wallet to use outside VS Code |
-| Generate Smart Contract Tests | Create functional level test files for single or multiple contracts |
+| Generate Tests for All Smart Contracts| Create functional level test files for all contracts |
+| Generate Tests for Smart Contract(s) | Create functional level test files for single or multiple contracts |
 | Import a Package | Import a smart contract package |
 | Import nodes into environment | Import more nodes into an environment |
 | Install Smart Contract | Install a smart contract package onto a local Fabric runtime peer |
@@ -422,7 +433,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Stop Fabric Runtime | Stop the local Fabric instance |
 | Submit Transaction | Submit a transaction to a smart contract |
 | Subscribe to Event | Subscribe to an event emitted from a smart contract |
-| Teardown Fabric Runtime | Teardown the local Fabric runtime (hard reset) |
+| Teardown Fabric Environment | Teardown the local Fabric runtime (hard reset) |
 | Upgrade Smart Contract | Upgrade an instantiated smart contract |
 | View Homepage | View the extensions homepage |
 | View Prerequisites | View the required and optional dependencies on the prerequisites page |
