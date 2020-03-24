@@ -43,6 +43,10 @@ describe('DependencyManager Tests', () => {
         getExtensionLocalFabricSetting = mySandBox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting').returns(true);
     });
 
+    afterEach(async () => {
+        delete process.env.CHE_WORKSPACE_ID;
+    });
+
     describe('hasNativeDependenciesInstalled', () => {
 
         afterEach(() => {
@@ -464,6 +468,44 @@ describe('DependencyManager Tests', () => {
             sendCommandStub.should.not.have.been.called;
 
         });
+
+        const platforms: {name: string, platform: string, arch: string}[] = [
+            {name: 'Windows', platform: 'win32', arch: 'x64'},
+            {name: 'macOS', platform: 'darwin', arch: 'x64'},
+            {name: 'Linux', platform: 'linux', arch: 'x64'}
+        ];
+
+        function testEclipseChe(name: string, platform: string, arch: string): void {
+            it(`should install the Node.js version of the binaries when running on Eclipse Che (${name})`, async () => {
+                extensionKindStub.onThirdCall().returns({ extensionKind: 2 });
+                mySandBox.stub(process, 'platform').value(platform);
+                mySandBox.stub(process, 'arch').value(arch);
+                process.env.CHE_WORKSPACE_ID = 'wowsuchcheworkspaceid';
+
+                const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
+                const dependencyManager: DependencyManager = DependencyManager.instance();
+
+                await dependencyManager.installNativeDependencies();
+
+                dependencyManager['dependencies'].length.should.equal(1);
+                dependencyManager['dependencies'][0].should.equal('grpc');
+
+                if (platform !== 'win32') {
+                    sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=10.16.0', '--runtime=node', '--update-binary', '--fallback-to-build', `--target_arch=x64`], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter));
+                } else {
+                    sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=10.16.0', '--runtime=node', '--update-binary', '--fallback-to-build', `--target_arch=${arch}`], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter), sinon.match.truthy);
+                }
+
+                existsStub.should.not.have.been.called;
+
+                writeFileStub.should.have.been.called;
+                utimesFileStub.should.have.been.called;
+            });
+        }
+
+        for (const {name, platform, arch} of platforms) {
+            testEclipseChe(name, platform, arch);
+        }
     });
 
     describe('hasPreReqsInstalled', () => {
