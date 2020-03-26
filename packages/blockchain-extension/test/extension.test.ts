@@ -32,8 +32,6 @@ import { UserInputUtil } from '../extension/commands/UserInputUtil';
 import { dependencies } from '../package.json';
 import { GlobalState, DEFAULT_EXTENSION_DATA, ExtensionData } from '../extension/util/GlobalState';
 import { BlockchainGatewayExplorerProvider } from '../extension/explorer/gatewayExplorer';
-import { FabricGatewayHelper } from '../extension/fabric/FabricGatewayHelper';
-import { FabricWalletHelper } from '../extension/fabric/FabricWalletHelper';
 import { BlockchainEnvironmentExplorerProvider } from '../extension/explorer/environmentExplorer';
 import { BlockchainWalletExplorerProvider } from '../extension/explorer/walletExplorer';
 
@@ -44,9 +42,6 @@ chai.use(chaiAsPromised);
 describe('Extension Tests', () => {
 
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
-    let migrateSettingConfigurations: sinon.SinonStub;
-    let tidyWalletSettingsStub: sinon.SinonStub;
-    let migrateGatewaysStub: sinon.SinonStub;
     let sendTelemetryStub: sinon.SinonStub;
     let getPackageJSONStub: sinon.SinonStub;
     let reporterDisposeStub: sinon.SinonStub;
@@ -82,9 +77,6 @@ describe('Extension Tests', () => {
 
         reporterDisposeStub = mySandBox.stub(Reporter.instance(), 'dispose');
         getPackageJSONStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-        migrateSettingConfigurations = mySandBox.stub(ExtensionUtil, 'migrateSettingConfigurations').resolves();
-        tidyWalletSettingsStub = mySandBox.stub(FabricWalletHelper, 'tidyWalletSettings').resolves();
-        migrateGatewaysStub = mySandBox.stub(FabricGatewayHelper, 'migrateGateways').resolves();
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         setupCommandsStub = mySandBox.stub(ExtensionUtil, 'setupCommands');
         completeActivationStub = mySandBox.stub(ExtensionUtil, 'completeActivation');
@@ -168,11 +160,6 @@ describe('Extension Tests', () => {
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
-
-            migrateSettingConfigurations.should.have.been.calledOnce;
-            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Tidying wallet, gateway, environment and repository settings');
-            tidyWalletSettingsStub.should.have.been.calledOnce;
-            migrateGatewaysStub.should.have.been.calledOnce;
 
             logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
@@ -658,54 +645,6 @@ describe('Extension Tests', () => {
             hasPreReqsInstalledStub.should.have.been.called;
             failedActivationWindowStub.should.have.been.calledOnceWithExactly('some error');
             logSpy.should.have.been.calledWith(LogType.ERROR, undefined, `Failed to activate extension: ${error.toString()}`, error.stack);
-        });
-
-        it('should migrate setting configurations, if not done already', async () => {
-            setupCommandsStub.resolves();
-            completeActivationStub.resolves();
-
-            const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            setExtensionContextStub.returns(undefined);
-
-            hasPreReqsInstalledStub.resolves(true);
-
-            const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
-
-            registerPreReqAndReleaseNotesCommandStub.resolves(context);
-
-            createTempCommandsStub.returns(undefined);
-
-            const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
-            extensionData.preReqPageShown = true;
-            extensionData.dockerForWindows = true;
-            extensionData.systemRequirements = true;
-            extensionData.version = currentExtensionVersion;
-            extensionData.migrationCheck = 0;
-            extensionData.generatorVersion = dependencies['generator-fabric'];
-            extensionData.createOneOrgLocalFabric = true;
-            extensionData.deletedOneOrgLocalFabric = false;
-
-            await GlobalState.update(extensionData);
-
-            await myExtension.activate(context);
-
-            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
-            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
-
-            setExtensionContextStub.should.have.been.calledTwice;
-
-            createTempCommandsStub.should.have.been.calledOnceWith(true);
-            setupCommandsStub.should.have.been.calledOnce;
-
-            hasPreReqsInstalledStub.should.have.been.calledOnce;
-
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
-
-            executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
-
-            completeActivationStub.should.have.been.called;
-
-            migrateSettingConfigurations.should.have.been.calledOnce;
         });
 
         it('should add home page button to the status bar', async () => {
