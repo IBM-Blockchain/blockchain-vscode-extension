@@ -18,7 +18,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as semver from 'semver';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../configurations';
 import { addGateway } from '../commands/addGatewayCommand';
 import { addWallet } from '../commands/addWalletCommand';
 import { addWalletIdentity } from '../commands/addWalletIdentityCommand';

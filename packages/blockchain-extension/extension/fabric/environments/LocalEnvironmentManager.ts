@@ -15,7 +15,7 @@
 import * as vscode from 'vscode';
 import { FabricRuntimePorts } from '../FabricRuntimePorts';
 import { FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
-import { SettingConfigurations } from '../../../configurations';
+import { SettingConfigurations } from '../../configurations';
 import { LocalEnvironment } from './LocalEnvironment';
 
 export class LocalEnvironmentManager {

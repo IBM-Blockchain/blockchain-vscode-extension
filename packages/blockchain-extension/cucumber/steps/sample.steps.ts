@@ -21,6 +21,7 @@ import * as path from 'path';
 import { SampleView } from '../../extension/webview/SampleView';
 import { CommandUtil } from '../../extension/util/CommandUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import {FileConfigurations} from 'ibm-blockchain-platform-common';
 
 // tslint:disable:no-unused-expression
 
@@ -33,7 +34,7 @@ module.exports = function(): any {
      */
 
     this.Given(/I have cloned the repository '(.*?)' and I have opened the '(.*?)' '(.*?)' (contract|application) called '(.*?)' with namespace '(.*?)'/, this.timeout, async (repositoryName: string, language: string, sampleName: string, _contractApplication: string, contractName: string, namespace: string) => {
-        const tmpRepo: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'repositories');
+        const tmpRepo: string = path.join(this.cucumberDir, 'tmp', FileConfigurations.REPOSITORIES);
         const pathToCheck: string = path.join(tmpRepo, repositoryName);
         const exists: boolean = await fs.pathExists(pathToCheck);
         let webview: SampleView;

@@ -13,11 +13,10 @@
 */
 'use strict';
 
-import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as yaml from 'js-yaml';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../../extension/configurations';
 import { FabricNode, FileConfigurations, FileSystemUtil, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 
 export class FabricGatewayHelper {
@@ -27,7 +26,7 @@ export class FabricGatewayHelper {
         if (gatewayRegistryEntry.connectionProfilePath) {
             return gatewayRegistryEntry.connectionProfilePath;
         } else {
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const extDir: string = SettingConfigurations.getExtensionDir();
             const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', gatewayRegistryEntry.name);
 
@@ -104,7 +103,7 @@ export class FabricGatewayHelper {
             }
         }
 
-        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const extDir: string = SettingConfigurations.getExtensionDir();
         const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
         const profileDirPath: string = path.join(homeExtDir, FileConfigurations.FABRIC_GATEWAYS, gatewayName);
         await fs.ensureDir(profileDirPath);
@@ -119,7 +118,7 @@ export class FabricGatewayHelper {
     public static async copyConnectionProfile(gatewayName: string, connectionProfilePath: string): Promise<string> {
         try {
 
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const extDir: string = SettingConfigurations.getExtensionDir();
             const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, FileConfigurations.FABRIC_GATEWAYS, gatewayName);
 

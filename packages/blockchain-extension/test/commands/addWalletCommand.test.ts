@@ -149,7 +149,7 @@ describe('AddWalletCommand', () => {
             wallets.length.should.equal(1);
             wallets[0].should.deep.equal({
                 name: 'someWalletName',
-                walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, 'someWalletName')
+                walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', FileConfigurations.FABRIC_WALLETS, 'someWalletName')
             });
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new wallet');
         });
@@ -171,7 +171,7 @@ describe('AddWalletCommand', () => {
             wallets.length.should.equal(1);
             wallets[0].should.deep.equal({
                 name: 'someWalletName',
-                walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, 'someWalletName')
+                walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', FileConfigurations.FABRIC_WALLETS, 'someWalletName')
             });
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new wallet');
         });
