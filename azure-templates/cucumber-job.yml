@@ -42,6 +42,10 @@ jobs:
           TWO_ORG_FABRIC: 'true'
           VERSION: ${{ parameters.version }}
           type: 'twoOrg'
+        cucumber_fabric_admin:
+          imageName: 'ubuntu-16.04'
+          FABRIC_ADMIN: 'true'
+          type: 'fabricAdmin'
 
     pool:
       vmImage: $(imageName)

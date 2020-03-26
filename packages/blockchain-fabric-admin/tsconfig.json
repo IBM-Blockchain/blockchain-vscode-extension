@@ -1,0 +1,19 @@
+{
+	"extends": "../../tsconfig",
+	"compilerOptions": {
+		"rootDir": ".",
+		"outDir": "build",
+		"types": ["node", "mocha", "chai", "sinon-chai"]
+	},
+	"exclude": [
+		"node_modules",
+		"build",
+		"test/data",
+		"src/old-code"
+	],
+	"include": [
+		"src",
+		"test",
+		"cucumber/features/step_definitions"
+	]
+}
