@@ -21,7 +21,6 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../../test/TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { SettingConfigurations } from '../../configurations';
@@ -35,6 +34,7 @@ import { SampleHelper } from '../helpers/sampleHelper';
 import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 import { ModuleUtilHelper } from '../helpers/moduleUtilHelper';
 import { TimerUtil } from '../../extension/util/TimerUtil';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 // tslint:disable:no-unused-expression
 

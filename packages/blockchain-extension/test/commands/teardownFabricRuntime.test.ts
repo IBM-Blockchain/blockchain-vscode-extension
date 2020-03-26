@@ -290,7 +290,7 @@ describe('teardownFabricRuntime', () => {
 
     it('should ask what environment to teardown if connected to non-managed environment', async () => {
         getConnectionStub.returns({});
-        getEnvironmentRegistryEntryStub.returns({name: 'otherEnvironment'} as FabricEnvironmentRegistryEntry);
+        getEnvironmentRegistryEntryStub.returns({ name: 'otherEnvironment' } as FabricEnvironmentRegistryEntry);
         showFabricEnvironmentQuickPickBoxStub.resolves({ label: FabricRuntimeUtil.LOCAL_FABRIC, data: localRegistryEntry } as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>);
 
         teardownStub = sandbox.stub(localEnvironment, 'teardown').resolves();
@@ -426,33 +426,6 @@ describe('teardownFabricRuntime', () => {
         showFabricEnvironmentQuickPickBoxStub.should.not.have.been.calledOnceWithExactly('Select an environment to teardown', false, true, true, true);
 
         teardownStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-
-        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
-        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
-        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
-        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
-
-        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'teardownFabricRuntime');
-    });
-
-    it('should teardown a runtime given the environment name, even if the environment cannot be retrieved from environment factory', async () => {
-
-        await FabricEnvironmentRegistry.instance().add({name: FabricRuntimeUtil.LOCAL_SPACE_FABRIC, managedRuntime: true});
-        const deleteStub: sinon.SinonStub = sandbox.stub(LocalEnvironment.prototype, 'delete').resolves();
-
-        getGatewayRegistryEntryStub.resolves();
-        getEnvironmentRegistryEntryStub.returns(undefined);
-
-        getEnvironmentStub.returns(undefined);
-
-        await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_SPACE_FABRIC);
-
-        showConfirmationWarningMessageStub.should.not.have.been.called;
-
-        showFabricEnvironmentQuickPickBoxStub.should.not.have.been.calledOnceWithExactly('Select an environment to teardown', false, true, true, true);
-
-        deleteStub.should.have.been.called.calledOnce;
 
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);

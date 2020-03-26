@@ -50,7 +50,7 @@ export async function teardownFabricRuntime(runtimeTreeItem: RuntimeTreeItem, fo
         registryEntry = runtimeTreeItem.environmentRegistryEntry;
     }
 
-    let runtime: ManagedAnsibleEnvironment | LocalEnvironment = EnvironmentFactory.getEnvironment(registryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+    const runtime: ManagedAnsibleEnvironment | LocalEnvironment = EnvironmentFactory.getEnvironment(registryEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
 
     if (!force) {
         const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`All world state and ledger data for the Fabric runtime ${runtime.getName()} will be destroyed. Do you want to continue?`);
@@ -59,17 +59,7 @@ export async function teardownFabricRuntime(runtimeTreeItem: RuntimeTreeItem, fo
         }
     }
 
-    let runtimeName: string;
-    let oldRuntime: boolean = false;
-
-    if (runtime) {
-        runtimeName = runtime.getName();
-    } else {
-        // This is the case when we try to teardown an old 'Local Fabric' runtime, which won't be returned from getEnvironment.
-        runtimeName = registryEntry.name;
-        runtime = new LocalEnvironment(runtimeName, undefined, undefined);
-        oldRuntime = true;
-    }
+    const runtimeName: string = runtime.getName();
 
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
@@ -89,11 +79,7 @@ export async function teardownFabricRuntime(runtimeTreeItem: RuntimeTreeItem, fo
         }
 
         try {
-            if (oldRuntime) {
-                await (runtime as LocalEnvironment).delete();
-            } else {
-                await runtime.teardown(outputAdapter);
-            }
+            await runtime.teardown(outputAdapter);
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Failed to teardown ${runtimeName}: ${error.message}`, `Failed to teardown ${runtimeName}: ${error.toString()}`);
         }

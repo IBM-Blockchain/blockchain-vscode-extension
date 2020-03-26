@@ -13,14 +13,12 @@
 */
 
 import * as vscode from 'vscode';
-import * as semver from 'semver';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, IFabricGatewayConnection, FabricGatewayRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { URL } from 'url';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
-import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
@@ -89,7 +87,6 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
                 environmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricDebugConfigurationProvider.environmentName);
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
-
             }
 
             connection = FabricEnvironmentManager.instance().getConnection();
@@ -114,14 +111,6 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
             if (!localFabricEnabled) {
                 outputAdapter.log(LogType.ERROR, `Setting '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' must be set to 'true' to enable debugging.`);
-                return;
-            }
-
-            const extensionData: ExtensionData = GlobalState.get();
-
-            // Stop debug if not got late enough version
-            if (!extensionData.generatorVersion || semver.lt(extensionData.generatorVersion, '0.0.36')) {
-                outputAdapter.log(LogType.ERROR, `To debug a smart contract, you must update the local runtimes. Teardown all local runtimes, start the runtime to debug, and try again.`);
                 return;
             }
 
