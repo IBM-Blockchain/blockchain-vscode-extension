@@ -121,6 +121,25 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                         nodes = [nodes];
                     }
 
+                    for (const node of nodes) {
+                        if (node.display_name) {
+                            node.name = node.display_name;
+                            delete node.display_name;
+                        }
+
+                        if (node.type === 'fabric-ca') {
+                            if (node.tls_cert) {
+                                node.pem = node.tls_cert;
+                                delete node.tls_cert;
+                            }
+                        } else {
+                            if (node.tls_ca_root_cert) {
+                                node.pem = node.tls_ca_root_cert;
+                                delete node.tls_ca_root_cert;
+                            }
+                        }
+                    }
+
                     nodesToUpdate.push(...nodes);
                 } catch (error) {
                     addedAllNodes = false;
