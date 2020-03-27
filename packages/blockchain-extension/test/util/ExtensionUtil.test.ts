@@ -951,7 +951,7 @@ describe('ExtensionUtil Tests', () => {
         });
 
         it(`should delete local registry entries if not enabled`, async () => {
-            await FabricGatewayRegistry.instance().add({ name: 'otherGateway', managedGateway: false, associatedWallet: undefined });
+            await FabricGatewayRegistry.instance().add({ name: 'otherGateway', managedGateway: false, associatedWallet: undefined, connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json') });
 
             await TestUtil.setupLocalFabric();
 
@@ -1882,7 +1882,7 @@ describe('ExtensionUtil Tests', () => {
             });
 
             it(`should set context if runtime is running and user does teardown`, async () => {
-                await FabricGatewayRegistry.instance().add({ name: 'newGateway', managedGateway: false, associatedWallet: undefined });
+                await FabricGatewayRegistry.instance().add({ name: 'newGateway', managedGateway: false, associatedWallet: undefined, connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json')});
                 executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC).resolves();
                 showConfirmationWarningMessageStub.resolves(true);
 

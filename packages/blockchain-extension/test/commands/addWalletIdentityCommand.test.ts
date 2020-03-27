@@ -73,17 +73,20 @@ describe('AddWalletIdentityCommand', () => {
 
             const connectionOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGatewayA',
-                associatedWallet: ''
+                associatedWallet: '',
+                connectionProfilePath: path.join('myPath', 'connection.json')
             });
 
             const connectionTwo: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGatewayB',
-                associatedWallet: ''
+                associatedWallet: '',
+                connectionProfilePath: path.join('myPath', 'connection.json')
             });
 
             const connectionThree: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGatewayC',
-                associatedWallet: ''
+                associatedWallet: '',
+                connectionProfilePath: path.join('myPath', 'connection.json')
             });
 
             await FabricGatewayRegistry.instance().clear();
