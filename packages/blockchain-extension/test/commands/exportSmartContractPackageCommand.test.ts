@@ -41,7 +41,7 @@ describe('exportSmartContractPackageCommand', () => {
     const sandbox: sinon.SinonSandbox = sinon.createSandbox();
 
     const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '../../test/data/packageDir');
-    const targetPath: string = path.join('/', 'path', 'to', 'the', 'vscode-pkg-1@0.0.1.cds');
+    let targetPath: string;
 
     before(async () => {
         await TestUtil.setupTests(sandbox);
@@ -54,11 +54,12 @@ describe('exportSmartContractPackageCommand', () => {
     let sendTelemetryEventStub: sinon.SinonStub;
 
     beforeEach(async () => {
-        showSaveDialogStub = sandbox.stub(vscode.window, 'showSaveDialog').resolves(vscode.Uri.file(targetPath));
+        targetPath = path.join('/', 'path', 'to', 'the', 'fabcar-java.tar.gz');
+        showSaveDialogStub = sandbox.stub(vscode.window, 'showSaveDialog');
+        showSaveDialogStub.resolves(vscode.Uri.file(targetPath));
         copyStub = sandbox.stub(fs, 'copy').resolves();
         logSpy = sandbox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
         sendTelemetryEventStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
-
     });
 
     afterEach(async () => {
@@ -71,28 +72,45 @@ describe('exportSmartContractPackageCommand', () => {
 
     it('should export a package to the file system using the command', async () => {
         const _packages: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
-        const _package: PackageRegistryEntry = _packages[0];
+        const _package: PackageRegistryEntry = _packages[1];
         sandbox.stub(vscode.window, 'showQuickPick').resolves({
-            label: 'vscode-pkg-1@0.0.1',
+            label: 'fabcar-java',
             data: _package
         });
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_SMART_CONTRACT);
         showSaveDialogStub.should.have.been.calledOnce;
         copyStub.should.have.been.calledOnceWithExactly(_package.path, targetPath, { overwrite: true });
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'exportSmartContractPackage');
-        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Exported smart contract package vscode-pkg-1@0.0.1 to ${targetPath}.`);
+        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Exported smart contract package fabcar-java to ${targetPath}.`);
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportSmartContractPackageCommand');
+    });
+
+    it('should export a package with a version to the file system using the command', async () => {
+        targetPath = path.join('/', 'path', 'to', 'the', 'fabcar-javascript@0.0.1.tar.gz');
+        showSaveDialogStub.resolves(vscode.Uri.file(targetPath));
+        const _packages: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
+        const _package: PackageRegistryEntry = _packages[2];
+        sandbox.stub(vscode.window, 'showQuickPick').resolves({
+            label: 'fabcar-javascript',
+            data: _package
+        });
+        await vscode.commands.executeCommand(ExtensionCommands.EXPORT_SMART_CONTRACT);
+        showSaveDialogStub.should.have.been.calledOnce;
+        copyStub.should.have.been.calledOnceWithExactly(_package.path, targetPath, { overwrite: true });
+        logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'exportSmartContractPackage');
+        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Exported smart contract package fabcar-javascript@0.0.1 to ${targetPath}.`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportSmartContractPackageCommand');
     });
 
     it('should export a package to the file system using the tree menu item', async () => {
         const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = ExtensionUtil.getBlockchainPackageExplorerProvider();
         const _packages: BlockchainTreeItem[] = await blockchainPackageExplorerProvider.getChildren();
-        const _package: PackageTreeItem = _packages[0] as PackageTreeItem;
+        const _package: PackageTreeItem = _packages[1] as PackageTreeItem;
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_SMART_CONTRACT, _package);
         showSaveDialogStub.should.have.been.calledOnce;
         copyStub.should.have.been.calledOnceWithExactly(_package.packageEntry.path, targetPath, { overwrite: true });
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'exportSmartContractPackage');
-        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Exported smart contract package vscode-pkg-1@0.0.1 to ${targetPath}.`);
+        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Exported smart contract package fabcar-java to ${targetPath}.`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportSmartContractPackageCommand');
     });
 
@@ -107,9 +125,9 @@ describe('exportSmartContractPackageCommand', () => {
 
     it('should handle the user cancelling the save dialog', async () => {
         const _packages: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
-        const _package: PackageRegistryEntry = _packages[0];
+        const _package: PackageRegistryEntry = _packages[1];
         sandbox.stub(vscode.window, 'showQuickPick').resolves({
-            label: 'vscode-pkg-1@0.0.1',
+            label: 'fabcar-java',
             data: _package
         });
         showSaveDialogStub.resolves();
@@ -121,9 +139,9 @@ describe('exportSmartContractPackageCommand', () => {
 
     it('should handle an error writing the file to the file system', async () => {
         const _packages: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
-        const _package: PackageRegistryEntry = _packages[0];
+        const _package: PackageRegistryEntry = _packages[1];
         sandbox.stub(vscode.window, 'showQuickPick').resolves({
-            label: 'vscode-pkg-1@0.0.1',
+            label: 'fabcar-java',
             data: _package
         });
         const error: Error = new Error('such error');

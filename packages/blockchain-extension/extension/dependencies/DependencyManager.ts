@@ -549,7 +549,7 @@ export class DependencyManager {
                     await fs.rename(newPath, origPath);
 
                     // this is probably only needed in development
-                    const otherGRPC: string[] = ['ibm-blockchain-platform-gateway-v1', 'ibm-blockchain-platform-environment-v1', 'ibm-blockchain-platform-wallet'];
+                    const otherGRPC: string[] = ['ibm-blockchain-platform-gateway-v1', 'ibm-blockchain-platform-environment-v1', 'ibm-blockchain-platform-wallet', 'ibm-blockchain-platform-fabric-admin'];
 
                     for (const other of otherGRPC) {
                         basePath = path.join(extensionPath, 'node_modules', `${other}`, 'node_modules', 'grpc', 'src', 'node', 'extension_binary');

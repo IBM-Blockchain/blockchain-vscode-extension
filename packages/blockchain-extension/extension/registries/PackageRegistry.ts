@@ -15,8 +15,7 @@
 import { PackageRegistryEntry } from './PackageRegistryEntry';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType, FileSystemUtil, FileConfigurations } from 'ibm-blockchain-platform-common';
+import { FileSystemUtil, FileConfigurations } from 'ibm-blockchain-platform-common';
 import { SettingConfigurations } from '../configurations';
 
 export class PackageRegistry {
@@ -30,7 +29,7 @@ export class PackageRegistry {
     private constructor() {
     }
 
-    public async get(name: string, version: string): Promise<PackageRegistryEntry> {
+    public async get(name: string, version?: string): Promise<PackageRegistryEntry> {
         const packages: PackageRegistryEntry[] = await this.getAll();
         const _package: PackageRegistryEntry = packages.find((pkg: PackageRegistryEntry) => {
             return pkg.name === name && pkg.version === version;
@@ -77,37 +76,28 @@ export class PackageRegistry {
             // Skip it if it's anything other than a file.
             // This means we can ignore any "old style" packages.
             const stat: fs.Stats = await fs.lstat(pkgPath);
-            if (!stat.isFile()) {
-                continue;
-            }
 
             // get size
             const sizeKB: number = Math.round(stat.size / 1000);
 
-            // Catch all errors (can't read file, file is not a valid package, etc) and log
-            // them instead of having them break the listing of valid packages.
-            try {
+            const packageRegex: RegExp = new RegExp(/(.+?)(@(.*?)){0,1}(\.tar\.gz|\.tgz){1}/gm);
 
-                // Load the package file.
-                const pkgBuffer: Buffer = await fs.readFile(pkgPath);
+            const result: RegExpMatchArray = packageRegex.exec(pkgFileName);
 
-                // Parse the package. Need to dynamically load the package class
-                // from the Fabric SDK to avoid early native module loading.
-                const { PackageSmartContract } = await import('ibm-blockchain-platform-environment-v1');
-                const pkgInfo: {name: string, version: string} = await PackageSmartContract.getPackageInfo(pkgBuffer);
-
-                // Create the package registry entry.
-                pkgRegistryEntries.push(new PackageRegistryEntry({
-                    name: pkgInfo.name,
-                    version: pkgInfo.version,
-                    path: pkgPath,
-                    sizeKB: sizeKB
-                }));
-
-            } catch (error) {
-                VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, null, `Failed to parse package ${pkgFileName}: ${error.message}`);
+            if (!result) {
+                continue;
             }
 
+            const name: string = result[1];
+            const version: string = result[3];
+
+            // Create the package registry entry.
+            pkgRegistryEntries.push(new PackageRegistryEntry({
+                name: name,
+                version: version,
+                path: pkgPath,
+                sizeKB: sizeKB
+            }));
         }
 
         // Return the list of package registry entries.

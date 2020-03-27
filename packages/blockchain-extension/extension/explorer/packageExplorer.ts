@@ -49,7 +49,11 @@ export class BlockchainPackageExplorerProvider implements BlockchainExplorerProv
         } else {
             for (const packageRegistryEntry of packageRegistryEntries) {
 
-                const nameAndVersion: string = packageRegistryEntry.name + '@' + packageRegistryEntry.version;
+                let nameAndVersion: string = packageRegistryEntry.name;
+
+                if (packageRegistryEntry.version) {
+                    nameAndVersion = nameAndVersion + '@' + packageRegistryEntry.version;
+                }
 
                 tree.push(new PackageTreeItem(this, nameAndVersion, packageRegistryEntry));
             }
