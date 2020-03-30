@@ -192,6 +192,46 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
         });
 
+        it('should test nodes with display_name, tls_cert or tls_ca_root_cert properties can be added', async () => {
+            const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
+            browseStub.onFirstCall().resolves([uri]);
+
+            readJsonStub.resolves([
+                {
+                    short_name: 'peer0.org1.example.com',
+                    display_name: 'peer0.org1.example.com',
+                    api_url: 'grpc://localhost:17051',
+                    chaincode_url: 'grpc://localhost:17052',
+                    type: 'fabric-peer',
+                    wallet: 'Org1',
+                    identity: 'admin',
+                    msp_id: 'Org1MSP',
+                    container_name: 'fabricvscodelocalfabric_peer0.org1.example.com',
+                    tls_ca_root_cert: 'someCertPeer'
+                }, {
+                    short_name: 'ca.org1.example.com',
+                    display_name: 'ca.org1.example.com',
+                    api_url: 'grpc://someHost:somePort2',
+                    type: 'fabric-ca',
+                    wallet: 'fabric_wallet',
+                    identity: 'admin',
+                    location: 'some_saas',
+                    ca_name: 'ca.org1.example.com',
+                    tls_cert: 'someCertPeer'
+                }
+            ]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
+
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.been.calledTwice;
+            getNodesStub.should.have.been.calledTwice;
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            stopEnvironmentRefreshStub.should.not.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
+        });
+
         it('should update environment periodically and not show the log message saying filter nodes has been run', async () => {
             await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, false, false);
             logSpy.should.not.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
