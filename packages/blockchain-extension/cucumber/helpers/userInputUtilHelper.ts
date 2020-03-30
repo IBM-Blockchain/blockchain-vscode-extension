@@ -17,10 +17,13 @@ import * as vscode from 'vscode';
 import * as sinon from 'sinon';
 import {UserInputUtil} from '../../extension/commands/UserInputUtil';
 import {VSCodeBlockchainOutputAdapter} from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import * as path from 'path';
 
 export class UserInputUtilHelper {
 
     mySandBox: sinon.SinonSandbox;
+
+    cucumberDir: string = path.join(__dirname, '..', '..', '..', 'cucumber');
 
     logSpy: sinon.SinonSpy;
     showLanguagesQuickPickStub: sinon.SinonStub;

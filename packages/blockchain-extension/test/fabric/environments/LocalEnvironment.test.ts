@@ -20,7 +20,7 @@ import * as sinon from 'sinon';
 import { TestUtil } from '../../TestUtil';
 import * as path from 'path';
 import { YeomanUtil } from '../../../extension/util/YeomanUtil';
-import { SettingConfigurations } from '../../../configurations';
+import { SettingConfigurations } from '../../../extension/configurations';
 import { FabricRuntimeState } from '../../../extension/fabric/FabricRuntimeState';
 import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';
 import { OutputAdapter, LogType, FabricEnvironmentRegistry, FabricRuntimeUtil, FabricEnvironmentRegistryEntry, EnvironmentType } from 'ibm-blockchain-platform-common';
@@ -700,37 +700,6 @@ describe('LocalEnvironment', () => {
             setting[FabricRuntimeUtil.LOCAL_FABRIC].ports = environment.ports;
 
             updateStub.should.have.been.calledWith(SettingConfigurations.FABRIC_RUNTIME, setting);
-        });
-
-        it(`should delete old 'ports' property and update the user settings if the runtime exists`, async () => {
-            const updateStub: sinon.SinonStub = sandbox.stub();
-            const getConfigurationStub: sinon.SinonStub = sandbox.stub(vscode.workspace, 'getConfiguration');
-            getConfigurationStub.returns({
-                get: sandbox.stub().resolves({
-                    'ports': {
-                        hello: 'world'
-                    },
-                    '1 Org Local Fabric': {
-                        ports: {
-                            startPort: 10000,
-                            endPort: 10069
-                        }
-                    }
-                }),
-                update: updateStub
-            });
-
-            await environment.updateUserSettings(FabricRuntimeUtil.LOCAL_FABRIC);
-
-            updateStub.should.have.been.calledOnceWithExactly(SettingConfigurations.FABRIC_RUNTIME,
-                {
-                    '1 Org Local Fabric': {
-                        ports: {
-                            startPort: 17050,
-                            endPort: 17070
-                        }
-                    }
-                }, 1);
         });
 
         it(`should update the user settings if the runtime doesn't exist`, async () => {

@@ -52,7 +52,8 @@ describe('DissociateWalletCommand', () => {
             await FabricWalletRegistry.instance().clear();
             const gatewayOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGateway',
-                associatedWallet: 'blueWallet'
+                associatedWallet: 'blueWallet',
+                connectionProfilePath: path.join('myPath', 'connection.json')
             });
 
             await FabricGatewayRegistry.instance().clear();

@@ -19,26 +19,30 @@ import * as path from 'path';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { UserInputUtilHelper } from './userInputUtilHelper';
-import { ExtensionCommands } from '../../ExtensionCommands';
-import { IFabricWallet, IFabricWalletGenerator, FabricIdentity, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletGeneratorFactory, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import {UserInputUtil} from '../../extension/commands/UserInputUtil';
+import {UserInputUtilHelper} from './userInputUtilHelper';
+import {ExtensionCommands} from '../../ExtensionCommands';
+import { IFabricWallet, IFabricWalletGenerator, FabricIdentity, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletGeneratorFactory, FabricGatewayRegistryEntry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
 export class WalletAndIdentityHelper {
 
-    public static certPath: string = path.join(__dirname, `../../../cucumber/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem`);
-    public static keyPath: string = path.join(__dirname, `../../../cucumber/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/key1.pem`);
-    public static jsonFilePath: string = path.join(__dirname, `../../../cucumber/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/Org1Admin.json`);
-    public static connectionProfilePath: string = path.join(__dirname, '../../../cucumber/hlfv1/connection.json');
-
+    certPath: string;
+    keyPath: string;
+    jsonFilePath: string;
+    connectionProfilePath: string;
     mySandBox: sinon.SinonSandbox;
     userInputUtilHelper: UserInputUtilHelper;
 
     constructor(sandbox: sinon.SinonSandbox, userInputUtilHelper: UserInputUtilHelper) {
         this.mySandBox = sandbox;
         this.userInputUtilHelper = userInputUtilHelper;
+
+        this.certPath = path.join(this.userInputUtilHelper.cucumberDir, 'hlfv1', 'crypto-config', 'peerOrganizations', 'org1.example.com', 'users', 'Admin@org1.example.com', 'msp', 'signcerts', 'Admin@org1.example.com-cert.pem');
+        this.keyPath = path.join(this.userInputUtilHelper.cucumberDir, 'hlfv1', 'crypto-config', 'peerOrganizations', 'org1.example.com', 'users', 'Admin@org1.example.com', 'msp', 'keystore', 'key1.pem');
+        this.jsonFilePath = path.join(this.userInputUtilHelper.cucumberDir, 'hlfv1', 'crypto-config', 'peerOrganizations', 'org1.example.com', 'users', 'Admin@org1.example.com', 'Org1Admin.json');
+        this.connectionProfilePath = path.join(this.userInputUtilHelper.cucumberDir, 'hlfv1', 'connection.json');
     }
 
     public async createCAIdentity(walletName: string, identityName: string, environmentName: string, attributes: string = '[]'): Promise<void> {
@@ -100,7 +104,7 @@ export class WalletAndIdentityHelper {
             this.userInputUtilHelper.showAddWalletOptionsQuickPickStub.resolves(UserInputUtil.WALLET_NEW_ID);
             this.userInputUtilHelper.inputBoxStub.withArgs('Enter a name for the wallet').resolves(name);
 
-            this.setIdentityStubs(method, identityName, mspid);
+            await this.setIdentityStubs(method, identityName, mspid);
             await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
         } else {
             const walletEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(name);
@@ -117,30 +121,35 @@ export class WalletAndIdentityHelper {
     }
 
     public async createIdentity(walletName: string, identityName: string, mspid: string, method: string): Promise<void> {
-        this.setIdentityStubs(method, identityName, mspid);
+        await this.setIdentityStubs(method, identityName, mspid);
         const wallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletName);
         await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, wallet);
     }
 
-    private setIdentityStubs(method: string, identityName: string, mspid: string): void {
+    private async setIdentityStubs(method: string, identityName: string, mspid: string): Promise<void> {
         this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(identityName);
         this.userInputUtilHelper.inputBoxStub.withArgs('Enter MSPID').resolves(mspid);
 
         if (method === 'certs') {
             this.userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
-            this.userInputUtilHelper.showGetCertKeyStub.resolves({ certificatePath: WalletAndIdentityHelper.certPath, privateKeyPath: WalletAndIdentityHelper.keyPath });
+            this.userInputUtilHelper.showGetCertKeyStub.resolves({
+                certificatePath: this.certPath,
+                privateKeyPath: this.keyPath
+            });
         } else if (method === 'JSON file') {
-            const jsonPath: string = process.env.OPSTOOLS_FABRIC ? path.join(process.env.JSON_DIR, `${identityName}.json`) : WalletAndIdentityHelper.jsonFilePath;
+            const jsonPath: string = process.env.OPSTOOLS_FABRIC ? path.join(process.env.JSON_DIR, `${identityName}.json`) : this.jsonFilePath;
             this.userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_JSON_ID_OPTION);
             this.userInputUtilHelper.browseStub.resolves(vscode.Uri.file(jsonPath));
         } else {
             // use enroll id and secret
             this.userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
-            const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-            gatewayRegistryEntry.name = 'myGateway';
+            const gatewayRegistryEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGateway');
 
-            this.userInputUtilHelper.showGatewayQuickPickStub.resolves({ data: gatewayRegistryEntry });
-            this.userInputUtilHelper.getEnrollIdSecretStub.resolves({ enrollmentID: 'admin', enrollmentSecret: 'adminpw' });
+            this.userInputUtilHelper.showGatewayQuickPickStub.resolves({data: gatewayRegistryEntry});
+            this.userInputUtilHelper.getEnrollIdSecretStub.resolves({
+                enrollmentID: 'admin',
+                enrollmentSecret: 'adminpw'
+            });
         }
     }
 }

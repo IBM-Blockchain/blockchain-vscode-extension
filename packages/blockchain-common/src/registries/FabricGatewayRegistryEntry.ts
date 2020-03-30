@@ -19,7 +19,7 @@ export class FabricGatewayRegistryEntry extends RegistryEntry {
     public associatedWallet: string;
     public managedGateway?: boolean;
     public displayName?: string;
-    public connectionProfilePath?: string;
+    public connectionProfilePath: string;
     public fromEnvironment?: string;
     public transactionDataDirectories?: Array<{chaincodeName: string, channelName: string, transactionDataPath: string}>;
 

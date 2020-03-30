@@ -1,0 +1,146 @@
+{
+    "name": "ibm-blockchain-platform-fabric-admin",
+    "author": "IBMBlockchain",
+    "homepage": "https://www.ibm.com/blockchain",
+    "license": "Apache-2.0",
+    "version": "1.0.25",
+    "publisher": "IBMBlockchain",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/IBM-Blockchain/blockchain-vscode-extension"
+    },
+    "main": "./build/src/index.js",
+    "scripts": {
+        "tslint": "tslint --project tsconfig.json -e 'src/old-code/*.ts'",
+        "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts' 'cucumber/**/*.ts'",
+        "pretest": "npm run compile && npm run lint && npm run licchk",
+        "unit": "npm run pretest && nyc mocha --require ts-node/register --reporter mocha-multi-reporters --reporter-options configFile=mochaConfig.json \"test/**/*.ts\"",
+        "compile": "rimraf build && tsc --build tsconfig.json",
+        "cucumber": "npm run compile && ./node_modules/.bin/cucumber-js ./cucumber/features/ -p default",
+        "debug-test": "npm run compile && mocha --require ts-node/register -u bdd --timeout 999999 './test/**/*.ts'",
+        "licchk": "license-check-and-add",
+        "createModule": "npm pack"
+    },
+    "dependencies": {
+        "fabric-ca-client": "unstable",
+        "fabric-common": "unstable",
+        "fabric-network": "unstable",
+        "fabric-protos": "unstable",
+        "fs-extra": "^8.1.0",
+        "ignore-walk": "^3.0.0",
+        "klaw": "^2.0.0",
+        "long": "^4.0.0",
+        "tar-stream": "1.6.1"
+    },
+    "devDependencies": {
+        "@types/chai": "^4.2.10",
+        "@types/chai-as-promised": "^7.1.2",
+        "@types/cucumber": "^6.0.1",
+        "@types/fs-extra": "^8.1.0",
+        "@types/long": "^4.0.1",
+        "@types/mocha": "^7.0.2",
+        "@types/node": "^13.9.1",
+        "@types/sinon": "^7.5.2",
+        "@types/sinon-chai": "^3.2.3",
+        "chai": "^4.2.0",
+        "chai-as-promised": "^7.1.1",
+        "cucumber": "^6.0.5",
+        "license-check-and-add": "2.3.6",
+        "mocha": "^5.2.0",
+        "mocha-junit-reporter": "^1.23.3",
+        "mocha-multi-reporters": "^1.1.7",
+        "nyc": "^15.0.0",
+        "rimraf": "^3.0.2",
+        "sinon": "^7.1.1",
+        "sinon-chai": "^3.3.0",
+        "strip-ansi": "^6.0.0",
+        "ts-node": "^8.6.2",
+        "tslint": "^6.1.0",
+        "typescript": "^3.7.2"
+    },
+    "license-check-and-add-config": {
+        "folder": ".",
+        "license": "LICENSE.txt",
+        "exact_paths_method": "EXCLUDE",
+        "exact_paths": [
+            "scripts",
+            "node_modules",
+            "cucumber/tmp",
+            "src/old-code",
+            ".idea",
+            ".git",
+            "build",
+            "coverage",
+            "test/data",
+            "test/tmp",
+            ".DS_Store",
+            "CHANGELOG.md",
+            "ISSUE_TEMPLATE.md",
+            "LICENSE",
+            "unit-tests.xml"
+        ],
+        "file_type_method": "EXCLUDE",
+        "file_types": [
+            ".txt",
+            ".vsix",
+            ".yml",
+            ".yml",
+            ".yaml",
+            ".tgz",
+            ".key",
+            ".gz",
+            ".pem",
+            ".crt",
+            ".tx",
+            ".block",
+            ".log",
+            ".pid",
+            ".port",
+            ".feature"
+        ],
+        "insert_license": false,
+        "clear_license": false,
+        "license_formats": {
+            "ts|acl|cto|js|qry": {
+                "prepend": "/*",
+                "append": "*/",
+                "eachLine": {
+                    "prepend": " * "
+                }
+            },
+            "vscodeignore": {
+                "eachLine": {
+                    "prepend": "# "
+                }
+            },
+            "md": {
+                "file": "./markdown-license.txt"
+            }
+        }
+    },
+    "nyc": {
+        "cache": true,
+        "extension": [
+            ".ts"
+        ],
+        "exclude": [
+            "cucumber",
+            "test",
+            "build",
+            "old-code",
+            "coverage",
+            "*.js",
+            "src/old-code"
+        ],
+        "reporter": [
+            "text-summary",
+            "html"
+        ],
+        "all": true,
+        "check-coverage": true,
+        "statements": 98.25,
+        "branches": 95.35,
+        "functions": 94.94,
+        "lines": 98.25
+    }
+}

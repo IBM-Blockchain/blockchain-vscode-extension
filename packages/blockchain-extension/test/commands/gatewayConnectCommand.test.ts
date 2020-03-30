@@ -32,7 +32,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { LocalGatewayTreeItem } from '../../extension/explorer/model/LocalGatewayTreeItem';
 import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../../extension/configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
@@ -90,17 +90,20 @@ describe('GatewayConnectCommand', () => {
 
             connectionSingle = new FabricGatewayRegistryEntry({
                 name: 'myGatewayA',
-                associatedWallet: undefined
+                associatedWallet: undefined,
+                connectionProfilePath: path.join('myPath', 'connection.json')
             });
 
             connectionMultiple = new FabricGatewayRegistryEntry({
                 name: 'myGatewayB',
-                associatedWallet: undefined
+                associatedWallet: undefined,
+                connectionProfilePath: path.join('myPath', 'connection.json')
             });
 
             connectionAssociated = new FabricGatewayRegistryEntry({
                 name: 'myGatewayC',
-                associatedWallet: 'myGatewayCWallet'
+                associatedWallet: 'myGatewayCWallet',
+                connectionProfilePath: path.join('myPath', 'connection.json')
             });
 
             await FabricGatewayRegistry.instance().clear();
@@ -398,6 +401,7 @@ describe('GatewayConnectCommand', () => {
                     name: 'myGatewayD',
                     associatedWallet: 'myGatewayDWallet',
                     fromEnvironment: 'managedEnvironment',
+                    connectionProfilePath: path.join('myPath', 'connection.json'),
                     displayName: 'managedEnvironment - Org1'
                 });
 

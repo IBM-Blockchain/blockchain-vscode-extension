@@ -25,7 +25,7 @@ import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricWalletRegistry, FabricWalletRegistryEntry, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { BlockchainWalletExplorerProvider } from '../../extension/explorer/walletExplorer';
 import { WalletTreeItem } from '../../extension/explorer/wallets/WalletTreeItem';
-import { SettingConfigurations } from '../../configurations';
+import { SettingConfigurations } from '../../extension/configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 chai.should();
@@ -66,7 +66,7 @@ describe('removeWalletCommand', () => {
             walletPath: '/some/bluer/path'
         });
 
-        const extensionDirectory: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const extensionDirectory: string = SettingConfigurations.getExtensionDir();
         const directoryPath: string = FileSystemUtil.getDirPath(extensionDirectory);
 
         createdWallet = new FabricWalletRegistryEntry({
@@ -80,9 +80,9 @@ describe('removeWalletCommand', () => {
 
         await FabricGatewayRegistry.instance().clear();
 
-        await FabricGatewayRegistry.instance().add({ name: 'gatewayA', associatedWallet: 'blueWallet' });
-        await FabricGatewayRegistry.instance().add({ name: 'gatewayB', associatedWallet: 'blueWallet' });
-        await FabricGatewayRegistry.instance().add({ name: 'gatewayC', associatedWallet: 'greenWallet' });
+        await FabricGatewayRegistry.instance().add({ name: 'gatewayA', associatedWallet: 'blueWallet',  connectionProfilePath: path.join('myPath', 'connection.json') });
+        await FabricGatewayRegistry.instance().add({ name: 'gatewayB', associatedWallet: 'blueWallet',  connectionProfilePath: path.join('myPath', 'connection.json') });
+        await FabricGatewayRegistry.instance().add({ name: 'gatewayC', associatedWallet: 'greenWallet', connectionProfilePath: path.join('myPath', 'connection.json') });
     });
 
     afterEach(() => {

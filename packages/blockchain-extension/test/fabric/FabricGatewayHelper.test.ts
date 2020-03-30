@@ -19,9 +19,8 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
-import * as vscode from 'vscode';
-import { SettingConfigurations } from '../../configurations';
-import { FabricNode, FileConfigurations, FileSystemUtil, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { SettingConfigurations } from '../../extension/configurations';
+import { FabricNode, FileConfigurations, FileSystemUtil, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { TestUtil } from '../TestUtil';
 
 chai.use(chaiAsPromised);
@@ -41,44 +40,10 @@ describe('FabricGatewayHelper', () => {
     });
 
     describe('getConnectionProfilePath', () => {
-        it('should get the connection profile path', async () => {
-            mySandBox.stub(fs, 'readdir').resolves(['.', '..', '.bob.json', 'connection.json']);
-
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
-            const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
-
-            const result: string = await FabricGatewayHelper.getConnectionProfilePath(new FabricGatewayRegistryEntry({name: 'myGateway', associatedWallet: ''}));
-
-            result.should.equal(path.join(profileDirPath, 'connection.json'));
-        });
-
-        it('should get the connection profile path yml file', async () => {
-            mySandBox.stub(fs, 'readdir').resolves(['.', '..', '.bob.json', 'connection.yml']);
-
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
-            const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
-
-            const result: string = await FabricGatewayHelper.getConnectionProfilePath(new FabricGatewayRegistryEntry({name: 'myGateway', associatedWallet: ''}));
-
-            result.should.equal(path.join(profileDirPath, 'connection.yml'));
-        });
-
-        it('should get the connection profile from the registry entry if set', async () => {
-            const result: string = await FabricGatewayHelper.getConnectionProfilePath(new FabricGatewayRegistryEntry({name: 'myGateway', associatedWallet: '', connectionProfilePath: path.join('myPath', 'connection.json')}));
+        it('should get the connection profile from the registry entry', async () => {
+            const result: string = await FabricGatewayHelper.getConnectionProfilePath(new FabricGatewayRegistryEntry({ name: 'myGateway', associatedWallet: '', connectionProfilePath: path.join('myPath', 'connection.json') }));
 
             result.should.equal(path.join('myPath', 'connection.json'));
-        });
-
-        it('should throw an error if no files found', async () => {
-            mySandBox.stub(fs, 'readdir').resolves(['.', '..', '.bob.json']);
-
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
-            const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
-
-            await FabricGatewayHelper.getConnectionProfilePath(new FabricGatewayRegistryEntry({name: 'myGateway', associatedWallet: ''})).should.eventually.be.rejectedWith(`Failed to find a connection profile file in folder ${profileDirPath}`);
         });
     });
 
@@ -106,7 +71,7 @@ describe('FabricGatewayHelper', () => {
         it('should generate the connection profile', async () => {
             const connectionProfilePath: string = await FabricGatewayHelper.generateConnectionProfile('myGateway', peerNode, caNode);
 
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const extDir: string = SettingConfigurations.getExtensionDir();
             const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
             const profileFilePath: string = path.join(profileDirPath, 'connection.json');
@@ -130,7 +95,7 @@ describe('FabricGatewayHelper', () => {
         it('should generate the connection profile with nodes using tls', async () => {
             const connectionProfilePath: string = await FabricGatewayHelper.generateConnectionProfile('myGateway', securePeerNode, secureCANode);
 
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const extDir: string = SettingConfigurations.getExtensionDir();
             const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
             const profileFilePath: string = path.join(profileDirPath, 'connection.json');
@@ -159,7 +124,7 @@ describe('FabricGatewayHelper', () => {
         it('should generate the connection profile with no ca info', async () => {
             const connectionProfilePath: string = await FabricGatewayHelper.generateConnectionProfile('myGateway', peerNode, undefined);
 
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const extDir: string = SettingConfigurations.getExtensionDir();
             const homeExtDir: string = FileSystemUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
             const profileFilePath: string = path.join(profileDirPath, 'connection.json');
@@ -220,9 +185,9 @@ describe('FabricGatewayHelper', () => {
             readFileStub.callThrough();
             const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, tlsPemLocation);
 
-            writeFileStub.should.have.been.calledOnceWith(path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'), tlsPemStringified);
+            writeFileStub.should.have.been.calledOnceWith(path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'), tlsPemStringified);
             readFileStub.getCall(0).should.have.been.calledWithExactly(tlsPemLocation, 'utf8');
-            result.should.equal(path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'));
+            result.should.equal(path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'));
         });
 
         it('should copy a connection profile and change absolute paths and relative path', async () => {
@@ -233,10 +198,10 @@ describe('FabricGatewayHelper', () => {
 
             const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, tlsPathLocation);
 
-            writeFileStub.should.have.been.calledOnceWithExactly(path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'), tlsPemStringified);
+            writeFileStub.should.have.been.calledOnceWithExactly(path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'), tlsPemStringified);
 
             readFileStub.getCall(0).should.have.been.calledWithExactly(tlsPathLocation, 'utf8');
-            result.should.equal(path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'));
+            result.should.equal(path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'));
         });
 
         it('should continue if property doesn\'nt exist in connection profile', async () => {
@@ -270,11 +235,11 @@ describe('FabricGatewayHelper', () => {
             connectionProfileObject.certificateAuthorities['ca0']['tlsCACerts'].pem = 'CERT_HERE';
 
             const newStringifiedObject: any = JSON.stringify(connectionProfileObject, null, 4);
-            writeFileStub.should.have.been.calledOnceWithExactly(path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'), newStringifiedObject);
+            writeFileStub.should.have.been.calledOnceWithExactly(path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'), newStringifiedObject);
 
             readFileStub.getCall(0).should.have.been.calledWithExactly('connection.json', 'utf8');
             readFileStub.should.have.been.calledThrice;
-            result.should.equal(path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'));
+            result.should.equal(path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'));
         });
 
         it('should handle any errors thrown', async () => {
@@ -287,7 +252,7 @@ describe('FabricGatewayHelper', () => {
 
             readFileStub.getCall(0).should.have.been.calledWithExactly(tlsPathLocation, 'utf8');
             readFileStub.getCalls().length.should.equal(4);
-            writeFileStub.should.have.been.calledOnceWithExactly(path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'), tlsPemStringified);
+            writeFileStub.should.have.been.calledOnceWithExactly(path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.json'), tlsPemStringified);
         });
 
         it('should copy a connection profile and change relative paths for a YAML file', async () => {
@@ -299,81 +264,11 @@ describe('FabricGatewayHelper', () => {
             const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, yamlPathLocation);
 
             yamlDumpStub.should.have.been.calledOnce;
-            writeFileStub.should.have.been.calledOnceWith(path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.yml'), 'hello_world');
+            writeFileStub.should.have.been.calledOnceWith(path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.yml'), 'hello_world');
 
             readFileStub.getCall(0).should.have.been.calledWithExactly(yamlPathLocation, 'utf8');
             readFileStub.getCalls().length.should.equal(4);
-            result.should.equal(path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.yml'));
-        });
-    });
-
-    describe('migrateGateways', () => {
-
-        let getConfigurationStub: sinon.SinonStub;
-        let getSettingsStub: sinon.SinonStub;
-        let updateSettingsStub: sinon.SinonStub;
-        let gatewayA: any;
-        let gatewayB: any;
-        let fsCopyStub: sinon.SinonStub;
-        let fsRemoveStub: sinon.SinonStub;
-
-        beforeEach(async () => {
-
-            await FabricGatewayRegistry.instance().clear();
-
-            gatewayA = {
-                name: 'gatewayA',
-                connectionProfilePath: `${TestUtil.EXTENSION_TEST_DIR}/gateways/gatewayA/file.json`,
-                associatedWallet: '',
-
-            };
-            gatewayB = {
-                name: 'gatewayB',
-                connectionProfilePath: `${TestUtil.EXTENSION_TEST_DIR}/gatewayB/anotherFile.json`,
-                associatedWallet: ''
-            };
-
-            getSettingsStub = mySandBox.stub();
-            updateSettingsStub = mySandBox.stub();
-            getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
-            getConfigurationStub.returns({
-                get: getSettingsStub,
-                update: updateSettingsStub
-            });
-
-            getSettingsStub.withArgs(SettingConfigurations.OLD_FABRIC_GATEWAYS).returns([gatewayA, gatewayB]);
-            getSettingsStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(TestUtil.EXTENSION_TEST_DIR);
-            fsCopyStub = mySandBox.stub(fs, 'copy').resolves();
-            fsRemoveStub = mySandBox.stub(fs, 'remove').resolves();
-
-        });
-
-        it('should migrate gateways found in user settings to correct extension subdirectory', async () => {
-            await FabricGatewayHelper.migrateGateways();
-
-            getSettingsStub.should.have.been.calledWithExactly(SettingConfigurations.OLD_FABRIC_GATEWAYS);
-
-            fsCopyStub.should.have.been.calledOnceWithExactly(`${TestUtil.EXTENSION_TEST_DIR}/gatewayB/anotherFile.json`, `${TestUtil.EXTENSION_TEST_DIR}/gateways/gatewayB`);
-            fsRemoveStub.should.have.been.calledOnceWithExactly(`${TestUtil.EXTENSION_TEST_DIR}/gatewayB`);
-        });
-
-        it('should not add the registry entry if already exists', async () => {
-            await FabricGatewayRegistry.instance().add(gatewayA);
-            await FabricGatewayHelper.migrateGateways();
-
-            getSettingsStub.should.have.been.calledWithExactly(SettingConfigurations.OLD_FABRIC_GATEWAYS);
-
-            fsCopyStub.should.have.been.calledOnceWithExactly(`${TestUtil.EXTENSION_TEST_DIR}/gatewayB/anotherFile.json`, `${TestUtil.EXTENSION_TEST_DIR}/gateways/gatewayB`);
-            fsRemoveStub.should.have.been.calledOnceWithExactly(`${TestUtil.EXTENSION_TEST_DIR}/gatewayB`);
-        });
-
-        it(`should not migrate a gateway if there is an issue migrating it`, async () => {
-            const error: Error = new Error('a problem');
-            fsCopyStub.rejects(error);
-            await FabricGatewayHelper.migrateGateways().should.be.rejectedWith(`Issue copying ${gatewayB.connectionProfilePath} to ${TestUtil.EXTENSION_TEST_DIR}/gateways/gatewayB: ${error.message}`);
-
-            fsCopyStub.should.have.been.calledOnceWithExactly(`${TestUtil.EXTENSION_TEST_DIR}/gatewayB/anotherFile.json`, `${TestUtil.EXTENSION_TEST_DIR}/gateways/gatewayB`);
-            fsRemoveStub.should.not.have.been.called;
+            result.should.equal(path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', FileConfigurations.FABRIC_GATEWAYS, gatewayName, 'connection.yml'));
         });
     });
 });

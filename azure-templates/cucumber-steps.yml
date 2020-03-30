@@ -18,6 +18,7 @@ steps:
       set -ev
       cd ./packages/blockchain-extension
       ./cucumber/hlfv1/start.sh
+      echo ${{ parameters.type }}
     displayName: Setup Fabric
     condition: and(succeeded(), eq(variables['OTHER_FABRIC'], 'true'))
 
@@ -66,21 +67,39 @@ steps:
 
   - bash: |
       set -ev
+      cd ./packages/blockchain-fabric-admin
+      ./cucumber/setup-tests.sh
+    displayName: Setup Fabric Admin Fabric
+    condition: and(succeeded(), eq(variables['FABRIC_ADMIN'], 'true'))
+
+  - bash: |
+      set -ev
       cd ./packages/blockchain-extension
       npm run cucumber -- $(opsTools_url) $(opsTools_key) $(opsTools_secret)
     env:
       DISPLAY: ':99.0'
       JSON_DIR: $(Agent.TempDirectory)
     displayName: Run cucumber tests
-    condition: succeeded()
+    condition: and(succeeded(), ne(variables['FABRIC_ADMIN'], 'true'))
+
+  - bash: |
+      set -ev
+      cd ./packages/blockchain-fabric-admin
+      npm run cucumber
+    env:
+      DISPLAY: ':99.0'
+    displayName: Run fabric admin cucumber tests
+    condition: and(succeeded(), eq(variables['FABRIC_ADMIN'], 'true'))
 
   - task: CopyFiles@2
     inputs:
       sourceFolder: '$(Build.SourcesDirectory)/packages/blockchain-extension/cucumber/report'
       contents: "**"
       targetFolder: '$(Build.ArtifactStagingDirectory)'
+    condition: and(succeeded(), ne(variables['FABRIC_ADMIN'], 'true'))
 
   - task: PublishBuildArtifacts@1
     inputs:
       pathtoPublish: '$(Build.ArtifactStagingDirectory)'
       artifactName: 'cucumber-${{ parameters.type }}-report'
+    condition: and(succeeded(), ne(variables['FABRIC_ADMIN'], 'true'))
