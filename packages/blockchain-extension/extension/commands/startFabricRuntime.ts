@@ -21,8 +21,9 @@ import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { LogType, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, EnvironmentFlags } from 'ibm-blockchain-platform-common';
 import { TimerUtil } from '../util/TimerUtil';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
+import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 
-export async function startFabricRuntime(registryEntry?: FabricEnvironmentRegistryEntry): Promise<void> {
+export async function startFabricRuntime(registryEntry?: RuntimeTreeItem | FabricEnvironmentRegistryEntry): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'startFabricRuntime');
 
@@ -36,9 +37,14 @@ export async function startFabricRuntime(registryEntry?: FabricEnvironmentRegist
 
     }
 
+    if (registryEntry instanceof RuntimeTreeItem) {
+        // Get entry from tree item
+        registryEntry = registryEntry.environmentRegistryEntry;
+    }
+
     const runtime: LocalEnvironment | ManagedAnsibleEnvironment = EnvironmentFactory.getEnvironment(registryEntry) as LocalEnvironment | ManagedAnsibleEnvironment;
 
-    if (registryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+    if (registryEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
         VSCodeBlockchainOutputAdapter.instance().show();
     }
 

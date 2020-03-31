@@ -171,4 +171,19 @@ describe('startFabricRuntime', () => {
         logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to start ${mockLocalRuntime.getName()}: ${error.message}`, `Failed to start ${mockLocalRuntime.getName()}: ${error.toString()}`);
     });
 
+    it('should start a local environment by right-clicking the tree item (emulating)', async () => {
+        mockLocalRuntime.isCreated.resolves(true);
+        mockLocalRuntime.isGenerated.resolves(true);
+        getEnvironmentStub.returns(mockLocalRuntime);
+        await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC_SHORT, runtimeTreeItem);
+        showFabricEnvironmentQuickPickBoxStub.should.not.have.been.called;
+        mockLocalRuntime.create.should.not.have.been.called;
+        mockLocalRuntime.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+        commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+        commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+        blockchainLogsOutputSpy.should.have.been.called;
+        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'startFabricRuntime');
+    });
+
 });
