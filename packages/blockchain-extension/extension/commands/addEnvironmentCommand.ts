@@ -73,6 +73,7 @@ export async function addEnvironment(): Promise<void> {
                 const extensionPath: string = ExtensionUtil.getExtensionPath();
                 const releaseNotes: string = path.join(extensionPath, 'tutorials', 'developer-tutorials', 'create-custom-networks.md');
                 const uri: vscode.Uri = vscode.Uri.file(releaseNotes);
+
                 await vscode.commands.executeCommand('markdown.showPreview', uri);
 
                 return;

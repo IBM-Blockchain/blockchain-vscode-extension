@@ -79,6 +79,7 @@
             "environmentExplorer.instantiateSmartContractEntry",
             "environmentExplorer.refreshEntry",
             "environmentExplorer.startFabricRuntime",
+            "environmentExplorer.startFabricRuntimeShort",
             "environmentExplorer.stopFabricRuntime",
             "environmentExplorer.stopFabricRuntimeShort",
             "environmentExplorer.restartFabricRuntime",
@@ -403,6 +404,11 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "environmentExplorer.startFabricRuntimeShort",
+                "title": "Start",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "environmentExplorer.stopFabricRuntime",
                 "title": "Stop Fabric Runtime",
                 "category": "IBM Blockchain Platform"
@@ -603,6 +609,10 @@
                 {
                     "command": "environmentExplorer.deleteEnvironmentEntryShort",
                     "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.startFabricRuntimeShort",
+                    "when": "false"
                 }
             ],
             "view/title": [
@@ -727,6 +737,10 @@
                 },
                 {
                     "command": "environmentExplorer.deleteEnvironmentEntryShort",
+                    "when": "view == environmentExplorer && viewItem == blockchain-environment-item || view == environmentExplorer && viewItem == blockchain-runtime-item-running || view == environmentExplorer && viewItem == blockchain-runtime-item"
+                },
+                {
+                    "command": "environmentExplorer.startFabricRuntimeShort",
                     "when": "view == environmentExplorer && viewItem == blockchain-environment-item || view == environmentExplorer && viewItem == blockchain-runtime-item"
                 },
                 {
@@ -735,11 +749,7 @@
                 },
                 {
                     "command": "environmentExplorer.stopFabricRuntimeShort",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-item"
-                },
-                {
-                    "command": "environmentExplorer.restartFabricRuntime",
-                    "when": "false"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-item-running"
                 },
                 {
                     "command": "environmentExplorer.restartFabricRuntime",
@@ -747,7 +757,7 @@
                 },
                 {
                     "command": "environmentExplorer.restartFabricRuntimeShort",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-item"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-item-running"
                 },
                 {
                     "command": "environmentExplorer.teardownFabricRuntime",
@@ -755,7 +765,7 @@
                 },
                 {
                     "command": "environmentExplorer.teardownFabricRuntimeShort",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-item"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-item-running || view == environmentExplorer && viewItem == blockchain-runtime-item"
                 },
                 {
                     "command": "environmentExplorer.deleteNodeEntry",
