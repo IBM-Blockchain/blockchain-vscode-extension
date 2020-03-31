@@ -2,21 +2,24 @@
 	"folders": [
 		{
 			"path": "packages/blockchain-common"
+		},	
+		{	
+			"path": "packages/blockchain-extension"	
+		},	
+		{	
+			"path": "packages/blockchain-gateway-v1"	
+		},	
+		{	
+			"path": "packages/blockchain-ui"	
+		},	
+		{	
+			"path": "packages/blockchain-environment-v1"	
+		},	
+		{	
+			"path": "packages/blockchain-wallet"	
 		},
 		{
-			"path": "packages/blockchain-extension"
-		},
-		{
-			"path": "packages/blockchain-gateway-v1"
-		},
-		{
-			"path": "packages/blockchain-ui"
-		},
-		{
-			"path": "packages/blockchain-environment-v1"
-		},
-		{
-			"path": "packages/blockchain-wallet"
+			"path": "packages/blockchain-website"
 		}
 	],
 	"settings": {

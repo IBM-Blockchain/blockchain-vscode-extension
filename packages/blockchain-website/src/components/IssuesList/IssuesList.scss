@@ -1,0 +1,138 @@
+.flex-container {
+    display: flex;
+    flex-flow: row wrap;
+}
+
+.panel {
+    background-color: white;
+    width: 309px;
+    margin: 1px;
+    position: relative;
+    height: 165px;
+}
+
+.no-issues {
+    background-image: linear-gradient(180deg, #FFFFFF 0%, #F3F3F3 100%);
+    width: 1250px;
+    height: 165px;
+    padding: 16px;
+    line-height: 16px;
+    margin: 1px; 
+}
+
+.issue-title {
+    margin-left: 16px;
+    margin-right: 21px;
+    margin-bottom: 7px;
+    font-size: 14px;
+    color: #161616;
+    letter-spacing: 0.16px;
+    line-height: 18px;
+}
+
+.div-title {
+    display: flex;
+    flex-flow: row wrap;
+    padding-top: 20px;
+    max-width: 1244px;
+    font-size: 16px;
+    color: #161616;
+    letter-spacing: 0;
+    line-height: 22px;
+    padding-bottom: 5px; 
+}
+
+.date {
+    margin-left: 16px;
+    margin-right: 21px;
+    font-size: 12px;
+    color: #525252;
+    letter-spacing: 0.32px;
+    text-align: left;
+    line-height: 16px;
+}
+
+.link {
+    text-decoration: none;
+    font-size: 14px;
+    color: #0F62FE;
+    letter-spacing: 0.16px;
+    line-height: 18px;
+}
+
+.view-issue {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+}
+
+.button-container {
+    margin-left: auto;
+    max-width: 450px;
+    max-height: 30px;
+    @media (max-width: 620px) { // If screen width small, move buttons directly below title (pin to the left of the container)
+        margin-right: auto;
+    }
+}
+
+.button {
+    text-decoration: none;
+    display: inline-block;
+    background: url('../../add.svg');
+    background-repeat: no-repeat;
+    background-size: 16px;
+    background-color: #0f62fe;
+    background-position-x: 169px;
+    background-position-y: 8px;
+    height: 19px;
+    width: 185px;
+    color: white;
+    font-size: 14px;
+    padding-top: 3px;
+    padding-bottom: 7px;
+    padding-left: 16px;
+}
+
+.new-issue-position {
+    margin-left: 2rem;
+}
+
+.view-all-position {
+    margin-left: auto;
+}
+
+.view-milestone {
+    margin-left: auto;
+}
+
+.label {
+    border-radius: 4px;
+    display: inline;
+    background-color: #b5b5b5;
+    color: #fff;
+    font-size: 12px;
+    font-size: 0.75rem;
+    line-height: 2;
+    font-weight: bold;
+    padding: 3px 7px;
+    text-align: center;
+    vertical-align: baseline;
+    white-space: nowrap;
+}
+
+.bg-sev1 {
+    background-color: #da1e28 !important;
+}
+  
+.bg-sev2 {
+    background-color: #ff832b !important;
+}
+
+.bg-sev3 {
+    background-color: #f1c21b !important;
+}
+
+.label-div {
+    margin-left: 16px;
+    margin-right: 21px;
+}
