@@ -35,7 +35,7 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
 
     try {
         if (!fabricEnvironmentRegistryEntry) {
-            const chosenEntry: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to connect with', false, true, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            const chosenEntry: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to connect with', false, true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             if (!chosenEntry) {
                 return;
             }

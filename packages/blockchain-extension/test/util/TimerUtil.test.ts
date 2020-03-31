@@ -19,7 +19,7 @@ import * as sinonChai from 'sinon-chai';
 import * as vscode from 'vscode';
 import { TimerUtil } from '../../extension/util/TimerUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironmentRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, EnvironmentType } from 'ibm-blockchain-platform-common';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -47,7 +47,7 @@ describe('TimerUtil Test', () => {
 
     describe('setInterval', () => {
         it('should call the set command at a given interval', () => {
-            const entry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({ name: 'myFabric' });
+            const entry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({ name: 'myFabric', environmentType: EnvironmentType.ENVIRONMENT });
             const result: NodeJS.Timeout = TimerUtil.setInterval([{command: ExtensionCommands.CONNECT_TO_ENVIRONMENT, args: [entry]}], 10000);
             clock.tick(10000);
 
@@ -56,7 +56,7 @@ describe('TimerUtil Test', () => {
         });
 
         it('should call multiple commands at a given interval', () => {
-            const entry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({ name: 'myFabric' });
+            const entry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({ name: 'myFabric', environmentType: EnvironmentType.ENVIRONMENT });
             const result: NodeJS.Timeout = TimerUtil.setInterval([
                 {command: ExtensionCommands.CONNECT_TO_ENVIRONMENT, args: [entry]},
                 {command: ExtensionCommands.DISCONNECT_ENVIRONMENT, args: []}

@@ -163,6 +163,8 @@ export async function addEnvironment(): Promise<void> {
 
             fabricEnvironmentEntry.url = url;
             fabricEnvironmentEntry.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
+        } else {
+            fabricEnvironmentEntry.environmentType = EnvironmentType.ENVIRONMENT;
         }
 
         const environmentName: string = await UserInputUtil.showInputBox('Enter a name for the environment');
@@ -170,9 +172,7 @@ export async function addEnvironment(): Promise<void> {
             return;
         }
 
-        // const exists: boolean = await fabricEnvironmentRegistry.exists(environmentName);
-
-        const allEnvironments: FabricEnvironmentRegistryEntry[] = await fabricEnvironmentRegistry.getAll(true);
+        const allEnvironments: FabricEnvironmentRegistryEntry[] = await fabricEnvironmentRegistry.getAll([]);
 
         const dockerName: string = environmentName.replace(/[^A-Za-z0-9]/g, ''); // Create docker name
 

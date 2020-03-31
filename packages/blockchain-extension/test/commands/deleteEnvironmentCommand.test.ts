@@ -80,13 +80,15 @@ describe('DeleteEnvironmentCommand', () => {
             environments = [];
 
             myEnvironmentA = new FabricEnvironmentRegistryEntry({
-                name: 'myEnvironmentA'
+                name: 'myEnvironmentA',
+                environmentType: EnvironmentType.ENVIRONMENT
             });
 
             await FabricEnvironmentRegistry.instance().add(myEnvironmentA);
 
             myEnvironmentB = new FabricEnvironmentRegistryEntry({
-                name: 'myEnvironmentB'
+                name: 'myEnvironmentB',
+                environmentType: EnvironmentType.ENVIRONMENT
             });
 
             await FabricEnvironmentRegistry.instance().add(myEnvironmentB);
@@ -123,8 +125,8 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
-            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
-            getAllSpy.should.have.been.calledOnceWithExactly(true);
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false);
+            getAllSpy.should.have.been.calledOnceWithExactly();
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(2);
             environments[0].name.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
@@ -147,8 +149,8 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
-            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
-            getAllSpy.should.have.been.calledOnceWithExactly(true);
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false);
+            getAllSpy.should.have.been.calledOnceWithExactly();
 
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(1);
@@ -207,8 +209,8 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
-            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
-            getAllSpy.should.have.been.calledOnceWithExactly(true);
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false);
+            getAllSpy.should.have.been.calledOnceWithExactly();
 
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(2);
@@ -232,8 +234,8 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
-            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
-            getAllSpy.should.have.been.calledOnceWithExactly(true);
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false);
+            getAllSpy.should.have.been.calledOnceWithExactly();
 
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(2);
@@ -258,8 +260,8 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
-            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
-            getAllSpy.should.have.been.calledOnceWithExactly(true);
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false);
+            getAllSpy.should.have.been.calledOnceWithExactly();
 
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(2);
@@ -278,8 +280,8 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT, undefined, true);
 
-            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
-            getAllSpy.should.have.been.calledOnceWithExactly(true);
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false);
+            getAllSpy.should.have.been.calledOnceWithExactly();
 
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(2);
@@ -300,8 +302,8 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
-            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
-            getAllSpy.should.have.been.calledOnceWithExactly(true);
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false);
+            getAllSpy.should.have.been.calledOnceWithExactly();
 
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(3);
@@ -313,8 +315,8 @@ describe('DeleteEnvironmentCommand', () => {
             showFabricEnvironmentQuickPickBoxStub.resolves([]);
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
-            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
-            getAllSpy.should.have.been.calledOnceWithExactly(true);
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false);
+            getAllSpy.should.have.been.calledOnceWithExactly();
 
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(3);
@@ -328,7 +330,7 @@ describe('DeleteEnvironmentCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
             showFabricEnvironmentQuickPickBoxStub.should.not.have.been.called;
-            getAllSpy.should.have.been.calledOnceWithExactly(true);
+            getAllSpy.should.have.been.calledOnceWithExactly();
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No environments to delete.`);
@@ -339,8 +341,8 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
-            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
-            getAllSpy.should.have.been.calledOnceWithExactly(true);
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false);
+            getAllSpy.should.have.been.calledOnceWithExactly();
 
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(3);
@@ -359,8 +361,8 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
-            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
-            getAllSpy.should.have.been.calledOnceWithExactly(true);
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false);
+            getAllSpy.should.have.been.calledOnceWithExactly();
 
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(3);
@@ -508,8 +510,8 @@ describe('DeleteEnvironmentCommand', () => {
             const updateCall: any = globalStateUpdateSpy.getCall(0).args[0];
             updateCall.deletedOneOrgLocalFabric.should.equal(true);
 
-            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
-            getAllSpy.should.have.been.calledOnceWithExactly(true);
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false);
+            getAllSpy.should.have.been.calledOnceWithExactly();
 
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(2);
@@ -569,8 +571,8 @@ describe('DeleteEnvironmentCommand', () => {
 
             globalStateUpdateSpy.should.not.have.been.called;
 
-            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
-            getAllSpy.should.have.been.calledOnceWithExactly(true);
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false);
+            getAllSpy.should.have.been.calledOnceWithExactly();
 
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(3);
@@ -662,7 +664,7 @@ describe('DeleteEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
 
-            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false);
 
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(3);
@@ -707,8 +709,8 @@ describe('DeleteEnvironmentCommand', () => {
             const updateCall: any = globalStateUpdateSpy.getCall(0).args[0];
             updateCall.deletedOneOrgLocalFabric.should.equal(true);
 
-            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false, true);
-            getAllSpy.should.have.been.calledOnceWithExactly(true);
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false);
+            getAllSpy.should.have.been.calledOnceWithExactly();
 
             environments =  await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(2);

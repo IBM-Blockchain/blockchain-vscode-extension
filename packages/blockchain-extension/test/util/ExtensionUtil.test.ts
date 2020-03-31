@@ -17,35 +17,44 @@ import * as path from 'path';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import {ExtensionUtil} from '../../extension/util/ExtensionUtil';
 import * as fs from 'fs-extra';
 import * as chaiAsPromised from 'chai-as-promised';
-import { dependencies, version as currentExtensionVersion } from '../../package.json';
-import { SettingConfigurations } from '../../extension/configurations';
-import { GlobalState, ExtensionData } from '../../extension/util/GlobalState';
-import { ExtensionCommands } from '../../ExtensionCommands';
-import { TutorialGalleryView } from '../../extension/webview/TutorialGalleryView';
-import { HomeView } from '../../extension/webview/HomeView';
-import { SampleView } from '../../extension/webview/SampleView';
-import { TutorialView } from '../../extension/webview/TutorialView';
-import { Reporter } from '../../extension/util/Reporter';
-import { PreReqView } from '../../extension/webview/PreReqView';
-import { DependencyManager } from '../../extension/dependencies/DependencyManager';
-import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { TemporaryCommandRegistry } from '../../extension/dependencies/TemporaryCommandRegistry';
-import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FabricWalletRegistryEntry, LogType, FabricWalletRegistry, FabricGatewayRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
-import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
-import { TestUtil } from '../TestUtil';
+import {dependencies, version as currentExtensionVersion} from '../../package.json';
+import {SettingConfigurations} from '../../extension/configurations';
+import {ExtensionData, GlobalState} from '../../extension/util/GlobalState';
+import {ExtensionCommands} from '../../ExtensionCommands';
+import {TutorialGalleryView} from '../../extension/webview/TutorialGalleryView';
+import {HomeView} from '../../extension/webview/HomeView';
+import {SampleView} from '../../extension/webview/SampleView';
+import {TutorialView} from '../../extension/webview/TutorialView';
+import {Reporter} from '../../extension/util/Reporter';
+import {PreReqView} from '../../extension/webview/PreReqView';
+import {DependencyManager} from '../../extension/dependencies/DependencyManager';
+import {VSCodeBlockchainOutputAdapter} from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import {TemporaryCommandRegistry} from '../../extension/dependencies/TemporaryCommandRegistry';
+import {UserInputUtil} from '../../extension/commands/UserInputUtil';
+import {LocalEnvironmentManager} from '../../extension/fabric/environments/LocalEnvironmentManager';
+import {
+    EnvironmentType,
+    FabricEnvironmentRegistry,
+    FabricEnvironmentRegistryEntry,
+    FabricGatewayRegistry,
+    FabricRuntimeUtil,
+    FabricWalletRegistry,
+    FabricWalletRegistryEntry,
+    LogType
+} from 'ibm-blockchain-platform-common';
+import {FabricDebugConfigurationProvider} from '../../extension/debug/FabricDebugConfigurationProvider';
+import {TestUtil} from '../TestUtil';
 import * as openTransactionViewCommand from '../../extension/commands/openTransactionViewCommand';
-import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
-import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
-import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
-import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
-import { ManagedAnsibleEnvironmentManager } from '../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
-import { ManagedAnsibleEnvironment } from '../../extension/fabric/environments/ManagedAnsibleEnvironment';
-import { TimerUtil } from '../../extension/util/TimerUtil';
+import {LocalEnvironment} from '../../extension/fabric/environments/LocalEnvironment';
+import {FabricConnectionFactory} from '../../extension/fabric/FabricConnectionFactory';
+import {ConnectedState, FabricEnvironmentManager} from '../../extension/fabric/environments/FabricEnvironmentManager';
+import {FabricEnvironmentConnection} from 'ibm-blockchain-platform-environment-v1';
+import {ManagedAnsibleEnvironmentManager} from '../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
+import {ManagedAnsibleEnvironment} from '../../extension/fabric/environments/ManagedAnsibleEnvironment';
+import {TimerUtil} from '../../extension/util/TimerUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -110,7 +119,7 @@ describe('ExtensionUtil Tests', () => {
 
         it('should handle errors', async () => {
 
-            mySandBox.stub(fs, 'readFile').throws({ message: 'Cannot read file' });
+            mySandBox.stub(fs, 'readFile').throws({message: 'Cannot read file'});
 
             await ExtensionUtil.loadJSON(workspaceFolder, 'package.json').should.be.rejectedWith('error reading package.json from project Cannot read file');
 
@@ -120,7 +129,7 @@ describe('ExtensionUtil Tests', () => {
     describe('getContractNameAndVersion', () => {
         it('should get contract name and version', async () => {
 
-            mySandBox.stub(ExtensionUtil, 'loadJSON').resolves({ name: 'projectName', version: '0.0.3' });
+            mySandBox.stub(ExtensionUtil, 'loadJSON').resolves({name: 'projectName', version: '0.0.3'});
 
             const result: any = await ExtensionUtil.getContractNameAndVersion(workspaceFolder);
             result.should.deep.equal({
@@ -131,7 +140,7 @@ describe('ExtensionUtil Tests', () => {
 
         it('should handle errors', async () => {
 
-            mySandBox.stub(ExtensionUtil, 'loadJSON').throws({ message: 'error reading package.json from project Cannot read file' });
+            mySandBox.stub(ExtensionUtil, 'loadJSON').throws({message: 'error reading package.json from project Cannot read file'});
             should.equal(await ExtensionUtil.getContractNameAndVersion(workspaceFolder), undefined);
         });
     });
@@ -515,7 +524,10 @@ describe('ExtensionUtil Tests', () => {
         it('should call upgrade if version different', async () => {
             await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
 
-            mySandBox.stub(FabricDebugConfigurationProvider, 'getInstantiatedChaincode').resolves({ name: 'myContract', version: 'differnet' });
+            mySandBox.stub(FabricDebugConfigurationProvider, 'getInstantiatedChaincode').resolves({
+                name: 'myContract',
+                version: 'differnet'
+            });
 
             const session: any = {
                 some: 'thing',
@@ -557,7 +569,10 @@ describe('ExtensionUtil Tests', () => {
         it('should not call anything if version same', async () => {
             await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
 
-            mySandBox.stub(FabricDebugConfigurationProvider, 'getInstantiatedChaincode').resolves({ name: 'myContract', version: '0.0.1' });
+            mySandBox.stub(FabricDebugConfigurationProvider, 'getInstantiatedChaincode').resolves({
+                name: 'myContract',
+                version: '0.0.1'
+            });
 
             const session: any = {
                 some: 'thing',
@@ -643,7 +658,7 @@ describe('ExtensionUtil Tests', () => {
         it('should push the reporter instance if production flag is true', async () => {
             mySandBox.stub(vscode.commands, 'executeCommand').resolves();
 
-            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
+            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
             const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter, 'instance');
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
@@ -660,7 +675,7 @@ describe('ExtensionUtil Tests', () => {
         it(`shouldn't push the reporter instance if production flag is false`, async () => {
             mySandBox.stub(vscode.commands, 'executeCommand').resolves();
 
-            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: false });
+            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: false});
             const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter, 'instance');
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
@@ -708,9 +723,9 @@ describe('ExtensionUtil Tests', () => {
             await ExtensionUtil.registerCommands(ctx);
 
             setIntervalStub.should.have.been.calledOnceWithExactly([
-                { command: ExtensionCommands.REFRESH_ENVIRONMENTS, args: [] },
-                { command: ExtensionCommands.REFRESH_GATEWAYS, args: [] },
-                { command: ExtensionCommands.REFRESH_WALLETS, args: [] }
+                {command: ExtensionCommands.REFRESH_ENVIRONMENTS, args: []},
+                {command: ExtensionCommands.REFRESH_GATEWAYS, args: []},
+                {command: ExtensionCommands.REFRESH_WALLETS, args: []}
             ], 60000);
 
             process.env.REFRESH_PANELS = 'false';
@@ -726,7 +741,7 @@ describe('ExtensionUtil Tests', () => {
             const preReqViewStub: sinon.SinonStub = mySandBox.stub(PreReqView.prototype, 'openView');
             preReqViewStub.resolves();
 
-            const ctx: vscode.ExtensionContext = { subscriptions: [] } as vscode.ExtensionContext;
+            const ctx: vscode.ExtensionContext = {subscriptions: []} as vscode.ExtensionContext;
             const registerCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'registerCommand').withArgs(ExtensionCommands.OPEN_PRE_REQ_PAGE).yields({} as vscode.Command);
 
             const context: vscode.ExtensionContext = await ExtensionUtil.registerPreReqAndReleaseNotesCommand(ctx);
@@ -773,14 +788,14 @@ describe('ExtensionUtil Tests', () => {
         it('should install native dependencies if not installed', async () => {
             hasNativeDependenciesInstalledStub.returns(false);
             installNativeDependenciesStub.resolves();
-            getPackageJsonStub.returns({ activationEvents: ['*'] });
+            getPackageJsonStub.returns({activationEvents: ['*']});
             rewritePackageJsonStub.resolves();
             globalStateGetStub.returns({
                 version: '1.0.0'
             });
             setupLocalRuntimeStub.resolves();
             restoreCommandsStub.resolves();
-            getExtensionContextStub.returns({ hello: 'world' });
+            getExtensionContextStub.returns({hello: 'world'});
             registerCommandsStub.resolves();
             executeStoredCommandsStub.resolves();
             getExtensionLocalFabricSettingStub.returns(true);
@@ -811,7 +826,7 @@ describe('ExtensionUtil Tests', () => {
 
             restoreCommandsStub.should.have.been.calledOnce;
             getExtensionContextStub.should.have.been.calledOnce;
-            registerCommandsStub.should.have.been.calledOnceWithExactly({ hello: 'world' });
+            registerCommandsStub.should.have.been.calledOnceWithExactly({hello: 'world'});
             executeStoredCommandsStub.should.have.been.calledOnce;
             fabricConnectionFactorySpy.should.have.been.called;
         });
@@ -819,14 +834,14 @@ describe('ExtensionUtil Tests', () => {
         it(`shouldn't install native dependencies if they are already installed`, async () => {
             hasNativeDependenciesInstalledStub.returns(true);
             installNativeDependenciesStub.resolves();
-            getPackageJsonStub.returns({ activationEvents: ['activationEvent1', 'activationEvent2'] });
+            getPackageJsonStub.returns({activationEvents: ['activationEvent1', 'activationEvent2']});
             rewritePackageJsonStub.resolves();
             globalStateGetStub.returns({
                 version: '1.0.0'
             });
             setupLocalRuntimeStub.resolves();
             restoreCommandsStub.resolves();
-            getExtensionContextStub.returns({ hello: 'world' });
+            getExtensionContextStub.returns({hello: 'world'});
             registerCommandsStub.resolves();
             executeStoredCommandsStub.resolves();
             getExtensionLocalFabricSettingStub.returns(true);
@@ -856,7 +871,7 @@ describe('ExtensionUtil Tests', () => {
 
             restoreCommandsStub.should.have.been.calledOnce;
             getExtensionContextStub.should.have.been.calledOnce;
-            registerCommandsStub.should.have.been.calledOnceWithExactly({ hello: 'world' });
+            registerCommandsStub.should.have.been.calledOnceWithExactly({hello: 'world'});
             executeStoredCommandsStub.should.have.been.calledOnce;
             fabricConnectionFactorySpy.should.have.been.called;
         });
@@ -864,14 +879,14 @@ describe('ExtensionUtil Tests', () => {
         it(`should rewrite the package.json file if ther native dependencies are installed but there are no activation events`, async () => {
             hasNativeDependenciesInstalledStub.returns(true);
             installNativeDependenciesStub.resolves();
-            getPackageJsonStub.returns({ activationEvents: ['*'] });
+            getPackageJsonStub.returns({activationEvents: ['*']});
             rewritePackageJsonStub.resolves();
             globalStateGetStub.returns({
                 version: '1.0.0'
             });
             setupLocalRuntimeStub.resolves();
             restoreCommandsStub.resolves();
-            getExtensionContextStub.returns({ hello: 'world' });
+            getExtensionContextStub.returns({hello: 'world'});
             registerCommandsStub.resolves();
             executeStoredCommandsStub.resolves();
             getExtensionLocalFabricSettingStub.returns(true);
@@ -901,7 +916,7 @@ describe('ExtensionUtil Tests', () => {
 
             restoreCommandsStub.should.have.been.calledOnce;
             getExtensionContextStub.should.have.been.calledOnce;
-            registerCommandsStub.should.have.been.calledOnceWithExactly({ hello: 'world' });
+            registerCommandsStub.should.have.been.calledOnceWithExactly({hello: 'world'});
             executeStoredCommandsStub.should.have.been.calledOnce;
             fabricConnectionFactorySpy.should.have.been.called;
         });
@@ -909,14 +924,14 @@ describe('ExtensionUtil Tests', () => {
         it('should not created one org local fabric if it has already been created', async () => {
             hasNativeDependenciesInstalledStub.returns(false);
             installNativeDependenciesStub.resolves();
-            getPackageJsonStub.returns({ activationEvents: ['*'] });
+            getPackageJsonStub.returns({activationEvents: ['*']});
             rewritePackageJsonStub.resolves();
             globalStateGetStub.returns({
                 version: '1.0.0'
             });
             setupLocalRuntimeStub.resolves();
             restoreCommandsStub.resolves();
-            getExtensionContextStub.returns({ hello: 'world' });
+            getExtensionContextStub.returns({hello: 'world'});
             registerCommandsStub.resolves();
             executeStoredCommandsStub.resolves();
             getExtensionLocalFabricSettingStub.returns(true);
@@ -945,26 +960,31 @@ describe('ExtensionUtil Tests', () => {
 
             restoreCommandsStub.should.have.been.calledOnce;
             getExtensionContextStub.should.have.been.calledOnce;
-            registerCommandsStub.should.have.been.calledOnceWithExactly({ hello: 'world' });
+            registerCommandsStub.should.have.been.calledOnceWithExactly({hello: 'world'});
             executeStoredCommandsStub.should.have.been.calledOnce;
             fabricConnectionFactorySpy.should.have.been.called;
         });
 
         it(`should delete local registry entries if not enabled`, async () => {
-            await FabricGatewayRegistry.instance().add({ name: 'otherGateway', managedGateway: false, associatedWallet: undefined, connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json') });
+            await FabricGatewayRegistry.instance().add({
+                name: 'otherGateway',
+                managedGateway: false,
+                associatedWallet: undefined,
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json')
+            });
 
             await TestUtil.setupLocalFabric();
 
             hasNativeDependenciesInstalledStub.returns(true);
             installNativeDependenciesStub.resolves();
-            getPackageJsonStub.returns({ activationEvents: ['activationEvent1', 'activationEvent2'] });
+            getPackageJsonStub.returns({activationEvents: ['activationEvent1', 'activationEvent2']});
             rewritePackageJsonStub.resolves();
             globalStateGetStub.returns({
                 version: '1.0.0'
             });
             setupLocalRuntimeStub.resolves();
             restoreCommandsStub.resolves();
-            getExtensionContextStub.returns({ hello: 'world' });
+            getExtensionContextStub.returns({hello: 'world'});
             registerCommandsStub.resolves();
             executeStoredCommandsStub.resolves();
             getExtensionLocalFabricSettingStub.returns(false);
@@ -995,7 +1015,7 @@ describe('ExtensionUtil Tests', () => {
 
             restoreCommandsStub.should.have.been.calledOnce;
             getExtensionContextStub.should.have.been.calledOnce;
-            registerCommandsStub.should.have.been.calledOnceWithExactly({ hello: 'world' });
+            registerCommandsStub.should.have.been.calledOnceWithExactly({hello: 'world'});
             executeStoredCommandsStub.should.have.been.calledOnce;
             fabricConnectionFactorySpy.should.have.been.called;
 
@@ -1280,9 +1300,25 @@ describe('ExtensionUtil Tests', () => {
             // We'll just use the local fabrics env directory
             const localEnv: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
 
-            const generatedLocal: FabricEnvironmentRegistryEntry = { name: 'generatedLocal', environmentDirectory: localEnv.environmentDirectory, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, numberOfOrgs: 1 };
-            const nonGeneratedLocal: FabricEnvironmentRegistryEntry = { name: 'nonGeneratedLocal', environmentDirectory: '', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, numberOfOrgs: 1 };
-            const opsTool: FabricEnvironmentRegistryEntry = { url: 'some_website', environmentType: 3, name: 'consoleEnv' };
+            const generatedLocal: FabricEnvironmentRegistryEntry = {
+                name: 'generatedLocal',
+                environmentDirectory: localEnv.environmentDirectory,
+                environmentType: EnvironmentType.LOCAL_ENVIRONMENT,
+                managedRuntime: true,
+                numberOfOrgs: 1
+            };
+            const nonGeneratedLocal: FabricEnvironmentRegistryEntry = {
+                name: 'nonGeneratedLocal',
+                environmentDirectory: '',
+                environmentType: EnvironmentType.LOCAL_ENVIRONMENT,
+                managedRuntime: true,
+                numberOfOrgs: 1
+            };
+            const opsTool: FabricEnvironmentRegistryEntry = {
+                url: 'some_website',
+                environmentType: EnvironmentType.OPS_TOOLS_ENVIRONMENT,
+                name: 'consoleEnv'
+            };
             await FabricEnvironmentRegistry.instance().add(generatedLocal);
             await FabricEnvironmentRegistry.instance().add(nonGeneratedLocal);
             await FabricEnvironmentRegistry.instance().add(opsTool);
@@ -1346,9 +1382,25 @@ describe('ExtensionUtil Tests', () => {
             // We'll just use the local fabrics env directory
             const localEnv: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
 
-            const generatedLocal: FabricEnvironmentRegistryEntry = { name: 'generatedLocal', environmentDirectory: localEnv.environmentDirectory, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, numberOfOrgs: 1 };
-            const nonGeneratedLocal: FabricEnvironmentRegistryEntry = { name: 'nonGeneratedLocal', environmentDirectory: '', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, numberOfOrgs: 1 };
-            const opsTool: FabricEnvironmentRegistryEntry = { url: 'some_website', environmentType: 3, name: 'consoleEnv' };
+            const generatedLocal: FabricEnvironmentRegistryEntry = {
+                name: 'generatedLocal',
+                environmentDirectory: localEnv.environmentDirectory,
+                environmentType: EnvironmentType.LOCAL_ENVIRONMENT,
+                managedRuntime: true,
+                numberOfOrgs: 1
+            };
+            const nonGeneratedLocal: FabricEnvironmentRegistryEntry = {
+                name: 'nonGeneratedLocal',
+                environmentDirectory: '',
+                environmentType: EnvironmentType.LOCAL_ENVIRONMENT,
+                managedRuntime: true,
+                numberOfOrgs: 1
+            };
+            const opsTool: FabricEnvironmentRegistryEntry = {
+                url: 'some_website',
+                environmentType: EnvironmentType.OPS_TOOLS_ENVIRONMENT,
+                name: 'consoleEnv'
+            };
             await FabricEnvironmentRegistry.instance().add(generatedLocal);
             await FabricEnvironmentRegistry.instance().add(nonGeneratedLocal);
             await FabricEnvironmentRegistry.instance().add(opsTool);
@@ -1592,7 +1644,11 @@ describe('ExtensionUtil Tests', () => {
             disposeExtensionStub = mySandBox.stub(ExtensionUtil, 'disposeExtension');
             disposeExtensionStub.callThrough();
 
-            await FabricEnvironmentRegistry.instance().add({ url: 'some_website', environmentType: 3, name: 'consoleEnv' });
+            await FabricEnvironmentRegistry.instance().add({
+                url: 'some_website',
+                environmentType: EnvironmentType.OPS_TOOLS_ENVIRONMENT,
+                name: 'consoleEnv'
+            });
         });
 
         afterEach(() => {
@@ -1882,7 +1938,12 @@ describe('ExtensionUtil Tests', () => {
             });
 
             it(`should set context if runtime is running and user does teardown`, async () => {
-                await FabricGatewayRegistry.instance().add({ name: 'newGateway', managedGateway: false, associatedWallet: undefined, connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json')});
+                await FabricGatewayRegistry.instance().add({
+                    name: 'newGateway',
+                    managedGateway: false,
+                    associatedWallet: undefined,
+                    connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json')
+                });
                 executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC).resolves();
                 showConfirmationWarningMessageStub.resolves(true);
 
@@ -2003,7 +2064,10 @@ describe('ExtensionUtil Tests', () => {
             mockConnection = mySandBox.createStubInstance(FabricEnvironmentConnection);
             startLogsStub = mySandBox.stub(LocalEnvironment.prototype, 'startLogs').returns(undefined);
             stopLogsStub = mySandBox.stub(LocalEnvironment.prototype, 'stopLogs').returns(undefined);
-            originalRuntime = new LocalEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, { startPort: 17050, endPort: 17070 }, 1);
+            originalRuntime = new LocalEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, {
+                startPort: 17050,
+                endPort: 17070
+            }, 1);
         });
 
         it(`should start logs if ${FabricRuntimeUtil.LOCAL_FABRIC} is connected`, async () => {
@@ -2055,7 +2119,12 @@ describe('ExtensionUtil Tests', () => {
 
         it('should do nothing when disconnected from a non-local environment', async () => {
             mySandBox.stub(ManagedAnsibleEnvironmentManager.instance(), 'getRuntime').returns(new ManagedAnsibleEnvironment('managedAnsible', path.join(__dirname, '..', '..', '..', 'test', 'data', 'managedAnsible')));
-            await FabricEnvironmentRegistry.instance().add({ name: 'managedAnsible', environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT, managedRuntime: true, environmentDirectory: path.join(__dirname, '..', '..', '..', 'test', 'data', 'managedAnsible') });
+            await FabricEnvironmentRegistry.instance().add({
+                name: 'managedAnsible',
+                environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
+                managedRuntime: true,
+                environmentDirectory: path.join(__dirname, '..', '..', '..', 'test', 'data', 'managedAnsible')
+            });
 
             const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get('managedAnsible');
             getEnvironmentRegistryEntryStub.returns(registryEntry);

@@ -12,9 +12,9 @@
  * limitations under the License.
 */
 
-import { FabricEnvironmentRegistryEntry, EnvironmentType } from './FabricEnvironmentRegistryEntry';
-import { FileConfigurations } from './FileConfigurations';
-import { FileRegistry } from './FileRegistry';
+import {EnvironmentFlags, EnvironmentType, FabricEnvironmentRegistryEntry} from './FabricEnvironmentRegistryEntry';
+import {FileConfigurations} from './FileConfigurations';
+import {FileRegistry} from './FileRegistry';
 
 export class FabricEnvironmentRegistry extends FileRegistry<FabricEnvironmentRegistryEntry> {
 
@@ -28,34 +28,53 @@ export class FabricEnvironmentRegistry extends FileRegistry<FabricEnvironmentReg
         super(FileConfigurations.FABRIC_ENVIRONMENTS);
     }
 
-    public async getAll(showLocalFabric: boolean = true, onlyShowManagedEnvironment: boolean = false, onlyShowNonAnsible: boolean = false): Promise<FabricEnvironmentRegistryEntry[]> {
+    public async getAll(includeFilter: EnvironmentFlags[] = [], excludeFilter: EnvironmentFlags[] = []): Promise<FabricEnvironmentRegistryEntry[]> {
         let entries: FabricEnvironmentRegistryEntry[] = await super.getAll();
 
         const local: FabricEnvironmentRegistryEntry[] = [];
 
-        entries = entries.filter((entry: FabricEnvironmentRegistryEntry) => {
-            // TODO change all this for fabric 2 to just filter by environment types
-            if (onlyShowNonAnsible) {
-                return entry.environmentType !== EnvironmentType.ANSIBLE_ENVIRONMENT && entry.environmentType !== EnvironmentType.LOCAL_ENVIRONMENT ;
-            }
+        entries = this.filterEnvironments(entries, includeFilter, excludeFilter);
 
+        // need to remove any local ones
+        entries = entries.filter((entry: FabricEnvironmentRegistryEntry) => {
             if (entry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
                 local.push(entry);
-                return false;
-            }
-            if (entry.managedRuntime && onlyShowManagedEnvironment) {
-                return true;
-            } else if (!entry.managedRuntime && onlyShowManagedEnvironment) {
                 return false;
             }
 
             return true;
         });
 
-        if (showLocalFabric && local) {
-            entries = [...local, ...entries];
-        }
+        entries.unshift(...local);
 
         return entries;
+    }
+
+    private filterEnvironments(environments: FabricEnvironmentRegistryEntry[], includeFilter: EnvironmentFlags[], excludeFilter: EnvironmentFlags[]): FabricEnvironmentRegistryEntry[] {
+        return environments.filter((environment: FabricEnvironmentRegistryEntry) => {
+            const environmentType: EnvironmentType = environment.environmentType;
+            // remove all the excluded ones
+            for (const exclude of excludeFilter) {
+                const result: number = environmentType & exclude;
+                if (result === exclude) {
+                    return false;
+                }
+            }
+
+            // if nothing is included we just return all thats not on the excluded list
+            if (includeFilter.length > 0) {
+                // check if it's one we want
+                for (const include of includeFilter) {
+                    const result: number = environmentType & include;
+                    if (result !== include) {
+                        return false;
+                    }
+                }
+
+                return true;
+            } else {
+                return true;
+            }
+        });
     }
 }

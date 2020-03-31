@@ -23,7 +23,7 @@ export class InstallHelper {
 
         const peer: LifecyclePeer = lifecycle.getPeer(peerName, wallet, identity);
 
-        return peer.installSmartContractPackage(packageFile, 60000);
+        return peer.installSmartContractPackage(packageFile, 80000);
     }
 
     public static async getInstalledSmartContracts(lifecycle: Lifecycle, peerName: string, wallet: Wallet, identity: string): Promise<{ label: string, packageId: string }[]> {

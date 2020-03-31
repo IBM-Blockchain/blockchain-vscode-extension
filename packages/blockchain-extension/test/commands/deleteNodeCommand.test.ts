@@ -67,6 +67,7 @@ describe('DeleteNodeCommand', () => {
 
             environmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistryEntry.name = 'myEnvironment';
+            environmentRegistryEntry.environmentType = EnvironmentType.ENVIRONMENT;
 
             opsToolRegistryEntry = new FabricEnvironmentRegistryEntry();
             opsToolRegistryEntry.name = 'someName';

@@ -18,7 +18,7 @@ import { FabricGatewayRegistryEntry } from './FabricGatewayRegistryEntry';
 import { AnsibleEnvironment } from '../environments/AnsibleEnvironment';
 import { FileConfigurations } from '../registries/FileConfigurations';
 import { FileRegistry } from '../registries/FileRegistry';
-import { FabricEnvironmentRegistryEntry, EnvironmentType } from '../registries/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry, EnvironmentType, EnvironmentFlags } from '../registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
 
 export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEntry> {
@@ -65,12 +65,8 @@ export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEnt
         const normalEntries: FabricGatewayRegistryEntry[] = await super.getEntries();
         const otherEntries: FabricGatewayRegistryEntry[] = [];
 
-        let environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
-
-        // just get the ansible ones
-        environmentEntries = environmentEntries.filter((entry: FabricEnvironmentRegistryEntry) => {
-            return entry.environmentType === EnvironmentType.ANSIBLE_ENVIRONMENT || entry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT;
-        });
+         // just get the ansible ones
+        const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.ANSIBLE]);
 
         for (const environmentEntry of environmentEntries) {
             const environment: AnsibleEnvironment = new AnsibleEnvironment(environmentEntry.name, environmentEntry.environmentDirectory);

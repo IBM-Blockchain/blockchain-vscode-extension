@@ -179,7 +179,8 @@ describe('AddEnvironmentCommand', () => {
 
             environments.length.should.equal(1);
             environments[0].should.deep.equal({
-                name: 'myEnvironment'
+                name: 'myEnvironment',
+                environmentType: EnvironmentType.ENVIRONMENT
             });
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
@@ -207,11 +208,13 @@ describe('AddEnvironmentCommand', () => {
 
             environments.length.should.equal(2);
             environments[0].should.deep.equal({
-                name: 'myEnvironmentOne'
+                name: 'myEnvironmentOne',
+                environmentType: EnvironmentType.ENVIRONMENT
             });
 
             environments[1].should.deep.equal({
-                name: 'myEnvironmentTwo'
+                name: 'myEnvironmentTwo',
+                environmentType: EnvironmentType.ENVIRONMENT
             });
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
@@ -300,7 +303,8 @@ describe('AddEnvironmentCommand', () => {
             const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(1);
             environments[0].should.deep.equal({
-                name: 'myEnvironmentOne'
+                name: 'myEnvironmentOne',
+                environmentType: EnvironmentType.ENVIRONMENT
             });
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
@@ -327,7 +331,8 @@ describe('AddEnvironmentCommand', () => {
             const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(1);
             environments[0].should.deep.equal({
-                name: 'myEnvironmentOne'
+                name: 'myEnvironmentOne',
+                environmentType: EnvironmentType.ENVIRONMENT
             });
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
@@ -351,7 +356,8 @@ describe('AddEnvironmentCommand', () => {
             const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(1);
             environments[0].should.deep.equal({
-                name: 'myEnvironment'
+                name: 'myEnvironment',
+                environmentType: EnvironmentType.ENVIRONMENT
             });
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
@@ -663,7 +669,8 @@ describe('AddEnvironmentCommand', () => {
 
             environments.length.should.equal(1);
             environments[0].should.deep.equal({
-                name: 'myEnvironment'
+                name: 'myEnvironment',
+                environmentType: EnvironmentType.ENVIRONMENT
             });
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
@@ -967,9 +974,9 @@ describe('AddEnvironmentCommand', () => {
             const extPath: string = ExtensionUtil.getExtensionPath();
             const tutorialPath: string = path.join(extPath, 'tutorials', 'developer-tutorials', 'create-custom-networks.md');
 
-            const executeCallOne: sinon.SinonSpyCall = executeCommandStub.getCall(2);
+            const executeCallOne: sinon.SinonSpyCall = executeCommandStub.getCall(executeCommandStub.callCount - 1);
             executeCallOne.should.have.been.calledWith('markdown.showPreview', sinon.match.any);
-            executeCallOne.args[1].path.should.equal(tutorialPath);
+            executeCallOne.args[1].fsPath.should.equal(tutorialPath);
 
             deleteEnvironmentSpy.should.have.not.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');

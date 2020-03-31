@@ -20,7 +20,7 @@ import { PackageRegistry } from '../registries/PackageRegistry';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { MetadataUtil } from '../util/MetadataUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricCertificate, FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricEnvironmentConnection, IFabricGatewayConnection, LogType, FabricEnvironment, FabricGatewayRegistryEntry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
+import { FabricCertificate, FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricEnvironmentConnection, IFabricGatewayConnection, LogType, FabricEnvironment, FabricGatewayRegistryEntry, FabricGatewayRegistry, EnvironmentFlags } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { TimerUtil } from '../util/TimerUtil';
@@ -32,12 +32,6 @@ export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPic
 export enum LanguageType {
     CHAINCODE = 'chaincode',
     CONTRACT = 'contract'
-}
-
-export enum IncludeEnvironmentOptions {
-    ALLENV = 'all-environments',
-    OPSTOOLSENV = 'ops-tools',
-    OTHERENV = 'other-environment'
 }
 
 export interface LanguageQuickPickItem extends vscode.QuickPickItem {
@@ -149,34 +143,18 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(items, quickPickOptions);
     }
 
-    public static async showFabricEnvironmentQuickPickBox(prompt: string, canPickMany: boolean, autoChoose: boolean, showLocalFabric: boolean = false, envType: IncludeEnvironmentOptions = IncludeEnvironmentOptions.ALLENV, onlyShowManagedEnvironment: boolean = false, onlyShowNonAnsibleEnvironment: boolean = false): Promise<Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> | IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
+    public static async showFabricEnvironmentQuickPickBox(prompt: string, canPickMany: boolean, autoChoose: boolean, includeFilter: EnvironmentFlags[] = [], excludeFilter: EnvironmentFlags[] = []): Promise<Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> | IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
             canPickMany: canPickMany,
             placeHolder: prompt
         };
 
-        const environments: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(showLocalFabric, onlyShowManagedEnvironment, onlyShowNonAnsibleEnvironment);
+        const environments: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll(includeFilter, excludeFilter);
 
         let environmentsQuickPickItems: Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>>;
-        let environmentsFiltered: Array<FabricEnvironmentRegistryEntry> = environments;
 
-        // TODO: Caroline remoe this for fabric 2 and just use filters
-        switch (envType) {
-            case IncludeEnvironmentOptions.ALLENV: {
-                break;
-            }
-            case IncludeEnvironmentOptions.OPSTOOLSENV: {
-                environmentsFiltered = environments.filter((environment: FabricEnvironmentRegistryEntry) => environment.url);
-                break;
-            }
-            case IncludeEnvironmentOptions.OTHERENV: {
-                environmentsFiltered = environments.filter((environment: FabricEnvironmentRegistryEntry) => !environment.url);
-                break;
-            }
-        }
-
-        environmentsQuickPickItems = environmentsFiltered.map((environment: FabricEnvironmentRegistryEntry) => {
+        environmentsQuickPickItems = environments.map((environment: FabricEnvironmentRegistryEntry) => {
             return { label: environment.name, data: environment };
         });
 

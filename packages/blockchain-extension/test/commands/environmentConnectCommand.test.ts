@@ -150,7 +150,7 @@ describe('EnvironmentConnectCommand', () => {
             it('should test a fabric environment can be connected to from the command', async () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
 
-                chooseEnvironmentQuickPick.should.have.been.calledWith(sinon.match.string, false, true, true);
+                chooseEnvironmentQuickPick.should.have.been.calledWith(sinon.match.string, false, true);
                 connectExplorerStub.should.have.been.called;
                 connectManagerSpy.should.have.been.calledWith(mockConnection, environmentRegistryEntry, ConnectedState.CONNECTING);
                 mockConnection.connect.should.have.been.called;
@@ -161,7 +161,7 @@ describe('EnvironmentConnectCommand', () => {
             it('should test a fabric environment can be connected to from the command but not show success if not wanted', async () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, undefined, false);
 
-                chooseEnvironmentQuickPick.should.have.been.calledWith(sinon.match.string, false, true, true);
+                chooseEnvironmentQuickPick.should.have.been.calledWith(sinon.match.string, false, true);
                 connectExplorerStub.should.have.been.called;
                 connectManagerSpy.should.have.been.calledWith(mockConnection, environmentRegistryEntry, ConnectedState.CONNECTING);
                 mockConnection.connect.should.have.been.called;
@@ -338,7 +338,7 @@ describe('EnvironmentConnectCommand', () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
 
                 connectExplorerStub.should.have.been.calledOnce;
-                chooseEnvironmentQuickPick.should.have.been.calledWith(sinon.match.string, false, true, true);
+                chooseEnvironmentQuickPick.should.have.been.calledWith(sinon.match.string, false, true);
                 mockConnection.connect.should.have.been.calledOnce;
                 connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTING);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'managed environment', connectEnvironmentIBM: sinon.match.string });
