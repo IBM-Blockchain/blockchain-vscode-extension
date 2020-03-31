@@ -245,6 +245,7 @@ describe('InstantiateCommand', () => {
         });
 
         it('should stop if cancelled when asked what chaincode EP to use', async () => {
+            executeCommandStub.resetHistory();
             showYesNo.resolves(UserInputUtil.NO);
             showQuickPick.resolves(undefined);
 
@@ -277,6 +278,7 @@ describe('InstantiateCommand', () => {
         });
 
         it(`should stop if user cancelled passing custom JSON CC EP file`, async () => {
+            executeCommandStub.resetHistory();
             showYesNo.onFirstCall().resolves(UserInputUtil.NO);
             showQuickPick.resolves(UserInputUtil.CUSTOM);
 
