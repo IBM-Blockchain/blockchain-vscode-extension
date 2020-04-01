@@ -3,6 +3,7 @@
 exports[`CustomTile component should render the expected snapshot 1`] = `
 <div
   className="bx--tile custom-tile"
+  onClick={[Function]}
 >
   <div
     className="heading-combo-container"
@@ -17,7 +18,6 @@ exports[`CustomTile component should render the expected snapshot 1`] = `
   <img
     alt=""
     className="new-tab-img"
-    onClick={[Function]}
     src="test-file-stub"
   />
 </div>
