@@ -81,6 +81,17 @@ jobs:
 
       - script: |
           set -ex
+          cd ./packages/blockchain-website
+          npm install
+          npm run build
+          rm -rf ../../docs/*
+          mv build/* ../../docs
+        displayName: Build website
+        condition: succeeded()
+
+
+      - script: |
+          set -ex
           VERSION=$(jq -r ".version" ./packages/blockchain-extension/package.json)
           git commit -asm "Automatic version bump to ${VERSION}"
         displayName: Commit version bump
