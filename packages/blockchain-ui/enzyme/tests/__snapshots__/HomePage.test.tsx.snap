@@ -14,7 +14,7 @@ exports[`HomePage component should render the expected snapshot 1`] = `
         className="bx--row home-title-container"
       >
         <h2>
-          IBM Blockchain platform
+          IBM Blockchain Platform
           <span
             className="bx--tag bx--tag--gray extension-version"
             id="extension-version-tag"
