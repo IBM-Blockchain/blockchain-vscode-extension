@@ -250,6 +250,48 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
+        it('should test nodes with tls_cert or tls_ca_root_cert properties can be added to a new OpsTool instance', async () => {
+            axiosGetStub.onFirstCall().resolves({
+                data: [{
+                    short_name: 'peer0.org1.example.com',
+                    name: 'peer0.org1.example.com',
+                    display_name: 'Peer0 Org1',
+                    api_url: 'grpcs://someHost:somePort1',
+                    type: 'fabric-peer',
+                    wallet: 'fabric_wallet',
+                    identity: 'admin',
+                    msp_id: 'Org1MSP',
+                    tls_ca_root_cert: 'someCertPeer',
+                    location: 'some_saas',
+                    id: 'peer0rg1',
+                    cluster_name: 'someClusterName',
+                    hidden: false
+                },
+                {
+                    short_name: 'ca.org1.example.com',
+                    name: 'ca.org1.example.com',
+                    display_name: 'CA Org1',
+                    api_url: 'grpcs://someHost:somePort2',
+                    type: 'fabric-ca',
+                    wallet: 'fabric_wallet',
+                    identity: 'admin',
+                    tls_cert: 'someCertCa',
+                    location: 'some_saas',
+                    ca_name: 'ca.org1.example.com',
+                    ssl_target_name_override: 'sslTgtNameOverride'
+                }
+            ]});
+
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+
+            getCoreNodeModuleStub.should.have.been.calledOnce;
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.been.calledTwice;
+            getNodesStub.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
+        });
+
         // Update this test when doing issue for filtering nodes
         it('should test nodes can be filtered for an existing OpsTool environment from command palette', async () => {
             showEnvironmentQuickPickStub.resolves({ label: OpsToolRegistryEntry.name, data: OpsToolRegistryEntry });
