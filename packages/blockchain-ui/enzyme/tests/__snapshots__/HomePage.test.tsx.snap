@@ -142,7 +142,15 @@ exports[`HomePage component should render the expected snapshot 1`] = `
         className="bx--row"
       >
         <p>
-          Problems? Search 
+          Problems? Check this 
+          <a
+            className="bx--link"
+            href="https://ibm-blockchain.github.io/blockchain-vscode-extension/"
+            id="home-link-09"
+          >
+            status page
+          </a>
+          , search 
           <a
             className="bx--link"
             href="https://stackoverflow.com/questions/tagged/ibp-vscode-extension"
