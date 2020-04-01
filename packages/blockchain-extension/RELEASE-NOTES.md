@@ -1,5 +1,5 @@
-# IBM Blockchain Platform Extension updated to v1.0.24
-_Release date: March 19th 2020_
+# IBM Blockchain Platform Extension updated to v1.0.25
+_Release date: April 2nd 2020_
 
 Announcements
 ---
@@ -9,31 +9,28 @@ Announcements
 
 Features & Enhancements
 ---
-* View files included in package [#1960](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1960).
-   > Right-click on your package in the `Smart Contracts` panel and select `View Package Information` to see the files included in your package. The files will be logged out in the Output.
+* Added Status Page [#2029](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2029), [#1975](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1975)
+  > We’ve now added a status page [https://ibm-blockchain.github.io/blockchain-vscode-extension](https://ibm-blockchain.github.io/blockchain-vscode-extension) which shows any known issues with the extension, as well as listing fixes and features for future releases!
 
-* Updated Home page design [#1982](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1982).
+* Subscribe to emitted smart contract events [#2029](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2029).
+  > Call `Subscribe to Events` from the command palette, or right-click on a smart contract in the Fabric Gateways to subscribe to events emitted from your smart contract.
 
-* Add an IBM Blockchain Platform network using a username & password (in addition to API Key and Secret) [#1979](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1979).
+* Support adding IBM Blockchain Platform 2.1.3 environments [#2073](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2073), [#2078](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2078).
 
-* Updated to use Fabric SDK 1.4.8 packages - this also fixes rebuild on VS Code 1.43.0 [#2059](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2059)
-
-* Allow debugging of 2-organisation local environments [#1995](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1995)
-   > When you start the debugger it will ask you to select an organisation (and gateway) to debug for. To select another organisation, you must stop the debugger and start it again.
-
-* Added "Create and use custom Fabric network" tutorial [#1749](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1749)
-   > This tutorial is accessible from the Tutorial Gallery and explains how to write and run Ansible playbooks, as well as import the network into the extension.
+* Periodically refresh environment, gateway and wallet panels [#1879](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1879).
 
 Fixes
 ---
-* Remove trailing path from URL when adding an IBM Blockchain Platform network [#1980](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1980).
+* Stop showing teardown message on generator update when there are no local environments [#2069](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2069).
 
-* Force teardown local environments when generator has major version change [#1880](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1880).
+* Only show relevant right-click actions and command options on stopped/started local environments [#1500](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1500).
+
+* Updated Node & npm prerequisite download location [#2101](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2101).
 
 
 This release's Conga Comic:
 ---
-<img src="https://congacomic.github.io/assets/img/blockheight-69.jpg" width="800">
+<img src="https://congacomic.github.io/assets/img/blockheight-70.jpg" width="800">
 
 
 For the full history of all releases, see the [change log](https://marketplace.visualstudio.com/items/IBMBlockchain.ibm-blockchain-platform/changelog).
