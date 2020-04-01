@@ -53,7 +53,7 @@ class HighLevelStatus extends Component<{}, HighLevelStatusState> {
                 description = 'There is at least one sev1 issue';
             } else if (sev2Count > 0 || sev3Count > 0) {
                 icon = warning;
-                description = 'There are at least one sev2 or sev3 issue';
+                description = 'There is at least one sev2 or sev3 issue';
             } else {
                 icon = checkmark;
                 description = 'There are no known issues';
