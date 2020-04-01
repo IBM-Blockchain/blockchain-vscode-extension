@@ -61,8 +61,7 @@ class HomePage extends Component<IProps> {
                         </div>
                         <br/>
                         <div className='bx--row'>
-                            <p>Problems? Search <Link href='https://stackoverflow.com/questions/tagged/ibp-vscode-extension' id='home-link-10'>Stack Overflow</Link>, or raise an issue on <Link href='https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues' id='home-link-11'>GitHub</Link>.</p>
-                            {/* <p>Problems? Check this <Link href='https://au-shah.github.io/ext-statuspage/' id='home-link-09'>status page</Link>, search <Link href='https://stackoverflow.com/questions/tagged/ibp-vscode-extension' id='home-link-10'>Stack Overflow</Link>, or raise an issue on <Link href='https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues' id='home-link-11'>GitHub</Link>.</p> */}
+                            <p>Problems? Check this <Link href='https://ibm-blockchain.github.io/blockchain-vscode-extension/' id='home-link-09'>status page</Link>, search <Link href='https://stackoverflow.com/questions/tagged/ibp-vscode-extension' id='home-link-10'>Stack Overflow</Link>, or raise an issue on <Link href='https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues' id='home-link-11'>GitHub</Link>.</p>
                         </div>
                     </div>
                     <div className='bx--col-lg-7'>
