@@ -3,6 +3,10 @@
 .custom-tile {
     width: 90%;
 
+    &:hover {
+        cursor: pointer;
+    }
+
     p {
         margin-bottom: $spacing-05;
         width: 80%
