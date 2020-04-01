@@ -38,7 +38,7 @@ Given(/a '(.*)' smart contract of type '(.*)'/, async function (language: string
 
 });
 
-Given(/the package exists$/, async function (): Promise<void> {
+Given(/the package exists$/, {timeout: 120000 * 1000},  async function (): Promise<void> {
     const packagedContractPath: string = path.join(Helper.PACKAGE_DIR, `${this.label}.tar.gz`);
 
     const exists: boolean = await fs.pathExists(packagedContractPath);
