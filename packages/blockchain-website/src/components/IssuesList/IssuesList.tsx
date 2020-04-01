@@ -19,28 +19,26 @@ interface IssueProps {
 class IssuesList extends Component<IssueProps, {}> {
 
     getLabel(issue: any): JSX.Element {
-        if (!issue.milestone) {
+        if (issue.labels[0].name.startsWith('sev')) {
             let labelJSX: JSX.Element = <></>;
 
             const issueLabels: [{id: number, node_id: string, url: string, name: string, color: string, default: boolean, description: string}] = issue.labels;
-            issueLabels.map((label: {id: number, node_id: string, url: string, name: string, color: string, default: boolean, description: string}) => {
-                if (label.name === 'sev1') {
-                    labelJSX = (
-                        <h3 className='label bg-sev1'> {'sev1'}
-                        </h3>
-                    );
-                } else if (label.name === 'sev2') {
-                    labelJSX = (
-                        <h3 className='label bg-sev2'> {'sev2'}
-                        </h3>
-                    );
-                } else {
-                    labelJSX = (
-                        <h3 className='label bg-sev3'> {'sev3'}
-                        </h3>
-                    );
-                }
-            });
+            if (issueLabels[0].name === 'sev1') {
+                labelJSX = (
+                    <h3 className='label bg-sev1'> {'sev1'}
+                    </h3>
+                );
+            } else if (issueLabels[0].name === 'sev2') {
+                labelJSX = (
+                    <h3 className='label bg-sev2'> {'sev2'}
+                    </h3>
+                );
+            } else {
+                labelJSX = (
+                    <h3 className='label bg-sev3'> {'sev3'}
+                    </h3>
+                );
+            }
             return labelJSX;
 
         } else {
@@ -64,7 +62,7 @@ class IssuesList extends Component<IssueProps, {}> {
                 issuesArray.map((issue: any) => {
                     let labels: any = issue.labels;
                     labels = labels.filter((label: {id: number, node_id: string, url: string, name: string, color: string, default: boolean, description: string}) => {
-                        return(label.name.startsWith('sev'));
+                        return(label.name.startsWith('sev') || label.name.startsWith('status'));
                     });
                     issue.labels = labels;
                     sortedArray.push(issue);
@@ -101,7 +99,7 @@ class IssuesList extends Component<IssueProps, {}> {
             });
 
             if (issueItems.length === 0) {
-                if (this.props.newestMilestone) { // Only issues in current milestoe have this property.
+                if (this.props.newestMilestone) { // Only issues in current milestone have this property.
                     issueItems = (
                         <div className='no-issues'>
                             No completed fixes yet!

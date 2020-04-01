@@ -58,7 +58,13 @@ describe('IssuesList', () => {
                 id: 'statusID',
                 name: 'status',
                 description: 'statusPage incidents'
-            }]
+            }],
+            milestone: {
+                url: 'someMilestoneURL',
+                id: 'someID',
+                number: 23,
+                state: 'open'
+            }
         },
         {
             url: 'someotherURL',
