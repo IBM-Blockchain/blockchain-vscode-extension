@@ -179,13 +179,21 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                 if (data && data.length > 0) {
                     filteredData = data.filter((_data: any) => _data.api_url)
                         .map((_data: any) => {
+                            _data.name = _data.display_name;
+                            delete _data.display_name;
+
                             if (_data.tls_cert) {
                                 _data.pem = _data.tls_cert;
                                 delete _data.tls_cert;
                             }
 
-                            _data.name = _data.display_name;
-                            delete _data.display_name;
+                            if (_data.type !== 'fabric-ca') {
+                                if (_data.tls_ca_root_cert) {
+                                    _data.pem = _data.tls_ca_root_cert;
+                                    delete _data.tls_ca_root_cert;
+                                }
+                            }
+
                             return FabricNode.pruneNode(_data);
                         });
 

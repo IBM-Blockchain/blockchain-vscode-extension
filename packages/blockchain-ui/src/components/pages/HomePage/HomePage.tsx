@@ -23,7 +23,7 @@ class HomePage extends Component<IProps> {
                 <div className='bx--row'>
                     <div className='bx--col-lg-9'>
                         <div className='bx--row home-title-container'>
-                            <h2>IBM Blockchain platform
+                            <h2>IBM Blockchain Platform
                                 <Tag className='extension-version' id='extension-version-tag' type='gray'>{`v${this.props.extensionVersion}`}</Tag>
                             </h2>
                             <p className='home-title-description'>This extension supports the complete development workflow for Hyperledger Fabric and IBM Blockchain Platform. Get started, learn best practices and earn developer qualifications with our tutorials.</p>
