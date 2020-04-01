@@ -138,7 +138,7 @@ describe('HighLevelStatus', () => {
             ]});
         const component: ReactWrapper<{}, {description: string, icon: string}, HighLevelStatus> = await mount(<HighLevelStatus/>);
         axiosGetStub.should.have.been.calledOnceWithExactly(issuesStatusApiUrl);
-        component.state().description.should.equal('There are at least one sev2 or sev3 issue');
+        component.state().description.should.equal('There is at least one sev2 or sev3 issue');
     });
 
     it('should output current status when successful api call and sev1 incident', async () => {
