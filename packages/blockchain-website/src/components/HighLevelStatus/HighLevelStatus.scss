@@ -1,4 +1,5 @@
 .current-status {
+    display: flex;
     font-size: 14px;
     color: #161616;
     letter-spacing: 0.16px;
@@ -37,7 +38,6 @@
 }
 
 .icon {
-    position: fixed;
     cursor: pointer;
     width: 20px;
     height: 20px;
