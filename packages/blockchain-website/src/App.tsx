@@ -26,7 +26,7 @@ class App extends Component {
                         <StatusList></StatusList>
                     </div>
 
-                    <div className='issues-container'>
+                    <div className='issues-container upcoming-issues-container'>
                         <UpcomingList></UpcomingList>
                     </div>
                 </div>
