@@ -15,6 +15,7 @@
 import { RegistryEntry } from './RegistryEntry';
 
 export enum EnvironmentType {
+    // If we update this enum, we must update environmentConnectCommand too!
     ENVIRONMENT = 1, // Standard remote environment
     ANSIBLE_ENVIRONMENT = 2, // Ansible environment (non-managed or managed)
     OPS_TOOLS_ENVIRONMENT = 3,
