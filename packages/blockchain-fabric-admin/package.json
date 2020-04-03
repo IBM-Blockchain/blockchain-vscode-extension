@@ -22,10 +22,10 @@
         "createModule": "npm pack"
     },
     "dependencies": {
-        "fabric-ca-client": "unstable",
-        "fabric-common": "unstable",
-        "fabric-network": "unstable",
-        "fabric-protos": "unstable",
+        "fabric-ca-client": "2.0.0-snapshot.394",
+        "fabric-common": "2.0.0-snapshot.387",
+        "fabric-network": "2.0.0-snapshot.351",
+        "fabric-protos": "2.0.0-snapshot.245",
         "fs-extra": "^8.1.0",
         "ignore-walk": "^3.0.0",
         "klaw": "^2.0.0",
@@ -139,7 +139,7 @@
         "all": true,
         "check-coverage": true,
         "statements": 98.25,
-        "branches": 95.35,
+        "branches": 94.89,
         "functions": 94.94,
         "lines": 98.25
     }

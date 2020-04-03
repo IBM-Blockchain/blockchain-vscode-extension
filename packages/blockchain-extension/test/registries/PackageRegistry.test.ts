@@ -21,8 +21,6 @@ import { TestUtil } from '../TestUtil';
 import * as fs from 'fs-extra';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
-import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from 'ibm-blockchain-platform-common';
 import { SettingConfigurations } from '../../extension/configurations';
 
 chai.use(sinonChai);
@@ -59,22 +57,28 @@ describe('PackageRegistry', () => {
             const packageRegistryEntries: PackageRegistryEntry[] = await packageRegistry.getAll();
             packageRegistryEntries.should.deep.equal([
                 {
-                    name: 'vscode-pkg-1',
+                    name: 'fabcar-go',
+                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', 'packages', 'fabcar-go.tgz'),
+                    sizeKB: 2359,
+                    version: undefined
+                },
+                {
+                    name: 'fabcar-java',
+                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', 'packages', 'fabcar-java.tar.gz'),
+                    sizeKB: 355,
+                    version: undefined
+                },
+                {
+                    name: 'fabcar-javascript',
                     version: '0.0.1',
-                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', 'packages', 'vscode-pkg-1@0.0.1.cds'),
+                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', 'packages', 'fabcar-javascript@0.0.1.tar.gz'),
                     sizeKB: 3
                 },
                 {
-                    name: 'vscode-pkg-2',
+                    name: 'fabcar-typescript',
                     version: '0.0.2',
-                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', 'packages', 'vscode-pkg-2@0.0.2.cds'),
-                    sizeKB: 3
-                },
-                {
-                    name: 'vscode-pkg-3',
-                    version: '1.2.3',
-                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', 'packages', 'vscode-pkg-3@1.2.3.cds'),
-                    sizeKB: 24
+                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', 'packages', 'fabcar-typescript@0.0.2.tgz'),
+                    sizeKB: 33
                 }
             ]);
         });
@@ -84,33 +88,25 @@ describe('PackageRegistry', () => {
             const packageRegistryEntries: PackageRegistryEntry[] = await packageRegistry.getAll();
             packageRegistryEntries.should.deep.equal([
                 {
-                    name: 'vscode-pkg-1',
+                    name: 'fabcar-java',
+                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'v2', 'packages', 'fabcar-java.tar.gz'),
+                    sizeKB: 355,
+                    version: undefined
+                },
+                {
+                    name: 'fabcar-javascript',
                     version: '0.0.1',
-                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'v2', 'packages', 'vscode-pkg-1@0.0.1.cds'),
+                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'v2', 'packages', 'fabcar-javascript@0.0.1.tar.gz'),
                     sizeKB: 3
                 },
                 {
-                    name: 'vscode-pkg-2',
+                    name: 'fabcar-typescript',
                     version: '0.0.2',
-                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'v2', 'packages', 'vscode-pkg-2@0.0.2.cds'),
-                    sizeKB: 3
-                },
-                {
-                    name: 'vscode-pkg-3',
-                    version: '1.2.3',
-                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'v2', 'packages', 'vscode-pkg-3@1.2.3.cds'),
-                    sizeKB: 24
+                    path: path.join(TEST_BAD_PACKAGE_DIRECTORY, 'v2', 'packages', 'fabcar-typescript@0.0.2.tgz'),
+                    sizeKB: 33
                 }
             ]);
         });
-
-        it('should log any errors reading one of the bad entries', async () => {
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_BAD_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
-            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            await packageRegistry.getAll();
-            logSpy.should.have.been.calledWithExactly(LogType.ERROR, null, sinon.match(/Failed to parse package garbage@6.6.6.cds: /));
-        });
-
     });
 
     describe('#delete', () => {
@@ -118,7 +114,7 @@ describe('PackageRegistry', () => {
         it('should delete one of the entries', async () => {
             const packageRegistryEntries: PackageRegistryEntry[] = await packageRegistry.getAll();
             const packageRegistryEntry: PackageRegistryEntry = packageRegistryEntries[0];
-            packageRegistryEntry.name.should.equal('vscode-pkg-1');
+            packageRegistryEntry.name.should.equal('fabcar-go');
             const removeStub: sinon.SinonStub = mySandBox.stub(fs, 'remove').withArgs(packageRegistryEntry.path).resolves();
             await packageRegistry.delete(packageRegistryEntry);
             removeStub.should.have.been.calledOnceWithExactly(packageRegistryEntry.path);
@@ -128,35 +124,25 @@ describe('PackageRegistry', () => {
 
     describe('#get', () => {
 
-        it('should get one of the entries', async () => {
-            mySandBox.stub(packageRegistry, 'getAll').resolves(
-                [
-                    {
-                        name: 'vscode-pkg-1',
-                        version: '0.0.1',
-                        path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-1@0.0.1.cds')
-                    },
-                    {
-                        name: 'vscode-pkg-2',
-                        version: '0.0.2',
-                        path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-2@0.0.2.cds')
-                    },
-                    {
-                        name: 'vscode-pkg-3',
-                        version: '1.2.3',
-                        path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-3@1.2.3.cds')
-                    }
-                ]
-            );
-
-            const _package: PackageRegistryEntry = await packageRegistry.get('vscode-pkg-2', '0.0.2');
+        it('should get one of the entries with a version', async () => {
+            const _package: PackageRegistryEntry = await packageRegistry.get('fabcar-javascript', '0.0.1');
             _package.should.deep.equal({
-                name: 'vscode-pkg-2',
-                version: '0.0.2',
-                path: path.join(TestUtil.EXTENSION_TEST_DIR, 'packages', 'vscode-pkg-2@0.0.2.cds')
+                name: 'fabcar-javascript',
+                version: '0.0.1',
+                sizeKB: 3,
+                path: path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', 'packages', 'fabcar-javascript@0.0.1.tar.gz')
             });
         });
 
+        it('should get one of the entries without a version', async () => {
+            const _package: PackageRegistryEntry = await packageRegistry.get('fabcar-java');
+            _package.should.deep.equal({
+                name: 'fabcar-java',
+                version: undefined,
+                sizeKB: 355,
+                path: path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', 'packages', 'fabcar-java.tar.gz')
+            });
+        });
     });
 
     describe('#clear', () => {

@@ -34,6 +34,12 @@ export interface PackagingOptions {
     golangPath?: string
 }
 
+export interface PackageMetadata {
+    label: string,
+    path: string,
+    type: SmartContractType
+}
+
 /**
  * A class to package a smart contract and get the names of the files in a package
  */
@@ -65,7 +71,6 @@ export class SmartContractPackage {
 
         logger.debug('createSmartContractPackage: smartContractPath: %s, label: %s, smartContractType: %s, metadataPath: %s golangPath: %s',
             options.smartContractPath, options.label, options.smartContractType, options.metaDataPath, options.golangPath);
-
 
         if (!options.label) {
             throw new Error('Missing option label');
@@ -116,6 +121,15 @@ export class SmartContractPackage {
         }
     }
 
+    public async getMetadata(): Promise<PackageMetadata> {
+        try {
+            const metadataString: string = await this.findMetadata(this.smartContractPackage);
+            return JSON.parse(metadataString);
+        } catch (error) {
+            throw new Error(`Could not get metadata for package, received error: ${error.message}`);
+        }
+    }
+
     private static async finalPackage(label: string, smartContractType: SmartContractType, packageBytes: Buffer, goPath?: string): Promise<Buffer> {
         logger.debug('finalPackager - Start');
 
@@ -147,7 +161,36 @@ export class SmartContractPackage {
                 handler = new GolangPackager(['.go', '.c', '.h', '.s', '.mod', '.sum']);
         }
 
-        return handler
+        return handler;
+    }
+
+    private async findMetadata(buffer: Buffer): Promise<any> {
+        let allData: string = '';
+        return new Promise((resolve) => {
+            const gunzip: any = zlib.createGunzip();
+            const extract: any = tar.extract();
+            extract.on('entry', (header, stream, next) => {
+                logger.debug('Package._findMetadata - found entry %s', header.name);
+                if (header.type === 'file') {
+                    if (header.name === 'metadata.json') {
+                        stream.on('data', (data: Buffer) => {
+                            allData = allData + data.toString();
+                        });
+                    }
+
+                    stream.on('end', () => {
+                        next();
+                    });
+
+                    stream.resume();
+                }
+            });
+            extract.on('finish', () => {
+                resolve(allData);
+            });
+            gunzip.pipe(extract);
+            gunzip.end(buffer);
+        });
     }
 
     private async findFileNames(buffer: Buffer): Promise<void> {

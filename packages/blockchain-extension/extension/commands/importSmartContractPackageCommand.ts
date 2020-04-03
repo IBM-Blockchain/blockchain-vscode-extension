@@ -31,7 +31,8 @@ export async function importSmartContractPackageCommand(): Promise<void> {
         canSelectFolders: false,
         canSelectMany: false,
         openLabel: 'Select',
-        filters: { Packages: ['cds'] }
+        // TODO put this back in when vscode fix a bug with filters
+        // filters: { Packages: ['tar.gz', 'tgz'] }
     };
 
     const packagePath: string = await UserInputUtil.browse('Browse for a package to import', UserInputUtil.BROWSE_LABEL, openDialogOptions) as string;
@@ -43,13 +44,40 @@ export async function importSmartContractPackageCommand(): Promise<void> {
     try {
         const extDir: string = SettingConfigurations.getExtensionDir();
         const pkgDir: string = path.join(extDir, 'packages');
-        let resolvedPkgDir: string = FileSystemUtil.getDirPath(pkgDir);
+        const resolvedPkgDir: string = FileSystemUtil.getDirPath(pkgDir);
         await fs.ensureDir(resolvedPkgDir);
 
         const packageName: string = path.basename(packagePath);
 
-        resolvedPkgDir = path.join(resolvedPkgDir, packageName);
-        await fs.copy(packagePath, resolvedPkgDir);
+        const resolvedPkgPath: string = path.join(resolvedPkgDir, packageName);
+
+        const nameRegex: RegExp = new RegExp(/^(.+?)(\.tar\.gz|\.tgz)$/);
+
+        const result: RegExpExecArray = nameRegex.exec(packageName);
+
+        if (!result) {
+            throw new Error('Incorrect file type, file extension must be "tar.gz" or "tgz"');
+        }
+
+        const newName: string = result[1];
+
+        let existingPackages: string[] = await fs.readdir(resolvedPkgDir);
+
+        existingPackages = existingPackages.filter((name: string) => {
+            const existingName: RegExpExecArray = nameRegex.exec(name);
+
+            if (!existingName) {
+                return false;
+            }
+
+            return newName === existingName[1];
+        });
+
+        if (existingPackages.length > 0) {
+            throw new Error(`Package with name ${newName} already exists`);
+        }
+
+        await fs.copy(packagePath, resolvedPkgPath);
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_PACKAGES);
 
         VSCodeBlockchainOutputAdapter.instance().log(LogType.SUCCESS, 'Successfully imported smart contract package', `Successfully imported smart contract package ${packageName}`);

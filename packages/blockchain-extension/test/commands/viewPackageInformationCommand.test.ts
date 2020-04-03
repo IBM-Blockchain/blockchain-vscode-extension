@@ -22,6 +22,7 @@ import { TestUtil } from '../TestUtil';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import * as path from 'path';
 import { PackageTreeItem } from '../../extension/explorer/model/PackageTreeItem';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
@@ -46,13 +47,14 @@ describe('viewPackageInformationCommand', () => {
     let sendTelemetryEventStub: sinon.SinonStub;
     let showSmartContractPackagesQuickPickBoxStub: sinon.SinonStub;
     let listFilesStub: sinon.SinonStub;
-    let getAllStub: sinon.SinonStub;
-    let packageRegEntry: PackageRegistryEntry;
     let packagetreeItem: PackageTreeItem;
     let packages: BlockchainTreeItem[];
 
+    const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '../../test/data/packageDir');
+
     before(async () => {
         await TestUtil.setupTests(sandbox);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
 
     beforeEach(async () => {
@@ -61,23 +63,18 @@ describe('viewPackageInformationCommand', () => {
         sendTelemetryEventStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
         blockchainPackageExplorerProvider = ExtensionUtil.getBlockchainPackageExplorerProvider();
 
-        packageRegEntry = new PackageRegistryEntry();
-        packageRegEntry.name = 'cake';
-        packageRegEntry.version = '0.0.1';
-        packageRegEntry.path = '/some/path';
-        packageRegEntry.sizeKB = 10;
-
-        getAllStub = sandbox.stub(PackageRegistry.instance(), 'getAll').resolves([packageRegEntry]);
         packages = await blockchainPackageExplorerProvider.getChildren();
-        getAllStub.should.have.been.called;
-        packagetreeItem = packages[0] as PackageTreeItem;
+        packagetreeItem = packages[2] as PackageTreeItem;
+
+        const allPackages: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
 
         showSmartContractPackagesQuickPickBoxStub = sandbox.stub(UserInputUtil, 'showSmartContractPackagesQuickPickBox').resolves({
-            label: `${packageRegEntry.name}@${packageRegEntry.name}`,
-            data: packageRegEntry
+            label: allPackages[1].name,
+            data: allPackages[1]
         });
+
         listFilesStub = sandbox.stub(ListFilesInPackage, 'listFiles');
-        listFilesStub.withArgs(packageRegEntry.path).resolves(['src/lib/my-contract.js', 'src/package.json', 'src/test/my-contract.js']);
+        listFilesStub.callThrough();
 
     });
 
@@ -96,14 +93,13 @@ describe('viewPackageInformationCommand', () => {
         showSmartContractPackagesQuickPickBoxStub.should.have.been.called;
         listFilesStub.should.have.been.called;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'viewPackageInformation');
-        logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Found 3 file(s) in smart contract package ${packageRegEntry.name}@${packageRegEntry.version}:`);
-        logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, '- src/lib/my-contract.js');
-        logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, '- src/package.json');
-        logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, '- src/test/my-contract.js');
-        logSpy.getCall(5).should.have.been.calledWith(LogType.SUCCESS, `Displayed information for smart contract package ${packageRegEntry.name}@${packageRegEntry.version}.`);
+        logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Found 3 file(s) in smart contract package fabcar-java:`);
+        logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, '- metadata.json');
+        logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, '- src/fabcar-1.0-SNAPSHOT.jar');
+        logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, '- src/lib/genson-1.5.jar');
+        logSpy.getCall(5).should.have.been.calledWith(LogType.SUCCESS, `Displayed information for smart contract package fabcar-java.`);
         showSpy.should.have.been.calledOnce;
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('viewPackageInformationCommand');
-
     });
 
     it('should display package information from treeItem', async () => {
@@ -113,11 +109,16 @@ describe('viewPackageInformationCommand', () => {
         showSmartContractPackagesQuickPickBoxStub.should.not.have.been.called;
         listFilesStub.should.have.been.called;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'viewPackageInformation');
-        logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Found 3 file(s) in smart contract package ${packageRegEntry.name}@${packageRegEntry.version}:`);
-        logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, '- src/lib/my-contract.js');
-        logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, '- src/package.json');
-        logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, '- src/test/my-contract.js');
-        logSpy.getCall(5).should.have.been.calledWith(LogType.SUCCESS, `Displayed information for smart contract package ${packageRegEntry.name}@${packageRegEntry.version}.`);
+        logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Found 8 file(s) in smart contract package fabcar-javascript@0.0.1:`);
+        logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, '- metadata.json');
+        logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, '- src/.editorconfig');
+        logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, '- src/.eslintignore');
+        logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, '- src/.eslintrc.js');
+        logSpy.getCall(6).should.have.been.calledWith(LogType.INFO, undefined, '- src/.gitignore');
+        logSpy.getCall(7).should.have.been.calledWith(LogType.INFO, undefined, '- src/index.js');
+        logSpy.getCall(8).should.have.been.calledWith(LogType.INFO, undefined, '- src/lib/fabcar.js');
+        logSpy.getCall(9).should.have.been.calledWith(LogType.INFO, undefined, '- src/package.json');
+        logSpy.getCall(10).should.have.been.calledWith(LogType.SUCCESS, `Displayed information for smart contract package fabcar-javascript@0.0.1.`);
         showSpy.should.have.been.calledOnce;
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('viewPackageInformationCommand');
     });
@@ -135,7 +136,7 @@ describe('viewPackageInformationCommand', () => {
 
     it('should handle error displaying package information', async () => {
         const error: Error = new Error('some error');
-        const caughtError: Error = new Error(`Unable to extract file list from ${packageRegEntry.name}@${packageRegEntry.version}: ${error.message}`);
+        const caughtError: Error = new Error(`Unable to extract file list from fabcar-javascript@0.0.1: ${error.message}`);
         listFilesStub.reset();
         listFilesStub.rejects(error);
 
@@ -147,5 +148,4 @@ describe('viewPackageInformationCommand', () => {
         logSpy.should.have.been.calledWith(LogType.ERROR, caughtError.message, caughtError.toString());
         showSpy.should.not.have.been.called;
     });
-
 });

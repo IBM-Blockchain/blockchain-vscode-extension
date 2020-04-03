@@ -99,7 +99,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
         try {
 
             // Determine the filename of the new package.
-            const pkgFile: string = path.join(resolvedPkgDir, `${properties.workspacePackageName}@${properties.workspacePackageVersion}.cds`);
+            const pkgFile: string = path.join(resolvedPkgDir, `${properties.workspacePackageName}@${properties.workspacePackageVersion}.tar.gz`);
             const pkgFileExists: boolean = await fs.pathExists(pkgFile);
             if (pkgFileExists) {
                 if (language === 'golang') {
@@ -149,7 +149,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
             // Create the package. Need to dynamically load the package class
             // from the Fabric SDK to avoid early native module loading.
             const { PackageSmartContract } = await import('ibm-blockchain-platform-environment-v1');
-            const fileNames: string[] = await PackageSmartContract.packageContract(properties.workspacePackageName, properties.workspacePackageVersion, contractPath, pkgFile, language, metadataPath);
+            const fileNames: string[] = await PackageSmartContract.packageContract(properties.workspacePackageName, contractPath, pkgFile, language, metadataPath);
 
             Reporter.instance().sendTelemetryEvent('packageCommand');
 

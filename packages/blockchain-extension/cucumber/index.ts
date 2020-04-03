@@ -79,21 +79,21 @@ async function runCucumberTest(): Promise<any> {
         } else if (file === 'package.feature') {
             features[1] = feature;
         } else if (file === 'install.feature') {
-            features[2] = feature;
+            // features[2] = feature;
         } else if (file === 'instantiate.feature') {
-            features[3] = feature;
+            // features[3] = feature;
         } else if (file === 'upgrade.feature') {
-            features[4] = feature;
+            // features[4] = feature;
         } else if (file === 'fabric-environments.feature') {
-            features[5] = feature;
+            // features[5] = feature;
         } else if (file === 'submit.feature') {
-            features[6] = feature;
+            // features[6] = feature;
         } else if (file === 'evaluate.feature') {
-            features[7] = feature;
+            // features[7] = feature;
         } else if (file === 'wallet.feature') {
-            features[8] = feature;
+            // features[8] = feature;
         } else {
-            otherFeatures.push(feature);
+            // otherFeatures.push(feature);
         }
     }
 
