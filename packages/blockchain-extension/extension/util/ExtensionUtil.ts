@@ -197,6 +197,7 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_PACKAGES, () => blockchainPackageExplorerProvider.refresh()));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_ENVIRONMENTS, (element: BlockchainTreeItem) => blockchainEnvironmentExplorerProvider.refresh(element)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.START_FABRIC, (environmentRegistryEntry?: FabricEnvironmentRegistryEntry) => startFabricRuntime(environmentRegistryEntry)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.START_FABRIC_SHORT, (environmentRegistryEntry?: FabricEnvironmentRegistryEntry) => startFabricRuntime(environmentRegistryEntry)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.STOP_FABRIC_SHORT, (runtimeTreeItem?: RuntimeTreeItem) => stopFabricRuntime(runtimeTreeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.STOP_FABRIC, (runtimeTreeItem?: RuntimeTreeItem) => stopFabricRuntime(runtimeTreeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.RESTART_FABRIC, (runtimeTreeItem?: RuntimeTreeItem) => restartFabricRuntime(runtimeTreeItem)));

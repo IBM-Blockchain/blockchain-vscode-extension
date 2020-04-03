@@ -241,6 +241,11 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                             runtime
                         );
 
+                        const isRunning: boolean = await runtime.isRunning();
+                        if (isRunning) {
+                            treeItem.contextValue = 'blockchain-runtime-item-running';
+                        }
+
                         tree.push(treeItem);
 
                     } else {
