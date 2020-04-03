@@ -37,19 +37,26 @@ export async function viewPackageInformation(packageTreeItem?: PackageTreeItem):
         }
 
         let fileNames: string[];
+        let packageName: string = packageToView.name;
+        if (packageToView.version) {
+            packageName = packageName + '@' + packageToView.version;
+        }
+
         try {
             const { ListFilesInPackage } = await import('ibm-blockchain-platform-environment-v1');
             fileNames = await ListFilesInPackage.listFiles(packageToView.path);
-            outputAdapter.log(LogType.INFO, undefined, `Found ${fileNames.length} file(s) in smart contract package ${packageToView.name}@${packageToView.version}:`);
+
+            outputAdapter.log(LogType.INFO, undefined, `Found ${fileNames.length} file(s) in smart contract package ${packageName}:`);
+
             for (const file of fileNames) {
                 outputAdapter.log(LogType.INFO, undefined, `- ${file}`);
             }
             outputAdapter.show();
         } catch (error) {
-            throw new Error(`Unable to extract file list from ${packageToView.name}@${packageToView.version}: ${error.message}`);
+            throw new Error(`Unable to extract file list from ${packageName}: ${error.message}`);
         }
 
-        outputAdapter.log(LogType.SUCCESS, `Displayed information for smart contract package ${packageToView.name}@${packageToView.version}.`);
+        outputAdapter.log(LogType.SUCCESS, `Displayed information for smart contract package ${packageName}.`);
         Reporter.instance().sendTelemetryEvent('viewPackageInformationCommand');
     } catch (error) {
         outputAdapter.log(LogType.ERROR, error.message, error.toString());

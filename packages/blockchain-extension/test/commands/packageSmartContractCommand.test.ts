@@ -261,13 +261,14 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
-            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
             executeTaskStub.should.have.not.been.called;
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -284,13 +285,14 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
-            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
             executeTaskStub.should.have.not.been.called;
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -307,13 +309,14 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folders[testIndex], 'dogechain');
 
-            const pkgFile: string = path.join(fileDest, 'dogechain@0.0.3.cds');
+            const pkgFile: string = path.join(fileDest, 'dogechain@0.0.3.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
             executeTaskStub.should.have.not.been.called;
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -330,13 +333,14 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folders[testIndex], null, '0.0.3');
 
-            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.3.cds');
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.3.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
             executeTaskStub.should.have.not.been.called;
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -353,13 +357,14 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folders[testIndex], 'dogechain', '1.2.3');
 
-            const pkgFile: string = path.join(fileDest, 'dogechain@1.2.3.cds');
+            const pkgFile: string = path.join(fileDest, 'dogechain@1.2.3.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
             executeTaskStub.should.have.not.been.called;
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -376,15 +381,16 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
-            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `4 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- META-INF/statedb/couchdb/indexes/indexOwner.json`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/META-INF/statedb/couchdb/indexes/indexOwner.json`);
-            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `5 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/META-INF/statedb/couchdb/indexes/indexOwner.json`);
             logSpy.getCall(6).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.getCall(7).should.have.been.calledWith(LogType.INFO, undefined, `- META-INF/statedb/couchdb/indexes/indexOwner.json`);
             executeTaskStub.should.have.not.been.called;
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -401,14 +407,15 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
-            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.ts`);
-            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, '- src/package.json');
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `4 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.ts`);
+            logSpy.getCall(6).should.have.been.calledWith(LogType.INFO, undefined, '- src/package.json');
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -431,12 +438,13 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
-            const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
+            const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -458,12 +466,13 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, 'dogechain');
 
-            const pkgFile: string = path.join(fileDest, 'dogechain@0.0.3.cds');
+            const pkgFile: string = path.join(fileDest, 'dogechain@0.0.3.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -485,12 +494,13 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, null, '1.2.3');
 
-            const pkgFile: string = path.join(fileDest, 'myProject@1.2.3.cds');
+            const pkgFile: string = path.join(fileDest, 'myProject@1.2.3.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -510,12 +520,13 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, 'dogechain', '1.2.3');
 
-            const pkgFile: string = path.join(fileDest, 'dogechain@1.2.3.cds');
+            const pkgFile: string = path.join(fileDest, 'dogechain@1.2.3.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -540,12 +551,13 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
-            const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
+            const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -566,13 +578,14 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
-            const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
+            const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -592,13 +605,14 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, 'dogechain');
 
-            const pkgFile: string = path.join(fileDest, 'dogechain@0.0.3.cds');
+            const pkgFile: string = path.join(fileDest, 'dogechain@0.0.3.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -618,13 +632,14 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, null, '1.2.3');
 
-            const pkgFile: string = path.join(fileDest, 'myProject@1.2.3.cds');
+            const pkgFile: string = path.join(fileDest, 'myProject@1.2.3.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -645,13 +660,14 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, 'dogechain', '1.2.3');
 
-            const pkgFile: string = path.join(fileDest, 'dogechain@1.2.3.cds');
+            const pkgFile: string = path.join(fileDest, 'dogechain@1.2.3.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -672,13 +688,14 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
-            const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
+            const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/pom.xml`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/pom.xml`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -748,13 +765,14 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'v2', 'packages', 'javascriptProject@0.0.1.cds')}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
-            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(6).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
-            logSpy.callCount.should.equal(7);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'v2', 'packages', 'javascriptProject@0.0.1.tar.gz')}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.getCall(6).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(7).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
+            logSpy.callCount.should.equal(8);
         });
 
         it('should throw an error as the Go project already exists', async () => {
@@ -780,12 +798,13 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'v2', 'packages', 'myProject@0.0.3.cds')}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(5).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
-            logSpy.callCount.should.equal(6);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'v2', 'packages', 'myProject@0.0.3.tar.gz')}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(6).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
+            logSpy.callCount.should.equal(7);
         });
 
         it('should throw an error as the Java project already exists', async () => {
@@ -809,13 +828,14 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'v2', 'packages', 'myProject@0.0.3.cds')}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
-            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(6).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
-            logSpy.callCount.should.equal(7);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'v2', 'packages', 'myProject@0.0.3.tar.gz')}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
+            logSpy.getCall(6).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(7).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
+            logSpy.callCount.should.equal(8);
         });
 
         it('should throw an error if project not child of src dir', async () => {
@@ -931,11 +951,12 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_PACKAGES);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'v2', 'packages', 'javascriptProject@0.0.1.cds')}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
-            logSpy.callCount.should.equal(5);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'v2', 'packages', 'javascriptProject@0.0.1.tar.gz')}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.callCount.should.equal(6);
         });
 
         it('should not show package chooser when only one folder', async () => {
@@ -950,14 +971,15 @@ describe('packageSmartContract', () => {
 
             showWorkspaceQuickPickStub.should.not.have.been.called;
 
-            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
-            logSpy.callCount.should.equal(5);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.callCount.should.equal(6);
         });
 
         it('should handle error from get workspace folders', async () => {
@@ -1098,14 +1120,15 @@ describe('packageSmartContract', () => {
             workspaceFoldersStub.should.not.have.been.called;
             showWorkspaceQuickPickStub.should.not.have.been.called;
 
-            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
-            logSpy.callCount.should.equal(5);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.callCount.should.equal(6);
             executeTaskStub.should.have.not.been.called;
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -1152,7 +1175,7 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
-            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
@@ -1176,7 +1199,7 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
-            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);

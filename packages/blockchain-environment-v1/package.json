@@ -57,8 +57,9 @@
 		"url": "0.11.0"
 	},
 	"optionalDependencies": {
-		"fabric-ca-client": "1.4.8",
-		"fabric-client": "1.4.8"
+		"fabric-ca-client": "2.0.0-beta.2",
+		"fabric-client": "2.0.0-beta.2",
+		"ibm-blockchain-platform-fabric-admin": "1.0.25"
 	},
 	"license-check-and-add-config": {
 		"folder": ".",

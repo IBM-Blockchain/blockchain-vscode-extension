@@ -354,8 +354,8 @@ describe('DependencyManager Tests', () => {
             const origPath: string = path.join(basePath, `node-v69-darwin-x64-unknown`);
             const newPath: string = path.join(basePath, `electron-v4.1-darwin-x64-unknown`);
 
-            removeStub.callCount.should.equal(4);
-            renameStub.callCount.should.equal(4);
+            removeStub.callCount.should.equal(5);
+            renameStub.callCount.should.equal(5);
             removeStub.should.have.been.calledWith(origPath);
             renameStub.should.have.been.calledWith(newPath, origPath);
             existsStub.should.have.been.called;

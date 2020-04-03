@@ -605,7 +605,7 @@ describe('FabricEnvironmentConnection', () => {
     });
 
     describe('installChaincode', () => {
-        const packagePath: string = path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-1@0.0.1.cds');
+        const packagePath: string = path.join(TEST_PACKAGE_DIRECTORY, 'myContract@0.0.1.tar.gz');
 
         let mockPeer: sinon.SinonStubbedInstance<Client.Peer>;
         let installChaincodeStub: sinon.SinonStub;
@@ -635,7 +635,7 @@ describe('FabricEnvironmentConnection', () => {
                 txId: sinon.match.any,
                 chaincodePackage: sinon.match((buffer: Buffer) => {
                     buffer.should.be.an.instanceOf(Buffer);
-                    buffer.length.should.equal(2719);
+                    buffer.length.should.equal(413);
                     return true;
                 })
             });
@@ -651,7 +651,7 @@ describe('FabricEnvironmentConnection', () => {
                 txId: sinon.match.any,
                 chaincodePackage: sinon.match((buffer: Buffer) => {
                     buffer.should.be.an.instanceOf(Buffer);
-                    buffer.length.should.equal(2719);
+                    buffer.length.should.equal(413);
                     return true;
                 })
             });
@@ -672,7 +672,7 @@ describe('FabricEnvironmentConnection', () => {
                 txId: sinon.match.any,
                 chaincodePackage: sinon.match((buffer: Buffer) => {
                     buffer.should.be.an.instanceOf(Buffer);
-                    buffer.length.should.equal(2719);
+                    buffer.length.should.equal(413);
                     return true;
                 })
             });
