@@ -21,7 +21,8 @@ Feature: Smart Contracts packages
         And the contract has been packaged
         And there should be a tree item with a label '<packagedName>' in the 'Smart Contracts' panel
         When I run the command View package Information for package with name <name> and version <version>
-        Then the logger should have been called with 'INFO', 'undefined' and 'Found 5 file(s) in smart contract package JavaScriptContract@0.0.1:'
+        Then the logger should have been called with 'INFO', 'undefined' and 'Found 6 file(s) in smart contract package JavaScriptContract@0.0.1:'
+        And the logger should have been called with 'INFO', 'undefined' and '- metadata.json'
         And the logger should have been called with 'INFO', 'undefined' and '- src/index.js'
         And the logger should have been called with 'INFO', 'undefined' and '- src/lib/conga-contract.js'
         And the logger should have been called with 'INFO', 'undefined' and '- src/package-lock.json'

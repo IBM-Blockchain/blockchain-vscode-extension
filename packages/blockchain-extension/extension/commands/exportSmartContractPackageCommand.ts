@@ -39,7 +39,14 @@ export async function exportSmartContractPackage(packageTreeItem?: PackageTreeIt
             }
             packageToExport = chosenPackage.data;
         }
-        const defaultPath: string = path.join(os.homedir(), `${packageToExport.name}@${packageToExport.version}.cds`);
+
+        let packageName: string = packageToExport.name;
+
+        if (packageToExport.version) {
+            packageName = packageName + '@' + packageToExport.version;
+        }
+
+        const defaultPath: string = path.join(os.homedir(), `${packageName}.tar.gz`);
         const packageUri: vscode.Uri = await vscode.window.showSaveDialog({
             defaultUri: vscode.Uri.file(defaultPath),
             saveLabel: 'Export'
@@ -48,7 +55,7 @@ export async function exportSmartContractPackage(packageTreeItem?: PackageTreeIt
             return;
         }
         await fs.copy(packageToExport.path, packageUri.fsPath, { overwrite: true });
-        outputAdapter.log(LogType.SUCCESS, `Exported smart contract package ${packageToExport.name}@${packageToExport.version} to ${packageUri.fsPath}.`);
+        outputAdapter.log(LogType.SUCCESS, `Exported smart contract package ${packageName} to ${packageUri.fsPath}.`);
         Reporter.instance().sendTelemetryEvent('exportSmartContractPackageCommand');
     } catch (error) {
         outputAdapter.log(LogType.ERROR, error.message, error.toString());

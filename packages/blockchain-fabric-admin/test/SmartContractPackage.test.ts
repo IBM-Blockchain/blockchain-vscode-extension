@@ -12,7 +12,7 @@
  * limitations under the License.
 */
 
-import {SmartContractPackage, SmartContractType} from '../src';
+import {PackageMetadata, SmartContractPackage, SmartContractType} from '../src';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as chai from 'chai';
@@ -166,6 +166,35 @@ describe('SmartContractPackage', () => {
             // @ts-ignore
             mysandbox.stub(smartContract, 'findFileNames').rejects({message: 'some error'});
             await smartContract.getFileNames().should.eventually.be.rejectedWith(`Could not get file names for package, received error: some error`);
+        });
+    });
+
+    describe('getMetadata', () => {
+        let mysandbox: sinon.SinonSandbox;
+
+        beforeEach(() => {
+            mysandbox = sinon.createSandbox();
+        });
+
+        afterEach(() => {
+            mysandbox.restore();
+        });
+
+        it(`should get the metadata`, async () => {
+            const packagePath: string = path.join(__dirname, 'data', 'packages', 'fabcar-javascript.tar.gz');
+            const packageBuffer: Buffer = await fs.readFile(packagePath);
+            const smartContract: SmartContractPackage = new SmartContractPackage(packageBuffer);
+            const result: PackageMetadata = await smartContract.getMetadata();
+            result.should.deep.equal({label: 'fabcar-javascript', path: '', type: SmartContractType.NODE});
+        });
+
+        it('should handle error', async () => {
+            const packagePath: string = path.join(__dirname, 'data', 'packages', 'fabcar-javascript.tar.gz');
+            const packageBuffer: Buffer = await fs.readFile(packagePath);
+            const smartContract: SmartContractPackage = new SmartContractPackage(packageBuffer);
+            // @ts-ignore
+            mysandbox.stub(smartContract, 'findMetadata').rejects({message: 'some error'});
+            await smartContract.getMetadata().should.eventually.be.rejectedWith(`Could not get metadata for package, received error: some error`);
         });
     });
 });

@@ -26,7 +26,7 @@ chai.use(chaiAsPromised);
 describe('ListFilesInPackage', () => {
     let sandbox: sinon.SinonSandbox;
     const PACKAGE_TEST_DIR: string = path.join(__dirname, 'data', 'packages');
-    const PACKAGE_PATH: string = path.join(PACKAGE_TEST_DIR, 'vscode-pkg-3@1.2.3.cds');
+    const PACKAGE_PATH: string = path.join(PACKAGE_TEST_DIR, 'myContract@0.0.1.tar.gz');
     let expectedFileNames: string[];
     let readFileStub: sinon.SinonStub;
 
@@ -40,22 +40,9 @@ describe('ListFilesInPackage', () => {
 
     describe('listFiles', () => {
         beforeEach(async () => {
-            expectedFileNames = ['src/.editorconfig',
-                                 'src/.gitignore',
-                                 'src/dist/index.d.ts',
-                                 'src/dist/index.js',
-                                 'src/dist/my-contract.d.ts',
-                                 'src/dist/my-contract.js',
-                                 'src/package-lock.json',
-                                 'src/package.json',
-                                 'src/src/index.ts',
-                                 'src/src/my-contract.spec.ts',
-                                 'src/src/my-contract.ts',
-                                 'src/tsconfig.json',
-                                 'src/tslint.json'];
+            expectedFileNames = ['metadata.json', 'src/chaincode.js', 'src/chaincode.ts', 'src/package.json'];
 
             readFileStub = sandbox.stub(fs, 'readFile').callThrough();
-
         });
 
         it('should list files in package', async () => {
@@ -68,7 +55,6 @@ describe('ListFilesInPackage', () => {
             readFileStub.rejects(error);
             await ListFilesInPackage.listFiles(PACKAGE_PATH).should.eventually.be.rejectedWith(error);
         });
-
     });
 
 });

@@ -15,7 +15,7 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import {Helper} from './Helper';
-import {SmartContractPackage} from '../../src';
+import {PackageMetadata, SmartContractPackage} from '../../src';
 import {SmartContractType} from '../../src';
 import * as child_process from 'child_process';
 
@@ -51,6 +51,11 @@ export class PackageHelper {
     public static getPackageFileList(contractBuffer: Buffer): Promise<string[]> {
         const contractPackage: SmartContractPackage = new SmartContractPackage(contractBuffer);
         return contractPackage.getFileNames();
+    }
+
+    public static getPackageMetadata(contractBuffer: Buffer): Promise<PackageMetadata> {
+        const contractPackage: SmartContractPackage = new SmartContractPackage(contractBuffer);
+        return contractPackage.getMetadata();
     }
 
     private static async runCommand(command: string, args: string[], cwd: string): Promise<void> {

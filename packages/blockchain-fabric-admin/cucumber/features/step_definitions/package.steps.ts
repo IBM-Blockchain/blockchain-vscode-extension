@@ -22,6 +22,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 
 import {PackageHelper} from '../../helpers/PackageHelper';
 import {Helper} from '../../helpers/Helper';
+import {PackageMetadata} from '../../../src';
 
 chai.should();
 chai.use(sinonChai);
@@ -29,7 +30,7 @@ chai.use(chaiAsPromised);
 
 setDefaultTimeout(60 * 1000);
 
-Given(/a '(.*)' smart contract of type '(.*)'/, async function (language: string, type: string): Promise<void> {
+Given(/a '(.*)' smart contract of type '(.*)'/, async function(language: string, type: string): Promise<void> {
 
     this.projectPath = path.join(Helper.TMP_DIR, 'fabric-samples', 'chaincode', 'fabcar', language);
     this.language = language;
@@ -50,15 +51,15 @@ Given(/the package exists$/, {timeout: 120000 * 1000},  async function (): Promi
     }
 });
 
-When('I package the smart contract', async function (): Promise<void> {
+When('I package the smart contract', async function(): Promise<void> {
     this.packagePath = await PackageHelper.packageContract(this.projectPath, this.label, this.type, this.language);
 });
 
-Then('a package should exist', async function (): Promise<void> {
+Then('a package should exist', async function(): Promise<void> {
     await fs.pathExists(this.packagePath).should.eventually.be.true;
 });
 
-When(/^I get the list of files from a (.*)$/, async function (method: string): Promise<void> {
+When(/^I get the list of files from a (.*)$/, async function(method: string): Promise<void> {
     let contractBuffer: Buffer;
     if (method === 'file') {
         contractBuffer = await fs.readFile(this.packagePath);
@@ -69,7 +70,18 @@ When(/^I get the list of files from a (.*)$/, async function (method: string): P
 });
 
 // tslint:disable-next-line:only-arrow-functions
-Then(/^the file list is correct '(.*)'$/, function (expectedFileListString: string): void {
+Then(/^the file list is correct '(.*)'$/, function(expectedFileListString: string): void {
     const expectedFileList: string[] = expectedFileListString.split(' ');
     this.fileList.should.include.members(expectedFileList);
+});
+
+When(/^I get the package metadata$/, async function(): Promise<void> {
+    this.packageBuffer = await fs.readFile(this.packagePath);
+    this.metadata = await PackageHelper.getPackageMetadata(this.packageBuffer);
+});
+
+// tslint:disable-next-line:only-arrow-functions
+Then(/^the metadata is correct '(.*)'$/, function(expectedMetadataString: string): void {
+    const expectedMetadata: PackageMetadata = JSON.parse(expectedMetadataString);
+    this.metadata.should.deep.equal(expectedMetadata);
 });
