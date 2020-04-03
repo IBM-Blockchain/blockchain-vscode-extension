@@ -9,41 +9,41 @@ Feature: Fabric Environments
         | label                  | tooltip                                  |
         | 1 Org Local Fabric  ●        | The local development runtime is running |
 
-    Scenario Outline: There should be a tree item (connected)
-        Given the 1 Org Local Fabric environment is running
-        And the '1 Org Local Fabric' environment is connected
-        Then there should be a <treeItem> tree item with a label '<label>' in the 'Fabric Environments' panel
-        And the tree item should have a tooltip equal to '<tooltip>'
-        Examples:
-        | treeItem                    | label                                  | tooltip                                                                      |
-        | environment connected       | Connected to environment: 1 Org Local Fabric | Connected to environment: 1 Org Local Fabric                                       |
-        | installed smart contract    | + Install                              | + Install                                                                    |
-        | instantiated smart contract | + Instantiate                          | + Instantiate                                                                |
-        | Channels                    | mychannel                              | Associated peers: Org1Peer1                                                          |
-        | Node                        | Org1Peer1                              | Name: Org1Peer1\\nMSPID: Org1MSP\\nAssociated Identity:\\norg1Admin |
-        | Node                        | OrdererCA                              | Name: OrdererCA\\nAssociated Identity:\\nadmin |
-        | Node                        | Org1CA                    | Name: Org1CA\\nAssociated Identity:\\nadmin                      |
-        | Node                        | Orderer                    | Name: Orderer\\nMSPID: OrdererMSP\\nAssociated Identity:\\nordererAdmin |
-        | Organizations               | OrdererMSP                             | OrdererMSP                                                                   |
-        | Organizations               | Org1MSP                                | Org1MSP                                                                      |
-
-     Scenario Outline: It should persist data after being stopped
-         Given the 1 Org Local Fabric environment is running
-         And the '1 Org Local Fabric' environment is connected
-         And a <language> smart contract for <assetType> assets with the name <name> and version <version>
-         And the contract has been created
-         And the contract has been packaged
+#    Scenario Outline: There should be a tree item (connected)
+#        Given the 1 Org Local Fabric environment is running
+#        And the '1 Org Local Fabric' environment is connected
+#        Then there should be a <treeItem> tree item with a label '<label>' in the 'Fabric Environments' panel
+#        And the tree item should have a tooltip equal to '<tooltip>'
+#        Examples:
+#        | treeItem                    | label                                  | tooltip                                                                      |
+#        | environment connected       | Connected to environment: 1 Org Local Fabric | Connected to environment: 1 Org Local Fabric                                       |
+#        | installed smart contract    | + Install                              | + Install                                                                    |
+#        | instantiated smart contract | + Instantiate                          | + Instantiate                                                                |
+#        | Channels                    | mychannel                              | Associated peers: Org1Peer1                                                          |
+#        | Node                        | Org1Peer1                              | Name: Org1Peer1\\nMSPID: Org1MSP\\nAssociated Identity:\\norg1Admin |
+#        | Node                        | OrdererCA                              | Name: OrdererCA\\nAssociated Identity:\\nadmin |
+#        | Node                        | Org1CA                    | Name: Org1CA\\nAssociated Identity:\\nadmin                      |
+#        | Node                        | Orderer                    | Name: Orderer\\nMSPID: OrdererMSP\\nAssociated Identity:\\nordererAdmin |
+#        | Organizations               | OrdererMSP                             | OrdererMSP                                                                   |
+#        | Organizations               | Org1MSP                                | Org1MSP                                                                      |
+#
+#     Scenario Outline: It should persist data after being stopped
+#         Given the 1 Org Local Fabric environment is running
+#         And the '1 Org Local Fabric' environment is connected
+#         And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+#         And the contract has been created
+#         And the contract has been packaged
 #         And the package has been installed
 #         And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
 #         When I stop the 1 Org Local Fabric
 #         Then there should be a tree item with a label '<label>' in the 'Fabric Environments' panel
 #         Then the tree item should have a tooltip equal to '<tooltip>'
 #         When I start the 1 Org Local Fabric
-#         And the '1 Org Local Fabric' environment is connected
+#          And the '1 Org Local Fabric' environment is connected
 #         Then there should be a instantiated smart contract tree item with a label '<instantiatedName>' in the 'Fabric Environments' panel
-         Examples:
-         | language   | assetType | name               | instantiatedName         | version | label                            | tooltip                                                                    |
-         | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.2 | 0.0.2   | 1 Org Local Fabric  ○ (click to start) | Creates a local development runtime using Hyperledger Fabric Docker images |
+        #  Examples:
+        #  | language   | assetType | name               | instantiatedName         | version | label                            | tooltip                                                                    |
+        #  | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.2 | 0.0.2   | 1 Org Local Fabric  ○ (click to start) | Creates a local development runtime using Hyperledger Fabric Docker images |
 
      @otherFabric
      Scenario: It should create an environment
@@ -207,7 +207,7 @@ Feature: Fabric Environments
         And a <language> smart contract for <assetType> assets with the name <name> and version <version>
         And the contract has been created
         And the contract has been packaged
-#        And the package has been installed
+        And the package has been installed
 #        When I instantiate the installed package with the transaction '' and args '', not using private data on channel 'mychannel'
 #        Then there should be a instantiated smart contract tree item with a label '<instantiatedName>' in the 'Fabric Environments' panel
 #        And the tree item should have a tooltip equal to 'Instantiated on: mychannel'
@@ -224,7 +224,7 @@ Feature: Fabric Environments
         And a <language> smart contract for <assetType> assets with the name <name> and version <version>
         And the contract has been created
         And the contract has been packaged
-#        And the package has been installed
+        And the package has been installed
 #        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
 #        And the contract version has been updated to '0.0.2'
 #        And the contract has been packaged

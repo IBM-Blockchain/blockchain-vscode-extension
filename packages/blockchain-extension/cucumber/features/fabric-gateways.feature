@@ -1,28 +1,28 @@
 Feature: Fabric Gateways
     Test all the features of a fabric gateway
 
-    Scenario: Connect with admin identity
-        Given the 1 Org Local Fabric environment is running
-        And the 'Org1' wallet
-        And the 'Local Fabric Admin' identity
-        When connecting to the '1 Org Local Fabric - Org1' gateway
-        Then there should be a tree item with a label 'Connected via gateway: 1 Org Local Fabric - Org1' in the 'Fabric Gateways' panel
-        And the tree item should have a tooltip equal to 'Connected via gateway: 1 Org Local Fabric - Org1'
-        And there should be a tree item with a label 'Using ID: org1Admin' in the 'Fabric Gateways' panel
-        And the tree item should have a tooltip equal to 'Using ID: org1Admin'
-        And there should be a tree item with a label 'Channels' in the 'Fabric Gateways' panel
-        And the tree item should have a tooltip equal to 'Channels'
+#    Scenario: Connect with admin identity
+#        Given the 1 Org Local Fabric environment is running
+#        And the 'Org1' wallet
+#        And the 'Local Fabric Admin' identity
+#        When connecting to the '1 Org Local Fabric - Org1' gateway
+#        Then there should be a tree item with a label 'Connected via gateway: 1 Org Local Fabric - Org1' in the 'Fabric Gateways' panel
+#        And the tree item should have a tooltip equal to 'Connected via gateway: 1 Org Local Fabric - Org1'
+#        And there should be a tree item with a label 'Using ID: org1Admin' in the 'Fabric Gateways' panel
+#        And the tree item should have a tooltip equal to 'Using ID: org1Admin'
+#        And there should be a tree item with a label 'Channels' in the 'Fabric Gateways' panel
+#        And the tree item should have a tooltip equal to 'Channels'
 
-    Scenario: Connect with another identity
-        Given the 1 Org Local Fabric environment is running
-        And the '1 Org Local Fabric' environment is connected
-        And the 'Org1' wallet
-        And the identity 'new_identity' exists
-        When connecting to the '1 Org Local Fabric - Org1' gateway
-        Then there should be a tree item with a label 'Connected via gateway: 1 Org Local Fabric - Org1' in the 'Fabric Gateways' panel
-        And the tree item should have a tooltip equal to 'Connected via gateway: 1 Org Local Fabric - Org1'
-        And there should be a tree item with a label 'Using ID: new_identity' in the 'Fabric Gateways' panel
-        And the tree item should have a tooltip equal to 'Using ID: new_identity'
+#    Scenario: Connect with another identity
+#        Given the 1 Org Local Fabric environment is running
+#        And the '1 Org Local Fabric' environment is connected
+#        And the 'Org1' wallet
+#        And the identity 'new_identity' exists
+#        When connecting to the '1 Org Local Fabric - Org1' gateway
+#        Then there should be a tree item with a label 'Connected via gateway: 1 Org Local Fabric - Org1' in the 'Fabric Gateways' panel
+#        And the tree item should have a tooltip equal to 'Connected via gateway: 1 Org Local Fabric - Org1'
+#        And there should be a tree item with a label 'Using ID: new_identity' in the 'Fabric Gateways' panel
+#        And the tree item should have a tooltip equal to 'Using ID: new_identity'
 
     Scenario: Export connection profile
         Given the 1 Org Local Fabric environment is running
@@ -38,18 +38,18 @@ Feature: Fabric Gateways
         When I create a gateway 'myGateway' from a 'profile'
         Then there should be a tree item with a label 'myGateway' in the 'Fabric Gateways' panel
 
-    @otherFabric
-    Scenario: Connect to another gateway
-        Given the gateway 'myGateway' is created
-        And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
-        Then there should be a tree item with a label 'myGateway' in the 'Fabric Gateways' panel
-        When connecting to the 'myGateway' gateway without association
-        Then there should be a tree item with a label 'Connected via gateway: myGateway' in the 'Fabric Gateways' panel
-        And the tree item should have a tooltip equal to 'Connected via gateway: myGateway'
-        And there should be a tree item with a label 'Using ID: conga' in the 'Fabric Gateways' panel
-        And the tree item should have a tooltip equal to 'Using ID: conga'
-        And there should be a tree item with a label 'Channels' in the 'Fabric Gateways' panel
-        And the tree item should have a tooltip equal to 'Channels'
+#    @otherFabric
+#    Scenario: Connect to another gateway
+#        Given the gateway 'myGateway' is created
+#        And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
+#        Then there should be a tree item with a label 'myGateway' in the 'Fabric Gateways' panel
+#        When connecting to the 'myGateway' gateway without association
+#        Then there should be a tree item with a label 'Connected via gateway: myGateway' in the 'Fabric Gateways' panel
+#        And the tree item should have a tooltip equal to 'Connected via gateway: myGateway'
+#        And there should be a tree item with a label 'Using ID: conga' in the 'Fabric Gateways' panel
+#        And the tree item should have a tooltip equal to 'Using ID: conga'
+#        And there should be a tree item with a label 'Channels' in the 'Fabric Gateways' panel
+#        And the tree item should have a tooltip equal to 'Channels'
 
     @otherFabric
     Scenario: Create a gateway from an environment
@@ -59,9 +59,9 @@ Feature: Fabric Gateways
         When I create a gateway 'gatewayFromEnv' from an 'environment'
         Then there should be a tree item with a label 'gatewayFromEnv ⧉' in the 'Fabric Gateways' panel
         And the tree item should have a tooltip equal to 'ⓘ Associated wallet:\n    myWallet'
-        When connecting to the 'gatewayFromEnv' gateway
-        Then there should be a tree item with a label 'Connected via gateway: gatewayFromEnv' in the 'Fabric Gateways' panel
-        And the tree item should have a tooltip equal to 'Connected via gateway: gatewayFromEnv'
+#        When connecting to the 'gatewayFromEnv' gateway
+#        Then there should be a tree item with a label 'Connected via gateway: gatewayFromEnv' in the 'Fabric Gateways' panel
+#        And the tree item should have a tooltip equal to 'Connected via gateway: gatewayFromEnv'
 
     @ansibleFabric
     Scenario: Create a gateway from an ansible environment

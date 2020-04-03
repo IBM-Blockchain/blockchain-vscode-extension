@@ -38,11 +38,11 @@ export interface IFabricEnvironmentConnection {
 
     getAllCertificateAuthorityNames(): Array<string>;
 
-    getInstalledChaincode(peerName: string): Promise<Map<string, Array<string>>>;
+    getInstalledChaincode(peerName: string): Promise<{label: string, packageId: string}[]>;
 
     getAllOrdererNames(): Array<string>;
 
-    installChaincode(pathToPackage: string, peerName: string): Promise<void>;
+    installChaincode(pathToPackage: string, peerName: string): Promise<string>;
 
     instantiateChaincode(chaincodeName: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionPath: string, contractEP: any): Promise<Buffer>;
 
@@ -55,5 +55,4 @@ export interface IFabricEnvironmentConnection {
     getNode(nodeName: string): FabricNode;
 
     getWallet(nodeName: string): Promise<IFabricWallet>;
-
 }

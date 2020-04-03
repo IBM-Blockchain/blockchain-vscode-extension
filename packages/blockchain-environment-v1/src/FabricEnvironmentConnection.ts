@@ -14,37 +14,30 @@
 
 'use strict';
 
-import * as Client from 'fabric-client';
 import * as FabricCAServices from 'fabric-ca-client';
 import * as fs from 'fs-extra';
-import { ConsoleOutputAdapter, FabricChaincode, Attribute, FabricNode, FabricNodeType, IFabricEnvironmentConnection, OutputAdapter, LogType, FabricWalletRegistryEntry, FabricWalletRegistry, FabricIdentity } from 'ibm-blockchain-platform-common';
+import { FabricChaincode, Attribute, FabricNode, FabricNodeType, IFabricEnvironmentConnection, FabricWalletRegistryEntry, FabricWalletRegistry, IFabricWallet } from 'ibm-blockchain-platform-common';
 import { FabricWalletGenerator, FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { URL } from 'url';
+import { Lifecycle, LifecyclePeer, LifecycleChannel, DefinedSmartContract, InstalledSmartContract } from 'ibm-blockchain-platform-fabric-admin';
+import { Identity, IdentityProvider } from 'fabric-network';
+import { User } from 'fabric-common';
 
 export class FabricEnvironmentConnection implements IFabricEnvironmentConnection {
     public environmentName: string;
 
-    private outputAdapter: OutputAdapter;
     private nodes: Map<string, FabricNode> = new Map<string, FabricNode>();
-    private client: Client;
-    private peers: Map<string, Client.Peer> = new Map<string, Client.Peer>();
-    private orderers: Map<string, Client.Orderer> = new Map<string, Client.Orderer>();
     private certificateAuthorities: Map<string, FabricCAServices> = new Map<string, FabricCAServices>();
     private mspIDs: Set<string> = new Set<string>();
+    private lifecycle: Lifecycle;
 
-    constructor(environmentName: string, outputAdapter?: OutputAdapter) {
-        if (!outputAdapter) {
-            this.outputAdapter = ConsoleOutputAdapter.instance();
-        } else {
-            this.outputAdapter = outputAdapter;
-        }
-
+    constructor(environmentName: string) {
         this.environmentName = environmentName;
     }
 
     public async connect(nodes: FabricNode[]): Promise<void> {
-        this.client = new Client();
-        this.client.setCryptoSuite(Client.newCryptoSuite());
+        this.lifecycle = new Lifecycle();
+
         for (const node of nodes) {
             switch (node.type) {
                 case FabricNodeType.PEER: {
@@ -57,8 +50,9 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
                     if (node.ssl_target_name_override) {
                         sslTargetNameOverride = node.ssl_target_name_override;
                     }
-                    const peer: Client.Peer = this.client.newPeer(node.api_url, { pem, 'ssl-target-name-override': sslTargetNameOverride });
-                    this.peers.set(node.name, peer);
+
+                    this.lifecycle.addPeer({ name: node.name, mspid: node.msp_id, pem: pem, sslTargetNameOverride: sslTargetNameOverride, url: node.api_url });
+
                     break;
                 }
                 case FabricNodeType.ORDERER: {
@@ -71,8 +65,8 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
                     if (node.ssl_target_name_override) {
                         sslTargetNameOverride = node.ssl_target_name_override;
                     }
-                    const orderer: Client.Orderer = this.client.newOrderer(node.api_url, { pem, 'ssl-target-name-override': sslTargetNameOverride });
-                    this.orderers.set(node.name, orderer);
+
+                    this.lifecycle.addOrderer({ name: node.name, pem: pem, sslTargetNameOverride: sslTargetNameOverride, url: node.api_url });
                     break;
                 }
                 case FabricNodeType.CERTIFICATE_AUTHORITY: {
@@ -82,7 +76,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
                     }
 
                     const caName: string = node.ca_name || node.name;
-                    const certificateAuthority: FabricCAServices = new FabricCAServices(node.api_url, { trustedRoots, verify: false }, caName, this.client.getCryptoSuite());
+                    const certificateAuthority: FabricCAServices = new FabricCAServices(node.api_url, { trustedRoots, verify: false }, caName);
                     this.certificateAuthorities.set(node.name, certificateAuthority);
                     break;
                 }
@@ -101,21 +95,21 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
 
     public disconnect(): void {
         this.nodes.clear();
-        this.client = null;
-        this.peers.clear();
-        this.orderers.clear();
+        this.lifecycle = null;
         this.certificateAuthorities.clear();
     }
 
     public getAllPeerNames(): Array<string> {
-        return Array.from(this.peers.keys()).sort();
+        return this.lifecycle.getAllPeerNames();
     }
 
     public async createChannelMap(): Promise<Map<string, Array<string>>> {
         try {
             const channelMap: Map<string, Array<string>> = new Map<string, Array<string>>();
 
-            for (const [peerName] of this.peers) {
+            const peerNames: string[] = this.getAllPeerNames();
+
+            for (const peerName of peerNames) {
                 const channelNames: Array<string> = await this.getAllChannelNamesForPeer(peerName);
                 for (const channelName of channelNames) {
                     if (!channelMap.has(channelName)) {
@@ -137,21 +131,20 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         }
     }
 
+    // TODO: this will need to change to be called getAllCommittedSmartContracts
     public async getInstantiatedChaincode(peerNames: Array<string>, channelName: string): Promise<Array<FabricChaincode>> {
 
-        // Locate all of the requested peer nodes.
-        const peers: Array<Client.Peer> = peerNames.map((peerName: string) => this.getPeer(peerName));
+        const wallet: FabricWallet = await this.getWallet(peerNames[0]) as FabricWallet;
+        const peerNode: FabricNode = this.getNode(peerNames[0]);
 
         // Get the channel.
-        const channel: Client.Channel = this.getOrCreateChannel(channelName);
+        const channel: LifecycleChannel = this.lifecycle.getChannel(channelName, wallet.getWallet(), peerNode.identity);
+        const committedContracts: DefinedSmartContract[] = await channel.getAllCommittedSmartContracts(peerNames[0]);
 
-        // Use the first peer to perform this query.
-        await this.setNodeContext(peerNames[0]);
-        const instantiatedChaincodes: Client.ChaincodeQueryResponse = await channel.queryInstantiatedChaincodes(peers[0]);
-        return instantiatedChaincodes.chaincodes.map((chaincode: Client.ChaincodeInfo) => {
-            return new FabricChaincode(chaincode.name, chaincode.version);
+        // TODO: might need to update this to return more things but keeping the same for now
+        return committedContracts.map((committedContract: DefinedSmartContract) => {
+            return new FabricChaincode(committedContract.smartContractName, committedContract.smartContractVersion);
         });
-
     }
 
     public async getAllInstantiatedChaincodes(): Promise<Array<FabricChaincode>> {
@@ -197,60 +190,46 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         return Array.from(this.certificateAuthorities.keys()).sort();
     }
 
-    public async getInstalledChaincode(peerName: string): Promise<Map<string, Array<string>>> {
-        const installedChainCodes: Map<string, Array<string>> = new Map<string, Array<string>>();
-        const peer: Client.Peer = this.getPeer(peerName);
-        await this.setNodeContext(peerName);
-        let chaincodeResponse: Client.ChaincodeQueryResponse;
+    public async getInstalledChaincode(peerName: string): Promise<Array<{ label: string, packageId: string }>> {
+        const peer: LifecyclePeer = await this.getPeer(peerName);
+        let installedSmartContracts: InstalledSmartContract[];
         try {
-            chaincodeResponse = await this.client.queryInstalledChaincodes(peer);
+            installedSmartContracts = await peer.getAllInstalledSmartContracts();
         } catch (error) {
             if (error.message && error.message.match(/access denied/)) {
                 // Not allowed to do this as we're probably not an administrator.
                 // This is probably not the end of the world, so return the empty map.
-                return installedChainCodes;
+                return [];
             }
             throw error;
         }
-        for (const chaincode of chaincodeResponse.chaincodes) {
-            if (installedChainCodes.has(chaincode.name)) {
-                installedChainCodes.get(chaincode.name).push(chaincode.version);
-            } else {
-                installedChainCodes.set(chaincode.name, [chaincode.version]);
-            }
-        }
 
-        return installedChainCodes;
+        // Need to do this so we don't need to import fabric admin everywhere
+        return installedSmartContracts.map((installedSmartContract: InstalledSmartContract) => {
+            return { label: installedSmartContract.label, packageId: installedSmartContract.packageId };
+        });
     }
 
     public getAllOrdererNames(): Array<string> {
-        return Array.from(this.orderers.keys()).sort();
+        return this.lifecycle.getAllOrdererNames();
     }
 
-    public async installChaincode(pathToPackage: string, peerName: string): Promise<void> {
-        const peer: Client.Peer = this.getPeer(peerName);
-        await this.setNodeContext(peerName);
+    public async installChaincode(pathToPackage: string, peerName: string): Promise<string> {
+        const peer: LifecyclePeer = await this.getPeer(peerName);
+
         const pkgBuffer: Buffer = await fs.readFile(pathToPackage);
-        const installRequest: Client.ChaincodePackageInstallRequest = {
-            targets: [peer],
-            chaincodePackage: pkgBuffer,
-            txId: this.client.newTransactionID()
-        };
-        const response: Client.ProposalResponseObject = await this.client.installChaincode(installRequest);
-        const proposalResponse: Client.ProposalResponse | Error = response[0][0];
-        if (proposalResponse instanceof Error) {
-            throw proposalResponse;
-        } else if (proposalResponse.response.status !== 200) {
-            throw new Error(proposalResponse.response.message);
-        }
+
+        return peer.installSmartContractPackage(pkgBuffer, 90000);
     }
 
-    public async instantiateChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionPath: string, contractEP: any): Promise<Buffer> {
-        return this.instantiateOrUpgradeChaincode(name, version, peerNames, channelName, fcn, args, collectionPath, contractEP, false);
+    public async instantiateChaincode(_name: string, _version: string, _peerNames: Array<string>, _channelName: string, _fcn: string, _args: Array<string>, _collectionPath: string, _contractEP: any): Promise<Buffer> {
+        return Buffer.from('TODO');
+        // return this.instantiateOrUpgradeChaincode(name, version, peerNames, channelName, fcn, args, collectionPath, contractEP, false);
     }
 
-    public async upgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionPath: string, contractEP: any): Promise<Buffer> {
-        return this.instantiateOrUpgradeChaincode(name, version, peerNames, channelName, fcn, args, collectionPath, contractEP, true);
+    public async upgradeChaincode(_name: string, _version: string, _peerNames: Array<string>, _channelName: string, _fcn: string, _args: Array<string>, _collectionPath: string, _contractEP: any): Promise<Buffer> {
+        return Buffer.from('TODO');
+        // return this.instantiateOrUpgradeChaincode(name, version, peerNames, channelName, fcn, args, collectionPath, contractEP, true);
     }
 
     public async enroll(certificateAuthorityName: string, enrollmentID: string, enrollmentSecret: string): Promise<{ certificate: string, privateKey: string }> {
@@ -267,9 +246,13 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
             role: 'client',
             attrs: attributes
         };
-        await this.setNodeContext(certificateAuthorityName);
-        const registrar: Client.User = await this.client.getUserContext('', false);
-        const secret: string = await certificateAuthority.register(request, registrar);
+
+        const node: FabricNode = this.getNode(certificateAuthorityName);
+        const fabricWallet: FabricWallet = await this.getWallet(certificateAuthorityName) as FabricWallet;
+        const identity: Identity = await fabricWallet.getWallet().get(node.identity);
+        const provider: IdentityProvider = fabricWallet.getWallet().getProviderRegistry().getProvider(identity.type);
+        const user: User = await provider.getUserContext(identity, node.identity);
+        const secret: string = await certificateAuthority.register(request, user);
         return secret;
     }
 
@@ -280,7 +263,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         return this.nodes.get(nodeName);
     }
 
-    public async getWallet(nodeName: string): Promise<FabricWallet> {
+    public async getWallet(nodeName: string): Promise<IFabricWallet> {
         const node: FabricNode = this.getNode(nodeName);
         const walletName: string = node.wallet;
 
@@ -288,168 +271,153 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         return FabricWalletGenerator.instance().getWallet(walletRegistryEntry);
     }
 
-    private async instantiateOrUpgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionsConfig: string, contractEP: any, upgrade: boolean): Promise<Buffer> {
+    // private async instantiateOrUpgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionsConfig: string, contractEP: any, upgrade: boolean): Promise<Buffer> {
 
-        const peers: Array<Client.Peer> = [];
-        // filter out the peers that don't have the smart contract installed
-        for (const peerName of peerNames) {
-            const installedChaicodes: Map<string, string[]> = await this.getInstalledChaincode(peerName);
-            const chaincodeVersions: string[] = installedChaicodes.get(name);
-            if (chaincodeVersions) {
-                const foundVersion: string = chaincodeVersions.find((_version: string) => version === _version);
-                if (foundVersion) {
-                    const peer: Client.Peer = this.getPeer(peerName);
-                    peers.push(peer);
-                }
-            }
-        }
+    //     const peers: Array<Client.Peer> = [];
+    //     // filter out the peers that don't have the smart contract installed
+    //     for (const peerName of peerNames) {
+    //         const installedChaicodes: Map<string, string[]> = await this.getInstalledChaincode(peerName);
+    //         const chaincodeVersions: string[] = installedChaicodes.get(name);
+    //         if (chaincodeVersions) {
+    //             const foundVersion: string = chaincodeVersions.find((_version: string) => version === _version);
+    //             if (foundVersion) {
+    //                 const peer: Client.Peer = this.getPeer(peerName);
+    //                 peers.push(peer);
+    //             }
+    //         }
+    //     }
 
-        // Get the channel.
-        const channel: Client.Channel = this.getOrCreateChannel(channelName);
+    //     // Get the channel.
+    //     const channel: Client.Channel = this.getOrCreateChannel(channelName);
 
-        // Determine if a chaincode with the specified name is already instantiated on this channel.
-        // Use the first peer to perform this query, and as the signing identity for all subsequent operations.
-        await this.setNodeContext(peerNames[0]);
-        const instantiatedChaincodes: Client.ChaincodeQueryResponse = await channel.queryInstantiatedChaincodes(peers[0]);
-        let foundChaincodeName: boolean = false;
-        let foundChaincodeNameAndVersion: boolean = false;
-        for (const chaincode of instantiatedChaincodes.chaincodes) {
-            if (chaincode.name === name) {
-                foundChaincodeName = true;
-                if (chaincode.version === version) {
-                    foundChaincodeNameAndVersion = true;
-                }
-            }
-        }
+    //     // Determine if a chaincode with the specified name is already instantiated on this channel.
+    //     // Use the first peer to perform this query, and as the signing identity for all subsequent operations.
+    //     await this.setNodeContext(peerNames[0]);
+    //     const instantiatedChaincodes: Client.ChaincodeQueryResponse = await channel.queryInstantiatedChaincodes(peers[0]);
+    //     let foundChaincodeName: boolean = false;
+    //     let foundChaincodeNameAndVersion: boolean = false;
+    //     for (const chaincode of instantiatedChaincodes.chaincodes) {
+    //         if (chaincode.name === name) {
+    //             foundChaincodeName = true;
+    //             if (chaincode.version === version) {
+    //                 foundChaincodeNameAndVersion = true;
+    //             }
+    //         }
+    //     }
 
-        // Check for the error cases.
-        if (!upgrade) {
-            if (foundChaincodeName) {
-                throw new Error(`The smart contract ${name} is already instantiated on the channel ${channelName}`);
-            }
-        } else {
-            if (foundChaincodeNameAndVersion) {
-                throw new Error(`The smart contract ${name} with version ${version} is already instantiated on the channel ${channelName}`);
-            } else if (!foundChaincodeName) {
-                throw new Error(`The smart contract ${name} is not instantiated on the channel ${channelName}, so cannot be upgraded`);
-            }
-        }
+    //     // Check for the error cases.
+    //     if (!upgrade) {
+    //         if (foundChaincodeName) {
+    //             throw new Error(`The smart contract ${name} is already instantiated on the channel ${channelName}`);
+    //         }
+    //     } else {
+    //         if (foundChaincodeNameAndVersion) {
+    //             throw new Error(`The smart contract ${name} with version ${version} is already instantiated on the channel ${channelName}`);
+    //         } else if (!foundChaincodeName) {
+    //             throw new Error(`The smart contract ${name} is not instantiated on the channel ${channelName}, so cannot be upgraded`);
+    //         }
+    //     }
 
-        // Find the orderer for this channel.
-        const orderer: Client.Orderer = await this.getOrdererForChannel(peers, channel);
+    //     // Find the orderer for this channel.
+    //     const orderer: Client.Orderer = await this.getOrdererForChannel(peers, channel);
 
-        // Build the transaction proposal.
-        const txId: Client.TransactionId = this.client.newTransactionID();
-        const instantiateOrUpgradeRequest: Client.ChaincodeInstantiateUpgradeRequest = {
-            'targets': peers,
-            'chaincodeId': name,
-            'chaincodeVersion': version,
-            txId,
-            fcn,
-            args,
-            'collections-config': collectionsConfig,
-            'endorsement-policy': contractEP
-        };
+    //     // Build the transaction proposal.
+    //     const txId: Client.TransactionId = this.client.newTransactionID();
+    //     const instantiateOrUpgradeRequest: Client.ChaincodeInstantiateUpgradeRequest = {
+    //         'targets': peers,
+    //         'chaincodeId': name,
+    //         'chaincodeVersion': version,
+    //         txId,
+    //         fcn,
+    //         args,
+    //         'collections-config': collectionsConfig,
+    //         'endorsement-policy': contractEP
+    //     };
 
-        // Send the instantiate/upgrade proposal to all of the specified peers.
-        let proposalResponseObject: Client.ProposalResponseObject;
-        if (!upgrade) {
-            this.outputAdapter.log(LogType.INFO, undefined, `Instantiating with function: '${fcn}' and arguments: '${args}'`);
-            // Use a lengthy timeout to cater for building of Docker images on slower systems.
-            proposalResponseObject = await channel.sendInstantiateProposal(instantiateOrUpgradeRequest, 5 * 60 * 1000);
-        } else {
-            this.outputAdapter.log(LogType.INFO, undefined, `Upgrading with function: '${fcn}' and arguments: '${args}'`);
-            // Use a lengthy timeout to cater for building of Docker images on slower systems.
-            proposalResponseObject = await channel.sendUpgradeProposal(instantiateOrUpgradeRequest, 5 * 60 * 1000);
-        }
+    //     // Send the instantiate/upgrade proposal to all of the specified peers.
+    //     let proposalResponseObject: Client.ProposalResponseObject;
+    //     if (!upgrade) {
+    //         this.outputAdapter.log(LogType.INFO, undefined, `Instantiating with function: '${fcn}' and arguments: '${args}'`);
+    //         // Use a lengthy timeout to cater for building of Docker images on slower systems.
+    //         proposalResponseObject = await channel.sendInstantiateProposal(instantiateOrUpgradeRequest, 5 * 60 * 1000);
+    //     } else {
+    //         this.outputAdapter.log(LogType.INFO, undefined, `Upgrading with function: '${fcn}' and arguments: '${args}'`);
+    //         // Use a lengthy timeout to cater for building of Docker images on slower systems.
+    //         proposalResponseObject = await channel.sendUpgradeProposal(instantiateOrUpgradeRequest, 5 * 60 * 1000);
+    //     }
 
-        // Validate the proposal responses.
-        let payload: Buffer = null;
-        const validProposalResponses: Client.ProposalResponse[] = [];
-        const proposal: Client.Proposal = proposalResponseObject[1];
-        for (const proposalResponse of proposalResponseObject[0]) {
-            if (proposalResponse instanceof Error) {
-                throw proposalResponse;
-            } else if (proposalResponse.response.status !== 200) {
-                throw new Error(proposalResponse.response.message);
-            } else if (proposalResponse.response.payload.length) {
-                payload = proposalResponse.response.payload;
-            }
-            validProposalResponses.push(proposalResponse);
-        }
+    //     // Validate the proposal responses.
+    //     let payload: Buffer = null;
+    //     const validProposalResponses: Client.ProposalResponse[] = [];
+    //     const proposal: Client.Proposal = proposalResponseObject[1];
+    //     for (const proposalResponse of proposalResponseObject[0]) {
+    //         if (proposalResponse instanceof Error) {
+    //             throw proposalResponse;
+    //         } else if (proposalResponse.response.status !== 200) {
+    //             throw new Error(proposalResponse.response.message);
+    //         } else if (proposalResponse.response.payload.length) {
+    //             payload = proposalResponse.response.payload;
+    //         }
+    //         validProposalResponses.push(proposalResponse);
+    //     }
 
-        // Set up the channel event hub for this transaction.
-        const eventHub: Client.ChannelEventHub = channel.newChannelEventHub(peers[0]);
-        let eventReceived: boolean = false;
-        await new Promise((resolve: any, reject: any): void => {
-            eventHub.connect(null, (err: Error) => {
-                // Doesn't matter if we received the event.
-                if (err && !eventReceived) {
-                    return reject(err);
-                }
-                resolve();
-            });
-        });
-        const eventHubPromise: any = new Promise((resolve: any, reject: any): void => {
-            eventHub.registerTxEvent(txId.getTransactionID(), (eventTxId: string, code: string, blockNumber: number): void => {
-                eventReceived = true;
-                if (code !== 'VALID') {
-                    return reject(new Error(`Peer ${peerNames[0]} has rejected the transaction ${eventTxId} with code ${code} in block ${blockNumber}`));
-                }
-                resolve();
-            }, (err: Error): void => {
-                // Doesn't matter if we received the event.
-                if (err && !eventReceived) {
-                    return reject(err);
-                }
-            }, {
-                disconnect: true,
-                unregister: true
-            });
-        });
+    //     // Set up the channel event hub for this transaction.
+    //     const eventHub: Client.ChannelEventHub = channel.newChannelEventHub(peers[0]);
+    //     let eventReceived: boolean = false;
+    //     await new Promise((resolve: any, reject: any): void => {
+    //         eventHub.connect(null, (err: Error) => {
+    //             // Doesn't matter if we received the event.
+    //             if (err && !eventReceived) {
+    //                 return reject(err);
+    //             }
+    //             resolve();
+    //         });
+    //     });
+    //     const eventHubPromise: any = new Promise((resolve: any, reject: any): void => {
+    //         eventHub.registerTxEvent(txId.getTransactionID(), (eventTxId: string, code: string, blockNumber: number): void => {
+    //             eventReceived = true;
+    //             if (code !== 'VALID') {
+    //                 return reject(new Error(`Peer ${peerNames[0]} has rejected the transaction ${eventTxId} with code ${code} in block ${blockNumber}`));
+    //             }
+    //             resolve();
+    //         }, (err: Error): void => {
+    //             // Doesn't matter if we received the event.
+    //             if (err && !eventReceived) {
+    //                 return reject(err);
+    //             }
+    //         }, {
+    //             disconnect: true,
+    //             unregister: true
+    //         });
+    //     });
 
-        // Send the proposal responses to the ordering service.
-        const broadcastResponse: Client.BroadcastResponse = await channel.sendTransaction({
-            proposal,
-            proposalResponses: validProposalResponses,
-            orderer,
-            txId
-        });
+    //     // Send the proposal responses to the ordering service.
+    //     const broadcastResponse: Client.BroadcastResponse = await channel.sendTransaction({
+    //         proposal,
+    //         proposalResponses: validProposalResponses,
+    //         orderer,
+    //         txId
+    //     });
 
-        // Check that the ordering service accepted the transaction.
-        if (broadcastResponse.status !== 'SUCCESS') {
-            eventHub.disconnect();
-            throw new Error(`Failed to send peer responses for transaction ${txId.getTransactionID()} to orderer. Response status: ${broadcastResponse.status}`);
-        }
+    //     // Check that the ordering service accepted the transaction.
+    //     if (broadcastResponse.status !== 'SUCCESS') {
+    //         eventHub.disconnect();
+    //         throw new Error(`Failed to send peer responses for transaction ${txId.getTransactionID()} to orderer. Response status: ${broadcastResponse.status}`);
+    //     }
 
-        // Wait for the transaction to be committed to the ledger.
-        await eventHubPromise;
+    //     // Wait for the transaction to be committed to the ledger.
+    //     await eventHubPromise;
 
-        // Return the payload, if any.
-        return payload;
+    //     // Return the payload, if any.
+    //     return payload;
 
-    }
+    // }
 
-    private async setNodeContext(nodeName: string): Promise<void> {
-        const node: FabricNode = this.getNode(nodeName);
-        const fabricWallet: FabricWallet = await this.getWallet(nodeName);
-        const fabricIdentity: FabricIdentity = await fabricWallet.getIdentity(node.identity);
-        const identity: any = {
-            credentials: {
-                certificate: fabricIdentity.cert,
-                privateKey: fabricIdentity.private_key,
-            },
-            mspId: fabricIdentity.msp_id
-        };
+    private async getPeer(peerName: string): Promise<LifecyclePeer> {
+        const node: FabricNode = this.getNode(peerName);
+        const fabricWallet: FabricWallet = await this.getWallet(peerName) as FabricWallet;
 
-        await fabricWallet.getWallet()['getProviderRegistry']()['getProvider']('X.509')['setUserContext'](this.client, identity, node.identity);
-    }
-
-    private getPeer(peerName: string): Client.Peer {
-        if (!this.peers.has(peerName)) {
-            throw new Error(`The Fabric peer ${peerName} does not exist`);
-        }
-        return this.peers.get(peerName);
+        return this.lifecycle.getPeer(peerName, fabricWallet.getWallet(), node.identity);
     }
 
     private getCertificateAuthority(certificateAuthorityName: string): FabricCAServices {
@@ -459,69 +427,9 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         return this.certificateAuthorities.get(certificateAuthorityName);
     }
 
-    private getOrCreateChannel(channelName: string): Client.Channel {
-        let channel: Client.Channel = this.client.getChannel(channelName, false);
-        if (!channel) {
-            channel = this.client.newChannel(channelName);
-        }
-        return channel;
-    }
-
     private async getAllChannelNamesForPeer(peerName: string): Promise<Array<string>> {
-        const peer: Client.Peer = this.getPeer(peerName);
-        await this.setNodeContext(peerName);
-        const channelQueryResponse: Client.ChannelQueryResponse = await this.client.queryChannels(peer);
-        return channelQueryResponse.channels.map((channel: Client.ChannelInfo) => channel.channel_id).sort();
+        const peer: LifecyclePeer = await this.getPeer(peerName);
+
+        return peer.getAllChannelNames();
     }
-
-    private isPeerLocal(peer: Client.Peer): boolean {
-        const localhosts: string[] = [
-            'localhost',
-            '127.0.0.1'
-        ];
-        const peerURL: URL = new URL(`${peer.getUrl()}`);
-        return localhosts.indexOf(peerURL.hostname) !== -1;
-    }
-
-    private areAllPeersLocal(peers: Client.Peer[]): boolean {
-        return peers.every((peer: Client.Peer) => this.isPeerLocal(peer));
-    }
-
-    private async getOrdererForChannel(peers: Client.Peer[], channel: Client.Channel): Promise<Client.Orderer> {
-
-        // Get and decode the channel configuration, which contains an array of orderer addresses.
-        const configEnvelope: any = await channel.getChannelConfig(peers[0]);
-        const loadedConfigEnvelope: any = channel.loadConfigEnvelope(configEnvelope);
-
-        // Check for a direct match against the "name" (aka host) of the orderer.
-        for (const ordererHost of loadedConfigEnvelope.orderers as string[]) {
-            for (const orderer of this.orderers.values()) {
-                if (orderer.getName() === ordererHost) {
-                    return orderer;
-                }
-            }
-        }
-
-        // We didn't find a direct match - if all the peers are local, then it's a good chance the orderer
-        // is local and we need to force the hostname to localhost - if not, throw an error.
-        const areAllPeersLocal: boolean = this.areAllPeersLocal(peers);
-        if (!areAllPeersLocal) {
-            throw new Error(`Failed to find Fabric orderer(s) ${loadedConfigEnvelope.orderers.join(', ')} for channel ${channel.getName()}`);
-        }
-
-        // Check for a match against the port of the orderer.
-        for (const ordererHost of loadedConfigEnvelope.orderers as string[]) {
-            const ordererPort: string = ordererHost.split(':')[1];
-            for (const orderer of this.orderers.values()) {
-                if (orderer.getName() === `localhost:${ordererPort}`) {
-                    return orderer;
-                }
-            }
-        }
-
-        // Couldn't find any match.
-        throw new Error(`Failed to find Fabric orderer(s) ${loadedConfigEnvelope.orderers.join(', ')} for channel ${channel.getName()}`);
-
-    }
-
 }

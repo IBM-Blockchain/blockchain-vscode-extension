@@ -420,15 +420,12 @@ describe('environmentExplorer', () => {
 
                 fabricConnection.getAllPeerNames.returns(['peerOne', 'peerTwo']);
 
-                const installedChaincodeMapOne: Map<string, Array<string>> = new Map<string, Array<string>>();
-                installedChaincodeMapOne.set('sample-car-network', ['1.0', '1.2']);
-                installedChaincodeMapOne.set('sample-food-network', ['0.6']);
+                const installedChaincodeMapOne: {label: string, packageId: string}[] = [{label: 'sample-car-network', packageId: '1.0'}, {label: 'sample-car-network', packageId: '1.2'}, {label: 'sample-food-network', packageId: '0.6'}];
 
                 fabricConnection.getInstalledChaincode.withArgs('peerOne').returns(installedChaincodeMapOne);
 
-                const installedChaincodeMapTwo: Map<string, Array<string>> = new Map<string, Array<string>>();
-                installedChaincodeMapTwo.set('biscuit-network', ['0.7']);
-                installedChaincodeMapTwo.set('sample-food-network', ['0.6']);
+                const installedChaincodeMapTwo: {label: string, packageId: string}[] = [{label: 'biscuit-network', packageId: '0.7'}, {label: 'sample-food-network', packageId: '0.6'}];
+
                 fabricConnection.getInstalledChaincode.withArgs('peerTwo').returns(installedChaincodeMapTwo);
 
                 fabricConnection.getInstantiatedChaincode.withArgs(['peerOne'], 'channelOne').resolves([{
@@ -940,7 +937,7 @@ describe('environmentExplorer', () => {
             });
 
             it('should handle no installed chaincodes', async () => {
-                fabricConnection.getInstalledChaincode.withArgs('peerOne').resolves(new Map<string, Array<string>>());
+                fabricConnection.getInstalledChaincode.withArgs('peerOne').resolves([]);
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
 

@@ -81,7 +81,7 @@ describe('InstantiateCommand', () => {
             fabricRuntimeMock = mySandBox.createStubInstance(FabricEnvironmentConnection);
             fabricRuntimeMock.connect.resolves();
             fabricRuntimeMock.instantiateChaincode.resolves();
-            fabricRuntimeMock.getInstalledChaincode.resolves(new Map());
+            fabricRuntimeMock.getInstalledChaincode.resolves([]);
 
             environmentConnectionStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns((fabricRuntimeMock));
 
@@ -693,8 +693,7 @@ describe('InstantiateCommand', () => {
             packageRegistryEntry.version = 'vscode-debug-123456';
             mySandBox.stub(PackageRegistry.instance(), 'get').resolves(packageRegistryEntry);
 
-            const installedChaincodeMap: Map<string, string[]> = new Map<string, string[]>();
-            installedChaincodeMap.set('beer', ['vscode-debug-123456']);
+            const installedChaincodeMap: {label: string, packageId: string}[] = [{label: 'beer', packageId: 'vscode-debug-123456'}];
 
             fabricRuntimeMock.getInstalledChaincode.resolves(installedChaincodeMap);
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, undefined, 'someChannelName', ['peerHi', 'peerHa']);
@@ -730,8 +729,7 @@ describe('InstantiateCommand', () => {
 
             mySandBox.stub(vscode.debug, 'activeDebugSession').value(activeDebugSessionStub);
 
-            const installedChaincodeMap: Map<string, string[]> = new Map<string, string[]>();
-            installedChaincodeMap.set('beer', ['vscode-debug-wrong']);
+            const installedChaincodeMap: {label: string, packageId: string}[] = [{label: 'beer', packageId: 'vscode-debug-wrong'}];
 
             fabricRuntimeMock.getInstalledChaincode.resolves(installedChaincodeMap);
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, undefined, 'someChannelName', ['peerHi', 'peerHa']);

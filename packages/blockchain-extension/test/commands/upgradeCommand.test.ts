@@ -85,7 +85,7 @@ describe('UpgradeCommand', () => {
 
             fabricRuntimeMock = mySandBox.createStubInstance(FabricEnvironmentConnection);
             fabricRuntimeMock.connect.resolves();
-            fabricRuntimeMock.getInstalledChaincode.resolves(new Map());
+            fabricRuntimeMock.getInstalledChaincode.resolves([]);
             fabricRuntimeMock.upgradeChaincode.resolves();
 
             environmentStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns(fabricRuntimeMock);
@@ -706,8 +706,7 @@ describe('UpgradeCommand', () => {
             packageRegistryEntry.version = 'vscode-debug-97365870';
             mySandBox.stub(PackageRegistry.instance(), 'get').resolves(packageRegistryEntry);
 
-            const installedChaincodeMap: Map<string, string[]> = new Map<string, string[]>();
-            installedChaincodeMap.set('beer', ['vscode-debug-97365870']);
+            const installedChaincodeMap: {label: string, packageId: string}[] = [{label: 'beer', packageId: 'vscode-debug-97365870'}];
 
             fabricRuntimeMock.getInstalledChaincode.resolves(installedChaincodeMap);
 
@@ -739,8 +738,7 @@ describe('UpgradeCommand', () => {
                 workspaceFolder: workspaceFolder
             };
 
-            const installedChaincodeMap: Map<string, string[]> = new Map<string, string[]>();
-            installedChaincodeMap.set('beer', ['vscode-debug-wrong']);
+            const installedChaincodeMap: {label: string, packageId: string}[] = [{label: 'beer', packageId: 'vscode-debug-wrong'}];
 
             fabricRuntimeMock.getInstalledChaincode.resolves(installedChaincodeMap);
 

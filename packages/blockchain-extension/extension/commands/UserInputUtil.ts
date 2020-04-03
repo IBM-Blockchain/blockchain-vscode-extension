@@ -598,13 +598,13 @@ export class UserInputUtil {
         // if calling from dissociateTransactionDataDirectory, filter so that we only show chaincodes that have associations
         if (showAssociated === true) {
             const gateway: FabricGatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
-            const  transactionDataDirectories: Array<{chaincodeName: string, channelName: string, transactionDataPath: string}> = gateway.transactionDataDirectories;
+            const transactionDataDirectories: Array<{ chaincodeName: string, channelName: string, transactionDataPath: string }> = gateway.transactionDataDirectories;
             if (transactionDataDirectories === undefined || transactionDataDirectories.length === 0) {
                 outputAdapter.log(LogType.ERROR, 'No smart contracts with associations to transaction data directories found');
                 return;
             } else {
                 const tempChaincodes: Array<{ name: string, version: string, channel: string }> = instantiatedChaincodes.filter((chaincode: FabricChaincode) => {
-                    return transactionDataDirectories.some((directory: {chaincodeName: string, channelName: string, transactionDataPath: string}) => {
+                    return transactionDataDirectories.some((directory: { chaincodeName: string, channelName: string, transactionDataPath: string }) => {
                         return directory.chaincodeName === chaincode.name;
                     });
                 });
@@ -761,14 +761,13 @@ export class UserInputUtil {
 
         // For each peer, get the installed chaincode, and remove already installed contracts from the packagedContracts array
         for (const peer of peers) {
-            const chaincodes: Map<string, Array<string>> = await connection.getInstalledChaincode(peer);
-            chaincodes.forEach((versions: string[], chaincodeName: string) => {
-                versions.forEach((version: string) => {
-                    const label: string = `${chaincodeName}@${version}`;
+            const chaincodes: { label: string, packageId: string }[] = await connection.getInstalledChaincode(peer);
+            // TODO: this is wrong but won't be needed
+            chaincodes.forEach((chaincode: { label: string, packageId: string }) => {
+                const label: string = `${chaincode.label}@${chaincode.packageId}`;
 
-                    packagedContracts = packagedContracts.filter((_package: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>) => {
-                        return label !== _package.label;
-                    });
+                packagedContracts = packagedContracts.filter((_package: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>) => {
+                    return label !== _package.label;
                 });
             });
         }
@@ -1216,20 +1215,20 @@ export class UserInputUtil {
     private static async getInstalledContracts(connection: IFabricEnvironmentConnection, peers: Array<string>): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[]> {
         const tempQuickPickItems: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = [];
         for (const peer of peers) {
-            const chaincodes: Map<string, Array<string>> = await connection.getInstalledChaincode(peer);
-            chaincodes.forEach((versions: string[], chaincodeName: string) => {
-                versions.forEach((version: string) => {
-                    const _package: PackageRegistryEntry = new PackageRegistryEntry({ name: chaincodeName, version: version, path: undefined, sizeKB: undefined });
-                    const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = { packageEntry: _package, workspace: undefined };
-                    const label: string = `${chaincodeName}@${version}`;
-                    const foundItem: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = tempQuickPickItems.find((item: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>) => {
-                        return item.label === label;
-                    });
+            const chaincodes: { label: string, packageId: string }[] = await connection.getInstalledChaincode(peer);
 
-                    if (!foundItem) {
-                        tempQuickPickItems.push({ label: label, description: 'Installed', data: data });
-                    }
+            // TODO: this is wrong but won't be needed later
+            chaincodes.forEach((chaincode: { label: string, packageId: string }) => {
+                const _package: PackageRegistryEntry = new PackageRegistryEntry({ name: chaincode.label, version: chaincode.packageId, path: undefined, sizeKB: undefined });
+                const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = { packageEntry: _package, workspace: undefined };
+                const label: string = `${chaincode.label}@${chaincode.packageId}`;
+                const foundItem: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = tempQuickPickItems.find((item: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>) => {
+                    return item.label === label;
                 });
+
+                if (!foundItem) {
+                    tempQuickPickItems.push({ label: label, description: 'Installed', data: data });
+                }
             });
         }
         return tempQuickPickItems;

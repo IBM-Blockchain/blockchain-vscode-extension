@@ -21,7 +21,8 @@ import {
     IdentityContext,
     ProposalResponse,
     User,
-    Utils
+    Utils,
+    ConnectOptions
 } from 'fabric-common';
 import * as protos from 'fabric-protos';
 import {Identity, IdentityProvider, Wallet} from 'fabric-network';
@@ -47,31 +48,24 @@ export interface InstalledSmartContract {
 
 export class LifecyclePeer {
 
-    private name!: string;
-    private url!: string;
-    private mspid!: string;
-    private sslTargetNameOverride?: string;
-    private pem?: string;
-    private clientCertKey?: string;
-    private clientKey?: string;
-    private requestTimeout?: number;
+    public name!: string;
+    public url!: string;
+    public mspid!: string;
+    public sslTargetNameOverride?: string;
+    public pem?: string;
+    public clientCertKey?: string;
+    public clientKey?: string;
+    public requestTimeout?: number;
 
     private wallet: Wallet | undefined;
     private identity: string | undefined;
 
-    private fabricClient: Client;
-
     /**
      * internal use only
      * @param options: LifecyclePeerOptions
-     * @param fabricClient: Client
      */
-    constructor(options: LifecyclePeerOptions, fabricClient: Client) {
+    constructor(options: LifecyclePeerOptions) {
         Object.assign(this, options);
-
-        this.fabricClient = fabricClient;
-
-        this.initialize();
     }
 
     /**
@@ -145,7 +139,7 @@ export class LifecyclePeer {
 
             const buildRequest: { fcn: string; args: Buffer[] } = {
                 fcn: 'QueryInstalledChaincodes',
-                args: [ await arg.toBuffer()]
+                args: [await arg.toBuffer()]
             };
 
             const responses: ProposalResponse = await this.sendRequest(buildRequest, '_lifecycle', requestTimeout);
@@ -198,7 +192,7 @@ export class LifecyclePeer {
 
             const buildRequest: { fcn: string; args: Buffer[] } = {
                 fcn: 'GetInstalledChaincodePackage',
-                args: [ await arg.toBuffer()]
+                args: [await arg.toBuffer()]
             };
 
             const responses: ProposalResponse = await this.sendRequest(buildRequest, '_lifecycle', requestTimeout);
@@ -211,7 +205,7 @@ export class LifecyclePeer {
             result = packageBytes.toBuffer();
 
             logger.debug('%s - end', method);
-            return result
+            return result;
         } catch (error) {
             logger.error('Problem with the request :: %s', error);
             logger.error(' problem at ::' + error.stack);
@@ -243,7 +237,7 @@ export class LifecyclePeer {
             const payloads: Buffer[] = await LifecycleCommon.processResponse(responses);
 
             // only sent to one peer so only one payload
-            const queryTrans:  protos.protos.ChannelQueryResponse = protos.protos.ChannelQueryResponse.decode(payloads[0]);
+            const queryTrans: protos.protos.ChannelQueryResponse = protos.protos.ChannelQueryResponse.decode(payloads[0]);
             logger.debug('queryChannels - ProcessedTransaction.channelInfo.length :: %s', queryTrans.channels.length);
             for (const channelInfo of queryTrans.channels) {
                 logger.debug('>>> channel id %s ', channelInfo.channel_id);
@@ -259,32 +253,48 @@ export class LifecyclePeer {
         }
     }
 
-    private initialize(): void {
-        this.fabricClient.setTlsClientCertAndKey(this.clientCertKey!, this.clientKey!);
+    private initialize(): Client {
+        const fabricClient: Client = new Client('lifecycle');
+        fabricClient.setTlsClientCertAndKey(this.clientCertKey!, this.clientKey!);
 
-        const endpoint: Endpoint = this.fabricClient.newEndpoint({
-            url: this.url,
-            pem: this.pem,
-            'ssl-target-name-override': this.sslTargetNameOverride,
-            requestTimeout: this.requestTimeout
-        });
+        const options: ConnectOptions = {
+            url: this.url
+        };
+
+        if (this.pem) {
+            options.pem = this.pem;
+        }
+
+        if (this.sslTargetNameOverride) {
+            options['ssl-target-name-override'] = this.sslTargetNameOverride;
+        }
+
+        if (this.requestTimeout) {
+            options.requestTimeout = this.requestTimeout;
+        }
+
+        const endpoint: Endpoint = fabricClient.newEndpoint(options);
 
         // this will add the peer to the list of endorsers
-        const endorser: Endorser = this.fabricClient.getEndorser(this.name, this.mspid);
+        const endorser: Endorser = fabricClient.getEndorser(this.name, this.mspid);
         endorser['setEndpoint'](endpoint);
+
+        return fabricClient;
     }
 
-    private async sendRequest(buildRequest: { fcn: string, args: Buffer[] }, smartContractName: string, requestTimeout ?: number): Promise<ProposalResponse> {
+    private async sendRequest(buildRequest: { fcn: string, args: Buffer[] }, smartContractName: string, requestTimeout?: number): Promise<ProposalResponse> {
         if (!this.wallet || !this.identity) {
             throw new Error('Wallet or identity property not set, call setCredentials first');
         }
 
-        const endorser: Endorser = this.fabricClient.getEndorser(this.name, this.mspid);
+        const fabricClient: Client = this.initialize();
+
+        const endorser: Endorser = fabricClient.getEndorser(this.name, this.mspid);
 
         try {
             // @ts-ignore
             await endorser.connect();
-            const channel: Channel = this.fabricClient.newChannel('noname');
+            const channel: Channel = fabricClient.newChannel('noname');
             // this will tell the peer it is a system wide request
             // not for a specific channel
             // @ts-ignore
@@ -299,7 +309,7 @@ export class LifecyclePeer {
 
             const provider: IdentityProvider = this.wallet.getProviderRegistry().getProvider(identity.type);
             const user: User = await provider.getUserContext(identity, this.identity);
-            const identityContext: IdentityContext = this.fabricClient.newIdentityContext(user);
+            const identityContext: IdentityContext = fabricClient.newIdentityContext(user);
             endorsement.build(identityContext, buildRequest);
 
             logger.debug('%s - sign the get all install smart contract request');

@@ -40,7 +40,6 @@ export class NetworkHelper {
         lifecycle.addOrderer({
             name: 'orderer.example.com',
             url: 'grpcs://localhost:7050',
-            mspid: 'OrdererMSP',
             pem: ordererPem,
             sslTargetNameOverride: 'orderer.example.com'
         });

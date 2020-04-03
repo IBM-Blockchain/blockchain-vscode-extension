@@ -12,7 +12,7 @@
  * limitations under the License.
 */
 
-import {Client, Committer, Endpoint, Utils} from 'fabric-common';
+import {ConnectOptions, Utils} from 'fabric-common';
 import {LifecyclePeer, LifecyclePeerOptions} from './LifecyclePeer';
 import {Wallet} from 'fabric-network';
 import {LifecycleChannel} from './LifecycleChannel';
@@ -22,7 +22,6 @@ const logger: any = Utils.getLogger('packager');
 export interface OrdererOptions {
     name: string,
     url: string,
-    mspid: string,
     pem?: string
     sslTargetNameOverride?: string,
     requestTimeout?: number;
@@ -34,15 +33,8 @@ export interface OrdererOptions {
 export class Lifecycle {
 
     private peers: Map<string, LifecyclePeer> = new Map<string, LifecyclePeer>();
-    private fabricClient: Client;
 
-    /**
-     * Create a Lifecycle instance
-     */
-    constructor() {
-        this.fabricClient = new Client('lifecycle client');
-
-    }
+    private orderers: Map<string, ConnectOptions> = new Map<string, OrdererOptions>();
 
     /**
      * Add details of a peer that you want to perform lifecycle options on
@@ -68,12 +60,8 @@ export class Lifecycle {
             throw new Error('Missing option mspid');
         }
 
-        try {
-            const peer: LifecyclePeer = new LifecyclePeer(options, this.fabricClient);
-            this.peers.set(options.name, peer);
-        } catch (error) {
-            throw new Error(`Could not add the peer ${options.name}, received error ${error.message}`);
-        }
+        const peer: LifecyclePeer = new LifecyclePeer(options);
+        this.peers.set(options.name, peer);
     }
 
     /**
@@ -100,12 +88,16 @@ export class Lifecycle {
 
         const peer: LifecyclePeer | undefined = this.peers.get(name);
         if (!peer) {
-            throw new Error(`Could not get peer ${name}, no peer with that name has been added`)
+            throw new Error(`Could not get peer ${name}, no peer with that name has been added`);
         }
 
         peer.setCredentials(wallet, identity);
 
         return peer;
+    }
+
+    public getAllPeerNames(): string[] {
+        return Array.from(this.peers.keys()).sort();
     }
 
     /**
@@ -128,7 +120,7 @@ export class Lifecycle {
             throw new Error('parameter identity is missing');
         }
 
-        return new LifecycleChannel(this.fabricClient, channelName, wallet, identity);
+        return new LifecycleChannel(this, channelName, wallet, identity);
     }
 
     /**
@@ -144,22 +136,42 @@ export class Lifecycle {
             throw new Error('missing option name');
         }
 
-        if (!options.mspid) {
-            throw new Error('missing option mspid');
-        }
-
         if (!options.url) {
             throw new Error('missing option url');
         }
 
-        const endpoint: Endpoint = this.fabricClient.newEndpoint({
-            url: options.url,
-            'ssl-target-name-override': options.sslTargetNameOverride,
-            requestTimeout: options.requestTimeout,
-            pem: options.pem
-        });
+        const connectOptions: ConnectOptions = {
+            url: options.url
+        };
 
-        const committer: Committer = this.fabricClient.getCommitter(options.name, options.mspid);
-        committer.setEndpoint(endpoint);
+        if (options.pem) {
+            connectOptions.pem = options.pem;
+        }
+
+        if (options.sslTargetNameOverride) {
+            connectOptions['ssl-target-name-override'] = options.sslTargetNameOverride;
+        }
+
+        if (options.requestTimeout) {
+            connectOptions.requestTimeout = options.requestTimeout;
+        }
+
+        this.orderers.set(options.name, connectOptions);
+    }
+
+    /**
+     * Get all the names of the orderers
+     * @returns string[] an array containing the names of the orderers
+     */
+    public getAllOrdererNames(): string[] {
+        return Array.from(this.orderers.keys()).sort();
+    }
+
+    /**
+     * Gets the list of options for an orderer
+     * @param name
+     */
+    public getOrderer(name: string): ConnectOptions {
+        return this.orderers.get(name);
     }
 }
