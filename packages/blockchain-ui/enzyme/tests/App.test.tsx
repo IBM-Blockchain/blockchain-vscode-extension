@@ -34,4 +34,16 @@ describe('App', () => {
         dispatchEvent(msg);
         component.state().redirectPath.should.equal('/home');
     });
+
+    it('should redirect to the tutorial page', async () => {
+        const component: any = mount(<App/>);
+
+        const msg: MessageEvent = new MessageEvent('message', {
+            data: {
+                path: '/tutorials'
+            }
+        });
+        dispatchEvent(msg);
+        component.state().redirectPath.should.equal('/tutorials');
+    });
 });

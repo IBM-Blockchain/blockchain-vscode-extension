@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Tile } from 'carbon-components-react';
 import HeadingCombo from '../HeadingCombo/HeadingCombo';
-import { ExtensionCommands } from '../../../ExtensionCommands';
 import Utils from '../../../Utils';
 import newTabImg from '../../../resources/new-tab.svg';
 import './CustomTile.scss';
@@ -9,6 +8,7 @@ import './CustomTile.scss';
 interface IProps {
     title: string;
     body: string;
+    options: { actionType: 'app' | 'vscode', command?: string, path?: string };
 }
 
 class CustomTile extends Component <IProps> {
@@ -19,9 +19,13 @@ class CustomTile extends Component <IProps> {
     }
 
     tileClickHandler(): void {
-        Utils.postToVSCode({
-            command: ExtensionCommands.OPEN_TUTORIAL_GALLERY
-        });
+        if (this.props.options.actionType === 'app') {
+            Utils.changeRoute(this.props.options.path);
+        } else {
+            Utils.postToVSCode({
+                command: this.props.options.command
+            });
+        }
     }
 
     render(): JSX.Element {
