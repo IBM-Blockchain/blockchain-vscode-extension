@@ -19,10 +19,11 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as fabricClientCA from 'fabric-ca-client';
 import { Gateway, Wallet } from 'fabric-network';
-import * as Client from 'fabric-client';
 import { OutputAdapter, LogType } from 'ibm-blockchain-platform-common';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import * as path from 'path';
+import { Client, Channel } from 'fabric-network/node_modules/fabric-common';
+import { LifecyclePeer, LifecycleChannel } from 'ibm-blockchain-platform-fabric-admin';
 
 chai.should();
 chai.use(sinonChai);
@@ -62,8 +63,7 @@ describe('FabricConnection', () => {
         async connect(wallet: FabricWallet, identityName: string, requestTimeout: number): Promise<void> {
             this['gateway'] = fabricGatewayStub;
 
-            // TODO: update this when all packages using same version of the fabric node sdk
-            await this.connectInner(this.connectionProfile, wallet.getWallet() as any, identityName, requestTimeout);
+            await this.connectInner(this.connectionProfile, wallet.getWallet(), identityName, requestTimeout);
         }
     }
 
@@ -71,7 +71,7 @@ describe('FabricConnection', () => {
     let fabricClientStub: sinon.SinonStubbedInstance<Client>;
     let fabricGatewayStub: sinon.SinonStubbedInstance<Gateway>;
     let fabricConnection: TestFabricConnection;
-    let fabricChannelStub: sinon.SinonStubbedInstance<Client.Channel>;
+    let fabricChannelStub: sinon.SinonStubbedInstance<Channel>;
     let fabricCAStub: sinon.SinonStubbedInstance<fabricClientCA>;
     let mockWallet: sinon.SinonStubbedInstance<Wallet>;
     const mockIdentityName: string = 'admin';
@@ -121,25 +121,33 @@ describe('FabricConnection', () => {
         fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
 
         fabricClientStub = mySandBox.createStubInstance(Client);
-        fabricClientStub.newTransactionID.returns({
-            getTransactionID: mySandBox.stub().returns('1234')
-        });
+
+        fabricClientStub.getEndorsers.returns([{
+            name: 'peer0.org1.example.com',
+            mspid: 'Org1MSP',
+            endpoint: {
+                url: 'grpc://localhost:7051',
+                options: {}
+            }
+        }, {
+            name: 'peer0.org2.example.com',
+            mspid: 'Org2MSP',
+            endpoint: {
+                url: 'grpc://localhost:8051',
+                options: {}
+            }
+        }]);
 
         fabricGatewayStub = mySandBox.createStubInstance(Gateway);
 
-        fabricClientStub.getMspid.returns('myMSPId');
         fabricCAStub = mySandBox.createStubInstance(fabricClientCA);
         fabricCAStub.enroll.returns({ certificate: 'myCert', key: { toBytes: mySandBox.stub().returns('myKey') } });
         fabricCAStub.register.resolves('its a secret');
-        fabricClientStub.getCertificateAuthority.returns(fabricCAStub);
-        fabricGatewayStub.getClient.returns(fabricClientStub);
+        fabricGatewayStub['client'] = fabricClientStub;
         fabricGatewayStub.connect.resolves();
+        fabricGatewayStub.getOptions.returns({wallet: mockWallet, identity: mockIdentityName});
 
-        fabricChannelStub = mySandBox.createStubInstance(Client.Channel);
-        fabricChannelStub.sendInstantiateProposal.resolves([{}, {}]);
-        fabricChannelStub.sendUpgradeProposal.resolves([{}, {}]);
-        fabricChannelStub.sendTransaction.resolves({ status: 'SUCCESS' });
-        fabricChannelStub.getOrganizations.resolves([{ id: 'Org1MSP' }]);
+        fabricChannelStub = mySandBox.createStubInstance(Channel);
 
         const fabricNetworkStub: any = {
             getChannel: mySandBox.stub().returns(fabricChannelStub)
@@ -187,7 +195,7 @@ describe('FabricConnection', () => {
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
             await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
 
-            fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
+            fabricGatewayStub.connect.should.have.been.calledWith(connectionProfile, {
                 wallet: mockWallet,
                 identity: mockIdentityName,
                 discovery: {
@@ -210,7 +218,7 @@ describe('FabricConnection', () => {
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
             await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
-            fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
+            fabricGatewayStub.connect.should.have.been.calledWith(connectionProfile, {
                 wallet: mockWallet,
                 identity: mockIdentityName,
                 discovery: {
@@ -233,7 +241,7 @@ describe('FabricConnection', () => {
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
             await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
-            fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
+            fabricGatewayStub.connect.should.have.been.calledWith(connectionProfile, {
                 wallet: mockWallet,
                 identity: mockIdentityName,
                 discovery: {
@@ -256,7 +264,7 @@ describe('FabricConnection', () => {
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
             await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
-            fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
+            fabricGatewayStub.connect.should.have.been.calledWith(connectionProfile, {
                 wallet: mockWallet,
                 identity: mockIdentityName,
                 discovery: {
@@ -279,7 +287,7 @@ describe('FabricConnection', () => {
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
             await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
-            fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
+            fabricGatewayStub.connect.should.have.been.calledWith(connectionProfile, {
                 wallet: mockWallet,
                 identity: mockIdentityName,
                 discovery: {
@@ -302,7 +310,7 @@ describe('FabricConnection', () => {
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
             await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
-            fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
+            fabricGatewayStub.connect.should.have.been.calledWith(connectionProfile, {
                 wallet: mockWallet,
                 identity: mockIdentityName,
                 discovery: {
@@ -325,7 +333,7 @@ describe('FabricConnection', () => {
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
             await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
-            fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
+            fabricGatewayStub.connect.should.have.been.calledWith(connectionProfile, {
                 wallet: mockWallet,
                 identity: mockIdentityName,
                 discovery: {
@@ -348,7 +356,7 @@ describe('FabricConnection', () => {
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
             await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
-            fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
+            fabricGatewayStub.connect.should.have.been.calledWith(connectionProfile, {
                 wallet: mockWallet,
                 identity: mockIdentityName,
                 discovery: {
@@ -371,7 +379,7 @@ describe('FabricConnection', () => {
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
             await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
-            fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
+            fabricGatewayStub.connect.should.have.been.calledWith(connectionProfile, {
                 wallet: mockWallet,
                 identity: mockIdentityName,
                 discovery: {
@@ -388,41 +396,14 @@ describe('FabricConnection', () => {
 
     describe('getAllPeerNames', () => {
         it('should get all the names of the peer', async () => {
-            const peerOne: Client.Peer = new Client.Peer('grpc://localhost:1454', { name: 'peerOne' });
-            const peerTwo: Client.Peer = new Client.Peer('grpc://localhost:1453', { name: 'peerTwo' });
-
-            fabricClientStub.getPeersForOrg.returns([peerOne, peerTwo]);
-
-            await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
-
             const peerNames: Array<string> = fabricConnection.getAllPeerNames();
-            peerNames.should.deep.equal(['peerOne', 'peerTwo']);
+            peerNames.should.deep.equal(['peer0.org1.example.com', 'peer0.org2.example.com']);
         });
     });
 
-    // describe('getPeer', () => {
-    //     it('should get a peer', async () => {
-    //         const peerOne: Peer = new Peer('grpc://localhost:1454', { name: 'peerOne' });
-    //         const peerTwo: Peer = new Peer('grpc://localhost:1453', { name: 'peerTwo' });
-
-    //         fabricClientStub.getPeersForOrg.returns([peerOne, peerTwo]);
-
-    //         await fabricConnection.connect(mockWallet, mockIdentityName);
-
-    //         const peer: Peer = await fabricConnection.getPeer('peerTwo');
-    //         peer.getName().should.deep.equal('peerTwo');
-    //     });
-    // });
-
     describe('getAllChannelsForPeer', () => {
         it('should get all the channels a peer has joined', async () => {
-            const peerOne: Client.Peer = new Client.Peer('grpc://localhost:1454', { name: 'peer0.org1.example.com' });
-
-            fabricClientStub.getPeersForOrg.returns([peerOne]);
-
-            const channelOne: { channel_id: string } = { channel_id: 'channel-one' };
-            const channelTwo: { channel_id: string } = { channel_id: 'channel-two' };
-            fabricClientStub.queryChannels.resolves({ channels: [channelOne, channelTwo] });
+            mySandBox.stub(LifecyclePeer.prototype, 'getAllChannelNames').resolves(['channel-one', 'channel-two']);
 
             await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
 
@@ -432,11 +413,7 @@ describe('FabricConnection', () => {
         });
 
         it('should use the connection profile for the list of channels if the peer says access is denied', async () => {
-            const peerOne: Client.Peer = new Client.Peer('grpc://localhost:1454', { name: 'peer0.org1.example.com' });
-
-            fabricClientStub.getPeersForOrg.returns([peerOne]);
-
-            fabricClientStub.queryChannels.rejects(new Error('blah access denied blah'));
+            mySandBox.stub(LifecyclePeer.prototype, 'getAllChannelNames').rejects(new Error('blah access denied blah'));
 
             await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
 
@@ -446,11 +423,7 @@ describe('FabricConnection', () => {
         });
 
         it('should rethrow the error if the peer says access is denied and there are no matching channels in the connection profile', async () => {
-            const peerOne: Client.Peer = new Client.Peer('grpc://localhost:1454', { name: 'peer0.org2.example.com' });
-
-            fabricClientStub.getPeersForOrg.returns([peerOne]);
-
-            fabricClientStub.queryChannels.rejects(new Error('blah access denied blah'));
+            mySandBox.stub(LifecyclePeer.prototype, 'getAllChannelNames').rejects(new Error('blah access denied blah'));
 
             await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
 
@@ -459,11 +432,7 @@ describe('FabricConnection', () => {
         });
 
         it('should rethrow any other error', async () => {
-            const peerOne: Client.Peer = new Client.Peer('grpc://localhost:1454', { name: 'peer0.org1.example.com' });
-
-            fabricClientStub.getPeersForOrg.returns([peerOne]);
-
-            fabricClientStub.queryChannels.rejects(new Error('such error'));
+            mySandBox.stub(LifecyclePeer.prototype, 'getAllChannelNames').rejects(new Error('such error'));
 
             await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
 
@@ -474,99 +443,20 @@ describe('FabricConnection', () => {
 
     describe('getInstantiatedChaincode', () => {
         it('should get the instantiated chaincode from a channel in the connection profile', async () => {
-            const channelOne: any = { channel_id: 'channel-one', queryInstantiatedChaincodes: mySandBox.stub() };
+            mySandBox.stub(fabricConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
+            const getAllChannelsForPeerStub: sinon.SinonStub = mySandBox.stub(fabricConnection, 'getAllChannelsForPeer');
+            getAllChannelsForPeerStub.withArgs('peerOne').returns(['channel1']);
+            getAllChannelsForPeerStub.withArgs('peerTwo').returns(['channel2']);
 
-            channelOne.queryInstantiatedChaincodes.resolves({
-                chaincodes: [{ name: 'biscuit-network', version: '0,7' }, { name: 'cake-network', version: '0.8' }]
-            });
-
-            fabricClientStub.getChannel.returns(channelOne);
+            mySandBox.stub(LifecycleChannel.prototype, 'getAllCommittedSmartContracts').resolves([{smartContractName: 'biscuit-network', smartContractVersion: '0.7'}, {smartContractName: 'cake-network', smartContractVersion: '0.8'}]);
 
             await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
-            const instantiatedChaincodes: Array<any> = await fabricConnection.getInstantiatedChaincode('channel-one');
+            const instantiatedChaincodes: Array<any> = await fabricConnection.getInstantiatedChaincode('channel1');
 
-            instantiatedChaincodes.should.deep.equal([{ name: 'biscuit-network', version: '0,7' }, {
+            instantiatedChaincodes.should.deep.equal([{ name: 'biscuit-network', version: '0.7' }, {
                 name: 'cake-network',
                 version: '0.8'
             }]);
-        });
-
-        it('should get the instantiated chaincode from a channel using service discovery (localhost)', async () => {
-            fabricConnection['discoveryEnabled'] = true;
-            fabricConnection['discoveryAsLocalhost'] = true;
-            const mockChannel: sinon.SinonStubbedInstance<Client.Channel> = mySandBox.createStubInstance(Client.Channel);
-            fabricClientStub.newChannel.withArgs('myChannelFromDS').returns(mockChannel);
-            const mockPeer1: sinon.SinonStubbedInstance<Client.Peer> = mySandBox.createStubInstance(Client.Peer);
-            const mockPeer2: sinon.SinonStubbedInstance<Client.Peer> = mySandBox.createStubInstance(Client.Peer);
-            fabricClientStub.getPeersForOrg.returns([mockPeer1, mockPeer2]);
-            mockChannel.initialize.resolves();
-            mockChannel.queryInstantiatedChaincodes.resolves({
-                chaincodes: [{ name: 'biscuit-network', version: '0,7' }, { name: 'cake-network', version: '0.8' }]
-            });
-            const instantiatedChaincodes: Array<any> = await fabricConnection.getInstantiatedChaincode('myChannelFromDS');
-            mockChannel.initialize.should.have.been.calledOnceWithExactly({ asLocalhost: true, discover: true, target: mockPeer1 });
-            instantiatedChaincodes.should.deep.equal([{ name: 'biscuit-network', version: '0,7' }, {
-                name: 'cake-network',
-                version: '0.8'
-            }]);
-        });
-
-        it('should get the instantiated chaincode from a channel using service discovery (non-localhost)', async () => {
-            fabricConnection['discoveryEnabled'] = true;
-            fabricConnection['discoveryAsLocalhost'] = false;
-            const mockChannel: sinon.SinonStubbedInstance<Client.Channel> = mySandBox.createStubInstance(Client.Channel);
-            fabricClientStub.newChannel.withArgs('myChannelFromDS').returns(mockChannel);
-            const mockPeer1: sinon.SinonStubbedInstance<Client.Peer> = mySandBox.createStubInstance(Client.Peer);
-            const mockPeer2: sinon.SinonStubbedInstance<Client.Peer> = mySandBox.createStubInstance(Client.Peer);
-            fabricClientStub.getPeersForOrg.returns([mockPeer1, mockPeer2]);
-            mockChannel.initialize.resolves();
-            mockChannel.queryInstantiatedChaincodes.resolves({
-                chaincodes: [{ name: 'biscuit-network', version: '0,7' }, { name: 'cake-network', version: '0.8' }]
-            });
-            const instantiatedChaincodes: Array<any> = await fabricConnection.getInstantiatedChaincode('myChannelFromDS');
-            mockChannel.initialize.should.have.been.calledOnceWithExactly({ asLocalhost: false, discover: true, target: mockPeer1 });
-            instantiatedChaincodes.should.deep.equal([{ name: 'biscuit-network', version: '0,7' }, {
-                name: 'cake-network',
-                version: '0.8'
-            }]);
-        });
-
-        it('should get the instantiated chaincode from a channel using service discovery even if first peer fails', async () => {
-            fabricConnection['discoveryEnabled'] = true;
-            fabricConnection['discoveryAsLocalhost'] = true;
-            const mockChannel: sinon.SinonStubbedInstance<Client.Channel> = mySandBox.createStubInstance(Client.Channel);
-            fabricClientStub.newChannel.withArgs('myChannelFromDS').returns(mockChannel);
-            const mockPeer1: sinon.SinonStubbedInstance<Client.Peer> = mySandBox.createStubInstance(Client.Peer);
-            const mockPeer2: sinon.SinonStubbedInstance<Client.Peer> = mySandBox.createStubInstance(Client.Peer);
-            fabricClientStub.getPeersForOrg.returns([mockPeer1, mockPeer2]);
-            mockChannel.initialize.onFirstCall().rejects(new Error('such error'));
-            mockChannel.initialize.onSecondCall().resolves();
-            mockChannel.queryInstantiatedChaincodes.resolves({
-                chaincodes: [{ name: 'biscuit-network', version: '0,7' }, { name: 'cake-network', version: '0.8' }]
-            });
-            const instantiatedChaincodes: Array<any> = await fabricConnection.getInstantiatedChaincode('myChannelFromDS');
-            mockChannel.initialize.should.have.been.calledTwice;
-            mockChannel.initialize.should.have.been.calledWithExactly({ asLocalhost: true, discover: true, target: mockPeer1 });
-            mockChannel.initialize.should.have.been.calledWithExactly({ asLocalhost: true, discover: true, target: mockPeer2 });
-            instantiatedChaincodes.should.deep.equal([{ name: 'biscuit-network', version: '0,7' }, {
-                name: 'cake-network',
-                version: '0.8'
-            }]);
-        });
-
-        it('should throw an error for a channel using service discovery if all peers fail', async () => {
-            fabricConnection['discoveryEnabled'] = true;
-            fabricConnection['discoveryAsLocalhost'] = true;
-            const mockChannel: sinon.SinonStubbedInstance<Client.Channel> = mySandBox.createStubInstance(Client.Channel);
-            fabricClientStub.newChannel.withArgs('myChannelFromDS').returns(mockChannel);
-            const mockPeer1: sinon.SinonStubbedInstance<Client.Peer> = mySandBox.createStubInstance(Client.Peer);
-            const mockPeer2: sinon.SinonStubbedInstance<Client.Peer> = mySandBox.createStubInstance(Client.Peer);
-            fabricClientStub.getPeersForOrg.returns([mockPeer1, mockPeer2]);
-            mockChannel.initialize.rejects(new Error('such error'));
-            mockChannel.queryInstantiatedChaincodes.resolves({
-                chaincodes: [{ name: 'biscuit-network', version: '0,7' }, { name: 'cake-network', version: '0.8' }]
-            });
-            await fabricConnection.getInstantiatedChaincode('myChannelFromDS').should.be.rejectedWith(/such error/);
         });
     });
 
@@ -637,19 +527,10 @@ describe('FabricConnection', () => {
             const peerNames: string[] = ['peerName1', 'peerName2'];
             const mspIds: string[] = ['Org1MSP', 'Org2MSP'];
 
-            const getNameStub: sinon.SinonStub = mySandBox.stub();
-            getNameStub.onCall(0).returns(peerNames[0]);
-            getNameStub.onCall(1).returns(peerNames[1]);
-
-            const getMspidStub: sinon.SinonStub = mySandBox.stub();
-            getMspidStub.onCall(0).returns(mspIds[0]);
-            getMspidStub.onCall(1).returns(mspIds[1]);
-
-            fabricChannelStub.getChannelPeers.returns([{ getName: getNameStub, getMspid: getMspidStub }, { getName: getNameStub, getMspid: getMspidStub }]);
+            fabricChannelStub.getEndorsers.returns([{ name: peerNames[0], mspid: mspIds[0] }, { name: peerNames[1], mspid: mspIds[1] }]);
 
             const channelPeersInfo: { name: string, mspID: string }[] = await fabricConnection.getChannelPeersInfo(channelName);
-            fabricChannelStub.getChannelPeers.should.have.been.calledOnce;
-            getNameStub.should.have.been.calledTwice;
+            fabricChannelStub.getEndorsers.should.have.been.calledOnce;
             channelPeersInfo.length.should.equal(2);
             channelPeersInfo.should.deep.equal([{ name: peerNames[0], mspID: mspIds[0] }, { name: peerNames[1], mspID: mspIds[1] }]);
         });
@@ -658,10 +539,9 @@ describe('FabricConnection', () => {
             const channelName: string = 'theChannelName';
 
             const error: Error = new Error('Could not get channel');
-            fabricChannelStub.getChannelPeers.throws(error);
+            fabricChannelStub.getEndorsers.throws(error);
 
             await fabricConnection.getChannelPeersInfo(channelName).should.be.rejectedWith(`Unable to get channel peers info: ${error.message}`);
-
         });
     });
 });

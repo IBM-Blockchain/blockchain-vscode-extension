@@ -25,8 +25,8 @@ import {
     ConnectOptions
 } from 'fabric-common';
 import * as protos from 'fabric-protos';
-import {Identity, IdentityProvider, Wallet} from 'fabric-network';
-import {LifecycleCommon} from './LifecycleCommon';
+import { Identity, IdentityProvider, Wallet } from 'fabric-network';
+import { LifecycleCommon } from './LifecycleCommon';
 
 const logger: any = Utils.getLogger('packager');
 
