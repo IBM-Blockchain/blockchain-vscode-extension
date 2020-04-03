@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TutorialPage component should render the expected snapshot 1`] = `
+<div
+  className="bx--grid tutorial-page-container"
+>
+  <div
+    className="bx--row"
+  >
+    <div
+      className="heading-combo-container"
+    >
+      <h3>
+        Blockchain Tutorials
+      </h3>
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+      </p>
+    </div>
+  </div>
+</div>
+`;
