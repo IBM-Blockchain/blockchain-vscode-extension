@@ -17,6 +17,7 @@ steps:
       npm test
     env:
       DISPLAY: ':99.0'
+      REFRESH_PANELS: 'false'
     displayName: Run unit tests
     condition: succeeded()
 

@@ -1,0 +1,19 @@
+pull_request_rules:
+  - name: Create v2 PR
+    conditions:
+      - base=master # PR must have been on master
+      - merged # Must have been merged
+      - label!=v2 pr # Ignore v2 prs
+      - label!=ignore-v2 # Add this label to override backport
+    actions:
+      backport:
+        branches:
+          - v2 # Backport to v2 branch
+     
+  - name: Add v2 pr label # Add v2 pr label to all PRs for v2 branch
+    conditions:
+      - base=v2
+    actions:
+      label:
+        add:
+          - v2 pr
