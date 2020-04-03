@@ -9,6 +9,11 @@ pull_request_rules:
       backport:
         branches:
           - v2 # Backport to v2 branch
+     
+  - name: Add v2 pr label # Add v2 pr label to all PRs for v2 branch
+    conditions:
+      - base=v2
+    actions:
       label:
         add:
-          - v2 # Add v2 label
+          - v2 pr
