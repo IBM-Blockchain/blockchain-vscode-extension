@@ -44,7 +44,7 @@ exports[`App should render the expected snapshot 1`] = `
       className="issues-container"
     />
     <div
-      className="issues-container"
+      className="issues-container upcoming-issues-container"
     />
   </div>
 </div>
