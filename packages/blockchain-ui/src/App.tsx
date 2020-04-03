@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import './App.scss';
 import { HashRouter as Router, Route, Redirect } from 'react-router-dom';
 import HomePage from './components/pages/HomePage/HomePage';
+import TutorialPage from './components/pages/TutorialPage/TutorialPage';
 
 interface AppState {
     redirectPath: string;
@@ -36,6 +37,9 @@ class App extends Component<{}, AppState> {
                         <Route render={(): JSX.Element => <Redirect push to={this.state.redirectPath}/>}></Route>
                         <Route exact path='/home' render={(): JSX.Element =>
                             <HomePage extensionVersion={this.state.extensionVersion}/>}>
+                        </Route>
+                        <Route exact path='/tutorials' render={(): JSX.Element =>
+                            <TutorialPage/>}>
                         </Route>
                     </div>
                 </Router>
