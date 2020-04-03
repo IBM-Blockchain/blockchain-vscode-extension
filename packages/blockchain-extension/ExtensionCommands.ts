@@ -41,6 +41,7 @@ export class ExtensionCommands {
     static readonly RESTART_FABRIC: string = 'environmentExplorer.restartFabricRuntime';
     static readonly RESTART_FABRIC_SHORT: string = 'environmentExplorer.restartFabricRuntimeShort';
     static readonly START_FABRIC: string = 'environmentExplorer.startFabricRuntime';
+    static readonly START_FABRIC_SHORT: string = 'environmentExplorer.startFabricRuntimeShort';
     static readonly STOP_FABRIC: string = 'environmentExplorer.stopFabricRuntime';
     static readonly STOP_FABRIC_SHORT: string = 'environmentExplorer.stopFabricRuntimeShort';
     static readonly TEARDOWN_FABRIC: string = 'environmentExplorer.teardownFabricRuntime';

@@ -18,16 +18,17 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { LogType, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, EnvironmentFlags } from 'ibm-blockchain-platform-common';
+import { LogType, FabricEnvironmentRegistryEntry, EnvironmentFlags, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { TimerUtil } from '../util/TimerUtil';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
+import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 
-export async function startFabricRuntime(registryEntry?: FabricEnvironmentRegistryEntry): Promise<void> {
+export async function startFabricRuntime(registryEntry?: RuntimeTreeItem | FabricEnvironmentRegistryEntry): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'startFabricRuntime');
 
     if (!registryEntry) {
-        const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Select an environment to start', false, true, [EnvironmentFlags.MANAGED]) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+        const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Select an environment to start', false, true, [EnvironmentFlags.MANAGED], [], false) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
         if (!chosenEnvironment) {
             return;
         }
@@ -36,9 +37,14 @@ export async function startFabricRuntime(registryEntry?: FabricEnvironmentRegist
 
     }
 
+    if (registryEntry instanceof RuntimeTreeItem) {
+        // Get entry from tree item
+        registryEntry = registryEntry.environmentRegistryEntry;
+    }
+
     const runtime: LocalEnvironment | ManagedAnsibleEnvironment = EnvironmentFactory.getEnvironment(registryEntry) as LocalEnvironment | ManagedAnsibleEnvironment;
 
-    if (registryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+    if (registryEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
         VSCodeBlockchainOutputAdapter.instance().show();
     }
 
