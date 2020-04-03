@@ -6,11 +6,11 @@ Feature: Package Smart Contract
     When I package the smart contract
     Then a package should exist
     Examples:
-    | language   | type   |
-    | javascript | node   |
-    | typescript | node   |
-    | java       | java   |
-    | go         | golang |
+      | language   | type   |
+      | javascript | node   |
+      | typescript | node   |
+      | java       | java   |
+      | go         | golang |
 
   Scenario Outline: Get list of files
     Given a '<language>' smart contract of type '<type>'
@@ -23,3 +23,15 @@ Feature: Package Smart Contract
       | typescript | node   | metadata.json src/.editorconfig src/.gitignore src/dist/car.d.ts src/dist/car.js src/dist/car.js.map src/package-lock.json src/package.json src/src/car.ts src/tsconfig.json src/tslint.json |
       | java       | java   | metadata.json src/fabcar-1.0-SNAPSHOT.jar src/lib/genson-1.5.jar                                                                                                                             |
       | go         | golang | metadata.json src/fabcar.go src/go.mod src/go.sum src/vendor/google.golang.org/grpc/backoff.go                                                                                               |
+
+  Scenario Outline: Get the package metadata
+    Given a '<language>' smart contract of type '<type>'
+    And the package exists
+    When I get the package metadata
+    Then the metadata is correct '<metadata>'
+    Examples:
+      | language   | type   | metadata                                              |
+      | javascript | node   | {"label":"fabcar-javascript","path":"","type":"node"} |
+      | typescript | node   | {"label":"fabcar-typescript","path":"","type":"node"} |
+      | java       | java   | {"label":"fabcar-java","path":"","type":"java"}       |
+      | go         | golang | {"label":"fabcar-go","path":"","type":"golang"}       |

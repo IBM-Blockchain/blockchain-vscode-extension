@@ -14,28 +14,21 @@
 
 'use strict';
 
-import { Package, ChaincodeType } from 'fabric-client';
+import { SmartContractPackage, SmartContractType, PackageMetadata } from 'ibm-blockchain-platform-fabric-admin';
 import * as fs from 'fs-extra';
 
 export class PackageSmartContract {
 
-    public static async packageContract(name: string, version: string, contractPath: string, pkgFile: string, language: string, metadataPath: string): Promise<Array<string>> {
-        const pkg: any = await Package.fromDirectory({
-            name: name,
-            version: version,
-            path: contractPath,
-            type: language as ChaincodeType,
-            metadataPath: metadataPath ? metadataPath : null
-        });
-        const pkgBuffer: any = await pkg.toBuffer();
-        await fs.writeFile(pkgFile, pkgBuffer);
+    public static async packageContract(name: string, contractPath: string, pkgFile: string, language: string, metadataPath?: string, golangPath?: string): Promise<Array<string>> {
+        const smartContractPackage: SmartContractPackage = await SmartContractPackage.createSmartContractPackage({ smartContractPath: contractPath, label: name, smartContractType: language as SmartContractType, metaDataPath: metadataPath, golangPath: golangPath });
 
-        return pkg.fileNames;
+        await fs.writeFile(pkgFile, smartContractPackage.smartContractPackage);
+
+        return smartContractPackage.getFileNames();
     }
 
-    public static async getPackageInfo(pkgBuffer: Buffer): Promise<{name: string, version: string}> {
-        const pkg: Package = await Package.fromBuffer(pkgBuffer);
-
-        return {name: pkg.getName(), version: pkg.getVersion()};
+    public static async getPackageInfo(pkgBuffer: Buffer): Promise<PackageMetadata> {
+        const smartContractPackage: SmartContractPackage = new SmartContractPackage(pkgBuffer);
+        return smartContractPackage.getMetadata();
     }
 }

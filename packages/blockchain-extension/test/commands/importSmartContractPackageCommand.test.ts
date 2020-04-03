@@ -45,17 +45,21 @@ describe('importSmartContractPackageCommand', () => {
     let browseStub: sinon.SinonStub;
     let commandSpy: sinon.SinonSpy;
     let sendTelemetryEventStub: sinon.SinonStub;
+    let readdirStub: sinon.SinonStub;
 
-    const srcPackage: string = path.join('myPath', 'test.cds');
+    let srcPackage: string = path.join('myPath', 'test.tar.gz');
+
+    let packagesList: string[];
 
     beforeEach(async () => {
-
+        srcPackage = path.join('myPath', 'test.tar.gz');
+        packagesList = ['myPackage.tar.gz', 'badPackage'];
         browseStub = sandbox.stub(UserInputUtil, 'browse').resolves(srcPackage);
         copyStub = sandbox.stub(fs, 'copy').resolves();
         logSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         commandSpy = sandbox.spy(vscode.commands, 'executeCommand');
         sendTelemetryEventStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
-
+        readdirStub = sandbox.stub(fs, 'readdir').resolves(packagesList);
     });
 
     afterEach(async () => {
@@ -66,15 +70,45 @@ describe('importSmartContractPackageCommand', () => {
         await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TestUtil.EXTENSION_TEST_DIR, vscode.ConfigurationTarget.Global);
     });
 
-    it('should import a package', async () => {
+    it('should import a tar.gz package', async () => {
         await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
 
-        const endPackage: string = path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages', 'test.cds');
+        const endPackage: string = path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages', 'test.tar.gz');
         copyStub.should.have.been.calledWith(srcPackage, endPackage);
         logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
-        logSpy.secondCall.should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported smart contract package', 'Successfully imported smart contract package test.cds');
+        logSpy.secondCall.should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported smart contract package', 'Successfully imported smart contract package test.tar.gz');
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_PACKAGES);
+        readdirStub.should.have.been.calledWith(path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages'));
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('importSmartContractPackageCommand');
+    });
+
+    it('should import a tgz package', async () => {
+        srcPackage = path.join('myPath', 'test.tgz');
+        browseStub.resolves(srcPackage);
+
+        await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
+
+        const endPackage: string = path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages', 'test.tgz');
+        copyStub.should.have.been.calledWith(srcPackage, endPackage);
+        logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
+        logSpy.secondCall.should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported smart contract package', 'Successfully imported smart contract package test.tgz');
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_PACKAGES);
+        readdirStub.should.have.been.calledWith(path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages'));
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('importSmartContractPackageCommand');
+    });
+
+    it('should handle duplicate packages', async () => {
+        packagesList.push('test.tgz');
+        readdirStub.resolves(packagesList);
+
+        const error: Error = new Error(`Package with name test already exists`);
+        await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
+
+        readdirStub.should.have.been.calledWith(path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages'));
+        copyStub.should.not.have.been.called;
+        logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
+        logSpy.secondCall.should.have.been.calledWith(LogType.ERROR, `Failed to import smart contract package: ${error.message}`, `Failed to import smart contract package: ${error.toString()}`);
+        sendTelemetryEventStub.should.not.have.been.called;
     });
 
     it('should handle cancel choosing package', async () => {
@@ -86,13 +120,29 @@ describe('importSmartContractPackageCommand', () => {
         logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
     });
 
+    it('should handle incorrect file type', async () => {
+        srcPackage = path.join('myPath', 'test.json');
+        browseStub.resolves(srcPackage);
+
+        const error: Error = new Error('Incorrect file type, file extension must be "tar.gz" or "tgz"');
+
+        await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
+
+        readdirStub.should.not.have.been.called;
+        copyStub.should.not.have.been.called;
+        logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
+        logSpy.secondCall.should.have.been.calledWith(LogType.ERROR, `Failed to import smart contract package: ${error.message}`, `Failed to import smart contract package: ${error.toString()}`);
+        sendTelemetryEventStub.should.not.have.been.called;
+    });
+
     it('should handle error', async () => {
         const error: Error = new Error('such error');
         copyStub.rejects(error);
 
         await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
 
-        const endPackage: string = path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages', 'test.cds');
+        const endPackage: string = path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages', 'test.tar.gz');
+        readdirStub.should.have.been.calledWith(path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages'));
         copyStub.should.have.been.calledWith(srcPackage, endPackage);
         logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
         logSpy.secondCall.should.have.been.calledWith(LogType.ERROR, `Failed to import smart contract package: ${error.message}`, `Failed to import smart contract package: ${error.toString()}`);

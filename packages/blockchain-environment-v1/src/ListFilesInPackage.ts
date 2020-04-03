@@ -15,16 +15,16 @@
 'use strict';
 
 import * as fs from 'fs-extra';
-import { Package } from 'fabric-client';
+import { SmartContractPackage } from 'ibm-blockchain-platform-fabric-admin';
 
 export class ListFilesInPackage {
 
     public static async listFiles(packagePath: string): Promise<Array<string>> {
         let fileNames: string[] = [];
-        const cdsBuffer: Buffer = await fs.readFile(packagePath);
-        const _package: Package = await Package.fromBuffer(cdsBuffer);
+        const buffer: Buffer = await fs.readFile(packagePath);
+        const _package: SmartContractPackage = new SmartContractPackage(buffer);
 
-        fileNames = _package.getFileNames();
+        fileNames = await _package.getFileNames();
 
         return fileNames;
     }
