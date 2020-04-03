@@ -278,6 +278,7 @@ describe('InstantiateCommand', () => {
         });
 
         it(`should stop if user cancelled passing custom JSON CC EP file`, async () => {
+            executeCommandStub.resetHistory();
             showYesNo.onFirstCall().resolves(UserInputUtil.NO);
             showQuickPick.resolves(UserInputUtil.CUSTOM);
 

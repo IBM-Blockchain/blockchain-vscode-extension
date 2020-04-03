@@ -1,0 +1,45 @@
+.current-status {
+    display: flex;
+    font-size: 14px;
+    color: #161616;
+    letter-spacing: 0.16px;
+    line-height: 18px;
+}
+
+.high-level-status {
+    border-radius: 4px;
+    display: inline;
+    background-color: #b5b5b5;
+    color: #fff;
+    font-size: 12px;
+    font-size: 0.75rem;
+    line-height: 2;
+    font-weight: bold;
+    padding: 3px 7px;
+    text-align: center;
+    vertical-align: baseline;
+    white-space: nowrap;
+}
+
+.high-level-status:hover {
+    cursor: pointer;
+}
+
+.bg-red {
+    background-color: red !important;
+}
+  
+.bg-amber {
+    background-color: orange !important;
+}
+
+.bg-green {
+    background-color: green !important;
+}
+
+.icon {
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    padding-left: 3px;
+}

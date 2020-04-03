@@ -14,7 +14,7 @@ exports[`HomePage component should render the expected snapshot 1`] = `
         className="bx--row home-title-container"
       >
         <h2>
-          IBM Blockchain platform
+          IBM Blockchain Platform
           <span
             className="bx--tag bx--tag--gray extension-version"
             id="extension-version-tag"
@@ -34,6 +34,7 @@ exports[`HomePage component should render the expected snapshot 1`] = `
       >
         <div
           className="bx--tile custom-tile"
+          onClick={[Function]}
         >
           <div
             className="heading-combo-container"
@@ -48,7 +49,6 @@ exports[`HomePage component should render the expected snapshot 1`] = `
           <img
             alt=""
             className="new-tab-img"
-            onClick={[Function]}
             src="test-file-stub"
           />
         </div>
@@ -142,7 +142,15 @@ exports[`HomePage component should render the expected snapshot 1`] = `
         className="bx--row"
       >
         <p>
-          Problems? Search 
+          Problems? Check this 
+          <a
+            className="bx--link"
+            href="https://ibm-blockchain.github.io/blockchain-vscode-extension/"
+            id="home-link-09"
+          >
+            status page
+          </a>
+          , search 
           <a
             className="bx--link"
             href="https://stackoverflow.com/questions/tagged/ibp-vscode-extension"

@@ -32,9 +32,9 @@ describe('CustomTile component', () => {
         expect(component).toMatchSnapshot();
     });
 
-    it('should post to VS Code when the new tab button is clicked', () => {
+    it('should post to VS Code when the tile is clicked', () => {
         const component: any = mount(<CustomTile title='My Tile' body='Some text I want to display in my tile'/>);
-        component.find('img').simulate('click');
+        component.find('.bx--tile').simulate('click');
         postToVSCodeStub.should.have.been.calledOnceWithExactly({
             command: ExtensionCommands.OPEN_TUTORIAL_GALLERY
         });

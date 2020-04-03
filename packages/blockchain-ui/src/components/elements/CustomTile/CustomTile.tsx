@@ -26,12 +26,12 @@ class CustomTile extends Component <IProps> {
 
     render(): JSX.Element {
         return (
-            <Tile className='custom-tile'>
+            <Tile className='custom-tile' onClick={this.tileClickHandler}>
                 <HeadingCombo
                     headingText={this.props.title}
                     subheadingText={this.props.body}
                 />
-                <img src={newTabImg} alt='' className='new-tab-img' onClick={this.tileClickHandler}/>
+                <img src={newTabImg} alt='' className='new-tab-img'/>
             </Tile>
         );
     }

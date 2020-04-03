@@ -1,0 +1,51 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`App should render the expected snapshot 1`] = `
+<div
+  className="header-bar"
+>
+  <p>
+    <span
+      className="ibm"
+    >
+      IBM
+    </span>
+    <span
+      className="page-title"
+    >
+      Blockchain Platform Extension for VS Code
+    </span>
+  </p>
+  <div
+    className="app-container"
+  >
+    <div
+      className="heading-container"
+    >
+      <p
+        className="status"
+      >
+        Status
+      </p>
+      <p
+        className="title"
+      >
+        IBM Blockchain Platform Extension for VS Code
+      </p>
+      <div />
+      <div />
+      <p
+        className="description"
+      >
+        Check this page for information on any current incidents effecting the latest version of the IBM Blockchain Platform extension for Visual Studio Code, as well as planned content for the next release.
+      </p>
+    </div>
+    <div
+      className="issues-container"
+    />
+    <div
+      className="issues-container upcoming-issues-container"
+    />
+  </div>
+</div>
+`;

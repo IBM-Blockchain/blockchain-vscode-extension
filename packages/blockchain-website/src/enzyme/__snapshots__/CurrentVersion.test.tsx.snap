@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CurrentVersion should render the expected snapshot 1`] = `<div />`;

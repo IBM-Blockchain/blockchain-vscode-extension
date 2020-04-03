@@ -1,0 +1,73 @@
+.title {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  font-size: 20px;
+  color: #161616;
+  letter-spacing: 0;
+  line-height: 26px;
+}
+
+.app-container {
+  margin-left: 112px;
+}
+
+.issues-container {
+  max-width: 1244px;
+}
+
+.upcoming-issues-container {
+  padding-bottom: 32px; 
+}
+
+.status {
+  margin-top: 40px; 
+  font-size: 28px;
+  color: #161616;
+  letter-spacing: 0;
+  height: 20px;
+}
+
+.description {
+  max-width: 608px;
+  font-size: 12px;
+  color: #525252;
+  letter-spacing: 0.32px;
+  text-align: left;
+  line-height: 16px;
+}
+
+.heading-container {
+  display: flex;
+  flex-flow: column;
+}
+
+.header-bar {
+  background-color: #202123;
+  display: flex;
+  flex-flow: column;
+  max-height: 48px;
+}
+
+.ibm {
+  font-family: 'IBMPlexSans', sans-serif;
+  font-size: 14px;
+  color: #FFFFFF;
+  letter-spacing: 0.1px;
+  text-align: left;
+  line-height: 18px;
+  padding-top: 14px;
+  padding-bottom: 16px;
+  padding-right: 3px;
+  padding-left: 16px;
+}
+
+.page-title {
+  font-family: 'IBMPlexSans-SemiBold', sans-serif;
+  font-size: 14px;
+  color: #FFFFFF;
+  letter-spacing: 0.1px;
+  text-align: left;
+  line-height: 18px;
+  padding-top: 14px;
+  padding-bottom: 16px;
+}
