@@ -25,6 +25,7 @@ import {SettingConfigurations} from '../../extension/configurations';
 import {ExtensionData, GlobalState} from '../../extension/util/GlobalState';
 import {ExtensionCommands} from '../../ExtensionCommands';
 import {TutorialGalleryView} from '../../extension/webview/TutorialGalleryView';
+import {ReactTutorialGalleryView} from '../../extension/webview/ReactTutorialGalleryView';
 import {HomeView} from '../../extension/webview/HomeView';
 import {SampleView} from '../../extension/webview/SampleView';
 import {TutorialView} from '../../extension/webview/TutorialView';
@@ -367,6 +368,7 @@ describe('ExtensionUtil Tests', () => {
                 `onCommand:${ExtensionCommands.OPEN_PRE_REQ_PAGE}`,
                 `onCommand:${ExtensionCommands.OPEN_RELEASE_NOTES}`,
                 `onCommand:${ExtensionCommands.OPEN_TUTORIAL_GALLERY}`,
+                `onCommand:${ExtensionCommands.OPEN_REACT_TUTORIAL_GALLERY}`,
                 `onCommand:${ExtensionCommands.OPEN_TRANSACTION_PAGE}`,
                 `onDebug`
             ]);
@@ -412,6 +414,21 @@ describe('ExtensionUtil Tests', () => {
 
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
             tutorialGalleryViewStub.should.have.been.calledOnce;
+        });
+
+        it('should register and show react tutorial gallery', async () => {
+            const reactTutorialGalleryViewStub: sinon.SinonStub = mySandBox.stub(ReactTutorialGalleryView.prototype, 'openView');
+            reactTutorialGalleryViewStub.resolves();
+
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+
+            await ExtensionUtil.registerCommands(ctx);
+
+            await vscode.commands.executeCommand(ExtensionCommands.OPEN_REACT_TUTORIAL_GALLERY);
+
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            reactTutorialGalleryViewStub.should.have.been.calledOnce;
         });
 
         it('should register and show transaction page', async () => {

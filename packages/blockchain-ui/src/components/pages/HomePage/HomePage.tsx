@@ -23,9 +23,9 @@ class HomePage extends Component<IProps> {
             actionType: 'vscode',
             command: ExtensionCommands.OPEN_TUTORIAL_GALLERY
         };
-        // const customTileOptions: {actionType: 'app' | 'vscode', path: string} = {
-        //     actionType: 'app',
-        //     path: 'tutorials'
+        // const customTileOptions: {actionType: 'app' | 'vscode', command: string} = {
+        //     actionType: 'vscode',
+        //     command: ExtensionCommands.OPEN_REACT_TUTORIAL_GALLERY
         // };
 
         return (
