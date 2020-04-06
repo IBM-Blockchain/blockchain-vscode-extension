@@ -1,0 +1,7 @@
+@import '../../../mixins/layout-mixins.scss';
+
+.tutorial-page-container {
+    @include default-page-styling;
+    margin-left: $spacing-05;
+    margin-top: $spacing-05;
+}

@@ -7,7 +7,6 @@ import sinonChai from 'sinon-chai';
 
 import CustomTile from '../../src/components/elements/CustomTile/CustomTile';
 import Utils from '../../src/Utils';
-import { ExtensionCommands } from '../../src/ExtensionCommands';
 
 chai.should();
 chai.use(sinonChai);
@@ -15,10 +14,12 @@ chai.use(sinonChai);
 describe('CustomTile component', () => {
     let mySandBox: sinon.SinonSandbox;
     let postToVSCodeStub: sinon.SinonStub;
+    let changeRouteStub: sinon.SinonStub;
 
     beforeEach(() => {
         mySandBox = sinon.createSandbox();
         postToVSCodeStub = mySandBox.stub(Utils, 'postToVSCode').resolves();
+        changeRouteStub = mySandBox.stub(Utils, 'changeRoute').resolves();
     });
 
     afterEach(() => {
@@ -26,17 +27,38 @@ describe('CustomTile component', () => {
     });
 
     it('should render the expected snapshot', () => {
+        const options: {actionType: 'app' | 'vscode', command: string} = {
+            actionType: 'vscode',
+            command: 'some_command'
+        };
+
         const component: any = renderer
-            .create(<CustomTile title='My Tile' body='Some text I want to display in my tile'/>)
+            .create(<CustomTile title='My Tile' body='Some text I want to display in my tile' options={options}/>)
             .toJSON();
         expect(component).toMatchSnapshot();
     });
 
-    it('should post to VS Code when the tile is clicked', () => {
-        const component: any = mount(<CustomTile title='My Tile' body='Some text I want to display in my tile'/>);
+    it('should post to VS Code', () => {
+        const options: {actionType: 'app' | 'vscode', command: string} = {
+            actionType: 'vscode',
+            command: 'some_command'
+        };
+
+        const component: any = mount(<CustomTile title='My Tile' body='Some text I want to display in my tile' options={options}/>);
         component.find('.bx--tile').simulate('click');
         postToVSCodeStub.should.have.been.calledOnceWithExactly({
-            command: ExtensionCommands.OPEN_TUTORIAL_GALLERY
+            command: options.command
         });
+    });
+
+    it('should redirect to another link in the app', () => {
+        const options: {actionType: 'app' | 'vscode', path: string} = {
+            actionType: 'app',
+            path: 'some/path'
+        };
+
+        const component: any = mount(<CustomTile title='My Tile' body='Some text I want to display in my tile' options={options}/>);
+        component.find('.bx--tile').simulate('click');
+        changeRouteStub.should.have.been.calledOnceWithExactly(options.path);
     });
 });

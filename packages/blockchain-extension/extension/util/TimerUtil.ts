@@ -17,11 +17,9 @@ import { commands } from 'vscode';
 
 export class TimerUtil {
 
-    public static setInterval(commandsToExecute: {command: string, args: any[]}[], timeout: number): NodeJS.Timeout {
+    public static setInterval(command: string, args: any[], timeout: number): NodeJS.Timeout {
         return setInterval(() => {
-            for (const current of commandsToExecute) {
-                commands.executeCommand(current.command, ...current.args);
-            }
+            commands.executeCommand(command, ...args);
         }, timeout);
     }
 

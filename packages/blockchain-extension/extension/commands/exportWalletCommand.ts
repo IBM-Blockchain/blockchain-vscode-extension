@@ -62,15 +62,41 @@ export async function exportWallet(walletTreeItem?: WalletTreeItem): Promise<voi
         return;
     }
 
-    // Copy the wallet to the chosen location
+    const walletName: string = exportedWalletRegistryEntry.displayName ? exportedWalletRegistryEntry.displayName : exportedWalletRegistryEntry.name;
+
     try {
-        await fs.copy(exportedWalletRegistryEntry.walletPath, walletUri.fsPath, { overwrite: true });
+        // create parent directory
+        await fs.ensureDir(walletUri.fsPath);
+        const walletContents: string[] = await fs.readdir(exportedWalletRegistryEntry.walletPath);
+
+        if (walletContents.length) {
+            for (const walletItem of walletContents) {
+                const walletItemPath: string = path.join(exportedWalletRegistryEntry.walletPath, walletItem);
+                // looking for directories that will contain identity information
+                if ((await fs.lstat(walletItemPath)).isDirectory()) {
+                    await fs.ensureDir(path.join(walletUri.fsPath, walletItem));
+                    const identityName: string = walletItem;
+                    const itemContents: string[] = await fs.readdir(walletItemPath);
+                    for (const itemFile of itemContents) {
+                        if (itemFile === identityName || itemFile.endsWith('-priv') || itemFile.endsWith('-pub')) {
+                            await fs.copy(path.join(walletItemPath, itemFile), path.join(walletUri.fsPath, walletItem, itemFile));
+                        }
+                    }
+                    // delete the directory if no relevant identity files were copied
+                    if ((await fs.readdir(path.join(walletUri.fsPath, walletItem))).length === 0) {
+                        await fs.remove(path.join(walletUri.fsPath, walletItem));
+                    }
+                }
+            }
+        }
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Issue exporting wallet: ${error.message}`, `Issue exporting wallet: ${error.toString()}`);
+        // delete anything that we've already created
+        if ((await fs.pathExists(walletUri.fsPath))) {
+            await fs.remove(walletUri.fsPath);
+        }
         return;
     }
-
-    const walletName: string = exportedWalletRegistryEntry.displayName ? exportedWalletRegistryEntry.displayName : exportedWalletRegistryEntry.name;
 
     outputAdapter.log(LogType.SUCCESS, `Successfully exported wallet ${walletName} to ${walletUri.fsPath}`);
     Reporter.instance().sendTelemetryEvent('exportWallet');
