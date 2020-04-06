@@ -657,6 +657,7 @@ describe('Extension Tests', () => {
 
             hasPreReqsInstalledStub.should.have.been.called;
             failedActivationWindowStub.should.have.been.calledOnceWithExactly('some error');
+            sendTelemetryStub.should.have.been.calledWith('activationFailed', { activationError: 'some error' });
             logSpy.should.have.been.calledWith(LogType.ERROR, undefined, `Failed to activate extension: ${error.toString()}`, error.stack);
         });
 

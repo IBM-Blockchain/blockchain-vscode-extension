@@ -166,6 +166,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     } catch (error) {
         outputAdapter.log(LogType.ERROR, undefined, `Failed to activate extension: ${error.toString()}`, error.stack);
+        Reporter.instance().sendTelemetryEvent('activationFailed', { activationError: error.message });
         await UserInputUtil.failedActivationWindow(error.message);
     }
 }
