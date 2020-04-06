@@ -1,0 +1,112 @@
+[
+    {
+        "seriesName": "Basic tutorials",
+        "seriesTutorials": [
+            {
+                "title": "A1: Introduction",
+                "length": "10 minutes",
+                "file": "Basic tutorials/a1.md"
+            },
+            {
+                "title": "A2: Creating a smart contract",
+                "length": "10 minutes",
+                "file": "Basic tutorials/a2.md"
+            },
+            {
+                "title": "A3: Deploying a smart contract",
+                "length": "10 minutes",
+                "file": "Basic tutorials/a3.md"
+            },
+            {
+                "title": "A4: Invoking a smart contract from VS Code",
+                "length": "15 minutes",
+                "file": "Basic tutorials/a4.md"
+            },
+            {
+                "title": "A5: Invoking a smart contract from an external application",
+                "length": "45 minutes",
+                "file": "Basic tutorials/a5.md"
+            },
+            {
+                "title": "A6: Upgrading a smart contract",
+                "length": "20 minutes",
+                "file": "Basic tutorials/a6.md"
+            },
+            {
+                "title": "A7: Debugging a smart contract",
+                "length": "15 minutes",
+                "file": "Basic tutorials/a7.md"
+            },
+            {
+                "title": "A8: Testing a smart contract",
+                "length": "20 minutes",
+                "file": "Basic tutorials/a8.md"
+            },
+            {
+                "title": "A9: Publishing an event",
+                "length": "20 minutes",
+                "file": "Basic tutorials/a9.md"
+            },
+            {
+                "title": "A10: Claim your badge!",
+                "length": "10 minutes",
+                "file": "Basic tutorials/a10.md"
+            }
+        ]
+    },
+    {
+        "seriesName": "Other tutorials",
+        "seriesTutorials": [
+            {
+                "title": "Local smart contract development",
+                "length": "20-30 mins",
+                "file": "ibm-blockchain-platform-vscode-smart-contract/local-dev.md"
+              },
+              {
+                "title": "Create a cloud blockchain deployment",
+                "length": "50-60 mins",
+                "file": "ibm-blockchain-platform-vscode-smart-contract/cloud-setup.md"
+              },
+              {
+                "title": "Deploying and transacting with IBM Cloud",
+                "length": "15-20 mins",
+                "file": "ibm-blockchain-platform-vscode-smart-contract/cloud-deploy.md"
+              },
+              {
+                "title": "Adding an Environment to connect to IBM Cloud",
+                "length": "20-30 mins",
+                "difficulty": "simple",
+                "file": "developer-tutorials/add-environment.md"
+              },
+              {
+                "title": "Create a new identity",
+                "length": "5-10 mins",
+                "difficulty": "simple",
+                "file": "developer-tutorials/createNewIdentity.md"
+              },
+              {
+                "title": "Create a new identity with attributes",
+                "length": "15-20 mins",
+                "difficulty": "moderate",
+                "file": "developer-tutorials/createNewIdentityAttributes.md"
+              },
+              {
+                "title": "Create and use a custom Fabric network",
+                "length": "30-45 mins",
+                "difficulty": "moderate",
+                "file": "developer-tutorials/create-custom-networks.md"
+              },
+              {
+                "title": "Debug a smart contract",
+                "length": "30-40 mins",
+                "difficulty": "moderate",
+                "file": "developer-tutorials/debug.md"
+              },
+              {
+                "title": "Getting Started with Private Data",
+                "length": "30-40 mins",
+                "file": "developer-tutorials/privateData.md"
+              }
+        ]
+    }
+]

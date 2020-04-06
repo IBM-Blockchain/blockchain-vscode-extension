@@ -18,5 +18,8 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
       </p>
     </div>
   </div>
+  <div
+    className="bx--row"
+  />
 </div>
 `;

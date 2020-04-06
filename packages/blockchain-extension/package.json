@@ -101,6 +101,7 @@
             "preReq.open",
             "releaseNotes.open",
             "tutorialGallery.open",
+            "reactTutorialGallery.open",
             "transactionPage.open"
         ]
     },
@@ -244,6 +245,11 @@
             {
                 "command": "tutorialGallery.open",
                 "title": "View Tutorial Gallery",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "reactTutorialGallery.open",
+                "title": "View React Tutorial Gallery",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -576,6 +582,10 @@
             "commandPalette": [
                 {
                     "command": "sample.open",
+                    "when": "false"
+                },
+                {
+                    "command": "reactTutorialGallery.open",
                     "when": "false"
                 },
                 {
