@@ -119,8 +119,19 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
             environmentData = 'user environment';
         }
 
+        let envType: string;
+        if (fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.ENVIRONMENT) {
+            envType = 'Fabric Network created via JSON files';
+        } else if (fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.ANSIBLE_ENVIRONMENT) {
+            envType = 'Network created using Ansible';
+        } else if (fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT) {
+            envType = 'Ops Tools network';
+        } else {
+            envType = 'Local network';
+        }
+
         const isIBMer: boolean = ExtensionUtil.checkIfIBMer();
-        Reporter.instance().sendTelemetryEvent('fabricEnvironmentConnectCommand', { environmentData: environmentData, connectEnvironmentIBM: isIBMer + '' });
+        Reporter.instance().sendTelemetryEvent('fabricEnvironmentConnectCommand', { environmentData: environmentData, connectEnvironmentIBM: isIBMer + '', environmentType: envType });
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Cannot connect to environment: ${error.message}`, `Cannot connect to environment: ${error.toString()}`);
         return;
