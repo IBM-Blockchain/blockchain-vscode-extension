@@ -48,23 +48,10 @@ describe('TimerUtil Test', () => {
     describe('setInterval', () => {
         it('should call the set command at a given interval', () => {
             const entry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({ name: 'myFabric', environmentType: EnvironmentType.ENVIRONMENT });
-            const result: NodeJS.Timeout = TimerUtil.setInterval([{command: ExtensionCommands.CONNECT_TO_ENVIRONMENT, args: [entry]}], 10000);
+            const result: NodeJS.Timeout = TimerUtil.setInterval(ExtensionCommands.CONNECT_TO_ENVIRONMENT, [entry], 10000);
             clock.tick(10000);
 
             executeCommandStub.should.have.been.calledOnceWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, entry);
-            result.should.exist;
-        });
-
-        it('should call multiple commands at a given interval', () => {
-            const entry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({ name: 'myFabric', environmentType: EnvironmentType.ENVIRONMENT });
-            const result: NodeJS.Timeout = TimerUtil.setInterval([
-                {command: ExtensionCommands.CONNECT_TO_ENVIRONMENT, args: [entry]},
-                {command: ExtensionCommands.DISCONNECT_ENVIRONMENT, args: []}
-            ], 10000);
-            clock.tick(10000);
-
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, entry);
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             result.should.exist;
         });
     });

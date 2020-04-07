@@ -144,7 +144,7 @@ describe('FabricEnvironmentManager', () => {
 
             environmentManager.startEnvironmentRefresh();
 
-            setIntervalStub.should.have.been.calledWith([{command: ExtensionCommands.CONNECT_TO_ENVIRONMENT, args: [entry, false]}], 10000);
+            setIntervalStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, [entry, false], 10000);
             cancelIntervalStub.should.not.have.been.called;
         });
 
@@ -156,7 +156,7 @@ describe('FabricEnvironmentManager', () => {
 
             environmentManager.startEnvironmentRefresh();
 
-            setIntervalStub.should.have.been.calledWith([{command: ExtensionCommands.CONNECT_TO_ENVIRONMENT, args: [entry, false]}], 10000);
+            setIntervalStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, [entry, false], 10000);
             cancelIntervalStub.should.have.been.calledWith({ name: 'timeout' });
         });
 
