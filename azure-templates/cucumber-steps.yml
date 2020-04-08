@@ -58,6 +58,12 @@ steps:
       secureFile: Org2MSPAdmin.json
     condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
+  - task: DownloadSecureFile@1
+    name: ibmcloud_account_0_0_1_vscode_1_35_1
+    inputs:
+      secureFile: ibmcloud_account_0_0_1_vscode_1_35_1.vsix
+    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+
   - bash: |
       set -ev
       cd ./packages/blockchain-extension

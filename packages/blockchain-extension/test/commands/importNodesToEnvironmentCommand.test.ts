@@ -26,6 +26,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentRegistryEntry, LogType, FabricEnvironment, FabricNode, FabricEnvironmentRegistry, EnvironmentType, EnvironmentFlags } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { ModuleUtil } from '../../extension/util/ModuleUtil';
+import { ExtensionsInteractionUtil } from '../../extension/util/ExtensionsInteractionUtil';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -59,6 +60,10 @@ describe('ImportNodesToEnvironmentCommand', () => {
     let getAllStub: sinon.SinonStub;
     let showConfirmationWarningMessageStub: sinon.SinonStub;
     let stopEnvironmentRefreshStub: sinon.SinonStub;
+    let SaaSOpsToolRegistryEntry: FabricEnvironmentRegistryEntry;
+    let SaaSurl: string;
+    let cloudAccountGetAccessTokenStub: sinon.SinonStub;
+    let accessToken: string;
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
@@ -165,12 +170,21 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 getPassword: getPasswordStub
             });
 
+            // Ops tools SaaS
+            SaaSurl = 'my/OpsTool/IBM/url';
+            SaaSOpsToolRegistryEntry = new FabricEnvironmentRegistryEntry();
+            SaaSOpsToolRegistryEntry.name = 'mySaaSOpsToolInstance';
+            SaaSOpsToolRegistryEntry.environmentType = EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT;
+            SaaSOpsToolRegistryEntry.url = SaaSurl;
+            SaaSOpsToolRegistryEntry.managedRuntime = false;
+            accessToken = 'some token';
+            cloudAccountGetAccessTokenStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountGetAccessToken').resolves(accessToken);
+
             getConnectedEnvironmentRegistryEntry = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(undefined);
             stopEnvironmentRefreshStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'stopEnvironmentRefresh');
-            getAllStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([environmentRegistryEntry, OpsToolRegistryEntry]);
+            getAllStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([environmentRegistryEntry, OpsToolRegistryEntry, SaaSOpsToolRegistryEntry]);
             showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
             showConfirmationWarningMessageStub.callThrough();
-
         });
 
         afterEach(async () => {
@@ -362,20 +376,22 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
-        it('should handle when the keytar module cannot be imported at all when creating a new OpsTool instance', async () => {
+        it('should handle when the keytar module cannot be imported at all when creating a new OpsTool instance (Software Support)', async () => {
             getCoreNodeModuleStub.returns(undefined);
+            const error: Error = new Error('Error importing the keytar module');
 
-            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, OpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS).should.be.rejectedWith('Error importing the keytar module');
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS).should.be.rejectedWith('Error importing the keytar module');
 
             getCoreNodeModuleStub.should.have.been.calledOnce;
             ensureDirStub.should.have.not.been.called;
             updateNodeStub.should.not.have.been.called;
             getNodesStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: Error importing the keytar module`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${OpsToolRegistryEntry.url}, with error ${error.message}`, `Failed to acquire nodes from ${OpsToolRegistryEntry.url}, with error ${error.toString()}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: ${error.message}`);
         });
 
-        it('should handle when the user id + password/api key + secret cannot be retrieved when creating new OpsTool instance', async () => {
+        it('should handle when the user id + password/api key + secret cannot be retrieved when creating new OpsTool instance (Software Support)', async () => {
             const error: Error = new Error('newError');
             getPasswordStub.throws(error);
 
@@ -389,7 +405,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${url}, with error ${error.message}`, `Failed to acquire nodes from ${url}, with error ${error.toString()}`);
         });
 
-        it('should handle when the securely stored information has the wrong number of entries (separated by ":") when edditing filters on existing OpsTool instance', async () => {
+        it('should handle when the securely stored information has the wrong number of entries (separated by ":") when edditing filters on existing OpsTool instance (Software Support)', async () => {
             getPasswordStub.resolves(`${userAuth1}:${userAuth2}:${rejectUnauthorized}:someMoreInfo`);
             const error: Error = new Error('Unable to retrieve the stored credentials');
 
@@ -1225,5 +1241,69 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
+
+        it('should test nodes can be added to a new OpsTool (SaaS) instance', async () => {
+            axiosGetStub.onFirstCall().resolves({data: opsToolNodes});
+            getNodesStub.onSecondCall().resolves(opsToolNodes);
+
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, SaaSOpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+
+            cloudAccountGetAccessTokenStub.should.have.been.called;
+            getCoreNodeModuleStub.should.have.not.been.calledOnce;
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.been.calledTwice;
+            getNodesStub.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
+        });
+
+        it('should test nodes can be added to an existing OpsTool (SaaS) instance', async () => {
+            showEnvironmentQuickPickStub.resolves({ label: SaaSOpsToolRegistryEntry.name, data: SaaSOpsToolRegistryEntry });
+            getConnectedEnvironmentRegistryEntry.returns(SaaSOpsToolRegistryEntry);
+            getNodesStub.onSecondCall().resolves(opsToolNodes);
+            axiosGetStub.onFirstCall().resolves({data: opsToolNodes});
+
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, undefined, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+
+            cloudAccountGetAccessTokenStub.should.have.been.called;
+            getCoreNodeModuleStub.should.have.not.been.calledOnce;
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.been.calledTwice;
+            getNodesStub.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
+        });
+
+        it('should handle user canceling while getting access token when editing nodes on an OpsTool (SaaS) instance', async () => {
+            getNodesStub.onSecondCall().resolves(opsToolNodes);
+            cloudAccountGetAccessTokenStub.resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, SaaSOpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+
+            cloudAccountGetAccessTokenStub.should.have.been.called;
+            getCoreNodeModuleStub.should.have.not.been.calledOnce;
+            ensureDirStub.should.have.not.been.calledOnce;
+            updateNodeStub.should.have.not.been.calledTwice;
+            getNodesStub.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
+            logSpy.getCalls().length.should.equal(1);
+        });
+
+        it('should fail if should handle errors getting the access token  when editing nodes on an OpsTool (SaaS) instance', async () => {
+            const tokenError: Error = new Error('Some token error');
+            cloudAccountGetAccessTokenStub.rejects(tokenError);
+
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, SaaSOpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS).should.eventually.be.rejectedWith(tokenError);
+
+            cloudAccountGetAccessTokenStub.should.have.been.called;
+            getCoreNodeModuleStub.should.have.not.been.calledOnce;
+            ensureDirStub.should.have.not.been.calledOnce;
+            updateNodeStub.should.have.not.been.calledTwice;
+            getNodesStub.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to acquire nodes from ${SaaSOpsToolRegistryEntry.url}, with error ${tokenError.message}`, `Failed to acquire nodes from ${SaaSOpsToolRegistryEntry.url}, with error ${tokenError.toString()}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error filtering nodes: ${tokenError.message}`);
+        });
+
     });
 });

@@ -23,11 +23,20 @@ export enum EnvironmentFlags {
 }
 
 export enum EnvironmentType {
+<<<<<<< HEAD
     ENVIRONMENT = EnvironmentFlags.ENVIRONMENT,
     ANSIBLE_ENVIRONMENT = EnvironmentFlags.ANSIBLE,
     MANAGED_ANSIBLE_ENVIRONMENT = EnvironmentFlags.MANAGED | EnvironmentFlags.ANSIBLE,
     LOCAL_ENVIRONMENT = EnvironmentFlags.LOCAL | EnvironmentFlags.MANAGED | EnvironmentFlags.ANSIBLE, // Local environments,
     OPS_TOOLS_ENVIRONMENT = EnvironmentFlags.OPS_TOOLS,
+=======
+    // If we update this enum, we must update environmentConnectCommand too!
+    ENVIRONMENT = 1, // Standard remote environment
+    ANSIBLE_ENVIRONMENT = 2, // Ansible environment (non-managed or managed)
+    OPS_TOOLS_ENVIRONMENT = 3,
+    LOCAL_ENVIRONMENT = 4, // Local environments
+    SAAS_OPS_TOOLS_ENVIRONMENT = 5
+>>>>>>> b9e3503c... IBM OpsTools - add environment. Closes #1339 (#2093)
 }
 
 export class FabricEnvironmentRegistryEntry extends RegistryEntry {

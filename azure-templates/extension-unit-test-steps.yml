@@ -11,13 +11,23 @@
 # limitations under the License.
 
 steps:
+  - task: DownloadSecureFile@1
+    name: ibmcloud_account_0_0_1_vscode_1_35_1
+    inputs:
+      secureFile: ibmcloud_account_0_0_1_vscode_1_35_1.vsix
+    condition: succeeded()
+
   - bash: |
       set -ev
       cd ./packages/blockchain-extension
       npm test
     env:
       DISPLAY: ':99.0'
+<<<<<<< HEAD
       REFRESH_PANELS: 'false'
+=======
+      JSON_DIR: $(Agent.TempDirectory)
+>>>>>>> b9e3503c... IBM OpsTools - add environment. Closes #1339 (#2093)
     displayName: Run unit tests
     condition: succeeded()
 

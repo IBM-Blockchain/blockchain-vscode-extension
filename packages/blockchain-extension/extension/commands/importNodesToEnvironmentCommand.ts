@@ -24,6 +24,7 @@ import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironme
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import Axios from 'axios';
 import { ModuleUtil } from '../util/ModuleUtil';
+import { ExtensionsInteractionUtil } from '../util/ExtensionsInteractionUtil';
 
 export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false, createMethod?: string, informOfChanges: boolean = false, showSuccess: boolean = true): Promise<boolean> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -63,7 +64,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
         }
 
         if (!fromAddEnvironment) {
-            if (environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT) {
+            if (environmentRegistryEntry.environmentType && (environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || environmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT)) {
                 createMethod = UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS;
             } else {
                 createMethod = UserInputUtil.ADD_ENVIRONMENT_FROM_NODES;
@@ -147,32 +148,44 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                 }
             }
         } else {
-            const keytar: any = ModuleUtil.getCoreNodeModule('keytar');
-            if (!keytar) {
-                throw new Error('Error importing the keytar module');
-            }
-
             const GET_ALL_COMPONENTS: string = '/ak/api/v1/components';
             const api: string = environmentRegistryEntry.url.replace(/\/$/, '') + GET_ALL_COMPONENTS;
             let response: any;
+            let requestOptions: any;
 
+            // establish connection to Ops Tools
             try {
-                // establish connection to Ops Tools and retrieve json file
-                const credentials: string = await keytar.getPassword('blockchain-vscode-ext', environmentRegistryEntry.url);
-                const credentialsArray: string[] = credentials.split(':');
-                if (credentialsArray.length !== 3) {
-                    throw new Error(`Unable to retrieve the stored credentials`);
+                if (environmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
+                    const accessToken: string = await ExtensionsInteractionUtil.cloudAccountGetAccessToken();
+                    if (!accessToken) {
+                        return;
+                    }
+                    requestOptions = { headers: { Authorization: `Bearer ${accessToken}` } };
+                } else {
+                    const keytar: any = ModuleUtil.getCoreNodeModule('keytar');
+                    if (!keytar) {
+                        throw new Error('Error importing the keytar module');
+                    }
+
+                    const credentials: string = await keytar.getPassword('blockchain-vscode-ext', environmentRegistryEntry.url);
+                    const credentialsArray: string[] = credentials.split(':'); // 'API key or User ID' : 'API secret or password' : rejectUnauthorized
+                    if (credentialsArray.length !== 3) {
+                        throw new Error(`Unable to retrieve the stored credentials`);
+                    }
+                    const userAuth1: string = credentialsArray[0];
+                    const userAuth2: string = credentialsArray[1];
+                    const rejectUnauthorized: boolean = credentialsArray[2] === 'true';
+                    requestOptions = {
+                        headers: { 'Content-Type': 'application/json' },
+                        auth: { username: userAuth1, password: userAuth2 }
+                    };
+                    requestOptions.httpsAgent = new https.Agent({rejectUnauthorized: rejectUnauthorized});
                 }
-                const userAuth1: string = credentialsArray[0];
-                const userAuth2: string = credentialsArray[1];
-                const rejectUnauthorized: boolean = credentialsArray[2] === 'true';
-                const requestOptions: any = {
-                    headers: { 'Content-Type': 'application/json' },
-                    auth: { username: userAuth1, password: userAuth2 }
-                };
-                requestOptions.httpsAgent = new https.Agent({rejectUnauthorized: rejectUnauthorized});
+
+                // retrieve json file
                 response = await Axios.get(api, requestOptions);
 
+                // process node data
                 const data: any = response.data;
                 let filteredData: FabricNode[] = [];
 

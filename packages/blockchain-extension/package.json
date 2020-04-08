@@ -1480,7 +1480,8 @@
         "grpc"
     ],
     "extensionPack": [
-        "oshri6688.javascript-test-runner"
+        "oshri6688.javascript-test-runner",
+        "IBM.ibmcloud-account"
     ],
     "license-check-and-add-config": {
         "folder": ".",

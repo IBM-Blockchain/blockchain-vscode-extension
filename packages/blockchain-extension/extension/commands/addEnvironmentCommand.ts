@@ -28,6 +28,8 @@ import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironment
 import { SettingConfigurations } from '../../extension/configurations';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
+import { URL } from 'url';
+import { ExtensionsInteractionUtil } from '../util/ExtensionsInteractionUtil';
 
 export async function addEnvironment(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -55,6 +57,7 @@ export async function addEnvironment(): Promise<void> {
         createMethod = chosenMethod.data;
 
         let configurationChosen: number; // Configuration chosen (e.g. 1 Org, 2 Org)
+        let defaultName: string = '';
 
         if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE) {
 
@@ -94,60 +97,29 @@ export async function addEnvironment(): Promise<void> {
             }
 
             envDir = chosenUri.fsPath;
+
         } else if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS) {
-            const keytar: any = ModuleUtil.getCoreNodeModule('keytar');
-            if (!keytar) {
-                throw new Error('Error importing the keytar module');
-            }
 
-            const HEALTH_CHECK: string = '/ak/api/v1/health';
-            const GET_ALL_COMPONENTS: string = '/ak/api/v1/components';
-            let url: string;
-            const userUrl: string = await UserInputUtil.showInputBox('Enter the URL of the IBM Blockchain Platform Console you want to connect to');
-            if (!userUrl) {
+            const isSaaS: string = await UserInputUtil.showQuickPickYesNo('Are you connecting to a service instance on IBM Cloud?');
+            if (!isSaaS) {
                 return;
-            } else {
-                url = userUrl.split('/', 3).join('/');
-            }
-
-            const userAuth1: string = await UserInputUtil.showInputBox('Enter the API key or the User ID of the IBM Blockchain Platform Console you want to connect to');
-            if (!userAuth1) {
-                return;
-            }
-            const userAuth2: string = await UserInputUtil.showInputBox('Enter the API secret or the password of the IBM Blockchain Platform Console you want to connect to');
-            if (!userAuth2) {
-                return;
-            }
-
-            const healthUrl: string = url.replace(/\/$/, '') + HEALTH_CHECK;
-            const api: string = url.replace(/\/$/, '') + GET_ALL_COMPONENTS;
-            const requestOptions: any = { headers: { 'Content-Type': 'application/json' } };
-            requestOptions.httpsAgent = new https.Agent( {rejectUnauthorized: true});
-
-            try {
-                await Axios.get(healthUrl, requestOptions);
-            } catch (errorWithAuth) {
-                // error indicates a certificate verification is needed (response.status === 401), proceed with real connection.
-                if (!errorWithAuth.response || !errorWithAuth.response.status || errorWithAuth.response.status !== 401) {
-                    // Otherwise, try again to connect to health end point.
-                    try {
-                        requestOptions.httpsAgent.options.rejectUnauthorized = false;
-                        await Axios.get(healthUrl, requestOptions);
-                    } catch (errorWithoutAuth) {
-                        if (errorWithoutAuth.response && errorWithoutAuth.response.status && errorWithoutAuth.response.status === 401) {
-                            // This indicates a certificate verification is needed. Ask the user if they wish to proceed insecurely or cancel.
-                            const options: IBlockchainQuickPickItem<string>[] = [{ label: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN, data: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN }, { label: UserInputUtil.CANCEL_NO_CERT_CHAIN, data: UserInputUtil.CANCEL_NO_CERT_CHAIN, description: UserInputUtil.CANCEL_NO_CERT_CHAIN_DESCRIPTION }];
-                            const certificateUsage: IBlockchainQuickPickItem<string> = await UserInputUtil.showQuickPickItem('Unable to perform certificate verification. Please choose how to proceed', options) as IBlockchainQuickPickItem<string>;
-                            if (!certificateUsage || certificateUsage.label === UserInputUtil.CANCEL_NO_CERT_CHAIN) {
-                                return;
-                            }
-                        } else {
-                            // There is a connection problem other than certificate related. Throw error.
-                            throw new Error(`Unable to connect to the IBM Blockchain Platform network: ${errorWithoutAuth.message}`);
-                        }
-                    }
+            } else if (isSaaS !== UserInputUtil.YES) {
+                const url: string = await getOpsToolsAccessInfo();
+                if (!url) {
+                    return;
                 }
+                fabricEnvironmentEntry.url = url;
+                fabricEnvironmentEntry.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
+            } else {
+                const accessInfo: string[] = await getOpsToolsAccessInfoSaaS();
+                if (!accessInfo) {
+                    return;
+                }
+                fabricEnvironmentEntry.url = accessInfo[0];
+                fabricEnvironmentEntry.environmentType = EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT;
+                defaultName = accessInfo[1];
             }
+<<<<<<< HEAD
             // We will now atempt to connect using key and secret. If it fails, there is a problem with the key and secret provided.
             try {
                 requestOptions.auth = { username: userAuth1, password: userAuth2 };
@@ -166,9 +138,11 @@ export async function addEnvironment(): Promise<void> {
             fabricEnvironmentEntry.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
         } else {
             fabricEnvironmentEntry.environmentType = EnvironmentType.ENVIRONMENT;
+=======
+>>>>>>> b9e3503c... IBM OpsTools - add environment. Closes #1339 (#2093)
         }
 
-        const environmentName: string = await UserInputUtil.showInputBox('Enter a name for the environment');
+        const environmentName: string = await UserInputUtil.showInputBox('Enter a name for the environment', defaultName);
         if (!environmentName) {
             return;
         }
@@ -287,4 +261,128 @@ export async function addEnvironment(): Promise<void> {
         }
         outputAdapter.log(LogType.ERROR, `Failed to add a new environment: ${error.message}`, `Failed to add a new environment: ${error.toString()}`);
     }
+
+    async function getOpsToolsAccessInfo(): Promise<string> {
+        const keytar: any = ModuleUtil.getCoreNodeModule('keytar');
+        if (!keytar) {
+            throw new Error('Error importing the keytar module');
+        }
+
+        const HEALTH_CHECK: string = '/ak/api/v1/health';
+        const GET_ALL_COMPONENTS: string = '/ak/api/v1/components';
+        let url: string;
+        const userUrl: string = await UserInputUtil.showInputBox('Enter the URL of the IBM Blockchain Platform Console you want to connect to');
+        if (!userUrl) {
+            return;
+        } else {
+            url = userUrl.split('/', 3).join('/');
+        }
+
+        const userAuth1: string = await UserInputUtil.showInputBox('Enter the API key or the User ID of the IBM Blockchain Platform Console you want to connect to');
+        if (!userAuth1) {
+            return;
+        }
+        const userAuth2: string = await UserInputUtil.showInputBox('Enter the API secret or the password of the IBM Blockchain Platform Console you want to connect to');
+        if (!userAuth2) {
+            return;
+        }
+
+        const healthUrl: string = url.replace(/\/$/, '') + HEALTH_CHECK;
+        const api: string = url.replace(/\/$/, '') + GET_ALL_COMPONENTS;
+        const requestOptions: any = { headers: { 'Content-Type': 'application/json' } };
+        requestOptions.httpsAgent = new https.Agent( {rejectUnauthorized: true});
+
+        try {
+            await Axios.get(healthUrl, requestOptions);
+        } catch (errorWithAuth) {
+            // error indicates a certificate verification is needed (response.status === 401), proceed with real connection.
+            if (!errorWithAuth.response || !errorWithAuth.response.status || errorWithAuth.response.status !== 401) {
+                // Otherwise, try again to connect to health end point.
+                try {
+                    requestOptions.httpsAgent.options.rejectUnauthorized = false;
+                    await Axios.get(healthUrl, requestOptions);
+                } catch (errorWithoutAuth) {
+                    if (errorWithoutAuth.response && errorWithoutAuth.response.status && errorWithoutAuth.response.status === 401) {
+                        // This indicates a certificate verification is needed. Ask the user if they wish to proceed insecurely or cancel.
+                        const options: IBlockchainQuickPickItem<string>[] = [{ label: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN, data: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN }, { label: UserInputUtil.CANCEL_NO_CERT_CHAIN, data: UserInputUtil.CANCEL_NO_CERT_CHAIN, description: UserInputUtil.CANCEL_NO_CERT_CHAIN_DESCRIPTION }];
+                        const certificateUsage: IBlockchainQuickPickItem<string> = await UserInputUtil.showQuickPickItem('Unable to perform certificate verification. Please choose how to proceed', options) as IBlockchainQuickPickItem<string>;
+                        if (!certificateUsage || certificateUsage.label === UserInputUtil.CANCEL_NO_CERT_CHAIN) {
+                            return;
+                        }
+                    } else {
+                        // There is a connection problem other than certificate related. Throw error.
+                        throw new Error(`Unable to connect to the IBM Blockchain Platform network: ${errorWithoutAuth.message}`);
+                    }
+                }
+            }
+        }
+        // We will now atempt to connect using key and secret. If it fails, there is a problem with the key and secret provided.
+        try {
+            requestOptions.auth = { username: userAuth1, password: userAuth2 };
+            await Axios.get(api, requestOptions);
+        } catch (errorConnecting) {
+            throw new Error(`Problem detected with the authentication information provided: ${errorConnecting.message}`);
+        }
+        // Securely store API key and secret
+        try {
+            await keytar.setPassword('blockchain-vscode-ext', url, `${userAuth1}:${userAuth2}:${requestOptions.httpsAgent.options.rejectUnauthorized}`);
+        } catch (errorStorePass) {
+            throw new Error(`Unable to store the required credentials: ${errorStorePass.message}`);
+        }
+
+        return url;
+    }
+
+    async function getOpsToolsAccessInfoSaaS(): Promise<string[]> {
+        const ibpResources: IBlockchainQuickPickItem<string>[] = [];
+        const accessToken: string = await ExtensionsInteractionUtil.cloudAccountGetAccessToken(true);
+        if (!accessToken) {
+            return;
+        }
+        const requestOptions: any = { headers: { Authorization: `Bearer ${accessToken}` } };
+        const baseUrl: string = 'https://resource-controller.cloud.ibm.com';
+        let resourcesUrl: string = `${baseUrl}/v2/resource_instances`;
+        while (resourcesUrl) {
+            const response: any = await Axios.get(resourcesUrl, requestOptions);
+
+            for (const resource of response.data.resources) {
+                if ( resource.resource_plan_id === 'blockchain-standard' ) {
+                    ibpResources.push({
+                        label: resource.name,
+                        description: resource.guid,
+                        data: resource
+                    });
+                }
+            }
+            if (response.data.next_url) {
+                resourcesUrl = `${baseUrl}${response.data.next_url}`;
+            } else {
+                break;
+            }
+        }
+
+        let chosenIbp: IBlockchainQuickPickItem<any>;
+        if (ibpResources.length === 0) {
+            throw new Error('There are no IBM Blockchain Platform service instances associated with the chosen account');
+        } else if (ibpResources.length === 1) {
+            chosenIbp = ibpResources[0];
+        } else {
+            chosenIbp = await UserInputUtil.showQuickPickItem('Select an IBM Blockchain Platform service instance', ibpResources) as IBlockchainQuickPickItem<any>;
+            if (!chosenIbp) {
+                return;
+            }
+        }
+
+        // get API endpoint
+        const dashboardUrl: URL = new URL(chosenIbp.data.dashboard_url);
+        const encodedCrn: string = encodeURIComponent(chosenIbp.data.crn);
+        const consoleStatus: any = await Axios.get(`${dashboardUrl.origin}/api/alternative-auth/resources/${encodedCrn}/optools`, requestOptions);
+
+        if (consoleStatus.status !== 200) {
+            throw new Error(`Got status ${consoleStatus.status}. Please make sure the IBM Blockchain Platform Console deployment has finished before adding environment.`);
+        }
+
+        return [consoleStatus.data.endpoint, chosenIbp.label];
+    }
+
 }

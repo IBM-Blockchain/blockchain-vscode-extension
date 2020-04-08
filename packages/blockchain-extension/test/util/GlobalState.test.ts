@@ -26,15 +26,15 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 describe('GlobalState', () => {
 
-    let mySandBox: sinon.SinonSandbox = sinon.createSandbox();
+    let mySandBox: sinon.SinonSandbox;
     let context: vscode.ExtensionContext;
 
     before(async () => {
+        mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
     });
 
     beforeEach(async () => {
-        mySandBox = sinon.createSandbox();
         context = GlobalState.getExtensionContext();
 
         const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;

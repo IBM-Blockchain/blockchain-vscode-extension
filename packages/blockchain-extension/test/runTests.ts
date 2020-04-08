@@ -13,8 +13,9 @@
 */
 
 import * as path from 'path';
-import { runTests, downloadAndUnzipVSCode } from 'vscode-test';
+import { runTests, downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath } from 'vscode-test';
 import * as fs from 'fs-extra';
+import * as cp from 'child_process';
 
 async function main(): Promise<void> {
     try {
@@ -31,7 +32,15 @@ async function main(): Promise<void> {
         const extensionTestsPath: string = path.resolve(__dirname);
 
         console.log('downloading vscode');
-        await downloadAndUnzipVSCode(version);
+        const vscodeExecutablePath: string = await downloadAndUnzipVSCode(version);
+
+        const cliPath: string = resolveCliPathFromVSCodeExecutablePath(vscodeExecutablePath);
+
+        const vsixPath: string = path.resolve(process.env.JSON_DIR, 'ibmcloud_account_0_0_1_vscode_1_35_1.vsix');
+        cp.spawnSync(cliPath, ['--install-extension', vsixPath], {
+            encoding: 'utf-8',
+            stdio: 'inherit'
+        });
 
         // Download VS Code, unzip it and run the integration test
         console.log('setting up tests');
