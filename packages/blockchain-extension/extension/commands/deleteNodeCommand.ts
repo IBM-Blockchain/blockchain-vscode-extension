@@ -83,7 +83,7 @@ export async function deleteNode(nodeTreeItem: NodeTreeItem | FabricNode, hideNo
 
         let reallyDoIt: boolean = false;
         let allOpsNodesDeleted: boolean = false;
-        if (environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT) {
+        if (environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || environmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
             if (hideNode) {
                 if (nodes.length === nodesToDelete.length) {
                     reallyDoIt = await UserInputUtil.showConfirmationWarningMessage(`This will ${action} the remaining node(s), and disconnect from the environment. Do you want to continue?`);
@@ -141,7 +141,7 @@ export async function deleteNode(nodeTreeItem: NodeTreeItem | FabricNode, hideNo
                 outputAdapter.log(LogType.SUCCESS, `Successfully hid nodes`);
             }
         } else {
-            if (nodesToDelete.length === 1 && environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT) {
+            if (nodesToDelete.length === 1 && (environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || environmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT)) {
                 outputAdapter.log(LogType.SUCCESS, `Node ${nodesToDelete[0].name} was removed from ${environmentRegistryEntry.name}`);
             } else if (nodesToDelete.length === 1) {
                 outputAdapter.log(LogType.SUCCESS, `Successfully deleted node ${nodesToDelete[0].name}`);
