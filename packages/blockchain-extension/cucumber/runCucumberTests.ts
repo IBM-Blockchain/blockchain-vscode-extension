@@ -47,6 +47,11 @@ async function main(): Promise<void> {
             encoding: 'utf-8',
             stdio: 'inherit'
         });
+        const vsixPath: string = path.resolve(process.env.JSON_DIR, 'ibmcloud_account_0_0_1_vscode_1_35_1.vsix');
+        cp.spawnSync(cliPath, ['--install-extension', vsixPath], {
+            encoding: 'utf-8',
+            stdio: 'inherit'
+        });
 
         // Download VS Code, unzip it and run the integration test
         await runTests({
