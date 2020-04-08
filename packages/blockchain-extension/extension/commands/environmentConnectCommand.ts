@@ -66,7 +66,7 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
 
         let nodes: FabricNode[] = await fabricEnvironment.getNodes();
 
-        if (fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT) {
+        if (fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
             let informOfChanges: boolean = true;
             if (nodes.length === 0) {
                 const importNodes: boolean = await UserInputUtil.showConfirmationWarningMessage(`Problem connecting to environment ${fabricEnvironmentRegistryEntry.name}: no visible nodes. Would you like to filter nodes?`);

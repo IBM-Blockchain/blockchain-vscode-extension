@@ -75,8 +75,8 @@ export class FabricEnvironmentManager extends EventEmitter {
             TimerUtil.cancelInterval(this.timeoutObject);
         }
 
-        if ((this.state === ConnectedState.CONNECTING || this.state === ConnectedState.CONNECTED) && (this.environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT)) {
-            this.timeoutObject = TimerUtil.setInterval(ExtensionCommands.CONNECT_TO_ENVIRONMENT, [this.environmentRegistryEntry, false], 10000);
+        if ((this.state === ConnectedState.CONNECTING || this.state === ConnectedState.CONNECTED) && (this.environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || this.environmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT)) {
+            this.timeoutObject = TimerUtil.setInterval(command: ExtensionCommands.CONNECT_TO_ENVIRONMENT, args: [this.environmentRegistryEntry, false], 10000);
         }
     }
 

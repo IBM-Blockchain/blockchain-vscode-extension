@@ -1380,7 +1380,7 @@
         "pretest": "npm run updatePackageJSON",
         "test": "node ./build/test/runTests.js",
         "posttest": "remap-istanbul -i ./coverage/coverage.json -o ./coverage/coverage-remap.json && istanbul check-coverage ./coverage/coverage-remap.json",
-        "cucumber": "node ./build/cucumber/runCucumberTests.js",
+        "cucumber": "npm run updatePackageJSON && node ./build/cucumber/runCucumberTests.js",
         "cucumberReport": "node ./build/cucumber/generate-cucumber-report.js",
         "licchk": "license-check-and-add",
         "tslint": "tslint",
@@ -1471,7 +1471,8 @@
         "grpc"
     ],
     "extensionPack": [
-        "oshri6688.javascript-test-runner"
+        "oshri6688.javascript-test-runner",
+        "IBM.ibmcloud-account"
     ],
     "license-check-and-add-config": {
         "folder": ".",
