@@ -21,32 +21,35 @@ import { CloudAccountApi } from '../interfaces/cloud-account-api';
  */
 export class ExtensionsInteractionUtil {
 
-    public static async cloudAccountGetAccessToken(fromAddEnvironment: boolean = false): Promise<string> {
+    public static async cloudAccountGetAccessToken(): Promise<string> {
         const  cloudAccountExtension: vscode.Extension<any> = vscode.extensions.getExtension( 'IBM.ibmcloud-account' );
-        if ( !cloudAccountExtension.isActive ) {
+        if ( !cloudAccountExtension ) {
+            throw new Error('IBM Cloud Account extension must be installed');
+        } else if ( !cloudAccountExtension.isActive ) {
             await cloudAccountExtension.activate();
         }
         const cloudAccount: CloudAccountApi = cloudAccountExtension.exports;
 
+        let isLoggedIn: boolean = await cloudAccount.loggedIn();
         let hasAccount: boolean;
-        if (fromAddEnvironment) {
-            // When adding environment, always ask the user to login, and then to select the account.
+        if ( !isLoggedIn ) {
+            // If not logged in, ask the user to login, and then to select the account.
             await vscode.commands.executeCommand('ibmcloud-account.login');
         } else {
             hasAccount = await cloudAccount.accountSelected();
-            if (!hasAccount) {
+            if ( !hasAccount ) {
                 // If not logged in, this will first ask the user to login, and then to select the account.
                 await vscode.commands.executeCommand('ibmcloud-account.selectAccount');
             }
         }
 
-        const isLoggedIn: boolean = await cloudAccount.loggedIn();
-        if (!isLoggedIn) {
+        isLoggedIn = await cloudAccount.loggedIn();
+        if ( !isLoggedIn ) {
             return; // FIXME - evaluate if an error should be thrown after changes to cloud extension - tell the user we can't proceed without being logged in
         }
 
         hasAccount = await cloudAccount.accountSelected();
-        if (!hasAccount) {
+        if ( !hasAccount ) {
             return; // FIXME - evaluate if an error should be thrown after changes to cloud extension - tell the user we can't proceed without selecting an account
         }
 
