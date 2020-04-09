@@ -316,7 +316,7 @@ export async function addEnvironment(): Promise<void> {
 
     async function getOpsToolsAccessInfoSaaS(): Promise<string[]> {
         const ibpResources: IBlockchainQuickPickItem<string>[] = [];
-        const accessToken: string = await ExtensionsInteractionUtil.cloudAccountGetAccessToken(true);
+        const accessToken: string = await ExtensionsInteractionUtil.cloudAccountGetAccessToken();
         if (!accessToken) {
             return;
         }
