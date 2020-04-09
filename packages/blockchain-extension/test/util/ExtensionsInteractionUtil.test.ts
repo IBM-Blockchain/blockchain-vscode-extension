@@ -50,7 +50,6 @@ describe('ExtensionsInteractionUtil Test', () => {
         let activateStub: sinon.SinonStub;
         let cloudExtensionStub: any;
         let accessToken: string;
-        let fromAddEnvironment: boolean;
 
         beforeEach(() => {
             isLoggedInStub = mySandBox.stub().resolves(true);
@@ -73,29 +72,12 @@ describe('ExtensionsInteractionUtil Test', () => {
             loginStub = executeCommandStub.withArgs('ibmcloud-account.login');
             loginStub.resolves();
             accessToken = undefined;
-            fromAddEnvironment = true;
         });
 
-        it('should get token from addEnvironment', async () => {
+        it('should get token when not logged in', async () => {
             chai.should().equal(undefined, accessToken);
-
-            try {
-                accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken(fromAddEnvironment);
-            } catch (e) {
-                chai.assert.isNull(e, 'there should not have been an error!');
-            }
-            accessToken.should.equal('some token');
-            getExtensionStub.should.have.been.calledOnce;
-            isLoggedInStub.should.have.been.calledOnce;
-            accountSelectedStub.should.have.been.calledOnce;
-            getAccessTokenStub.should.have.been.calledOnce;
-            activateStub.should.have.not.been.called;
-            selectAccountStub.should.have.not.been.called;
-            loginStub.should.have.been.called;
-        });
-
-        it('should get token for an existing environment', async () => {
-            chai.should().equal(undefined, accessToken);
+            isLoggedInStub.onFirstCall().resolves(false);
+            isLoggedInStub.onSecondCall().resolves(true);
 
             try {
                 accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken();
@@ -104,15 +86,15 @@ describe('ExtensionsInteractionUtil Test', () => {
             }
             accessToken.should.equal('some token');
             getExtensionStub.should.have.been.calledOnce;
-            isLoggedInStub.should.have.been.calledOnce;
-            accountSelectedStub.should.have.been.calledTwice;
+            isLoggedInStub.should.have.been.calledTwice;
+            accountSelectedStub.should.have.been.calledOnce;
             getAccessTokenStub.should.have.been.calledOnce;
             activateStub.should.have.not.been.called;
             selectAccountStub.should.have.not.been.called;
-            loginStub.should.have.not.been.called;
+            loginStub.should.have.been.called;
         });
 
-        it('should handle no account selected and ask user to select account', async () => {
+        it('should get token when already logged in but account not selected', async () => {
             chai.should().equal(undefined, accessToken);
             accountSelectedStub.onFirstCall().resolves(false);
             accountSelectedStub.onSecondCall().resolves(true);
@@ -124,11 +106,29 @@ describe('ExtensionsInteractionUtil Test', () => {
             }
             accessToken.should.equal('some token');
             getExtensionStub.should.have.been.calledOnce;
-            isLoggedInStub.should.have.been.calledOnce;
+            isLoggedInStub.should.have.been.calledTwice;
             accountSelectedStub.should.have.been.calledTwice;
             getAccessTokenStub.should.have.been.calledOnce;
             activateStub.should.have.not.been.called;
             selectAccountStub.should.have.been.called;
+            loginStub.should.have.not.been.called;
+        });
+
+        it('should get token when already logged in and account selected', async () => {
+            chai.should().equal(undefined, accessToken);
+
+            try {
+                accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken();
+            } catch (e) {
+                chai.assert.isNull(e, 'there should not have been an error!');
+            }
+            accessToken.should.equal('some token');
+            getExtensionStub.should.have.been.calledOnce;
+            isLoggedInStub.should.have.been.calledTwice;
+            accountSelectedStub.should.have.been.calledTwice;
+            getAccessTokenStub.should.have.been.calledOnce;
+            activateStub.should.have.not.been.called;
+            selectAccountStub.should.have.not.been.called;
             loginStub.should.have.not.been.called;
         });
 
@@ -137,15 +137,15 @@ describe('ExtensionsInteractionUtil Test', () => {
             isLoggedInStub.resolves(false);
 
             try {
-                accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken(fromAddEnvironment);
+                accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken();
             } catch (e) {
                 chai.assert.isNull(e, 'there should not have been an error!');
             }
             chai.should().equal(undefined, accessToken);
             getExtensionStub.should.have.been.calledOnce;
-            isLoggedInStub.should.have.been.calledOnce;
+            isLoggedInStub.should.have.been.calledTwice;
             accountSelectedStub.should.have.not.been.called;
-            getAccessTokenStub.should.have.not.been.calledOnce;
+            getAccessTokenStub.should.have.not.been.called;
             activateStub.should.have.not.been.called;
             selectAccountStub.should.have.not.been.called;
             loginStub.should.have.been.called;
@@ -162,7 +162,7 @@ describe('ExtensionsInteractionUtil Test', () => {
             }
             chai.should().equal(undefined, accessToken);
             getExtensionStub.should.have.been.calledOnce;
-            isLoggedInStub.should.have.been.calledOnce;
+            isLoggedInStub.should.have.been.calledTwice;
             accountSelectedStub.should.have.been.calledTwice;
             getAccessTokenStub.should.have.not.been.calledOnce;
             activateStub.should.have.not.been.called;
@@ -184,11 +184,32 @@ describe('ExtensionsInteractionUtil Test', () => {
             }
             accessToken.should.equal('some token');
             getExtensionStub.should.have.been.calledOnce;
-            isLoggedInStub.should.have.been.calledOnce;
+            isLoggedInStub.should.have.been.calledTwice;
             accountSelectedStub.should.have.been.calledTwice;
             getAccessTokenStub.should.have.been.calledOnce;
             activateStub.should.have.been.called;
             selectAccountStub.should.have.been.called;
+            loginStub.should.have.not.been.called;
+        });
+
+        it('should throw if ibmcloud-account not installed', async () => {
+            chai.should().equal(undefined, accessToken);
+            getExtensionStub.withArgs('IBM.ibmcloud-account').returns(undefined);
+            const expectedError: Error = new Error('IBM Cloud Account extension must be installed');
+
+            try {
+                accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken();
+            } catch (e) {
+                e.toString().should.deep.equal(expectedError.toString());
+            }
+
+            chai.should().equal(undefined, accessToken);
+            getExtensionStub.should.have.been.calledOnce;
+            isLoggedInStub.should.have.not.been.called;
+            accountSelectedStub.should.have.not.been.called;
+            getAccessTokenStub.should.have.not.been.called;
+            activateStub.should.have.not.been.called;
+            selectAccountStub.should.have.not.been.called;
             loginStub.should.have.not.been.called;
         });
 
@@ -204,7 +225,7 @@ describe('ExtensionsInteractionUtil Test', () => {
             }
             chai.should().equal(undefined, accessToken);
             getExtensionStub.should.have.been.calledOnce;
-            isLoggedInStub.should.have.been.calledOnce;
+            isLoggedInStub.should.have.been.calledTwice;
             accountSelectedStub.should.have.been.calledTwice;
             getAccessTokenStub.should.have.been.calledOnce;
             activateStub.should.have.not.been.called;
