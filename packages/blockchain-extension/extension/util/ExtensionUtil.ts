@@ -73,6 +73,7 @@ import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { HomeView } from '../webview/HomeView';
 import { SampleView } from '../webview/SampleView';
 import { TutorialGalleryView } from '../webview/TutorialGalleryView';
+import { ReactTutorialGalleryView } from '../webview/ReactTutorialGalleryView';
 import { TutorialView } from '../webview/TutorialView';
 import { Reporter } from './Reporter';
 import { PreReqView } from '../webview/PreReqView';
@@ -339,6 +340,11 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TUTORIAL_GALLERY, async () => {
             const tutorialGalleryView: TutorialGalleryView = new TutorialGalleryView(context);
             await tutorialGalleryView.openView(true);
+        }));
+
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_REACT_TUTORIAL_GALLERY, async () => {
+            const reactTutorialGalleryView: ReactTutorialGalleryView = new ReactTutorialGalleryView(context);
+            await reactTutorialGalleryView.openView(true);
         }));
 
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TUTORIAL_PAGE, async (repoName: string, tutorialName: string) => {
