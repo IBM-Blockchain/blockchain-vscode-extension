@@ -18,7 +18,7 @@ import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { WalletTreeItem } from './wallets/WalletTreeItem';
 import { LocalWalletTreeItem } from './wallets/LocalWalletTreeItem';
-import { FabricCertificate, Attribute, FabricWalletRegistry, FabricWalletRegistryEntry, FabricRuntimeUtil, IFabricWalletGenerator, IFabricWallet, LogType, FabricWalletGeneratorFactory } from 'ibm-blockchain-platform-common';
+import { FabricCertificate, Attribute, FabricWalletRegistry, FabricWalletRegistryEntry, FabricRuntimeUtil, IFabricWalletGenerator, IFabricWallet, LogType, FabricWalletGeneratorFactory, FabricIdentity } from 'ibm-blockchain-platform-common';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { IdentityTreeItem } from './model/IdentityTreeItem';
 import { AdminIdentityTreeItem } from './model/AdminIdentityTreeItem';
@@ -98,7 +98,7 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
         // Populate the tree with the identity names
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
         const wallet: IFabricWallet = await fabricWalletGenerator.getWallet(walletTreeItem.registryEntry);
-        const identities: any[] = await wallet.getIdentities();
+        const identities: FabricIdentity[] = await wallet.getIdentities();
 
         for (const identity of identities) {
             let isAdminIdentity: boolean = false;
@@ -110,7 +110,7 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
             }
 
             // Get attributes fcn
-            const certificate: FabricCertificate = new FabricCertificate(identity.enrollment.identity.certificate);
+            const certificate: FabricCertificate = new FabricCertificate(identity.cert);
             const attributes: Attribute[] = certificate.getAttributes();
 
             if (isAdminIdentity) {

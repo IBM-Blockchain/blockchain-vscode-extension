@@ -17,8 +17,8 @@
 import * as Client from 'fabric-client';
 import * as FabricCAServices from 'fabric-ca-client';
 import * as fs from 'fs-extra';
-import { ConsoleOutputAdapter, FabricChaincode, Attribute, FabricNode, FabricNodeType, IFabricEnvironmentConnection, IFabricWallet, OutputAdapter, LogType, FabricWalletRegistryEntry, FabricWalletRegistry } from 'ibm-blockchain-platform-common';
-import { FabricWalletGenerator } from 'ibm-blockchain-platform-wallet';
+import { ConsoleOutputAdapter, FabricChaincode, Attribute, FabricNode, FabricNodeType, IFabricEnvironmentConnection, OutputAdapter, LogType, FabricWalletRegistryEntry, FabricWalletRegistry, FabricIdentity } from 'ibm-blockchain-platform-common';
+import { FabricWalletGenerator, FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { URL } from 'url';
 
 export class FabricEnvironmentConnection implements IFabricEnvironmentConnection {
@@ -280,7 +280,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         return this.nodes.get(nodeName);
     }
 
-    public async getWallet(nodeName: string): Promise<IFabricWallet> {
+    public async getWallet(nodeName: string): Promise<FabricWallet> {
         const node: FabricNode = this.getNode(nodeName);
         const walletName: string = node.wallet;
 
@@ -288,7 +288,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         return FabricWalletGenerator.instance().getWallet(walletRegistryEntry);
     }
 
-    private async instantiateOrUpgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionsConfig: string, contractEP: any,  upgrade: boolean): Promise<Buffer> {
+    private async instantiateOrUpgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionsConfig: string, contractEP: any, upgrade: boolean): Promise<Buffer> {
 
         const peers: Array<Client.Peer> = [];
         // filter out the peers that don't have the smart contract installed
@@ -432,8 +432,17 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
 
     private async setNodeContext(nodeName: string): Promise<void> {
         const node: FabricNode = this.getNode(nodeName);
-        const fabricWallet: IFabricWallet = await this.getWallet(nodeName);
-        await fabricWallet['setUserContext'](this.client, node.identity);
+        const fabricWallet: FabricWallet = await this.getWallet(nodeName);
+        const fabricIdentity: FabricIdentity = await fabricWallet.getIdentity(node.identity);
+        const identity: any = {
+            credentials: {
+                certificate: fabricIdentity.cert,
+                privateKey: fabricIdentity.private_key,
+            },
+            mspId: fabricIdentity.msp_id
+        };
+
+        await fabricWallet.getWallet()['getProviderRegistry']()['getProvider']('X.509')['setUserContext'](this.client, identity, node.identity);
     }
 
     private getPeer(peerName: string): Client.Peer {

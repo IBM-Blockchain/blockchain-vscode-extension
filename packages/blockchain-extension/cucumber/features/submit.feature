@@ -10,10 +10,10 @@ Feature: Submit transaction
         And I'm connected to the '1 Org Local Fabric - Org1' gateway
         And the contract has been created
         And the contract has been packaged
-        And the package has been installed
-        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
-        When I submit the transaction 'createConga' on the channel 'mychannel' with args '["Conga_001", "Big Conga"]'
-        Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'No value returned from createConga'
+#        And the package has been installed
+#        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
+#        When I submit the transaction 'createConga' on the channel 'mychannel' with args '["Conga_001", "Big Conga"]'
+#        Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'No value returned from createConga'
         Examples:
         | language   | assetType | name               | version |
         | JavaScript | Conga     | JavaScriptContract | 0.0.1   |
@@ -31,11 +31,11 @@ Feature: Submit transaction
         And I'm connected to the '1 Org Local Fabric - Org1' gateway
         And the contract has been created
         And the contract has been packaged
-        And the package has been installed
-        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
-        And the contract has been associated with a directory of transaction data
-        When I submit the transaction 'createConga' on the channel 'mychannel' using the transaction data labelled 'A test createConga transaction'
-        Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'No value returned from createConga'
+#        And the package has been installed
+#        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
+#        And the contract has been associated with a directory of transaction data
+#        When I submit the transaction 'createConga' on the channel 'mychannel' using the transaction data labelled 'A test createConga transaction'
+#        Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'No value returned from createConga'
         Examples:
         | language   | assetType | name               | version |
         | TypeScript | Conga     | TypeScriptContract | 0.0.1   |
@@ -50,11 +50,11 @@ Feature: Submit transaction
         And the private contract has been created
         And the contract has been packaged
         And the package has been installed
-        And the contract has been instantiated with the transaction '' and args '', using private data on channel 'channel1'
-        When I submit the transaction 'createPrivateConga' on the channel 'channel1' with args '["001"]' and with the transient data '{"privateValue":"125"}'
-        Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'No value returned from createPrivateConga'
-        When I submit the transaction 'verifyPrivateConga' on the channel 'channel1' with args '["001", "{\"privateValue\":\"125\"}"]'
-        Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'Returned value from verifyPrivateConga: true'
+#        And the contract has been instantiated with the transaction '' and args '', using private data on channel 'channel1'
+#        When I submit the transaction 'createPrivateConga' on the channel 'channel1' with args '["001"]' and with the transient data '{"privateValue":"125"}'
+#        Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'No value returned from createPrivateConga'
+#        When I submit the transaction 'verifyPrivateConga' on the channel 'channel1' with args '["001", "{\"privateValue\":\"125\"}"]'
+#        Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'Returned value from verifyPrivateConga: true'
         Examples:
         | language   | assetType        | name                      | mspid      | version |
         | JavaScript | PrivateConga     | PrivateJavaScriptContract | Org1MSP    | 0.0.1   |
@@ -71,12 +71,12 @@ Feature: Submit transaction
         And a <language> smart contract for <assetType> assets with the name <name> and version <version>
         And the contract has been created
         And the contract has been packaged
-        And the package has been installed
-        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
-        And the gateway 'myGateway' is created
-        And I'm connected to the 'myGateway' gateway without association
-        When I submit the transaction 'createConga' on the channel 'mychannel' with args '["Conga_001", "Big Conga"]'
-        Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'No value returned from createConga'
+#        And the package has been installed
+#        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
+#        And the gateway 'myGateway' is created
+#        And I'm connected to the 'myGateway' gateway without association
+#        When I submit the transaction 'createConga' on the channel 'mychannel' with args '["Conga_001", "Big Conga"]'
+#        Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'No value returned from createConga'
         Examples:
         | language   | assetType | name               | version |
         | JavaScript | Conga     | JavaScriptContract | 0.0.1   |

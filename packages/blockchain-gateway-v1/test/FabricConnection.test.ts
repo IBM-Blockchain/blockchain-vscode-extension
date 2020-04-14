@@ -18,9 +18,11 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as fabricClientCA from 'fabric-ca-client';
-import { Gateway, Wallet, FileSystemWallet } from 'fabric-network';
+import { Gateway, Wallet } from 'fabric-network';
 import * as Client from 'fabric-client';
 import { OutputAdapter, LogType } from 'ibm-blockchain-platform-common';
+import { FabricWallet } from 'ibm-blockchain-platform-wallet';
+import * as path from 'path';
 
 chai.should();
 chai.use(sinonChai);
@@ -57,9 +59,11 @@ describe('FabricConnection', () => {
             this.connectionProfile = connectionProfile;
         }
 
-        async connect(wallet: Wallet, identityName: string, _timeout: number): Promise<void> {
+        async connect(wallet: FabricWallet, identityName: string, requestTimeout: number): Promise<void> {
             this['gateway'] = fabricGatewayStub;
-            await this.connectInner(this.connectionProfile, wallet, identityName, _timeout);
+
+            // TODO: update this when all packages using same version of the fabric node sdk
+            await this.connectInner(this.connectionProfile, wallet.getWallet() as any, identityName, requestTimeout);
         }
     }
 
@@ -71,6 +75,7 @@ describe('FabricConnection', () => {
     let fabricCAStub: sinon.SinonStubbedInstance<fabricClientCA>;
     let mockWallet: sinon.SinonStubbedInstance<Wallet>;
     const mockIdentityName: string = 'admin';
+    let fabricWallet: FabricWallet;
 
     const timeout: number = 120;
 
@@ -106,8 +111,12 @@ describe('FabricConnection', () => {
                 }
             }
         };
-        mockWallet = mySandBox.createStubInstance(FileSystemWallet);
+        mockWallet = mySandBox.createStubInstance(Wallet);
         mockWallet.list.resolves([{ label: 'admin' }]);
+
+        fabricWallet = await FabricWallet.newFabricWallet(path.join(__dirname, 'tmp', 'wallet'));
+
+        mySandBox.stub(fabricWallet, 'getWallet').returns(mockWallet);
 
         fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
 
@@ -125,7 +134,6 @@ describe('FabricConnection', () => {
         fabricClientStub.getCertificateAuthority.returns(fabricCAStub);
         fabricGatewayStub.getClient.returns(fabricClientStub);
         fabricGatewayStub.connect.resolves();
-        fabricGatewayStub.getCurrentIdentity.resolves({});
 
         fabricChannelStub = mySandBox.createStubInstance(Client.Channel);
         fabricChannelStub.sendInstantiateProposal.resolves([{}, {}]);
@@ -143,7 +151,7 @@ describe('FabricConnection', () => {
         fabricConnection['gateway'] = fabricGatewayStub;
         fabricConnection['outputAdapter'] = TestOutputAdapter.instance();
 
-        await fabricConnection.connect(mockWallet, mockIdentityName, 120);
+        await fabricConnection.connect(fabricWallet, mockIdentityName, 120);
     });
 
     afterEach(() => {
@@ -175,8 +183,9 @@ describe('FabricConnection', () => {
                     }
                 }
             };
+
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
-            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
 
             fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
                 wallet: mockWallet,
@@ -200,7 +209,7 @@ describe('FabricConnection', () => {
                 }
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
-            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
             fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
                 wallet: mockWallet,
                 identity: mockIdentityName,
@@ -223,7 +232,7 @@ describe('FabricConnection', () => {
                 }
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
-            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
             fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
                 wallet: mockWallet,
                 identity: mockIdentityName,
@@ -246,7 +255,7 @@ describe('FabricConnection', () => {
                 }
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
-            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
             fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
                 wallet: mockWallet,
                 identity: mockIdentityName,
@@ -269,7 +278,7 @@ describe('FabricConnection', () => {
                 }
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
-            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
             fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
                 wallet: mockWallet,
                 identity: mockIdentityName,
@@ -292,7 +301,7 @@ describe('FabricConnection', () => {
                 }
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
-            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
             fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
                 wallet: mockWallet,
                 identity: mockIdentityName,
@@ -315,7 +324,7 @@ describe('FabricConnection', () => {
                 }
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
-            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
             fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
                 wallet: mockWallet,
                 identity: mockIdentityName,
@@ -338,7 +347,7 @@ describe('FabricConnection', () => {
                 }
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
-            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
             fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
                 wallet: mockWallet,
                 identity: mockIdentityName,
@@ -361,7 +370,7 @@ describe('FabricConnection', () => {
                 }
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
-            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
             fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
                 wallet: mockWallet,
                 identity: mockIdentityName,
@@ -384,7 +393,7 @@ describe('FabricConnection', () => {
 
             fabricClientStub.getPeersForOrg.returns([peerOne, peerTwo]);
 
-            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
 
             const peerNames: Array<string> = fabricConnection.getAllPeerNames();
             peerNames.should.deep.equal(['peerOne', 'peerTwo']);
@@ -415,7 +424,7 @@ describe('FabricConnection', () => {
             const channelTwo: { channel_id: string } = { channel_id: 'channel-two' };
             fabricClientStub.queryChannels.resolves({ channels: [channelOne, channelTwo] });
 
-            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
 
             const channelNames: Array<string> = await fabricConnection.getAllChannelsForPeer('peer0.org1.example.com');
 
@@ -429,7 +438,7 @@ describe('FabricConnection', () => {
 
             fabricClientStub.queryChannels.rejects(new Error('blah access denied blah'));
 
-            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
 
             const channelNames: Array<string> = await fabricConnection.getAllChannelsForPeer('peer0.org1.example.com');
 
@@ -443,7 +452,7 @@ describe('FabricConnection', () => {
 
             fabricClientStub.queryChannels.rejects(new Error('blah access denied blah'));
 
-            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
 
             await fabricConnection.getAllChannelsForPeer('peer0.org2.example.com')
                 .should.be.rejectedWith(/blah access denied blah/);
@@ -456,7 +465,7 @@ describe('FabricConnection', () => {
 
             fabricClientStub.queryChannels.rejects(new Error('such error'));
 
-            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
 
             await fabricConnection.getAllChannelsForPeer('peer0.org1.example.com')
                 .should.be.rejectedWith(/such error/);
@@ -473,7 +482,7 @@ describe('FabricConnection', () => {
 
             fabricClientStub.getChannel.returns(channelOne);
 
-            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
             const instantiatedChaincodes: Array<any> = await fabricConnection.getInstantiatedChaincode('channel-one');
 
             instantiatedChaincodes.should.deep.equal([{ name: 'biscuit-network', version: '0,7' }, {

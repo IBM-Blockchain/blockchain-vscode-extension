@@ -47,7 +47,7 @@ describe('FabricWalletGenerator', () => {
 
         it('should get an instance of a wallet', async () => {
             const wallet: FabricWallet = await FabricWalletGenerator.instance().getWallet(fabricWalletRegistryEntry);
-            wallet.walletPath.should.equal(path.join(rootPath, 'data', 'wallet'));
+            wallet.getWalletPath().should.equal(path.join(rootPath, 'data', 'wallet'));
         });
     });
 });

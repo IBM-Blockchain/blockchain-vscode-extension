@@ -16,6 +16,7 @@ import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import * as path from 'path';
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
@@ -61,7 +62,7 @@ describe('createNewIdentityCommand', () => {
         caChoseStub = mySandBox.stub(UserInputUtil, 'showCertificateAuthorityQuickPickBox').resolves('ca.name');
         showQuickPickYesNoStub = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').resolves(UserInputUtil.NO);
 
-        const testFabricWallet: IFabricWallet = new FabricWallet('/some/path');
+        const testFabricWallet: IFabricWallet = await FabricWallet.newFabricWallet(path.join(__dirname, '../../test/tmp/v2/wallets/wallet'));
         walletExistsStub = mySandBox.stub(testFabricWallet, 'exists').resolves(false);
         importIdentityStub = mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
 

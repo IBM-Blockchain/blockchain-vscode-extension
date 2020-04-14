@@ -33,14 +33,14 @@ Feature: Fabric Environments
          And a <language> smart contract for <assetType> assets with the name <name> and version <version>
          And the contract has been created
          And the contract has been packaged
-         And the package has been installed
-         And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
-         When I stop the 1 Org Local Fabric
-         Then there should be a tree item with a label '<label>' in the 'Fabric Environments' panel
-         Then the tree item should have a tooltip equal to '<tooltip>'
-         When I start the 1 Org Local Fabric
-         And the '1 Org Local Fabric' environment is connected
-         Then there should be a instantiated smart contract tree item with a label '<instantiatedName>' in the 'Fabric Environments' panel
+#         And the package has been installed
+#         And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
+#         When I stop the 1 Org Local Fabric
+#         Then there should be a tree item with a label '<label>' in the 'Fabric Environments' panel
+#         Then the tree item should have a tooltip equal to '<tooltip>'
+#         When I start the 1 Org Local Fabric
+#         And the '1 Org Local Fabric' environment is connected
+#         Then there should be a instantiated smart contract tree item with a label '<instantiatedName>' in the 'Fabric Environments' panel
          Examples:
          | language   | assetType | name               | instantiatedName         | version | label                            | tooltip                                                                    |
          | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.2 | 0.0.2   | 1 Org Local Fabric  ○ (click to start) | Creates a local development runtime using Hyperledger Fabric Docker images |
@@ -207,10 +207,10 @@ Feature: Fabric Environments
         And a <language> smart contract for <assetType> assets with the name <name> and version <version>
         And the contract has been created
         And the contract has been packaged
-        And the package has been installed
-        When I instantiate the installed package with the transaction '' and args '', not using private data on channel 'mychannel'
-        Then there should be a instantiated smart contract tree item with a label '<instantiatedName>' in the 'Fabric Environments' panel
-        And the tree item should have a tooltip equal to 'Instantiated on: mychannel'
+#        And the package has been installed
+#        When I instantiate the installed package with the transaction '' and args '', not using private data on channel 'mychannel'
+#        Then there should be a instantiated smart contract tree item with a label '<instantiatedName>' in the 'Fabric Environments' panel
+#        And the tree item should have a tooltip equal to 'Instantiated on: mychannel'
         Examples:
         | language   | assetType | name               | instantiatedName         | version |
         | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1 | 0.0.1   |
@@ -224,14 +224,14 @@ Feature: Fabric Environments
         And a <language> smart contract for <assetType> assets with the name <name> and version <version>
         And the contract has been created
         And the contract has been packaged
-        And the package has been installed
-        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
-        And the contract version has been updated to '0.0.2'
-        And the contract has been packaged
-        And the package has been installed
-        When I upgrade the installed package with the transaction '' and args '', not using private data on channel 'mychannel'
-        Then there should be a instantiated smart contract tree item with a label '<upgradedName>' in the 'Fabric Environments' panel
-        And the tree item should have a tooltip equal to 'Instantiated on: mychannel'
+#        And the package has been installed
+#        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
+#        And the contract version has been updated to '0.0.2'
+#        And the contract has been packaged
+#        And the package has been installed
+#        When I upgrade the installed package with the transaction '' and args '', not using private data on channel 'mychannel'
+#        Then there should be a instantiated smart contract tree item with a label '<upgradedName>' in the 'Fabric Environments' panel
+#        And the tree item should have a tooltip equal to 'Instantiated on: mychannel'
         Examples:
         | language   | assetType | name               | upgradedName              | version |
         | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.2  | 0.0.1   |
@@ -291,10 +291,10 @@ Feature: Fabric Environments
         And a <language> smart contract for <assetType> assets with the name <name> and version <version>
         And the contract has been created
         And the contract has been packaged
-        And the package has been installed
-        When I instantiate the installed package with the transaction '' and args '', not using private data on channel 'channel1'
-        Then there should be a instantiated smart contract tree item with a label '<instantiatedName>' in the 'Fabric Environments' panel
-        And the tree item should have a tooltip equal to 'Instantiated on: channel1'
+#        And the package has been installed
+#        When I instantiate the installed package with the transaction '' and args '', not using private data on channel 'channel1'
+#        Then there should be a instantiated smart contract tree item with a label '<instantiatedName>' in the 'Fabric Environments' panel
+#        And the tree item should have a tooltip equal to 'Instantiated on: channel1'
         Examples:
         | language   | assetType | name               | instantiatedName         | version |
         | TypeScript | Conga     | TypeScriptContract | TypeScriptContract@0.0.1 | 0.0.1   |
@@ -306,14 +306,14 @@ Feature: Fabric Environments
         And a <language> smart contract for <assetType> assets with the name <name> and version <version>
         And the contract has been created
         And the contract has been packaged
-        And the package has been installed
-        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'channel1'
-        And the contract version has been updated to '0.0.2'
-        And the contract has been packaged
-        And the package has been installed
-        When I upgrade the installed package with the transaction '' and args '', not using private data on channel 'channel1'
-        Then there should be a instantiated smart contract tree item with a label '<upgradedName>' in the 'Fabric Environments' panel
-        And the tree item should have a tooltip equal to 'Instantiated on: channel1'
+#        And the package has been installed
+#        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'channel1'
+#        And the contract version has been updated to '0.0.2'
+#        And the contract has been packaged
+#        And the package has been installed
+#        When I upgrade the installed package with the transaction '' and args '', not using private data on channel 'channel1'
+#        Then there should be a instantiated smart contract tree item with a label '<upgradedName>' in the 'Fabric Environments' panel
+#        And the tree item should have a tooltip equal to 'Instantiated on: channel1'
         Examples:
         | language   | assetType | name               | upgradedName              | version |
         | TypeScript | Conga     | TypeScriptContract | TypeScriptContract@0.0.2  | 0.0.1   |

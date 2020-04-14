@@ -40,7 +40,6 @@ describe('exportWalletCommand', () => {
     let fsCopyStub: sinon.SinonStub;
     let fsPathExistsStub: sinon.SinonStub;
     let fsRemoveStub: sinon.SinonStub;
-    let fsLstatStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
     let sendTelemetryEventStub: sinon.SinonStub;
     let showWalletsQuickPickBoxStub: sinon.SinonStub;
@@ -61,15 +60,10 @@ describe('exportWalletCommand', () => {
 
         fsEnsureDirStub = mySandBox.stub(fs, 'ensureDir').resolves();
         fsReaddirStub = mySandBox.stub(fs, 'readdir');
-        fsReaddirStub.onFirstCall().resolves(['admin']);
-        fsReaddirStub.onSecondCall().resolves(['admin-priv', 'admin-pub', 'admin']);
-        fsReaddirStub.onThirdCall().resolves(['admin-priv', 'admin-pub', 'admin']);
+        fsReaddirStub.onFirstCall().resolves(['admin.id', 'notAnId', 'another.id']);
         fsCopyStub = mySandBox.stub(fs, 'copy').resolves();
         fsPathExistsStub = mySandBox.stub(fs, 'pathExists').resolves();
         fsRemoveStub = mySandBox.stub(fs, 'remove').resolves();
-        fsLstatStub = mySandBox.stub(fs, 'lstat').resolves({
-            isDirectory: sinon.stub().returns(true)
-        });
 
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
@@ -93,12 +87,12 @@ describe('exportWalletCommand', () => {
 
         showWalletsQuickPickBoxStub.should.not.have.been.called;
 
-        fsEnsureDirStub.should.have.been.calledTwice;
-        fsReaddirStub.should.have.been.calledThrice;
-        fsCopyStub.should.have.been.calledThrice;
-        fsCopyStub.should.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'admin', 'admin-priv'), path.join(fakeTargetPath, 'admin', 'admin-priv'));
-        fsCopyStub.should.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'admin', 'admin-pub'), path.join(fakeTargetPath, 'admin', 'admin-pub'));
-        fsCopyStub.should.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'admin', 'admin'), path.join(fakeTargetPath, 'admin', 'admin'));
+        fsEnsureDirStub.should.have.been.calledOnce;
+        fsReaddirStub.should.have.been.calledOnce;
+        fsCopyStub.should.have.been.calledTwice;
+        fsCopyStub.should.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'admin.id'), path.join(fakeTargetPath, 'admin.id'));
+        fsCopyStub.should.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'another.id', ), path.join(fakeTargetPath, 'another.id'));
+        fsCopyStub.should.not.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'notAnId'), path.join(fakeTargetPath, 'notAnId'));
 
         logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported wallet ${walletTreeItem.registryEntry.name} to ${fakeTargetPath}`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportWallet');
@@ -109,12 +103,12 @@ describe('exportWalletCommand', () => {
 
         showWalletsQuickPickBoxStub.should.have.been.calledOnce;
 
-        fsEnsureDirStub.should.have.been.calledTwice;
-        fsReaddirStub.should.have.been.calledThrice;
-        fsCopyStub.should.have.been.calledThrice;
-        fsCopyStub.should.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'admin', 'admin-priv'), path.join(fakeTargetPath, 'admin', 'admin-priv'));
-        fsCopyStub.should.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'admin', 'admin-pub'), path.join(fakeTargetPath, 'admin', 'admin-pub'));
-        fsCopyStub.should.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'admin', 'admin'), path.join(fakeTargetPath, 'admin', 'admin'));
+        fsEnsureDirStub.should.have.been.calledOnce;
+        fsReaddirStub.should.have.been.calledOnce;
+        fsCopyStub.should.have.been.calledTwice;
+        fsCopyStub.should.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'admin.id'), path.join(fakeTargetPath, 'admin.id'));
+        fsCopyStub.should.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'another.id', ), path.join(fakeTargetPath, 'another.id'));
+        fsCopyStub.should.not.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'notAnId'), path.join(fakeTargetPath, 'notAnId'));
 
         logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported wallet ${walletTreeItem.registryEntry.name} to ${fakeTargetPath}`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportWallet');
@@ -140,12 +134,12 @@ describe('exportWalletCommand', () => {
         showWalletsQuickPickBoxStub.should.have.been.calledOnce;
         saveDialogBoxStub.should.have.been.calledOnce;
 
-        fsEnsureDirStub.should.have.been.calledTwice;
-        fsReaddirStub.should.have.been.calledThrice;
-        fsCopyStub.should.have.been.calledThrice;
-        fsCopyStub.should.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'admin', 'admin-priv'), path.join(fakeTargetPath, 'admin', 'admin-priv'));
-        fsCopyStub.should.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'admin', 'admin-pub'), path.join(fakeTargetPath, 'admin', 'admin-pub'));
-        fsCopyStub.should.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'admin', 'admin'), path.join(fakeTargetPath, 'admin', 'admin'));
+        fsEnsureDirStub.should.have.been.calledOnce;
+        fsReaddirStub.should.have.been.calledOnce;
+        fsCopyStub.should.have.been.calledTwice;
+        fsCopyStub.should.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'admin.id'), path.join(fakeTargetPath, 'admin.id'));
+        fsCopyStub.should.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'another.id', ), path.join(fakeTargetPath, 'another.id'));
+        fsCopyStub.should.not.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'notAnId'), path.join(fakeTargetPath, 'notAnId'));
 
         logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported wallet ${walletTreeItem.registryEntry.name} to ${fakeTargetPath}`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportWallet');
@@ -182,9 +176,9 @@ describe('exportWalletCommand', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_WALLET);
 
-        fsEnsureDirStub.should.have.been.calledTwice;
-        fsReaddirStub.should.have.been.calledTwice;
-        fsCopyStub.should.have.been.calledOnceWithExactly(path.join(walletTreeItem.registryEntry.walletPath, 'admin', 'admin-priv'), path.join(fakeTargetPath, 'admin', 'admin-priv'));
+        fsEnsureDirStub.should.have.been.calledOnce;
+        fsReaddirStub.should.have.been.calledOnce;
+        fsCopyStub.should.have.been.calledOnceWithExactly(path.join(walletTreeItem.registryEntry.walletPath, 'admin.id'), path.join(fakeTargetPath, 'admin.id'));
         fsRemoveStub.should.have.been.calledOnceWithExactly(fakeTargetPath);
 
         logSpy.should.have.been.calledWithExactly(LogType.ERROR, `Issue exporting wallet: ${error.message}`, `Issue exporting wallet: ${error.toString()}`);
@@ -208,12 +202,12 @@ describe('exportWalletCommand', () => {
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_WALLET);
         showWalletsQuickPickBoxStub.should.have.been.calledOnce;
 
-        fsEnsureDirStub.should.have.been.calledTwice;
-        fsReaddirStub.should.have.been.calledThrice;
-        fsCopyStub.should.have.been.calledThrice;
-        fsCopyStub.should.have.been.calledWith(path.join(localWallet.walletPath, 'admin', 'admin-priv'), path.join(fakeTargetPath, 'admin', 'admin-priv'));
-        fsCopyStub.should.have.been.calledWith(path.join(localWallet.walletPath, 'admin', 'admin-pub'), path.join(fakeTargetPath, 'admin', 'admin-pub'));
-        fsCopyStub.should.have.been.calledWith(path.join(localWallet.walletPath, 'admin', 'admin'), path.join(fakeTargetPath, 'admin', 'admin'));
+        fsEnsureDirStub.should.have.been.calledOnce;
+        fsReaddirStub.should.have.been.calledOnce;
+        fsCopyStub.should.have.been.calledTwice;
+        fsCopyStub.should.have.been.calledWith(path.join(localWallet.walletPath, 'admin.id'), path.join(fakeTargetPath, 'admin.id'));
+        fsCopyStub.should.have.been.calledWith(path.join(localWallet.walletPath, 'another.id', ), path.join(fakeTargetPath, 'another.id'));
+        fsCopyStub.should.not.have.been.calledWith(path.join(localWallet.walletPath, 'notAnId'), path.join(fakeTargetPath, 'notAnId'));
 
         logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported wallet ${localWallet.displayName} to ${fakeTargetPath}`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportWallet');
@@ -229,55 +223,6 @@ describe('exportWalletCommand', () => {
         fsEnsureDirStub.should.have.been.calledOnceWithExactly(fakeTargetPath);
         fsReaddirStub.should.have.been.calledOnce;
         fsCopyStub.should.not.have.been.called;
-
-        logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported wallet ${walletTreeItem.registryEntry.name} to ${fakeTargetPath}`);
-        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportWallet');
-    });
-
-    it(`should not export files that aren't in a directory`, async () => {
-        fsLstatStub.resolves({
-            isDirectory: sinon.stub().returns(false)
-        });
-
-        await vscode.commands.executeCommand(ExtensionCommands.EXPORT_WALLET);
-
-        showWalletsQuickPickBoxStub.should.have.been.calledOnce;
-
-        fsEnsureDirStub.should.have.been.calledOnceWithExactly(fakeTargetPath);
-        fsReaddirStub.should.have.been.calledOnce;
-        fsCopyStub.should.not.have.been.called;
-
-        logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported wallet ${walletTreeItem.registryEntry.name} to ${fakeTargetPath}`);
-        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportWallet');
-    });
-
-    it(`should not export irrelevant identity files`, async () => {
-        fsReaddirStub.onSecondCall().resolves(['admin-priv', 'admin-pub', 'admin', 'random-file.txt']);
-
-        await vscode.commands.executeCommand(ExtensionCommands.EXPORT_WALLET);
-
-        fsEnsureDirStub.should.have.been.calledTwice;
-        fsReaddirStub.should.have.been.calledThrice;
-        fsCopyStub.should.have.been.calledThrice;
-        fsCopyStub.should.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'admin', 'admin-priv'), path.join(fakeTargetPath, 'admin', 'admin-priv'));
-        fsCopyStub.should.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'admin', 'admin-pub'), path.join(fakeTargetPath, 'admin', 'admin-pub'));
-        fsCopyStub.should.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'admin', 'admin'), path.join(fakeTargetPath, 'admin', 'admin'));
-        fsCopyStub.should.not.have.been.calledWith(path.join(walletTreeItem.registryEntry.walletPath, 'admin', 'admin'), path.join(fakeTargetPath, 'admin', 'random-file.txt'));
-
-        logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported wallet ${walletTreeItem.registryEntry.name} to ${fakeTargetPath}`);
-        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportWallet');
-    });
-
-    it('should remove an identity directory if it contains no relevant identity files', async () => {
-        fsReaddirStub.onSecondCall().resolves(['random-file.txt']);
-        fsReaddirStub.onThirdCall().resolves([]);
-
-        await vscode.commands.executeCommand(ExtensionCommands.EXPORT_WALLET);
-
-        fsEnsureDirStub.should.have.been.calledTwice;
-        fsReaddirStub.should.have.been.calledThrice;
-        fsCopyStub.should.not.have.been.called;
-        fsRemoveStub.should.have.been.calledOnceWithExactly(path.join(fakeTargetPath, 'admin'));
 
         logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported wallet ${walletTreeItem.registryEntry.name} to ${fakeTargetPath}`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportWallet');

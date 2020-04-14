@@ -12,27 +12,28 @@
  * limitations under the License.
 */
 
-import * as fs from 'fs-extra';
-import * as path from 'path';
 import { FabricWallet } from '../src/FabricWallet';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { FileSystemWallet, X509WalletMixin } from 'fabric-network';
-import { FabricIdentity, IFabricWallet} from 'ibm-blockchain-platform-common';
+import { Wallet } from 'fabric-network';
+import { FabricIdentity } from 'ibm-blockchain-platform-common';
 
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
 
-chai.should();
+const should: Chai.Should = chai.should();
 
 describe('FabricWallet', () => {
     let mySandBox: sinon.SinonSandbox;
-    let importStub: sinon.SinonStub;
+    let putStub: sinon.SinonStub;
+    let removeStub: sinon.SinonStub;
+
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
-        importStub = mySandBox.stub(FileSystemWallet.prototype, 'import');
+        putStub = mySandBox.stub(Wallet.prototype, 'put');
+        removeStub = mySandBox.stub(Wallet.prototype, 'remove');
     });
 
     afterEach(() => {
@@ -42,45 +43,57 @@ describe('FabricWallet', () => {
     describe('importIdentity', () => {
 
         it('should import identity', async () => {
-            const wallet: FabricWallet = new FabricWallet('path');
-            importStub.resolves();
-            const createIdentityStub: sinon.SinonStub = mySandBox.stub(X509WalletMixin, 'createIdentity').returns({hello: 'world'});
+            const wallet: FabricWallet = await FabricWallet.newFabricWallet('tmp/path');
+            putStub.resolves();
 
             await wallet.importIdentity('---CERT---', '---KEY---', 'identity1', 'myMSP');
 
-            createIdentityStub.should.have.been.calledOnceWithExactly('myMSP', '---CERT---', '---KEY---');
-            importStub.should.have.been.calledOnceWithExactly('identity1', {hello: 'world'});
+            putStub.should.have.been.calledOnceWithExactly('identity1', {
+                credentials: {
+                    certificate: '---CERT---',
+                    privateKey: '---KEY---',
+                },
+                mspId: 'myMSP',
+                type: 'X.509',
+            });
+        });
+    });
+
+    describe('removeIdentity', () => {
+        it('should remove identity', async () => {
+            const wallet: FabricWallet = await FabricWallet.newFabricWallet('tmp/path');
+            removeStub.resolves();
+
+            await wallet.removeIdentity('identity1');
+
+            removeStub.should.have.been.calledOnceWithExactly('identity1');
         });
     });
 
     describe('getWalletPath', () => {
 
         it('should get wallet path', async () => {
-            const wallet: FabricWallet = new FabricWallet('/some/path');
+            const wallet: FabricWallet = await FabricWallet.newFabricWallet('tmp/myPath');
 
             const result: string = wallet.getWalletPath();
-            result.should.equal('/some/path');
+            result.should.equal('tmp/myPath');
+        });
+    });
+
+    describe('getWallet', () => {
+
+        it('should get wallet', async () => {
+            const wallet: FabricWallet = await FabricWallet.newFabricWallet('tmp/myPath');
+
+            const result: Wallet = wallet.getWallet();
+            should.exist(result);
         });
     });
 
     describe('getIdentityNames', () => {
-
-        it('should import identity', async () => {
-            const wallet: FabricWallet = new FabricWallet('path');
-            mySandBox.stub(FileSystemWallet.prototype, 'list').resolves([
-                {
-                    some: 'thing',
-                    label: 'label1'
-                },
-                {
-                    some: 'thing',
-                    label: 'label2'
-                },
-                {
-                    some: 'thing',
-                    label: 'label3'
-                }
-            ]);
+        it('should get the identity names', async () => {
+            const wallet: FabricWallet = await FabricWallet.newFabricWallet('tmp/path');
+            mySandBox.stub(Wallet.prototype, 'list').resolves(['label1', 'label2', 'label3']);
 
             const identityNames: string[] = await wallet.getIdentityNames();
             identityNames.should.deep.equal(['label1', 'label2', 'label3']);
@@ -90,69 +103,113 @@ describe('FabricWallet', () => {
     describe('#getIdentities', () => {
 
         it('should return any identities', async () => {
-            const wallet: IFabricWallet = new FabricWallet('/some/path');
-            mySandBox.stub(FabricWallet.prototype, 'getWalletPath').returns('/some/path');
-            const readdirStub: sinon.SinonStub = mySandBox.stub(fs, 'readdir').resolves(['/dir/identity_a', '/dir/identity_b', '/dir/identity_c', '/dir/identity_d']);
-            const basenameSpy: sinon.SinonSpy = mySandBox.spy(path, 'basename');
-            const resolveSpy: sinon.SinonSpy = mySandBox.spy(path, 'resolve');
-            const readJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'readJson');
-            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
-            mySandBox.stub(fs, 'lstatSync').returns({
-                isDirectory: sinon.stub().returns(true)
+            const wallet: FabricWallet = await FabricWallet.newFabricWallet('tmp/myPath');
+            mySandBox.stub(Wallet.prototype, 'list').resolves(['label1', 'label2', 'label3']);
+            const getStub: sinon.SinonStub = mySandBox.stub(Wallet.prototype, 'get');
+
+            getStub.onFirstCall().resolves({
+                credentials: {
+                    certificate: 'myCert',
+                    privateKey: 'myKey',
+                },
+                mspId: 'myMSP',
+                type: 'X.509',
+            });
+
+            getStub.onSecondCall().resolves({
+                credentials: {
+                    certificate: 'myCert2',
+                    privateKey: 'myKey2',
+                },
+                mspId: 'myMSP2',
+                type: 'X.509',
+            });
+
+            getStub.onThirdCall().resolves({
+                credentials: {
+                    certificate: 'myCert3',
+                    privateKey: 'myKey3',
+                },
+                mspId: 'myMSP3',
+                type: 'X.509',
             });
 
             const identityOne: FabricIdentity = {
-                affiliation: '',
-                enrollment: {},
-                enrollmentSecret: '',
-                mspid: 'Org1MSP',
-                name: 'identity_a',
-                roles: null
-            } as unknown as FabricIdentity;
+                cert: 'myCert',
+                private_key: 'myKey',
+                msp_id: 'myMSP',
+                name: 'label1'
+            };
 
             const identityTwo: FabricIdentity = {
-                affiliation: '',
-                enrollment: {},
-                enrollmentSecret: '',
-                mspid: 'Org1MSP',
-                name: 'identity_b',
-                roles: null
-            } as unknown as FabricIdentity;
+                cert: 'myCert2',
+                private_key: 'myKey2',
+                msp_id: 'myMSP2',
+                name: 'label2'
+            };
 
             const identityThree: FabricIdentity = {
-                affiliation: '',
-                enrollment: {},
-                enrollmentSecret: '',
-                mspid: 'Org1MSP',
-                name: 'identity_c',
-                roles: null
-            } as unknown as FabricIdentity;
-
-            readJsonStub.onCall(0).resolves(identityOne);
-            readJsonStub.onCall(1).resolves(identityTwo);
-            readJsonStub.onCall(2).resolves(identityThree);
-
-            pathExistsStub.resolves(true);
-            pathExistsStub.onCall(3).resolves(false);
+                cert: 'myCert3',
+                private_key: 'myKey3',
+                msp_id: 'myMSP3',
+                name: 'label3'
+            };
 
             const identities: FabricIdentity[] = await wallet.getIdentities();
 
-            basenameSpy.getCall(0).returnValue.should.equal('identity_a');
-            basenameSpy.getCall(1).returnValue.should.equal('identity_b');
-            basenameSpy.getCall(2).returnValue.should.equal('identity_c');
-
-            resolveSpy.getCall(0).should.have.been.calledWithExactly('/some/path', '/dir/identity_a', 'identity_a');
-            resolveSpy.getCall(1).should.have.been.calledWithExactly('/some/path', '/dir/identity_b', 'identity_b');
-            resolveSpy.getCall(2).should.have.been.calledWithExactly('/some/path', '/dir/identity_c', 'identity_c');
-
-            readJsonStub.getCall(0).should.have.been.calledWithExactly('/dir/identity_a/identity_a');
-            readJsonStub.getCall(1).should.have.been.calledWithExactly('/dir/identity_b/identity_b');
-            readJsonStub.getCall(2).should.have.been.calledWithExactly('/dir/identity_c/identity_c');
-
-            readdirStub.should.have.been.calledOnceWithExactly('/some/path');
-
             identities.should.deep.equal([identityOne, identityTwo, identityThree]);
+        });
+    });
 
+    describe('#getIdentity', () => {
+        it('should get the wanted identity', async () => {
+            const wallet: FabricWallet = await FabricWallet.newFabricWallet('tmp/myPath');
+            const getStub: sinon.SinonStub = mySandBox.stub(Wallet.prototype, 'get');
+
+            getStub.resolves({
+                credentials: {
+                    certificate: 'myCert',
+                    privateKey: 'myKey',
+                },
+                mspId: 'myMSP',
+                type: 'X.509',
+            });
+
+            const identityOne: FabricIdentity = {
+                cert: 'myCert',
+                private_key: 'myKey',
+                msp_id: 'myMSP',
+                name: 'label1'
+            };
+
+            const identity: FabricIdentity = await wallet.getIdentity('label1');
+
+            identity.should.deep.equal(identityOne);
+        });
+    });
+
+    describe('#exists', () => {
+        it('should return true if the identity exists', async () => {
+            const wallet: FabricWallet = await FabricWallet.newFabricWallet('tmp/myPath');
+            mySandBox.stub(Wallet.prototype, 'get').resolves({
+                credentials: {
+                    certificate: 'myCert',
+                    privateKey: 'myKey',
+                },
+                mspId: 'myMSP',
+                type: 'X.509',
+            });
+
+            const exists: boolean = await wallet.exists('label1');
+            exists.should.equal(true);
+        });
+
+        it('should return false if the identity does not exists', async () => {
+            const wallet: FabricWallet = await FabricWallet.newFabricWallet('tmp/myPath');
+            mySandBox.stub(Wallet.prototype, 'get').resolves(undefined);
+
+            const exists: boolean = await wallet.exists('label1');
+            exists.should.equal(false);
         });
     });
 });
