@@ -5,6 +5,7 @@
             {
                 "title": "A1: Introduction",
                 "length": "10 minutes",
+                "firstInSeries": true,
                 "file": "Basic tutorials/a1.md"
             },
             {
@@ -60,6 +61,7 @@
             {
                 "title": "Local smart contract development",
                 "length": "20-30 mins",
+                "firstInSeries": true,
                 "file": "ibm-blockchain-platform-vscode-smart-contract/local-dev.md"
               },
               {
