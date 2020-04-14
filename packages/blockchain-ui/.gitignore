@@ -20,3 +20,4 @@ build
 /jest-tests.xml
 *.tgz
 coverage
+/src/resources/tutorials

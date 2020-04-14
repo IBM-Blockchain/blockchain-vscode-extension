@@ -33,17 +33,34 @@ describe('App', () => {
         });
         dispatchEvent(msg);
         component.state().redirectPath.should.equal('/home');
+        component.state().extensionVersion.should.equal('1.0.0');
     });
 
     it('should redirect to the tutorial page', async () => {
+        const tutorialData: Array<{name: string, contents: string[]}> = [{
+            name: 'Basic tutorials',
+            contents: [
+                'a1',
+                'a2'
+            ]
+        }, {
+            name: 'Other tutorials',
+            contents: [
+                'local-dev',
+                'something else interesting'
+            ]
+        }];
+
         const component: any = mount(<App/>);
 
         const msg: MessageEvent = new MessageEvent('message', {
             data: {
-                path: '/tutorials'
+                path: '/tutorials',
+                tutorialData
             }
         });
         dispatchEvent(msg);
         component.state().redirectPath.should.equal('/tutorials');
+        component.state().tutorialData.should.equal(tutorialData);
     });
 });

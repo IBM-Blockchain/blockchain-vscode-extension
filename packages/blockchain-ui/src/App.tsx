@@ -7,6 +7,7 @@ import TutorialPage from './components/pages/TutorialPage/TutorialPage';
 interface AppState {
     redirectPath: string;
     extensionVersion: string;
+    tutorialData: Array<{seriesName: string, seriesTutorials: any[]}>;
 }
 
 class App extends Component<{}, AppState> {
@@ -15,15 +16,25 @@ class App extends Component<{}, AppState> {
         this.state = {
             redirectPath: '',
             extensionVersion: '',
+            tutorialData: []
         };
     }
 
     componentDidMount(): void {
         window.addEventListener('message', (event: MessageEvent) => {
-            this.setState({
-                redirectPath: event.data.path,
-                extensionVersion: event.data.version
-            });
+            const newState: any = {
+                redirectPath: event.data.path
+            };
+
+            if (event.data.version) {
+                newState.extensionVersion = event.data.version;
+            }
+
+            if (event.data.tutorialData) {
+                newState.tutorialData = event.data.tutorialData;
+            }
+
+            this.setState(newState);
         });
     }
 
@@ -39,7 +50,7 @@ class App extends Component<{}, AppState> {
                             <HomePage extensionVersion={this.state.extensionVersion}/>}>
                         </Route>
                         <Route exact path='/tutorials' render={(): JSX.Element =>
-                            <TutorialPage/>}>
+                            <TutorialPage tutorialData={this.state.tutorialData}/>}>
                         </Route>
                     </div>
                 </Router>
