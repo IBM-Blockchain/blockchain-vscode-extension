@@ -2266,7 +2266,7 @@ describe('UserInputUtil', () => {
         });
 
         it('should show wallets to select and show create wallet', async () => {
-            const testFabricWallet: FabricWallet = new FabricWallet('some/local/path');
+            const testFabricWallet: FabricWallet = await FabricWallet.newFabricWallet(path.join(__dirname, '../../tmp/v2/wallets/testWallet'));
             const walletStub: sinon.SinonStub = mySandBox.stub(FabricWalletGenerator.instance(), 'getWallet');
             walletStub.callThrough();
             walletStub.withArgs(walletEntryOne).resolves(testFabricWallet);

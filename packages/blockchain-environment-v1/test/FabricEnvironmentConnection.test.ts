@@ -51,9 +51,10 @@ describe('FabricEnvironmentConnection', () => {
     const TLS_CA_CERTIFICATE: string = fs.readFileSync(path.resolve(__dirname, 'data', 'certs', 'ca-org1-example-com-17054.pem')).toString('base64');
 
     let mySandBox: sinon.SinonSandbox;
-    let mockLocalWallet: sinon.SinonStubbedInstance<IFabricWallet>;
     let connection: FabricEnvironmentConnection;
     let nodes: FabricNode[];
+    let localWallet: FabricWallet;
+    let setUserContextStub: sinon.SinonStub;
 
     before(async () => {
         FabricWalletGeneratorFactory.setFabricWalletGenerator(FabricWalletGenerator.instance());
@@ -162,12 +163,24 @@ describe('FabricEnvironmentConnection', () => {
         ];
 
         const mockFabricWalletGenerator: sinon.SinonStub = mySandBox.stub(FabricWalletGenerator.instance(), 'getWallet');
-        mockLocalWallet = mySandBox.createStubInstance(FabricWallet);
-        mockLocalWallet['setUserContext'] = mySandBox.stub();
-        // We need this even though the code is affected by AnsibleEnvironment.ts.
-        // Somehow `getWalletsAndIdentities()` is being called.
-        mockLocalWallet.getIdentities.resolves([]);
-        mockFabricWalletGenerator.resolves(mockLocalWallet);
+        localWallet = await FabricWallet.newFabricWallet('tmp/myWallet');
+
+        setUserContextStub = mySandBox.stub().resolves();
+
+        mySandBox.stub(localWallet.getWallet(), 'getProviderRegistry').returns({
+            getProvider: mySandBox.stub().returns({
+                setUserContext: setUserContextStub
+            })
+        });
+
+        localWallet.getIdentity = mySandBox.stub().resolves({
+            cert: 'myCert',
+            private_key: 'myKey',
+            msp_id: 'myMSPID',
+            name: 'myWallet'
+        });
+
+        mockFabricWalletGenerator.resolves(localWallet);
 
         connection = new FabricEnvironmentConnection(FabricRuntimeUtil.LOCAL_FABRIC);
         await connection.connect(nodes);
@@ -1298,7 +1311,13 @@ describe('FabricEnvironmentConnection', () => {
         it('should register a new user and return a secret using a certificate authority that exists ', async () => {
             const secret: string = await connection.register('ca.example.com', 'enrollThis', 'departmentE');
             secret.should.deep.equal('its a secret');
-            mockLocalWallet['setUserContext'].should.have.been.calledOnceWithExactly(sinon.match.any, FabricRuntimeUtil.ADMIN_USER);
+            setUserContextStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+                credentials: {
+                    certificate: 'myCert',
+                    privateKey: 'myKey',
+                },
+                mspId: 'myMSPID'
+            }, FabricRuntimeUtil.ADMIN_USER);
             mockFabricCA.register.should.have.been.calledOnceWith({
                 enrollmentID: 'enrollThis',
                 affiliation: 'departmentE',
@@ -1316,7 +1335,13 @@ describe('FabricEnvironmentConnection', () => {
         it('should be able to register a new user with attribtues', async () => {
             const secret: string = await connection.register('ca.example.com', 'enrollThis', 'departmentE', [{ name: 'hello', value: 'world', ecert: true }]);
             secret.should.deep.equal('its a secret');
-            mockLocalWallet['setUserContext'].should.have.been.calledOnceWithExactly(sinon.match.any, FabricRuntimeUtil.ADMIN_USER);
+            setUserContextStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+                credentials: {
+                    certificate: 'myCert',
+                    privateKey: 'myKey',
+                },
+                mspId: 'myMSPID'
+            }, FabricRuntimeUtil.ADMIN_USER);
             mockFabricCA.register.should.have.been.calledOnceWith({
                 enrollmentID: 'enrollThis',
                 affiliation: 'departmentE',
@@ -1350,7 +1375,7 @@ describe('FabricEnvironmentConnection', () => {
     describe('getWallet', () => {
         it('should return the wallet for a certificate authority node', async () => {
             const wallet: IFabricWallet = await connection.getWallet('ca.example.com');
-            wallet.should.equal(mockLocalWallet);
+            wallet.should.equal(localWallet);
         });
     });
 });

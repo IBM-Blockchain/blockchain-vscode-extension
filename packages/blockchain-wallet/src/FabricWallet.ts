@@ -12,59 +12,73 @@
  * limitations under the License.
 */
 'use strict';
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import { FileSystemWallet, X509WalletMixin, IdentityInfo } from 'fabric-network';
+import { Wallet, X509Identity, Wallets, Identity } from 'fabric-network';
 import { FabricIdentity, IFabricWallet } from 'ibm-blockchain-platform-common';
 
-export class FabricWallet extends FileSystemWallet implements IFabricWallet {
-    public walletPath: string;
+export class FabricWallet implements IFabricWallet {
 
-    constructor(walletPath: string) {
-        super(walletPath);
+    public static async newFabricWallet(walletPath: string): Promise<FabricWallet> {
+        const wallet: Wallet = await Wallets.newFileSystemWallet(walletPath);
+        return new FabricWallet(walletPath, wallet);
+    }
+
+    private wallet: Wallet;
+
+    private walletPath: string;
+
+    private constructor(walletPath: string, wallet: Wallet) {
         this.walletPath = walletPath;
+        this.wallet = wallet;
+    }
+
+    public getWallet(): Wallet {
+        return this.wallet;
     }
 
     public async importIdentity(certificate: string, privateKey: string, identityName: string, mspid: string): Promise<void> {
-        await this.import(identityName, X509WalletMixin.createIdentity(mspid, certificate, privateKey));
+        const identity: X509Identity = {
+            credentials: {
+                certificate: certificate,
+                privateKey: privateKey,
+            },
+            mspId: mspid,
+            type: 'X.509',
+        };
+
+        await  this.wallet.put(identityName, identity);
     }
 
     public async getIdentityNames(): Promise<string[]> {
-        const identities: IdentityInfo[] = await this.list();
-        const identityNames: string[] = [];
-        for (const identity of identities) {
-            identityNames.push(identity.label);
-        }
-        return identityNames;
+        return  this.wallet.list();
     }
 
     public async getIdentities(): Promise<FabricIdentity[]> {
-        const walletPath: string = this.getWalletPath();
-        let identityPaths: string[] = await fs.readdir(walletPath);
-        identityPaths.sort();
-        identityPaths = identityPaths
-            .filter((identityPath: string) => {
-                const stats: fs.Stats = fs.lstatSync(path.join(walletPath, identityPath));
-                return !identityPath.startsWith('.') && stats.isDirectory();
-            })
-            .map((identityPath: string) => {
-                const identityName: string = path.basename(identityPath);
-                return path.resolve(walletPath, identityPath, identityName);
-            });
+        const identityNames: string[] = await this.getIdentityNames();
         const identities: FabricIdentity[] = [];
-        for (const identityPath of identityPaths) {
-            const exists: boolean = await fs.pathExists(identityPath);
-            // ignore ones where there is no actual identity
-            if (exists) {
-                const identity: FabricIdentity = await fs.readJson(identityPath);
-                identities.push(identity);
-            }
+        for (const identityName of identityNames) {
+            const identity: X509Identity = await  this.wallet.get(identityName) as X509Identity;
+            const fabricIdentity: FabricIdentity = new FabricIdentity(identityName, identity.credentials.certificate, identity.credentials.privateKey, identity.mspId);
+            identities.push(fabricIdentity);
         }
+
         return identities;
+    }
+
+    public async getIdentity(identityName: string): Promise<FabricIdentity> {
+        const identity: X509Identity = await  this.wallet.get(identityName) as X509Identity;
+        return new FabricIdentity(identityName, identity.credentials.certificate, identity.credentials.privateKey, identity.mspId);
     }
 
     public getWalletPath(): string {
         return this.walletPath;
     }
 
+    public async exists(identityName: string): Promise<boolean> {
+        const identity: Identity = await this.wallet.get(identityName);
+        return !!identity;
+    }
+
+    public removeIdentity(identityName: string): Promise<void> {
+        return this.wallet.remove(identityName);
+    }
 }

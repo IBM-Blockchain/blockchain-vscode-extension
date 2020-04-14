@@ -14,10 +14,10 @@
 'use strict';
 
 import * as Client from 'fabric-client';
-import { Gateway, GatewayOptions, FileSystemWallet, Network } from 'fabric-network';
+import { Gateway, GatewayOptions, Network, Wallet } from 'fabric-network';
 import { URL } from 'url';
 import { ConsoleOutputAdapter, FabricChaincode, OutputAdapter } from 'ibm-blockchain-platform-common';
-import { FabricWallet } from 'ibm-blockchain-platform-wallet';
+import {FabricWallet} from 'ibm-blockchain-platform-wallet';
 
 export abstract class FabricConnection {
 
@@ -55,7 +55,6 @@ export abstract class FabricConnection {
     }
 
     public async getAllChannelsForPeer(peerName: string): Promise<Array<string>> {
-        // TODO: update this when not just using admin
         const peer: Client.Peer = this.gateway.getClient().getPeer(peerName);
         try {
             const channelResponse: Client.ChannelQueryResponse = await this.gateway.getClient().queryChannels(peer);
@@ -153,7 +152,7 @@ export abstract class FabricConnection {
         }
     }
 
-    protected async connectInner(connectionProfile: object, wallet: FileSystemWallet, identityName: string, timeout: number): Promise<void> {
+    protected async connectInner(connectionProfile: object, wallet: Wallet, identityName: string, timeout: number): Promise<void> {
 
         this.discoveryAsLocalhost = this.hasLocalhostURLs(connectionProfile);
         this.discoveryEnabled = true;

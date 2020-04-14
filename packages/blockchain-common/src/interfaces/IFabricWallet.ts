@@ -19,7 +19,7 @@ export interface IFabricWallet {
 
     importIdentity(certificate: string, privateKey: string, identityName: string, mspid: string): Promise<void>;
 
-    delete(identityName: string): Promise<void>;
+    removeIdentity(identityName: string): Promise<void>;
 
     exists(identityName: string): Promise<boolean>;
 
@@ -28,4 +28,6 @@ export interface IFabricWallet {
     getIdentities(): Promise<FabricIdentity[]>;
 
     getWalletPath(): string;
+
+    getIdentity(identityName: string): Promise<FabricIdentity>;
 }

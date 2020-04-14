@@ -124,7 +124,7 @@ describe('AddWalletIdentityCommand', () => {
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
             executeCommandStub.callThrough();
 
-            fabricWallet = new FabricWallet(walletPath);
+            fabricWallet = await FabricWallet.newFabricWallet(walletPath);
             getWalletStub = mySandBox.stub(FabricWalletGenerator.instance(), 'getWallet');
             getWalletStub.returns(fabricWallet);
             importIdentityStub = mySandBox.stub(fabricWallet, 'importIdentity');

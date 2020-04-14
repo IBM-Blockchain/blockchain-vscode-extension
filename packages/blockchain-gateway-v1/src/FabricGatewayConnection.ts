@@ -33,7 +33,9 @@ export class FabricGatewayConnection extends FabricConnection implements IFabric
         } else {
             this.description = false;
         }
-        await this.connectInner(connectionProfile, wallet, identityName, timeout);
+
+        // TODO: update this when all packages using same version of the fabric node sdk
+        await this.connectInner(connectionProfile, wallet.getWallet() as any, identityName, timeout);
     }
 
     public isIBPConnection(): boolean {
@@ -102,7 +104,7 @@ export class FabricGatewayConnection extends FabricConnection implements IFabric
         const network: Network = await this.gateway.getNetwork(channelName);
         const contract: Contract = network.getContract(contractName);
         const eventListenerName: string = `${eventName}-listener`;
-        await contract.addContractListener(eventListenerName, eventName, (error: Error, event: any) => {
+        await contract.addContractListener(eventListenerName, eventName, (error: Error, event: any): Promise<any> => {
             if (error) {
                 outputAdapter.log(LogType.ERROR, `Error from event: ${error.message}`, `Error from event: ${error.toString()}`);
                 return;

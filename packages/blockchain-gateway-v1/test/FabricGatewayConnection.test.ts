@@ -129,7 +129,7 @@ describe('FabricGatewayConnection', () => {
             fabricClientConnection = new FabricGatewayConnection(connectionProfilePath);
             fabricClientConnection['gateway'] = fabricGatewayStub;
 
-            wallet = new FabricWallet(path.join(rootPath, 'test/data/walletDir/wallet'));
+            wallet = await FabricWallet.newFabricWallet(path.join(rootPath, 'test/data/walletDir/wallet'));
         });
 
         it('should connect to a fabric', async () => {
@@ -142,7 +142,7 @@ describe('FabricGatewayConnection', () => {
         it('should connect to a fabric with a .yaml connection profile', async () => {
             const connectionProfilePath: string = path.join(rootPath, 'test/data/connectionProfiles/connection.yaml');
 
-            wallet = new FabricWallet(path.join(rootPath, 'test/data/wallet'));
+            wallet = await FabricWallet.newFabricWallet(path.join(rootPath, 'test/data/wallet'));
             fabricClientConnectionYaml = new FabricGatewayConnection(connectionProfilePath);
             fabricClientConnectionYaml['gateway'] = fabricGatewayStub;
 
@@ -155,7 +155,7 @@ describe('FabricGatewayConnection', () => {
         it('should connect to a fabric with a .yml connection profile', async () => {
             const connectionProfilePath: string = path.join(rootPath, 'test/data/connectionProfiles/otherConnectionProfile.yml');
 
-            wallet = new FabricWallet(path.join(rootPath, 'test/data/wallet'));
+            wallet = await FabricWallet.newFabricWallet(path.join(rootPath, 'test/data/wallet'));
             otherFabricClientConnectionYml = new FabricGatewayConnection(connectionProfilePath);
             otherFabricClientConnectionYml['gateway'] = fabricGatewayStub;
 
@@ -167,7 +167,7 @@ describe('FabricGatewayConnection', () => {
 
         it('should detect connecting to ibp instance', async () => {
             const connectionProfilePath: string = path.join(rootPath, 'test/data/connectionProfiles/connectionIBP.json');
-            wallet = new FabricWallet(path.join(rootPath, 'test/data/wallet'));
+            wallet = await FabricWallet.newFabricWallet(path.join(rootPath, 'test/data/wallet'));
 
             fabricClientConnection = new FabricGatewayConnection(connectionProfilePath);
             fabricClientConnection['gateway'] = fabricGatewayStub;
@@ -184,7 +184,7 @@ describe('FabricGatewayConnection', () => {
                 connectionProfilePath: path.join(rootPath, 'test/data/connectionProfiles/connection.json'),
                 walletPath: path.join(rootPath, 'test/data/wallet')
             };
-            wallet = new FabricWallet(connectionData.walletPath);
+            wallet = await FabricWallet.newFabricWallet(connectionData.walletPath);
             fabricClientConnection = new FabricGatewayConnection(connectionData.connectionProfilePath);
             fabricClientConnection['gateway'] = fabricGatewayStub;
 
@@ -198,7 +198,7 @@ describe('FabricGatewayConnection', () => {
         it('should show an error if connection profile is not .yaml or .json file', async () => {
             const connectionProfilePath: string = path.join(rootPath, 'test/data/connectionProfiles/connection.bad');
 
-            wallet = new FabricWallet(path.join(rootPath, 'test/data/wallet'));
+            wallet = await FabricWallet.newFabricWallet(path.join(rootPath, 'test/data/wallet'));
             fabricClientConnectionWrong = new FabricGatewayConnection(connectionProfilePath);
             fabricClientConnectionWrong['gateway'] = fabricGatewayStub;
 
