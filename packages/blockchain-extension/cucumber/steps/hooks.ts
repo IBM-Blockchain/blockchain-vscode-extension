@@ -48,7 +48,7 @@ export enum LanguageType {
 
 let firstTime: boolean = true; // Flag used for making sure we do some setup once
 
-module.exports = function(): any {
+module.exports = function (): any {
 
     this.timeout = { timeout: 120000 * 1000 }; // Global timeout - 2 minutes
     this.cucumberDir = path.join(__dirname, '..', '..', '..', 'cucumber');
@@ -100,10 +100,13 @@ module.exports = function(): any {
             this.userInputUtilHelper.logSpy.should.not.have.been.calledWith(LogType.ERROR);
             this.userInputUtilHelper.logSpy.resetHistory();
 
-            try {
-                await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
-            } catch (error) {
-                // If the Fabric is already torn down, do nothing
+            // only try and tear down local fabric if we are actually testing local fabric. This will stop it trying to get all the docker images when it doesn't need to
+            if (!process.env.OTHER_FABRIC && !process.env.ANSIBLE_FABRIC && !process.env.TWO_ORG_FABRIC && !process.env.OPSTOOLS_FABRIC) {
+                try {
+                    await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
+                } catch (error) {
+                    // If the Fabric is already torn down, do nothing
+                }
             }
         }
     });

@@ -29,7 +29,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { CertificateAuthorityTreeItem } from './runtimeOps/connectedTree/CertificateAuthorityTreeItem';
 import { OrdererTreeItem } from './runtimeOps/connectedTree/OrdererTreeItem';
 import { FabricEnvironmentManager, ConnectedState } from '../fabric/environments/FabricEnvironmentManager';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, IFabricEnvironmentConnection, LogType, FabricEnvironment, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, IFabricEnvironmentConnection, LogType, FabricEnvironment, EnvironmentType, FabricCommittedSmartContract } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentTreeItem } from './runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { SetupTreeItem } from './runtimeOps/identitySetupTree/SetupTreeItem';
 import { EnvironmentConnectedTreeItem } from './runtimeOps/connectedTree/EnvironmentConnectedTreeItem';
@@ -40,6 +40,7 @@ import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { ManagedAnsibleEnvironmentManager } from '../fabric/environments/ManagedAnsibleEnvironmentManager';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
+import { CommittedContractTreeItem } from './runtimeOps/connectedTree/CommittedSmartContractTreeItem';
 
 export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorerProvider {
 
@@ -82,6 +83,9 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
     async getChildren(element?: BlockchainTreeItem): Promise<BlockchainTreeItem[]> {
         if (element) {
+            if (element instanceof ChannelTreeItem) {
+                this.tree = await this.createCommittedTree(element);
+            }
             if (element instanceof NodesTreeItem) {
                 this.tree = await this.createNodesTree();
             }
@@ -280,12 +284,30 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
             for (const channel of channels) {
                 const peers: Array<string> = channelMap.get(channel);
-                tree.push(new ChannelTreeItem(this, channel, peers, [], vscode.TreeItemCollapsibleState.None));
+
+                const smartContracts: FabricCommittedSmartContract[] = await connection.getCommittedSmartContracts(peers, channel);
+
+                let collapsedState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.None;
+                if (smartContracts.length > 0) {
+                   collapsedState = vscode.TreeItemCollapsibleState.Collapsed;
+                }
+
+                tree.push(new ChannelTreeItem(this, channel, peers, smartContracts, collapsedState));
             }
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error populating channel view: ${error.message}`, `Error populating channel view: ${error.toString()}`);
             return tree;
         }
+        return tree;
+    }
+
+    private async createCommittedTree(element: ChannelTreeItem): Promise<BlockchainTreeItem[]> {
+        const tree: Array<BlockchainTreeItem> = [];
+
+        for (const smartContract of element.chaincodes) {
+            tree.push(new CommittedContractTreeItem(this, `${smartContract.name}@${smartContract.version}`));
+        }
+
         return tree;
     }
 

@@ -88,7 +88,7 @@ import { GlobalState, ExtensionData } from './GlobalState';
 import { TemporaryCommandRegistry } from '../dependencies/TemporaryCommandRegistry';
 import { version as currentExtensionVersion, dependencies } from '../../package.json';
 import { UserInputUtil } from '../commands/UserInputUtil';
-import { FabricChaincode, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FileRegistry, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, EnvironmentType, EnvironmentFlags } from 'ibm-blockchain-platform-common';
+import { FabricCommittedSmartContract, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FileRegistry, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, EnvironmentType, EnvironmentFlags } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 import { importNodesToEnvironment } from '../commands/importNodesToEnvironmentCommand';
 import { deleteNode } from '../commands/deleteNodeCommand';
@@ -102,6 +102,8 @@ import { openReleaseNotes } from '../commands/openReleaseNotesCommand';
 import { viewPackageInformation } from '../commands/viewPackageInformationCommand';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { subscribeToEvent } from '../commands/subscribeToEventCommand';
+import { approveSmartContract } from '../commands/approveCommand';
+import { commitSmartContract } from '../commands/commitCommand';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -133,7 +135,7 @@ export class ExtensionUtil {
         return this.getExtension().extensionPath;
     }
 
-    public static async getContractNameAndVersion(folder: vscode.WorkspaceFolder): Promise<FabricChaincode> {
+    public static async getContractNameAndVersion(folder: vscode.WorkspaceFolder): Promise<FabricCommittedSmartContract> {
         try {
             const packageJson: any = await this.loadJSON(folder, 'package.json');
             return { name: packageJson.name, version: packageJson.version };
@@ -225,8 +227,10 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.HIDE_NODE, (nodeTreeItem: NodeTreeItem) => deleteNode(nodeTreeItem, true)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, (fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry, showSuccessMessage: boolean) => fabricEnvironmentConnect(fabricEnvironmentRegistryEntry, showSuccessMessage)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT, () => FabricEnvironmentManager.instance().disconnect()));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, (peerNames?: Set<string>, chosenPackge?: PackageRegistryEntry) => installSmartContract(peerNames, chosenPackge)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, (peerNames: Array<string>, chosenPackge: PackageRegistryEntry) => installSmartContract(peerNames, chosenPackge)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, (channelName?: string, peerNames?: Array<string>) => instantiateSmartContract(channelName, peerNames)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.APPROVE_SMART_CONTRACT, (ordererName: string, channelName: string, peerNames: Array<string>, smartContractName: string, smartContractVersion: string, packageId: string, sequence: number) => approveSmartContract(ordererName, channelName, peerNames, smartContractName, smartContractVersion, packageId, sequence)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.COMMIT_SMART_CONTRACT, (ordererName: string, channelName: string, peerNames: Array<string>, smartContractName: string, smartContractVersion: string, sequence: number) => commitSmartContract(ordererName, channelName, peerNames, smartContractName, smartContractVersion, sequence)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEST_ALL_SMART_CONTRACT, (chaincode: InstantiatedContractTreeItem) => testSmartContract(true, chaincode)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEST_SMART_CONTRACT, (treeItem: ContractTreeItem | InstantiatedTreeItem) => testSmartContract(false, treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.SUBMIT_TRANSACTION, (transactionTreeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string, transactionObject?: any) => submitTransaction(false, transactionTreeItem, channelName, smartContract, transactionObject)));
@@ -443,7 +447,7 @@ export class ExtensionUtil {
                 if (e.configuration.env && e.configuration.env.CORE_CHAINCODE_ID_NAME) {
                     const smartContractName: string = e.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[0];
                     const smartContractVersion: string = e.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
-                    const instantiatedSmartContract: FabricChaincode = await FabricDebugConfigurationProvider.getInstantiatedChaincode(smartContractName);
+                    const instantiatedSmartContract: FabricCommittedSmartContract = await FabricDebugConfigurationProvider.getInstantiatedChaincode(smartContractName);
 
                     if (!instantiatedSmartContract) {
                         await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST, ExtensionCommands.INSTANTIATE_SMART_CONTRACT);

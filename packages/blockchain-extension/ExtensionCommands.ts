@@ -49,6 +49,9 @@ export class ExtensionCommands {
     static readonly UPGRADE_SMART_CONTRACT: string = 'environmentExplorer.upgradeSmartContractEntry';
     static readonly CREATE_NEW_IDENTITY: string = 'environmentExplorer.createNewIdentityEntry';
 
+    static readonly APPROVE_SMART_CONTRACT: string = 'environmentExplorer.approveSmartContractEntry';
+    static readonly COMMIT_SMART_CONTRACT: string = 'environmentExplorer.commitSmartContractEntry';
+
     // GATEWAY VIEW
     static readonly ADD_GATEWAY: string = 'gatewaysExplorer.addGatewayEntry';
     static readonly CONNECT_TO_GATEWAY: string = 'gatewaysExplorer.connectEntry';

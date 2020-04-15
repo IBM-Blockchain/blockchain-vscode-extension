@@ -14,7 +14,7 @@
 'use strict';
 
 export * from './src/interfaces/IFabricGatewayConnection';
-export * from './src/fabricModel/FabricChaincode';
+export * from './src/fabricModel/FabricCommittedSmartContract';
 export * from './src/logging/OutputAdapter';
 export * from './src/logging/ConsoleOutputAdapter';
 export * from './src/fabricModel/FabricIdentity';

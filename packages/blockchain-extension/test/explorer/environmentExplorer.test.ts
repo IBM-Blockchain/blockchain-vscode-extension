@@ -426,11 +426,11 @@ describe('environmentExplorer', () => {
 
                 fabricConnection.getInstalledChaincode.withArgs('peerTwo').returns(installedChaincodeMapTwo);
 
-                fabricConnection.getInstantiatedChaincode.withArgs(['peerOne'], 'channelOne').resolves([{
+                fabricConnection.getCommittedSmartContracts.withArgs(['peerOne'], 'channelOne').resolves([{
                     name: 'biscuit-network',
                     version: '0.7'
                 }]);
-                fabricConnection.getInstantiatedChaincode.withArgs(['peerOne', 'peerTwo'], 'channelTwo').resolves([
+                fabricConnection.getCommittedSmartContracts.withArgs(['peerOne', 'peerTwo'], 'channelTwo').resolves([
                     {
                         name: 'biscuit-network',
                         version: '0.7'

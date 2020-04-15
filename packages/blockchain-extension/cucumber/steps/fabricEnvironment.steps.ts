@@ -70,6 +70,7 @@ module.exports = function(): any {
         await TimerUtil.sleep(3000);
         this.environmentName = environment;
         await this.fabricEnvironmentHelper.connectToEnvironment(environment);
+        await TimerUtil.sleep(3000);
     });
 
     this.Given("an environment '{string}' exists", this.timeout, async (environmentName: string) => {

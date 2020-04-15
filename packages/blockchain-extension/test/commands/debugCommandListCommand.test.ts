@@ -77,7 +77,7 @@ describe('DebugCommandListCommand', () => {
         const channelMap: Map<string, string[]> = new Map<string, string[]>();
         channelMap.set('mychannel', ['peerOne']);
         runtimeStub.createChannelMap.resolves(channelMap);
-        runtimeStub.getInstantiatedChaincode.resolves([]);
+        runtimeStub.getCommittedSmartContracts.resolves([]);
 
         environmentConnectionStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns(runtimeStub);
 
@@ -163,7 +163,7 @@ describe('DebugCommandListCommand', () => {
     });
 
     it('should run the command passed in', async () => {
-        runtimeStub.getInstantiatedChaincode.resolves([
+        runtimeStub.getCommittedSmartContracts.resolves([
             {
                 name: 'mySmartContract',
                 version: 'vscode-debug-13232112018'

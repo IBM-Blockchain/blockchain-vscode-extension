@@ -71,12 +71,13 @@ Feature: Submit transaction
         And a <language> smart contract for <assetType> assets with the name <name> and version <version>
         And the contract has been created
         And the contract has been packaged
-#        And the package has been installed
-#        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
-#        And the gateway 'myGateway' is created
-#        And I'm connected to the 'myGateway' gateway without association
-#        When I submit the transaction 'createConga' on the channel 'mychannel' with args '["Conga_001", "Big Conga"]'
-#        Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'No value returned from createConga'
+        And the package has been installed
+        And the contract has been approved on channel 'mychannel'
+        And the contract has been committed on channel 'mychannel'
+        And the gateway 'myGateway' is created
+        And I'm connected to the 'myGateway' gateway without association
+        When I submit the transaction 'createConga' on the channel 'mychannel' with args '["Conga_001", "Big Conga"]'
+        Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'No value returned from createConga'
         Examples:
         | language   | assetType | name               | version |
         | JavaScript | Conga     | JavaScriptContract | 0.0.1   |

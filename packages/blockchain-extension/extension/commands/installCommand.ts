@@ -13,7 +13,6 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
@@ -22,93 +21,60 @@ import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, 
 import { Reporter } from '../util/Reporter';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 
-export async function installSmartContract(peerNames?: Set<string>, chosenPackage?: PackageRegistryEntry): Promise<PackageRegistryEntry | undefined> {
+export async function installSmartContract(peerNames: Array<string>, chosenPackage: PackageRegistryEntry): Promise<string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'installSmartContract');
 
-    try {
-        let connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
+    let packageId: string;
+
+    let connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
+    if (!connection) {
+        await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+        connection = FabricEnvironmentManager.instance().getConnection();
         if (!connection) {
-            await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
-            connection = FabricEnvironmentManager.instance().getConnection();
-            if (!connection) {
-                // something went wrong with connecting so return
-                return;
-            }
-        }
-
-        let peerNameArray: string[];
-        if (peerNames) {
-            peerNameArray = Array.from(peerNames);
-        }
-        const chosenPeerNames: string[] = await UserInputUtil.showPeersQuickPickBox('Choose which peers to install the smart contract on', peerNameArray);
-        if (!chosenPeerNames || chosenPeerNames.length === 0) {
+            // something went wrong with connecting so return
             return;
         }
-        peerNames = new Set(chosenPeerNames);
+    }
 
-        if (!chosenPackage) {
-            const chosenInstallable: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', peerNames) as IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>;
-            if (!chosenInstallable) {
-                return;
-            }
+    let successfulInstall: boolean = true; // Have all packages been installed successfully
+    await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: 'IBM Blockchain Platform Extension',
+        cancellable: false
+    }, async (progress: vscode.Progress<{ message: string }>) => {
 
-            const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = chosenInstallable.data;
-            if (chosenInstallable.description === 'Open Project') {
-                // Project needs packaging, using the given 'open workspace'
-                const _package: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, data.workspace);
-                if (!_package) {
-                    return;
-                }
-                chosenPackage = _package;
-            } else {
-                chosenPackage = chosenInstallable.data.packageEntry;
+        const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+        if (environmentRegistryEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+            VSCodeBlockchainDockerOutputAdapter.instance(environmentRegistryEntry.name).show();
+        }
+
+        for (const peer of peerNames) {
+            progress.report({ message: `Installing Smart Contract on peer ${peer}` });
+            try {
+                packageId = await connection.installChaincode(chosenPackage.path, peer);
+                outputAdapter.log(LogType.SUCCESS, `Successfully installed on peer ${peer}`);
+            } catch (error) {
+                outputAdapter.log(LogType.ERROR, `Failed to install on peer ${peer} with reason: ${error.message}`, `Failed to install on peer ${peer} with reason: ${error.toString()}`);
+                successfulInstall = false;
             }
         }
 
-        let successfulInstall: boolean = true; // Have all packages been installed successfully
-        await vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: 'IBM Blockchain Platform Extension',
-            cancellable: false
-        }, async (progress: vscode.Progress<{ message: string }>) => {
+        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
+    });
 
-            const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
-            if (environmentRegistryEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
-                VSCodeBlockchainDockerOutputAdapter.instance(environmentRegistryEntry.name).show();
-            }
-
-            for (const peer of peerNames) {
-                progress.report({ message: `Installing Smart Contract on peer ${peer}` });
-                try {
-                    await connection.installChaincode(chosenPackage.path, peer);
-                    outputAdapter.log(LogType.SUCCESS, `Successfully installed on peer ${peer}`);
-                } catch (error) {
-                    outputAdapter.log(LogType.ERROR, `Failed to install on peer ${peer} with reason: ${error.message}`, `Failed to install on peer ${peer} with reason: ${error.toString()}`);
-                    successfulInstall = false;
-                }
-            }
-
-            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
-            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
-        });
-
-        if (successfulInstall) {
-            // Package was installed on all peers successfully
-            if (peerNames.size > 1) {
-                // If the package has only been installed on one peer, we disregard this success message
-                outputAdapter.log(LogType.SUCCESS, 'Successfully installed smart contract on all peers');
-            }
-
-            Reporter.instance().sendTelemetryEvent('installCommand');
-            return chosenPackage;
-        } else {
-            // Failed to install package on all peers
-            return;
+    if (successfulInstall) {
+        // Package was installed on all peers successfully
+        if (peerNames.length > 1) {
+            // If the package has only been installed on one peer, we disregard this success message
+            outputAdapter.log(LogType.SUCCESS, 'Successfully installed smart contract on all peers');
         }
 
-    } catch (error) {
-        outputAdapter.log(LogType.ERROR, `Error installing smart contract: ${error.message}`, `Error installing smart contract: ${error.toString()}`);
+        Reporter.instance().sendTelemetryEvent('installCommand');
+        return packageId;
+    } else {
+        // Failed to install package on all peers
         return;
     }
 }

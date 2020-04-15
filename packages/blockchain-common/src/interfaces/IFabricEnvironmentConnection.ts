@@ -13,7 +13,7 @@
 */
 'use strict';
 
-import { FabricChaincode } from '../fabricModel/FabricChaincode';
+import { FabricCommittedSmartContract } from '../fabricModel/FabricCommittedSmartContract';
 import {IFabricWallet} from './IFabricWallet';
 import { FabricNode } from '../fabricModel/FabricNode';
 import { Attribute } from '../fabricModel/FabricCertificate';
@@ -30,9 +30,9 @@ export interface IFabricEnvironmentConnection {
 
     createChannelMap(): Promise<Map<string, Array<string>>>;
 
-    getInstantiatedChaincode(peerNames: Array<string>, channelName: string): Promise<Array<FabricChaincode>>;
+    getCommittedSmartContracts(peerNames: Array<string>, channelName: string): Promise<Array<FabricCommittedSmartContract>>;
 
-    getAllInstantiatedChaincodes(): Promise<Array<{name: string, version: string}>>;
+    getAllCommittedSmartContracts(): Promise<Array<{name: string, version: string}>>;
 
     getAllOrganizationNames(): Array<string>;
 
@@ -55,4 +55,10 @@ export interface IFabricEnvironmentConnection {
     getNode(nodeName: string): FabricNode;
 
     getWallet(nodeName: string): Promise<IFabricWallet>;
+
+    approveSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[],  name: string, version: string, packageId: string, sequence: number): Promise<void>;
+
+    commitSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[],  name: string, version: string, sequence: number): Promise<void>;
+
+    getCommitReadiness(channelName: string, peerName: string, name: string, version: string, sequence: number ): Promise<boolean>;
 }

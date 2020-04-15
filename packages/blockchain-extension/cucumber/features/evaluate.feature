@@ -51,7 +51,8 @@ Feature: Evaluate transaction
         And the contract has been created
         And the contract has been packaged
         And the package has been installed
-        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
+        And the contract has been approved on channel 'mychannel'
+        And the contract has been committed on channel 'mychannel'
         And the gateway 'myGateway' is created
         And I'm connected to the 'myGateway' gateway without association
         And the transaction 'createConga' has been submitted on the channel 'mychannel' with args '["Conga_001", "Big Conga"]'
