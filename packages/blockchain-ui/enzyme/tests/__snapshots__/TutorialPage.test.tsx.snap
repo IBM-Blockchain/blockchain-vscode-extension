@@ -1,25 +1,143 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TutorialPage component should render the expected snapshot 1`] = `
-<div
-  className="bx--grid tutorial-page-container"
->
+Array [
   <div
-    className="bx--row"
+    className="tutorial-page-background"
+    id="tutorial-page-background"
+  />,
+  <div
+    className="bx--grid tutorial-page-container"
   >
     <div
-      className="heading-combo-container"
+      className="bx--row"
     >
-      <h3>
-        Blockchain Tutorials
-      </h3>
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-      </p>
+      <div
+        className="heading-combo-container"
+      >
+        <h3>
+          Blockchain Tutorials
+        </h3>
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        </p>
+      </div>
     </div>
-  </div>
-  <div
-    className="bx--row"
-  />
-</div>
+    <div
+      className="bx--row"
+      id="tutorial-tabs-container"
+    >
+      <div
+        className="tutorial-tabs-background"
+      />
+      <div
+        className="bx--tabs bx--tabs--container"
+        role="navigation"
+        selected={0}
+      >
+        <div
+          aria-label="listbox"
+          className="bx--tabs-trigger"
+          onClick={[Function]}
+          onKeyPress={[Function]}
+          role="listbox"
+          tabIndex={0}
+        >
+          <a
+            className="bx--tabs-trigger-text"
+            href="#"
+            onClick={[Function]}
+            tabIndex={-1}
+          >
+            Basic tutorials (1)
+          </a>
+          <svg
+            aria-hidden={true}
+            focusable="false"
+            height={16}
+            preserveAspectRatio="xMidYMid meet"
+            style={
+              Object {
+                "willChange": "transform",
+              }
+            }
+            viewBox="0 0 16 16"
+            width={16}
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M8 11L3 6 3.7 5.3 8 9.6 12.3 5.3 13 6z"
+            />
+            <title>
+              show menu options
+            </title>
+          </svg>
+        </div>
+        <ul
+          className="bx--tabs__nav bx--tabs__nav--hidden"
+          role="tablist"
+        >
+          <li
+            className="bx--tabs__nav-item bx--tabs__nav-item--selected"
+            onClick={[Function]}
+            onKeyDown={[Function]}
+            role="presentation"
+            selected={true}
+            tabIndex={-1}
+          >
+            <a
+              aria-selected={true}
+              className="bx--tabs__nav-link"
+              href="#"
+              role="tab"
+              tabIndex={0}
+            >
+              Basic tutorials (1)
+            </a>
+          </li>
+          <li
+            className="bx--tabs__nav-item"
+            onClick={[Function]}
+            onKeyDown={[Function]}
+            role="presentation"
+            selected={false}
+            tabIndex={-1}
+          >
+            <a
+              aria-selected={false}
+              className="bx--tabs__nav-link"
+              href="#"
+              role="tab"
+              tabIndex={-1}
+            >
+              Other tutorials (1)
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div
+        aria-hidden={false}
+        className="bx--tab-content"
+        hidden={false}
+        role="tabpanel"
+        selected={true}
+      >
+        <p>
+          a1
+        </p>
+      </div>
+      <div
+        aria-hidden={true}
+        className="bx--tab-content"
+        hidden={true}
+        role="tabpanel"
+        selected={false}
+      >
+        <p>
+          something really interesting
+        </p>
+      </div>
+    </div>
+  </div>,
+]
 `;
