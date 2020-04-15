@@ -312,9 +312,9 @@ Note that the old version `demoContract@0.0.1` is _replaced_ with `demoContract@
 <details>
 <summary><b>6. Submit and evaluate transactions</b></summary>
 
-Fabric gateways are connections to peers participating in Hyperledger Fabric networks, which can be used by client applications to submit transactions. When you started the local runtime in `LOCAL FABRIC OPS`, a gateway was automatically created for you also. You'll find it under `FABRIC GATEWAYS`, and it's called `1 Org Local Fabric`.
+Fabric gateways are connections to peers participating in Hyperledger Fabric networks, which can be used by client applications to submit transactions. When you started the local runtime in `LOCAL FABRIC OPS`, a gateway was automatically created for you also. You'll find it under `FABRIC GATEWAYS`, and it's called `1 Org Local Fabric - Org1`.
 
-To _use_ a gateway, you also need an identity valid for transacting on the network in question. Again, for the local Fabric runtime, this has already been set up for you!  Observe that under `FABRIC WALLETS` there is a wallet called `1 Org Local Fabric - Org1 Wallet  `, which contains an ID called `org1Admin`. If you hover your mouse over `1 Org Local Fabric` in the `FABRIC GATEWAYS` panel, you will see that it tells you "Associated wallet: 1 Org Local Fabric - Org1 Wallet".
+To _use_ a gateway, you also need an identity valid for transacting on the network in question. Again, for the local Fabric runtime, this has already been set up for you!  Observe that under `FABRIC WALLETS` there is a group called `1 Org Local Fabric`. This includes the `Org1` wallet, which contains an ID called `org1Admin`. If you hover your mouse over `1 Org Local Fabric` in the `FABRIC GATEWAYS` panel, you will see that it tells you "Associated wallet: 1 Org Local Fabric - Org1".
 
 So, you've got a Gateway, and an associated wallet with a single identity in it - this means the Gateway is ready to be used!
 

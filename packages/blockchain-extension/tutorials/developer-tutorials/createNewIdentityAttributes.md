@@ -4,7 +4,7 @@
 ## Learning Objectives
 
 * Create our smart contract
-* Create a new identity with attributes using Local Fabric CA.
+* Create a new identity with attributes using 1 Org Local Fabric CA.
 * Use the newly created identity and implement attribute-based access control.
     * Package the smart contract
     * Install the smart contract
@@ -18,14 +18,14 @@ In the previous tutorial (creating a new identity), we learnt how to create our 
 
 When creating an identity, you can assign attributes to allow attribute-based access control. A transaction function can contain logic that will cause a change in behaviour, depending on the attributes used to submit the transaction.
 
-As an example, suppose we have a smart contract which allows participants to record the cars owned by a company on a blockchain. We may allow participants to add cars to the blockchain by submitting a `createCar` transaction. Now, this would be fine for `Arium` because it is a manufacturer, but since `Jack` is an individual, if he tries to submit a `createCar` transaction, we should stop him! Here’s how you would register and enroll an identity for `Arium` from the Local Fabric CA with suitable attributes…
+As an example, suppose we have a smart contract which allows participants to record the cars owned by a company on a blockchain. We may allow participants to add cars to the blockchain by submitting a `createCar` transaction. Now, this would be fine for `Arium` because it is a manufacturer, but since `Jack` is an individual, if he tries to submit a `createCar` transaction, we should stop him! Here’s how you would register and enroll an identity for `Arium` from the 1 Org Local Fabric CA with suitable attributes…
 
 ---
 
 <details>
 <summary><b>1. Create a new identity with attributes</b></summary>
 
-1. If the Local Fabric isn't running, under the `FABRIC ENVIRONMENTS` panel, click on `Local Fabric  ○ (click to start)` to start the Local Fabric and connect to it. Once this is done, look for `Org1CA` (it's under Nodes), right click it and choose `Create Identity (register and enroll)`. 
+1. If the 1 Org Local Fabric isn't running, under the `FABRIC ENVIRONMENTS` panel, click on `1 Org Local Fabric  ○ (click to start)` to start the local Fabric and connect to it. Once this is done, look for `Org1CA` (it's under Nodes), right click it and choose `Create Identity (register and enroll)`. 
 
 > Command Palette alternative: `Create Identity (register and enroll)`
 
@@ -33,7 +33,7 @@ As an example, suppose we have a smart contract which allows participants to rec
 
 >`ecert` stands for Enrollement Certificate. When set to true, it writes the attributes into the identity's certificate. This allows a transaction to read the attributes of the identity invoking it and make branching decisions, for example whether or not this user is allowed to invoke it. `"ecert":true` is required to implement attribute-based access control.
 
-3. Upon submitting your request, you should see a confirmation message at the bottom right of the screen confirming that your identity `Arium` has been created with attributes `[{"name": "manufacturer", "value": "true", "ecert":true}]`. The newly created identity should also appear in the `Fabric Wallets` panel under `1 Org Local Fabric - Org1 Wallet`. 
+3. Upon submitting your request, you should see a confirmation message at the bottom right of the screen confirming that your identity `Arium` has been created with attributes `[{"name": "manufacturer", "value": "true", "ecert":true}]`. The newly created identity should also appear in the `Fabric Wallets` panel under `1 Org Local Fabric > Org1`. 
 </details>
 
 ---
