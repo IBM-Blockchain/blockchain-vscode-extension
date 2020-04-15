@@ -605,6 +605,10 @@
                     "when": "false"
                 },
                 {
+                    "command": "reactTutorialGallery.open",
+                    "when": "false"
+                },
+                {
                     "command": "environmentExplorer.stopFabricRuntimeShort",
                     "when": "false"
                 },
