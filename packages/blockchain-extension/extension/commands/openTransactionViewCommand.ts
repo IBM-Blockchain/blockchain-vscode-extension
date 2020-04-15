@@ -19,7 +19,7 @@ import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectio
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
-import { IFabricGatewayConnection, FabricChaincode, LogType, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { IFabricGatewayConnection, FabricCommittedSmartContract, LogType, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { GlobalState } from '../util/GlobalState';
 
 export async function openTransactionView(treeItem?: InstantiatedTreeItem): Promise<void> {
@@ -67,7 +67,7 @@ export async function openTransactionView(treeItem?: InstantiatedTreeItem): Prom
     };
 
     for (const [thisChannelName] of channelMap) {
-        const chaincodes: Array<FabricChaincode> = await connection.getInstantiatedChaincode(thisChannelName); // returns array of objects
+        const chaincodes: Array<FabricCommittedSmartContract> = await connection.getInstantiatedChaincode(thisChannelName); // returns array of objects
         for (const chaincode of chaincodes) {
             metadataObj = await connection.getMetadata(chaincode.name, thisChannelName);
             const contractsObject: any = metadataObj.contracts;

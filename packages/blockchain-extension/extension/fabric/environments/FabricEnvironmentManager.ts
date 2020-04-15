@@ -81,6 +81,8 @@ export class FabricEnvironmentManager extends EventEmitter {
     }
 
     public disconnect(): void {
+        this.stopEnvironmentRefresh();
+        this.state = ConnectedState.DISCONNECTED;
         if (this.connection) {
             this.connection.disconnect();
             this.connection = null;
@@ -89,10 +91,6 @@ export class FabricEnvironmentManager extends EventEmitter {
         if (this.environmentRegistryEntry) {
             this.environmentRegistryEntry = null;
         }
-
-        this.stopEnvironmentRefresh();
-
-        this.state = ConnectedState.DISCONNECTED;
 
         this.emit('disconnected');
     }

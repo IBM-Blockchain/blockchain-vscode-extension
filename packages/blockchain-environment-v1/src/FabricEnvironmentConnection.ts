@@ -16,7 +16,7 @@
 
 import * as FabricCAServices from 'fabric-ca-client';
 import * as fs from 'fs-extra';
-import { FabricChaincode, Attribute, FabricNode, FabricNodeType, IFabricEnvironmentConnection, FabricWalletRegistryEntry, FabricWalletRegistry, IFabricWallet } from 'ibm-blockchain-platform-common';
+import { FabricCommittedSmartContract, Attribute, FabricNode, FabricNodeType, IFabricEnvironmentConnection, FabricWalletRegistryEntry, FabricWalletRegistry, IFabricWallet } from 'ibm-blockchain-platform-common';
 import { FabricWalletGenerator, FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { URL } from 'url';
 import { Lifecycle, LifecyclePeer, LifecycleChannel, DefinedSmartContract, InstalledSmartContract } from 'ibm-blockchain-platform-fabric-admin';
@@ -131,8 +131,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         }
     }
 
-    // TODO: this will need to change to be called getAllCommittedSmartContracts
-    public async getInstantiatedChaincode(peerNames: Array<string>, channelName: string): Promise<Array<FabricChaincode>> {
+    public async getCommittedSmartContracts(peerNames: Array<string>, channelName: string): Promise<Array<FabricCommittedSmartContract>> {
 
         const wallet: FabricWallet = await this.getWallet(peerNames[0]) as FabricWallet;
         const peerNode: FabricNode = this.getNode(peerNames[0]);
@@ -143,22 +142,22 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
 
         // TODO: might need to update this to return more things but keeping the same for now
         return committedContracts.map((committedContract: DefinedSmartContract) => {
-            return new FabricChaincode(committedContract.smartContractName, committedContract.smartContractVersion);
+            return new FabricCommittedSmartContract(committedContract.smartContractName, committedContract.smartContractVersion);
         });
     }
 
-    public async getAllInstantiatedChaincodes(): Promise<Array<FabricChaincode>> {
+    public async getAllCommittedSmartContracts(): Promise<Array<FabricCommittedSmartContract>> {
 
         try {
             const channelMap: Map<string, Array<string>> = await this.createChannelMap();
 
-            const chaincodes: Array<FabricChaincode> = []; // We can change the array type if we need more detailed chaincodes in future
+            const chaincodes: Array<FabricCommittedSmartContract> = []; // We can change the array type if we need more detailed chaincodes in future
 
             for (const [channelName, peerNames] of channelMap) {
-                const channelChaincodes: Array<FabricChaincode> = await this.getInstantiatedChaincode(peerNames, channelName); // Returns channel chaincodes
-                for (const chaincode of channelChaincodes) { // For each channel chaincodes, push it to the 'chaincodes' array if it doesn't exist
+                const channelChaincodes: Array<FabricCommittedSmartContract> = await this.getCommittedSmartContracts(peerNames, channelName); // Returns channel smart contracts
+                for (const chaincode of channelChaincodes) { // For each channel smart contract, push it to the 'smart contracts' array if it doesn't exist
 
-                    const alreadyExists: boolean = chaincodes.some((_chaincode: FabricChaincode) => {
+                    const alreadyExists: boolean = chaincodes.some((_chaincode: FabricCommittedSmartContract) => {
                         return _chaincode.name === chaincode.name && _chaincode.version === chaincode.version;
                     });
                     if (!alreadyExists) {
@@ -167,7 +166,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
                 }
             }
 
-            chaincodes.sort((a: FabricChaincode, b: FabricChaincode): number => {
+            chaincodes.sort((a: FabricCommittedSmartContract, b: FabricCommittedSmartContract): number => {
                 if (a.name === b.name) {
                     return a.version.localeCompare(b.version);
                 } else {
@@ -220,6 +219,32 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         const pkgBuffer: Buffer = await fs.readFile(pathToPackage);
 
         return peer.installSmartContractPackage(pkgBuffer, 90000);
+    }
+
+    public async approveSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[],  name: string, version: string, packageId: string, sequence: number): Promise<void> {
+        const wallet: FabricWallet = await this.getWallet(peerNames[0]) as FabricWallet;
+        const peerNode: FabricNode = this.getNode(peerNames[0]);
+        const channel: LifecycleChannel = this.lifecycle.getChannel(channelName, wallet.getWallet(), peerNode.identity);
+
+        return channel.approveSmartContractDefinition(peerNames, ordererName, {smartContractName: name, smartContractVersion: version, packageId: packageId, sequence: sequence});
+    }
+
+    public async commitSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[],  name: string, version: string, sequence: number): Promise<void> {
+        const wallet: FabricWallet = await this.getWallet(peerNames[0]) as FabricWallet;
+        const peerNode: FabricNode = this.getNode(peerNames[0]);
+        const channel: LifecycleChannel = this.lifecycle.getChannel(channelName, wallet.getWallet(), peerNode.identity);
+
+        return channel.commitSmartContractDefinition(peerNames, ordererName, {smartContractName: name, smartContractVersion: version, sequence: sequence});
+    }
+
+    public async getCommitReadiness(channelName: string, peerName: string, name: string, version: string, sequence: number ): Promise<boolean>  {
+        const wallet: FabricWallet = await this.getWallet(peerName) as FabricWallet;
+        const peerNode: FabricNode = this.getNode(peerName);
+        const channel: LifecycleChannel = this.lifecycle.getChannel(channelName, wallet.getWallet(), peerNode.identity);
+
+        const result: Map<string, boolean> = await channel.getCommitReadiness(peerName, {smartContractName: name, smartContractVersion: version, sequence: sequence });
+
+        return Array.from(result.values()).every((value) => value);
     }
 
     public async instantiateChaincode(_name: string, _version: string, _peerNames: Array<string>, _channelName: string, _fcn: string, _args: Array<string>, _collectionPath: string, _contractEP: any): Promise<Buffer> {

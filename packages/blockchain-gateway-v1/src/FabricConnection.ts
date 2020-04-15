@@ -15,7 +15,7 @@
 
 import { Gateway, GatewayOptions, Network, Wallet } from 'fabric-network';
 import { URL } from 'url';
-import { ConsoleOutputAdapter, FabricChaincode, OutputAdapter } from 'ibm-blockchain-platform-common';
+import { ConsoleOutputAdapter, FabricCommittedSmartContract, OutputAdapter } from 'ibm-blockchain-platform-common';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { Lifecycle, LifecyclePeer, LifecycleChannel, DefinedSmartContract } from 'ibm-blockchain-platform-fabric-admin';
 import { Endorser, Channel } from 'fabric-network/node_modules/fabric-common';
@@ -84,7 +84,7 @@ export abstract class FabricConnection {
     }
 
     // TODO: this needs to be changed to getAllCommitttedSmartContracts
-    public async getInstantiatedChaincode(channelName: string): Promise<Array<FabricChaincode>> {
+    public async getInstantiatedChaincode(channelName: string): Promise<Array<FabricCommittedSmartContract>> {
         const lifecycleChannel: LifecycleChannel = this.lifecycle.getChannel(channelName, this.gateway.getOptions().wallet, this.gateway.getOptions().identity);
 
         const channelMap: Map<string, string[]> = await this.createChannelMap();
