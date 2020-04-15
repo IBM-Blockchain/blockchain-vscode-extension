@@ -75,8 +75,8 @@ export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEnt
         }
 
         return [...normalEntries, ...otherEntries].sort((a: FabricGatewayRegistryEntry, b: FabricGatewayRegistryEntry): number => {
-            const aName: string = a.displayName ? a.displayName : a.name;
-            const bName: string = b.displayName ? b.displayName : b.name;
+            const aName: string = a.name;
+            const bName: string = b.name;
             if (aName > bName) {
                 return 1;
             } else {

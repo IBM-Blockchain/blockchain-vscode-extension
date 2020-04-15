@@ -14,12 +14,16 @@
 'use strict';
 import { BlockchainTreeItem } from './BlockchainTreeItem';
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { FabricWalletRegistryEntry } from 'ibm-blockchain-platform-common';
 
 export class IdentityTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-identity-item';
-
+    iconPath: { light: string, dark: string } = {
+        light: path.join(__filename, '..', '..', '..', '..', '..', 'resources', 'light', 'identification.svg'),
+        dark: path.join(__filename, '..', '..', '..', '..', '..', 'resources', 'dark', 'identification.svg')
+    };
     constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly walletName: string, public readonly attributes: any = {}, public readonly registryEntry: FabricWalletRegistryEntry) {
         super(provider, label, vscode.TreeItemCollapsibleState.None);
         this.tooltip = `Attributes:\n`;

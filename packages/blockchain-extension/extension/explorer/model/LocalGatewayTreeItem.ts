@@ -13,6 +13,7 @@
 */
 'use strict';
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { BlockchainTreeItem } from './BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOutputAdapter';
@@ -33,6 +34,11 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
         await treeItem.updateProperties();
         return treeItem;
     }
+
+    iconPath: { light: string, dark: string } = {
+        light: path.join(__filename, '..', '..', '..', '..', '..', 'resources', 'light', 'organization.svg'),
+        dark: path.join(__filename, '..', '..', '..', '..', '..', 'resources', 'dark', 'organization.svg')
+    };
 
     contextValue: string = 'blockchain-local-gateway-item';
 
