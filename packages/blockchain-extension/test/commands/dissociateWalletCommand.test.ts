@@ -78,6 +78,7 @@ describe('DissociateWalletCommand', () => {
         it('should test a wallet can be dissociated from a gateway using the tree', async () => {
             const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
             const gateways: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
+            // TODO: Jake FIX
             const gatewayTreeItem: GatewayAssociatedTreeItem = gateways[0] as GatewayAssociatedTreeItem;
 
             await vscode.commands.executeCommand(ExtensionCommands.DISSOCIATE_WALLET, gatewayTreeItem);

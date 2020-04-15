@@ -36,6 +36,7 @@ import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
+import { WalletGroupTreeItem } from '../../extension/explorer/model/WalletGroupTreeItem';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -824,7 +825,9 @@ describe('AddWalletIdentityCommand', () => {
                 const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
 
                 const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
-                const walletItem: WalletTreeItem = walletItems[0] as LocalWalletTreeItem;
+                const walletGroup: WalletGroupTreeItem = walletItems[0] as WalletGroupTreeItem;
+                const walletTreeItems: BlockchainTreeItem[] = await blockchainWalletExplorerProvider.getChildren(walletGroup);
+                const walletItem: LocalWalletTreeItem = walletTreeItems[0] as LocalWalletTreeItem;
                 const showOrgQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showOrgQuickPick').resolves({label: 'Org1MSP', data: {
                     api_url: 'grpc://localhost:17051',
                     chaincode_url: 'grpc://localhost:17052',
@@ -901,7 +904,9 @@ describe('AddWalletIdentityCommand', () => {
                 const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
 
                 const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
-                const walletItem: WalletTreeItem = walletItems[0] as LocalWalletTreeItem;
+                const walletGroup: WalletGroupTreeItem = walletItems[0] as WalletGroupTreeItem;
+                const walletTreeItems: BlockchainTreeItem[] = await blockchainWalletExplorerProvider.getChildren(walletGroup);
+                const walletItem: LocalWalletTreeItem = walletTreeItems[0] as LocalWalletTreeItem;
 
                 const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
                 result.should.equal('greenConga');
@@ -949,7 +954,9 @@ describe('AddWalletIdentityCommand', () => {
 
                 const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
                 const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
-                const walletItem: WalletTreeItem = walletItems[0] as LocalWalletTreeItem;
+                const walletGroup: WalletGroupTreeItem = walletItems[0] as WalletGroupTreeItem;
+                const walletTreeItems: BlockchainTreeItem[] = await blockchainWalletExplorerProvider.getChildren(walletGroup);
+                const walletItem: LocalWalletTreeItem = walletTreeItems[0] as LocalWalletTreeItem;
 
                 const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
                 should.not.exist(result);
@@ -970,7 +977,9 @@ describe('AddWalletIdentityCommand', () => {
 
                 const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
                 const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
-                const walletItem: WalletTreeItem = walletItems[0] as LocalWalletTreeItem;
+                const walletGroup: WalletGroupTreeItem = walletItems[0] as WalletGroupTreeItem;
+                const walletTreeItems: BlockchainTreeItem[] = await blockchainWalletExplorerProvider.getChildren(walletGroup);
+                const walletItem: LocalWalletTreeItem = walletTreeItems[0] as LocalWalletTreeItem;
 
                 const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
                 should.not.exist(result);

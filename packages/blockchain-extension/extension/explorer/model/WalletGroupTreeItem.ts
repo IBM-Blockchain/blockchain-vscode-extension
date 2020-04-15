@@ -13,18 +13,14 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { BlockchainTreeItem } from './BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
-import { FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistryEntry } from 'ibm-blockchain-platform-common';
 
-export class GatewayTreeItem extends BlockchainTreeItem {
-    contextValue: string = 'blockchain-gateway-item';
-    iconPath: { light: string, dark: string } = {
-        light: path.join(__filename, '..', '..', '..', '..', '..', 'resources', 'light', 'organization.svg'),
-        dark: path.join(__filename, '..', '..', '..', '..', '..', 'resources', 'dark', 'organization.svg')
-    };
-    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly gateway: FabricGatewayRegistryEntry, public readonly collapsableState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
+export class WalletGroupTreeItem extends BlockchainTreeItem {
+    contextValue: string = 'blockchain-wallet-group-item';
+
+    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly wallets: FabricWalletRegistryEntry[], public readonly collapsableState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
         super(provider, label, collapsableState);
     }
 }

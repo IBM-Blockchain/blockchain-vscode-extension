@@ -248,7 +248,7 @@ export class UserInputUtil {
         }
 
         const gatewaysQuickPickItems: Array<IBlockchainQuickPickItem<FabricGatewayRegistryEntry>> = allGateways.map((gateway: FabricGatewayRegistryEntry) => {
-            const gatewayDisplayName: string = gateway.displayName ? gateway.displayName : gateway.name;
+            const gatewayDisplayName: string = gateway.name;
 
             return { label: gatewayDisplayName, data: gateway };
         });

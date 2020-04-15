@@ -43,6 +43,8 @@ import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironment
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { ManagedAnsibleEnvironmentManager } from '../fabric/environments/ManagedAnsibleEnvironmentManager';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
+import { GatewayTreeItem } from './model/GatewayTreeItem';
+import { GatewayGroupTreeItem } from './model/GatewayGroupTreeItem';
 
 export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProvider {
 
@@ -104,6 +106,11 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         try {
 
             if (element) {
+
+                if (element instanceof GatewayGroupTreeItem) {
+                    this.tree = await this.populateGateways(element.gateways);
+                }
+
                 // This won't be called before connecting to a gatewawy
                 if (element instanceof ChannelTreeItem) {
                     this.tree = [];
@@ -166,67 +173,49 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
     }
 
     private async createConnectionTree(): Promise<BlockchainTreeItem[]> {
+
         const tree: BlockchainTreeItem[] = [];
 
         const allGateways: FabricGatewayRegistryEntry[] = await this.fabricGatewayRegistry.getAll();
 
-        if (allGateways.length === 0) {
+        const gatewayGroups: Array<FabricGatewayRegistryEntry[]> = [];
+        for (const gateway of allGateways) {
+            if (gatewayGroups.length === 0) {
+                gatewayGroups.push([gateway]);
+                continue;
+            }
+
+            // Used to check if group exists already
+            const groupIndex: number = gatewayGroups.findIndex((group: FabricGatewayRegistryEntry[]) => {
+                return group[0].fromEnvironment && group[0].fromEnvironment === gateway.fromEnvironment;
+            });
+
+            if (groupIndex !== -1) {
+                // If a group with the same fromEnvironment exists, then push gateway to the group
+                gatewayGroups[groupIndex].push(gateway);
+            } else {
+                // Create new group
+                gatewayGroups.push([gateway]);
+            }
+        }
+
+        if (gatewayGroups.length === 0) {
             tree.push(new TextTreeItem(this, 'No gateways found'));
         } else {
-            for (const gateway of allGateways) {
 
-                const command: vscode.Command = {
-                    command: ExtensionCommands.CONNECT_TO_GATEWAY,
-                    title: '',
-                    arguments: [gateway]
-                };
-
-                const gatewayName: string = gateway.displayName ? gateway.displayName : gateway.name;
-
-                let environmentEntry: FabricEnvironmentRegistryEntry;
-                let runtime: LocalEnvironment | ManagedAnsibleEnvironment;
-                if (gateway.fromEnvironment) {
-                    environmentEntry = await FabricEnvironmentRegistry.instance().get(gateway.fromEnvironment);
-
-                }
-
-                if (environmentEntry && environmentEntry.managedRuntime) {
-
-                    if (environmentEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
-                        runtime = await LocalEnvironmentManager.instance().ensureRuntime(environmentEntry.name, undefined, environmentEntry.numberOfOrgs);
-                    } else {
-                        runtime = ManagedAnsibleEnvironmentManager.instance().ensureRuntime(environmentEntry.name, environmentEntry.environmentDirectory);
-                    }
-
-                    const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(
-                        this,
-                        gatewayName,
-                        gateway,
-                        vscode.TreeItemCollapsibleState.None,
-                        runtime,
-                        command
-                    );
-
-                    tree.push(treeItem);
-                } else if (gateway.associatedWallet) {
-                    tree.push(new GatewayAssociatedTreeItem(this,
-                        gatewayName,
-                        gateway,
-                        vscode.TreeItemCollapsibleState.None,
-                        command)
-                    );
+            for (const group of gatewayGroups) {
+                if (group.length === 1) {
+                    const gatewayTreeItems: GatewayTreeItem[] = await this.populateGateways(group); // There will only be one
+                    tree.push(gatewayTreeItems[0]);
                 } else {
-                    tree.push(new GatewayDissociatedTreeItem(this,
-                        gatewayName,
-                        gateway,
-                        vscode.TreeItemCollapsibleState.None,
-                        command)
-                    );
+                    // Group length is greater than 1
+                    tree.push(new GatewayGroupTreeItem(this, group[0].fromEnvironment, group, vscode.TreeItemCollapsibleState.Expanded));
                 }
             }
         }
 
         return tree;
+
     }
 
     private async createInstantiatedChaincodeTree(channelTreeElement: ChannelTreeItem): Promise<Array<InstantiatedTreeItem>> {
@@ -312,6 +301,70 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         return tree;
     }
 
+    private async populateGateways(gateways: FabricGatewayRegistryEntry[]): Promise<Array<GatewayTreeItem>> {
+
+        const tree: Array<GatewayTreeItem> = [];
+        for (const gateway of gateways) {
+            const command: vscode.Command = {
+                command: ExtensionCommands.CONNECT_TO_GATEWAY,
+                title: '',
+                arguments: [gateway]
+            };
+
+            let gatewayName: string;
+            if (gateways.length === 1) {
+                gatewayName = gateway.name;
+            } else {
+                // If there's more than one gateway, it's either local or Ansible - both which have a display name.
+                gatewayName = gateway.displayName;
+
+            }
+
+            let environmentEntry: FabricEnvironmentRegistryEntry;
+            let runtime: LocalEnvironment | ManagedAnsibleEnvironment;
+            if (gateway.fromEnvironment) {
+                environmentEntry = await FabricEnvironmentRegistry.instance().get(gateway.fromEnvironment);
+
+            }
+
+            if (environmentEntry && environmentEntry.managedRuntime) {
+
+                if (environmentEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                    runtime = await LocalEnvironmentManager.instance().ensureRuntime(environmentEntry.name, undefined, environmentEntry.numberOfOrgs);
+                } else {
+                    runtime = ManagedAnsibleEnvironmentManager.instance().ensureRuntime(environmentEntry.name, environmentEntry.environmentDirectory);
+                }
+
+                const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(
+                    this,
+                    gatewayName,
+                    gateway,
+                    vscode.TreeItemCollapsibleState.None,
+                    runtime,
+                    command
+                );
+
+                tree.push(treeItem);
+            } else if (gateway.associatedWallet) {
+                tree.push(new GatewayAssociatedTreeItem(this,
+                    gatewayName,
+                    gateway,
+                    vscode.TreeItemCollapsibleState.None,
+                    command)
+                );
+            } else {
+                tree.push(new GatewayDissociatedTreeItem(this,
+                    gatewayName,
+                    gateway,
+                    vscode.TreeItemCollapsibleState.None,
+                    command)
+                );
+            }
+        }
+
+        return tree;
+    }
+
     private async createConnectedTree(): Promise<Array<BlockchainTreeItem>> {
 
         try {
@@ -319,7 +372,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
 
             const connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
             const gateway: FabricGatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
-            const gatewayName: string = gateway.displayName ? gateway.displayName : gateway.name;
+            const gatewayName: string = gateway.name;
 
             tree.push(new ConnectedTreeItem(this, `Connected via gateway: ${gatewayName}`, gateway, 0));
             tree.push(new ConnectedTreeItem(this, `Using ID: ${connection.identityName}`, gateway, 0));
