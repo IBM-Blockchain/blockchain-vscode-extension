@@ -37,19 +37,28 @@ describe('App', () => {
     });
 
     it('should redirect to the tutorial page', async () => {
-        const tutorialData: Array<{name: string, contents: string[]}> = [{
-            name: 'Basic tutorials',
-            contents: [
-                'a1',
-                'a2'
-            ]
-        }, {
-            name: 'Other tutorials',
-            contents: [
-                'local-dev',
-                'something else interesting'
-            ]
-        }];
+        const tutorialData: Array<{seriesName: string, seriesTutorials: any[]}> = [
+            {
+                seriesName: 'Basic tutorials',
+                seriesTutorials: [
+                    {
+                        title: 'a1',
+                        length: '4 weeks',
+                        file: 'some/file/path'
+                    }
+                ]
+            },
+            {
+                seriesName: 'Other tutorials',
+                seriesTutorials: [
+                    {
+                        title: 'something really interesting',
+                        length: '10 minutes',
+                        file: 'another/file/path'
+                    }
+                ]
+            }
+        ];
 
         const component: any = mount(<App/>);
 

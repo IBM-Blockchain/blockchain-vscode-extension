@@ -41,6 +41,14 @@ html {
                 @include themed-image-dark;
             }
 
+            #tutorial-page-background {
+                @include tutorial-page-dark;
+            }
+
+            #tutorial-tabs-container {
+                @include tutorial-tabs-dark;
+            }
+
             // text inputs on the create transaction screen
             #create-txn-form {
                 @include text-inputs-dark;

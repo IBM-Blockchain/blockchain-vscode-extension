@@ -144,6 +144,43 @@
     }
 }
 
+@mixin tutorial-page-dark {
+    background-color: $gray-90;
+    box-shadow: inset 0 148px #000000;
+}
+
+@mixin tutorial-tabs-dark {    
+    .tutorial-tabs-background {
+        background-color: #000000;
+    }
+    
+    a.bx--tabs__nav-link {
+        color: white;
+    }
+    
+    .bx--tabs__nav-item {
+        background-color: $gray-80;    
+    
+        &:hover {
+            &:not(.bx--tabs__nav-item--disabled):not(.bx--tabs__nav-item--selected) {
+                background-color: $gray-70;
+            }
+        }
+    }
+
+    .bx--tabs__nav-item--selected {
+        background-color: $gray-90;
+
+        .bx--tabs__nav-link {
+            box-shadow: inset 0 2px 0 0 $blue-40;
+        }
+    }
+
+    a.bx--tabs__nav-link:focus {
+        outline: 2px solid $blue-40;
+    }
+}
+
 
 //-------------------------
 // light theme styles
