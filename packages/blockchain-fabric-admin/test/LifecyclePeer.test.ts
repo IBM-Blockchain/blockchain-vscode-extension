@@ -13,7 +13,7 @@
 */
 
 import {InstalledSmartContract, LifecyclePeer} from '../src';
-import {Client, Endorsement, Endorser, IdentityContext} from 'fabric-common';
+import {Endorsement, Endorser, IdentityContext} from 'fabric-common';
 import * as protos from 'fabric-protos';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
@@ -31,34 +31,74 @@ describe('LifecyclePeer', () => {
 
     describe(`constructor`, () => {
         it('should create a LifecyclePeer instance', () => {
-            const fabricClient: Client = new Client('myClient');
             const peer: LifecyclePeer = new LifecyclePeer({
                 url: 'grpcs://localhost:7051',
                 mspid: 'myMSPID',
                 name: 'myPeer',
                 pem: '-----BEGIN CERTIFICATE-----\\nMIICJjCCAc2gAwIBAgIURY9F2Rt0JqOtiHbNJ6rRgfiDy2EwCgYIKoZIzj0EAwIw\\ncDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMQ8wDQYDVQQH\\nEwZEdXJoYW0xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHDAaBgNVBAMTE2Nh\\nLm9yZzEuZXhhbXBsZS5jb20wHhcNMjAwMzE2MTQ1MDAwWhcNMzUwMzEzMTQ1MDAw\\nWjBwMQswCQYDVQQGEwJVUzEXMBUGA1UECBMOTm9ydGggQ2Fyb2xpbmExDzANBgNV\\nBAcTBkR1cmhhbTEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMT\\nY2Eub3JnMS5leGFtcGxlLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABHic\\nzHXBRqfe7elvQ8zuxIwigOFCuk/49bjChQxf19fL/qHBLYLOXgd3Ox5jTVyyLuO/\\nf9x19piTv7gVgv8h7BijRTBDMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAG\\nAQH/AgEBMB0GA1UdDgQWBBRGw4tXsbZSI45NZNTsDT7rssJpzjAKBggqhkjOPQQD\\nAgNHADBEAiBWNIFkaageeAiEMmhauY3bTHoG45Wgjk99CjHZ6KJoTgIgMfKc9mBL\\na5JHbGNB/gsBhxIm8/akE6g+SikIz/JGty4=\\n-----END CERTIFICATE-----\\n"\n'
-            }, fabricClient);
+            });
+
             peer['url'].should.equal('grpcs://localhost:7051');
             peer['mspid'].should.equal('myMSPID');
             peer['name'].should.equal('myPeer');
             // @ts-ignore
             peer['pem'].should.equal('-----BEGIN CERTIFICATE-----\\nMIICJjCCAc2gAwIBAgIURY9F2Rt0JqOtiHbNJ6rRgfiDy2EwCgYIKoZIzj0EAwIw\\ncDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMQ8wDQYDVQQH\\nEwZEdXJoYW0xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHDAaBgNVBAMTE2Nh\\nLm9yZzEuZXhhbXBsZS5jb20wHhcNMjAwMzE2MTQ1MDAwWhcNMzUwMzEzMTQ1MDAw\\nWjBwMQswCQYDVQQGEwJVUzEXMBUGA1UECBMOTm9ydGggQ2Fyb2xpbmExDzANBgNV\\nBAcTBkR1cmhhbTEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMT\\nY2Eub3JnMS5leGFtcGxlLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABHic\\nzHXBRqfe7elvQ8zuxIwigOFCuk/49bjChQxf19fL/qHBLYLOXgd3Ox5jTVyyLuO/\\nf9x19piTv7gVgv8h7BijRTBDMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAG\\nAQH/AgEBMB0GA1UdDgQWBBRGw4tXsbZSI45NZNTsDT7rssJpzjAKBggqhkjOPQQD\\nAgNHADBEAiBWNIFkaageeAiEMmhauY3bTHoG45Wgjk99CjHZ6KJoTgIgMfKc9mBL\\na5JHbGNB/gsBhxIm8/akE6g+SikIz/JGty4=\\n-----END CERTIFICATE-----\\n"\n');
+        });
 
-            // check that the endorser reference is created and that the endpoint is set
-            const endorser: Endorser = fabricClient.getEndorser('myPeer', 'myMSPID');
-            endorser.endpoint['url'].should.equal('grpcs://localhost:7051');
+        it('should create a LifecyclePeer instance with sslTargetNameOveride', () => {
+            const peer: LifecyclePeer = new LifecyclePeer({
+                url: 'grpcs://localhost:7051',
+                mspid: 'myMSPID',
+                name: 'myPeer',
+                sslTargetNameOverride: 'localhost',
+                pem: '-----BEGIN CERTIFICATE-----\\nMIICJjCCAc2gAwIBAgIURY9F2Rt0JqOtiHbNJ6rRgfiDy2EwCgYIKoZIzj0EAwIw\\ncDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMQ8wDQYDVQQH\\nEwZEdXJoYW0xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHDAaBgNVBAMTE2Nh\\nLm9yZzEuZXhhbXBsZS5jb20wHhcNMjAwMzE2MTQ1MDAwWhcNMzUwMzEzMTQ1MDAw\\nWjBwMQswCQYDVQQGEwJVUzEXMBUGA1UECBMOTm9ydGggQ2Fyb2xpbmExDzANBgNV\\nBAcTBkR1cmhhbTEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMT\\nY2Eub3JnMS5leGFtcGxlLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABHic\\nzHXBRqfe7elvQ8zuxIwigOFCuk/49bjChQxf19fL/qHBLYLOXgd3Ox5jTVyyLuO/\\nf9x19piTv7gVgv8h7BijRTBDMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAG\\nAQH/AgEBMB0GA1UdDgQWBBRGw4tXsbZSI45NZNTsDT7rssJpzjAKBggqhkjOPQQD\\nAgNHADBEAiBWNIFkaageeAiEMmhauY3bTHoG45Wgjk99CjHZ6KJoTgIgMfKc9mBL\\na5JHbGNB/gsBhxIm8/akE6g+SikIz/JGty4=\\n-----END CERTIFICATE-----\\n"\n'
+            });
+
+            peer['url'].should.equal('grpcs://localhost:7051');
+            peer['mspid'].should.equal('myMSPID');
+            peer['name'].should.equal('myPeer');
+            peer['sslTargetNameOverride'].should.equal('localhost');
+            // @ts-ignore
+            peer['pem'].should.equal('-----BEGIN CERTIFICATE-----\\nMIICJjCCAc2gAwIBAgIURY9F2Rt0JqOtiHbNJ6rRgfiDy2EwCgYIKoZIzj0EAwIw\\ncDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMQ8wDQYDVQQH\\nEwZEdXJoYW0xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHDAaBgNVBAMTE2Nh\\nLm9yZzEuZXhhbXBsZS5jb20wHhcNMjAwMzE2MTQ1MDAwWhcNMzUwMzEzMTQ1MDAw\\nWjBwMQswCQYDVQQGEwJVUzEXMBUGA1UECBMOTm9ydGggQ2Fyb2xpbmExDzANBgNV\\nBAcTBkR1cmhhbTEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMT\\nY2Eub3JnMS5leGFtcGxlLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABHic\\nzHXBRqfe7elvQ8zuxIwigOFCuk/49bjChQxf19fL/qHBLYLOXgd3Ox5jTVyyLuO/\\nf9x19piTv7gVgv8h7BijRTBDMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAG\\nAQH/AgEBMB0GA1UdDgQWBBRGw4tXsbZSI45NZNTsDT7rssJpzjAKBggqhkjOPQQD\\nAgNHADBEAiBWNIFkaageeAiEMmhauY3bTHoG45Wgjk99CjHZ6KJoTgIgMfKc9mBL\\na5JHbGNB/gsBhxIm8/akE6g+SikIz/JGty4=\\n-----END CERTIFICATE-----\\n"\n');
+        });
+
+        it('should create a LifecyclePeer instance with request timeout', () => {
+            const peer: LifecyclePeer = new LifecyclePeer({
+                url: 'grpcs://localhost:7051',
+                mspid: 'myMSPID',
+                name: 'myPeer',
+                requestTimeout: 70000,
+                pem: '-----BEGIN CERTIFICATE-----\\nMIICJjCCAc2gAwIBAgIURY9F2Rt0JqOtiHbNJ6rRgfiDy2EwCgYIKoZIzj0EAwIw\\ncDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMQ8wDQYDVQQH\\nEwZEdXJoYW0xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHDAaBgNVBAMTE2Nh\\nLm9yZzEuZXhhbXBsZS5jb20wHhcNMjAwMzE2MTQ1MDAwWhcNMzUwMzEzMTQ1MDAw\\nWjBwMQswCQYDVQQGEwJVUzEXMBUGA1UECBMOTm9ydGggQ2Fyb2xpbmExDzANBgNV\\nBAcTBkR1cmhhbTEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMT\\nY2Eub3JnMS5leGFtcGxlLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABHic\\nzHXBRqfe7elvQ8zuxIwigOFCuk/49bjChQxf19fL/qHBLYLOXgd3Ox5jTVyyLuO/\\nf9x19piTv7gVgv8h7BijRTBDMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAG\\nAQH/AgEBMB0GA1UdDgQWBBRGw4tXsbZSI45NZNTsDT7rssJpzjAKBggqhkjOPQQD\\nAgNHADBEAiBWNIFkaageeAiEMmhauY3bTHoG45Wgjk99CjHZ6KJoTgIgMfKc9mBL\\na5JHbGNB/gsBhxIm8/akE6g+SikIz/JGty4=\\n-----END CERTIFICATE-----\\n"\n'
+            });
+
+            peer['url'].should.equal('grpcs://localhost:7051');
+            peer['mspid'].should.equal('myMSPID');
+            peer['name'].should.equal('myPeer');
+            peer['requestTimeout'].should.equal(70000);
+            // @ts-ignore
+            peer['pem'].should.equal('-----BEGIN CERTIFICATE-----\\nMIICJjCCAc2gAwIBAgIURY9F2Rt0JqOtiHbNJ6rRgfiDy2EwCgYIKoZIzj0EAwIw\\ncDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMQ8wDQYDVQQH\\nEwZEdXJoYW0xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHDAaBgNVBAMTE2Nh\\nLm9yZzEuZXhhbXBsZS5jb20wHhcNMjAwMzE2MTQ1MDAwWhcNMzUwMzEzMTQ1MDAw\\nWjBwMQswCQYDVQQGEwJVUzEXMBUGA1UECBMOTm9ydGggQ2Fyb2xpbmExDzANBgNV\\nBAcTBkR1cmhhbTEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMT\\nY2Eub3JnMS5leGFtcGxlLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABHic\\nzHXBRqfe7elvQ8zuxIwigOFCuk/49bjChQxf19fL/qHBLYLOXgd3Ox5jTVyyLuO/\\nf9x19piTv7gVgv8h7BijRTBDMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAG\\nAQH/AgEBMB0GA1UdDgQWBBRGw4tXsbZSI45NZNTsDT7rssJpzjAKBggqhkjOPQQD\\nAgNHADBEAiBWNIFkaageeAiEMmhauY3bTHoG45Wgjk99CjHZ6KJoTgIgMfKc9mBL\\na5JHbGNB/gsBhxIm8/akE6g+SikIz/JGty4=\\n-----END CERTIFICATE-----\\n"\n');
+        });
+
+        it('should create a LifecyclePeer instance without a pem', () => {
+            const peer: LifecyclePeer = new LifecyclePeer({
+                url: 'grpc://localhost:7051',
+                mspid: 'myMSPID',
+                name: 'myPeer',
+            });
+            peer['url'].should.equal('grpc://localhost:7051');
+            peer['mspid'].should.equal('myMSPID');
+            peer['name'].should.equal('myPeer');
         });
     });
 
     describe('setCredentials', () => {
         it('should set the credentials for the peer', async () => {
-            const fabricClient: Client = new Client('myClient');
             const peer: LifecyclePeer = new LifecyclePeer({
                 url: 'grpcs://localhost:7051',
                 mspid: 'myMSPID',
                 name: 'myPeer',
                 pem: '-----BEGIN CERTIFICATE-----\\nMIICJjCCAc2gAwIBAgIURY9F2Rt0JqOtiHbNJ6rRgfiDy2EwCgYIKoZIzj0EAwIw\\ncDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMQ8wDQYDVQQH\\nEwZEdXJoYW0xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHDAaBgNVBAMTE2Nh\\nLm9yZzEuZXhhbXBsZS5jb20wHhcNMjAwMzE2MTQ1MDAwWhcNMzUwMzEzMTQ1MDAw\\nWjBwMQswCQYDVQQGEwJVUzEXMBUGA1UECBMOTm9ydGggQ2Fyb2xpbmExDzANBgNV\\nBAcTBkR1cmhhbTEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMT\\nY2Eub3JnMS5leGFtcGxlLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABHic\\nzHXBRqfe7elvQ8zuxIwigOFCuk/49bjChQxf19fL/qHBLYLOXgd3Ox5jTVyyLuO/\\nf9x19piTv7gVgv8h7BijRTBDMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAG\\nAQH/AgEBMB0GA1UdDgQWBBRGw4tXsbZSI45NZNTsDT7rssJpzjAKBggqhkjOPQQD\\nAgNHADBEAiBWNIFkaageeAiEMmhauY3bTHoG45Wgjk99CjHZ6KJoTgIgMfKc9mBL\\na5JHbGNB/gsBhxIm8/akE6g+SikIz/JGty4=\\n-----END CERTIFICATE-----\\n"\n'
-            }, fabricClient);
+            });
 
             const wallet: Wallet = await Wallets.newFileSystemWallet(path.join(__dirname, 'tmp', 'wallet'));
 
@@ -73,17 +113,23 @@ describe('LifecyclePeer', () => {
     describe('fabricFunctions', () => {
 
         let peer: LifecyclePeer;
-        let fabricClient: Client;
+        let peer2: LifecyclePeer;
         let wallet: Wallet;
 
         before(async () => {
-            fabricClient = new Client('myClient');
             peer = new LifecyclePeer({
                 url: 'grpcs://localhost:7051',
                 mspid: 'myMSPID',
                 name: 'myPeer',
                 pem: '-----BEGIN CERTIFICATE-----\\nMIICJjCCAc2gAwIBAgIURY9F2Rt0JqOtiHbNJ6rRgfiDy2EwCgYIKoZIzj0EAwIw\\ncDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMQ8wDQYDVQQH\\nEwZEdXJoYW0xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHDAaBgNVBAMTE2Nh\\nLm9yZzEuZXhhbXBsZS5jb20wHhcNMjAwMzE2MTQ1MDAwWhcNMzUwMzEzMTQ1MDAw\\nWjBwMQswCQYDVQQGEwJVUzEXMBUGA1UECBMOTm9ydGggQ2Fyb2xpbmExDzANBgNV\\nBAcTBkR1cmhhbTEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMT\\nY2Eub3JnMS5leGFtcGxlLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABHic\\nzHXBRqfe7elvQ8zuxIwigOFCuk/49bjChQxf19fL/qHBLYLOXgd3Ox5jTVyyLuO/\\nf9x19piTv7gVgv8h7BijRTBDMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAG\\nAQH/AgEBMB0GA1UdDgQWBBRGw4tXsbZSI45NZNTsDT7rssJpzjAKBggqhkjOPQQD\\nAgNHADBEAiBWNIFkaageeAiEMmhauY3bTHoG45Wgjk99CjHZ6KJoTgIgMfKc9mBL\\na5JHbGNB/gsBhxIm8/akE6g+SikIz/JGty4=\\n-----END CERTIFICATE-----\\n"\n'
-            }, fabricClient);
+            });
+
+            peer2 = new LifecyclePeer({
+                url: 'grpc://localhost:7051',
+                mspid: 'myMSPID',
+                name: 'myPeer2',
+                sslTargetNameOverride: 'localhost'
+          });
 
             wallet = await Wallets.newFileSystemWallet(path.join(__dirname, 'tmp', 'wallet'));
 
@@ -124,7 +170,6 @@ describe('LifecyclePeer', () => {
 
             let buildRequest: any;
             const packageBuffer: Buffer = Buffer.from('mySmartContract');
-            let endorser: Endorser;
 
             let endorserConnectStub: sinon.SinonStub;
             let endorsementBuildSpy: sinon.SinonSpy;
@@ -137,8 +182,10 @@ describe('LifecyclePeer', () => {
                 peer.setCredentials(wallet, 'myIdentity');
                 peer['requestTimeout'] = undefined;
 
-                endorser = fabricClient.getEndorser('myPeer', 'myMSPID');
-                endorserConnectStub = mysandbox.stub(endorser, 'connect').resolves();
+                peer2.setCredentials(wallet, 'myIdentity');
+                peer2['requestTimeout'] = undefined;
+
+                endorserConnectStub = mysandbox.stub(Endorser.prototype, 'connect').resolves();
 
                 endorsementBuildSpy = mysandbox.spy(Endorsement.prototype, 'build');
                 endorsementSignSpy = mysandbox.spy(Endorsement.prototype, 'sign');
@@ -179,12 +226,12 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser]
+                    targets: [sinon.match.instanceOf(Endorser)]
                 });
             });
 
             it('should install the smart contract package using the timeout passed in', async () => {
-                peer['requestTimeout'] = 1234;
+                peer2['requestTimeout'] = 1234;
                 const encodedResult: protos.lifecycle.InstallChaincodeResult = protos.lifecycle.InstallChaincodeResult.encode({
                     package_id: 'myPackageId'
                 });
@@ -198,16 +245,16 @@ describe('LifecyclePeer', () => {
                     }]
                 });
 
-                const result: string | undefined = await peer.installSmartContractPackage(packageBuffer, 4321);
+                const result: string | undefined = await peer2.installSmartContractPackage(packageBuffer, 4321);
                 result!.should.equal('myPackageId');
 
                 endorserConnectStub.should.have.been.called;
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser],
+                    targets: [sinon.match.instanceOf(Endorser)],
                     requestTimeout: 4321
-                })
+                });
             });
 
             it('should install the smart contract package using the timeout', async () => {
@@ -232,7 +279,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser],
+                    targets: [sinon.match.instanceOf(Endorser)],
                     requestTimeout: 1234
                 });
             });
@@ -264,7 +311,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser]
+                    targets: [sinon.match.instanceOf(Endorser)]
                 });
             });
 
@@ -284,7 +331,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser]
+                    targets: [sinon.match.instanceOf(Endorser)]
                 });
             });
 
@@ -301,7 +348,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser]
+                    targets: [sinon.match.instanceOf(Endorser)]
                 });
             });
 
@@ -314,7 +361,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser]
+                    targets: [sinon.match.instanceOf(Endorser)]
                 });
             });
         });
@@ -323,7 +370,6 @@ describe('LifecyclePeer', () => {
             let mysandbox: sinon.SinonSandbox;
 
             let buildRequest: any;
-            let endorser: Endorser;
 
             let endorserConnectStub: sinon.SinonStub;
             let endorsementBuildSpy: sinon.SinonSpy;
@@ -336,8 +382,7 @@ describe('LifecyclePeer', () => {
                 peer.setCredentials(wallet, 'myIdentity');
                 peer['requestTimeout'] = undefined;
 
-                endorser = fabricClient.getEndorser('myPeer', 'myMSPID');
-                endorserConnectStub = mysandbox.stub(endorser, 'connect').resolves();
+                endorserConnectStub = mysandbox.stub(Endorser.prototype, 'connect').resolves();
 
                 endorsementBuildSpy = mysandbox.spy(Endorsement.prototype, 'build');
                 endorsementSignSpy = mysandbox.spy(Endorsement.prototype, 'sign');
@@ -384,7 +429,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser]
+                    targets: [sinon.match.instanceOf(Endorser)]
                 });
             });
 
@@ -417,7 +462,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser],
+                    targets: [sinon.match.instanceOf(Endorser)],
                     requestTimeout: 4321
                 });
             });
@@ -451,7 +496,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser],
+                    targets: [sinon.match.instanceOf(Endorser)],
                     requestTimeout: 1234
                 });
             });
@@ -478,7 +523,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser]
+                    targets: [sinon.match.instanceOf(Endorser)]
                 });
             });
 
@@ -498,7 +543,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser]
+                    targets: [sinon.match.instanceOf(Endorser)]
                 });
             });
 
@@ -515,7 +560,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser]
+                    targets: [sinon.match.instanceOf(Endorser)]
                 });
             });
 
@@ -528,7 +573,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser]
+                    targets: [sinon.match.instanceOf(Endorser)]
                 });
             });
         });
@@ -537,7 +582,6 @@ describe('LifecyclePeer', () => {
             let mysandbox: sinon.SinonSandbox;
 
             let buildRequest: any;
-            let endorser: Endorser;
 
             let endorserConnectStub: sinon.SinonStub;
             let endorsementBuildSpy: sinon.SinonSpy;
@@ -550,8 +594,7 @@ describe('LifecyclePeer', () => {
                 peer.setCredentials(wallet, 'myIdentity');
                 peer['requestTimeout'] = undefined;
 
-                endorser = fabricClient.getEndorser('myPeer', 'myMSPID');
-                endorserConnectStub = mysandbox.stub(endorser, 'connect').resolves();
+                endorserConnectStub = mysandbox.stub(Endorser.prototype, 'connect').resolves();
 
                 endorsementBuildSpy = mysandbox.spy(Endorsement.prototype, 'build');
                 endorsementSignSpy = mysandbox.spy(Endorsement.prototype, 'sign');
@@ -593,7 +636,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser]
+                    targets: [sinon.match.instanceOf(Endorser)]
                 });
             });
 
@@ -620,7 +663,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser],
+                    targets: [sinon.match.instanceOf(Endorser)],
                     requestTimeout: 4321
                 });
             });
@@ -648,7 +691,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser],
+                    targets: [sinon.match.instanceOf(Endorser)],
                     requestTimeout: 1234
                 });
             });
@@ -680,7 +723,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser]
+                    targets: [sinon.match.instanceOf(Endorser)]
                 });
             });
 
@@ -700,7 +743,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser]
+                    targets: [sinon.match.instanceOf(Endorser)]
                 });
             });
 
@@ -717,7 +760,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser]
+                    targets: [sinon.match.instanceOf(Endorser)]
                 });
             });
 
@@ -730,7 +773,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser]
+                    targets: [sinon.match.instanceOf(Endorser)]
                 });
             });
         });
@@ -739,7 +782,6 @@ describe('LifecyclePeer', () => {
             let mysandbox: sinon.SinonSandbox;
 
             let buildRequest: any;
-            let endorser: Endorser;
 
             let endorserConnectStub: sinon.SinonStub;
             let endorsementBuildSpy: sinon.SinonSpy;
@@ -752,8 +794,7 @@ describe('LifecyclePeer', () => {
                 peer.setCredentials(wallet, 'myIdentity');
                 peer['requestTimeout'] = undefined;
 
-                endorser = fabricClient.getEndorser('myPeer', 'myMSPID');
-                endorserConnectStub = mysandbox.stub(endorser, 'connect').resolves();
+                endorserConnectStub = mysandbox.stub(Endorser.prototype, 'connect').resolves();
 
                 endorsementBuildSpy = mysandbox.spy(Endorsement.prototype, 'build');
                 endorsementSignSpy = mysandbox.spy(Endorsement.prototype, 'sign');
@@ -795,7 +836,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser]
+                    targets: [sinon.match.instanceOf(Endorser)]
                 });
             });
 
@@ -825,7 +866,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser],
+                    targets: [sinon.match.instanceOf(Endorser)],
                     requestTimeout: 4321
                 });
             });
@@ -856,7 +897,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser],
+                    targets: [sinon.match.instanceOf(Endorser)],
                     requestTimeout: 1234
                 });
             });
@@ -883,7 +924,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser]
+                    targets: [sinon.match.instanceOf(Endorser)]
                 });
             });
 
@@ -903,7 +944,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser]
+                    targets: [sinon.match.instanceOf(Endorser)]
                 });
             });
 
@@ -920,7 +961,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser]
+                    targets: [sinon.match.instanceOf(Endorser)]
                 });
             });
 
@@ -933,7 +974,7 @@ describe('LifecyclePeer', () => {
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
-                    targets: [endorser]
+                    targets: [sinon.match.instanceOf(Endorser)]
                 });
             });
         });

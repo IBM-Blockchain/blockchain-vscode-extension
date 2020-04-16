@@ -448,23 +448,23 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
             const allPeerNames: Array<string> = connection.getAllPeerNames();
             for (const peer of allPeerNames) {
-                const chaincodes: Map<string, Array<string>> = await connection.getInstalledChaincode(peer);
-                chaincodes.forEach((versions: Array<string>, name: string) => {
-                    for (const version of versions) {
-                        const foundTreeItemNum: number = tempTree.findIndex((treeItem: InstalledChainCodeOpsTreeItem) => {
-                            return treeItem.name === name && treeItem.version === version;
-                        });
+                const chaincodes: { label: string, packageId: string }[] = await connection.getInstalledChaincode(peer);
 
-                        if (foundTreeItemNum > -1) {
-                            const tempTreeItem: InstalledChainCodeOpsTreeItem = tempTree[foundTreeItemNum];
-                            const peerNames: string[] = tempTreeItem.peerNames;
-                            peerNames.push(peer);
-                            tempTree.splice(foundTreeItemNum, 1);
+                // TODO: this is wrong but won't be needed in the end as the tree will only show the committed smart contracts
+                chaincodes.forEach((chaincode: { label: string, packageId: string }) => {
+                    const foundTreeItemNum: number = tempTree.findIndex((treeItem: InstalledChainCodeOpsTreeItem) => {
+                        return treeItem.name === chaincode.label && treeItem.version === chaincode.packageId;
+                    });
 
-                            tempTree.push(new InstalledChainCodeOpsTreeItem(this, name, version, peerNames));
-                        } else {
-                            tempTree.push(new InstalledChainCodeOpsTreeItem(this, name, version, [peer]));
-                        }
+                    if (foundTreeItemNum > -1) {
+                        const tempTreeItem: InstalledChainCodeOpsTreeItem = tempTree[foundTreeItemNum];
+                        const peerNames: string[] = tempTreeItem.peerNames;
+                        peerNames.push(peer);
+                        tempTree.splice(foundTreeItemNum, 1);
+
+                        tempTree.push(new InstalledChainCodeOpsTreeItem(this, chaincode.label, chaincode.packageId, peerNames));
+                    } else {
+                        tempTree.push(new InstalledChainCodeOpsTreeItem(this, chaincode.label, chaincode.packageId, [peer]));
                     }
                 });
             }

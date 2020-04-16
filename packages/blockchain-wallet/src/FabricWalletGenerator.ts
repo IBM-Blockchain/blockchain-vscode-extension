@@ -14,7 +14,7 @@
 
 'use strict';
 import { FabricWallet } from './FabricWallet';
-import { FabricWalletRegistryEntry, IFabricWalletGenerator } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistryEntry, IFabricWalletGenerator, IFabricWallet } from 'ibm-blockchain-platform-common';
 
 export class FabricWalletGenerator implements IFabricWalletGenerator {
 
@@ -24,7 +24,7 @@ export class FabricWalletGenerator implements IFabricWalletGenerator {
 
     private static _instance: FabricWalletGenerator = new FabricWalletGenerator();
 
-    public async getWallet(walletRegistryEntry: FabricWalletRegistryEntry): Promise<FabricWallet> {
+    public async getWallet(walletRegistryEntry: FabricWalletRegistryEntry): Promise<IFabricWallet> {
         return FabricWallet.newFabricWallet(walletRegistryEntry.walletPath);
     }
 }

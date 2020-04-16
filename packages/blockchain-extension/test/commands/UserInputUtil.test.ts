@@ -120,11 +120,10 @@ describe('UserInputUtil', () => {
         fabricRuntimeConnectionStub = mySandBox.createStubInstance(FabricEnvironmentConnection);
         fabricRuntimeConnectionStub.getAllPeerNames.returns(['myPeerOne', 'myPeerTwo']);
 
-        const chaincodeMap: Map<string, Array<string>> = new Map<string, Array<string>>();
-        chaincodeMap.set('biscuit-network', ['0.0.1', '0.0.2']);
-        chaincodeMap.set('cake-network', ['0.0.3']);
-        fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerOne').resolves(chaincodeMap);
-        fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerTwo').resolves(new Map<string, Array<string>>());
+        const chaincodeArray: {label: string, packageId: string}[] = [];
+        chaincodeArray.push({label: 'biscuit-network', packageId: '0.0.1'}, {label: 'biscuit-network', packageId: '0.0.2'}, {label: 'cake-network', packageId: '0.0.3'});
+        fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerOne').resolves(chaincodeArray);
+        fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerTwo').resolves([]);
         fabricRuntimeConnectionStub.getInstantiatedChaincode.withArgs(['myPeerOne', 'myPeerTwo'], 'channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
         fabricRuntimeConnectionStub.getAllCertificateAuthorityNames.returns(['ca.example.cake.com', 'ca1.example.cake.com']);
         const map: Map<string, Array<string>> = new Map<string, Array<string>>();
@@ -1017,13 +1016,13 @@ describe('UserInputUtil', () => {
             mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([]);
             mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([]);
 
-            const chaincodeMap: Map<string, Array<string>> = new Map<string, Array<string>>();
-            chaincodeMap.set('biscuit-network', ['0.0.1', '0.0.2', '0.0.3']);
-            fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerOne').resolves(chaincodeMap);
+            const chaincodeArray: {label: string, packageId: string}[] = [];
+            chaincodeArray.push({label: 'biscuit-network', packageId: '0.0.1'}, {label: 'biscuit-network', packageId: '0.0.2'}, {label: 'biscuit-network', packageId: '0.0.3'});
+            fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerOne').resolves(chaincodeArray);
 
-            const chaincodeMap2: Map<string, Array<string>> = new Map<string, Array<string>>();
-            chaincodeMap2.set('biscuit-network', ['0.0.1', '0.0.3']);
-            fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerTwo').resolves(chaincodeMap2);
+            const chaincodeArray2: {label: string, packageId: string}[] = [];
+            chaincodeArray2.push({label: 'biscuit-network', packageId: '0.0.1'}, {label: 'biscuit-network', packageId: '0.0.3'});
+            fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerTwo').resolves(chaincodeArray2);
 
             await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', 'channelOne', ['myPeerOne', 'myPeerTwo'], 'biscuit-network', '0.0.1');
 

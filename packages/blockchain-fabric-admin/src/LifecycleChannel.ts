@@ -14,14 +14,16 @@
 
 import {
     Channel,
-    Client, Committer, Endorsement,
-    Endorser, ProposalResponse,
+    Client, Committer, ConnectOptions, Endorsement,
+    Endorser, Endpoint, ProposalResponse,
     Utils
 } from 'fabric-common';
 import * as protos from 'fabric-protos';
 import {Contract, Gateway, GatewayOptions, Network, Transaction, Wallet} from 'fabric-network';
 import * as Long from 'long';
 import {LifecycleCommon} from './LifecycleCommon';
+import {Lifecycle} from './Lifecycle';
+import {LifecyclePeer} from './LifecyclePeer';
 
 const logger: any = Utils.getLogger('packager');
 
@@ -49,27 +51,26 @@ export interface DefinedSmartContract {
     approvals?: Map<string, boolean>;
 }
 
-
 export class LifecycleChannel {
 
-    private channelName: string;
-    private wallet: Wallet;
-    private identity: string;
+    private lifecycle: Lifecycle;
 
-    private fabricClient: Client;
+    private readonly channelName: string;
+    private readonly wallet: Wallet;
+    private readonly identity: string;
 
     private APPROVE: string = 'approve';
     private COMMIT: string = 'commit';
 
     /**
      * internal use only
-     * @param fabricClient
+     * @param lifecycle
      * @param channelName
      * @param wallet
      * @param identity
      */
-    constructor(fabricClient: Client, channelName: string, wallet: Wallet, identity: string) {
-        this.fabricClient = fabricClient;
+    constructor(lifecycle: Lifecycle, channelName: string, wallet: Wallet, identity: string) {
+        this.lifecycle = lifecycle;
         this.channelName = channelName;
         this.wallet = wallet;
         this.identity = identity;
@@ -318,7 +319,7 @@ export class LifecycleChannel {
         }
 
         if (!options) {
-            throw new Error('parameter options is missing')
+            throw new Error('parameter options is missing');
         }
 
         if (!options.sequence) {
@@ -353,22 +354,29 @@ export class LifecycleChannel {
                 };
             }
 
+            const fabricClient: Client = new Client('lifecycle');
+
             logger.debug('%s - connect to the network');
-            await gateway.connect(this.fabricClient, gatewayOptions);
+            await gateway.connect(fabricClient, gatewayOptions);
             const network: Network = await gateway.getNetwork(this.channelName);
 
             logger.debug('%s - add the endorsers to the channel');
             const channel: Channel = network.getChannel();
 
             for (const peerName of peerNames) {
-                const endorser: Endorser = this.fabricClient.getEndorser(peerName);
-                // @ts-ignore
-                await endorser.connect();
+                const endorser: Endorser = await this.createEndorser(peerName, fabricClient);
+
                 channel.addEndorser(endorser, true);
                 endorsers.push(endorser);
             }
 
-            committer = this.fabricClient.getCommitter(ordererName);
+            const ordererConnectOptions: ConnectOptions = this.lifecycle.getOrderer(ordererName);
+
+            committer = fabricClient.getCommitter(ordererName);
+
+            const endpoint: Endpoint = fabricClient.newEndpoint(ordererConnectOptions);
+            committer.setEndpoint(endpoint);
+
             // @ts-ignore
             await committer.connect();
             channel.addCommitter(committer, true);
@@ -418,7 +426,6 @@ export class LifecycleChannel {
             //     arg.setCollections(getCollectionConfig(options.collectionConfig));
             // }
 
-
             const contract: Contract = network.getContract('_lifecycle');
 
             let transaction: Transaction;
@@ -443,10 +450,44 @@ export class LifecycleChannel {
         }
     }
 
+    private async createEndorser(peerName: string, fabricClient: Client): Promise<Endorser> {
+        const peer: LifecyclePeer = this.lifecycle.getPeer(peerName, this.wallet, this.identity);
+
+        fabricClient.setTlsClientCertAndKey(peer.clientCertKey!, peer.clientKey!);
+
+        const peerConnectOptions: ConnectOptions = {
+            url: peer.url
+        };
+
+        if (peer.pem) {
+            peerConnectOptions.pem = peer.pem;
+        }
+
+        if (peer.sslTargetNameOverride) {
+            peerConnectOptions['ssl-target-name-override'] = peer.sslTargetNameOverride;
+        }
+
+        if (peer.requestTimeout) {
+            peerConnectOptions.requestTimeout = peer.requestTimeout;
+        }
+
+        const endpoint: Endpoint = fabricClient.newEndpoint(peerConnectOptions);
+
+        // this will add the peer to the list of endorsers
+        const endorser: Endorser = fabricClient.getEndorser(peer.name, peer.mspid);
+        endorser.setEndpoint(endpoint);
+        // @ts-ignore
+        await endorser.connect();
+        return endorser;
+    }
+
     private async evaluateTransaction(peerName: string, buildRequest: any, requestTimeout?: number): Promise<ProposalResponse> {
 
         const gateway: Gateway = new Gateway();
-        const endorser: Endorser = this.fabricClient.getEndorser(peerName);
+
+        const fabricClient: Client = new Client('lifecycle');
+
+        const endorser: Endorser = await this.createEndorser(peerName, fabricClient);
 
         try {
             const gatewayOptions: GatewayOptions = {
@@ -455,11 +496,8 @@ export class LifecycleChannel {
                 discovery: {enabled: false}
             };
 
-            // @ts-ignore
-            await endorser.connect();
-
             logger.debug('%s - connect to the network');
-            await gateway.connect(this.fabricClient, gatewayOptions);
+            await gateway.connect(fabricClient, gatewayOptions);
             const network: Network = await gateway.getNetwork(this.channelName);
 
             //  we are going to talk to lifecycle which is really just a smart contract

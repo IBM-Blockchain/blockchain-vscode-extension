@@ -53,13 +53,14 @@
 	"dependencies": {
 		"fs-extra": "^7.0.1",
 		"ibm-blockchain-platform-common": "^1.0.25",
+		"ibm-blockchain-platform-fabric-admin": "^1.0.25",
 		"ibm-blockchain-platform-wallet": "^1.0.25",
 		"url": "0.11.0"
 	},
 	"optionalDependencies": {
-		"fabric-ca-client": "2.0.0-beta.2",
-		"fabric-client": "2.0.0-beta.2",
-		"ibm-blockchain-platform-fabric-admin": "1.0.25"
+		"fabric-ca-client": "2.0.0-snapshot.394",
+		"fabric-network": "2.0.0-snapshot.351",
+		"fabric-common": "2.0.0-snapshot.387"
 	},
 	"license-check-and-add-config": {
 		"folder": ".",

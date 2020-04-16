@@ -16,9 +16,8 @@ import * as path from 'path';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { FabricWallet } from '../src/FabricWallet';
 import { FabricWalletGenerator } from '../src/FabricWalletGenerator';
-import { FabricWalletRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistryEntry, IFabricWallet } from 'ibm-blockchain-platform-common';
 
 chai.use(sinonChai);
 // tslint:disable no-unused-expression
@@ -46,7 +45,7 @@ describe('FabricWalletGenerator', () => {
         });
 
         it('should get an instance of a wallet', async () => {
-            const wallet: FabricWallet = await FabricWalletGenerator.instance().getWallet(fabricWalletRegistryEntry);
+            const wallet: IFabricWallet = await FabricWalletGenerator.instance().getWallet(fabricWalletRegistryEntry);
             wallet.getWalletPath().should.equal(path.join(rootPath, 'data', 'wallet'));
         });
     });

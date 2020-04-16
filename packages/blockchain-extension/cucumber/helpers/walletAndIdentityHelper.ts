@@ -40,7 +40,7 @@ export class WalletAndIdentityHelper {
         this.userInputUtilHelper = userInputUtilHelper;
 
         this.certPath = path.join(this.userInputUtilHelper.cucumberDir, 'hlfv1', 'crypto-config', 'peerOrganizations', 'org1.example.com', 'users', 'Admin@org1.example.com', 'msp', 'signcerts', 'Admin@org1.example.com-cert.pem');
-        this.keyPath = path.join(this.userInputUtilHelper.cucumberDir, 'hlfv1', 'crypto-config', 'peerOrganizations', 'org1.example.com', 'users', 'Admin@org1.example.com', 'msp', 'keystore', 'key1.pem');
+        this.keyPath = path.join(this.userInputUtilHelper.cucumberDir, 'hlfv1', 'crypto-config', 'peerOrganizations', 'org1.example.com', 'users', 'Admin@org1.example.com', 'msp', 'keystore', 'priv_sk');
         this.jsonFilePath = path.join(this.userInputUtilHelper.cucumberDir, 'hlfv1', 'crypto-config', 'peerOrganizations', 'org1.example.com', 'users', 'Admin@org1.example.com', 'Org1Admin.json');
         this.connectionProfilePath = path.join(this.userInputUtilHelper.cucumberDir, 'hlfv1', 'connection.json');
     }
