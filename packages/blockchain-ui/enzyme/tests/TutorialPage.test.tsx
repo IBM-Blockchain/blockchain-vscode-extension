@@ -4,18 +4,20 @@ import chai from 'chai';
 import sinonChai from 'sinon-chai';
 
 import TutorialPage from '../../src/components/pages/TutorialPage/TutorialPage';
+import ITutorialObject from '../../src/interfaces/ITutorialObject';
 
 chai.should();
 chai.use(sinonChai);
 
 describe('TutorialPage component', () => {
 
-    const tutorialData: Array<{seriesName: string, seriesTutorials: any[]}> = [
+    const tutorialData: Array<{name: string, tutorials: ITutorialObject[]}> = [
         {
-            seriesName: 'Basic tutorials',
-            seriesTutorials: [
+            name: 'Basic tutorials',
+            tutorials: [
                 {
                     title: 'a1',
+                    series: 'Basic tutorials',
                     length: '4 weeks',
                     objectives: [
                         'objective 1',
@@ -27,10 +29,11 @@ describe('TutorialPage component', () => {
             ]
         },
         {
-            seriesName: 'Other tutorials',
-            seriesTutorials: [
+            name: 'Other tutorials',
+            tutorials: [
                 {
                     title: 'something really interesting',
+                    series: 'Other tutorials',
                     length: '10 minutes',
                     objectives: [
                         'objective 1',

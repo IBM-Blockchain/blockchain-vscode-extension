@@ -29,6 +29,7 @@ import { ReactTutorialGalleryView } from '../../extension/webview/ReactTutorialG
 import { HomeView } from '../../extension/webview/HomeView';
 import { SampleView } from '../../extension/webview/SampleView';
 import { TutorialView } from '../../extension/webview/TutorialView';
+import { ReactTutorialView } from '../../extension/webview/ReactTutorialView';
 import { Reporter } from '../../extension/util/Reporter';
 import { PreReqView } from '../../extension/webview/PreReqView';
 import { DependencyManager } from '../../extension/dependencies/DependencyManager';
@@ -757,6 +758,22 @@ describe('ExtensionUtil Tests', () => {
 
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
             tutorialViewStub.should.have.been.calledOnce;
+        });
+
+        it('should register and show react tutorial page', async () => {
+            const reactTutorialViewStub: sinon.SinonStub = mySandBox.stub(ReactTutorialView.prototype, 'openView');
+            reactTutorialViewStub.resolves();
+
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+
+            await ExtensionUtil.registerCommands(ctx);
+            purgeOldRuntimesStub.should.have.been.calledOnce;
+
+            await vscode.commands.executeCommand(ExtensionCommands.OPEN_REACT_TUTORIAL_PAGE, 'IBMCode/Code-Tutorials', 'Developing smart contracts with IBM Blockchain VSCode Extension');
+
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            reactTutorialViewStub.should.have.been.calledOnce;
         });
 
         it('should register and show sample page', async () => {

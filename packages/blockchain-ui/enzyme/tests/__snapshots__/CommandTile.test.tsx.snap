@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`CustomTile component should render the expected snapshot 1`] = `
+exports[`CommandTile component should render the expected snapshot 1`] = `
 <div
   className="bx--tile custom-tile"
   onClick={[Function]}
