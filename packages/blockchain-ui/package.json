@@ -51,6 +51,7 @@
         "@carbon/themes": "^10.7.0",
         "@carbon/type": "^10.6.0",
         "@types/carbon-components-react": "^7.6.2",
+        "@types/carbon__icons-react": "^10.9.0",
         "@types/chai": "4.1.4",
         "@types/chai-as-promised": "7.1.0",
         "@types/enzyme": "^3.10.3",

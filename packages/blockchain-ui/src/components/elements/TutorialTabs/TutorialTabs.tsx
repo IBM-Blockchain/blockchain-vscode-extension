@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Tabs, Tab } from 'carbon-components-react';
 import './TutorialTabs.scss';
+import TutorialTile from '../TutorialTile/TutorialTile';
 
 interface IProps {
     tutorialData: Array<{seriesName: string, seriesTutorials: any[]}>;
@@ -30,7 +31,7 @@ class TutorialTabs extends Component<IProps> {
         const tutorialNameArray: JSX.Element[] = [];
         for (const tutorial of seriesTutorials) {
             tutorialNameArray.push(
-                <p>{tutorial.title}</p>
+                <TutorialTile tutorialObject={tutorial}/>
             );
         }
         return tutorialNameArray;

@@ -1,0 +1,87 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TutorialTile component should render the expected snapshot 1`] = `
+<div
+  className="tab-container"
+>
+  <div
+    className="tutorial-title"
+  >
+    a1
+  </div>
+  <div
+    className="time-container"
+  >
+    <svg
+      aria-hidden={true}
+      className="icon"
+      focusable="false"
+      height={16}
+      preserveAspectRatio="xMidYMid meet"
+      viewBox="0 0 32 32"
+      width={16}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect
+        height="9"
+        width="2"
+        x="15"
+        y="11"
+      />
+      <rect
+        height="2"
+        width="6"
+        x="13"
+        y="2"
+      />
+      <path
+        d="M28,9,26.58,7.59,24.33,9.84a10.94,10.94,0,1,0,1.18,1.65ZM16,26a9,9,0,1,1,9-9A9,9,0,0,1,16,26Z"
+      />
+    </svg>
+    <span
+      className="time-text"
+    >
+      4 weeks
+    </span>
+  </div>
+  <div
+    className="tutorial-objectives"
+  >
+    <p
+      className="objective"
+    >
+      Learn about what blockchain is and why its important
+    </p>
+    <p
+      className="objective"
+    >
+      Learn about the Linux Foundation Hyperledger Project and Hyperledger Fabric
+    </p>
+    <p
+      className="objective"
+    >
+      Learn about IBM Blockchain Platform and the VS Code extension
+    </p>
+  </div>
+  <div
+    className="button-container"
+  >
+    <button
+      className="pdf-button bx--btn bx--btn--ghost"
+      disabled={false}
+      tabIndex={0}
+      type="button"
+    >
+      Download as PDF
+    </button>
+    <button
+      className="button bx--btn bx--btn--primary"
+      disabled={false}
+      tabIndex={0}
+      type="button"
+    >
+      Open tutorial
+    </button>
+  </div>
+</div>
+`;
