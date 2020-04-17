@@ -15,8 +15,8 @@
 import { FabricConnection } from './FabricConnection';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { IFabricGatewayConnection, OutputAdapter, LogType, ConnectionProfileUtil } from 'ibm-blockchain-platform-common';
-import { Network, Contract, Transaction } from 'fabric-network';
-import * as Client from 'fabric-client';
+import { Network, Contract, Transaction, ContractListener } from 'fabric-network';
+import { Endorser } from 'fabric-network/node_modules/fabric-common';
 
 export class FabricGatewayConnection extends FabricConnection implements IFabricGatewayConnection {
 
@@ -34,8 +34,7 @@ export class FabricGatewayConnection extends FabricConnection implements IFabric
             this.description = false;
         }
 
-        // TODO: update this when all packages using same version of the fabric node sdk
-        await this.connectInner(connectionProfile, wallet.getWallet() as any, identityName, timeout);
+        await this.connectInner(connectionProfile, wallet.getWallet(), identityName, timeout);
     }
 
     public isIBPConnection(): boolean {
@@ -78,7 +77,7 @@ export class FabricGatewayConnection extends FabricConnection implements IFabric
         }
 
         if (peerTargetNames && peerTargetNames.length > 0) {
-            const peerTargets: Client.ChannelPeer[] = await this.getChannelPeers(channelName, peerTargetNames);
+            const peerTargets: Endorser[] = await this.getChannelPeers(channelName, peerTargetNames);
             transaction.setEndorsingPeers(peerTargets);
         }
 
@@ -103,16 +102,14 @@ export class FabricGatewayConnection extends FabricConnection implements IFabric
     public async addContractListener(channelName: string, contractName: string, eventName: string, outputAdapter: OutputAdapter): Promise<void> {
         const network: Network = await this.gateway.getNetwork(channelName);
         const contract: Contract = network.getContract(contractName);
-        const eventListenerName: string = `${eventName}-listener`;
-        await contract.addContractListener(eventListenerName, eventName, (error: Error, event: any): Promise<any> => {
-            if (error) {
-                outputAdapter.log(LogType.ERROR, `Error from event: ${error.message}`, `Error from event: ${error.toString()}`);
-                return;
+
+        const listener: ContractListener = async (event) => {
+            if (event.eventName.match(eventName)) {
+                const eventString: string = `chaincodeId: ${event.chaincodeId}, eventName: "${event.eventName}", payload: ${event.payload.toString()}`;
+                outputAdapter.log(LogType.INFO, undefined, `Event emitted: ${eventString}`);
             }
+        };
 
-            const eventString: string = `chaincode_id: ${event.chaincode_id}, tx_id: ${event.tx_id}, event_name: "${event.event_name}", payload: ${event.payload.toString()}`;
-            outputAdapter.log(LogType.INFO, undefined, `Event emitted: ${eventString}`);
-        });
+        await contract.addContractListener(listener);
     }
-
 }

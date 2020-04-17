@@ -13,11 +13,12 @@
 */
 'use strict';
 
-import * as Client from 'fabric-client';
 import { Gateway, GatewayOptions, Network, Wallet } from 'fabric-network';
 import { URL } from 'url';
 import { ConsoleOutputAdapter, FabricChaincode, OutputAdapter } from 'ibm-blockchain-platform-common';
-import {FabricWallet} from 'ibm-blockchain-platform-wallet';
+import { FabricWallet } from 'ibm-blockchain-platform-wallet';
+import { Lifecycle, LifecyclePeer, LifecycleChannel, DefinedSmartContract } from 'ibm-blockchain-platform-fabric-admin';
+import { Endorser, Channel } from 'fabric-network/node_modules/fabric-common';
 
 export abstract class FabricConnection {
 
@@ -25,6 +26,8 @@ export abstract class FabricConnection {
     protected connectionProfilePath: string;
     protected outputAdapter: OutputAdapter;
     protected gateway: Gateway = new Gateway();
+
+    protected lifecycle: Lifecycle = new Lifecycle();
 
     private discoveryAsLocalhost: boolean;
     private discoveryEnabled: boolean;
@@ -43,22 +46,21 @@ export abstract class FabricConnection {
     public abstract async connect(wallet: FabricWallet, identityName: string, timeout: number): Promise<void>;
 
     public getAllPeerNames(): Array<string> {
-        const allPeers: Array<Client.Peer> = this.getAllPeers();
+        const allPeers: Array<Endorser> = this.getAllPeers();
 
         const peerNames: Array<string> = [];
 
-        allPeers.forEach((peer: Client.Peer) => {
-            peerNames.push(peer.getName());
+        allPeers.forEach((peer: Endorser) => {
+            peerNames.push(peer.name);
         });
 
         return peerNames;
     }
 
     public async getAllChannelsForPeer(peerName: string): Promise<Array<string>> {
-        const peer: Client.Peer = this.gateway.getClient().getPeer(peerName);
+        const peer: LifecyclePeer = this.lifecycle.getPeer(peerName, this.gateway.getOptions().wallet, this.gateway.getOptions().identity);
         try {
-            const channelResponse: Client.ChannelQueryResponse = await this.gateway.getClient().queryChannels(peer);
-            const channelNames: Array<string> = channelResponse.channels.map((channel: Client.ChannelInfo) => channel.channel_id);
+            const channelNames: string[] = await peer.getAllChannelNames();
             return channelNames.sort();
         } catch (error) {
             if (error.message && error.message.match(/access denied/)) {
@@ -81,15 +83,18 @@ export abstract class FabricConnection {
         }
     }
 
+    // TODO: this needs to be changed to getAllCommitttedSmartContracts
     public async getInstantiatedChaincode(channelName: string): Promise<Array<FabricChaincode>> {
-        const instantiatedChaincodes: Array<FabricChaincode> = [];
-        const channel: Client.Channel = await this.getChannel(channelName);
-        const chainCodeResponse: Client.ChaincodeQueryResponse = await channel.queryInstantiatedChaincodes(null);
-        chainCodeResponse.chaincodes.forEach((chainCode: Client.ChaincodeInfo) => {
-            instantiatedChaincodes.push({ name: chainCode.name, version: chainCode.version });
-        });
+        const lifecycleChannel: LifecycleChannel = this.lifecycle.getChannel(channelName, this.gateway.getOptions().wallet, this.gateway.getOptions().identity);
 
-        return instantiatedChaincodes;
+        const channelMap: Map<string, string[]> = await this.createChannelMap();
+
+        const peerNames: string[] = channelMap.get(channelName);
+        const smartContracts: DefinedSmartContract[] = await lifecycleChannel.getAllCommittedSmartContracts(peerNames[0]);
+
+        return smartContracts.map((smartContract: DefinedSmartContract) => {
+            return { name: smartContract.smartContractName, version: smartContract.smartContractVersion };
+        });
     }
 
     public disconnect(): void {
@@ -131,18 +136,18 @@ export abstract class FabricConnection {
         }
     }
 
-    public async getChannelPeersInfo(channelName: string): Promise<{name: string, mspID: string}[]> {
+    public async getChannelPeersInfo(channelName: string): Promise<{ name: string, mspID: string }[]> {
         try {
             const network: Network = await this.gateway.getNetwork(channelName);
-            const channel: Client.Channel = network.getChannel();
-            const channelPeers: Client.ChannelPeer[] = channel.getChannelPeers();
+            const channel: Channel = network.getChannel();
+            const channelPeers: Endorser[] = channel.getEndorsers();
 
-            const peerInfo: {name: string, mspID: string}[] = [];
+            const peerInfo: { name: string, mspID: string }[] = [];
 
             for (const peer of channelPeers) {
-                const name: string = peer.getName();
-                const mspID: string = peer.getMspid();
-                peerInfo.push({name, mspID});
+                const name: string = peer.name;
+                const mspID: string = peer.mspid;
+                peerInfo.push({ name, mspID });
             }
 
             return peerInfo;
@@ -168,38 +173,29 @@ export abstract class FabricConnection {
             eventHandlerOptions: { commitTimeout: timeout }
         };
 
-        await this.gateway.connect(this.connectionProfilePath, options);
+        await this.gateway.connect(connectionProfile, options);
+
+        // This bit is needed to add all the peers to the list of peers the lifecycle knows about
+        const endorsers: Endorser[] = this.gateway['client'].getEndorsers();
+        for (const endorser of endorsers) {
+            const name: string = endorser.name;
+            const mspid: string = endorser.mspid;
+            const url: string = endorser.endpoint['url'];
+            const pem: string = endorser.endpoint['options'].pem;
+
+            this.lifecycle.addPeer({ name, mspid, url, pem });
+        }
     }
 
-    protected async getChannel(channelName: string): Promise<Client.Channel> {
-        const client: Client = this.gateway.getClient();
-        let channel: Client.Channel = client.getChannel(channelName, false);
-        if (channel) {
-            return channel;
-        }
-        channel = client.newChannel(channelName);
-        const peers: Client.Peer[] = this.getAllPeers();
-        let lastError: Error = new Error(`Could not discover information for channel ${channelName} from known peers`);
-        for (const target of peers) {
-            try {
-                await channel.initialize({ asLocalhost: this.discoveryAsLocalhost, discover: this.discoveryEnabled, target });
-                return channel;
-            } catch (error) {
-                lastError = error;
-            }
-        }
-        throw lastError;
-    }
-
-    protected async getChannelPeers(channelName: string, peerNames: string[]): Promise<Client.ChannelPeer[]> {
+    protected async getChannelPeers(channelName: string, peerNames: string[]): Promise<Endorser[]> {
         try {
             const network: Network = await this.gateway.getNetwork(channelName);
-            const channel: Client.Channel = network.getChannel();
+            const channel: Channel = network.getChannel();
 
-            const channelPeers: Client.ChannelPeer[] = [];
+            const channelPeers: Endorser[] = [];
 
             for (const name of peerNames) {
-                const peer: Client.ChannelPeer = channel.getChannelPeer(name);
+                const peer: Endorser = channel.getEndorser(name);
                 channelPeers.push(peer);
             }
 
@@ -235,7 +231,7 @@ export abstract class FabricConnection {
         return urls.some((url: string) => this.isLocalhostURL(url));
     }
 
-    private getAllPeers(): Array<Client.Peer> {
-        return this.gateway.getClient().getPeersForOrg();
+    private getAllPeers(): Array<Endorser> {
+        return this.gateway['client'].getEndorsers();
     }
 }
