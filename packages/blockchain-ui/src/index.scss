@@ -20,6 +20,10 @@ html {
                 @include select-dark;
             }
 
+            #app-container {
+                @include app__tutorial-page-dark;
+            }
+
             // CustomTile component
             #tutorial-tile-container {
                 @include custom-tile-dark;
@@ -47,6 +51,7 @@ html {
 
             #tutorial-tabs-container {
                 @include tutorial-tabs-dark;
+                @include tutorial-tile-dark;
             }
 
             // text inputs on the create transaction screen
@@ -71,6 +76,7 @@ html {
             #output-panel {
                 @include output-panel-dark;
             }
+
         }
     }
 

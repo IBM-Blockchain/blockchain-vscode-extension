@@ -1,0 +1,66 @@
+@import '@carbon/colors/scss/colors';
+@import '@carbon/layout/scss/_spacing';
+
+.tab-container {
+    display: flex;
+    flex-direction: column;
+    max-width: 70%;
+    background-color: white;
+    margin-bottom: $spacing-03;
+}
+
+.tutorial-title {
+    font-family: 'IBMPlexSans-SemiBold', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.16px;
+    line-height: 18px;
+    color: $gray-100;
+    margin: $spacing-05;
+}
+
+.time-container {
+    display: inline-flex;
+    font-family: 'IBMPlexSans', sans-serif;
+    color: $gray-80;
+    letter-spacing: 0.32px;
+    line-height: $spacing-05;
+    margin-left: $spacing-05;
+}
+
+.icon {
+    margin-right: $spacing-03;
+    fill: black;
+}
+
+.time-text {
+    align-items: center;
+    font-size: 12px;
+}
+
+.tutorial-objectives {
+    min-width: 60%;
+    padding-left: 40px;
+    padding-top: $spacing-05;
+}
+
+.objective {
+    color: $gray-70;
+    font-family: 'IBMPlexSans', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.32px;
+    text-align: left;
+}
+
+.button {
+    max-width: 170px;
+}
+
+.pdf-button {
+    padding-right: 16px;
+    border: none;
+    color: $blue-60;
+}
+
+.button-container {
+    margin-left: auto;
+}
