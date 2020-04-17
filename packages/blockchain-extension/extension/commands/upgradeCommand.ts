@@ -18,17 +18,14 @@ import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
-import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { PackageRegistry } from '../registries/PackageRegistry';
 import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 
-export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channelName?: string, peerNames?: Array<string>): Promise<void> {
+export async function upgradeSmartContract(channelName?: string, peerNames?: Array<string>): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'upgradeSmartContract');
     let packageEntry: PackageRegistryEntry;
@@ -48,35 +45,7 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
         }
     }
 
-    if ((treeItem instanceof InstantiatedTreeItem)) {
-        // Called on instantiated chaincode tree item
-        contractName = treeItem.name;
-        contractVersion = treeItem.version;
-
-        const channelMap: Map<string, Array<string>> = new Map<string, Array<string>>();
-        for (const channelTreeItem of treeItem.channels) {
-            channelMap.set(channelTreeItem.label, channelTreeItem.peers);
-        }
-
-        const chosenChannel: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to upgrade the smart contract on', channelMap);
-        if (!chosenChannel) {
-            return;
-        }
-
-        channelName = chosenChannel.label;
-        peerNames = chosenChannel.data;
-
-    } else if ((treeItem instanceof ChannelTreeItem)) {
-        // Called on a channel
-        channelName = treeItem.label;
-        peerNames = treeItem.peers;
-
-        // We should now ask for the instantiated smart contract to upgrade
-        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showRuntimeInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName);
-        contractName = initialSmartContract.data.name;
-        contractVersion = initialSmartContract.data.version;
-
-    } else if (!channelName && !peerNames) {
+    if (!channelName && !peerNames) {
         // called on '+ Instantiate' or via the command palette
 
         const chosenChannel: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to upgrade the smart contract on');
@@ -92,11 +61,9 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
         }
         contractName = initialSmartContract.data.name;
         contractVersion = initialSmartContract.data.version;
-
     }
 
     try {
-
         let data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder };
         let chosenChaincode: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>;
 

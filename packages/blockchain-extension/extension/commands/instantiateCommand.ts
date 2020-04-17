@@ -15,8 +15,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
-import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
 import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
@@ -27,7 +25,7 @@ import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironme
 import { PackageRegistry } from '../registries/PackageRegistry';
 import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 
-export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, channelName?: string, peerNames?: Array<string>): Promise<void> {
+export async function instantiateSmartContract(channelName?: string, peerNames?: Array<string>): Promise<void> {
 
     let packageToInstall: PackageRegistryEntry;
     let packageEntry: PackageRegistryEntry;
@@ -46,11 +44,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
         }
     }
 
-    if (treeItem instanceof ChannelTreeItem) {
-        // If clicked on runtime channel
-        channelName = treeItem.label;
-        peerNames = treeItem.peers;
-    } else if (!channelName && !peerNames) {
+    if (!channelName && !peerNames) {
 
         const chosenChannel: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to instantiate the smart contract on');
         if (!chosenChannel) {
@@ -58,11 +52,9 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
         }
         channelName = chosenChannel.label;
         peerNames = chosenChannel.data;
-
     }
 
     try {
-
         let data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder };
         let chosenChaincode: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>;
 

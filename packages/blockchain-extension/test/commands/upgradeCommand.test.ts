@@ -21,13 +21,8 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
-import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
 import { Reporter } from '../../extension/util/Reporter';
-import { SmartContractsTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/SmartContractsTreeItem';
-import { ChannelsOpsTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/ChannelsOpsTreeItem';
-import { InstalledChainCodeOpsTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/InstalledChainCodeOpsTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
@@ -35,7 +30,6 @@ import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric
 import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
-import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
 
 chai.use(sinonChai);
@@ -55,12 +49,7 @@ describe('UpgradeCommand', () => {
         let showChannelQuickPickStub: sinon.SinonStub;
         let showChaincodeAndVersionQuickPick: sinon.SinonStub;
         let showInputBoxStub: sinon.SinonStub;
-        let allChildren: Array<BlockchainTreeItem>;
         let reporterStub: sinon.SinonStub;
-        let blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider;
-        let instantiatedSmartContractsList: BlockchainTreeItem[];
-        let smartContractsChildren: BlockchainTreeItem[];
-        let channelsChildren: BlockchainTreeItem[];
         let showYesNo: sinon.SinonStub;
         let showQuickPick: sinon.SinonStub;
         let browseStub: sinon.SinonStub;
@@ -137,15 +126,6 @@ describe('UpgradeCommand', () => {
 
             registryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
             mySandBox.stub(FabricEnvironmentManager.instance(), 'getState').returns(ConnectedState.CONNECTED);
-
-            blockchainRuntimeExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
-            allChildren = await blockchainRuntimeExplorerProvider.getChildren();
-            const smartContracts: SmartContractsTreeItem = allChildren[1] as SmartContractsTreeItem;
-            smartContractsChildren = await blockchainRuntimeExplorerProvider.getChildren(smartContracts);
-            instantiatedSmartContractsList = await blockchainRuntimeExplorerProvider.getChildren(smartContractsChildren[1]);
-
-            const channels: ChannelsOpsTreeItem = allChildren[2] as ChannelsOpsTreeItem;
-            channelsChildren = await blockchainRuntimeExplorerProvider.getChildren(channels);
 
             showQuickPick = mySandBox.stub(UserInputUtil, 'showQuickPick').resolves(UserInputUtil.DEFAULT_SC_EP);
             browseStub = mySandBox.stub(UserInputUtil, 'browse');
@@ -410,48 +390,6 @@ describe('UpgradeCommand', () => {
             dockerLogSpy.should.not.have.been.called;
         });
 
-        it('should upgrade smart contract through the tree by right-clicking on an instantiated smart contract in the runtime ops view', async () => {
-
-            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
-
-            instantiatedSmartContractsList.length.should.equal(2);
-
-            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, instantiatedSmartContractsList[0] as InstalledChainCodeOpsTreeItem);
-
-            fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', ['peerOne'], 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined);
-
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
-            reporterStub.should.have.been.calledWith('upgradeCommand');
-            dockerLogSpy.should.have.been.called;
-        });
-
-        it('should handle cancel choosing channel on upgrading from the contract on a tree', async () => {
-            showChannelQuickPickStub.resolves();
-
-            instantiatedSmartContractsList.length.should.equal(2);
-
-            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, instantiatedSmartContractsList[0] as InstalledChainCodeOpsTreeItem);
-
-            fabricRuntimeMock.upgradeChaincode.should.not.have.been.called;
-
-            reporterStub.should.not.have.been.called;
-        });
-
-        it('should upgrade smart contract through the tree by right-clicking on a channel in the runtime ops view', async () => {
-
-            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
-
-            channelsChildren.length.should.equal(1);
-
-            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, channelsChildren[0]);
-
-            fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', ['peerOne'], 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined);
-
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
-            reporterStub.should.have.been.calledWith('upgradeCommand');
-            dockerLogSpy.should.have.been.called;
-        });
-
         it('should upgrade the smart contract through the command with no function', async () => {
             executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
             showInputBoxStub.onFirstCall().resolves();
@@ -676,7 +614,7 @@ describe('UpgradeCommand', () => {
             };
 
             mySandBox.stub(vscode.debug, 'activeDebugSession').value(activeDebugSessionStub);
-            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, undefined, 'someChannelName', ['peerHi', 'peerHa']);
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, 'someChannelName', ['peerHi', 'peerHa']);
 
             fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('beer', 'vscode-debug-97365870', ['peerHi', 'peerHa'], 'someChannelName', 'instantiate', ['arg1', 'arg2', 'arg3']);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
@@ -711,7 +649,7 @@ describe('UpgradeCommand', () => {
             fabricRuntimeMock.getInstalledChaincode.resolves(installedChaincodeMap);
 
             mySandBox.stub(vscode.debug, 'activeDebugSession').value(activeDebugSessionStub);
-            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, undefined, 'someChannelName', ['peerHi', 'peerHa']);
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, 'someChannelName', ['peerHi', 'peerHa']);
 
             fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('beer', 'vscode-debug-97365870', ['peerHi', 'peerHa'], 'someChannelName', 'instantiate', ['arg1', 'arg2', 'arg3']);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
@@ -743,7 +681,7 @@ describe('UpgradeCommand', () => {
             fabricRuntimeMock.getInstalledChaincode.resolves(installedChaincodeMap);
 
             mySandBox.stub(vscode.debug, 'activeDebugSession').value(activeDebugSessionStub);
-            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, undefined, 'someChannelName', ['peerHi', 'peerHa']);
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, 'someChannelName', ['peerHi', 'peerHa']);
 
             fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('beer', 'vscode-debug-97365870', ['peerHi', 'peerHa'], 'someChannelName', 'instantiate', ['arg1', 'arg2', 'arg3']);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
@@ -771,7 +709,7 @@ describe('UpgradeCommand', () => {
             };
 
             mySandBox.stub(vscode.debug, 'activeDebugSession').value(activeDebugSessionStub);
-            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, undefined, 'someChannelName', ['peerHi', 'peerHa']);
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, 'someChannelName', ['peerHi', 'peerHa']);
 
             fabricRuntimeMock.upgradeChaincode.should.not.been.called;
             dockerLogSpy.should.not.have.been.called;

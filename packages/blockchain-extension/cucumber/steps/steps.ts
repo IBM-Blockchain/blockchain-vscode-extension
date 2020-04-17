@@ -35,8 +35,8 @@ export enum LanguageType {
 
 module.exports = function(): any {
 
-    this.Then(/^there (should|shouldn't) be an? (environment connected |installed smart contract |instantiated smart contract |Channels |Node |Organizations |identity )?tree item with a label '(.*?)' in the '(Smart Contracts|Fabric Environments|Fabric Gateways|Fabric Wallets)' panel( for item)?( .*)?$/, this.timeout, async (shouldOrshouldnt: string, child: string, label: string, panel: string, thing2: string, thing: string) => {
-        let treeItems: any[];
+    this.Then(/^there (should|shouldn't) be an? (environment connected |installed smart contract |instantiated smart contract |channel |Node |Organizations |identity )?tree item with a label '(.*?)' in the '(Smart Contracts|Fabric Environments|Fabric Gateways|Fabric Wallets)' panel( for item)?( .*)?$/, this.timeout, async (shouldOrshouldnt: string, child: string, label: string, panel: string, thing2: string, thing: string) => {
+        let treeItems: any[] = [];
         if (panel === 'Smart Contracts') {
             const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = ExtensionUtil.getBlockchainPackageExplorerProvider();
             treeItems = await blockchainPackageExplorerProvider.getChildren();
@@ -46,25 +46,18 @@ module.exports = function(): any {
                 treeItems = await blockchainRuntimeExplorerProvider.getChildren();
             } else if (child.includes('environment connected')) {
                 const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
-                const smartContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[0]);
-                treeItems = await blockchainRuntimeExplorerProvider.getChildren(smartContracts[0]); // Connected to
-            } else if (child.includes('installed smart contract')) {
+                treeItems = [allTreeItems[0]]; // Connected to
+            } else if (child.includes('channel')) {
                 const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
-                const smartContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[1]);
-                treeItems = await blockchainRuntimeExplorerProvider.getChildren(smartContracts[0]); // Installed smart contracts
-            } else if (child.includes('instantiated smart contract')) {
-                const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
-                const smartContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[1]);
-                treeItems = await blockchainRuntimeExplorerProvider.getChildren(smartContracts[1]); // Instantiated smart contracts
-            } else if (child.includes('Channels')) {
-                const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
-                treeItems = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[2]); // Channels
+                for (let i: number = 1; i < allTreeItems.length - 2; i++) {
+                    treeItems.push(allTreeItems[i]); // channels
+                }
             } else if (child.includes('Node')) {
                 const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
-                treeItems = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[3]); // Nodes
+                treeItems = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[allTreeItems.length - 2]); // Nodes
             } else if (child.includes('Organizations')) {
                 const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
-                treeItems = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[4]); // Organizations
+                treeItems = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[allTreeItems.length - 1]); // Organizations
             } else {
                 treeItems = await blockchainRuntimeExplorerProvider.getChildren();
             }
