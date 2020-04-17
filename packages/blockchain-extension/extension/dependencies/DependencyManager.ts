@@ -349,14 +349,25 @@ export class DependencyManager {
         // Java
         dependencies.java = { name: 'Java OpenJDK 8', required: false, version: undefined, url: 'https://adoptopenjdk.net/?variant=openjdk8', requiredVersion: Dependencies.JAVA_REQUIRED, requiredLabel: 'only', tooltip: 'Required for developing Java smart contracts.' };
         try {
-            // For some reason, the response is going to stderr, so we have to redirect it to stdout.
-            const javaResult: string = await CommandUtil.sendCommand('java -version 2>&1'); // Format: openjdk|java version "1.8.0_212"
-            if (this.isCommandFound(javaResult)) {
-                const javaMatchedVersion: string = javaResult.match(/(openjdk|java) version "(.*)"/)[2]; // Format: X.Y.Z_A
-                const javaVersionCoerced: semver.SemVer = semver.coerce(javaMatchedVersion); // Format: X.Y.Z
-                const javaVersion: string = semver.valid(javaVersionCoerced); // Returns version
-                if (javaVersion) {
-                    dependencies.java.version = javaVersion;
+
+            let getVersion: boolean = true;
+
+            if (process.platform === 'darwin') {
+                const javaPath: string = '/Library/Java/JavaVirtualMachines'; // This is the standard Mac install location.
+                const javaDirExists: boolean = await fs.pathExists(javaPath);
+                getVersion = javaDirExists;
+            }
+
+            if (getVersion) {
+                // For some reason, the response is going to stderr, so we have to redirect it to stdout.
+                const javaResult: string = await CommandUtil.sendCommand('java -version 2>&1'); // Format: openjdk|java version "1.8.0_212"
+                if (this.isCommandFound(javaResult)) {
+                    const javaMatchedVersion: string = javaResult.match(/(openjdk|java) version "(.*)"/)[2]; // Format: X.Y.Z_A
+                    const javaVersionCoerced: semver.SemVer = semver.coerce(javaMatchedVersion); // Format: X.Y.Z
+                    const javaVersion: string = semver.valid(javaVersionCoerced); // Returns version
+                    if (javaVersion) {
+                        dependencies.java.version = javaVersion;
+                    }
                 }
             }
         } catch (error) {
