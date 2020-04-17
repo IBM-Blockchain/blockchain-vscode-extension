@@ -11,11 +11,11 @@
     }
 
     li {
-        border-color: $carbon--gray-80;
+        border-color: $gray-80;
     }
     
     button:hover:before {
-        background-color: $carbon--gray-80;
+        background-color: $gray-80;
     }
     
     svg {
@@ -23,17 +23,24 @@
     }
 }
 
+@mixin app__tutorial-page-dark {
+    .app-container__tutorial-page {
+        background-color: $gray-90;
+        box-shadow: inset 0px 148px #000000;
+    }
+}
+
 @mixin borders-dark {
-    border-color: $carbon--gray-80;
+    border-color: $gray-80;
 }
 
 @mixin checkbox-dark {
     .bx--checkbox-label::before {
-        border-color: $carbon--gray-10;
+        border-color: $gray-10;
     }
 
     input:checked ~ .bx--checkbox-label::before, input:indeterminate ~ .bx--checkbox-label::before {
-        background-color: $carbon--gray-10;
+        background-color: $gray-10;
     }
 
     input:checked ~ .bx--checkbox-label::after, input:indeterminate ~ .bx--checkbox-label::after{
@@ -178,6 +185,40 @@
 
     a.bx--tabs__nav-link:focus {
         outline: 2px solid $blue-40;
+    }
+}
+
+@mixin tutorial-tile-dark {
+    .tab-container {
+        background-color: $gray-80;
+
+        .tutorial-title {
+            color: white;
+        }
+
+        .icon {
+            fill: white;
+        }
+
+        .objective, .time-text {
+            color: $gray-30;
+        }
+
+        .pdf-button {
+            color: $blue-40;
+
+            &:hover {
+                background-color: $gray-70;
+            }
+        }
+
+        .bx--btn--secondary {
+            background-color: $gray-60;
+
+            &:hover {
+                background-color: $gray-70;
+            }
+        }
     }
 }
 

@@ -9,3 +9,13 @@
 @import 'node_modules/carbon-components/scss/components/tag/_tag';
 @import 'node_modules/carbon-components/scss/components/text-input/_text-input';
 @import 'node_modules/carbon-components/scss/components/tile/_tile';
+
+@import '@carbon/colors/scss/colors';
+
+.app-container__tutorial-page {
+    background-color: $gray-10;
+    position: absolute;
+    width: 100%;
+    z-index: -1;
+    box-shadow: inset 0px 148px #FFFFFF;
+}
