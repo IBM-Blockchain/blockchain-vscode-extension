@@ -31,17 +31,12 @@ Array [
         focusable="false"
         height={16}
         preserveAspectRatio="xMidYMid meet"
-        style={
-          Object {
-            "willChange": "transform",
-          }
-        }
         viewBox="0 0 16 16"
         width={16}
         xmlns="http://www.w3.org/2000/svg"
       >
-        <path
-          d="M8 11L3 6 3.7 5.3 8 9.6 12.3 5.3 13 6z"
+        <polygon
+          points="8,11 3,6 3.7,5.3 8,9.6 12.3,5.3 13,6"
         />
         <title>
           show menu options
@@ -53,36 +48,34 @@ Array [
       role="tablist"
     >
       <li
+        aria-controls="undefined__panel"
+        aria-selected={true}
         className="bx--tabs__nav-item bx--tabs__nav-item--selected"
         onClick={[Function]}
         onKeyDown={[Function]}
-        role="presentation"
-        selected={true}
+        role="tab"
         tabIndex={-1}
       >
         <a
-          aria-selected={true}
           className="bx--tabs__nav-link"
           href="#"
-          role="tab"
           tabIndex={0}
         >
           Basic tutorials (1)
         </a>
       </li>
       <li
+        aria-controls="undefined__panel"
+        aria-selected={false}
         className="bx--tabs__nav-item"
         onClick={[Function]}
         onKeyDown={[Function]}
-        role="presentation"
-        selected={false}
+        role="tab"
         tabIndex={-1}
       >
         <a
-          aria-selected={false}
           className="bx--tabs__nav-link"
           href="#"
-          role="tab"
           tabIndex={-1}
         >
           Other tutorials (1)
@@ -97,9 +90,89 @@ Array [
     role="tabpanel"
     selected={true}
   >
-    <p>
-      a1
-    </p>
+    <div
+      className="tab-container"
+    >
+      <div
+        className="tutorial-title"
+      >
+        a1
+      </div>
+      <div
+        className="time-container"
+      >
+        <svg
+          aria-hidden={true}
+          className="icon"
+          focusable="false"
+          height={16}
+          preserveAspectRatio="xMidYMid meet"
+          viewBox="0 0 32 32"
+          width={16}
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect
+            height="9"
+            width="2"
+            x="15"
+            y="11"
+          />
+          <rect
+            height="2"
+            width="6"
+            x="13"
+            y="2"
+          />
+          <path
+            d="M28,9,26.58,7.59,24.33,9.84a10.94,10.94,0,1,0,1.18,1.65ZM16,26a9,9,0,1,1,9-9A9,9,0,0,1,16,26Z"
+          />
+        </svg>
+        <span
+          className="time-text"
+        >
+          4 weeks
+        </span>
+      </div>
+      <div
+        className="tutorial-objectives"
+      >
+        <p
+          className="objective"
+        >
+          Learn about what blockchain is and why its important
+        </p>
+        <p
+          className="objective"
+        >
+          Learn about the Linux Foundation Hyperledger Project and Hyperledger Fabric
+        </p>
+        <p
+          className="objective"
+        >
+          Learn about IBM Blockchain Platform and the VS Code extension
+        </p>
+      </div>
+      <div
+        className="button-container"
+      >
+        <button
+          className="pdf-button bx--btn bx--btn--ghost"
+          disabled={false}
+          tabIndex={0}
+          type="button"
+        >
+          Download as PDF
+        </button>
+        <button
+          className="button bx--btn bx--btn--secondary"
+          disabled={false}
+          tabIndex={0}
+          type="button"
+        >
+          Open tutorial
+        </button>
+      </div>
+    </div>
   </div>,
   <div
     aria-hidden={true}
@@ -108,9 +181,89 @@ Array [
     role="tabpanel"
     selected={false}
   >
-    <p>
-      something really interesting
-    </p>
+    <div
+      className="tab-container"
+    >
+      <div
+        className="tutorial-title"
+      >
+        something really interesting
+      </div>
+      <div
+        className="time-container"
+      >
+        <svg
+          aria-hidden={true}
+          className="icon"
+          focusable="false"
+          height={16}
+          preserveAspectRatio="xMidYMid meet"
+          viewBox="0 0 32 32"
+          width={16}
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect
+            height="9"
+            width="2"
+            x="15"
+            y="11"
+          />
+          <rect
+            height="2"
+            width="6"
+            x="13"
+            y="2"
+          />
+          <path
+            d="M28,9,26.58,7.59,24.33,9.84a10.94,10.94,0,1,0,1.18,1.65ZM16,26a9,9,0,1,1,9-9A9,9,0,0,1,16,26Z"
+          />
+        </svg>
+        <span
+          className="time-text"
+        >
+          10 minutes
+        </span>
+      </div>
+      <div
+        className="tutorial-objectives"
+      >
+        <p
+          className="objective"
+        >
+          Learn about what blockchain is and why its important
+        </p>
+        <p
+          className="objective"
+        >
+          Learn about the Linux Foundation Hyperledger Project and Hyperledger Fabric
+        </p>
+        <p
+          className="objective"
+        >
+          Learn about IBM Blockchain Platform and the VS Code extension
+        </p>
+      </div>
+      <div
+        className="button-container"
+      >
+        <button
+          className="pdf-button bx--btn bx--btn--ghost"
+          disabled={false}
+          tabIndex={0}
+          type="button"
+        >
+          Download as PDF
+        </button>
+        <button
+          className="button bx--btn bx--btn--secondary"
+          disabled={false}
+          tabIndex={0}
+          type="button"
+        >
+          Open tutorial
+        </button>
+      </div>
+    </div>
   </div>,
 ]
 `;

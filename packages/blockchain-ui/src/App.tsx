@@ -42,16 +42,22 @@ class App extends Component<{}, AppState> {
         if (this.state.redirectPath === '') {
             return <div></div>;
         } else {
+            let appClass: string = '';
+            if (this.state.redirectPath === '/tutorials') {
+                appClass = 'app-container__tutorial-page';
+            }
             return (
                 <Router>
-                    <div>
-                        <Route render={(): JSX.Element => <Redirect push to={this.state.redirectPath}/>}></Route>
-                        <Route exact path='/home' render={(): JSX.Element =>
-                            <HomePage extensionVersion={this.state.extensionVersion}/>}>
-                        </Route>
-                        <Route exact path='/tutorials' render={(): JSX.Element =>
-                            <TutorialPage tutorialData={this.state.tutorialData}/>}>
-                        </Route>
+                    <div id='app-container'>
+                        <div className={appClass}>
+                            <Route render={(): JSX.Element => <Redirect push to={this.state.redirectPath}/>}></Route>
+                            <Route exact path='/home' render={(): JSX.Element =>
+                                <HomePage extensionVersion={this.state.extensionVersion}/>}>
+                            </Route>
+                            <Route exact path='/tutorials' render={(): JSX.Element =>
+                                <TutorialPage tutorialData={this.state.tutorialData}/>}>
+                            </Route>
+                        </div>
                     </div>
                 </Router>
             );
