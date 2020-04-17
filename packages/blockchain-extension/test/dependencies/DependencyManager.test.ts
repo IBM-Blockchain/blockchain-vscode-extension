@@ -2229,6 +2229,29 @@ describe('DependencyManager Tests', () => {
                 should.not.exist(result.xcode.version);
             });
 
+            it('should continue to get version if Java path exists', async () => {
+                // Test for issue #1657 fix
+                mySandBox.stub(process, 'platform').value('darwin');
+                const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').withArgs('/Library/Java/JavaVirtualMachines').resolves(true);
+                sendCommandStub.withArgs('java -version 2>&1').resolves('openjdk version "1.8.0_212"');
+
+                const result: any = await dependencyManager.getPreReqVersions();
+                pathExistsStub.should.have.been.calledOnce;
+                result.java.version.should.equal('1.8.0');
+            });
+
+            it('should not continue to get version if Java path doesnt exist', async () => {
+                // Test for issue #1657 fix
+                mySandBox.stub(process, 'platform').value('darwin');
+                const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').withArgs('/Library/Java/JavaVirtualMachines').resolves(false);
+                sendCommandStub.withArgs('java -version 2>&1');
+
+                const result: any = await dependencyManager.getPreReqVersions();
+                pathExistsStub.should.have.been.calledOnce;
+                sendCommandStub.should.not.have.been.calledWith('java -version 2>&1');
+                should.not.exist(result.java.version);
+            });
+
         });
 
     });
