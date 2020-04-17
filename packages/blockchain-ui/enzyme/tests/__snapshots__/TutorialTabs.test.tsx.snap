@@ -128,7 +128,7 @@ Array [
           />
         </svg>
         <span
-          className="time-text"
+          className="text"
         >
           4 weeks
         </span>
@@ -221,7 +221,7 @@ Array [
           />
         </svg>
         <span
-          className="time-text"
+          className="text"
         >
           10 minutes
         </span>

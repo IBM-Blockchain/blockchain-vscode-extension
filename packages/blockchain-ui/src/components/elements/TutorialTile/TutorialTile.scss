@@ -32,9 +32,13 @@
     fill: black;
 }
 
-.time-text {
-    align-items: center;
+.text {
     font-size: 12px;
+    margin-right: $spacing-05;
+}
+
+.badge-container {
+    display: inline-flex;
 }
 
 .tutorial-objectives {
