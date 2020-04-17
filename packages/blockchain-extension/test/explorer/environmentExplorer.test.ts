@@ -26,13 +26,9 @@ import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import { RuntimeTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
-import { InstantiatedChaincodeTreeItem } from '../../extension/explorer/model/InstantiatedChaincodeTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { SmartContractsTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/SmartContractsTreeItem';
-import { ChannelsOpsTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/ChannelsOpsTreeItem';
 import { NodesTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/NodesTreeItem';
 import { OrganizationsTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/OrganizationsTreeItem';
-import { InstantiateCommandTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/InstantiateCommandTreeItem';
 import { OrgTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/OrgTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { MetadataUtil } from '../../extension/util/MetadataUtil';
@@ -43,8 +39,6 @@ import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric
 import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, LogType, EnvironmentType, FabricEnvironment } from 'ibm-blockchain-platform-common';
 import { EnvironmentConnectedTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/EnvironmentConnectedTreeItem';
 import { ImportNodesTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/ImportNodesTreeItem';
-import { InstalledChainCodeOpsTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/InstalledChainCodeOpsTreeItem';
-import { InstallCommandTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/InstallCommandTreeItem';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { ManagedAnsibleEnvironmentManager } from '../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
 
@@ -212,6 +206,11 @@ describe('environmentExplorer', () => {
                 fabricConnection = mySandBox.createStubInstance(FabricEnvironmentConnection);
                 getConnectionStub.returns((fabricConnection as any) as FabricEnvironmentConnection);
 
+                const map: Map<string, Array<string>> = new Map<string, Array<string>>();
+                map.set('channelOne', ['peerOne']);
+                map.set('channelTwo', ['peerOne', 'peerTwo']);
+                fabricConnection.createChannelMap.resolves(map);
+
                 const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
                 environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
                 environmentRegistry.managedRuntime = true;
@@ -360,26 +359,25 @@ describe('environmentExplorer', () => {
                 getStateStub.returns(ConnectedState.CONNECTED);
 
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
-                fabricConnection.createChannelMap.throws(new Error('Cannot connect to Fabric: Received http2 header with status: 503'));
+                const error: Error = new Error('Cannot connect to Fabric: Received http2 header with status: 503');
+                fabricConnection.createChannelMap.rejects(error);
                 const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
-                const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
-                const smartcontractsChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
-                await blockchainRuntimeExplorerProvider.getChildren(smartcontractsChildren[1]);
+                await blockchainRuntimeExplorerProvider.getChildren();
 
-                logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Error populating instantiated smart contracts view: Cannot connect to Fabric: Received http2 header with status: 503', 'Error populating instantiated smart contracts view: Cannot connect to Fabric: Received http2 header with status: 503');
+                logSpy.should.have.been.calledOnceWith(LogType.ERROR, `Error populating channel view: ${error.message}`, `Error populating channel view: ${error.toString()}`);
             });
 
             it('should error if getAllChannelsForPeer errors with message when populating channels view', async () => {
                 getStateStub.returns(ConnectedState.CONNECTED);
 
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
-                fabricConnection.createChannelMap.throws(new Error('Error creating channel map: some error'));
+                const error: Error = new Error('Error creating channel map: some error');
+                fabricConnection.createChannelMap.rejects(error);
 
                 const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
-                const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
-                await blockchainRuntimeExplorerProvider.getChildren(allChildren[2]);
+                await blockchainRuntimeExplorerProvider.getChildren();
 
-                logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Error populating channel view: Error creating channel map: some error', 'Error populating channel view: Error: Error creating channel map: some error');
+                logSpy.should.have.been.calledOnceWith(LogType.ERROR, `Error populating channel view: ${error.message}`, `Error populating channel view: ${error.toString()}`);
             });
 
             it('should error if populating nodes view fails', async () => {
@@ -389,7 +387,7 @@ describe('environmentExplorer', () => {
 
                 const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
-                await blockchainRuntimeExplorerProvider.getChildren(allChildren[3]);
+                await blockchainRuntimeExplorerProvider.getChildren(allChildren[allChildren.length - 2]);
 
                 logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Error populating nodes view: some error');
             });
@@ -420,11 +418,11 @@ describe('environmentExplorer', () => {
 
                 fabricConnection.getAllPeerNames.returns(['peerOne', 'peerTwo']);
 
-                const installedChaincodeMapOne: {label: string, packageId: string}[] = [{label: 'sample-car-network', packageId: '1.0'}, {label: 'sample-car-network', packageId: '1.2'}, {label: 'sample-food-network', packageId: '0.6'}];
+                const installedChaincodeMapOne: { label: string, packageId: string }[] = [{ label: 'sample-car-network', packageId: '1.0' }, { label: 'sample-car-network', packageId: '1.2' }, { label: 'sample-food-network', packageId: '0.6' }];
 
                 fabricConnection.getInstalledChaincode.withArgs('peerOne').returns(installedChaincodeMapOne);
 
-                const installedChaincodeMapTwo: {label: string, packageId: string}[] = [{label: 'biscuit-network', packageId: '0.7'}, {label: 'sample-food-network', packageId: '0.6'}];
+                const installedChaincodeMapTwo: { label: string, packageId: string }[] = [{ label: 'biscuit-network', packageId: '0.7' }, { label: 'sample-food-network', packageId: '0.6' }];
 
                 fabricConnection.getInstalledChaincode.withArgs('peerTwo').returns(installedChaincodeMapTwo);
 
@@ -483,15 +481,17 @@ describe('environmentExplorer', () => {
                 const connectedTo: EnvironmentConnectedTreeItem = allChildren[0] as EnvironmentConnectedTreeItem;
                 connectedTo.label.should.equal(`Connected to environment: ${FabricRuntimeUtil.LOCAL_FABRIC}`);
 
-                const smartContracts: SmartContractsTreeItem = allChildren[1] as SmartContractsTreeItem;
-                smartContracts.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
-                smartContracts.contextValue.should.equal('blockchain-runtime-smart-contracts-item');
-                smartContracts.label.should.equal('Smart Contracts');
+                const channelOne: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
+                channelOne.tooltip.should.equal('Associated peers: peerOne');
+                channelOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                channelOne.contextValue.should.equal('blockchain-channel-item');
+                channelOne.label.should.equal('channelOne');
 
-                const channels: ChannelsOpsTreeItem = allChildren[2] as ChannelsOpsTreeItem;
-                channels.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
-                channels.contextValue.should.equal('blockchain-runtime-channels-item');
-                channels.label.should.equal('Channels');
+                const channelTwo: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
+                channelTwo.tooltip.should.equal('Associated peers: peerOne, peerTwo');
+                channelTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                channelTwo.contextValue.should.equal('blockchain-channel-item');
+                channelTwo.label.should.equal('channelTwo');
 
                 const nodes: NodesTreeItem = allChildren[3] as NodesTreeItem;
                 nodes.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
@@ -542,26 +542,6 @@ describe('environmentExplorer', () => {
                 executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
                 executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
                 executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', true);
-            });
-
-            it('should create channels children correctly', async () => {
-
-                allChildren.length.should.equal(5);
-                const channels: ChannelsOpsTreeItem = allChildren[2] as ChannelsOpsTreeItem;
-                const channelsArray: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(channels);
-                channelsArray.length.should.equal(2);
-
-                const channelOne: ChannelTreeItem = channelsArray[0] as ChannelTreeItem;
-                channelOne.tooltip.should.equal('Associated peers: peerOne');
-                channelOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                channelOne.contextValue.should.equal('blockchain-channel-item');
-                channelOne.label.should.equal('channelOne');
-
-                const channelTwo: ChannelTreeItem = channelsArray[1] as ChannelTreeItem;
-                channelTwo.tooltip.should.equal('Associated peers: peerOne, peerTwo');
-                channelTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                channelTwo.contextValue.should.equal('blockchain-channel-item');
-                channelTwo.label.should.equal('channelTwo');
             });
 
             it('should show peers, certificate authorities, and orderer nodes correctly', async () => {
@@ -873,165 +853,6 @@ describe('environmentExplorer', () => {
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
             });
 
-            it('should error if there is a problem with displaying instantiated chaincodes', async () => {
-                fabricConnection.getInstantiatedChaincode.withArgs(['peerOne'], 'channelOne').rejects({ message: 'some error' });
-
-                allChildren = await blockchainRuntimeExplorerProvider.getChildren();
-
-                allChildren.length.should.equal(5);
-
-                const channels: ChannelsOpsTreeItem = allChildren[1] as ChannelsOpsTreeItem;
-                const channelsArray: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(channels);
-                channelsArray.length.should.equal(2);
-
-                const contractTreeItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
-                const instantiatedChaincodes: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[1]);
-                instantiatedChaincodes.length.should.equal(1);
-                const instantiateCommandTreeItem: InstantiateCommandTreeItem = instantiatedChaincodes[0] as InstantiateCommandTreeItem;
-                instantiateCommandTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                instantiateCommandTreeItem.contextValue.should.equal('blockchain-runtime-instantiate-command-item');
-                instantiateCommandTreeItem.label.should.equal('+ Instantiate');
-
-                const installedContractsTree: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
-                installedContractsTree.length.should.equal(5);
-
-                logSpy.should.have.been.calledOnceWith(LogType.ERROR, `Error populating instantiated smart contracts view: some error`, `Error populating instantiated smart contracts view: some error`);
-
-            });
-
-            it('should create the installed chaincode tree correctly', async () => {
-
-                allChildren = await blockchainRuntimeExplorerProvider.getChildren();
-
-                allChildren.length.should.equal(5);
-
-                const contractTreeItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
-                const installedContractsTree: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
-                installedContractsTree.length.should.equal(5);
-                const installedContractOne: InstalledChainCodeOpsTreeItem = installedContractsTree[0] as InstalledChainCodeOpsTreeItem;
-                installedContractOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                installedContractOne.contextValue.should.equal('blockchain-runtime-installed-chaincode-item');
-                installedContractOne.label.should.equal('sample-car-network@1.0');
-                installedContractOne.tooltip.should.equal('Installed on: peerOne');
-                const installedContractTwo: InstalledChainCodeOpsTreeItem = installedContractsTree[1] as InstalledChainCodeOpsTreeItem;
-                installedContractTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                installedContractTwo.contextValue.should.equal('blockchain-runtime-installed-chaincode-item');
-                installedContractTwo.label.should.equal('sample-car-network@1.2');
-                installedContractTwo.tooltip.should.equal('Installed on: peerOne');
-                const installedContractThree: InstalledChainCodeOpsTreeItem = installedContractsTree[2] as InstalledChainCodeOpsTreeItem;
-                installedContractThree.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                installedContractThree.contextValue.should.equal('blockchain-runtime-installed-chaincode-item');
-                installedContractThree.label.should.equal('biscuit-network@0.7');
-                installedContractThree.tooltip.should.equal('Installed on: peerTwo');
-                const installedContractFour: InstalledChainCodeOpsTreeItem = installedContractsTree[3] as InstalledChainCodeOpsTreeItem;
-                installedContractFour.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                installedContractFour.contextValue.should.equal('blockchain-runtime-installed-chaincode-item');
-                installedContractFour.label.should.equal('sample-food-network@0.6');
-                installedContractFour.tooltip.should.equal('Installed on: peerOne, peerTwo');
-                const installCommandTreeItem: InstallCommandTreeItem = installedContractsTree[4] as InstallCommandTreeItem;
-                installCommandTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                installCommandTreeItem.contextValue.should.equal('blockchain-runtime-installed-command-item');
-                installCommandTreeItem.label.should.equal('+ Install');
-
-                logSpy.should.not.have.been.called;
-            });
-
-            it('should handle no installed chaincodes', async () => {
-                fabricConnection.getInstalledChaincode.withArgs('peerOne').resolves([]);
-
-                allChildren = await blockchainRuntimeExplorerProvider.getChildren();
-
-                allChildren.length.should.equal(5);
-
-                const channels: ChannelsOpsTreeItem = allChildren[2] as ChannelsOpsTreeItem;
-                const channelsArray: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(channels);
-                channelsArray.length.should.equal(2);
-
-                const contractTreeItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
-                const installedContractsTree: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
-                installedContractsTree.length.should.equal(3);
-
-                const installedContractOne: InstalledChainCodeOpsTreeItem = installedContractsTree[0] as InstalledChainCodeOpsTreeItem;
-                installedContractOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                installedContractOne.contextValue.should.equal('blockchain-runtime-installed-chaincode-item');
-                installedContractOne.label.should.equal('biscuit-network@0.7');
-
-                const installedContractTwo: InstalledChainCodeOpsTreeItem = installedContractsTree[1] as InstalledChainCodeOpsTreeItem;
-                installedContractTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                installedContractTwo.contextValue.should.equal('blockchain-runtime-installed-chaincode-item');
-                installedContractTwo.label.should.equal('sample-food-network@0.6');
-
-                const installCommandTreeItem: InstallCommandTreeItem = installedContractsTree[2] as InstallCommandTreeItem;
-                installCommandTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                installCommandTreeItem.contextValue.should.equal('blockchain-runtime-installed-command-item');
-                installCommandTreeItem.label.should.equal('+ Install');
-
-                const instantiatedChaincodes: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[1]);
-                instantiatedChaincodes.length.should.equal(4);
-
-                logSpy.should.not.have.been.called;
-            });
-
-            it('should handle errror getting installed chaincodes', async () => {
-                fabricConnection.getInstalledChaincode.withArgs('peerOne').rejects({ message: 'some error' });
-
-                allChildren = await blockchainRuntimeExplorerProvider.getChildren();
-
-                allChildren.length.should.equal(5);
-
-                const contractTreeItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
-                const installedContractsTree: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
-                installedContractsTree.length.should.equal(1);
-
-                const installCommandTreeItem: InstallCommandTreeItem = installedContractsTree[0] as InstallCommandTreeItem;
-                installCommandTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                installCommandTreeItem.contextValue.should.equal('blockchain-runtime-installed-command-item');
-                installCommandTreeItem.label.should.equal('+ Install');
-
-                const instantiatedChaincodes: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[1]);
-                instantiatedChaincodes.length.should.equal(4);
-
-                logSpy.should.have.been.calledOnceWith(LogType.ERROR, `Error populating installed smart contracts view: some error`, `Error populating installed smart contracts view: some error`);
-            });
-
-            it('should create instantiated chaincode correctly', async () => {
-                allChildren = await blockchainRuntimeExplorerProvider.getChildren();
-
-                allChildren.length.should.equal(5);
-
-                const channels: ChannelsOpsTreeItem = allChildren[1] as ChannelsOpsTreeItem;
-                const channelsArray: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(channels);
-                channelsArray.length.should.equal(2);
-
-                const contractTreeItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
-                const instantiatedChaincodes: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[1]);
-                instantiatedChaincodes.length.should.equal(4);
-                const instantiatedChaincodeOne: InstantiatedChaincodeTreeItem = instantiatedChaincodes[0] as InstantiatedChaincodeTreeItem;
-                instantiatedChaincodeOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                instantiatedChaincodeOne.contextValue.should.equal('blockchain-instantiated-chaincode-item');
-                instantiatedChaincodeOne.label.should.equal('biscuit-network@0.7');
-                instantiatedChaincodeOne.tooltip.should.equal('Instantiated on: channelOne, channelTwo');
-                const instantiatedChaincodeTwo: InstantiatedChaincodeTreeItem = instantiatedChaincodes[1] as InstantiatedChaincodeTreeItem;
-                instantiatedChaincodeTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                instantiatedChaincodeTwo.contextValue.should.equal('blockchain-instantiated-chaincode-item');
-                instantiatedChaincodeTwo.label.should.equal('cake-network@0.10');
-                instantiatedChaincodeTwo.tooltip.should.equal('Instantiated on: channelTwo');
-                const instantiatedChaincodeThree: InstantiatedChaincodeTreeItem = instantiatedChaincodes[2] as InstantiatedChaincodeTreeItem;
-                instantiatedChaincodeThree.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                instantiatedChaincodeThree.contextValue.should.equal('blockchain-instantiated-chaincode-item');
-                instantiatedChaincodeThree.label.should.equal('legacy-network@2.34');
-                instantiatedChaincodeThree.tooltip.should.equal('Instantiated on: channelTwo');
-                const instantiateCommandTreeItem: InstantiateCommandTreeItem = instantiatedChaincodes[3] as InstantiateCommandTreeItem;
-                instantiateCommandTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                instantiateCommandTreeItem.contextValue.should.equal('blockchain-runtime-instantiate-command-item');
-                instantiateCommandTreeItem.label.should.equal('+ Instantiate');
-
-                const installedContractsTree: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
-                installedContractsTree.length.should.equal(5);
-
-                logSpy.should.not.have.been.called;
-            });
-
             it('should show organizations correctly', async () => {
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
@@ -1077,6 +898,15 @@ describe('environmentExplorer', () => {
             registryEntry.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
             getEnvRegEntryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry');
             getEnvRegEntryStub.returns(registryEntry);
+
+            const map: Map<string, Array<string>> = new Map<string, Array<string>>();
+            map.set('channelOne', ['peerOne']);
+            map.set('channelTwo', ['peerOne', 'peerTwo']);
+            const fabricConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection> = mySandBox.createStubInstance(FabricEnvironmentConnection);
+            fabricConnection.createChannelMap.resolves(map);
+
+            const getConnectionStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection');
+            getConnectionStub.returns((fabricConnection as any) as FabricEnvironmentConnection);
 
         });
 
@@ -1179,7 +1009,7 @@ describe('environmentExplorer', () => {
             getStateStub.should.have.been.called;
             connectCommandStub.should.have.been.called;
         });
-});
+    });
 
     describe('connect', () => {
 

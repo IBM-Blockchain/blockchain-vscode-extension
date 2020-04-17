@@ -14,8 +14,6 @@
 'use strict';
 import * as vscode from 'vscode';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { PeerTreeItem } from '../explorer/runtimeOps/connectedTree/PeerTreeItem';
-import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
@@ -24,7 +22,7 @@ import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, 
 import { Reporter } from '../util/Reporter';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 
-export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNames?: Set<string>, chosenPackage?: PackageRegistryEntry): Promise<PackageRegistryEntry | undefined> {
+export async function installSmartContract(peerNames?: Set<string>, chosenPackage?: PackageRegistryEntry): Promise<PackageRegistryEntry | undefined> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'installSmartContract');
 
@@ -39,20 +37,15 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
             }
         }
 
-        if ((treeItem instanceof PeerTreeItem)) {
-            // Clicked on peer in runtimes view to install
-            peerNames = new Set([treeItem.peerName]);
-        } else {
-            let peerNameArray: string[];
-            if (peerNames) {
-                peerNameArray = Array.from(peerNames);
-            }
-            const chosenPeerNames: string[] = await UserInputUtil.showPeersQuickPickBox('Choose which peers to install the smart contract on', peerNameArray);
-            if (!chosenPeerNames || chosenPeerNames.length === 0) {
-                return;
-            }
-            peerNames = new Set(chosenPeerNames);
+        let peerNameArray: string[];
+        if (peerNames) {
+            peerNameArray = Array.from(peerNames);
         }
+        const chosenPeerNames: string[] = await UserInputUtil.showPeersQuickPickBox('Choose which peers to install the smart contract on', peerNameArray);
+        if (!chosenPeerNames || chosenPeerNames.length === 0) {
+            return;
+        }
+        peerNames = new Set(chosenPeerNames);
 
         if (!chosenPackage) {
             const chosenInstallable: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', peerNames) as IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>;

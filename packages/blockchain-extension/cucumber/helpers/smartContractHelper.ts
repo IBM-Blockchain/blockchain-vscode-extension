@@ -29,6 +29,8 @@ import { PackageRegistryEntry } from '../../extension/registries/PackageRegistry
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
 
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
+import { IFabricEnvironmentConnection } from 'ibm-blockchain-platform-common';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -61,11 +63,11 @@ export class SmartContractHelper {
         }
 
         if (contractName.includes('Private')) {
-            this.userInputUtilHelper.showQuickPickItemStub.resolves({label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private'});
+            this.userInputUtilHelper.showQuickPickItemStub.resolves({ label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private' });
             this.userInputUtilHelper.inputBoxStub.withArgs('Name the type of asset managed by this smart contract', 'MyPrivateAsset').resolves(assetType);
             this.userInputUtilHelper.inputBoxStub.withArgs('Please provide an mspID for the private data collection', 'Org1MSP').resolves(mspid);
         } else {
-            this.userInputUtilHelper.showQuickPickItemStub.resolves({label: UserInputUtil.GENERATE_DEFAULT_CONTRACT, description: UserInputUtil.GENERATE_DEFAULT_CONTRACT_DESCRIPTION, data: 'default'});
+            this.userInputUtilHelper.showQuickPickItemStub.resolves({ label: UserInputUtil.GENERATE_DEFAULT_CONTRACT, description: UserInputUtil.GENERATE_DEFAULT_CONTRACT_DESCRIPTION, data: 'default' });
             this.userInputUtilHelper.inputBoxStub.withArgs('Name the type of asset managed by this smart contract', 'MyAsset').resolves(assetType);
         }
 
@@ -134,13 +136,18 @@ export class SmartContractHelper {
     }
 
     public async installSmartContract(name: string, version: string): Promise<void> {
-        const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
-        const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
-        const smartContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[0]);
-        const installedLabel: any[] = await blockchainRuntimeExplorerProvider.getChildren(smartContracts[1]); // Smart contracts
-        const installedContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(installedLabel[0]); // installed smart contracts
-        const installedContract: any = installedContracts.find((contract: any) => {
-            return contract.label === `${name}@${version}`;
+        const fabricEnvironmentConnection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
+        const peerNames: string[] = fabricEnvironmentConnection.getAllPeerNames();
+
+        const installedContracts: { label: string, packageId: string }[] = [];
+
+        for (const peerName of peerNames) {
+            const contracts: { label: string, packageId: string }[] = await fabricEnvironmentConnection.getInstalledChaincode(peerName);
+            installedContracts.push(...contracts);
+        }
+
+        const installedContract: { label: string; packageId: string } = installedContracts.find((contract: { label: string, packageId: string }) => {
+            return contract.label === name && contract.packageId === version;
         });
 
         if (!installedContract) {
