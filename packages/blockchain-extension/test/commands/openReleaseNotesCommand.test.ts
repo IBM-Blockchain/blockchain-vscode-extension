@@ -20,15 +20,19 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { LogType } from 'ibm-blockchain-platform-common';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { TestUtil } from '../TestUtil';
 chai.should();
 
 describe('openReleaseNotes', () => {
     let mySandbox: sinon.SinonSandbox;
     let logSpy: sinon.SinonSpy;
 
-    beforeEach(async () => {
+    before(async () => {
         mySandbox = sinon.createSandbox();
+        await TestUtil.setupTests(mySandbox);
+    });
 
+    beforeEach(async () => {
         logSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
     });
 

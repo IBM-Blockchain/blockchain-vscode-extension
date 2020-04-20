@@ -186,6 +186,14 @@
     a.bx--tabs__nav-link:focus {
         outline: 2px solid $blue-40;
     }
+
+    .download-all {
+        color: $blue-40;
+    }
+    
+    a:hover {
+        color: $blue-40;
+    }
 }
 
 @mixin tutorial-tile-dark {

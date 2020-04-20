@@ -1,6 +1,7 @@
 [
     {
         "name": "Basic tutorials",
+        "tutorialFolder": "basic-tutorials",
         "tutorials": [
             {
                 "title": "A1: Introduction",
@@ -14,7 +15,7 @@
                   "Learn about IBM Blockchain Platform and the VS Code extension"
                 ],
                 "badge": true,
-                "file": "basic-tutorials/a1.md"
+                "file": "new-tutorials/basic-tutorials/a1.md"
             },
             {
                 "title": "A2: Creating a smart contract",
@@ -26,7 +27,7 @@
                   "Implement a basic smart contract using a standard template",
                   "Understand what the smart contract does"
                 ],
-                "file": "basic-tutorials/a2.md"
+                "file": "new-tutorials/basic-tutorials/a2.md"
             },
             {
                 "title": "A3: Deploying a smart contract",
@@ -38,7 +39,7 @@
                   "Package the smart contract we previously created",
                   "Deploy the smart contract to the running Hyperledger Fabric"
                 ],
-                "file": "basic-tutorials/a3.md"
+                "file": "new-tutorials/basic-tutorials/a3.md"
             },
             {
                 "title": "A4: Invoking a smart contract from VS Code",
@@ -50,7 +51,7 @@
                   "Understand the different types of transactions",
                   "Submit transactions that call the smart contract directly in VS Code"
                 ],
-                "file": "basic-tutorials/a4.md"
+                "file": "new-tutorials/basic-tutorials/a4.md"
             },
             {
                 "title": "A5: Invoking a smart contract from an external application",
@@ -62,7 +63,7 @@
                   "Run the application to submit a transaction",
                   "Modify the application and test the changes"
                 ],
-                "file": "basic-tutorials/a5.md"
+                "file": "new-tutorials/basic-tutorials/a5.md"
             },
             {
                 "title": "A6: Upgrading a smart contract",
@@ -74,7 +75,7 @@
                   "Package, install and instantiate the new smart contract",
                   "Try out the new smart contract"
                 ],
-                "file": "basic-tutorials/a6.md"
+                "file": "new-tutorials/basic-tutorials/a6.md"
             },
             {
                 "title": "A7: Debugging a smart contract",
@@ -86,7 +87,7 @@
                   "Use the VS Code debugger to step through our new transaction and see how it works",
                   "Use watches to see how we can monitor variables in smart contracts"
                 ],
-                "file": "basic-tutorials/a7.md"
+                "file": "new-tutorials/basic-tutorials/a7.md"
             },
             {
                 "title": "A8: Testing a smart contract",
@@ -98,7 +99,7 @@
                   "Generate functional tests for our smart contract",
                   "Customize and run a sample test"
                 ],
-                "file": "basic-tutorials/a8.md"
+                "file": "new-tutorials/basic-tutorials/a8.md"
             },
             {
                 "title": "A9: Publishing an event",
@@ -110,7 +111,7 @@
                   "Subscribe to the event in VS Code",
                   "Submit a transaction and observe the event's output"
                 ],
-                "file": "basic-tutorials/a9.md"
+                "file": "new-tutorials/basic-tutorials/a9.md"
             },
             {
                 "title": "A10: Claim your badge!",
@@ -123,12 +124,13 @@
                   "Invite you to test your learning and gain a badge"
                 ],
                 "badge": true,
-                "file": "basic-tutorials/a10.md"
+                "file": "new-tutorials/basic-tutorials/a10.md"
             }
         ]
     },
     {
         "name": "Other tutorials",
+        "tutorialFolder": "other-tutorials",
         "tutorials": [
             {
                 "title": "Local smart contract development",
