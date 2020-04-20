@@ -786,30 +786,6 @@
                     "when": "view == environmentExplorer && !blockchain-runtime-connected && blockchain-opstool-connected && !blockchain-ansible-connected && viewItem == blockchain-peer-item || view == environmentExplorer && !blockchain-runtime-connected && blockchain-opstool-connected && !blockchain-ansible-connected && viewItem == blockchain-runtime-certificate-authority-item || view == environmentExplorer && !blockchain-runtime-connected && blockchain-opstool-connected && !blockchain-ansible-connected && viewItem == blockchain-runtime-orderer-item"
                 },
                 {
-                    "command": "environmentExplorer.installSmartContractEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-environment-connected"
-                },
-                {
-                    "command": "environmentExplorer.installSmartContractEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-installed-item"
-                },
-                {
-                    "command": "environmentExplorer.instantiateSmartContractEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-channel-item || viewItem == blockchain-runtime-instantiated-item"
-                },
-                {
-                    "command": "environmentExplorer.upgradeSmartContractEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-channel-item"
-                },
-                {
-                    "command": "environmentExplorer.upgradeSmartContractEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-instantiated-item"
-                },
-                {
-                    "command": "environmentExplorer.upgradeSmartContractEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-instantiated-contract-item || viewItem == blockchain-instantiated-chaincode-item"
-                },
-                {
                     "command": "environmentExplorer.replaceAssociatedIdentityEntry",
                     "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item && blockchain-environment-connected && !blockchain-runtime-connected"
                 },

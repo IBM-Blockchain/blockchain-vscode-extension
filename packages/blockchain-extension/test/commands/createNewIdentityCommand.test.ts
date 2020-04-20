@@ -70,6 +70,7 @@ describe('createNewIdentityCommand', () => {
         mockFabricRuntimeConnection.getAllCertificateAuthorityNames.returns(['ca.name']);
         mockFabricRuntimeConnection.getAllOrdererNames.returns([]);
         mockFabricRuntimeConnection.getAllPeerNames.returns([]);
+        mockFabricRuntimeConnection.createChannelMap.resolves(new Map());
         mockFabricRuntimeConnection.register.resolves('it\'s a secret');
         mockFabricRuntimeConnection.enroll.resolves({
             certificate: 'this is a certificate',
@@ -95,7 +96,7 @@ describe('createNewIdentityCommand', () => {
 
         const runtimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const allChildren: BlockchainTreeItem[] = await runtimeExplorerProvider.getChildren();
-        const nodesTreeItem: NodesTreeItem = allChildren[3] as NodesTreeItem;
+        const nodesTreeItem: NodesTreeItem = allChildren[allChildren.length - 2] as NodesTreeItem;
         const nodes: BlockchainTreeItem[] = await runtimeExplorerProvider.getChildren(nodesTreeItem);
         certificateAuthorityTreeItem = nodes[0] as CertificateAuthorityTreeItem;
     });
