@@ -164,7 +164,7 @@ describe('EnvironmentConnectCommand', () => {
 
                 chooseEnvironmentQuickPick.should.have.been.calledWith(sinon.match.string, false, true, true);
                 connectExplorerStub.should.have.been.called;
-                connectManagerSpy.should.have.been.calledWith(mockConnection, environmentRegistryEntry, ConnectedState.CONNECTING);
+                connectManagerSpy.should.have.been.calledWith(mockConnection, environmentRegistryEntry, ConnectedState.CONNECTING, true);
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'user environment', connectEnvironmentIBM: sinon.match.string, environmentType: 'Fabric Network created via JSON files' });
                 logSpy.calledWith(LogType.SUCCESS, 'Connected to myFabric');
@@ -187,7 +187,7 @@ describe('EnvironmentConnectCommand', () => {
 
                 chooseEnvironmentQuickPick.should.have.been.calledWith(sinon.match.string, false, true, true);
                 connectExplorerStub.should.have.been.called;
-                connectManagerSpy.should.have.been.calledWith(mockConnection, environmentRegistryEntry, ConnectedState.CONNECTING);
+                connectManagerSpy.should.have.been.calledWith(mockConnection, environmentRegistryEntry, ConnectedState.CONNECTING, true);
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'user environment', connectEnvironmentIBM: sinon.match.string, environmentType: 'Fabric Network created via JSON files' });
                 logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Connected to myFabric');
@@ -222,7 +222,7 @@ describe('EnvironmentConnectCommand', () => {
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
                 connectExplorerStub.should.have.been.calledOnce;
-                connectManagerSpy.should.have.been.calledWith(mockConnection, environmentRegistryEntry, ConnectedState.CONNECTING);
+                connectManagerSpy.should.have.been.calledWith(mockConnection, environmentRegistryEntry, ConnectedState.CONNECTING, true);
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'user environment', connectEnvironmentIBM: sinon.match.string, environmentType: 'Fabric Network created via JSON files' });
             });
@@ -335,6 +335,41 @@ describe('EnvironmentConnectCommand', () => {
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'user environment', connectEnvironmentIBM: sinon.match.string, environmentType: 'Ops Tools network' });
             });
+
+            it('should not refresh timer if extension cannot reach ops console but still connect to an Ops Tools evironment with nodes', async () => {
+                requireSetupStub.resolves(false);
+                chooseEnvironmentQuickPick.resolves({ label: 'myOpsToolsFabric', data: opsToolsEnvRegistryEntry });
+                const consoleConnectError: Error = new Error(`Nodes in ${opsToolsEnvRegistryEntry.name} might be out of date. Unable to connect to the IBM Blockchain Platform Console with error: some error`);
+                executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).throws(consoleConnectError);
+
+                getNodesStub.resolves([ordererNode, caNode]);
+
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+
+                getNodesStub.should.have.been.calledTwice;
+                warningNoNodesEditFilterStub.should.have.not.been.called;
+                executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
+                connectManagerSpy.should.have.been.calledWith(mockConnection, opsToolsEnvRegistryEntry, ConnectedState.CONNECTING, false);
+                executeCommandStub.getCalls().filter((call: any) => call.args[0] === ExtensionCommands.EDIT_NODE_FILTERS && call.args[4] === true).should.not.deep.equal([]);
+                mockConnection.connect.should.have.been.called;
+            });
+
+            it('should return if edit filters/import nodes throws an error when connecting to existing environment', async () => {
+                requireSetupStub.resolves(false);
+                chooseEnvironmentQuickPick.resolves({ label: 'myOpsToolsFabric', data: opsToolsEnvRegistryEntry });
+                const someError: Error = new Error('some error');
+                executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).throws(someError);
+
+                getNodesStub.resolves([ordererNode, caNode]);
+
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+
+                connectExplorerStub.should.not.have.been.called;
+                connectManagerSpy.should.not.have.been.called;
+                mockConnection.connect.should.not.have.been.called;
+                sendTelemetryEventStub.should.not.have.been.called;
+                logSpy.should.have.been.calledWith(LogType.ERROR, `Cannot connect to environment: ${someError.message}`, `Cannot connect to environment: ${someError.toString()}`);
+            });
         });
 
         describe('LocalEnvironment', () => {
@@ -366,7 +401,7 @@ describe('EnvironmentConnectCommand', () => {
                 connectExplorerStub.should.have.been.calledOnce;
                 chooseEnvironmentQuickPick.should.have.been.calledWith(sinon.match.string, false, true, true);
                 mockConnection.connect.should.have.been.calledOnce;
-                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTING);
+                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTING, true);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'managed environment', connectEnvironmentIBM: sinon.match.string, environmentType: 'Local network' });
                 logSpy.calledWith(LogType.SUCCESS, `Connected to ${FabricRuntimeUtil.LOCAL_FABRIC}`);
             });
@@ -379,7 +414,7 @@ describe('EnvironmentConnectCommand', () => {
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
                 connectExplorerStub.should.have.been.calledOnce;
-                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTING);
+                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTING, true);
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'managed environment', connectEnvironmentIBM: sinon.match.string, environmentType: 'Local network' });
             });
@@ -395,7 +430,7 @@ describe('EnvironmentConnectCommand', () => {
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
                 connectExplorerStub.should.have.been.calledOnce;
-                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTING);
+                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTING, true);
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'managed environment', connectEnvironmentIBM: sinon.match.string, environmentType: 'Local network' });
             });

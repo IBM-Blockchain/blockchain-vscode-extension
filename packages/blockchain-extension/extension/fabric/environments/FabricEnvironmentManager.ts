@@ -56,11 +56,13 @@ export class FabricEnvironmentManager extends EventEmitter {
         this.state = newState;
     }
 
-    public connect(connection: IFabricEnvironmentConnection, environmentRegistryEntry: FabricEnvironmentRegistryEntry, state: ConnectedState): void {
+    public connect(connection: IFabricEnvironmentConnection, environmentRegistryEntry: FabricEnvironmentRegistryEntry, state: ConnectedState, startRefresh: boolean = true): void {
         this.connection = connection;
         this.environmentRegistryEntry = environmentRegistryEntry;
         this.state = state;
-        this.startEnvironmentRefresh();
+        if (startRefresh) {
+            this.startEnvironmentRefresh();
+        }
         this.emit('connected');
     }
 

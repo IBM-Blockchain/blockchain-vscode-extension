@@ -78,6 +78,17 @@ describe('FabricEnvironmentManager', () => {
             listenerStub.should.have.been.calledOnceWithExactly();
             startEnivronmentRefreshStub.should.have.been.calledOnce;
         });
+        it('should not start environment refresh if requested', () => {
+            const listenerStub: sinon.SinonStub = sandbox.stub();
+            const startEnivronmentRefreshStub: sinon.SinonStub = sandbox.stub(FabricEnvironmentManager.instance(), 'startEnvironmentRefresh');
+            environmentManager.once('connected', listenerStub);
+            environmentManager.connect((mockEnvironmentConnection as any) as IFabricEnvironmentConnection, registryEntry, ConnectedState.CONNECTED, false);
+            environmentManager.getConnection().should.equal(mockEnvironmentConnection);
+            environmentManager.getEnvironmentRegistryEntry().should.equal(registryEntry);
+            environmentManager.getState().should.equal(ConnectedState.CONNECTED);
+            listenerStub.should.have.been.calledOnceWithExactly();
+            startEnivronmentRefreshStub.should.have.not.been.called;
+        });
     });
 
     describe('#disconnect', () => {
