@@ -9,6 +9,20 @@ interface IProps {
 
 class TutorialTile extends Component <IProps> {
 
+    constructor(props: Readonly<IProps>) {
+        super(props);
+
+        this.populateObjectives = this.populateObjectives.bind(this);
+    }
+
+    populateObjectives(): JSX.Element[] {
+        const objectivesJSX: JSX.Element[] = [];
+        for (const objective of this.props.tutorialObject.objectives) {
+            objectivesJSX.push(<p className='objective'>{objective}</p>);
+        }
+        return objectivesJSX;
+    }
+
     render(): JSX.Element {
         return (
             <div className='tab-container'>
@@ -20,9 +34,7 @@ class TutorialTile extends Component <IProps> {
                     <span className='time-text'>{this.props.tutorialObject.length}</span>
                 </div>
                 <div className='tutorial-objectives'>
-                    <p className='objective'>Learn about what blockchain is and why its important</p>
-                    <p className='objective'>Learn about the Linux Foundation Hyperledger Project and Hyperledger Fabric</p>
-                    <p className='objective'>Learn about IBM Blockchain Platform and the VS Code extension</p>
+                    {this.populateObjectives()}
                 </div>
                 <div className='button-container'>
                     <Button className='pdf-button' kind='ghost' size='default'>Download as PDF</Button>

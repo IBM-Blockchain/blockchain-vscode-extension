@@ -17,6 +17,11 @@ describe('TutorialTile component', () => {
             title: 'a1',
             firstInSeries: true,
             length: '4 weeks',
+            objectives: [
+                'objective 1',
+                'objective 2',
+                'objective 3'
+            ],
             file: 'some/file/path'
     };
 
@@ -36,6 +41,11 @@ describe('TutorialTile component', () => {
         const anotherTutorialObject: any = {
             title: 'a4',
             length: '3 weeks',
+            objectives: [
+                'objective 1',
+                'objective 2',
+                'objective 3'
+            ],
             file: 'some/file/path'
         };
         const component: ReactWrapper<{tutorialObject: any}, {}> = mount(<TutorialTile tutorialObject={anotherTutorialObject}/>);
