@@ -21,7 +21,7 @@ import { CloudAccountApi } from '../interfaces/cloud-account-api';
  */
 export class ExtensionsInteractionUtil {
 
-    public static async cloudAccountGetAccessToken(): Promise<string> {
+    public static async cloudAccountGetAccessToken(userInteraction: boolean = true): Promise<string> {
         const  cloudAccountExtension: vscode.Extension<any> = vscode.extensions.getExtension( 'IBM.ibmcloud-account' );
         if ( !cloudAccountExtension ) {
             throw new Error('IBM Cloud Account extension must be installed');
@@ -33,13 +33,23 @@ export class ExtensionsInteractionUtil {
         let isLoggedIn: boolean = await cloudAccount.loggedIn();
         let hasAccount: boolean;
         if ( !isLoggedIn ) {
-            // If not logged in, ask the user to login, and then to select the account.
-            await vscode.commands.executeCommand('ibmcloud-account.login');
+            if (userInteraction) {
+                // If not logged in, ask the user to login, and then to select the account.
+                await vscode.commands.executeCommand('ibmcloud-account.login');
+            } else {
+                // Just return if we are not supposed request user interaction.
+                return;
+            }
         } else {
             hasAccount = await cloudAccount.accountSelected();
             if ( !hasAccount ) {
-                // If not logged in, this will first ask the user to login, and then to select the account.
-                await vscode.commands.executeCommand('ibmcloud-account.selectAccount');
+                if (userInteraction) {
+                    // If not logged in, this will first ask the user to login, and then to select the account.
+                    await vscode.commands.executeCommand('ibmcloud-account.selectAccount');
+                } else {
+                    // Just return if we are not supposed request user interaction.
+                    return;
+                }
             }
         }
 

@@ -2501,4 +2501,13 @@ describe('ExtensionUtil Tests', () => {
         });
 
     });
+
+    describe('getExtensionRequireCloudLoginSetting', () => {
+        it('should get required cloud login setting', async () => {
+
+            const result: any = ExtensionUtil.getExtensionRequireCloudLoginSetting();
+            result.should.deep.equal( true );
+        });
+    });
+
 });
