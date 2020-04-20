@@ -50,17 +50,17 @@ exports[`TutorialTile component should render the expected snapshot 1`] = `
     <p
       className="objective"
     >
-      Learn about what blockchain is and why its important
+      objective 1
     </p>
     <p
       className="objective"
     >
-      Learn about the Linux Foundation Hyperledger Project and Hyperledger Fabric
+      objective 2
     </p>
     <p
       className="objective"
     >
-      Learn about IBM Blockchain Platform and the VS Code extension
+      objective 3
     </p>
   </div>
   <div

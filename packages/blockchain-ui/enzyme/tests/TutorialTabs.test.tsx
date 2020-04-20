@@ -17,6 +17,11 @@ describe('TutorialTabs component', () => {
                 {
                     title: 'a1',
                     length: '4 weeks',
+                    objectives: [
+                    'objective 1',
+                    'objective 2',
+                    'objective 3'
+                    ],
                     file: 'some/file/path'
                 }
             ]
@@ -27,6 +32,11 @@ describe('TutorialTabs component', () => {
                 {
                     title: 'something really interesting',
                     length: '10 minutes',
+                    objectives: [
+                        'objective 1',
+                        'objective 2',
+                        'objective 3'
+                    ],
                     file: 'another/file/path'
                 }
             ]
