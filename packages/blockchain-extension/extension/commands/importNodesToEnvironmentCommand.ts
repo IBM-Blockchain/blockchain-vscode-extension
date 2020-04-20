@@ -26,7 +26,7 @@ import Axios from 'axios';
 import { ModuleUtil } from '../util/ModuleUtil';
 import { ExtensionsInteractionUtil } from '../util/ExtensionsInteractionUtil';
 
-export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false, createMethod?: string, informOfChanges: boolean = false, showSuccess: boolean = true): Promise<boolean> {
+export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false, createMethod?: string, informOfChanges: boolean = false, showSuccess: boolean = true, fromConnectEnvironment: boolean = false): Promise<boolean> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     const methodMessageString: string = createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS ? 'import' : 'filter';
     if (showSuccess) {
@@ -158,6 +158,9 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                 if (environmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
                     const accessToken: string = await ExtensionsInteractionUtil.cloudAccountGetAccessToken();
                     if (!accessToken) {
+                        if (fromConnectEnvironment) {
+                            throw new Error('User must be logged in to an IBM Cloud account');
+                        }
                         return;
                     }
                     requestOptions = { headers: { Authorization: `Bearer ${accessToken}` } };
@@ -247,8 +250,15 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
 
                 nodesToUpdate.push(...filteredData);
             } catch (error) {
-                outputAdapter.log(LogType.ERROR, `Failed to acquire nodes from ${environmentRegistryEntry.url}, with error ${error.message}`, `Failed to acquire nodes from ${environmentRegistryEntry.url}, with error ${error.toString()}`);
-                throw error;
+                if (fromConnectEnvironment) {
+                    const newError: Error = new Error(`Nodes in ${environmentRegistryEntry.name} might be out of date. Unable to connect to the IBM Blockchain Platform Console with error: ${error.message}`);
+                    outputAdapter.log(LogType.ERROR, undefined, error.toString());
+                    outputAdapter.log(LogType.WARNING, newError.message, newError.toString());
+                    throw newError;
+                } else {
+                    outputAdapter.log(LogType.ERROR, `Failed to acquire nodes from ${environmentRegistryEntry.url}, with error ${error.message}`, `Failed to acquire nodes from ${environmentRegistryEntry.url}, with error ${error.toString()}`);
+                    throw error;
+                }
             }
         }
 
@@ -335,6 +345,9 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
         return addedAllNodes;
 
     } catch (error) {
+        if (fromConnectEnvironment) {
+            throw error;
+        }
         outputAdapter.log(LogType.ERROR, `Error ${methodMessageString}ing nodes: ${error.message}`);
         if (fromAddEnvironment) {
             throw error;
