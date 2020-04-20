@@ -151,6 +151,25 @@ describe('ExtensionsInteractionUtil Test', () => {
             loginStub.should.have.been.called;
         });
 
+        it('should return without asking for user input if user not logged in and userInteraction is false ', async () => {
+            chai.should().equal(undefined, accessToken);
+            isLoggedInStub.resolves(false);
+
+            try {
+                accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken( false );
+            } catch (e) {
+                chai.assert.isNull(e, 'there should not have been an error!');
+            }
+            chai.should().equal(undefined, accessToken);
+            getExtensionStub.should.have.been.calledOnce;
+            isLoggedInStub.should.have.been.calledOnce;
+            accountSelectedStub.should.have.not.been.called;
+            getAccessTokenStub.should.have.not.been.called;
+            activateStub.should.have.not.been.called;
+            selectAccountStub.should.have.not.been.called;
+            loginStub.should.have.not.been.called;
+        });
+
         it('should handle user not selecting account and gracefuly return', async () => {
             chai.should().equal(undefined, accessToken);
             accountSelectedStub.resolves(false);
@@ -167,6 +186,25 @@ describe('ExtensionsInteractionUtil Test', () => {
             getAccessTokenStub.should.have.not.been.calledOnce;
             activateStub.should.have.not.been.called;
             selectAccountStub.should.have.been.called;
+            loginStub.should.have.not.been.called;
+        });
+
+        it('should return without asking for user input if no account selected and userInteraction is false ', async () => {
+            chai.should().equal(undefined, accessToken);
+            accountSelectedStub.resolves(false);
+
+            try {
+                accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken(false);
+            } catch (e) {
+                chai.assert.isNull(e, 'there should not have been an error!');
+            }
+            chai.should().equal(undefined, accessToken);
+            getExtensionStub.should.have.been.calledOnce;
+            isLoggedInStub.should.have.been.calledOnce;
+            accountSelectedStub.should.have.been.calledOnce;
+            getAccessTokenStub.should.have.not.been.calledOnce;
+            activateStub.should.have.not.been.called;
+            selectAccountStub.should.have.not.been.called;
             loginStub.should.have.not.been.called;
         });
 
