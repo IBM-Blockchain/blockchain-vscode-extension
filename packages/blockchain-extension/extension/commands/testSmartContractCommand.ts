@@ -27,8 +27,8 @@ import { MetadataUtil } from '../util/MetadataUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletRegistryEntry, IFabricGatewayConnection, LogType, FabricGatewayRegistryEntry  } from 'ibm-blockchain-platform-common';
 import { ContractTreeItem } from '../explorer/model/ContractTreeItem';
-import { FABRIC_CLIENT_VERSION, FABRIC_NETWORK_VERSION } from '../util/ExtensionUtil';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
+import { FABRIC_NETWORK_NODE_VERSION, FABRIC_NETWORK_JAVA_VERSION } from '../util/ExtensionUtil';
 
 export async function testSmartContract(allContracts: boolean, chaincode?: InstantiatedTreeItem | ContractTreeItem): Promise<void> {
 
@@ -492,11 +492,11 @@ async function installNodeModules(dir: string, language: string): Promise<void> 
     let npmInstallOut: string;
 
     if (language === 'TypeScript') {
-        outputAdapter.log(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_VERSION}, fabric-client@${FABRIC_CLIENT_VERSION}, @types/mocha, ts-node, typescript`);
-        npmInstallOut = await CommandUtil.sendCommandWithProgress(`npm install && npm install --save-dev fabric-network@${FABRIC_NETWORK_VERSION} fabric-client@${FABRIC_CLIENT_VERSION} @types/mocha ts-node typescript`, dir, 'Installing npm and package dependencies in smart contract project');
+        outputAdapter.log(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_NODE_VERSION}, @types/mocha, ts-node, typescript`);
+        npmInstallOut = await CommandUtil.sendCommandWithProgress(`npm install && npm install --save-dev fabric-network@${FABRIC_NETWORK_NODE_VERSION} @types/mocha ts-node typescript`, dir, 'Installing npm and package dependencies in smart contract project');
     } else {
-        outputAdapter.log(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_VERSION}, fabric-client@${FABRIC_CLIENT_VERSION}`);
-        npmInstallOut = await CommandUtil.sendCommandWithProgress(`npm install && npm install --save-dev fabric-network@${FABRIC_NETWORK_VERSION} fabric-client@${FABRIC_CLIENT_VERSION}`, dir, 'Installing npm and package dependencies in smart contract project');
+        outputAdapter.log(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_NODE_VERSION}`);
+        npmInstallOut = await CommandUtil.sendCommandWithProgress(`npm install && npm install --save-dev fabric-network@${FABRIC_NETWORK_NODE_VERSION}`, dir, 'Installing npm and package dependencies in smart contract project');
     }
     outputAdapter.log(LogType.INFO, undefined, npmInstallOut);
 }
@@ -535,7 +535,7 @@ async function updateBuildFile(buildFile: string, state: any): Promise<void> {
             'fabric-gateway-java': {
                 groupId: 'org.hyperledger.fabric',
                 artifactId: 'fabric-gateway-java',
-                version: '1.4.2',
+                version: FABRIC_NETWORK_JAVA_VERSION,
                 present: false,
             },
             'assertj-core': {

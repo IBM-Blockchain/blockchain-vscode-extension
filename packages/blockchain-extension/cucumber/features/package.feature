@@ -10,8 +10,8 @@ Feature: Smart Contracts packages
         And the tree item should have a tooltip equal to '<packagedName>\nFile size: <size> KB'
         Examples:
         | language   | assetType | name               | packagedName             | size     | version |
-        | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1 | 47       | 0.0.1   |
-        | TypeScript | Conga     | TypeScriptContract | TypeScriptContract@0.0.1 | 44       | 0.0.1   |
+        | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1 | 43       | 0.0.1   |
+        | TypeScript | Conga     | TypeScriptContract | TypeScriptContract@0.0.1 | 39       | 0.0.1   |
         | Java       | Conga     | JavaContract       | JavaContract@0.0.1       | 55       | 0.0.1   |
         | Go         | null      | GoContract         | GoContract@0.0.1         | 1        | 0.0.1   |
 

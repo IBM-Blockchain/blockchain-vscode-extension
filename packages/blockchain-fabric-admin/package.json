@@ -22,10 +22,10 @@
         "createModule": "npm pack"
     },
     "dependencies": {
-        "fabric-ca-client": "2.0.0-snapshot.394",
-        "fabric-common": "2.0.0-snapshot.387",
-        "fabric-network": "2.0.0-snapshot.351",
-        "fabric-protos": "2.0.0-snapshot.245",
+        "fabric-ca-client": "2.1.0",
+        "fabric-common": "2.1.0",
+        "fabric-network": "2.1.0",
+        "fabric-protos": "2.1.0",
         "fs-extra": "^8.1.0",
         "ignore-walk": "^3.0.0",
         "klaw": "^2.0.0",
