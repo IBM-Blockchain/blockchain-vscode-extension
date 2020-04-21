@@ -116,7 +116,7 @@ These contain all of the files needed to import your network and start interacti
 >
 > Once you have run your Ansible playbook and your network has started, you can refresh the `Fabric Gateways` and `Fabric Wallets` panels to see your gateways and wallets.
 
-6. If your `one-org-network` generated Ansible Fabric network is running, you will see a gateway `ansibleNetwork - Org1` and wallet `ansibleNetwork - Org1 Wallet`.
+6. If your `one-org-network` generated Ansible Fabric network is running, you will see a gateway `ansibleNetwork - Org1 gateway` and wallet `ansibleNetwork > Org1`.
 >
 
 </details>

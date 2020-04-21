@@ -42,7 +42,7 @@ export class AnsibleEnvironment extends FabricEnvironment {
             walletRegistryEntry.name = walletName;
             walletRegistryEntry.walletPath = path.join(this.path, FileConfigurations.FABRIC_WALLETS, walletName);
             walletRegistryEntry.managedWallet = false;
-            walletRegistryEntry.displayName = `${this.name} - ${walletName} Wallet`;
+            walletRegistryEntry.displayName = `${this.name} - ${walletName}`;
             walletRegistryEntry.fromEnvironment = this.name;
 
             entries.push(walletRegistryEntry);
@@ -89,7 +89,7 @@ export class AnsibleEnvironment extends FabricEnvironment {
             const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             gatewayRegistryEntry.name = `${this.name} - ${gateway.name}`;
             gatewayRegistryEntry.associatedWallet = (gateway.connectionProfile as any).wallet;
-            gatewayRegistryEntry.displayName = `${this.name} - ${gateway.name}`;
+            gatewayRegistryEntry.displayName = `${gateway.name}`;
             gatewayRegistryEntry.connectionProfilePath = gateway.path;
             gatewayRegistryEntry.fromEnvironment = this.name;
             entries.push(gatewayRegistryEntry);

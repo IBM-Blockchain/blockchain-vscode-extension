@@ -41,7 +41,7 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
         gatewayRegistryEntry = chosenEntry.data;
     }
 
-    const gatewayName: string = gatewayRegistryEntry.displayName ? gatewayRegistryEntry.displayName : gatewayRegistryEntry.name;
+    const gatewayName: string = gatewayRegistryEntry.name;
 
     const environmentName: string = gatewayRegistryEntry.fromEnvironment;
     let environmentEntry: FabricEnvironmentRegistryEntry;

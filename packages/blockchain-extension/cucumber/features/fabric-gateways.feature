@@ -63,6 +63,7 @@ Feature: Fabric Gateways
     Then there should be a tree item with a label 'Connected via gateway: gatewayFromEnv' in the 'Fabric Gateways' panel
     And the tree item should have a tooltip equal to 'Connected via gateway: gatewayFromEnv'
 
+<<<<<<< HEAD
   @ansibleFabric
   Scenario: Create a gateway from an ansible environment
     Given an environment 'myAnsibleFabric' exists
@@ -74,6 +75,21 @@ Feature: Fabric Gateways
     When connecting to the 'myAnsibleFabric - Org1 gateway' gateway
     Then there should be a tree item with a label 'Connected via gateway: myAnsibleFabric - Org1 gateway' in the 'Fabric Gateways' panel
     And the tree item should have a tooltip equal to 'Connected via gateway: myAnsibleFabric - Org1 gateway'
+=======
+    @ansibleFabric
+    Scenario: Create a gateway from an ansible environment
+        Given an environment 'myAnsibleFabric' exists
+        Given the 'admin' identity
+        Then there should be a tree item with a label 'myAnsibleFabric' in the 'Fabric Gateways' panel
+        And the 'Fabric Gateways' tree item should have a child 'Org1 gateway ⧉'
+        And the tree item should have a tooltip equal to 'ⓘ Associated wallet:\n    Org1'
+        And there should be a tree item with a label 'myAnsibleFabric' in the 'Fabric Gateways' panel
+        And the 'Fabric Gateways' tree item should have a child 'Org2 gateway ⧉'
+        And the tree item should have a tooltip equal to 'ⓘ Associated wallet:\n    Org2'
+        When connecting to the 'myAnsibleFabric - Org1 gateway' gateway
+        Then there should be a tree item with a label 'Connected via gateway: myAnsibleFabric - Org1 gateway' in the 'Fabric Gateways' panel
+        And the tree item should have a tooltip equal to 'Connected via gateway: myAnsibleFabric - Org1 gateway'    
+>>>>>>> 994556c9... Grouped gateways and wallets (close #1865) (#2189)
 
   @otherFabric
   Scenario: Export connection profile
