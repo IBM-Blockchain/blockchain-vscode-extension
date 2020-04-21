@@ -659,7 +659,7 @@ export class ExtensionUtil {
         // This needs to be done as a seperate call to make sure the dependencies have been installed
         const generatorVersion: string = dependencies['generator-fabric'];
 
-        if (extensionData.generatorVersion !== null && generatorVersion !== extensionData.generatorVersion) {
+        if (extensionData.generatorVersion && generatorVersion !== extensionData.generatorVersion) {
             // If the latest generator version is not equal to the previous used version
 
             let teardownRuntimes: boolean = false;
@@ -744,7 +744,7 @@ export class ExtensionUtil {
             await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', false);
         }
 
-        if (extensionData.generatorVersion === null) {
+        if (!extensionData.generatorVersion) {
             extensionData.generatorVersion = generatorVersion;
             await GlobalState.update(extensionData);
         }

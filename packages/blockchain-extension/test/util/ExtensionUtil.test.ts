@@ -1720,11 +1720,11 @@ describe('ExtensionUtil Tests', () => {
             });
         });
 
-        it(`shouldn't update the generator version to latest when null`, async () => {
+        it(`shouldn't update the generator version to latest when undefined`, async () => {
             await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
 
             globalStateGetStub.returns({
-                generatorVersion: null
+                generatorVersion: undefined
             });
 
             executeCommandStub.resolves();
