@@ -23,6 +23,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { IdentityTreeItem } from './model/IdentityTreeItem';
 import { AdminIdentityTreeItem } from './model/AdminIdentityTreeItem';
 import { TextTreeItem } from './model/TextTreeItem';
+import { WalletGroupTreeItem } from './model/WalletGroupTreeItem';
 
 export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvider {
 
@@ -42,8 +43,16 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
     async getChildren(element?: BlockchainTreeItem): Promise<BlockchainTreeItem[]> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         try {
-            if (element instanceof WalletTreeItem || element instanceof LocalWalletTreeItem) {
-                this.tree = await this.createIdentityTree(element);
+            if (element) {
+
+                if (element instanceof WalletTreeItem || element instanceof LocalWalletTreeItem) {
+                    this.tree = await this.createIdentityTree(element);
+                }
+
+                if (element instanceof WalletGroupTreeItem) {
+                    this.tree = await this.populateWallets(element.wallets);
+                }
+
             } else {
                 // Get the wallets from the registry and create a wallet tree
                 this.tree = await this.createWalletTree();
@@ -64,31 +73,69 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
 
         const walletRegistryEntries: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
 
-        if (walletRegistryEntries.length === 0) {
+        const walletGroups: Array<FabricWalletRegistryEntry[]> = [];
+        // Populate the tree with the name of each wallet
+        for (const walletRegistryEntry of walletRegistryEntries) {
+
+            if (walletGroups.length === 0) {
+                walletGroups.push([walletRegistryEntry]);
+                continue;
+            }
+
+            // Used to check if group exists already
+            const groupIndex: number = walletGroups.findIndex((group: FabricWalletRegistryEntry[]) => {
+                return group[0].fromEnvironment && group[0].fromEnvironment === walletRegistryEntry.fromEnvironment;
+            });
+
+            if (groupIndex !== -1) {
+                // If a group with the same fromEnvironment exists, then push gateway to the group
+                walletGroups[groupIndex].push(walletRegistryEntry);
+            } else {
+                // Create new group
+                walletGroups.push([walletRegistryEntry]);
+            }
+        }
+
+        if (walletGroups.length === 0) {
             tree.push(new TextTreeItem(this, 'No wallets found'));
         } else {
-            // Populate the tree with the name of each wallet
-            for (const walletRegistryEntry of walletRegistryEntries) {
 
-                if (walletRegistryEntry.walletPath) {
-                    // get identityNames in the wallet
-                    const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
-                    const wallet: IFabricWallet = await walletGenerator.getWallet(walletRegistryEntry);
-                    const identityNames: string[] = await wallet.getIdentityNames();
-
-                    const treeState: vscode.TreeItemCollapsibleState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
-
-                    const walletName: string = walletRegistryEntry.displayName ? walletRegistryEntry.displayName : walletRegistryEntry.name;
-
-                    if (walletRegistryEntry.managedWallet) {
-                        tree.push(new LocalWalletTreeItem(this, walletName, identityNames, treeState, walletRegistryEntry));
-                    } else {
-                        tree.push(new WalletTreeItem(this, walletName, identityNames, treeState, walletRegistryEntry));
+            for (const group of walletGroups) {
+                if (group.length === 1) {
+                    const walletTreeItems: WalletTreeItem[] = await this.populateWallets(group); // There will only be one
+                    if (walletTreeItems.length > 0) {
+                        // Only push if there's a wallet path
+                        tree.push(walletTreeItems[0]);
                     }
+                } else {
+                    // Group length is greater than 1
+                    tree.push(new WalletGroupTreeItem(this, group[0].fromEnvironment, group, vscode.TreeItemCollapsibleState.Expanded));
                 }
             }
         }
 
+        return tree;
+    }
+
+    private async populateWallets(walletRegistryEntries: FabricWalletRegistryEntry[]): Promise<Array<WalletTreeItem>> {
+        const tree: Array<WalletTreeItem> = [];
+        for (const walletRegistryEntry of walletRegistryEntries) {
+            if (walletRegistryEntry.walletPath) {
+                // get identityNames in the wallet
+                const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
+                const wallet: IFabricWallet = await walletGenerator.getWallet(walletRegistryEntry);
+                const identityNames: string[] = await wallet.getIdentityNames();
+
+                // Collapse if there are identities, otherwise the expanded tree takes up a lot of room in the panel
+                const treeState: vscode.TreeItemCollapsibleState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None; //
+
+                if (walletRegistryEntry.managedWallet) {
+                    tree.push(new LocalWalletTreeItem(this, walletRegistryEntry.name, identityNames, treeState, walletRegistryEntry));
+                } else {
+                    tree.push(new WalletTreeItem(this, walletRegistryEntry.name, identityNames, treeState, walletRegistryEntry));
+                }
+            }
+        }
         return tree;
     }
 

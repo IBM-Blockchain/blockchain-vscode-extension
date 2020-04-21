@@ -395,10 +395,10 @@ describe('GatewayConnectCommand', () => {
 
             it('should connect to a managed ansible', async () => {
                 managedGateway = new FabricGatewayRegistryEntry({
-                    name: 'myGatewayD',
+                    name: 'managedEnvironment - Org1',
                     associatedWallet: 'myGatewayDWallet',
                     fromEnvironment: 'managedEnvironment',
-                    displayName: 'managedEnvironment - Org1'
+                    displayName: 'Org1'
                 });
 
                 await FabricGatewayRegistry.instance().add(managedGateway);

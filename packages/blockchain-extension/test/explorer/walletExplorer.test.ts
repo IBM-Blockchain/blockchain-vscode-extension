@@ -28,6 +28,7 @@ import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTre
 import { AdminIdentityTreeItem } from '../../extension/explorer/model/AdminIdentityTreeItem';
 import { FabricCertificate, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWallet, LogType, FabricWalletGeneratorFactory, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { WalletGroupTreeItem } from '../../extension/explorer/model/WalletGroupTreeItem';
 
 chai.use(sinonChai);
 chai.should();
@@ -117,17 +118,45 @@ describe('walletExplorer', () => {
 
         const getAttributesStub: sinon.SinonStub = mySandBox.stub(FabricCertificate.prototype, 'getAttributes');
         getAttributesStub.callThrough();
-        getAttributesStub.onCall(0).returns({ attr1: 'hello', attr2: 'world' });
-        getAttributesStub.onCall(1).returns({ attr3: 'good', attr4: 'day!' });
+        getAttributesStub.onCall(4).returns({ attr1: 'hello', attr2: 'world' });
+        getAttributesStub.onCall(5).returns({ attr3: 'good', attr4: 'day!' });
 
-        const wallets: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
-        wallets.length.should.equal(4);
-        wallets[0].label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC} - Orderer Wallet`);
-        wallets[1].label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
-        wallets[2].label.should.equal(blueWalletEntry.name);
-        wallets[3].label.should.equal(greenWalletEntry.name);
+        const allChildren: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
+        allChildren.length.should.equal(3);
+        allChildren[0].should.be.an.instanceof(WalletGroupTreeItem);
+        allChildren[0].label.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
+        allChildren[1].label.should.equal(blueWalletEntry.name);
+        allChildren[2].label.should.equal(greenWalletEntry.name);
+        const groupOne: WalletGroupTreeItem = allChildren[0] as WalletGroupTreeItem;
+        groupOne.wallets.length.should.equal(2);
 
-        const blueWalletIdentities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[2]) as Array<IdentityTreeItem>;
+        const localOrderWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Orderer', FabricRuntimeUtil.LOCAL_FABRIC);
+        const localOrgOneWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Org1', FabricRuntimeUtil.LOCAL_FABRIC);
+
+        groupOne.wallets.should.deep.equal([localOrderWallet, localOrgOneWallet]);
+        const groupWallets: WalletTreeItem[] = await blockchainWalletExplorerProvider.getChildren(groupOne) as WalletTreeItem[];
+        groupWallets[0].label.should.equal(`Orderer`);
+        groupWallets[1].label.should.equal(`Org1`);
+
+        const localWalletIdentities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(groupWallets[1]) as Array<IdentityTreeItem>;
+        localWalletIdentities.length.should.equal(2);
+        localWalletIdentities[0].label.should.equal(`${FabricRuntimeUtil.ADMIN_USER} ⭑`);
+        localWalletIdentities[0].should.be.an.instanceOf(AdminIdentityTreeItem);
+        localWalletIdentities[0].walletName.should.equal(`Org1`);
+        localWalletIdentities[1].label.should.equal('org1Admin');
+        localWalletIdentities[1].should.be.an.instanceOf(IdentityTreeItem);
+        localWalletIdentities[1].walletName.should.equal(`Org1`);
+
+        const localOrdererIdentities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(groupWallets[0]) as Array<IdentityTreeItem>;
+        localOrdererIdentities.length.should.equal(2);
+        localOrdererIdentities[0].label.should.equal(`${FabricRuntimeUtil.ADMIN_USER} ⭑`);
+        localOrdererIdentities[0].should.be.an.instanceOf(AdminIdentityTreeItem);
+        localOrdererIdentities[0].walletName.should.equal(`Orderer`);
+        localOrdererIdentities[1].label.should.equal('ordererAdmin');
+        localOrdererIdentities[1].should.be.an.instanceOf(IdentityTreeItem);
+        localOrdererIdentities[1].walletName.should.equal(`Orderer`);
+
+        const blueWalletIdentities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(allChildren[1]) as Array<IdentityTreeItem>;
         blueWalletIdentities.length.should.equal(2);
         blueWalletIdentities[0].label.should.equal('violetConga');
         blueWalletIdentities[0].walletName.should.equal(blueWalletEntry.name);
@@ -136,26 +165,8 @@ describe('walletExplorer', () => {
         blueWalletIdentities[1].walletName.should.equal(blueWalletEntry.name);
         blueWalletIdentities[1].tooltip.should.deep.equal(`Attributes:\n\nattr3:good\nattr4:day!`);
 
-        const localWalletIdentities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[1]) as Array<IdentityTreeItem>;
-        localWalletIdentities.length.should.equal(2);
-        localWalletIdentities[0].label.should.equal(`${FabricRuntimeUtil.ADMIN_USER} ⭑`);
-        localWalletIdentities[0].should.be.an.instanceOf(AdminIdentityTreeItem);
-        localWalletIdentities[0].walletName.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
-        localWalletIdentities[1].label.should.equal('org1Admin');
-        localWalletIdentities[1].should.be.an.instanceOf(IdentityTreeItem);
-        localWalletIdentities[1].walletName.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
-
-        const emptyWalletIdentites: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[3]) as Array<WalletTreeItem>;
+        const emptyWalletIdentites: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(allChildren[2]) as Array<WalletTreeItem>;
         emptyWalletIdentites.should.deep.equal([]);
-
-        const localOrdererIdentities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[0]) as Array<IdentityTreeItem>;
-        localOrdererIdentities.length.should.equal(2);
-        localOrdererIdentities[0].label.should.equal(`${FabricRuntimeUtil.ADMIN_USER} ⭑`);
-        localOrdererIdentities[0].should.be.an.instanceOf(AdminIdentityTreeItem);
-        localOrdererIdentities[0].walletName.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC} - Orderer Wallet`);
-        localOrdererIdentities[1].label.should.equal('ordererAdmin');
-        localOrdererIdentities[1].should.be.an.instanceOf(IdentityTreeItem);
-        localOrdererIdentities[1].walletName.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC} - Orderer Wallet`);
 
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
     });
@@ -186,7 +197,7 @@ describe('walletExplorer', () => {
         await FabricWalletRegistry.instance().add(greenWalletEntry);
 
         const wallets: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
-        const blueWallet: WalletTreeItem = blockchainWalletExplorerProvider.getTreeItem(wallets[2]) as WalletTreeItem;
+        const blueWallet: WalletTreeItem = blockchainWalletExplorerProvider.getTreeItem(wallets[1]) as WalletTreeItem;
         blueWallet.label.should.equal('blueWallet');
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
     });
@@ -214,11 +225,22 @@ describe('walletExplorer', () => {
         await FabricWalletRegistry.instance().add(greenWalletEntry);
         await FabricWalletRegistry.instance().add(purpleWallet);
 
-        const wallets: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
-        wallets.length.should.equal(4);
-        wallets[0].label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC} - Orderer Wallet`);
-        wallets[1].label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
-        wallets[2].label.should.equal(blueWalletEntry.name);
-        wallets[3].label.should.equal(greenWalletEntry.name);
+        const allChildren: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
+        allChildren.length.should.equal(3);
+        allChildren[0].should.be.an.instanceof(WalletGroupTreeItem);
+        allChildren[0].label.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
+        allChildren[1].label.should.equal(blueWalletEntry.name);
+        allChildren[2].label.should.equal(greenWalletEntry.name);
+        const groupOne: WalletGroupTreeItem = allChildren[0] as WalletGroupTreeItem;
+        groupOne.wallets.length.should.equal(2);
+
+        const localOrderWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Orderer', FabricRuntimeUtil.LOCAL_FABRIC);
+        const localOrgOneWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Org1', FabricRuntimeUtil.LOCAL_FABRIC);
+
+        groupOne.wallets.should.deep.equal([localOrderWallet, localOrgOneWallet]);
+        const groupWallets: WalletTreeItem[] = await blockchainWalletExplorerProvider.getChildren(groupOne) as WalletTreeItem[];
+        groupWallets[0].label.should.equal(`Orderer`);
+        groupWallets[1].label.should.equal(`Org1`);
+
     });
 });

@@ -168,6 +168,7 @@ describe('SubscribeToEventCommand', () => {
                 data: { name: 'myContract', channel: 'myChannel', version: '0.0.1' }
             });
 
+            // TODO: Jake FIX
             fabricClientConnectionMock.addContractListener.resolves();
             showInputBoxStub.resolves('myEvent');
         });

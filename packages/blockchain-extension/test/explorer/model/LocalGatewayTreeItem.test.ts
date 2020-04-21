@@ -36,7 +36,7 @@ describe('LocalGatewayTreeItem', () => {
     const gatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
 
     let gateway: FabricGatewayRegistryEntry;
-    // let mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment>;
+
     let localRuntime: LocalEnvironment;
     let onBusyCallback: any;
 
@@ -59,9 +59,9 @@ describe('LocalGatewayTreeItem', () => {
         localRuntime = new LocalEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1);
 
         gateway = new FabricGatewayRegistryEntry();
-        gateway.name = FabricRuntimeUtil.LOCAL_FABRIC;
+        gateway.name = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`;
         gateway.associatedWallet = 'Org1';
-        gateway.displayName = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`;
+        gateway.displayName = `Org1`;
         gateway.fromEnvironment = FabricRuntimeUtil.LOCAL_FABRIC;
 
         provider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
@@ -282,9 +282,9 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
             await FabricEnvironmentRegistry.instance().add({name: 'managedEnvironment', environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT, managedRuntime: true, environmentDirectory: path.join(__dirname, '..', '..', 'data', 'managedAnsible')});
 
             const managedGateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-            managedGateway.name = `managedEnvironment`;
+            managedGateway.name = `managedEnvironment - Org1`;
             managedGateway.associatedWallet = 'Org1';
-            managedGateway.displayName = `managedEnvironment - Org1 Wallet`;
+            managedGateway.displayName = `Org1`;
             managedGateway.fromEnvironment = `managedEnvironment`;
             const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, `managedEnvironment - Org1`, managedGateway, vscode.TreeItemCollapsibleState.None, managedEnvironment);
             await new Promise((resolve: any): any => {

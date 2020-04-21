@@ -29,7 +29,7 @@ export class ConnectedTreeItem extends BlockchainTreeItem {
     constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly connection: FabricGatewayRegistryEntry, public readonly collapsibleState: vscode.TreeItemCollapsibleState) {
         super(provider, label, collapsibleState);
 
-        if (connection.displayName && connection.displayName.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
+        if (connection.name && connection.name.includes(`${FabricRuntimeUtil.LOCAL_FABRIC} - `)) {
             this.contextValue = 'blockchain-connected-runtime-item';
         }
 
