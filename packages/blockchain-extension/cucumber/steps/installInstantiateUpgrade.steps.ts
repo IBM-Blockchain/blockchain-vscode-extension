@@ -28,7 +28,7 @@ module.exports = function(): any {
      */
 
     this.Given('the package has been installed', this.timeout, async () => {
-        await this.smartContractHelper.installSmartContract(this.contractName, this.contractVersion);
+        this.packageId = await this.smartContractHelper.installSmartContract(this.contractName, this.contractVersion);
     });
 
     this.Given(/the contract has been instantiated with the transaction '(.*?)' and args '(.*?)', (not )?using private data on channel '(.*?)'/, this.timeout, async (transaction: string, args: string, usingPrivateData: string, channel: string) => {
@@ -42,12 +42,24 @@ module.exports = function(): any {
         await this.smartContractHelper.instantiateSmartContract(this.contractName, this.contractVersion, transaction, args, privateData, channel);
     });
 
+    this.Given(/the contract has been approved on channel '(.*?)'/, this.timeout, async (channel: string) => {
+        await this.smartContractHelper.approveSmartContract(channel, this.contractName, this.contractVersion, this.packageId);
+    });
+
+    this.Given(/the contract has been committed on channel '(.*?)'/, this.timeout, async (channel: string) => {
+        await this.smartContractHelper.commitSmartContract(channel, this.contractName, this.contractVersion);
+    });
+
     /**
      * When
      */
 
     this.When('I install the package', this.timeout, async () => {
-        await this.smartContractHelper.installSmartContract(this.contractName, this.contractVersion);
+        this.packageId = await this.smartContractHelper.installSmartContract(this.contractName, this.contractVersion);
+    });
+
+    this.When(/I commit the approved contract on channel '(.*?)'/, this.timeout, async (channel: string) => {
+        await this.smartContractHelper.commitSmartContract(channel, this.contractName, this.contractVersion);
     });
 
     this.When(/I instantiate the installed package with the transaction '(.*?)' and args '(.*?)', (not )?using private data on channel '(.*?)'/, this.timeout, async (transaction: string, args: string, usingPrivateData: string, channel: string) => {

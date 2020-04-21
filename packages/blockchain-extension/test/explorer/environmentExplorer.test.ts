@@ -41,6 +41,7 @@ import { EnvironmentConnectedTreeItem } from '../../extension/explorer/runtimeOp
 import { ImportNodesTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/ImportNodesTreeItem';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { ManagedAnsibleEnvironmentManager } from '../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
+import { CommittedContractTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/CommittedSmartContractTreeItem';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -210,6 +211,22 @@ describe('environmentExplorer', () => {
                 map.set('channelOne', ['peerOne']);
                 map.set('channelTwo', ['peerOne', 'peerTwo']);
                 fabricConnection.createChannelMap.resolves(map);
+
+                fabricConnection.getCommittedSmartContracts.withArgs(['peerOne'], 'channelOne').resolves([{
+                    name: 'biscuit-network',
+                    version: '0.7'
+                }]);
+                fabricConnection.getCommittedSmartContracts.withArgs(['peerOne', 'peerTwo'], 'channelTwo').resolves([
+                    {
+                        name: 'biscuit-network',
+                        version: '0.7'
+                    }, {
+                        name: 'cake-network',
+                        version: '0.10'
+                    }, {
+                        name: 'legacy-network',
+                        version: '2.34'
+                    }]);
 
                 const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
                 environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
@@ -426,11 +443,11 @@ describe('environmentExplorer', () => {
 
                 fabricConnection.getInstalledChaincode.withArgs('peerTwo').returns(installedChaincodeMapTwo);
 
-                fabricConnection.getInstantiatedChaincode.withArgs(['peerOne'], 'channelOne').resolves([{
+                fabricConnection.getCommittedSmartContracts.withArgs(['peerOne'], 'channelOne').resolves([{
                     name: 'biscuit-network',
                     version: '0.7'
                 }]);
-                fabricConnection.getInstantiatedChaincode.withArgs(['peerOne', 'peerTwo'], 'channelTwo').resolves([
+                fabricConnection.getCommittedSmartContracts.withArgs(['peerOne', 'peerTwo'], 'channelTwo').resolves([
                     {
                         name: 'biscuit-network',
                         version: '0.7'
@@ -442,6 +459,8 @@ describe('environmentExplorer', () => {
                         version: '2.34'
                     }]);
 
+                fabricConnection.getCommittedSmartContracts.withArgs(['peerOne'], 'channelThree').resolves([]);
+
                 fabricConnection.getAllOrganizationNames.returns(['Org1', 'Org2']);
 
                 fabricConnection.getAllOrdererNames.returns(['orderer1', 'orderer2']);
@@ -449,6 +468,7 @@ describe('environmentExplorer', () => {
                 const map: Map<string, Array<string>> = new Map<string, Array<string>>();
                 map.set('channelOne', ['peerOne']);
                 map.set('channelTwo', ['peerOne', 'peerTwo']);
+                map.set('channelThree', ['peerOne']);
                 fabricConnection.createChannelMap.resolves(map);
 
                 const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
@@ -476,29 +496,35 @@ describe('environmentExplorer', () => {
 
             it('should create a connected tree if there is a connection', async () => {
 
-                allChildren.length.should.equal(5);
+                allChildren.length.should.equal(6);
 
                 const connectedTo: EnvironmentConnectedTreeItem = allChildren[0] as EnvironmentConnectedTreeItem;
                 connectedTo.label.should.equal(`Connected to environment: ${FabricRuntimeUtil.LOCAL_FABRIC}`);
 
                 const channelOne: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
                 channelOne.tooltip.should.equal('Associated peers: peerOne');
-                channelOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                channelOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
                 channelOne.contextValue.should.equal('blockchain-channel-item');
                 channelOne.label.should.equal('channelOne');
 
                 const channelTwo: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
                 channelTwo.tooltip.should.equal('Associated peers: peerOne, peerTwo');
-                channelTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                channelTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
                 channelTwo.contextValue.should.equal('blockchain-channel-item');
                 channelTwo.label.should.equal('channelTwo');
 
-                const nodes: NodesTreeItem = allChildren[3] as NodesTreeItem;
+                const channelThree: ChannelTreeItem = allChildren[3] as ChannelTreeItem;
+                channelThree.tooltip.should.equal('Associated peers: peerOne');
+                channelThree.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                channelThree.contextValue.should.equal('blockchain-channel-item');
+                channelThree.label.should.equal('channelThree');
+
+                const nodes: NodesTreeItem = allChildren[4] as NodesTreeItem;
                 nodes.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
                 nodes.contextValue.should.equal('blockchain-runtime-nodes-item');
                 nodes.label.should.equal('Nodes');
 
-                const orgs: OrganizationsTreeItem = allChildren[4] as OrganizationsTreeItem;
+                const orgs: OrganizationsTreeItem = allChildren[5] as OrganizationsTreeItem;
                 orgs.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
                 orgs.contextValue.should.equal('blockchain-runtime-organizations-item');
                 orgs.label.should.equal('Organizations');
@@ -544,6 +570,35 @@ describe('environmentExplorer', () => {
                 executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', true);
             });
 
+            it('should show the committed smart contracts', async () => {
+                allChildren = await blockchainRuntimeExplorerProvider.getChildren();
+                allChildren.length.should.equal(6);
+
+                const smartContractsChannelOne: Array<CommittedContractTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
+
+                smartContractsChannelOne.length.should.equal(1);
+
+                smartContractsChannelOne[0].label.should.equal('biscuit-network@0.7');
+                smartContractsChannelOne[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                smartContractsChannelOne[0].tooltip.should.equal('biscuit-network@0.7');
+
+                const smartContractsChannelTwo: Array<CommittedContractTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[2]);
+
+                smartContractsChannelTwo.length.should.equal(3);
+
+                smartContractsChannelTwo[0].label.should.equal('biscuit-network@0.7');
+                smartContractsChannelTwo[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                smartContractsChannelTwo[0].tooltip.should.equal('biscuit-network@0.7');
+
+                smartContractsChannelTwo[1].label.should.equal('cake-network@0.10');
+                smartContractsChannelTwo[1].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                smartContractsChannelTwo[1].tooltip.should.equal('cake-network@0.10');
+
+                smartContractsChannelTwo[2].label.should.equal('legacy-network@2.34');
+                smartContractsChannelTwo[2].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                smartContractsChannelTwo[2].tooltip.should.equal('legacy-network@2.34');
+            });
+
             it('should show peers, certificate authorities, and orderer nodes correctly', async () => {
                 fabricConnection.getAllCertificateAuthorityNames.returns(['ca-name']);
                 fabricConnection.getNode.withArgs('peerOne').returns(FabricNode.newPeer('peerOne', 'peerOne', 'grpc://localhost:7051', 'wallet', 'identity', 'Org1MSP'));
@@ -553,9 +608,9 @@ describe('environmentExplorer', () => {
                 fabricConnection.getNode.withArgs('orderer2').returns(FabricNode.newOrderer('orderer2', 'orderer2', 'grpc://localhost:7050', 'wallet', 'identity', 'Org1MSP', undefined));
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
-                allChildren.length.should.equal(5);
+                allChildren.length.should.equal(6);
 
-                const items: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[3]);
+                const items: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[allChildren.length - 2]);
                 items.length.should.equal(5);
                 const peerOne: PeerTreeItem = items[0] as PeerTreeItem;
                 peerOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
@@ -614,9 +669,9 @@ describe('environmentExplorer', () => {
                 fabricConnection.getNode.withArgs('orderer2').returns(FabricNode.newOrderer('orderer2', 'orderer2', 'grpc://localhost:7050', 'wallet', 'identity', 'Org1MSP', undefined));
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
-                allChildren.length.should.equal(5);
+                allChildren.length.should.equal(6);
 
-                const items: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[3]);
+                const items: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[allChildren.length - 2]);
                 items.length.should.equal(6);
                 const peerOne: PeerTreeItem = items[0] as PeerTreeItem;
                 peerOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
@@ -687,9 +742,9 @@ describe('environmentExplorer', () => {
                 fabricConnection.getNode.withArgs('orderer2').returns(FabricNode.newOrderer('orderer2', 'orderer2', 'grpc://localhost:7050', 'wallet', 'identity', 'Org1MSP', undefined));
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
-                allChildren.length.should.equal(5);
+                allChildren.length.should.equal(6);
 
-                const items: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[3]);
+                const items: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[allChildren.length - 2]);
                 items.length.should.equal(6);
                 const peerOne: PeerTreeItem = items[0] as PeerTreeItem;
                 peerOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
@@ -755,9 +810,9 @@ describe('environmentExplorer', () => {
                 fabricConnection.getNode.withArgs('orderer2').returns(FabricNode.newOrderer('orderer2', 'orderer2', 'grpc://localhost:7050', 'wallet', 'identity', 'Org1MSP', 'my ordering service'));
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
-                allChildren.length.should.equal(5);
+                allChildren.length.should.equal(6);
 
-                const items: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[3]);
+                const items: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[allChildren.length - 2]);
                 items.length.should.equal(4);
                 const peerOne: PeerTreeItem = items[0] as PeerTreeItem;
                 peerOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
@@ -806,9 +861,9 @@ describe('environmentExplorer', () => {
                 fabricConnection.getNode.withArgs('orderer4').returns(FabricNode.newOrderer('orderer4', 'orderer4', 'grpc://localhost:7050', 'wallet', 'identity', 'Org1MSP', 'my other ordering service'));
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
-                allChildren.length.should.equal(5);
+                allChildren.length.should.equal(6);
 
-                const items: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[3]);
+                const items: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[allChildren.length - 2 ]);
                 items.length.should.equal(5);
                 const peerOne: PeerTreeItem = items[0] as PeerTreeItem;
                 peerOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
@@ -856,9 +911,9 @@ describe('environmentExplorer', () => {
             it('should show organizations correctly', async () => {
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
-                allChildren.length.should.equal(5);
+                allChildren.length.should.equal(6);
 
-                const orgs: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[4]);
+                const orgs: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[allChildren.length - 1]);
                 orgs.length.should.equal(2);
                 const orgOne: OrgTreeItem = orgs[0] as OrgTreeItem;
                 orgOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
@@ -904,6 +959,22 @@ describe('environmentExplorer', () => {
             map.set('channelTwo', ['peerOne', 'peerTwo']);
             const fabricConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection> = mySandBox.createStubInstance(FabricEnvironmentConnection);
             fabricConnection.createChannelMap.resolves(map);
+
+            fabricConnection.getCommittedSmartContracts.withArgs(['peerOne'], 'channelOne').resolves([{
+                name: 'biscuit-network',
+                version: '0.7'
+            }]);
+            fabricConnection.getCommittedSmartContracts.withArgs(['peerOne', 'peerTwo'], 'channelTwo').resolves([
+                {
+                    name: 'biscuit-network',
+                    version: '0.7'
+                }, {
+                    name: 'cake-network',
+                    version: '0.10'
+                }, {
+                    name: 'legacy-network',
+                    version: '2.34'
+                }]);
 
             const getConnectionStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection');
             getConnectionStub.returns((fabricConnection as any) as FabricEnvironmentConnection);

@@ -20,7 +20,7 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { FabricChaincode, FabricNodeType, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType, FabricWalletGeneratorFactory } from 'ibm-blockchain-platform-common';
+import { FabricCommittedSmartContract, FabricNodeType, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType, FabricWalletGeneratorFactory } from 'ibm-blockchain-platform-common';
 import { FabricWallet, FabricWalletGenerator } from 'ibm-blockchain-platform-wallet';
 import { LifecyclePeer, LifecycleChannel } from 'ibm-blockchain-platform-fabric-admin';
 import { ConnectOptions } from 'fabric-common';
@@ -380,7 +380,7 @@ describe('FabricEnvironmentConnection', () => {
         });
 
         it('should return the list of instantiated chaincodes', async () => {
-            const chaincodes: Array<FabricChaincode> = await connection.getInstantiatedChaincode(['peer0.org1.example.com'], 'mychannel');
+            const chaincodes: Array<FabricCommittedSmartContract> = await connection.getCommittedSmartContracts(['peer0.org1.example.com'], 'mychannel');
             chaincodes.should.deep.equal([
                 {
                     name: 'myChaincode',
@@ -442,7 +442,7 @@ describe('FabricEnvironmentConnection', () => {
         });
 
         it('should return the list of instantiated chaincodes on all channels', async () => {
-            const chaincodes: Array<FabricChaincode> = await connection.getAllInstantiatedChaincodes();
+            const chaincodes: Array<FabricCommittedSmartContract> = await connection.getAllCommittedSmartContracts();
             chaincodes.should.deep.equal([
                 {
                     name: 'kittyChaincode',
@@ -466,7 +466,7 @@ describe('FabricEnvironmentConnection', () => {
         it('should rethrow any errors', async () => {
             getAllCommittedSmartContractsStub.resetBehavior();
             getAllCommittedSmartContractsStub.rejects(new Error('such error'));
-            await connection.getAllInstantiatedChaincodes()
+            await connection.getAllCommittedSmartContracts()
                 .should.be.rejectedWith(/such error/);
         });
     });
@@ -588,7 +588,54 @@ describe('FabricEnvironmentConnection', () => {
             await connection.installChaincode(packagePath, 'nosuch.peer0.org1.example.com')
                 .should.be.rejectedWith(/does not exist/);
         });
+    });
 
+    describe('approveSmartContractDefinition', () => {
+        it('should approve a smart contract', async () => {
+            const approveSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'approveSmartContractDefinition');
+
+            await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], 'myContract', '0.0.1', 'myPackageId', 1);
+
+            approveSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', { smartContractName: 'myContract', smartContractVersion: '0.0.1', packageId: 'myPackageId', sequence: 1 });
+        });
+    });
+
+    describe('commitSmartContractDefinition', () => {
+        it('should commit a smart contract', async () => {
+            const commitSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'commitSmartContractDefinition');
+
+            await connection.commitSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], 'myContract', '0.0.1', 1);
+
+            commitSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', { smartContractName: 'myContract', smartContractVersion: '0.0.1', sequence: 1 });
+        });
+    });
+
+    describe('getCommitReadiness', () => {
+        it('should get the commit readiness and return true', async () => {
+            const resultMap: Map<string, boolean> = new Map<string, boolean>();
+            resultMap.set('org1', true);
+            resultMap.set('org2', true);
+            const getCommitReadinessStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'getCommitReadiness').resolves(resultMap);
+
+            const result: boolean = await connection.getCommitReadiness('myChannel', 'peer0.org1.example.com', 'myContract', '0.0.1', 1);
+
+            result.should.equal(true);
+
+            getCommitReadinessStub.should.have.been.calledWith('peer0.org1.example.com', { smartContractName: 'myContract', smartContractVersion: '0.0.1', sequence: 1 });
+        });
+
+        it('should get the commit readiness and return false', async () => {
+            const resultMap: Map<string, boolean> = new Map<string, boolean>();
+            resultMap.set('org1', true);
+            resultMap.set('org2', false);
+            const getCommitReadinessStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'getCommitReadiness').resolves(resultMap);
+
+            const result: boolean = await connection.getCommitReadiness('myChannel', 'peer0.org1.example.com', 'myContract', '0.0.1', 1);
+
+            result.should.equal(false);
+
+            getCommitReadinessStub.should.have.been.calledWith('peer0.org1.example.com', { smartContractName: 'myContract', smartContractVersion: '0.0.1', sequence: 1 });
+        });
     });
 
     describe('instantiateChaincode', () => {

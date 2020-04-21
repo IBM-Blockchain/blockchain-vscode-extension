@@ -63,18 +63,19 @@ module.exports = function(): any {
         if (!runtime) {
             await this.fabricEnvironmentHelper.createEnvironment(environmentName);
         }
-
     });
 
     this.Given("the '{string}' environment is connected", this.timeout, async (environment: string) => {
         await TimerUtil.sleep(3000);
         this.environmentName = environment;
         await this.fabricEnvironmentHelper.connectToEnvironment(environment);
+        await TimerUtil.sleep(3000);
     });
 
     this.Given("an environment '{string}' exists", this.timeout, async (environmentName: string) => {
         opsToolsAllNodesQuickPick = await this.fabricEnvironmentHelper.createEnvironment(environmentName);
         this.environmentName = environmentName;
+        await TimerUtil.sleep(3000);
     });
 
     this.Given('the environment is setup', this.timeout, async () => {
@@ -117,6 +118,7 @@ module.exports = function(): any {
 
     this.When("I create an environment '{string}'", this.timeout, async (environmentName: string) => {
         opsToolsAllNodesQuickPick = await this.fabricEnvironmentHelper.createEnvironment(environmentName);
+        await TimerUtil.sleep(3000);
     });
 
     this.When("I associate identity '{string}' in wallet '{string}' with node '{string}'", this.timeout, async (identity: string, wallet: string, node: string) => {
@@ -125,6 +127,7 @@ module.exports = function(): any {
 
     this.When("I connect to the environment '{string}'", this.timeout, async (environment: string) => {
         await this.fabricEnvironmentHelper.connectToEnvironment(environment);
+        await TimerUtil.sleep(3000);
     });
 
     this.When("I delete node '{string}'", this.timeout, async (nodeName: string) => {
@@ -165,6 +168,5 @@ module.exports = function(): any {
 
     this.When("I edit filters and import all nodes to environment '{string}'", this.timeout, async (environmentName: string) => {
         await this.fabricEnvironmentHelper.editNodeFilters(opsToolsAllNodesQuickPick, environmentName);
-
     });
 };

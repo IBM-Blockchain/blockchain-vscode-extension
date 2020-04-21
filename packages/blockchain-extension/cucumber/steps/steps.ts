@@ -16,11 +16,11 @@
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { BlockchainWalletExplorerProvider } from '../../extension/explorer/walletExplorer';
-import { BlockchainGatewayExplorerProvider } from '../../extension/explorer/gatewayExplorer';
-import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
-import { BlockchainPackageExplorerProvider } from '../../extension/explorer/packageExplorer';
-import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import {BlockchainWalletExplorerProvider} from '../../extension/explorer/walletExplorer';
+import {BlockchainGatewayExplorerProvider} from '../../extension/explorer/gatewayExplorer';
+import {BlockchainEnvironmentExplorerProvider} from '../../extension/explorer/environmentExplorer';
+import {BlockchainPackageExplorerProvider} from '../../extension/explorer/packageExplorer';
+import {ExtensionUtil} from '../../extension/util/ExtensionUtil';
 
 // tslint:disable:no-unused-expression
 
@@ -35,7 +35,7 @@ export enum LanguageType {
 
 module.exports = function(): any {
 
-    this.Then(/^there (should|shouldn't) be an? (environment connected |installed smart contract |instantiated smart contract |channel |Node |Organizations |identity )?tree item with a label '(.*?)' in the '(Smart Contracts|Fabric Environments|Fabric Gateways|Fabric Wallets)' panel( for item)?( .*)?$/, this.timeout, async (shouldOrshouldnt: string, child: string, label: string, panel: string, thing2: string, thing: string) => {
+    this.Then(/^there (should|shouldn't) be an? (environment connected |installed smart contract |committed smart contract |channel |Node |Organizations |identity )?tree item with a label '(.*?)' in the '(Smart Contracts|Fabric Environments|Fabric Gateways|Fabric Wallets)' panel( for item)?( .*)?$/, this.timeout, async (shouldOrshouldnt: string, child: string, label: string, panel: string, thing2: string, thing: string) => {
         let treeItems: any[] = [];
         if (panel === 'Smart Contracts') {
             const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = ExtensionUtil.getBlockchainPackageExplorerProvider();
@@ -52,6 +52,14 @@ module.exports = function(): any {
                 for (let i: number = 1; i < allTreeItems.length - 2; i++) {
                     treeItems.push(allTreeItems[i]); // channels
                 }
+            } else if (child.includes('committed smart contract')) {
+                const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+                const channelItemIndex: number = allTreeItems.findIndex((item: any) => {
+                    return thing.trim() === item.label;
+                });
+
+                treeItems = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[channelItemIndex]); // committed smart contracts
             } else if (child.includes('Node')) {
                 const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
                 treeItems = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[allTreeItems.length - 2]); // Nodes

@@ -22,7 +22,7 @@ import { FabricNodeDebugConfigurationProvider } from '../../extension/debug/Fabr
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
-import { FabricChaincode, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, EnvironmentType, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
+import { FabricCommittedSmartContract, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, EnvironmentType, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { Reporter } from '../../extension/util/Reporter';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { GlobalState } from '../../extension/util/GlobalState';
@@ -171,8 +171,8 @@ describe('FabricNodeDebugConfigurationProvider', () => {
             mockRuntimeConnection.connect.resolves();
             mockRuntimeConnection.getAllPeerNames.resolves('peerOne');
 
-            const instantiatedChaincodes: FabricChaincode[] = [{ name: 'myOtherContract', version: 'vscode-debug-13232112018' }, { name: 'cake-network', version: 'vscode-debug-174758735087' }];
-            mockRuntimeConnection.getAllInstantiatedChaincodes.resolves(instantiatedChaincodes);
+            const instantiatedChaincodes: FabricCommittedSmartContract[] = [{ name: 'myOtherContract', version: 'vscode-debug-13232112018' }, { name: 'cake-network', version: 'vscode-debug-174758735087' }];
+            mockRuntimeConnection.getAllCommittedSmartContracts.resolves(instantiatedChaincodes);
 
             mySandbox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns(mockRuntimeConnection);
 

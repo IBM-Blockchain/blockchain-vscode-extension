@@ -76,6 +76,8 @@
             "environmentExplorer.connectEntry",
             "environmentExplorer.disconnectEntry",
             "environmentExplorer.installSmartContractEntry",
+            "environmentExplorer.approveSmartContractEntry",
+            "environmentExplorer.commitSmartContractEntry",
             "environmentExplorer.instantiateSmartContractEntry",
             "environmentExplorer.refreshEntry",
             "environmentExplorer.startFabricRuntime",
@@ -382,6 +384,16 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "environmentExplorer.approveSmartContractEntry",
+                "title": "Approve Smart Contract",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "environmentExplorer.commitSmartContractEntry",
+                "title": "Commit Smart Contract",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "environmentExplorer.instantiateSmartContractEntry",
                 "title": "Instantiate Smart Contract",
                 "category": "IBM Blockchain Platform"
@@ -622,6 +634,18 @@
                 },
                 {
                     "command": "environmentExplorer.startFabricRuntimeShort",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.installSmartContractEntry",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.approveSmartContractEntry",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.commitSmartContractEntry",
                     "when": "false"
                 }
             ],

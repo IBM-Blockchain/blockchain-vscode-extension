@@ -31,7 +31,7 @@ import { LocalGatewayTreeItem } from './model/LocalGatewayTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedContractTreeItem } from './model/InstantiatedContractTreeItem';
 import { InstantiatedTreeItem } from './model/InstantiatedTreeItem';
-import { FabricChaincode, IFabricGatewayConnection, LogType, FabricGatewayRegistryEntry, FabricGatewayRegistry, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricCommittedSmartContract, IFabricGatewayConnection, LogType, FabricGatewayRegistryEntry, FabricGatewayRegistry, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { InstantiatedMultiContractTreeItem } from './model/InstantiatedMultiContractTreeItem';
 import { InstantiatedUnknownTreeItem } from './model/InstantiatedUnknownTreeItem';
 import { InstantiatedAssociatedTreeItem } from './model/InstantiatedAssociatedTreeItem';
@@ -343,7 +343,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
             const tree: Array<ChannelTreeItem> = [];
 
             for (const channel of channels) {
-                let chaincodes: Array<FabricChaincode>;
+                let chaincodes: Array<FabricCommittedSmartContract>;
                 const peers: Array<string> = channelMap.get(channel);
                 try {
                     chaincodes = await connection.getInstantiatedChaincode(channel);

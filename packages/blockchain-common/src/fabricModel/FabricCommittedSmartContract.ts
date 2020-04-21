@@ -12,9 +12,9 @@
  * limitations under the License.
 */
 
-// This is a JSON representation of a Fabric Chaincode.
+// This is a JSON representation of a Fabric Committed Smart Contract.
 // tslint:disable variable-name
-export class FabricChaincode {
+export class FabricCommittedSmartContract {
     public constructor(public name: string, public version: string) {
 
     }
