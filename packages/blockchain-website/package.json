@@ -2,7 +2,7 @@
   "homepage": ".",
   "name": "ibm-blockchain-platform-website",
   "description": "End to end extension for Hyperledger Fabric developers. Develop and test your blockchain smart contracts and client applications on your local machine, and package your projects for deployment into IBM Blockchain Platform runtimes.",
-  "version": "1.0.24",
+  "version": "1.0.27",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -49,10 +49,10 @@
     "@carbon/grid": "^10.6.0",
     "@carbon/themes": "^10.7.0",
     "@carbon/type": "^10.6.0",
-    "@types/carbon-components-react": "^7.6.2",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.4.1",
     "@testing-library/user-event": "^7.2.1",
+    "@types/carbon-components-react": "^7.6.2",
     "@types/enzyme": "^3.10.3",
     "@types/jest": "^25.1.4",
     "@types/react-test-renderer": "^16.9.0",
@@ -63,8 +63,8 @@
     "react-test-renderer": "^16.13.0",
     "sinon": "6.1.4",
     "sinon-chai": "3.2.0",
-    "typescript": "3.6.3",
-    "ts-jest": "^25.2.1"
+    "ts-jest": "^25.2.1",
+    "typescript": "3.6.3"
   },
   "jest": {
     "collectCoverageFrom": [
