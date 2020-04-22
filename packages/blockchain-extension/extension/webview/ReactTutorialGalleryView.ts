@@ -32,14 +32,9 @@ export class ReactTutorialGalleryView extends ReactView {
 
         panel.iconPath = panelIcon;
 
-        /* will need something like this to open the tutorials from the react app */
-        // panel.webview.onDidReceiveMessage(async (message: {command: string, data?: any}) => {
-        //     if (message.data) {
-        //         await vscode.commands.executeCommand(message.command, ...message.data);
-        //     } else {
-        //         await vscode.commands.executeCommand(message.command);
-        //     }
-        // });
+        panel.webview.onDidReceiveMessage(async (message: {command: string, data: any}) => {
+            await vscode.commands.executeCommand(message.command, ...message.data);
+        });
 
         await this.loadComponent(panel);
     }

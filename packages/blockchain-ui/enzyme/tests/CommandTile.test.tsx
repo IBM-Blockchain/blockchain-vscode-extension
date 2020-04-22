@@ -5,13 +5,13 @@ import chai from 'chai';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
-import CustomTile from '../../src/components/elements/CustomTile/CustomTile';
+import CommandTile from '../../src/components/elements/CommandTile/CommandTile';
 import Utils from '../../src/Utils';
 
 chai.should();
 chai.use(sinonChai);
 
-describe('CustomTile component', () => {
+describe('CommandTile component', () => {
     let mySandBox: sinon.SinonSandbox;
     let postToVSCodeStub: sinon.SinonStub;
     let changeRouteStub: sinon.SinonStub;
@@ -33,7 +33,7 @@ describe('CustomTile component', () => {
         };
 
         const component: any = renderer
-            .create(<CustomTile title='My Tile' body='Some text I want to display in my tile' options={options}/>)
+            .create(<CommandTile title='My Tile' body='Some text I want to display in my tile' options={options}/>)
             .toJSON();
         expect(component).toMatchSnapshot();
     });
@@ -44,7 +44,7 @@ describe('CustomTile component', () => {
             command: 'some_command'
         };
 
-        const component: any = mount(<CustomTile title='My Tile' body='Some text I want to display in my tile' options={options}/>);
+        const component: any = mount(<CommandTile title='My Tile' body='Some text I want to display in my tile' options={options}/>);
         component.find('.bx--tile').simulate('click');
         postToVSCodeStub.should.have.been.calledOnceWithExactly({
             command: options.command
@@ -57,7 +57,7 @@ describe('CustomTile component', () => {
             path: 'some/path'
         };
 
-        const component: any = mount(<CustomTile title='My Tile' body='Some text I want to display in my tile' options={options}/>);
+        const component: any = mount(<CommandTile title='My Tile' body='Some text I want to display in my tile' options={options}/>);
         component.find('.bx--tile').simulate('click');
         changeRouteStub.should.have.been.calledOnceWithExactly(options.path);
     });
