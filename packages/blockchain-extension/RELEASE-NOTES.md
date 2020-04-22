@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 # IBM Blockchain Platform Extension updated to v1.0.24
 _Release date: March 19th 2020_
+=======
+# IBM Blockchain Platform Extension updated to v1.0.27
+_Release date: April 23rd 2020_
+>>>>>>> 64aee1cf... Changelog (#2211)
 
 Announcements
 ---
@@ -9,6 +14,7 @@ Announcements
 
 Features & Enhancements
 ---
+<<<<<<< HEAD
 * View files included in package [#1960](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1960).
    > Right-click on your package in the `Smart Contracts` panel and select `View Package Information` to see the files included in your package. The files will be logged out in the Output.
 
@@ -34,6 +40,19 @@ Fixes
 This release's Conga Comic:
 ---
 <img src="https://congacomic.github.io/assets/img/blockheight-69.jpg" width="800">
+=======
+* Group gateways and wallets into folders based on the environment they're related to [#1865](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1865).
 
+Fixes
+---
+* Fixed JDK popup appearing on Mac when checking prerequisites [#1657](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1657).
+
+* Fixed "Cannot read property 'major' of null" error on activation [#2200](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2200).
+>>>>>>> 64aee1cf... Changelog (#2211)
+
+
+This release's Conga Comic:
+---
+<img src="https://congacomic.github.io/assets/img/blockheight-71.jpg" width="800">
 
 For the full history of all releases, see the [change log](https://marketplace.visualstudio.com/items/IBMBlockchain.ibm-blockchain-platform/changelog).
