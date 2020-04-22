@@ -36,8 +36,9 @@ import { InstantiatedChaincodeTreeItem } from '../../extension/explorer/model/In
 import { GatewayTreeItem } from '../../extension/explorer/model/GatewayTreeItem';
 import { GatewayDissociatedTreeItem } from '../../extension/explorer/model/GatewayDissociatedTreeItem';
 import { GatewayAssociatedTreeItem } from '../../extension/explorer/model/GatewayAssociatedTreeItem';
-import { FabricRuntimeUtil, LogType, FabricGatewayRegistryEntry, FabricGatewayRegistry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, LogType, FabricGatewayRegistryEntry, FabricGatewayRegistry, FabricEnvironmentRegistry, FabricWalletRegistry, FabricEnvironmentRegistryEntry, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { InstantiatedUnknownTreeItem } from '../../extension/explorer/model/InstantiatedUnknownTreeItem';
+import { GatewayGroupTreeItem } from '../../extension/explorer/model/GatewayGroupTreeItem';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -205,6 +206,58 @@ describe('gatewayExplorer', () => {
                 localGatewayTreeItem.tooltip.should.deep.equal(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 is running
 ⓘ Associated wallet:
 ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
+            });
+
+            it('should display multi-org gateways', async () => {
+                await FabricGatewayRegistry.instance().clear();
+                await FabricEnvironmentRegistry.instance().clear();
+                await FabricWalletRegistry.instance().clear();
+
+                const twoOrgEntry: FabricEnvironmentRegistryEntry = {name: 'twoOrgEnvironment', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 2, environmentDirectory: ''};
+                await FabricEnvironmentRegistry.instance().add(twoOrgEntry);
+
+                const gatewayOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'twoOrgEnvironment - Org1', fromEnvironment: 'twoOrgEnvironment', associatedWallet: 'Org1', displayName: `Org1`, connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json') });
+                const gatewayTwo: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'twoOrgEnvironment - Org2', fromEnvironment: 'twoOrgEnvironment', associatedWallet: 'Org2', displayName: `Org2`, connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayTwo', 'connection.json') });
+
+                await FabricGatewayRegistry.instance().add(gatewayOne);
+                await FabricGatewayRegistry.instance().add(gatewayTwo);
+
+                // mySandBox.stub(LocalEnvironmentManager.instance().getRuntime(FabricRuntimeUtil.LOCAL_FABRIC), 'isRunning').resolves(true);
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
+
+                const myCommandOne: vscode.Command = {
+                    command: ExtensionCommands.CONNECT_TO_GATEWAY,
+                    title: '',
+                    arguments: [gatewayOne]
+                };
+
+                const myCommandTwo: vscode.Command = {
+                    command: ExtensionCommands.CONNECT_TO_GATEWAY,
+                    title: '',
+                    arguments: [gatewayTwo]
+                };
+
+                allChildren.length.should.equal(1);
+                allChildren[0].should.be.an.instanceOf(GatewayGroupTreeItem);
+                const groupOne: GatewayGroupTreeItem = allChildren[0] as GatewayGroupTreeItem;
+                groupOne.label.should.equal('twoOrgEnvironment');
+                groupOne.gateways.should.deep.equal([gatewayOne, gatewayTwo]);
+
+                const groupGateways: LocalGatewayTreeItem[] = await blockchainGatewayExplorerProvider.getChildren(groupOne) as LocalGatewayTreeItem[];
+
+                groupGateways[0].label.should.equal(`Org1  ○`);
+                groupGateways[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                groupGateways[0].gateway.should.deep.equal(gatewayOne);
+                groupGateways[0].command.should.deep.equal(myCommandOne);
+                groupGateways[0].tooltip.should.deep.equal(`Org1 is not running\nⓘ Associated wallet:\ntwoOrgEnvironment - Org1 Wallet`);
+
+                groupGateways[1].label.should.equal(`Org2  ○`);
+                groupGateways[1].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                groupGateways[1].gateway.should.deep.equal(gatewayTwo);
+                groupGateways[1].command.should.deep.equal(myCommandTwo);
+                groupGateways[1].tooltip.should.deep.equal(`Org2 is not running\nⓘ Associated wallet:\ntwoOrgEnvironment - Org2 Wallet`);
+
             });
 
             it('should handle errors thrown when connection fails', async () => {
@@ -445,7 +498,7 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
                 allChildren.length.should.equal(3);
 
                 const connectedItem: ConnectedTreeItem = allChildren[0] as ConnectedTreeItem;
-                connectedItem.label.should.equal(`Connected via gateway: ${registryEntry.displayName}`);
+                connectedItem.label.should.equal(`Connected via gateway: ${registryEntry.name}`);
                 connectedItem.contextValue.should.equal('blockchain-connected-runtime-item');
                 connectedItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 connectedItem.connection.name.should.equal(registryEntry.name);
