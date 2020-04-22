@@ -155,8 +155,8 @@ describe('OpenTransactionViewCommand', () => {
 
         it(`should correctly display the ${FabricRuntimeUtil.LOCAL_FABRIC} gateway name`, async () => {
             const localGatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-            localGatewayRegistryEntry.name = `Org1`;
-            localGatewayRegistryEntry.displayName = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`;
+            localGatewayRegistryEntry.name = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`;
+            localGatewayRegistryEntry.displayName = `Org1`;
             getGatewayRegistryStub.resolves(localGatewayRegistryEntry);
 
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE);

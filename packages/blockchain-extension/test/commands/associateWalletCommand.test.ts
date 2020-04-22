@@ -24,7 +24,7 @@ import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTre
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import { FabricWalletRegistry, FabricWalletRegistryEntry, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistry, FabricWalletRegistryEntry, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 // tslint:disable no-unused-expression
@@ -47,7 +47,7 @@ describe('AssociateWalletCommand', () => {
         let showGatewayQuickPickBoxStub: sinon.SinonStub;
 
         beforeEach(async () => {
-
+            await FabricEnvironmentRegistry.instance().clear();
             await FabricWalletRegistry.instance().clear();
 
             const connectionOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
