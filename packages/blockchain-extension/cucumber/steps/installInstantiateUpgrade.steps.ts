@@ -42,24 +42,16 @@ module.exports = function(): any {
         await this.smartContractHelper.instantiateSmartContract(this.contractName, this.contractVersion, transaction, args, privateData, channel);
     });
 
-    this.Given(/the contract has been approved on channel '(.*?)'/, this.timeout, async (channel: string) => {
-        await this.smartContractHelper.approveSmartContract(channel, this.contractName, this.contractVersion, this.packageId);
-    });
-
-    this.Given(/the contract has been committed on channel '(.*?)'/, this.timeout, async (channel: string) => {
-        await this.smartContractHelper.commitSmartContract(channel, this.contractName, this.contractVersion);
+    this.Given(/the contract has been deployed on channel '(.*?)'/, this.timeout, async (channel: string) => {
+        await this.smartContractHelper.deploySmartContract(channel, this.contractName, this.contractVersion, this.packageRegistryEntry);
     });
 
     /**
      * When
      */
 
-    this.When('I install the package', this.timeout, async () => {
-        this.packageId = await this.smartContractHelper.installSmartContract(this.contractName, this.contractVersion);
-    });
-
-    this.When(/I commit the approved contract on channel '(.*?)'/, this.timeout, async (channel: string) => {
-        await this.smartContractHelper.commitSmartContract(channel, this.contractName, this.contractVersion);
+    this.When(/I deploy the contract on channel '(.*?)' with sequence '(.*?)'/, this.timeout, async (channel: string, sequence: string) => {
+        await this.smartContractHelper.deploySmartContract(channel, this.contractDefinitionName, this.contractDefinitionVersion, this.packageRegistryEntry, sequence, true);
     });
 
     this.When(/I instantiate the installed package with the transaction '(.*?)' and args '(.*?)', (not )?using private data on channel '(.*?)'/, this.timeout, async (transaction: string, args: string, usingPrivateData: string, channel: string) => {

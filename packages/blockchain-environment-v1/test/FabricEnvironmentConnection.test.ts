@@ -24,6 +24,7 @@ import { FabricCommittedSmartContract, FabricNodeType, FabricNode, FabricRuntime
 import { FabricWallet, FabricWalletGenerator } from 'ibm-blockchain-platform-wallet';
 import { LifecyclePeer, LifecycleChannel } from 'ibm-blockchain-platform-fabric-admin';
 import { ConnectOptions } from 'fabric-common';
+import { FabricInstalledSmartContract } from 'ibm-blockchain-platform-common/build/src/fabricModel/FabricInstalledSmartContract';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -361,7 +362,7 @@ describe('FabricEnvironmentConnection', () => {
 
     });
 
-    describe('getInstantiatedChaincode', () => {
+    describe('getCommittedSmartContracts', () => {
         let getAllCommittedSmartContractsStub: sinon.SinonStub;
 
         beforeEach(() => {
@@ -379,7 +380,7 @@ describe('FabricEnvironmentConnection', () => {
             );
         });
 
-        it('should return the list of instantiated chaincodes', async () => {
+        it('should return the list of committed smart contracts', async () => {
             const chaincodes: Array<FabricCommittedSmartContract> = await connection.getCommittedSmartContracts(['peer0.org1.example.com'], 'mychannel');
             chaincodes.should.deep.equal([
                 {
@@ -395,7 +396,7 @@ describe('FabricEnvironmentConnection', () => {
 
     });
 
-    describe('getAllInstantiatedChaincodes', () => {
+    describe('getAllCommittedSmartContracts', () => {
         let mockPeer1: sinon.SinonStubbedInstance<LifecyclePeer>;
         let mockPeer2: sinon.SinonStubbedInstance<LifecyclePeer>;
 
@@ -441,9 +442,9 @@ describe('FabricEnvironmentConnection', () => {
             );
         });
 
-        it('should return the list of instantiated chaincodes on all channels', async () => {
-            const chaincodes: Array<FabricCommittedSmartContract> = await connection.getAllCommittedSmartContracts();
-            chaincodes.should.deep.equal([
+        it('should return the list of committed smart contracts on all channels', async () => {
+            const smartContracts: Array<FabricCommittedSmartContract> = await connection.getAllCommittedSmartContracts();
+            smartContracts.should.deep.equal([
                 {
                     name: 'kittyChaincode',
                     version: '0.0.3'
@@ -483,7 +484,7 @@ describe('FabricEnvironmentConnection', () => {
         });
     });
 
-    describe('getInstalledChaincode', () => {
+    describe('getInstalledSmartContracts', () => {
         let mockPeer: sinon.SinonStubbedInstance<LifecyclePeer>;
 
         beforeEach(() => {
@@ -495,27 +496,27 @@ describe('FabricEnvironmentConnection', () => {
             mockPeer.getAllInstalledSmartContracts.resolves([{ label: 'biscuit-network', packageId: 'biscuit-network-12345' }, { label: 'cake-network', packageId: 'cake-network-12345' }]);
         });
 
-        it('should get the install chaincode', async () => {
-            const installedChaincode: Array<{ label: string, packageId: string }> = await connection.getInstalledChaincode('peer0.org1.example.com');
-            installedChaincode.length.should.equal(2);
-            installedChaincode[0].should.deep.equal({ label: 'biscuit-network', packageId: 'biscuit-network-12345' });
-            installedChaincode[1].should.deep.equal({ label: 'cake-network', packageId: 'cake-network-12345' });
+        it('should get the install smart contracts', async () => {
+            const installedSmartContracts: Array<FabricInstalledSmartContract> = await connection.getInstalledSmartContracts('peer0.org1.example.com');
+            installedSmartContracts.length.should.equal(2);
+            installedSmartContracts[0].should.deep.equal({ label: 'biscuit-network', packageId: 'biscuit-network-12345' });
+            installedSmartContracts[1].should.deep.equal({ label: 'cake-network', packageId: 'cake-network-12345' });
         });
 
         it('should handle and swallow an access denied error', async () => {
             mockPeer.getAllInstalledSmartContracts.rejects(new Error('wow u cannot see cc cos access denied as u is not an admin'));
-            const installedChaincode: Array<{ label: string, packageId: string }> = await connection.getInstalledChaincode('peer0.org1.example.com');
-            installedChaincode.length.should.equal(0);
-            Array.from(installedChaincode.keys()).should.deep.equal([]);
+            const installedSmartContracts: Array<{ label: string, packageId: string }> = await connection.getInstalledSmartContracts('peer0.org1.example.com');
+            installedSmartContracts.length.should.equal(0);
+            Array.from(installedSmartContracts.keys()).should.deep.equal([]);
         });
 
         it('should rethrow any error other than access denied', async () => {
             mockPeer.getAllInstalledSmartContracts.rejects(new Error('wow u cannot see cc cos peer no works'));
-            await connection.getInstalledChaincode('peer0.org1.example.com').should.be.rejectedWith(/peer no works/);
+            await connection.getInstalledSmartContracts('peer0.org1.example.com').should.be.rejectedWith(/peer no works/);
         });
 
-        it('should throw an error getting installed chaincodes from a peer that does not exist', async () => {
-            await connection.getInstalledChaincode('nosuch.peer0.org1.example.com')
+        it('should throw an error getting installed smart contracts from a peer that does not exist', async () => {
+            await connection.getInstalledSmartContracts('nosuch.peer0.org1.example.com')
                 .should.be.rejectedWith(/does not exist/);
         });
     });
@@ -526,26 +527,26 @@ describe('FabricEnvironmentConnection', () => {
         });
     });
 
-    describe('installChaincode', () => {
+    describe('installSmartContract', () => {
         const packagePath: string = path.join(TEST_PACKAGE_DIRECTORY, 'myContract@0.0.1.tar.gz');
 
-        let installChaincodeStub: sinon.SinonStub;
+        let installSmartContractStub: sinon.SinonStub;
 
         beforeEach(() => {
-            installChaincodeStub = mySandBox.stub(LifecyclePeer.prototype, 'installSmartContractPackage');
+            installSmartContractStub = mySandBox.stub(LifecyclePeer.prototype, 'installSmartContractPackage');
         });
 
-        it('should install the chaincode package', async () => {
+        it('should install the smart contract package', async () => {
             const responseStub: any = [[{
                 response: {
                     message: 'all good in da hood',
                     status: 200
                 }
             }]];
-            installChaincodeStub.resolves(responseStub);
+            installSmartContractStub.resolves(responseStub);
 
-            await connection.installChaincode(packagePath, 'peer0.org1.example.com');
-            installChaincodeStub.should.have.been.calledWith(
+            await connection.installSmartContract(packagePath, 'peer0.org1.example.com');
+            installSmartContractStub.should.have.been.calledWith(
                 sinon.match((buffer: Buffer) => {
                     buffer.should.be.an.instanceOf(Buffer);
                     buffer.length.should.equal(413);
@@ -557,10 +558,10 @@ describe('FabricEnvironmentConnection', () => {
 
         it('should handle error response', async () => {
             const error: Error = new Error('some error');
-            installChaincodeStub.rejects(error);
+            installSmartContractStub.rejects(error);
 
-            await connection.installChaincode(packagePath, 'peer0.org1.example.com').should.be.rejectedWith(/some error/);
-            installChaincodeStub.should.have.been.calledWith(
+            await connection.installSmartContract(packagePath, 'peer0.org1.example.com').should.be.rejectedWith(/some error/);
+            installSmartContractStub.should.have.been.calledWith(
                 sinon.match((buffer: Buffer) => {
                     buffer.should.be.an.instanceOf(Buffer);
                     buffer.length.should.equal(413);
@@ -570,22 +571,22 @@ describe('FabricEnvironmentConnection', () => {
             );
         });
 
-        it('should handle an error if the chaincode package does not exist', async () => {
+        it('should handle an error if the smart contract package does not exist', async () => {
             const invalidPackagePath: string = path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-doesnotexist@0.0.1.cds');
 
-            await connection.installChaincode(invalidPackagePath, 'peer0.org1.example.com')
+            await connection.installSmartContract(invalidPackagePath, 'peer0.org1.example.com')
                 .should.have.been.rejectedWith(/ENOENT/);
         });
 
-        it('should handle an error installing the chaincode package', async () => {
-            installChaincodeStub.rejects(new Error('such error'));
+        it('should handle an error installing the smart contract package', async () => {
+            installSmartContractStub.rejects(new Error('such error'));
 
-            await connection.installChaincode(packagePath, 'peer0.org1.example.com')
+            await connection.installSmartContract(packagePath, 'peer0.org1.example.com')
                 .should.have.been.rejectedWith(/such error/);
         });
 
-        it('should throw an error installing chaincode onto a peer that does not exist', async () => {
-            await connection.installChaincode(packagePath, 'nosuch.peer0.org1.example.com')
+        it('should throw an error installing smart contract onto a peer that does not exist', async () => {
+            await connection.installSmartContract(packagePath, 'nosuch.peer0.org1.example.com')
                 .should.be.rejectedWith(/does not exist/);
         });
     });
@@ -729,6 +730,5 @@ describe('FabricEnvironmentConnection', () => {
                 connection.getNode('nosuch.ca.example.com');
             }).should.throw(/does not exist/);
         });
-
     });
 });

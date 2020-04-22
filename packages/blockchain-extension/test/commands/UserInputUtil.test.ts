@@ -33,6 +33,7 @@ import { FabricCertificate, FabricEnvironmentRegistry, FabricRuntimeUtil, Fabric
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
+import { FabricInstalledSmartContract } from 'ibm-blockchain-platform-common/build/src/fabricModel/FabricInstalledSmartContract';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -120,10 +121,10 @@ describe('UserInputUtil', () => {
         fabricRuntimeConnectionStub = mySandBox.createStubInstance(FabricEnvironmentConnection);
         fabricRuntimeConnectionStub.getAllPeerNames.returns(['myPeerOne', 'myPeerTwo']);
 
-        const chaincodeArray: {label: string, packageId: string}[] = [];
+        const chaincodeArray: FabricInstalledSmartContract[] = [];
         chaincodeArray.push({label: 'biscuit-network', packageId: '0.0.1'}, {label: 'biscuit-network', packageId: '0.0.2'}, {label: 'cake-network', packageId: '0.0.3'});
-        fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerOne').resolves(chaincodeArray);
-        fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerTwo').resolves([]);
+        fabricRuntimeConnectionStub.getInstalledSmartContracts.withArgs('myPeerOne').resolves(chaincodeArray);
+        fabricRuntimeConnectionStub.getInstalledSmartContracts.withArgs('myPeerTwo').resolves([]);
         fabricRuntimeConnectionStub.getCommittedSmartContracts.withArgs(['myPeerOne', 'myPeerTwo'], 'channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
         fabricRuntimeConnectionStub.getAllCertificateAuthorityNames.returns(['ca.example.cake.com', 'ca1.example.cake.com']);
         const map: Map<string, Array<string>> = new Map<string, Array<string>>();
@@ -1016,13 +1017,13 @@ describe('UserInputUtil', () => {
             mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([]);
             mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([]);
 
-            const chaincodeArray: {label: string, packageId: string}[] = [];
+            const chaincodeArray: FabricInstalledSmartContract[] = [];
             chaincodeArray.push({label: 'biscuit-network', packageId: '0.0.1'}, {label: 'biscuit-network', packageId: '0.0.2'}, {label: 'biscuit-network', packageId: '0.0.3'});
-            fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerOne').resolves(chaincodeArray);
+            fabricRuntimeConnectionStub.getInstalledSmartContracts.withArgs('myPeerOne').resolves(chaincodeArray);
 
-            const chaincodeArray2: {label: string, packageId: string}[] = [];
+            const chaincodeArray2: FabricInstalledSmartContract[] = [];
             chaincodeArray2.push({label: 'biscuit-network', packageId: '0.0.1'}, {label: 'biscuit-network', packageId: '0.0.3'});
-            fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerTwo').resolves(chaincodeArray2);
+            fabricRuntimeConnectionStub.getInstalledSmartContracts.withArgs('myPeerTwo').resolves(chaincodeArray2);
 
             await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', 'channelOne', ['myPeerOne', 'myPeerTwo'], 'biscuit-network', '0.0.1');
 
@@ -1052,7 +1053,7 @@ describe('UserInputUtil', () => {
         });
 
         it('should not show quickpick if there are no packaged/installed contracts to instantiate', async () => {
-            fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerOne').resolves([]);
+            fabricRuntimeConnectionStub.getInstalledSmartContracts.withArgs('myPeerOne').resolves([]);
             fabricRuntimeConnectionStub.getCommittedSmartContracts.withArgs(['myPeerOne'], 'myChannel').resolves([]);
 
             await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', 'myChannel', ['myPeerOne']).should.eventually.be.rejectedWith('No contracts found');

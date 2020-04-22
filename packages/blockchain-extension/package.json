@@ -78,6 +78,7 @@
             "environmentExplorer.installSmartContractEntry",
             "environmentExplorer.approveSmartContractEntry",
             "environmentExplorer.commitSmartContractEntry",
+            "environmentExplorer.deploySmartContractEntry",
             "environmentExplorer.instantiateSmartContractEntry",
             "environmentExplorer.refreshEntry",
             "environmentExplorer.startFabricRuntime",

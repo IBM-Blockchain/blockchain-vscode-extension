@@ -26,6 +26,7 @@ import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { TimerUtil } from '../util/TimerUtil';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
+import { FabricInstalledSmartContract } from 'ibm-blockchain-platform-common/build/src/fabricModel/FabricInstalledSmartContract';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -761,9 +762,9 @@ export class UserInputUtil {
 
         // For each peer, get the installed chaincode, and remove already installed contracts from the packagedContracts array
         for (const peer of peers) {
-            const chaincodes: { label: string, packageId: string }[] = await connection.getInstalledChaincode(peer);
+            const chaincodes: FabricInstalledSmartContract[] = await connection.getInstalledSmartContracts(peer);
             // TODO: this is wrong but won't be needed
-            chaincodes.forEach((chaincode: { label: string, packageId: string }) => {
+            chaincodes.forEach((chaincode: FabricInstalledSmartContract) => {
                 const label: string = `${chaincode.label}@${chaincode.packageId}`;
 
                 packagedContracts = packagedContracts.filter((_package: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>) => {
@@ -1215,10 +1216,10 @@ export class UserInputUtil {
     private static async getInstalledContracts(connection: IFabricEnvironmentConnection, peers: Array<string>): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[]> {
         const tempQuickPickItems: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = [];
         for (const peer of peers) {
-            const chaincodes: { label: string, packageId: string }[] = await connection.getInstalledChaincode(peer);
+            const chaincodes: FabricInstalledSmartContract[] = await connection.getInstalledSmartContracts(peer);
 
             // TODO: this is wrong but won't be needed later
-            chaincodes.forEach((chaincode: { label: string, packageId: string }) => {
+            chaincodes.forEach((chaincode: FabricInstalledSmartContract) => {
                 const _package: PackageRegistryEntry = new PackageRegistryEntry({ name: chaincode.label, version: chaincode.packageId, path: undefined, sizeKB: undefined });
                 const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = { packageEntry: _package, workspace: undefined };
                 const label: string = `${chaincode.label}@${chaincode.packageId}`;

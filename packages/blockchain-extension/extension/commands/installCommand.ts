@@ -52,7 +52,7 @@ export async function installSmartContract(peerNames: Array<string>, chosenPacka
         for (const peer of peerNames) {
             progress.report({ message: `Installing Smart Contract on peer ${peer}` });
             try {
-                packageId = await connection.installChaincode(chosenPackage.path, peer);
+                packageId = await connection.installSmartContract(chosenPackage.path, peer);
                 outputAdapter.log(LogType.SUCCESS, `Successfully installed on peer ${peer}`);
             } catch (error) {
                 outputAdapter.log(LogType.ERROR, `Failed to install on peer ${peer} with reason: ${error.message}`, `Failed to install on peer ${peer} with reason: ${error.toString()}`);

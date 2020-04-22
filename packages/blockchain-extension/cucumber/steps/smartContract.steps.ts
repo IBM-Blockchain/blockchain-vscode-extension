@@ -47,6 +47,11 @@ module.exports = function(): any {
         this.contractVersion = version;
     });
 
+    this.Given(/a smart contract definition with the name (.+) and version (.\S+)/, this.timeout, async (name: string, version: string) => {
+        this.contractDefinitionName = name;
+        this.contractDefinitionVersion = version;
+    });
+
     this.Given(/the contract hasn't been created already/, this.timeout, async () => {
         const contractDirectory: string = this.smartContractHelper.getContractDirectory(this.contractName, this.contractLanguage);
         const exists: boolean = await fs.pathExists(contractDirectory);
@@ -80,6 +85,14 @@ module.exports = function(): any {
             packageObject.version = version;
             const packageJsonString: string = JSON.stringify(packageObject, null, 4);
             return fs.writeFile(path.join(contractDirectory, 'package.json'), packageJsonString, 'utf8');
+        }
+    });
+
+    this.Given(/the contract has been deleted/, this.timeout, async () => {
+        const contractDirectory: string = this.smartContractHelper.getContractDirectory(this.contractName, this.contractLanguage);
+        const exists: boolean = await fs.pathExists(contractDirectory);
+        if (exists) {
+            await fs.remove(contractDirectory);
         }
     });
 

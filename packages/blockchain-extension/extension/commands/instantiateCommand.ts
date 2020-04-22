@@ -24,6 +24,7 @@ import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, 
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { PackageRegistry } from '../registries/PackageRegistry';
 import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
+import { FabricInstalledSmartContract } from 'ibm-blockchain-platform-common/build/src/fabricModel/FabricInstalledSmartContract';
 
 export async function instantiateSmartContract(channelName?: string, peerNames?: Array<string>): Promise<void> {
 
@@ -96,10 +97,10 @@ export async function instantiateSmartContract(channelName?: string, peerNames?:
             let doInstall: boolean = true;
             if (vscode.debug.activeDebugSession && vscode.debug.activeDebugSession.configuration.debugEvent === FabricDebugConfigurationProvider.debugEvent) {
                 // on local fabric so assume one peer
-                let installedChaincode: { label: string, packageId: string }[] = await connection.getInstalledChaincode(peerNames[0]);
+                let installedChaincode: FabricInstalledSmartContract[] = await connection.getInstalledSmartContracts(peerNames[0]);
 
                 // TODO: this is wrong but this whole file will be deleted so just making the tests pass for now
-                installedChaincode = installedChaincode.filter((chaincode: { label: string, packageId: string }) => {
+                installedChaincode = installedChaincode.filter((chaincode: FabricInstalledSmartContract) => {
                     return chaincode.label === smartContractName && chaincode.packageId === smartContractVersion;
                 });
 

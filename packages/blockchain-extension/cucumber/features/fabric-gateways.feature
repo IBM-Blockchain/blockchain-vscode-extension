@@ -117,15 +117,13 @@ Feature: Fabric Gateways
     And a <contractLanguage> smart contract for <assetType> assets with the name <contractName> and version <version>
     And the contract has been created
     And the contract has been packaged
-    And the package has been installed
-    And the contract has been approved on channel 'mychannel'
-    And the contract has been committed on channel 'mychannel'
+    And the contract has been deployed on channel 'mychannel'
     And the gateway 'myGateway' is created
     And I'm connected to the 'myGateway' gateway without association
     When I generate a <testLanguage> functional test for a <contractLanguage> contract
     Then a functional test file with .<fileExtension> extension for the <testLanguage> contract <contractName> version <version> with assets <assetType> should exist and contain the correct contents
     And the tests should be runnable
     Examples:
-      | contractName       | assetType | contractLanguage | testLanguage | fileExtension | version |
-      | TypeScriptContract | Conga     | TypeScript       | JavaScript   | js            | 0.0.1   |
-#      | JavaContract       | Conga     | Java             | Java         | java          | 0.0.1   |
+      | contractName       | assetType    | contractLanguage | testLanguage | fileExtension | version |
+      | TypeScriptContract | CongaTwo     | TypeScript       | JavaScript   | js            | 0.0.1   |
+      | JavaContract       | CongaTwo     | Java             | Java         | java          | 0.0.1   |

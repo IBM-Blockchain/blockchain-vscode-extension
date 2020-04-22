@@ -43,11 +43,11 @@ Feature: Fabric Environments
         #  | language   | assetType | name               | instantiatedName         | version | label                            | tooltip                                                                    |
         #  | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.2 | 0.0.2   | 1 Org Local Fabric  ○ (click to start) | Creates a local development runtime using Hyperledger Fabric Docker images |
 
-   @otherFabric
-   Scenario: It should create an environment
-     When I create an environment 'myFabric'
-     Then there should be a tree item with a label 'myFabric' in the 'Fabric Environments' panel
-     And the tree item should have a tooltip equal to 'myFabric'
+  @otherFabric
+  Scenario: It should create an environment
+    When I create an environment 'myFabric'
+    Then there should be a tree item with a label 'myFabric' in the 'Fabric Environments' panel
+    And the tree item should have a tooltip equal to 'myFabric'
 
   # @opsToolsFabric
   # Scenario: It should create an environment without nodes
@@ -147,108 +147,133 @@ Feature: Fabric Environments
   #   Then there shouldn't be a tree item with a label 'Org2 CA' in the 'Fabric Environments' panel
   #   And the log should have been called with 'SUCCESS' and 'Successfully hid node Org2 CA'
 
-   @otherFabric
-   Scenario Outline: It should setup environment
-     Given an environment 'myFabric' exists
-     And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
-     When I connect to the environment 'myFabric'
-     Then there should be a tree item with a label '<label>' in the 'Fabric Environments' panel
-     And the tree item should have a tooltip equal to '<tooltip>'
-     Examples:
-       | label                              | tooltip                            |
-       | Setting up: myFabric               | Setting up: myFabric               |
-       | (Click each node to perform setup) | (Click each node to perform setup) |
-       | ca.example.com   ⚠                 | ca.example.com                     |
-       | orderer.example.com   ⚠            | orderer.example.com                |
-       | peer0.org1.example.com   ⚠         | peer0.org1.example.com             |
-
-   @otherFabric
-   Scenario Outline: It should associate nodes with identities
-     Given an environment 'myFabric' exists
-     And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
-     And the 'myFabric' environment is connected
-     When I associate identity '<identity>' in wallet '<wallet>' with node '<name>'
-     Then the log should have been called with 'SUCCESS' and 'Successfully associated identity <identity> from wallet <wallet> with node <name>'
-     Examples:
-       | name                   | wallet   | identity |
-       | peer0.org1.example.com | myWallet | conga    |
-       | orderer.example.com    | myWallet | conga    |
-       | ca.example.com         | myWallet | conga2   |
-
-   @otherFabric
-   Scenario Outline: It should connect to an environment
-     Given an environment 'myFabric' exists
-     And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
-     And the environment is setup
-     When I connect to the environment 'myFabric'
-     Then there should be a <treeItem> tree item with a label '<label>' in the 'Fabric Environments' panel
-     And the tree item should have a tooltip equal to '<tooltip>'
-     Examples:
-       | treeItem              | label                              | tooltip                                                                      |
-       | environment connected | Connected to environment: myFabric | Connected to environment: myFabric                                           |
-       | channel               | mychannel                          | Associated peers: peer0.org1.example.com                                     |
-       | Node                  | peer0.org1.example.com             | Name: peer0.org1.example.com\\nMSPID: Org1MSP\\nAssociated Identity:\\nconga |
-       | Node                  | ca.example.com                     | Name: ca.example.com\\nAssociated Identity:\\nconga2                         |
-       | Node                  | orderer.example.com                | Name: orderer.example.com\\nMSPID: OrdererMSP\\nAssociated Identity:\\nconga |
-       | Organizations         | OrdererMSP                         | OrdererMSP                                                                   |
-       | Organizations         | Org1MSP                            | Org1MSP                                                                      |
+  @otherFabric
+  Scenario Outline: It should setup environment
+    Given an environment 'myFabric' exists
+    And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
+    When I connect to the environment 'myFabric'
+    Then there should be a tree item with a label '<label>' in the 'Fabric Environments' panel
+    And the tree item should have a tooltip equal to '<tooltip>'
+    Examples:
+      | label                              | tooltip                            |
+      | Setting up: myFabric               | Setting up: myFabric               |
+      | (Click each node to perform setup) | (Click each node to perform setup) |
+      | ca.example.com   ⚠                 | ca.example.com                     |
+      | orderer.example.com   ⚠            | orderer.example.com                |
+      | peer0.org1.example.com   ⚠         | peer0.org1.example.com             |
 
   @otherFabric
-  Scenario Outline: It should commit a smart contract
+  Scenario Outline: It should associate nodes with identities
+    Given an environment 'myFabric' exists
+    And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
+    And the 'myFabric' environment is connected
+    When I associate identity '<identity>' in wallet '<wallet>' with node '<name>'
+    Then the log should have been called with 'SUCCESS' and 'Successfully associated identity <identity> from wallet <wallet> with node <name>'
+    Examples:
+      | name                   | wallet   | identity |
+      | peer0.org1.example.com | myWallet | conga    |
+      | orderer.example.com    | myWallet | conga    |
+      | ca.example.com         | myWallet | conga2   |
+
+  @otherFabric
+  Scenario Outline: It should connect to an environment
+    Given an environment 'myFabric' exists
+    And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
+    And the environment is setup
+    When I connect to the environment 'myFabric'
+    Then there should be a <treeItem> tree item with a label '<label>' in the 'Fabric Environments' panel
+    And the tree item should have a tooltip equal to '<tooltip>'
+    Examples:
+      | treeItem              | label                              | tooltip                                                                      |
+      | environment connected | Connected to environment: myFabric | Connected to environment: myFabric                                           |
+      | channel               | mychannel                          | Associated peers: peer0.org1.example.com                                     |
+      | Node                  | peer0.org1.example.com             | Name: peer0.org1.example.com\\nMSPID: Org1MSP\\nAssociated Identity:\\nconga |
+      | Node                  | ca.example.com                     | Name: ca.example.com\\nAssociated Identity:\\nconga2                         |
+      | Node                  | orderer.example.com                | Name: orderer.example.com\\nMSPID: OrdererMSP\\nAssociated Identity:\\nconga |
+      | Organizations         | OrdererMSP                         | OrdererMSP                                                                   |
+      | Organizations         | Org1MSP                            | Org1MSP                                                                      |
+
+  @otherFabric
+  Scenario Outline: It should deploy a smart contract
     Given an environment 'myFabric' exists
     And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
     And the environment is setup
     And the 'myFabric' environment is connected
     And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+    And a smart contract definition with the name <name> and version <version>
     And the contract has been created
     And the contract has been packaged
-    And the package has been installed
-    And the contract has been approved on channel 'mychannel'
-    When I commit the approved contract on channel 'mychannel'
+    When I deploy the contract on channel 'mychannel' with sequence '1'
     Then there should be a committed smart contract tree item with a label '<committedName>' in the 'Fabric Environments' panel for item mychannel
     And the tree item should have a tooltip equal to '<committedName>'
     Examples:
       | language   | assetType | name               | committedName            | version |
       | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1 | 0.0.1   |
 
-#   @otherFabric
-#   Scenario Outline: It should upgrade a smart contract
-#     Given an environment 'myFabric' exists
-#     And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
-#     And the environment is setup
-#     And the 'myFabric' environment is connected
-#     And a <language> smart contract for <assetType> assets with the name <name> and version <version>
-#     And the contract has been created
-#     And the contract has been packaged
-#     And the package has been installed
-# #        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
-# #        And the contract version has been updated to '0.0.2'
-# #        And the contract has been packaged
-# #        And the package has been installed
-# #        When I upgrade the installed package with the transaction '' and args '', not using private data on channel 'mychannel'
-# #        Then there should be a instantiated smart contract tree item with a label '<upgradedName>' in the 'Fabric Environments' panel
-# #        And the tree item should have a tooltip equal to 'Instantiated on: mychannel'
-#     Examples:
-#       | language   | assetType | name               | upgradedName             | version |
-#       | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.2 | 0.0.1   |
-#       | Java       | Conga     | JavaContract       | JavaContract@0.0.2       | 0.0.1   |
+  @otherFabric
+  Scenario Outline: It should change the packaged contract
+    Given an environment 'myFabric' exists
+    And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
+    And the environment is setup
+    And the 'myFabric' environment is connected
+    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+    And a smart contract definition with the name <name> and version <version>
+    And the contract has been created
+    And the contract has been packaged
+    And the contract has been deployed on channel 'mychannel'
+    And the contract has been deleted
+    And the package has been deleted
+    And a <language> smart contract for <assetType2> assets with the name <name> and version <version>
+    And a smart contract definition with the name <name> and version <version>
+    And the contract has been created
+    And the contract has been packaged
+    When I deploy the contract on channel 'mychannel' with sequence '1'
+    Then there should be a committed smart contract tree item with a label '<committedName>' in the 'Fabric Environments' panel for item mychannel
+    And the tree item should have a tooltip equal to '<committedName>'
+    And the log should have been called with 'SUCCESS' and 'Successfully approved smart contract definition'
+    And the log should have been called with 'ERROR' and 'Failed to deploy smart contract, Could not commit smart contract definition'
+    Examples:
+      | language   | assetType | name               | assetType2 | version | committedName            |
+      | JavaScript | Conga     | JavaScriptContract | CongaTwo   | 0.0.1   | JavaScriptContract@0.0.1 |
+      | Java       | Conga     | JavaContract       | CongaTwo   | 0.0.1   | JavaContract@0.0.1       |
+
+  @otherFabric
+  Scenario Outline: It should update the definition
+    Given an environment 'myFabric' exists
+    And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
+    And the environment is setup
+    And the 'myFabric' environment is connected
+    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+    And a smart contract definition with the name <name> and version <version>
+    And the contract has been created
+    And the contract has been packaged
+    And the contract has been deployed on channel 'mychannel'
+    And a smart contract definition with the name <name> and version <version2>
+    When I deploy the contract on channel 'mychannel' with sequence '2'
+    Then there should be a committed smart contract tree item with a label '<committedName>' in the 'Fabric Environments' panel for item mychannel
+    And the tree item should have a tooltip equal to '<committedName>'
+    And the log should have been called with 'SUCCESS' and 'Successfully committed smart contract definition'
+    Examples:
+      | language   | assetType | name               | version | version2 | committedName            |
+      | JavaScript | Conga     | JavaScriptContract | 0.0.1   | 0.0.2    | JavaScriptContract@0.0.2 |
+      | Java       | Conga     | JavaContract       | 0.0.1   | 0.0.2    | JavaContract@0.0.2       |
 
 
-   @otherFabric
-   Scenario: It should delete a node
-     Given an environment 'myFabric2' exists
-     And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
-     And the environment is setup
-     And the 'myFabric2' environment is connected
-     When I delete node 'ca.example.com'
-     Then there shouldn't be a Node tree item with a label 'ca.example.com' in the 'Fabric Environments' panel
-     And there should be a Node tree item with a label 'peer0.org1.example.com' in the 'Fabric Environments' panel
+  @otherFabric
+  Scenario: It should delete a node
+    Given an environment 'myFabric2' exists
+    And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
+    And the environment is setup
+    And the 'myFabric2' environment is connected
+    When I delete node 'ca.example.com'
+    Then there shouldn't be a Node tree item with a label 'ca.example.com' in the 'Fabric Environments' panel
+    And there should be a Node tree item with a label 'peer0.org1.example.com' in the 'Fabric Environments' panel
 
-   @otherFabric
-   Scenario: It should delete an environment
-     Given an environment 'myFabric2' exists
-     When I delete an environment 'myFabric2'
-     Then there shouldn't be a tree item with a label 'myFabric2' in the 'Fabric Environments' panel
+  @otherFabric
+  Scenario: It should delete an environment
+    Given an environment 'myFabric2' exists
+    When I delete an environment 'myFabric2'
+    Then there shouldn't be a tree item with a label 'myFabric2' in the 'Fabric Environments' panel
 
   @ansibleFabric
   Scenario: It should create an environment

@@ -14,6 +14,7 @@
 
 'use strict';
 import * as chai from 'chai';
+import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import {BlockchainWalletExplorerProvider} from '../../extension/explorer/walletExplorer';
@@ -144,6 +145,6 @@ module.exports = function(): any {
     });
 
     this.Then("the log should have been called with '{string}' and '{string}'", this.timeout, async (type: string, popupMessage: string) => {
-        this.userInputUtilHelper.logSpy.should.have.been.calledWith(type, popupMessage);
+        this.userInputUtilHelper.logSpy.should.have.been.calledWith(type, sinon.match(popupMessage));
     });
 };

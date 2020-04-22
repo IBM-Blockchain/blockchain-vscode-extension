@@ -71,17 +71,15 @@ Feature: Submit transaction
         And a <language> smart contract for <assetType> assets with the name <name> and version <version>
         And the contract has been created
         And the contract has been packaged
-        And the package has been installed
-        And the contract has been approved on channel 'mychannel'
-        And the contract has been committed on channel 'mychannel'
+        And the contract has been deployed on channel 'mychannel'
         And the gateway 'myGateway' is created
         And I'm connected to the 'myGateway' gateway without association
-        When I submit the transaction 'createConga' on the channel 'mychannel' with args '["Conga_001", "Big Conga"]'
-        Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'No value returned from createConga'
+        When I submit the transaction 'createCongaTwo' on the channel 'mychannel' with args '["Conga_001", "Big Conga"]'
+        Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'No value returned from createCongaTwo'
         Examples:
-        | language   | assetType | name               | version |
-        | JavaScript | Conga     | JavaScriptContract | 0.0.1   |
-        | Java       | Conga     | JavaContract       | 0.0.1   |
+        | language   | assetType    | name               | version |
+        | JavaScript | CongaTwo     | JavaScriptContract | 0.0.1   |
+        | Java       | CongaTwo     | JavaContract       | 0.0.1   |
 
     @opsToolsFabric
     Scenario Outline: Submit a transaction for a smart contract (OpsTool environment)
