@@ -1,5 +1,69 @@
 # IBM Blockchain Platform Extension Change Log
 
+## 1.0.27: April 23rd 2020
+
+Announcements
+---
+* We’re still waiting for the gRPC v1.25.0 binaries to be published so you may be affected by [this issue](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621), where gRPC fails to rebuild when using VS Code 1.40.x.
+  > Please see [this comment](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621#issuecomment-552926559) for a workaround. 
+
+Features & Enhancements
+---
+* Group gateways and wallets into folders based on the environment they're related to [#1865](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1865).
+
+Fixes
+---
+* Fixed JDK popup appearing on Mac when checking prerequisites [#1657](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1657).
+
+* Fixed "Cannot read property 'major' of null" error on activation [#2200](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2200).
+
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-71.jpg)
+
+
+## 1.0.26: April 7th 2020
+
+Announcements
+---
+* We’re still waiting for the gRPC v1.25.0 binaries to be published so you may be affected by [this issue](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621), where gRPC fails to rebuild when using VS Code 1.40.x.
+  > Please see [this comment](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621#issuecomment-552926559) for a workaround. 
+
+Fixes
+---
+* Fixed exported wallets containing unexpected additional content [#2065](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2065).
+
+* Reverted "Periodically refresh environment, gateway and wallet panels" [#2159](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2159).
+
+
+## 1.0.25: April 2nd 2020
+
+Announcements
+---
+* We’re still waiting for the gRPC v1.25.0 binaries to be published so you may be affected by [this issue](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621), where gRPC fails to rebuild when using VS Code 1.40.x.
+  > Please see [this comment](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621#issuecomment-552926559) for a workaround. 
+
+Features & Enhancements
+---
+* Added Status Page [#2029](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2029), [#1975](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1975)
+  > We’ve now added a status page [https://ibm-blockchain.github.io/blockchain-vscode-extension](https://ibm-blockchain.github.io/blockchain-vscode-extension) which shows any known issues with the extension, as well as listing fixes and features for future releases!
+
+* Subscribe to emitted smart contract events [#2029](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2029).
+  > Call `Subscribe to Events` from the command palette, or right-click on a smart contract in the Fabric Gateways to subscribe to events emitted from your smart contract.
+
+* Support adding IBM Blockchain Platform 2.1.3 environments [#2073](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2073), [#2078](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2078).
+
+* Periodically refresh environment, gateway and wallet panels [#1879](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1879).
+
+Fixes
+---
+* Stop showing teardown message on generator update when there are no local environments [#2069](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2069).
+
+* Only show relevant right-click actions and command options on stopped/started local environments [#1500](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1500).
+
+* Updated Node & npm prerequisite download location [#2101](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2101).
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-70.jpg)
+
 ## 1.0.24: March 19th 2020
 
 Announcements
