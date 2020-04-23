@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import HeadingCombo from '../../elements/HeadingCombo/HeadingCombo';
 import TutorialTabs from '../../elements/TutorialTabs/TutorialTabs';
+import ITutorialObject from '../../../interfaces/ITutorialObject';
 import './TutorialPage.scss';
 
 interface IProps {
-    tutorialData: Array<{seriesName: string, seriesTutorials: any[]}>;
+    tutorialData: Array<{name: string, tutorials: ITutorialObject[]}>;
 }
 
 class TutorialPage extends Component<IProps> {

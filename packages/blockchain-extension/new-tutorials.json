@@ -1,9 +1,10 @@
 [
     {
-        "seriesName": "Basic tutorials",
-        "seriesTutorials": [
+        "name": "Basic tutorials",
+        "tutorials": [
             {
                 "title": "A1: Introduction",
+                "series": "Basic tutorials",
                 "length": "10 minutes",
                 "firstInSeries": true,
                 "objectives": 
@@ -12,10 +13,11 @@
                   "Learn about the Linux Foundation Hyperledger Project and Hyperledger Fabric",
                   "Learn about IBM Blockchain Platform and the VS Code extension"
                 ],
-                "file": "Basic tutorials/a1.md"
+                "file": "basic-tutorials/a1.md"
             },
             {
                 "title": "A2: Creating a smart contract",
+                "series": "Basic tutorials",
                 "length": "10 minutes",
                 "objectives": 
                 [
@@ -23,10 +25,11 @@
                   "Implement a basic smart contract using a standard template",
                   "Understand what the smart contract does"
                 ],
-                "file": "Basic tutorials/a2.md"
+                "file": "basic-tutorials/a2.md"
             },
             {
                 "title": "A3: Deploying a smart contract",
+                "series": "Basic tutorials",
                 "length": "10 minutes",
                 "objectives": 
                 [
@@ -34,10 +37,11 @@
                   "Package the smart contract we previously created",
                   "Deploy the smart contract to the running Hyperledger Fabric"
                 ],
-                "file": "Basic tutorials/a3.md"
+                "file": "basic-tutorials/a3.md"
             },
             {
                 "title": "A4: Invoking a smart contract from VS Code",
+                "series": "Basic tutorials",
                 "length": "15 minutes",
                 "objectives": 
                 [
@@ -45,10 +49,11 @@
                   "Understand the different types of transactions",
                   "Submit transactions that call the smart contract directly in VS Code"
                 ],
-                "file": "Basic tutorials/a4.md"
+                "file": "basic-tutorials/a4.md"
             },
             {
                 "title": "A5: Invoking a smart contract from an external application",
+                "series": "Basic tutorials",
                 "length": "45 minutes",
                 "objectives": 
                 [
@@ -56,10 +61,11 @@
                   "Run the application to submit a transaction",
                   "Modify the application and test the changes"
                 ],
-                "file": "Basic tutorials/a5.md"
+                "file": "basic-tutorials/a5.md"
             },
             {
                 "title": "A6: Upgrading a smart contract",
+                "series": "Basic tutorials",
                 "length": "20 minutes",
                 "objectives": 
                 [
@@ -67,10 +73,11 @@
                   "Package, install and instantiate the new smart contract",
                   "Try out the new smart contract"
                 ],
-                "file": "Basic tutorials/a6.md"
+                "file": "basic-tutorials/a6.md"
             },
             {
                 "title": "A7: Debugging a smart contract",
+                "series": "Basic tutorials",
                 "length": "15 minutes",
                 "objectives": 
                 [
@@ -78,10 +85,11 @@
                   "Use the VS Code debugger to step through our new transaction and see how it works",
                   "Use watches to see how we can monitor variables in smart contracts"
                 ],
-                "file": "Basic tutorials/a7.md"
+                "file": "basic-tutorials/a7.md"
             },
             {
                 "title": "A8: Testing a smart contract",
+                "series": "Basic tutorials",
                 "length": "20 minutes",
                 "objectives": 
                 [
@@ -89,10 +97,11 @@
                   "Generate functional tests for our smart contract",
                   "Customize and run a sample test"
                 ],
-                "file": "Basic tutorials/a8.md"
+                "file": "basic-tutorials/a8.md"
             },
             {
                 "title": "A9: Publishing an event",
+                "series": "Basic tutorials",
                 "length": "20 minutes",
                 "objectives": 
                 [
@@ -100,10 +109,11 @@
                   "Subscribe to the event in VS Code",
                   "Submit a transaction and observe the event's output"
                 ],
-                "file": "Basic tutorials/a9.md"
+                "file": "basic-tutorials/a9.md"
             },
             {
                 "title": "A10: Claim your badge!",
+                "series": "Basic tutorials",
                 "length": "10 minutes",
                 "objectives": 
                 [
@@ -111,15 +121,16 @@
                   "Give you some additional resources",
                   "Invite you to test your learning and gain a badge"
                 ],
-                "file": "Basic tutorials/a10.md"
+                "file": "basic-tutorials/a10.md"
             }
         ]
     },
     {
-        "seriesName": "Other tutorials",
-        "seriesTutorials": [
+        "name": "Other tutorials",
+        "tutorials": [
             {
                 "title": "Local smart contract development",
+                "series": "Other tutorials",
                 "length": "20-30 mins",
                 "firstInSeries": true,
                 "objectives": 
@@ -132,6 +143,7 @@
               },
               {
                 "title": "Create a cloud blockchain deployment",
+                "series": "Other tutorials",
                 "length": "50-60 mins",
                 "objectives": 
                 [
@@ -142,6 +154,7 @@
               },
               {
                 "title": "Deploying and transacting with IBM Cloud",
+                "series": "Other tutorials",
                 "length": "15-20 mins",
                 "objectives": 
                 [
@@ -153,6 +166,7 @@
               },
               {
                 "title": "Adding an Environment to connect to IBM Cloud",
+                "series": "Other tutorials",
                 "length": "20-30 mins",
                 "objectives": 
                 [
@@ -164,6 +178,7 @@
               },
               {
                 "title": "Create a new identity",
+                "series": "Other tutorials",
                 "length": "5-10 mins",
                 "objectives": 
                 [
@@ -174,6 +189,7 @@
               },
               {
                 "title": "Create a new identity with attributes",
+                "series": "Other tutorials",
                 "length": "15-20 mins",
                 "objectives": 
                 [
@@ -186,6 +202,7 @@
               },
               {
                 "title": "Create and use a custom Fabric network",
+                "series": "Other tutorials",
                 "length": "30-45 mins",
                 "objectives": 
                 [
@@ -198,6 +215,7 @@
               },
               {
                 "title": "Debug a smart contract",
+                "series": "Other tutorials",
                 "length": "30-40 mins",
                 "objectives": 
                 [
@@ -210,6 +228,7 @@
               },
               {
                 "title": "Getting Started with Private Data",
+                "series": "Other tutorials",
                 "length": "30-40 mins",
                 "objectives": 
                 [

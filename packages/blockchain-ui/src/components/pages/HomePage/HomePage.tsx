@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Link, Tag } from 'carbon-components-react';
-import CustomTile from '../../elements/CustomTile/CustomTile';
+import CommandTile from '../../elements/CommandTile/CommandTile';
 import CommandLink from '../../elements/CommandLink/CommandLink';
 import HeadingCombo from '../../elements/HeadingCombo/HeadingCombo';
 import TelemetryLink from '../../elements/TelemetryLink/TelemetryLink';
@@ -18,12 +18,12 @@ class HomePage extends Component<IProps> {
     render(): JSX.Element {
         const tutorialTileString: string = 'Complete tutorials to level up your Fabric development skills. Earn rewards such as badges and access to our developer community by completing lessons.';
 
-        // to access the new react tutorial page, comment out the first customTileOptions and use the second one instead
-        const customTileOptions: {actionType: 'app' | 'vscode', command: string} = {
+        // to access the new react tutorial page, comment out the first commandTileOptions and use the second one instead
+        const commandTileOptions: {actionType: 'app' | 'vscode', command: string} = {
             actionType: 'vscode',
             command: ExtensionCommands.OPEN_TUTORIAL_GALLERY
         };
-        // const customTileOptions: {actionType: 'app' | 'vscode', command: string} = {
+        // const commandTileOptions: {actionType: 'app' | 'vscode', command: string} = {
         //     actionType: 'vscode',
         //     command: ExtensionCommands.OPEN_REACT_TUTORIAL_GALLERY
         // };
@@ -39,7 +39,7 @@ class HomePage extends Component<IProps> {
                             <p className='home-title-description'>This extension supports the complete development workflow for Hyperledger Fabric and IBM Blockchain Platform. Get started, learn best practices and earn developer qualifications with our tutorials.</p>
                         </div>
                         <div className='bx--row' id='tutorial-tile-container'>
-                            <CustomTile title='Tutorials' body={tutorialTileString} options={customTileOptions}/>
+                            <CommandTile title='Tutorials' body={tutorialTileString} options={commandTileOptions}/>
                         </div>
                         <HeadingCombo
                             comboStyle='bx--row resources-title-container'

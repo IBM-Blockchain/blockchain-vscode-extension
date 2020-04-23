@@ -3,7 +3,7 @@ import { Tile } from 'carbon-components-react';
 import HeadingCombo from '../HeadingCombo/HeadingCombo';
 import Utils from '../../../Utils';
 import newTabImg from '../../../resources/new-tab.svg';
-import './CustomTile.scss';
+import './CommandTile.scss';
 
 interface IProps {
     title: string;
@@ -11,7 +11,7 @@ interface IProps {
     options: { actionType: 'app' | 'vscode', command?: string, path?: string };
 }
 
-class CustomTile extends Component <IProps> {
+class CommandTile extends Component <IProps> {
     constructor(props: Readonly<IProps>) {
         super(props);
 
@@ -41,4 +41,4 @@ class CustomTile extends Component <IProps> {
     }
 }
 
-export default CustomTile;
+export default CommandTile;
