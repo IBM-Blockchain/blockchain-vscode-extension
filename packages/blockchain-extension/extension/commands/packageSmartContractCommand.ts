@@ -309,13 +309,11 @@ async function buildWorkspace(workspaceDir: vscode.WorkspaceFolder): Promise<voi
     // If we have a set of build tasks, then execute the first one.
     if (buildTasks.length > 0) {
         const buildTask: vscode.Task = buildTasks[0];
-        const buildTaskExecution: vscode.TaskExecution = await vscode.tasks.executeTask(buildTask);
+        await vscode.tasks.executeTask(buildTask);
         await new Promise((resolve: any): any => {
-            const buildTaskListener: vscode.Disposable = vscode.tasks.onDidEndTask((e: vscode.TaskEndEvent) => {
-                if (e.execution === buildTaskExecution) {
-                    buildTaskListener.dispose();
-                    resolve();
-                }
+            const buildTaskListener: vscode.Disposable = vscode.tasks.onDidEndTask((_e: vscode.TaskEndEvent) => {
+                buildTaskListener.dispose();
+                resolve();
             });
         });
     }
