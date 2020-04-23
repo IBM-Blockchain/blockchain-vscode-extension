@@ -17,6 +17,8 @@ Fixes
 
 * Fixed "Cannot read property 'major' of null" error on activation [#2200](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2200).
 
+* Fixed TypeScript contract packaging failing on VS Code 1.44.x [#2193](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2193).
+
 
 ![conga comic](https://congacomic.github.io/assets/img/blockheight-71.jpg)
 
