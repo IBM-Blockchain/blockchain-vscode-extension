@@ -1,10 +1,13 @@
 import React, { Component } from 'react';
-import './TutorialTile.scss';
 import { Timer16 } from '@carbon/icons-react';
 import { Button } from 'carbon-components-react';
+import ITutorialObject from '../../../interfaces/ITutorialObject';
+import { ExtensionCommands } from '../../../ExtensionCommands';
+import Utils from '../../../Utils';
+import './TutorialTile.scss';
 
 interface IProps {
-    tutorialObject: any;
+    tutorialObject: ITutorialObject;
 }
 
 class TutorialTile extends Component <IProps> {
@@ -13,6 +16,7 @@ class TutorialTile extends Component <IProps> {
         super(props);
 
         this.populateObjectives = this.populateObjectives.bind(this);
+        this.openTutorialHandler = this.openTutorialHandler.bind(this);
     }
 
     populateObjectives(): JSX.Element[] {
@@ -21,6 +25,16 @@ class TutorialTile extends Component <IProps> {
             objectivesJSX.push(<p className='objective'>{objective}</p>);
         }
         return objectivesJSX;
+    }
+
+    openTutorialHandler(): void {
+        Utils.postToVSCode({
+            command: ExtensionCommands.OPEN_REACT_TUTORIAL_PAGE,
+            data: [
+                this.props.tutorialObject.series,
+                this.props.tutorialObject.title
+            ]
+        });
     }
 
     render(): JSX.Element {
@@ -39,8 +53,8 @@ class TutorialTile extends Component <IProps> {
                 <div className='button-container'>
                     <Button className='pdf-button' kind='ghost' size='default'>Download as PDF</Button>
                     {this.props.tutorialObject.firstInSeries === true ?
-                        <Button className='button' kind='primary' size='default'>Open tutorial</Button> :
-                        <Button className='button' kind='secondary' size='default'>Open tutorial</Button>
+                        <Button className='button' kind='primary' size='default' onClick={this.openTutorialHandler}>Open tutorial</Button> :
+                        <Button className='button' kind='secondary' size='default' onClick={this.openTutorialHandler}>Open tutorial</Button>
                     }
                 </div>
             </div>

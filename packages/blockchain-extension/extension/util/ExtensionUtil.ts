@@ -73,6 +73,7 @@ import { SampleView } from '../webview/SampleView';
 import { TutorialGalleryView } from '../webview/TutorialGalleryView';
 import { ReactTutorialGalleryView } from '../webview/ReactTutorialGalleryView';
 import { TutorialView } from '../webview/TutorialView';
+import { ReactTutorialView } from '../webview/ReactTutorialView';
 import { Reporter } from './Reporter';
 import { PreReqView } from '../webview/PreReqView';
 import { BlockchainEnvironmentExplorerProvider } from '../explorer/environmentExplorer';
@@ -272,6 +273,11 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TUTORIAL_PAGE, async (repoName: string, tutorialName: string) => {
             const tutorialView: TutorialView = new TutorialView(repoName, tutorialName);
             await tutorialView.openView();
+        }));
+
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_REACT_TUTORIAL_PAGE, async (repoName: string, tutorialName: string) => {
+            const reactTutorialView: ReactTutorialView = new ReactTutorialView(repoName, tutorialName);
+            await reactTutorialView.openView();
         }));
 
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE, async (treeItem: InstantiatedTreeItem) => {
