@@ -14,67 +14,103 @@ html {
     .vscode-dark {
         @include carbon--theme($carbon--theme--g90) {
 
+            /* This seems to make themes work. In the initial react technical spike we did:
+                @import 'node_modules/carbon-components/scss/globals/scss/styles.scss';
+                Which was horribly inefficient as it imported ALL the components plus everything else.
+                It also took ages to build!
+                There's something magic about _combox-box, or the order, or something else.
+            */
+
+            @import "carbon-components/scss/globals/scss/_feature-flags";
+            @import "carbon-components/scss/globals/scss/_css--reset";
+            @import "carbon-components/scss/globals/scss/_css--helpers";
+            @import "carbon-components/scss/globals/scss/_helper-mixins";
+            @import "carbon-components/scss/globals/scss/_css--body";
+            @import 'carbon-components/scss/components/button/_button';
+            @import 'carbon-components/scss/components/checkbox/_checkbox';
+            @import 'carbon-components/scss/components/combo-box/_combo-box'; // Does this magic everything better?!
+            @import 'carbon-components/scss/components/select/_select';
+            @import 'carbon-components/scss/components/text-input/_text-input';
+            @import 'carbon-components/scss/components/form/_form';
+            @import 'carbon-components/scss/components/link/_link';
+            @import 'carbon-components/scss/components/data-table/_data-table';
+            @import 'carbon-components/scss/components/dropdown/_dropdown';
+            @import 'carbon-components/scss/components/tabs/_tabs';
+            @import 'carbon-components/scss/components/tag/_tag';
+            @import 'carbon-components/scss/components/accordion/_accordion';
+            @import 'carbon-components/scss/components/progress-indicator/_progress-indicator';
+            @import 'carbon-components/scss/components/tile/_tile';
+
+
+            // Commenting this out until I determine whether it can be deleted or not.
+
+            // Going to leave this stuff commented out incase we don't actually want to import everything like this!
+
             #root {
                 // Color will default to #000000 otherwise
                 color: $text-01;
+                margin-left: $spacing-05;
+                margin-top: $spacing-05;
                 @include select-dark;
-            }
-
-            #app-container {
-                @include app__tutorial-page-dark;
-            }
-
-            // CustomTile component
-            #tutorial-tile-container {
-                @include custom-tile-dark;
-            }
-
-            // extension version tag
-            #extension-version-tag {
-                background-color: $gray-80;
-                color: inherit;
-            }
-
-            // home page links
-            #home-link-01, #home-link-02, #home-link-03, #home-link-04, #home-link-05, #home-link-06, #home-link-07, #home-link-08, #home-link-09, #home-link-10, #home-link-11 {
-                color: $blue-40;
-            }
-
-            // home page image
-            #dev-learner-themed-image {
-                @include themed-image-dark;
-            }
-
-            #tutorial-page-background {
-                @include tutorial-page-dark;
-            }
-
-            #tutorial-tabs-container {
-                @include tutorial-tabs-dark;
-                @include tutorial-tile-dark;
-            }
-
-            // text inputs on the create transaction screen
-            #create-txn-form {
-                @include text-inputs-dark;
-            }
-
-            // data tables on home page
-            #recent-txns-table, #saved-txns-table {
-                @include data-table-dark;
-            }
-
-            // InlineSelect components
-            #smart-contract-select-wrapper {
-                @include inline-select-dark;
-            }
-
-            // Checkbox
-            @include checkbox-dark;
-
-            //panel containing transaction output
-            #output-panel {
-                @include output-panel-dark;
+                
+                
+                #app-container {
+                    @include app__tutorial-page-dark;
+                }
+    
+                // CustomTile component
+                #tutorial-tile-container {
+                    @include custom-tile-dark;
+                }
+    
+                // extension version tag
+                #extension-version-tag {
+                    background-color: $gray-80;
+                    color: inherit;
+                }
+    
+                // home page links
+                #home-link-01, #home-link-02, #home-link-03, #home-link-04, #home-link-05, #home-link-06, #home-link-07, #home-link-08, #home-link-09, #home-link-10, #home-link-11 {
+                    color: $blue-40;
+                }
+    
+                // home page image
+                #dev-learner-themed-image {
+                    @include themed-image-dark;
+                }
+    
+                #tutorial-page-background {
+                    @include tutorial-page-dark;
+                }
+    
+                #tutorial-tabs-container {
+                    padding-top: 3px;
+                    @include tutorial-tabs-dark;
+                    @include tutorial-tile-dark;
+                }
+    
+                // text inputs on the create transaction screen
+                #create-txn-form {
+                    @include text-inputs-dark;
+                }
+    
+                // data tables on home page
+                #recent-txns-table, #saved-txns-table {
+                    @include data-table-dark;
+                }
+    
+                // InlineSelect components
+                #smart-contract-select-wrapper {
+                    @include inline-select-dark;
+                }
+    
+                // Checkbox
+                @include checkbox-dark;
+    
+                //panel containing transaction output
+                #output-panel {
+                    @include output-panel-dark;
+                }
             }
 
         }
@@ -83,14 +119,50 @@ html {
     .vscode-light {
         @include carbon--theme($carbon--theme--g10) {
             
+            /* This seems to make themes work. In the initial react technical spike we did:
+                @import 'node_modules/carbon-components/scss/globals/scss/styles.scss';
+                Which was horribly inefficient as it imported ALL the components plus everything else.
+                It also took ages to build!
+                There's something magic about _combox-box, or the order, or something else.
+            */
+
+            @import "carbon-components/scss/globals/scss/_feature-flags";
+            @import "carbon-components/scss/globals/scss/_css--reset";
+            @import "carbon-components/scss/globals/scss/_css--helpers";
+            @import "carbon-components/scss/globals/scss/_helper-mixins";
+            @import "carbon-components/scss/globals/scss/_css--body";
+            @import 'carbon-components/scss/components/button/_button';
+            @import 'carbon-components/scss/components/checkbox/_checkbox';
+            @import 'carbon-components/scss/components/combo-box/_combo-box'; // Does this magic everything better?!
+            @import 'carbon-components/scss/components/select/_select';
+            @import 'carbon-components/scss/components/text-input/_text-input';
+            @import 'carbon-components/scss/components/form/_form';
+            @import 'carbon-components/scss/components/link/_link';
+            @import 'carbon-components/scss/components/data-table/_data-table';
+            @import 'carbon-components/scss/components/dropdown/_dropdown';
+            @import 'carbon-components/scss/components/tabs/_tabs';
+            @import 'carbon-components/scss/components/tag/_tag';
+            @import 'carbon-components/scss/components/accordion/_accordion';
+            @import 'carbon-components/scss/components/progress-indicator/_progress-indicator';
+            @import 'carbon-components/scss/components/tile/_tile';
+
             #root {
                 color: $text-01;
+                margin-left: $spacing-05;
+                margin-top: $spacing-05;
             }
 
             // home page image
             #dev-learner-themed-image {
                 @include themed-image-light;
             }
+
+            #tutorial-tabs-container{
+                .bx--tabs__nav-item--selected {
+                    background-color: $gray-10;
+                }
+            }
+
         }
     }
 }

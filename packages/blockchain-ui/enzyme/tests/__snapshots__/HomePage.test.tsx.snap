@@ -34,6 +34,7 @@ exports[`HomePage component should render the expected snapshot 1`] = `
       >
         <div
           className="bx--tile custom-tile"
+          id="custom-tile-hack"
           onClick={[Function]}
         >
           <div

@@ -104,6 +104,7 @@
             "releaseNotes.open",
             "tutorialGallery.open",
             "reactTutorialGallery.open",
+            "deploy.open",
             "transactionPage.open"
         ]
     },
@@ -257,6 +258,11 @@
             {
                 "command": "reactTutorialGallery.open",
                 "title": "View React Tutorial Gallery",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "deploy.open",
+                "title": "Deploy Smart Contract",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -1381,7 +1387,8 @@
         "cucumberTests": "./cucumber/hlfv1/start.sh",
         "cucumberAnsibleTests": "./cucumber/ansibleScripts/start.sh",
         "localize": "vscl build/src/**/*.js",
-        "build": "tsc && cp -r ../blockchain-ui/build/static ./build"
+        "build": "tsc && cp -r ../blockchain-ui/build/static ./build",
+        "rebuildUi": "cd ../blockchain-ui && npm run compile"
     },
     "devDependencies": {
         "@types/chai": "4.1.4",

@@ -1,8 +1,10 @@
 @import '../../../mixins/layout-mixins.scss';
 @import '@carbon/colors/scss/colors';
 
-.tutorial-page-container {
-    @include default-page-styling;
-    margin-left: $spacing-05;
-    margin-top: $spacing-05;
+#root{
+    .tutorial-page-container {
+
+        margin-left: $spacing-07;
+        margin-top: $spacing-05;
+    }
 }

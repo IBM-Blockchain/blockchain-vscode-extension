@@ -2,16 +2,46 @@
 @import '@carbon/layout/scss/_spacing';
 @import '../../../mixins/layout-mixins.scss';
 
+.vscode-dark {
+
+    #tutorial-tile-container {
+        .custom-tile {
+            background-color: $gray-90;
+        }
+        img {
+            filter: invert(100%);
+        }
+    }
+
+    #dev-learner-themed-image {
+        img:nth-of-type(1) {
+            display: none;
+        }
+    }
+    
+}
+
+.vscode-light { 
+    #tutorial-tile-container {
+        .custom-tile {
+            background-color: $gray-10;
+        }
+    }
+
+    #dev-learner-themed-image {
+        img:nth-of-type(2) {
+            display: none;
+        }
+    }
+}
+
 .home-page-container {
     @include default-page-styling;
-    margin-left: $spacing-05;
-    margin-top: $spacing-05;
 
     .home-title-container {
         .extension-version {
             margin-left: $spacing-05;
             font-size: 1rem;
-            color: $gray-50;
         }
 
         .home-title-description {

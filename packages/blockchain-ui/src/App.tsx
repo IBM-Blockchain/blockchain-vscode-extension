@@ -4,11 +4,13 @@ import { HashRouter as Router, Route, Redirect } from 'react-router-dom';
 import HomePage from './components/pages/HomePage/HomePage';
 import TutorialPage from './components/pages/TutorialPage/TutorialPage';
 import ITutorialObject from './interfaces/ITutorialObject';
+import DeployPage from './components/pages/DeployPage/DeployPage';
 
 interface AppState {
     redirectPath: string;
     extensionVersion: string;
     tutorialData: Array<{name: string, tutorials: ITutorialObject[]}>;
+    deployData: {channelName: string, environmentName: string};
 }
 
 class App extends Component<{}, AppState> {
@@ -17,7 +19,8 @@ class App extends Component<{}, AppState> {
         this.state = {
             redirectPath: '',
             extensionVersion: '',
-            tutorialData: []
+            tutorialData: [],
+            deployData: {channelName: '', environmentName: ''}
         };
     }
 
@@ -33,6 +36,10 @@ class App extends Component<{}, AppState> {
 
             if (event.data.tutorialData) {
                 newState.tutorialData = event.data.tutorialData;
+            }
+
+            if (event.data.deployData) {
+                newState.deployData = event.data.deployData;
             }
 
             this.setState(newState);
@@ -57,6 +64,9 @@ class App extends Component<{}, AppState> {
                             </Route>
                             <Route exact path='/tutorials' render={(): JSX.Element =>
                                 <TutorialPage tutorialData={this.state.tutorialData}/>}>
+                            </Route>
+                            <Route exact path='/deploy' render={(): JSX.Element =>
+                                <DeployPage deployData={this.state.deployData}/>}>
                             </Route>
                         </div>
                     </div>

@@ -105,6 +105,7 @@ import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchain
 import { subscribeToEvent } from '../commands/subscribeToEventCommand';
 import { approveSmartContract } from '../commands/approveCommand';
 import { commitSmartContract } from '../commands/commitCommand';
+import { openDeployView } from '../commands/openDeployView';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -249,6 +250,7 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY, (treeItem: ContractTreeItem | InstantiatedTreeItem) => associateTransactionDataDirectory(treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY, (treeItem: ContractTreeItem | InstantiatedTreeItem) => dissociateTransactionDataDirectory(treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.SUBSCRIBE_TO_EVENT, (treeItem: ContractTreeItem | InstantiatedTreeItem) => subscribeToEvent(treeItem)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_DEPLOY_PAGE, () => openDeployView()));
 
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_HOME_PAGE, async () => {
             const homeView: HomeView = new HomeView(context);

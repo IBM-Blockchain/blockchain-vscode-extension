@@ -23,3 +23,12 @@
     }
 }
 
+#custom-tile-hack{
+    display: block;
+    min-width: 8rem;
+    min-height: 4rem;
+    position: relative;
+    padding: 1rem;
+    outline: 2px solid transparent;
+    outline-offset: -2px;
+}
