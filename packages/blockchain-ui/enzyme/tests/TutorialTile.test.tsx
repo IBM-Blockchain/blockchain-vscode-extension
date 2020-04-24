@@ -13,6 +13,8 @@ import { ExtensionCommands } from '../../src/ExtensionCommands';
 chai.should();
 chai.use(sinonChai);
 
+// tslint:disable no-unused-expression
+
 describe('TutorialTile component', () => {
     let mySandBox: sinon.SinonSandbox;
     const tutorialObject: ITutorialObject = {
@@ -71,6 +73,22 @@ describe('TutorialTile component', () => {
                 tutorialObject.title
             ]
         });
+    });
+
+    it('should show badge available if the tutorial has a badge available', () => {
+        const anotherTutorialObject: any = {
+            title: 'a4',
+            length: '3 weeks',
+            badge: true,
+            file: 'some/file/path',
+            objectives: [
+                'objective 1',
+                'objective 2',
+                'objective 3'
+            ]
+        };
+        const component: ReactWrapper<{tutorialObject: any}, {}> = mount(<TutorialTile tutorialObject={anotherTutorialObject}/>);
+        component.text().includes('Badge available').should.be.true;
     });
 
 });
