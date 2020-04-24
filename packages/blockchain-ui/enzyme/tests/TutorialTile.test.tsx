@@ -14,6 +14,9 @@ chai.should();
 chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
+interface IProps {
+    tutorialObject: ITutorialObject;
+}
 
 describe('TutorialTile component', () => {
     let mySandBox: sinon.SinonSandbox;
@@ -42,7 +45,7 @@ describe('TutorialTile component', () => {
     });
 
     it('should render a primary button if tutorial is first in series', () => {
-        const component: ReactWrapper<{tutorialObject: ITutorialObject}, {}> = mount(<TutorialTile tutorialObject={tutorialObject}/>);
+        const component: ReactWrapper<IProps> = mount(<TutorialTile tutorialObject={tutorialObject}/>);
         component.find('button').at(1).hasClass('bx--btn--primary').should.equal(true);
     });
 
@@ -58,13 +61,13 @@ describe('TutorialTile component', () => {
             ],
             file: 'some/file/path'
         };
-        const component: ReactWrapper<{tutorialObject: ITutorialObject}, {}> = mount(<TutorialTile tutorialObject={anotherTutorialObject}/>);
+        const component: ReactWrapper<IProps> = mount(<TutorialTile tutorialObject={anotherTutorialObject}/>);
         component.find('button').at(1).hasClass('bx--btn--secondary').should.equal(true);
     });
 
     it(`should post a message to VS Code when the 'Open tutorial' button is clicked`, () => {
         const postToVSCodeStub: sinon.SinonStub = mySandBox.stub(Utils, 'postToVSCode').resolves();
-        const component: ReactWrapper<{tutorialObject: ITutorialObject}, {} > = mount(<TutorialTile tutorialObject={tutorialObject}/>);
+        const component: ReactWrapper<IProps> = mount(<TutorialTile tutorialObject={tutorialObject}/>);
         component.find('button').at(1).simulate('click');
         postToVSCodeStub.should.have.been.calledOnceWithExactly({
             command: ExtensionCommands.OPEN_REACT_TUTORIAL_PAGE,
@@ -87,7 +90,7 @@ describe('TutorialTile component', () => {
                 'objective 3'
             ]
         };
-        const component: ReactWrapper<{tutorialObject: any}, {}> = mount(<TutorialTile tutorialObject={anotherTutorialObject}/>);
+        const component: ReactWrapper<IProps> = mount(<TutorialTile tutorialObject={anotherTutorialObject}/>);
         component.text().includes('Badge available').should.be.true;
     });
 

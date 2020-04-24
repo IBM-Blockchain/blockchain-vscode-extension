@@ -1,6 +1,6 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
-import { mount } from 'enzyme';
+import { mount, ReactWrapper } from 'enzyme';
 import chai from 'chai';
 import sinonChai from 'sinon-chai';
 
@@ -8,6 +8,14 @@ import HeadingCombo from '../../src/components/elements/HeadingCombo/HeadingComb
 
 chai.should();
 chai.use(sinonChai);
+
+interface IProps {
+    comboStyle?: string;
+    headingText: string;
+    headingStyle?: string;
+    subheadingText: string;
+    subheadingStyle?: string;
+}
 
 describe('HeadingCombo component', () => {
     it('should render the expected snapshot', () => {
@@ -18,7 +26,7 @@ describe('HeadingCombo component', () => {
     });
 
     it('should apply any additional styles that are provided', () => {
-        const component: any = mount (
+        const component: ReactWrapper<IProps> = mount (
             <HeadingCombo
                 headingText='Here Is A Heading'
                 subheadingText='And here is a subheading'

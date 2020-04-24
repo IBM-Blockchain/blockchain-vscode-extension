@@ -1,6 +1,6 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
-import { mount } from 'enzyme';
+import { mount, ReactWrapper } from 'enzyme';
 import chai from 'chai';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
@@ -10,6 +10,14 @@ import Utils from '../../src/Utils';
 
 chai.should();
 chai.use(sinonChai);
+
+interface IProps {
+    commandName: string;
+    linkContents: string;
+    className?: string;
+    commandData?: any;
+    id?: string;
+}
 
 describe('CommandLink component', () => {
     let mySandBox: sinon.SinonSandbox;
@@ -32,7 +40,7 @@ describe('CommandLink component', () => {
     });
 
     it('should call a command in VS Code when clicked', () => {
-        const component: any = mount(<CommandLink linkContents='my link' commandName='my command'/>);
+        const component: ReactWrapper<IProps> = mount(<CommandLink linkContents='my link' commandName='my command'/>);
         component.find('a').simulate('click');
         postToVSCodeStub.should.have.been.calledOnceWithExactly({
             command: 'my command'
@@ -40,7 +48,7 @@ describe('CommandLink component', () => {
     });
 
     it('should post additional information to VS Code when provided', () => {
-        const component: any = mount(<CommandLink linkContents='my link' commandName='my command' commandData={['additional', 'information']}/>);
+        const component: ReactWrapper<IProps> = mount(<CommandLink linkContents='my link' commandName='my command' commandData={['additional', 'information']}/>);
         component.find('a').simulate('click');
         postToVSCodeStub.should.have.been.calledOnceWithExactly({
             command: 'my command',
@@ -49,7 +57,7 @@ describe('CommandLink component', () => {
     });
 
     it('should add any additional styles provided', () => {
-        const component: any = mount(<CommandLink linkContents='my link' commandName='my command' className='some-style'/>);
+        const component: ReactWrapper<IProps> = mount(<CommandLink linkContents='my link' commandName='my command' className='some-style'/>);
         component.find('a').hasClass('some-style').should.equal(true);
     });
 });
