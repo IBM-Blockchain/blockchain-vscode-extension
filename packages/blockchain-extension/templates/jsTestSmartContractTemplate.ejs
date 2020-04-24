@@ -41,12 +41,13 @@ describe('<%=chaincodeLabel%>' , () => {
     const walletPath = '<%-walletPath%>';
     <%_ } _%>
     const gateway = new fabricNetwork.Gateway();
-    const wallet = new fabricNetwork.FileSystemWallet(walletPath);
+    let wallet;
     const identityName = '<%-identityName%>';
     let connectionProfile;
 
     before(async () => {
         connectionProfile = await SmartContractUtil.getConnectionProfile();
+        wallet = await fabricNetwork.Wallets.newFileSystemWallet(walletPath);
     });
 
     beforeEach(async () => {

@@ -124,7 +124,7 @@ Feature: Fabric Gateways
     And I'm connected to the 'myGateway' gateway without association
     When I generate a <testLanguage> functional test for a <contractLanguage> contract
     Then a functional test file with .<fileExtension> extension for the <testLanguage> contract <contractName> version <version> with assets <assetType> should exist and contain the correct contents
-#    And the tests should be runnable
+    And the tests should be runnable
     Examples:
       | contractName       | assetType | contractLanguage | testLanguage | fileExtension | version |
       | TypeScriptContract | Conga     | TypeScript       | JavaScript   | js            | 0.0.1   |

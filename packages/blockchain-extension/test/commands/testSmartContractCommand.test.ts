@@ -35,7 +35,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { ContractTreeItem } from '../../extension/explorer/model/ContractTreeItem';
-import { FABRIC_CLIENT_VERSION, FABRIC_NETWORK_VERSION, ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { FABRIC_NETWORK_NODE_VERSION, ExtensionUtil, FABRIC_NETWORK_JAVA_VERSION } from '../../extension/util/ExtensionUtil';
 import { InstantiatedUnknownTreeItem } from '../../extension/explorer/model/InstantiatedUnknownTreeItem';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
 import { InstantiatedTreeItem } from '../../extension/explorer/model/InstantiatedTreeItem';
@@ -551,7 +551,7 @@ describe('testSmartContractCommand', () => {
             sendCommandStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_VERSION}, fabric-client@${FABRIC_CLIENT_VERSION}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_NODE_VERSION}`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
@@ -605,7 +605,7 @@ describe('testSmartContractCommand', () => {
             workspaceConfigurationUpdateStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_VERSION}, fabric-client@${FABRIC_CLIENT_VERSION}, @types/mocha, ts-node, typescript`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_NODE_VERSION}, @types/mocha, ts-node, typescript`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'TypeScript'});
@@ -656,7 +656,7 @@ describe('testSmartContractCommand', () => {
             workspaceConfigurationUpdateStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_VERSION}, fabric-client@${FABRIC_CLIENT_VERSION}, @types/mocha, ts-node, typescript`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_NODE_VERSION}, @types/mocha, ts-node, typescript`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'TypeScript'});
@@ -1078,7 +1078,7 @@ describe('testSmartContractCommand', () => {
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_VERSION}, fabric-client@${FABRIC_CLIENT_VERSION}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_NODE_VERSION}`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
             logSpy.should.not.have.been.calledWith(LogType.ERROR, `Smart contract project ${smartContractName} is not open in workspace. Please ensure the ${smartContractName} smart contract project folder is not nested within your workspace.`);
@@ -1325,7 +1325,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes(`const args = [ ${transactionOne.parameters[0].name.replace(`"`, '')}, ${transactionOne.parameters[1].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[2].name.replace(`"`, '')}), ${transactionOne.parameters[3].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[4].name.replace(`"`, '')})`).should.be.true;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_VERSION}, fabric-client@${FABRIC_CLIENT_VERSION}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_NODE_VERSION}`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
@@ -1371,7 +1371,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes(`const args = [ ${transactionOne.parameters[0].name.replace(`"`, '')}, ${transactionOne.parameters[1].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[2].name.replace(`"`, '')}), ${transactionOne.parameters[3].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[4].name.replace(`"`, '')})`).should.be.true;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_VERSION}, fabric-client@${FABRIC_CLIENT_VERSION}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_NODE_VERSION}`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
@@ -1479,7 +1479,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes('transaction2').should.be.true;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_VERSION}, fabric-client@${FABRIC_CLIENT_VERSION}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_NODE_VERSION}`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
@@ -1655,7 +1655,7 @@ describe('testSmartContractCommand', () => {
             sendCommandStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_VERSION}, fabric-client@${FABRIC_CLIENT_VERSION}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_NODE_VERSION}`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.ERROR, `Error installing node modules in smart contract project: ${error.message}`, `Error installing node modules in smart contract project: ${error.toString()}`);
             sendTelemetryEventStub.should.not.have.been.called;
         });
@@ -1678,7 +1678,7 @@ describe('testSmartContractCommand', () => {
             writeJsonStub.should.have.been.calledWith(path.join(testFileDir, 'tsconfig.json'), tsConfigContents, tsConfigFormat);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_VERSION}, fabric-client@${FABRIC_CLIENT_VERSION}, @types/mocha, ts-node, typescript`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_NODE_VERSION}, @types/mocha, ts-node, typescript`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'TypeScript'});
@@ -1701,7 +1701,7 @@ describe('testSmartContractCommand', () => {
             writeJsonStub.should.have.been.calledWith(path.join(testFileDir, 'tsconfig.json'), tsConfigContents, tsConfigFormat);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_VERSION}, fabric-client@${FABRIC_CLIENT_VERSION}, @types/mocha, ts-node, typescript`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_NODE_VERSION}, @types/mocha, ts-node, typescript`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'TypeScript'});
@@ -1727,7 +1727,7 @@ describe('testSmartContractCommand', () => {
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_VERSION}, fabric-client@${FABRIC_CLIENT_VERSION}, @types/mocha, ts-node, typescript`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_NODE_VERSION}, @types/mocha, ts-node, typescript`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.ERROR, 'Unable to create tsconfig.json file: failed for some reason', `Unable to create tsconfig.json file: ${error.toString()}`);
         });
@@ -1750,7 +1750,7 @@ describe('testSmartContractCommand', () => {
             writeJsonStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_VERSION}, fabric-client@${FABRIC_CLIENT_VERSION}, @types/mocha, ts-node, typescript`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_NODE_VERSION}, @types/mocha, ts-node, typescript`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.WARNING, 'Unable to create tsconfig.json file as it already exists');
             logSpy.getCall(5).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
@@ -2062,7 +2062,7 @@ describe('testSmartContractCommand', () => {
             // error that would be hit if we tried to overwrite the build file when not necessary.
             const writeError: Error = new Error('Some write error.');
             writeFileStub.rejects(writeError);
-            readFileStub.withArgs(gradleFilePath.fsPath, 'utf8').resolves(`'version '0.0.1'\nrepositories {\nmavenLocal()\nmavenCentral()\nmaven {\nurl 'https://jitpack.io'\n}\nmaven {\nurl "https://nexus.hyperledger.org/content/repositories/snapshots/"\n}}\ndependencies {\ncompile group: 'org.hyperledger.fabric-chaincode-java', name: 'fabric-chaincode-shim', version: '1.4.2'\ncompile group: 'org.json', name: 'json', version: '20180813'\ntestImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'\ntestImplementation 'org.mockito:mockito-core:2.+'\ntestImplementation 'org.hyperledger.fabric:fabric-gateway-java:1.4.2'\ntestImplementation 'org.assertj:assertj-core:3.13.2'\ntestImplementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.7.4'\ntestImplementation 'com.fasterxml.jackson.core:jackson-databind:2.2.3'}'`);
+            readFileStub.withArgs(gradleFilePath.fsPath, 'utf8').resolves(`'version '0.0.1'\nrepositories {\nmavenLocal()\nmavenCentral()\nmaven {\nurl 'https://jitpack.io'\n}\nmaven {\nurl "https://nexus.hyperledger.org/content/repositories/snapshots/"\n}}\ndependencies {\ncompile group: 'org.hyperledger.fabric-chaincode-java', name: 'fabric-chaincode-shim', version: '2.0.0'\ncompile group: 'org.json', name: 'json', version: '20180813'\ntestImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'\ntestImplementation 'org.mockito:mockito-core:2.+'\ntestImplementation 'org.hyperledger.fabric:fabric-gateway-java:${FABRIC_NETWORK_JAVA_VERSION}'\ntestImplementation 'org.assertj:assertj-core:3.13.2'\ntestImplementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.7.4'\ntestImplementation 'com.fasterxml.jackson.core:jackson-databind:2.2.3'}'`);
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedJavaSmartContract);
 
             fsCopyStub.should.have.been.calledWith(gradleFilePath.fsPath, `${gradleFilePath.fsPath}.tmp`);
