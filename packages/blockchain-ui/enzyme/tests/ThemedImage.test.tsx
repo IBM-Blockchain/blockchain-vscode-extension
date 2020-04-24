@@ -1,6 +1,6 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
-import { mount } from 'enzyme';
+import { mount, ReactWrapper } from 'enzyme';
 import chai from 'chai';
 import sinonChai from 'sinon-chai';
 
@@ -11,6 +11,14 @@ import darkImg from '../../src/resources/devLearnerDark.svg';
 chai.should();
 chai.use(sinonChai);
 
+interface IProps {
+    altText: string;
+    darkImg: any;
+    lightImg: any;
+    id: string;
+    className?: string;
+}
+
 describe('ThemedImage component', () => {
     it('should render the expected snapshot', () => {
         const component: any = renderer
@@ -20,7 +28,7 @@ describe('ThemedImage component', () => {
     });
 
     it('should add any additional styles provided', () => {
-        const component: any = mount(<ThemedImage lightImg={lightImg} darkImg={darkImg} altText='' id='test-themed-image' className='some-class'/>);
+        const component: ReactWrapper<IProps> = mount(<ThemedImage lightImg={lightImg} darkImg={darkImg} altText='' id='test-themed-image' className='some-class'/>);
         component.find('img').at(0).hasClass('some-class').should.equal(true);
         component.find('img').at(1).hasClass('some-class').should.equal(true);
     });

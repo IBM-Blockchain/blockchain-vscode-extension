@@ -1,6 +1,6 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
-import { mount } from 'enzyme';
+import { mount, ReactWrapper } from 'enzyme';
 import chai from 'chai';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
@@ -10,6 +10,12 @@ import Utils from '../../src/Utils';
 
 chai.should();
 chai.use(sinonChai);
+
+interface IProps {
+    title: string;
+    body: string;
+    options: { actionType: 'app' | 'vscode', command?: string, path?: string };
+}
 
 describe('CommandTile component', () => {
     let mySandBox: sinon.SinonSandbox;
@@ -44,7 +50,7 @@ describe('CommandTile component', () => {
             command: 'some_command'
         };
 
-        const component: any = mount(<CommandTile title='My Tile' body='Some text I want to display in my tile' options={options}/>);
+        const component: ReactWrapper<IProps> = mount(<CommandTile title='My Tile' body='Some text I want to display in my tile' options={options}/>);
         component.find('.bx--tile').simulate('click');
         postToVSCodeStub.should.have.been.calledOnceWithExactly({
             command: options.command
@@ -57,7 +63,7 @@ describe('CommandTile component', () => {
             path: 'some/path'
         };
 
-        const component: any = mount(<CommandTile title='My Tile' body='Some text I want to display in my tile' options={options}/>);
+        const component: ReactWrapper<IProps> = mount(<CommandTile title='My Tile' body='Some text I want to display in my tile' options={options}/>);
         component.find('.bx--tile').simulate('click');
         changeRouteStub.should.have.been.calledOnceWithExactly(options.path);
     });
