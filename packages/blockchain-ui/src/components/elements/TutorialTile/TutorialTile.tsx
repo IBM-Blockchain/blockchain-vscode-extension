@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Timer16 } from '@carbon/icons-react';
+import { CircleDash16 } from '@carbon/icons-react';
 import { Button } from 'carbon-components-react';
 import ITutorialObject from '../../../interfaces/ITutorialObject';
 import { ExtensionCommands } from '../../../ExtensionCommands';
@@ -45,7 +46,14 @@ class TutorialTile extends Component <IProps> {
                 </div>
                 <div className='time-container'>
                     <Timer16 className='icon'></Timer16>
-                    <span className='time-text'>{this.props.tutorialObject.length}</span>
+                    <span className='text'>{this.props.tutorialObject.length}</span>
+                    {this.props.tutorialObject.badge === true ?
+                        <div className='badge-container'>
+                            <CircleDash16 className='icon' id='badge-icon'></CircleDash16>
+                            <span className='text'>Badge available</span>
+                        </div> :
+                        <></>
+                    }
                 </div>
                 <div className='tutorial-objectives'>
                     {this.populateObjectives()}

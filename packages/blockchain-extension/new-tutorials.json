@@ -13,6 +13,7 @@
                   "Learn about the Linux Foundation Hyperledger Project and Hyperledger Fabric",
                   "Learn about IBM Blockchain Platform and the VS Code extension"
                 ],
+                "badge": true,
                 "file": "basic-tutorials/a1.md"
             },
             {
@@ -121,6 +122,7 @@
                   "Give you some additional resources",
                   "Invite you to test your learning and gain a badge"
                 ],
+                "badge": true,
                 "file": "basic-tutorials/a10.md"
             }
         ]

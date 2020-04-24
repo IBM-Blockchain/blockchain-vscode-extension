@@ -148,7 +148,7 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
             />
           </svg>
           <span
-            className="time-text"
+            className="text"
           >
             4 weeks
           </span>
@@ -241,7 +241,7 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
             />
           </svg>
           <span
-            className="time-text"
+            className="text"
           >
             10 minutes
           </span>
