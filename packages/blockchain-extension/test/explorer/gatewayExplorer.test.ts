@@ -216,8 +216,13 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
                 const twoOrgEntry: FabricEnvironmentRegistryEntry = {name: 'twoOrgEnvironment', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 2, environmentDirectory: ''};
                 await FabricEnvironmentRegistry.instance().add(twoOrgEntry);
 
+<<<<<<< HEAD
                 const gatewayOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'twoOrgEnvironment - Org1', fromEnvironment: 'twoOrgEnvironment', associatedWallet: 'Org1', displayName: `Org1`, connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json') });
                 const gatewayTwo: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'twoOrgEnvironment - Org2', fromEnvironment: 'twoOrgEnvironment', associatedWallet: 'Org2', displayName: `Org2`, connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayTwo', 'connection.json') });
+=======
+                const gatewayOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'twoOrgEnvironment - Org1', fromEnvironment: 'twoOrgEnvironment', associatedWallet: 'Org1', displayName: `Org1` });
+                const gatewayTwo: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'twoOrgEnvironment - Org2', fromEnvironment: 'twoOrgEnvironment', associatedWallet: 'Org2', displayName: `Org2` });
+>>>>>>> 2982e911... Code server version, Java extension Pack fix, Ansible support
 
                 await FabricGatewayRegistry.instance().add(gatewayOne);
                 await FabricGatewayRegistry.instance().add(gatewayTwo);

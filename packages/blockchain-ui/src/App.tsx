@@ -4,13 +4,19 @@ import { HashRouter as Router, Route, Redirect } from 'react-router-dom';
 import HomePage from './components/pages/HomePage/HomePage';
 import TutorialPage from './components/pages/TutorialPage/TutorialPage';
 import ITutorialObject from './interfaces/ITutorialObject';
+<<<<<<< HEAD
 import DeployPage from './components/pages/DeployPage/DeployPage';
+=======
+>>>>>>> 2982e911... Code server version, Java extension Pack fix, Ansible support
 
 interface AppState {
     redirectPath: string;
     extensionVersion: string;
     tutorialData: Array<{name: string, tutorials: ITutorialObject[]}>;
+<<<<<<< HEAD
     deployData: {channelName: string, environmentName: string};
+=======
+>>>>>>> 2982e911... Code server version, Java extension Pack fix, Ansible support
 }
 
 class App extends Component<{}, AppState> {

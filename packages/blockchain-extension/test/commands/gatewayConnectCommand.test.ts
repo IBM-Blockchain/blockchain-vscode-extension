@@ -401,7 +401,10 @@ describe('GatewayConnectCommand', () => {
                     name: 'managedEnvironment - Org1',
                     associatedWallet: 'myGatewayDWallet',
                     fromEnvironment: 'managedEnvironment',
+<<<<<<< HEAD
                     connectionProfilePath: path.join('myPath', 'connection.json'),
+=======
+>>>>>>> 2982e911... Code server version, Java extension Pack fix, Ansible support
                     displayName: 'Org1'
                 });
 

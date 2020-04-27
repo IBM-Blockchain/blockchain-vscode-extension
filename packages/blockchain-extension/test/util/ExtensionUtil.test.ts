@@ -20,6 +20,7 @@ import * as sinonChai from 'sinon-chai';
 import {ExtensionUtil} from '../../extension/util/ExtensionUtil';
 import * as fs from 'fs-extra';
 import * as chaiAsPromised from 'chai-as-promised';
+<<<<<<< HEAD
 import {dependencies, version as currentExtensionVersion} from '../../package.json';
 import {SettingConfigurations} from '../../extension/configurations';
 import {ExtensionData, GlobalState} from '../../extension/util/GlobalState';
@@ -49,6 +50,30 @@ import {
 } from 'ibm-blockchain-platform-common';
 import {FabricDebugConfigurationProvider} from '../../extension/debug/FabricDebugConfigurationProvider';
 import {TestUtil} from '../TestUtil';
+=======
+import { dependencies, version as currentExtensionVersion } from '../../package.json';
+import { SettingConfigurations } from '../../configurations';
+import { GlobalState, ExtensionData } from '../../extension/util/GlobalState';
+import { ExtensionCommands } from '../../ExtensionCommands';
+import { TutorialGalleryView } from '../../extension/webview/TutorialGalleryView';
+import { ReactTutorialGalleryView } from '../../extension/webview/ReactTutorialGalleryView';
+import { HomeView } from '../../extension/webview/HomeView';
+import { SampleView } from '../../extension/webview/SampleView';
+import { TutorialView } from '../../extension/webview/TutorialView';
+import { ReactTutorialView } from '../../extension/webview/ReactTutorialView';
+import { Reporter } from '../../extension/util/Reporter';
+import { PreReqView } from '../../extension/webview/PreReqView';
+import { DependencyManager } from '../../extension/dependencies/DependencyManager';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { TemporaryCommandRegistry } from '../../extension/dependencies/TemporaryCommandRegistry';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FabricWalletRegistryEntry, LogType, FabricWalletRegistry, FabricGatewayRegistry, FabricWalletUtil, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
+import { TestUtil } from '../TestUtil';
+import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistry';
+import { RepositoryRegistryEntry } from '../../extension/registries/RepositoryRegistryEntry';
+>>>>>>> 2982e911... Code server version, Java extension Pack fix, Ansible support
 import * as openTransactionViewCommand from '../../extension/commands/openTransactionViewCommand';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
@@ -474,6 +499,10 @@ describe('ExtensionUtil Tests', () => {
             const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
 
             await ExtensionUtil.registerCommands(ctx);
+<<<<<<< HEAD
+=======
+            purgeOldRuntimesStub.should.have.been.calledOnce;
+>>>>>>> 2982e911... Code server version, Java extension Pack fix, Ansible support
 
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_REACT_TUTORIAL_PAGE, 'IBMCode/Code-Tutorials', 'Developing smart contracts with IBM Blockchain VSCode Extension');
 

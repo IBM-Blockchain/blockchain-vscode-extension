@@ -21,7 +21,11 @@ import * as sinonChai from 'sinon-chai';
 import * as path from 'path';
 import { ReactTutorialView } from '../../extension/webview/ReactTutorialView';
 import { Reporter } from '../../extension/util/Reporter';
+<<<<<<< HEAD
 import { SettingConfigurations } from '../../extension/configurations';
+=======
+import { SettingConfigurations } from '../../configurations';
+>>>>>>> 2982e911... Code server version, Java extension Pack fix, Ansible support
 
 chai.use(sinonChai);
 
