@@ -1,11 +1,11 @@
 **IBM Blockchain Platform**
 
-![alt text](./images/ibp.png "IBM Blockchain Platform")
+<img src="./images/ibp.png" alt="IBM Blockchain Platform"></img>
 ## **Welcome to the IBM Blockchain Platform developer tutorials**
 
-   > <br>
+   <!-- > <br>
    > <b>Internal note for writers:</b> Check out the <a href="./styleguide.md">style guide</a> for new tutorials.
-   > <br>&nbsp;
+   > <br>&nbsp; -->
 
 In these tutorials you will learn about Hyperledger Fabric development using IBM Blockchain Platform:
 * What blockchain is all about
@@ -44,7 +44,7 @@ Click on a tutorial set below to get started. We recommend starting with the Bas
 
 ---
 
-<details>
+<!-- <details>
 <summary><b>B. Joining a Hyperledger Fabric network</b></summary>
 
 <p>The <i>joining a network</i> tutorials introduce you to the administration tools that underpin IBM Blockchain Platform. You will connect to an existing Hyperledger Fabric network running on IBM Blockchain Platform, and take a tour of the web console used for network management. You will then connect a VS Code application into the network and use it to submit transactions and see the results. You will need a <a href="https://www.linkedin.com/">LinkedIn</a> account in order to complete this section.</p>
@@ -94,6 +94,6 @@ Click on a tutorial set below to get started. We recommend starting with the Bas
 
 </details>
 
----
+--- -->
 
 <h3 align='right'> → <a href='./a1.md'><b>A1: Introduction</b></h3></a>

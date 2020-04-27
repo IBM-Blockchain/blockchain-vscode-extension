@@ -18,7 +18,7 @@ import { FabricWalletRegistryEntry } from 'ibm-blockchain-platform-common';
 
 export class AdminIdentityTreeItem extends IdentityTreeItem {
     contextValue: string = 'blockchain-admin-identity-item';
-
+    
     constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly walletName: string, public readonly attributes: any = {}, public readonly registryEntry: FabricWalletRegistryEntry) {
         super(provider, label, walletName, attributes, registryEntry);
         this.label += ' ⭑';

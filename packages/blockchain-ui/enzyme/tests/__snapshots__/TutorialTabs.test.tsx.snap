@@ -128,7 +128,7 @@ Array [
           />
         </svg>
         <span
-          className="time-text"
+          className="text"
         >
           4 weeks
         </span>
@@ -166,6 +166,7 @@ Array [
         <button
           className="button bx--btn bx--btn--secondary"
           disabled={false}
+          onClick={[Function]}
           tabIndex={0}
           type="button"
         >
@@ -173,6 +174,7 @@ Array [
         </button>
       </div>
     </div>
+    <br />
   </div>,
   <div
     aria-hidden={true}
@@ -219,7 +221,7 @@ Array [
           />
         </svg>
         <span
-          className="time-text"
+          className="text"
         >
           10 minutes
         </span>
@@ -257,6 +259,7 @@ Array [
         <button
           className="button bx--btn bx--btn--secondary"
           disabled={false}
+          onClick={[Function]}
           tabIndex={0}
           type="button"
         >
@@ -264,6 +267,7 @@ Array [
         </button>
       </div>
     </div>
+    <br />
   </div>,
 ]
 `;

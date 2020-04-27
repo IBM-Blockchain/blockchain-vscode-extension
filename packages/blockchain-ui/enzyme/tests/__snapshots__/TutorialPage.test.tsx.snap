@@ -148,7 +148,7 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
             />
           </svg>
           <span
-            className="time-text"
+            className="text"
           >
             4 weeks
           </span>
@@ -186,6 +186,7 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
           <button
             className="button bx--btn bx--btn--secondary"
             disabled={false}
+            onClick={[Function]}
             tabIndex={0}
             type="button"
           >
@@ -193,6 +194,7 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
           </button>
         </div>
       </div>
+      <br />
     </div>
     <div
       aria-hidden={true}
@@ -239,7 +241,7 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
             />
           </svg>
           <span
-            className="time-text"
+            className="text"
           >
             10 minutes
           </span>
@@ -277,6 +279,7 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
           <button
             className="button bx--btn bx--btn--secondary"
             disabled={false}
+            onClick={[Function]}
             tabIndex={0}
             type="button"
           >
@@ -284,6 +287,7 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
           </button>
         </div>
       </div>
+      <br />
     </div>
   </div>
 </div>

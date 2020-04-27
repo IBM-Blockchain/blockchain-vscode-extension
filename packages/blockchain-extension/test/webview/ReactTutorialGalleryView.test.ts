@@ -23,6 +23,7 @@ import { ReactTutorialGalleryView } from '../../extension/webview/ReactTutorialG
 import { View } from '../../extension/webview/View';
 import { TestUtil } from '../TestUtil';
 import { GlobalState } from '../../extension/util/GlobalState';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 chai.use(sinonChai);
 
@@ -32,6 +33,7 @@ describe('ReactTutorialGalleryView', () => {
     let createWebviewPanelStub: sinon.SinonStub;
     let postMessageStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
+    let onDidReceiveMessagePromises: any[];
 
     const tutorialData: Array<{seriesName: string, seriesTutorials: any[]}> = [
         {
@@ -84,7 +86,7 @@ describe('ReactTutorialGalleryView', () => {
         mySandBox.restore();
     });
 
-    it('should register and show the home page', async () => {
+    it('should register and show the tutorial gallery', async () => {
         createWebviewPanelStub.returns({
             title: 'Tutorial Gallery',
             webview: {
@@ -97,10 +99,45 @@ describe('ReactTutorialGalleryView', () => {
             onDidChangeViewState: mySandBox.stub()
         });
 
-        const tutorialView: ReactTutorialGalleryView = new ReactTutorialGalleryView(context);
-        await tutorialView.openView(false);
+        const tutorialGalleryView: ReactTutorialGalleryView = new ReactTutorialGalleryView(context);
+        await tutorialGalleryView.openView(false);
         createWebviewPanelStub.should.have.been.called;
         const call: sinon.SinonSpyCall = postMessageStub.getCall(0);
         call.args[0].should.deep.equal(initialMessage);
+    });
+
+    it('should execute a command with args specified in a received message', async () => {
+        onDidReceiveMessagePromises = [];
+
+        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
+            createWebviewPanelStub.returns({
+                webview: {
+                    postMessage: mySandBox.stub(),
+                    onDidReceiveMessage: async (callback: any): Promise<void> => {
+                        await callback({
+                            command: ExtensionCommands.OPEN_REACT_TUTORIAL_PAGE,
+                            data: [
+                                'my series',
+                                'my tutorial'
+                            ]
+                        });
+                        resolve();
+                    }
+                },
+                reveal: (): void => {
+                    return;
+                },
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
+            });
+        }));
+
+        executeCommandStub.withArgs(ExtensionCommands.OPEN_REACT_TUTORIAL_PAGE).resolves();
+
+        const tutorialGalleryView: ReactTutorialGalleryView = new ReactTutorialGalleryView(context);
+        await tutorialGalleryView.openView(false);
+        await Promise.all(onDidReceiveMessagePromises);
+
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_REACT_TUTORIAL_PAGE, 'my series', 'my tutorial');
     });
 });

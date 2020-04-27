@@ -3,11 +3,12 @@ import './App.scss';
 import { HashRouter as Router, Route, Redirect } from 'react-router-dom';
 import HomePage from './components/pages/HomePage/HomePage';
 import TutorialPage from './components/pages/TutorialPage/TutorialPage';
+import ITutorialObject from './interfaces/ITutorialObject';
 
 interface AppState {
     redirectPath: string;
     extensionVersion: string;
-    tutorialData: Array<{seriesName: string, seriesTutorials: any[]}>;
+    tutorialData: Array<{name: string, tutorials: ITutorialObject[]}>;
 }
 
 class App extends Component<{}, AppState> {

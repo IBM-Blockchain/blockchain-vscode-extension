@@ -1,18 +1,19 @@
 import React, { Component } from 'react';
 import { Tabs, Tab } from 'carbon-components-react';
-import './TutorialTabs.scss';
 import TutorialTile from '../TutorialTile/TutorialTile';
+import ITutorialObject from '../../../interfaces/ITutorialObject';
+import './TutorialTabs.scss';
 
 interface IProps {
-    tutorialData: Array<{seriesName: string, seriesTutorials: any[]}>;
+    tutorialData: Array<{name: string, tutorials: ITutorialObject[]}>;
 }
 
 class TutorialTabs extends Component<IProps> {
 
     createTabs(): Array<JSX.Element> {
         const tabArray: JSX.Element[] = [];
-        this.props.tutorialData.map((tutorialSeries: {seriesName: string, seriesTutorials: any[]}, index: number) => {
-            const tabLabel: string = `${tutorialSeries.seriesName} (${tutorialSeries.seriesTutorials.length})`;
+        this.props.tutorialData.map((tutorialSeries: {name: string, tutorials: ITutorialObject[]}, index: number) => {
+            const tabLabel: string = `${tutorialSeries.name} (${tutorialSeries.tutorials.length})`;
             tabArray.push(
                 // @ts-ignore
                 <Tab
@@ -20,21 +21,21 @@ class TutorialTabs extends Component<IProps> {
                     tabIndex={index}
                     label={tabLabel}
                 >
-                    {this.populateTabs(tutorialSeries.seriesTutorials)}
+                    {this.populateTabs(tutorialSeries.tutorials)}
                 </Tab>
             );
         });
         return tabArray;
     }
-
-    populateTabs(seriesTutorials: any[]): Array<JSX.Element> {
-        const tutorialNameArray: JSX.Element[] = [];
-        for (const tutorial of seriesTutorials) {
-            tutorialNameArray.push(
+ populateTabs(tutorials: ITutorialObject[]): Array<JSX.Element> {
+        const tutorialsJSX: JSX.Element[] = [];
+        for (const tutorial of tutorials) {
+            tutorialsJSX.push(
                 <TutorialTile tutorialObject={tutorial}/>
             );
+            tutorialsJSX.push(<br/>);
         }
-        return tutorialNameArray;
+        return tutorialsJSX;
     }
 
     render(): JSX.Element {

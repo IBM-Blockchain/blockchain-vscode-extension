@@ -1,10 +1,14 @@
 import React, { Component } from 'react';
-import './TutorialTile.scss';
 import { Timer16 } from '@carbon/icons-react';
+import { CircleDash16 } from '@carbon/icons-react';
 import { Button } from 'carbon-components-react';
+import ITutorialObject from '../../../interfaces/ITutorialObject';
+import { ExtensionCommands } from '../../../ExtensionCommands';
+import Utils from '../../../Utils';
+import './TutorialTile.scss';
 
 interface IProps {
-    tutorialObject: any;
+    tutorialObject: ITutorialObject;
 }
 
 class TutorialTile extends Component <IProps> {
@@ -13,6 +17,7 @@ class TutorialTile extends Component <IProps> {
         super(props);
 
         this.populateObjectives = this.populateObjectives.bind(this);
+        this.openTutorialHandler = this.openTutorialHandler.bind(this);
     }
 
     populateObjectives(): JSX.Element[] {
@@ -23,6 +28,16 @@ class TutorialTile extends Component <IProps> {
         return objectivesJSX;
     }
 
+    openTutorialHandler(): void {
+        Utils.postToVSCode({
+            command: ExtensionCommands.OPEN_REACT_TUTORIAL_PAGE,
+            data: [
+                this.props.tutorialObject.series,
+                this.props.tutorialObject.title
+            ]
+        });
+    }
+
     render(): JSX.Element {
         return (
             <div className='tab-container'>
@@ -31,7 +46,14 @@ class TutorialTile extends Component <IProps> {
                 </div>
                 <div className='time-container'>
                     <Timer16 className='icon'></Timer16>
-                    <span className='time-text'>{this.props.tutorialObject.length}</span>
+                    <span className='text'>{this.props.tutorialObject.length}</span>
+                    {this.props.tutorialObject.badge === true ?
+                        <div className='badge-container'>
+                            <CircleDash16 className='icon' id='badge-icon'></CircleDash16>
+                            <span className='text'>Badge available</span>
+                        </div> :
+                        <></>
+                    }
                 </div>
                 <div className='tutorial-objectives'>
                     {this.populateObjectives()}
@@ -39,8 +61,8 @@ class TutorialTile extends Component <IProps> {
                 <div className='button-container'>
                     <Button className='pdf-button' kind='ghost' size='default'>Download as PDF</Button>
                     {this.props.tutorialObject.firstInSeries === true ?
-                        <Button className='button' kind='primary' size='default'>Open tutorial</Button> :
-                        <Button className='button' kind='secondary' size='default'>Open tutorial</Button>
+                        <Button className='button' kind='primary' size='default' onClick={this.openTutorialHandler}>Open tutorial</Button> :
+                        <Button className='button' kind='secondary' size='default' onClick={this.openTutorialHandler}>Open tutorial</Button>
                     }
                 </div>
             </div>

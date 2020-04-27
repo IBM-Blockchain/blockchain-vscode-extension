@@ -234,7 +234,6 @@ describe('packageSmartContract', () => {
                 onDidEndTaskEventEmitter.fire({ execution: testExecution });
                 onDidEndTaskEventEmitter.fire({ execution: buildExecution });
             }, 1);
-            return buildExecution;
         });
 
     });
