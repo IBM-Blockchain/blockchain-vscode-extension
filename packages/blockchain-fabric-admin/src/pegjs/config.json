@@ -1,0 +1,6 @@
+{
+    "tspegjs": {
+        "noTslint": false,
+        "tslintIgnores": "quotemark, typedef, only-arrow-functions, whitespace, one-variable-per-declaration, no-var-keyword"
+    }
+}

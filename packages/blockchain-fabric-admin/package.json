@@ -19,7 +19,8 @@
         "cucumber": "npm run compile && ./node_modules/.bin/cucumber-js ./cucumber/features/ -p default",
         "debug-test": "npm run compile && mocha --require ts-node/register -u bdd --timeout 999999 './test/**/*.ts'",
         "licchk": "license-check-and-add",
-        "createModule": "npm pack"
+        "createModule": "npm pack",
+        "generatePolcyParser": "pegjs --plugin ./node_modules/ts-pegjs --extra-options-file ./src/pegjs/config.json -o ./src/pegjs/policyParser.ts --cache ./src/pegjs/endorsementPolicy.pegjs"
     },
     "dependencies": {
         "fabric-ca-client": "2.1.0",
@@ -46,15 +47,17 @@
         "chai-as-promised": "^7.1.1",
         "cucumber": "^6.0.5",
         "license-check-and-add": "2.3.6",
-        "mocha": "^5.2.0",
+        "mocha": "^7.1.2",
         "mocha-junit-reporter": "^1.23.3",
         "mocha-multi-reporters": "^1.1.7",
         "nyc": "^15.0.0",
+        "pegjs": "^0.10.0",
         "rimraf": "^3.0.2",
         "sinon": "^7.1.1",
         "sinon-chai": "^3.3.0",
         "strip-ansi": "^6.0.0",
         "ts-node": "^8.6.2",
+        "ts-pegjs": "^0.2.6",
         "tslint": "^6.1.0",
         "typescript": "^3.7.2"
     },
@@ -67,6 +70,7 @@
             "node_modules",
             "cucumber/tmp",
             "src/old-code",
+            "src/pegjs",
             ".idea",
             ".git",
             "build",
@@ -131,7 +135,8 @@
             "old-code",
             "coverage",
             "*.js",
-            "src/old-code"
+            "src/old-code",
+            "src/pegjs"
         ],
         "reporter": [
             "text-summary",
@@ -139,9 +144,9 @@
         ],
         "all": true,
         "check-coverage": true,
-        "statements": 98.25,
-        "branches": 94.89,
-        "functions": 94.94,
-        "lines": 98.25
+        "statements": 98.58,
+        "branches": 96.04,
+        "functions": 95.92,
+        "lines": 98.58
     }
 }
