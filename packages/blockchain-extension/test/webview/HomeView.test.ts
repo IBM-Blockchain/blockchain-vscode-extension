@@ -81,7 +81,8 @@ describe('HomeView', () => {
             reveal: mySandBox.stub(),
             dispose: mySandBox.stub(),
             onDidDispose: mySandBox.stub(),
-            onDidChangeViewState: mySandBox.stub()
+            onDidChangeViewState: mySandBox.stub(),
+            _isDisposed: false
         });
 
         const homeView: HomeView = new HomeView(context);
@@ -98,7 +99,8 @@ describe('HomeView', () => {
             },
             title: 'IBM Blockchain Platform Home',
             onDidDispose: mySandBox.stub(),
-            reveal: (): void => { return; }
+            reveal: (): void => { return; },
+            _isDisposed: false
         });
 
         const homeView: HomeView = new HomeView(context);
@@ -128,7 +130,8 @@ describe('HomeView', () => {
                     return;
                 },
                 onDidDispose: mySandBox.stub(),
-                onDidChangeViewState: mySandBox.stub()
+                onDidChangeViewState: mySandBox.stub(),
+                _isDisposed: false
             });
         }));
 
@@ -163,7 +166,8 @@ describe('HomeView', () => {
                     return;
                 },
                 onDidDispose: mySandBox.stub(),
-                onDidChangeViewState: mySandBox.stub()
+                onDidChangeViewState: mySandBox.stub(),
+                _isDisposed: false
             });
         }));
 
@@ -193,7 +197,8 @@ describe('HomeView', () => {
                     return;
                 },
                 onDidDispose: mySandBox.stub(),
-                onDidChangeViewState: mySandBox.stub()
+                onDidChangeViewState: mySandBox.stub(),
+                _isDisposed: false
             });
         }));
 
