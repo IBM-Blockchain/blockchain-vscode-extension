@@ -66,7 +66,8 @@ describe('PreReqView', () => {
             reveal: mySandBox.stub(),
             dispose: mySandBox.stub(),
             onDidDispose: mySandBox.stub(),
-            onDidChangeViewState: mySandBox.stub()
+            onDidChangeViewState: mySandBox.stub(),
+            _isDisposed: false
 
         });
 
@@ -345,7 +346,8 @@ describe('PreReqView', () => {
                     return;
                 },
                 onDidDispose: onDidDisposeStub,
-                onDidChangeViewState: mySandBox.stub()
+                onDidChangeViewState: mySandBox.stub(),
+                _isDisposed: false
             });
 
             const preReqView: PreReqView = new PreReqView(context);
@@ -397,7 +399,8 @@ describe('PreReqView', () => {
                     return;
                 },
                 onDidDispose: onDidDisposeStub,
-                onDidChangeViewState: mySandBox.stub()
+                onDidChangeViewState: mySandBox.stub(),
+                _isDisposed: false
             });
 
             const preReqView: PreReqView = new PreReqView(context);
@@ -457,7 +460,8 @@ describe('PreReqView', () => {
                     return;
                 },
                 onDidDispose: onDidDisposeStub,
-                onDidChangeViewState: mySandBox.stub()
+                onDidChangeViewState: mySandBox.stub(),
+                _isDisposed: false
             });
 
             const preReqView: PreReqView = new PreReqView(context);
@@ -516,7 +520,8 @@ describe('PreReqView', () => {
                     return;
                 },
                 onDidDispose: onDidDisposeStub,
-                onDidChangeViewState: mySandBox.stub()
+                onDidChangeViewState: mySandBox.stub(),
+                _isDisposed: false
             });
 
             const preReqView: PreReqView = new PreReqView(context);
@@ -569,7 +574,8 @@ describe('PreReqView', () => {
                     },
                     dispose: disposeStub,
                     onDidDispose: mySandBox.stub(),
-                    onDidChangeViewState: mySandBox.stub()
+                    onDidChangeViewState: mySandBox.stub(),
+                    _isDisposed: false
 
                 });
             }));
@@ -645,7 +651,8 @@ describe('PreReqView', () => {
                         return;
                     },
                     onDidDispose: mySandBox.stub(),
-                    onDidChangeViewState: mySandBox.stub()
+                    onDidChangeViewState: mySandBox.stub(),
+                    _isDisposed: false
 
                 });
             }));
@@ -733,7 +740,8 @@ describe('PreReqView', () => {
                         return;
                     },
                     onDidDispose: mySandBox.stub(),
-                    onDidChangeViewState: mySandBox.stub()
+                    onDidChangeViewState: mySandBox.stub(),
+                    _isDisposed: false
 
                 });
             }));
@@ -813,7 +821,8 @@ describe('PreReqView', () => {
                     },
                     dispose: disposeStub,
                     onDidDispose: mySandBox.stub(),
-                    onDidChangeViewState: mySandBox.stub()
+                    onDidChangeViewState: mySandBox.stub(),
+                    _isDisposed: false
 
                 });
             }));
@@ -888,7 +897,8 @@ describe('PreReqView', () => {
                     },
                     dispose: disposeStub,
                     onDidDispose: mySandBox.stub(),
-                    onDidChangeViewState: mySandBox.stub()
+                    onDidChangeViewState: mySandBox.stub(),
+                    _isDisposed: false
 
                 });
             }));
@@ -944,7 +954,8 @@ describe('PreReqView', () => {
                         return;
                     },
                     onDidDispose: mySandBox.stub(),
-                    onDidChangeViewState: mySandBox.stub()
+                    onDidChangeViewState: mySandBox.stub(),
+                    _isDisposed: false
 
                 });
             }));
