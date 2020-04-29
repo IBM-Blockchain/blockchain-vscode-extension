@@ -85,4 +85,18 @@ describe('App', () => {
         component.state().redirectPath.should.equal('/tutorials');
         component.state().tutorialData.should.equal(tutorialData);
     });
+
+    it('should redirect to the deploy page', async () => {
+        const component: any = mount(<App/>);
+        const deployData: {channelName: string, environmentName: string} = {channelName: 'mychannel', environmentName: 'myEnvironment'};
+        const msg: MessageEvent = new MessageEvent('message', {
+            data: {
+                path: '/deploy',
+                deployData
+            }
+        });
+        dispatchEvent(msg);
+        component.state().redirectPath.should.equal('/deploy');
+        component.state().deployData.should.equal(deployData);
+    });
 });

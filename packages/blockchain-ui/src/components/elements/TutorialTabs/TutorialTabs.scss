@@ -1,16 +1,29 @@
-.tutorial-tabs-background {
-    width: 100%;
-    height: 48px;
-    position: absolute;
-    left: 0px;
-    z-index: -1;
-    background-color: white;
+.vscode-dark{
+    .bx--tab-content{
+        background-color: #262626 !important;
+    }
 }
 
+.vscode-light{
+    .bx--tab-content{
+        background-color: #f4f4f4 !important;
+    }
+}
 
+#root{
+    .tutorial-tabs-background {
+        width: 100% !important;
+        height: 48px !important;
+        position: absolute !important;
+        left: 0px !important;
+        z-index: -1 !important;
+    }
+    
+    
+    
+    .bx--tab-content {
+        width: 100% !important;
+        padding-left: 0px !important;
+    }
 
-.bx--tab-content {
-    width: 100%;
-    padding-left: 0px;
-    background-color: transparent;
 }

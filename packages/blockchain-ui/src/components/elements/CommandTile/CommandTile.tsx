@@ -30,7 +30,7 @@ class CommandTile extends Component <IProps> {
 
     render(): JSX.Element {
         return (
-            <Tile className='custom-tile' onClick={this.tileClickHandler}>
+            <Tile id='custom-tile-hack' className='custom-tile' onClick={this.tileClickHandler}>
                 <HeadingCombo
                     headingText={this.props.title}
                     subheadingText={this.props.body}

@@ -1,0 +1,353 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DeployPage component should render the expected snapshot 1`] = `
+<div
+  className="bx--grid deploy-page-container"
+>
+  <div
+    className="bx--row"
+  >
+    <div
+      className="bx--col"
+    >
+      <div
+        className="heading-combo-container"
+      >
+        <h3>
+          Deploy smart contract to environment
+        </h3>
+        <p>
+          Deploying to mychannel in myEnvironment
+        </p>
+      </div>
+    </div>
+    <div
+      className="bx--col"
+    >
+      <div
+        className="bx--btn-set"
+      >
+        <button
+          className="bx--btn bx--btn--primary bx--btn--disabled"
+          disabled={true}
+          tabIndex={0}
+          type="button"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+  <div
+    className="bx--row"
+  >
+    <div
+      className="bx--col"
+    >
+      <br />
+      <br />
+      <ul
+        className="bx--progress"
+      >
+        <li
+          className="bx--progress-step bx--progress-step--current"
+        >
+          <button
+            className="bx--progress-step-button bx--progress-step-button--unclickable"
+            onKeyDown={[Function]}
+            tabIndex={-1}
+          >
+            <span
+              className="bx--assistive-text"
+            >
+              Current
+            </span>
+            <svg
+              aria-hidden={true}
+              focusable="false"
+              height={16}
+              preserveAspectRatio="xMidYMid meet"
+              viewBox="0 0 32 32"
+              width={16}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="16"
+                cy="16"
+                r="10"
+              />
+              <path
+                d="M16,30A14,14,0,1,1,30,16,14.0158,14.0158,0,0,1,16,30ZM16,4A12,12,0,1,0,28,16,12.0137,12.0137,0,0,0,16,4Z"
+              />
+              <title>
+                
+              </title>
+            </svg>
+            <p
+              className="bx--progress-label"
+            >
+              Step 1
+            </p>
+            <p
+              className="bx--progress-optional"
+            >
+              Choose smart contract
+            </p>
+            <span
+              className="bx--progress-line"
+            />
+          </button>
+        </li>
+        <li
+          className="bx--progress-step bx--progress-step--incomplete"
+        >
+          <button
+            className="bx--progress-step-button bx--progress-step-button--unclickable"
+            onKeyDown={[Function]}
+            tabIndex={-1}
+          >
+            <span
+              className="bx--assistive-text"
+            >
+              Incomplete
+            </span>
+            <svg
+              aria-hidden={true}
+              focusable="false"
+              height={16}
+              preserveAspectRatio="xMidYMid meet"
+              viewBox="0 0 32 32"
+              width={16}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M16,2A14,14,0,1,0,30,16,14,14,0,0,0,16,2Zm0,26A12,12,0,1,1,28,16,12,12,0,0,1,16,28Z"
+              />
+              <title>
+                
+              </title>
+            </svg>
+            <p
+              className="bx--progress-label"
+            >
+              Step 2
+            </p>
+            <p
+              className="bx--progress-optional"
+            >
+              Create definition
+            </p>
+            <span
+              className="bx--progress-line"
+            />
+          </button>
+        </li>
+        <li
+          className="bx--progress-step bx--progress-step--incomplete"
+        >
+          <button
+            className="bx--progress-step-button bx--progress-step-button--unclickable"
+            onKeyDown={[Function]}
+            tabIndex={-1}
+          >
+            <span
+              className="bx--assistive-text"
+            >
+              Incomplete
+            </span>
+            <svg
+              aria-hidden={true}
+              focusable="false"
+              height={16}
+              preserveAspectRatio="xMidYMid meet"
+              viewBox="0 0 32 32"
+              width={16}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M16,2A14,14,0,1,0,30,16,14,14,0,0,0,16,2Zm0,26A12,12,0,1,1,28,16,12,12,0,0,1,16,28Z"
+              />
+              <title>
+                
+              </title>
+            </svg>
+            <p
+              className="bx--progress-label"
+            >
+              Step 3
+            </p>
+            <p
+              className="bx--progress-optional"
+            >
+              Deploy
+            </p>
+            <span
+              className="bx--progress-line"
+            />
+          </button>
+        </li>
+      </ul>
+      <br />
+      <br />
+      <br />
+    </div>
+  </div>
+  <div
+    className="bx--row"
+  >
+    <div
+      className="bx--col"
+    >
+      These developer tools can deploy to networks where you have all the admin keys - for example, local Fabric runtimes or personal dev/test networks on cloud. For any more advanced deployments, please use the 
+      <a
+        className="bx--link"
+        href="#"
+      >
+        IBM Blockchain Platform Console
+      </a>
+       or 
+      <a
+        className="bx--link"
+        href="#"
+      >
+        Hyperledger Fabric CLIs
+      </a>
+      .
+    </div>
+  </div>
+  <div
+    className="bx--row"
+  >
+    <div
+      className="bx--col"
+    >
+      <br />
+      <div
+        style={
+          Object {
+            "width": 300,
+          }
+        }
+      >
+        <div
+          className="bx--dropdown__wrapper bx--list-box__wrapper"
+        >
+          <span
+            className="bx--label"
+          >
+            Choose a smart contract to deploy
+          </span>
+          <div
+            aria-label="dropdown"
+            className="bx--dropdown bx--list-box"
+            id="carbon-dropdown-example"
+            onClick={[Function]}
+            onKeyDown={[Function]}
+          >
+            <div
+              aria-controls={null}
+              aria-disabled={false}
+              aria-expanded={false}
+              aria-haspopup={true}
+              aria-labelledby="dropdown-label-carbon-dropdown-example dropdown-field-label-carbon-dropdown-example"
+              aria-owns={null}
+              className="bx--list-box__field"
+              data-toggle={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onKeyDown={[Function]}
+              role="button"
+              tabIndex="0"
+              type="button"
+            >
+              <span
+                className="bx--list-box__label"
+                htmlFor="downshift-0-input"
+                id="dropdown-field-label-carbon-dropdown-example"
+              >
+                Choose an option
+              </span>
+              <div
+                className="bx--list-box__menu-icon"
+              >
+                <svg
+                  aria-label="Open menu"
+                  focusable="false"
+                  height={16}
+                  name="chevron--down"
+                  preserveAspectRatio="xMidYMid meet"
+                  role="img"
+                  viewBox="0 0 16 16"
+                  width={16}
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <polygon
+                    points="8,11 3,6 3.7,5.3 8,9.6 12.3,5.3 13,6"
+                  />
+                  <title>
+                    Open menu
+                  </title>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    className="bx--row"
+  >
+    <div
+      className="bx--col"
+    >
+      <br />
+      <ul
+        className="bx--accordion bx--accordion--end"
+      >
+        <li
+          className="bx--accordion__item"
+          onAnimationEnd={[Function]}
+        >
+          <button
+            aria-expanded={false}
+            className="bx--accordion__heading"
+            onClick={[Function]}
+            onKeyDown={[Function]}
+            title="Expand/Collapse"
+            type="button"
+          >
+            <svg
+              aria-label="Expand/Collapse"
+              className="bx--accordion__arrow"
+              focusable="false"
+              height={16}
+              preserveAspectRatio="xMidYMid meet"
+              role="img"
+              viewBox="0 0 16 16"
+              width={16}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <polygon
+                points="11,8 6,13 5.3,12.3 9.6,8 5.3,3.7 6,3"
+              />
+            </svg>
+            <div
+              className="bx--accordion__title"
+            >
+              How does Fabric v2.X smart contract deployment work?
+            </div>
+          </button>
+          <div
+            className="bx--accordion__content"
+          >
+            <p>
+              Woah it finally worked.
+            </p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+`;

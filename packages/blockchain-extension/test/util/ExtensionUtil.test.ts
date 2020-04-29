@@ -374,6 +374,7 @@ describe('ExtensionUtil Tests', () => {
                 `onCommand:${ExtensionCommands.OPEN_RELEASE_NOTES}`,
                 `onCommand:${ExtensionCommands.OPEN_TUTORIAL_GALLERY}`,
                 `onCommand:${ExtensionCommands.OPEN_REACT_TUTORIAL_GALLERY}`,
+                `onCommand:${ExtensionCommands.OPEN_DEPLOY_PAGE}`,
                 `onCommand:${ExtensionCommands.OPEN_TRANSACTION_PAGE}`,
                 `onDebug`
             ]);

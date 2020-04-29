@@ -1,21 +1,29 @@
-@import 'node_modules/carbon-components/scss/components/accordion/_accordion';
-@import 'node_modules/carbon-components/scss/components/button/_button';
-@import 'node_modules/carbon-components/scss/components/checkbox/_checkbox';
-@import 'node_modules/carbon-components/scss/components/data-table/_data-table';
-@import 'node_modules/carbon-components/scss/components/form/_form';
-@import 'node_modules/carbon-components/scss/components/link/link';
-@import 'node_modules/carbon-components/scss/components/select/_select';
-@import 'node_modules/carbon-components/scss/components/tabs/_tabs';
-@import 'node_modules/carbon-components/scss/components/tag/_tag';
-@import 'node_modules/carbon-components/scss/components/text-input/_text-input';
-@import 'node_modules/carbon-components/scss/components/tile/_tile';
-
+// @import 'node_modules/carbon-components/scss/components/accordion/_accordion';
+// @import 'node_modules/carbon-components/scss/components/button/_button';
+// @import 'node_modules/carbon-components/scss/components/checkbox/_checkbox';
+// @import 'node_modules/carbon-components/scss/components/data-table/_data-table';
+// @import 'node_modules/carbon-components/scss/components/form/_form';
+// @import 'node_modules/carbon-components/scss/components/link/link';
+// @import 'node_modules/carbon-components/scss/components/select/_select';
+// @import 'node_modules/carbon-components/scss/components/tabs/_tabs';
+// @import 'node_modules/carbon-components/scss/components/tag/_tag';
+// @import 'node_modules/carbon-components/scss/components/text-input/_text-input';
+// @import 'node_modules/carbon-components/scss/components/tile/_tile';
+// @import 'node_modules/carbon-components/scss/components/progress-indicator/_progress-indicator';
+// @import 'node_modules/carbon-components/scss/components/dropdown/_dropdown';
+// Commenting this out until I determine whether it can be deleted or not.
 @import '@carbon/colors/scss/colors';
 
-.app-container__tutorial-page {
-    background-color: $gray-10;
-    position: absolute;
-    width: 100%;
-    z-index: -1;
-    box-shadow: inset 0px 148px #FFFFFF;
+#root{
+    .app-container__tutorial-page {
+        background-color: $gray-10;
+        position: absolute;
+        width: 100%;
+        z-index: -1;
+        box-shadow: inset 0px 148px #FFFFFF;
+        top: 0;
+        left: 0;
+
+    }
 }
+    
