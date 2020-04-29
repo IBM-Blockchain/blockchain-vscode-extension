@@ -30,7 +30,12 @@ import {BlockchainEnvironmentExplorerProvider} from '../../extension/explorer/en
 
 import {ExtensionUtil} from '../../extension/util/ExtensionUtil';
 import {FabricEnvironmentManager} from '../../extension/fabric/environments/FabricEnvironmentManager';
-import {FabricCommittedSmartContract, IFabricEnvironmentConnection} from 'ibm-blockchain-platform-common';
+import {
+    FabricCommittedSmartContract,
+    IFabricEnvironmentConnection,
+    FabricEnvironmentRegistryEntry
+} from 'ibm-blockchain-platform-common';
+import {FabricInstalledSmartContract} from 'ibm-blockchain-platform-common/build/src/fabricModel/FabricInstalledSmartContract';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -120,7 +125,7 @@ export class SmartContractHelper {
         return contractDirectory;
     }
 
-    public async packageSmartContract(name: string, version: string, language: string, directory: string): Promise<void> {
+    public async packageSmartContract(name: string, version: string, language: string, directory: string): Promise<PackageRegistryEntry> {
         // Check that the package exists!
         const _package: PackageRegistryEntry = await PackageRegistry.instance().get(name, version);
         if (!_package) {
@@ -142,7 +147,9 @@ export class SmartContractHelper {
                 throw new Error(`I do not know how to handle language ${language}`);
             }
 
-            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, undefined, version);
+            return vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, undefined, version);
+        } else {
+            return _package;
         }
     }
 
@@ -150,14 +157,14 @@ export class SmartContractHelper {
         const fabricEnvironmentConnection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
         const peerNames: string[] = fabricEnvironmentConnection.getAllPeerNames();
 
-        const installedContracts: { label: string, packageId: string }[] = [];
+        const installedContracts: FabricInstalledSmartContract[] = [];
 
         for (const peerName of peerNames) {
-            const contracts: { label: string, packageId: string }[] = await fabricEnvironmentConnection.getInstalledChaincode(peerName);
+            const contracts: FabricInstalledSmartContract[] = await fabricEnvironmentConnection.getInstalledSmartContracts(peerName);
             installedContracts.push(...contracts);
         }
 
-        const installedContract: { label: string; packageId: string } = installedContracts.find((contract: { label: string, packageId: string }) => {
+        const installedContract: FabricInstalledSmartContract = installedContracts.find((contract: FabricInstalledSmartContract) => {
             return contract.label === name;
         });
 
@@ -191,8 +198,9 @@ export class SmartContractHelper {
         }
     }
 
-    public async commitSmartContract(channel: string, name: string, version: string): Promise<void> {
+    public async deploySmartContract(channel: string, name: string, version: string, packageRegistryEntry: PackageRegistryEntry, sequence: string = '1', ignorePreviousDeploy: boolean = false): Promise<void> {
         const fabricEnvironmentConnection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
+        const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
 
         let peers: string[];
         if (process.env.OTHER_FABRIC) {
@@ -203,15 +211,20 @@ export class SmartContractHelper {
             peers = ['Org1Peer1', 'Org1Peer2', 'Org2Peer1', 'Org1Peer2'];
         }
 
-        const committedContracts: FabricCommittedSmartContract[] = await fabricEnvironmentConnection.getCommittedSmartContracts(peers, channel);
+        let committedContract: FabricCommittedSmartContract;
 
-        const committedContract: FabricCommittedSmartContract = committedContracts.find((contract: FabricCommittedSmartContract) => {
-            return name === contract.name && version === contract.version;
-        });
+        if (!ignorePreviousDeploy) {
+
+            const committedContracts: FabricCommittedSmartContract[] = await fabricEnvironmentConnection.getCommittedSmartContracts(peers, channel);
+
+            committedContract = committedContracts.find((contract: FabricCommittedSmartContract) => {
+                return name === contract.name && version === contract.version;
+            });
+        }
 
         if (!committedContract) {
             // TODO assuming sequence number is 1 for now this might need to be updated later, assuming name of orderer
-            await vscode.commands.executeCommand(ExtensionCommands.COMMIT_SMART_CONTRACT, 'orderer.example.com', channel, peers, name, version, 1);
+            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'orderer.example.com', channel, peers, name, version, sequence, packageRegistryEntry);
         }
     }
 

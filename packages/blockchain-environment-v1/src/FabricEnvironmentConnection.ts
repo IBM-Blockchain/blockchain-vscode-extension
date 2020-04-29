@@ -16,7 +16,7 @@
 
 import * as FabricCAServices from 'fabric-ca-client';
 import * as fs from 'fs-extra';
-import { FabricCommittedSmartContract, Attribute, FabricNode, FabricNodeType, IFabricEnvironmentConnection, FabricWalletRegistryEntry, FabricWalletRegistry, IFabricWallet } from 'ibm-blockchain-platform-common';
+import { FabricCommittedSmartContract, Attribute, FabricNode, FabricNodeType, IFabricEnvironmentConnection, FabricWalletRegistryEntry, FabricWalletRegistry, IFabricWallet, FabricInstalledSmartContract } from 'ibm-blockchain-platform-common';
 import { FabricWalletGenerator, FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { URL } from 'url';
 import { Lifecycle, LifecyclePeer, LifecycleChannel, DefinedSmartContract, InstalledSmartContract } from 'ibm-blockchain-platform-fabric-admin';
@@ -189,7 +189,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         return Array.from(this.certificateAuthorities.keys()).sort();
     }
 
-    public async getInstalledChaincode(peerName: string): Promise<Array<{ label: string, packageId: string }>> {
+    public async getInstalledSmartContracts(peerName: string): Promise<Array<FabricInstalledSmartContract>> {
         const peer: LifecyclePeer = await this.getPeer(peerName);
         let installedSmartContracts: InstalledSmartContract[];
         try {
@@ -213,7 +213,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         return this.lifecycle.getAllOrdererNames();
     }
 
-    public async installChaincode(pathToPackage: string, peerName: string): Promise<string> {
+    public async installSmartContract(pathToPackage: string, peerName: string): Promise<string> {
         const peer: LifecyclePeer = await this.getPeer(peerName);
 
         const pkgBuffer: Buffer = await fs.readFile(pathToPackage);

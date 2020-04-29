@@ -36,7 +36,7 @@ import { CertificateAuthorityTreeItem } from '../../extension/explorer/runtimeOp
 import { OrdererTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/OrdererTreeItem';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, LogType, EnvironmentType, FabricEnvironment } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, LogType, EnvironmentType, FabricEnvironment, FabricInstalledSmartContract } from 'ibm-blockchain-platform-common';
 import { EnvironmentConnectedTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/EnvironmentConnectedTreeItem';
 import { ImportNodesTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/ImportNodesTreeItem';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
@@ -437,13 +437,13 @@ describe('environmentExplorer', () => {
 
                 fabricConnection.getAllPeerNames.returns(['peerOne', 'peerTwo']);
 
-                const installedChaincodeMapOne: { label: string, packageId: string }[] = [{ label: 'sample-car-network', packageId: '1.0' }, { label: 'sample-car-network', packageId: '1.2' }, { label: 'sample-food-network', packageId: '0.6' }];
+                const installedChaincodeMapOne: FabricInstalledSmartContract[] = [{ label: 'sample-car-network', packageId: '1.0' }, { label: 'sample-car-network', packageId: '1.2' }, { label: 'sample-food-network', packageId: '0.6' }];
 
-                fabricConnection.getInstalledChaincode.withArgs('peerOne').returns(installedChaincodeMapOne);
+                fabricConnection.getInstalledSmartContracts.withArgs('peerOne').returns(installedChaincodeMapOne);
 
-                const installedChaincodeMapTwo: { label: string, packageId: string }[] = [{ label: 'biscuit-network', packageId: '0.7' }, { label: 'sample-food-network', packageId: '0.6' }];
+                const installedChaincodeMapTwo: FabricInstalledSmartContract[] = [{ label: 'biscuit-network', packageId: '0.7' }, { label: 'sample-food-network', packageId: '0.6' }];
 
-                fabricConnection.getInstalledChaincode.withArgs('peerTwo').returns(installedChaincodeMapTwo);
+                fabricConnection.getInstalledSmartContracts.withArgs('peerTwo').returns(installedChaincodeMapTwo);
 
                 fabricConnection.getCommittedSmartContracts.withArgs(['peerOne'], 'channelOne').resolves([{
                     name: 'biscuit-network',
