@@ -54,7 +54,8 @@ describe('TutorialGalleryView', () => {
             },
             title: 'Tutorial Gallery',
             onDidDispose: mySandBox.stub(),
-            onDidChangeViewState: mySandBox.stub()
+            onDidChangeViewState: mySandBox.stub(),
+            _isDisposed: false
         });
 
         View['openPanels'].splice(0, View['openPanels'].length);
@@ -96,7 +97,8 @@ describe('TutorialGalleryView', () => {
             },
             title: 'Tutorial Gallery',
             onDidDispose: mySandBox.stub().yields(),
-            onDidChangeViewState: mySandBox.stub()
+            onDidChangeViewState: mySandBox.stub(),
+            _isDisposed: false
         });
 
         const tutorialGalleryView: TutorialGalleryView = new TutorialGalleryView(context);

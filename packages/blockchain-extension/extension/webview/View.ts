@@ -33,8 +33,9 @@ export abstract class View {
     public async openView(keepContext: boolean): Promise<void> {
 
         // Check to see if the panel is already open
+        // In 1.44.x, they changed the structure of vscode.WebviewPanel - the second part of the statement supports this change.
         View.openPanels = View.openPanels.filter((_panel: vscode.WebviewPanel) => {
-            return _panel['_isDisposed'] !== true;
+            return _panel['_isDisposed'] === false || _panel['_store'] && _panel['_store']['_isDisposed'] === false;
         });
 
         let panel: vscode.WebviewPanel = View.openPanels.find((tempPanel: vscode.WebviewPanel) => {

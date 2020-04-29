@@ -73,7 +73,8 @@ describe('SampleView', () => {
             },
             title: 'FabCar',
             onDidDispose: mySandBox.stub(),
-            onDidChangeViewState: mySandBox.stub()
+            onDidChangeViewState: mySandBox.stub(),
+            _isDisposed: false
 
         });
 
@@ -113,7 +114,8 @@ describe('SampleView', () => {
                     return;
                 },
                 onDidDispose: mySandBox.stub(),
-                onDidChangeViewState: mySandBox.stub()
+                onDidChangeViewState: mySandBox.stub(),
+                _isDisposed: false
 
             });
         }));
@@ -161,7 +163,8 @@ describe('SampleView', () => {
                     return;
                 },
                 onDidDispose: disposeStub,
-                onDidChangeViewState: mySandBox.stub()
+                onDidChangeViewState: mySandBox.stub(),
+                _isDisposed: false
 
             });
         }));
@@ -207,7 +210,8 @@ describe('SampleView', () => {
                     return;
                 },
                 onDidDispose: mySandBox.stub(),
-                onDidChangeViewState: mySandBox.stub()
+                onDidChangeViewState: mySandBox.stub(),
+                _isDisposed: false
             });
         }));
 
@@ -348,7 +352,8 @@ describe('SampleView', () => {
                         return;
                     },
                     onDidDispose: mySandBox.stub(),
-                    onDidChangeViewState: mySandBox.stub()
+                    onDidChangeViewState: mySandBox.stub(),
+                    _isDisposed: false
 
                 });
             }));
@@ -385,7 +390,8 @@ describe('SampleView', () => {
                         return;
                     },
                     onDidDispose: mySandBox.stub(),
-                    onDidChangeViewState: mySandBox.stub()
+                    onDidChangeViewState: mySandBox.stub(),
+                    _isDisposed: false
                 });
             }));
         }
@@ -502,7 +508,8 @@ describe('SampleView', () => {
                         return;
                     },
                     onDidDispose: mySandBox.stub(),
-                    onDidChangeViewState: mySandBox.stub()
+                    onDidChangeViewState: mySandBox.stub(),
+                    _isDisposed: false
 
                 });
             }));
