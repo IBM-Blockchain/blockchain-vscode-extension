@@ -108,6 +108,20 @@ describe('OpenDeployView', () => {
             logStub.should.not.have.been.called;
         });
 
+        it('should connect to an environment and open the deploy view from the tree', async () => {
+            const localEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+            getConnectionStub.onCall(0).returns(undefined);
+            getConnectionStub.onCall(1).returns(localEnvironmentConnectionMock);
+            await vscode.commands.executeCommand(ExtensionCommands.OPEN_DEPLOY_PAGE, localEnvironmentRegistryEntry, 'mychannel');
+
+            showFabricEnvironmentQuickPickBoxStub.should.not.have.been.called;
+            getConnectionStub.should.have.been.calledTwice;
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEnvironmentRegistryEntry);
+            showChannelQuickPickBoxStub.should.not.have.been.called;
+            openViewStub.should.have.been.calledOnce;
+            logStub.should.not.have.been.called;
+        });
+
         it('should open the deploy view if already connected to the chosen environment', async () => {
             const localEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
             showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironmentRegistryEntry});

@@ -22,18 +22,21 @@ import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
-export async function openDeployView(): Promise<void> {
+export async function openDeployView(fabricRegistryEntry?: FabricEnvironmentRegistryEntry, channelName?: string): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
     try {
+        if (!fabricRegistryEntry) {
+            // Select environment
+            const _chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Select an environment', false, false) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            if (!_chosenEnvironment) {
+                return;
+            }
 
-        // Select environment
-        const _chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> =  await UserInputUtil.showFabricEnvironmentQuickPickBox('Select an environment', false, false) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
-        if (!_chosenEnvironment) {
-            return;
+            fabricRegistryEntry = _chosenEnvironment.data;
         }
 
-        const selectedEnvironmentName: string = _chosenEnvironment.label;
+        const selectedEnvironmentName: string = fabricRegistryEntry.name;
 
         let connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
 
@@ -43,11 +46,11 @@ export async function openDeployView(): Promise<void> {
             if (connectedName !== selectedEnvironmentName) {
                 // If we're not connected to the selected environment we should disconnect, then connect to the correct environment.
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, _chosenEnvironment.data);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, fabricRegistryEntry);
                 connection = FabricEnvironmentManager.instance().getConnection();
             }
         } else {
-            await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, _chosenEnvironment.data);
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, fabricRegistryEntry);
             connection = FabricEnvironmentManager.instance().getConnection();
         }
 
@@ -56,17 +59,18 @@ export async function openDeployView(): Promise<void> {
             throw new Error(`Unable to connect to environment: ${selectedEnvironmentName}`);
         }
 
-        // Select environment's channel
+        if (!channelName) {
+            // Select environment's channel
+            const _chosenChannel: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Select a channel');
+            if (!_chosenChannel) {
+                return;
+            }
 
-        const _chosenChannel: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Select a channel');
-        if (!_chosenChannel) {
-            return;
+            channelName = _chosenChannel.label;
         }
 
-        const selectedChannelName: string = _chosenChannel.label;
-
-        const appState: {channelName: string, environmentName: string} = {
-            channelName: selectedChannelName,
+        const appState: { channelName: string, environmentName: string } = {
+            channelName: channelName,
             environmentName: selectedEnvironmentName
         };
 
