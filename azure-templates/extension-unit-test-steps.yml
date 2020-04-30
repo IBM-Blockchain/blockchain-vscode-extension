@@ -11,12 +11,6 @@
 # limitations under the License.
 
 steps:
-  - task: DownloadSecureFile@1
-    name: ibmcloud_account_0_0_1_vscode_1_35_1
-    inputs:
-      secureFile: ibmcloud_account_0_0_1_vscode_1_35_1.vsix
-    condition: succeeded()
-
   - bash: |
       set -ev
       cd ./packages/blockchain-extension

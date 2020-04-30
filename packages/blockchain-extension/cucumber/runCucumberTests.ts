@@ -27,6 +27,7 @@ async function main(): Promise<void> {
         process.env.MAP_OPSTOOLS_URL = process.argv[2];
         process.env.MAP_OPSTOOLS_KEY = process.argv[3];
         process.env.MAP_OPSTOOLS_SECRET = process.argv[4];
+        process.env.MAP_OPSTOOLS_SAAS_API_KEY = process.argv[5];
 
         // The folder containing the Extension Manifest package.json
         // Passed to `--extensionDevelopmentPath`
@@ -44,11 +45,6 @@ async function main(): Promise<void> {
 
         // Use cp.spawn / cp.exec for custom setup
         cp.spawnSync(cliPath, ['--install-extension', 'oshri6688.javascript-test-runner'], {
-            encoding: 'utf-8',
-            stdio: 'inherit'
-        });
-        const vsixPath: string = path.resolve(process.env.JSON_DIR, 'ibmcloud_account_0_0_1_vscode_1_35_1.vsix');
-        cp.spawnSync(cliPath, ['--install-extension', vsixPath], {
             encoding: 'utf-8',
             stdio: 'inherit'
         });
