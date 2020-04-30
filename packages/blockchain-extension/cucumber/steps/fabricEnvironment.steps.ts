@@ -72,8 +72,8 @@ module.exports = function(): any {
         await this.fabricEnvironmentHelper.connectToEnvironment(environment);
     });
 
-    this.Given("an environment '{string}' exists", this.timeout, async (environmentName: string) => {
-        opsToolsAllNodesQuickPick = await this.fabricEnvironmentHelper.createEnvironment(environmentName);
+    this.Given(/an environment '(.*?)' ?(?:of type '(.*?)')? exists/, this.timeout, async (environmentName: string, opsType: string) => {
+        opsToolsAllNodesQuickPick = await this.fabricEnvironmentHelper.createEnvironment(environmentName, opsType);
         this.environmentName = environmentName;
     });
 
@@ -92,15 +92,25 @@ module.exports = function(): any {
         }
     });
 
-    this.Given('the opstools environment is setup', this.timeout, async () => {
+    this.Given("the '{string}' opstools environment is setup", this.timeout, async (environmentType: string) => {
         const nodeMap: Map<string, string> = new Map<string, string>();
-        nodeMap.set('Ordering Service CA', 'OrderingServiceCAAdmin');
-        nodeMap.set('Ordering Service_1', 'OrderingServiceMSPAdmin');
-        nodeMap.set('Org1 CA', 'Org1CAAdmin');
-        nodeMap.set('Org2 CA', 'Org2CAAdmin');
-        nodeMap.set('Peer Org1', 'Org1MSPAdmin');
-        nodeMap.set('Peer Org2', 'Org2MSPAdmin');
-        const wallet: string = 'opsToolsWallet';
+        let wallet: string;
+        if (environmentType === 'software') {
+            nodeMap.set('Ordering Service CA', 'OrderingServiceCAAdmin');
+            nodeMap.set('Ordering Service_1', 'OrderingServiceMSPAdmin');
+            nodeMap.set('Org1 CA', 'Org1CAAdmin');
+            nodeMap.set('Org2 CA', 'Org2CAAdmin');
+            nodeMap.set('Peer Org1', 'Org1MSPAdmin');
+            nodeMap.set('Peer Org2', 'Org2MSPAdmin');
+            wallet = 'opsToolsWallet';
+        } else if (environmentType === 'SaaS') {
+            nodeMap.set('Ordering Service CA', 'SaaSOrderingServiceCAAdmin');
+            nodeMap.set('Ordering Service_1', 'SaaSOrderingServiceMSPAdmin');
+            nodeMap.set('Org1 CA', 'SaaSOrg1CAAdmin');
+            nodeMap.set('Peer Org1', 'SaaSOrg1MSPAdmin');
+            wallet = 'SaaSOpsToolsWallet';
+        }
+
         for (const node of nodeMap.entries()) {
             await this.fabricEnvironmentHelper.associateNodeWithIdentitiy(this.environmentName, node[0], node[1], wallet);
         }
@@ -115,8 +125,8 @@ module.exports = function(): any {
      * When
      */
 
-    this.When("I create an environment '{string}'", this.timeout, async (environmentName: string) => {
-        opsToolsAllNodesQuickPick = await this.fabricEnvironmentHelper.createEnvironment(environmentName);
+    this.When(/I create an environment '(.*?)' ?(?:of type '(.*?)')?/, this.timeout, async (environmentName: string, opsType: string) => {
+        opsToolsAllNodesQuickPick = await this.fabricEnvironmentHelper.createEnvironment(environmentName, opsType);
     });
 
     this.When("I associate identity '{string}' in wallet '{string}' with node '{string}'", this.timeout, async (identity: string, wallet: string, node: string) => {
