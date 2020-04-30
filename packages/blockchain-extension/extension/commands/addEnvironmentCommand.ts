@@ -103,7 +103,7 @@ export async function addEnvironment(): Promise<void> {
             const isSaaS: string = await UserInputUtil.showQuickPickYesNo('Are you connecting to a service instance on IBM Cloud?');
             if (!isSaaS) {
                 return;
-            } else if (isSaaS !== UserInputUtil.YES) {
+            } else if (isSaaS === UserInputUtil.NO) {
                 const url: string = await getOpsToolsAccessInfo();
                 if (!url) {
                     return;
