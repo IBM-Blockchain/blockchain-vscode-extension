@@ -105,6 +105,7 @@ import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchain
 import { subscribeToEvent } from '../commands/subscribeToEventCommand';
 import { approveSmartContract } from '../commands/approveCommand';
 import { commitSmartContract } from '../commands/commitCommand';
+import { deploySmartContract } from '../commands/deployCommand';
 import { openDeployView } from '../commands/openDeployView';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
@@ -233,6 +234,7 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, (channelName?: string, peerNames?: Array<string>) => instantiateSmartContract(channelName, peerNames)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.APPROVE_SMART_CONTRACT, (ordererName: string, channelName: string, peerNames: Array<string>, smartContractName: string, smartContractVersion: string, packageId: string, sequence: number) => approveSmartContract(ordererName, channelName, peerNames, smartContractName, smartContractVersion, packageId, sequence)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.COMMIT_SMART_CONTRACT, (ordererName: string, channelName: string, peerNames: Array<string>, smartContractName: string, smartContractVersion: string, sequence: number) => commitSmartContract(ordererName, channelName, peerNames, smartContractName, smartContractVersion, sequence)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, (requireCommit: boolean, fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry, ordererName: string, channelName: string, peerNames: Array<string>, smartContractName: string, smartContractVersion: string, sequenceNumber: number, chosenPackage: PackageRegistryEntry) => deploySmartContract(requireCommit, fabricEnvironmentRegistryEntry, ordererName, channelName, peerNames, smartContractName, smartContractVersion, sequenceNumber, chosenPackage)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEST_ALL_SMART_CONTRACT, (chaincode: InstantiatedContractTreeItem) => testSmartContract(true, chaincode)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEST_SMART_CONTRACT, (treeItem: ContractTreeItem | InstantiatedTreeItem) => testSmartContract(false, treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.SUBMIT_TRANSACTION, (transactionTreeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string, transactionObject?: any) => submitTransaction(false, transactionTreeItem, channelName, smartContract, transactionObject)));
@@ -250,7 +252,7 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY, (treeItem: ContractTreeItem | InstantiatedTreeItem) => associateTransactionDataDirectory(treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY, (treeItem: ContractTreeItem | InstantiatedTreeItem) => dissociateTransactionDataDirectory(treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.SUBSCRIBE_TO_EVENT, (treeItem: ContractTreeItem | InstantiatedTreeItem) => subscribeToEvent(treeItem)));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_DEPLOY_PAGE, () => openDeployView()));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_DEPLOY_PAGE, (fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry, channelName: string) => openDeployView(fabricEnvironmentRegistryEntry, channelName)));
 
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_HOME_PAGE, async () => {
             const homeView: HomeView = new HomeView(context);

@@ -31,6 +31,7 @@ import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric
 import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
+import { FabricInstalledSmartContract } from 'ibm-blockchain-platform-common/build/src/fabricModel/FabricInstalledSmartContract';
 
 chai.use(sinonChai);
 
@@ -70,7 +71,7 @@ describe('InstantiateCommand', () => {
             fabricRuntimeMock = mySandBox.createStubInstance(FabricEnvironmentConnection);
             fabricRuntimeMock.connect.resolves();
             fabricRuntimeMock.instantiateChaincode.resolves();
-            fabricRuntimeMock.getInstalledChaincode.resolves([]);
+            fabricRuntimeMock.getInstalledSmartContracts.resolves([]);
 
             environmentConnectionStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns((fabricRuntimeMock));
 
@@ -638,9 +639,9 @@ describe('InstantiateCommand', () => {
             packageRegistryEntry.version = 'vscode-debug-123456';
             mySandBox.stub(PackageRegistry.instance(), 'get').resolves(packageRegistryEntry);
 
-            const installedChaincodeMap: {label: string, packageId: string}[] = [{label: 'beer', packageId: 'vscode-debug-123456'}];
+            const installedChaincodeMap: FabricInstalledSmartContract[] = [{label: 'beer', packageId: 'vscode-debug-123456'}];
 
-            fabricRuntimeMock.getInstalledChaincode.resolves(installedChaincodeMap);
+            fabricRuntimeMock.getInstalledSmartContracts.resolves(installedChaincodeMap);
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, 'someChannelName', ['peerHi', 'peerHa']);
 
             fabricRuntimeMock.instantiateChaincode.should.have.been.calledWith('beer', 'vscode-debug-123456', ['peerHi', 'peerHa'], 'someChannelName', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined);
@@ -674,9 +675,9 @@ describe('InstantiateCommand', () => {
 
             mySandBox.stub(vscode.debug, 'activeDebugSession').value(activeDebugSessionStub);
 
-            const installedChaincodeMap: {label: string, packageId: string}[] = [{label: 'beer', packageId: 'vscode-debug-wrong'}];
+            const installedChaincodeMap: FabricInstalledSmartContract[] = [{label: 'beer', packageId: 'vscode-debug-wrong'}];
 
-            fabricRuntimeMock.getInstalledChaincode.resolves(installedChaincodeMap);
+            fabricRuntimeMock.getInstalledSmartContracts.resolves(installedChaincodeMap);
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, 'someChannelName', ['peerHi', 'peerHa']);
 
             fabricRuntimeMock.instantiateChaincode.should.have.been.calledWith('beer', 'vscode-debug-123456', ['peerHi', 'peerHa'], 'someChannelName', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined);

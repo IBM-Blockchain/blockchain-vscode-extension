@@ -41,6 +41,7 @@ import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironment
 import { ManagedAnsibleEnvironmentManager } from '../fabric/environments/ManagedAnsibleEnvironmentManager';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { CommittedContractTreeItem } from './runtimeOps/connectedTree/CommittedSmartContractTreeItem';
+import { DeployTreeItem } from './runtimeOps/connectedTree/DeployTreeItem';
 
 export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorerProvider {
 
@@ -307,6 +308,16 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
         for (const smartContract of element.chaincodes) {
             tree.push(new CommittedContractTreeItem(this, `${smartContract.name}@${smartContract.version}`));
         }
+
+        const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+
+        const command: vscode.Command = {
+            command: ExtensionCommands.OPEN_DEPLOY_PAGE,
+            title: '',
+            arguments: [fabricEnvironmentRegistryEntry, element.label]
+        };
+
+        tree.push(new DeployTreeItem(this, command));
 
         return tree;
     }

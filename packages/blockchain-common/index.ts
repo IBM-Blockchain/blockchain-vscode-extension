@@ -41,3 +41,4 @@ export * from './src/fabricModel/FabricGateway';
 export * from './src/registries/FabricGatewayRegistry';
 export * from './src/registries/FabricGatewayRegistryEntry';
 export * from './src/util/FabricWalletGeneratorFactory';
+export * from './src/fabricModel/FabricInstalledSmartContract';

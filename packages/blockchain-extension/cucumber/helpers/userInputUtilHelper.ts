@@ -26,6 +26,7 @@ export class UserInputUtilHelper {
     cucumberDir: string = path.join(__dirname, '..', '..', '..', 'cucumber');
 
     logSpy: sinon.SinonSpy;
+    commandSpy: sinon.SinonSpy;
     showLanguagesQuickPickStub: sinon.SinonStub;
     inputBoxStub: sinon.SinonStub;
     browseStub: sinon.SinonStub;
@@ -69,6 +70,7 @@ export class UserInputUtilHelper {
 
         // TODO move this somewhere more sensible when have other helpers
         this.logSpy = this.mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+        this.commandSpy = this.mySandBox.spy(vscode.commands, 'executeCommand');
 
         this.showSaveDialogStub = this.mySandBox.stub(vscode.window, 'showSaveDialog').callThrough();
         this.showLanguagesQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').callThrough();

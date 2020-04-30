@@ -51,6 +51,7 @@ export class ExtensionCommands {
 
     static readonly APPROVE_SMART_CONTRACT: string = 'environmentExplorer.approveSmartContractEntry';
     static readonly COMMIT_SMART_CONTRACT: string = 'environmentExplorer.commitSmartContractEntry';
+    static readonly DEPLOY_SMART_CONTRACT: string = 'environmentExplorer.deploySmartContractEntry';
 
     // GATEWAY VIEW
     static readonly ADD_GATEWAY: string = 'gatewaysExplorer.addGatewayEntry';

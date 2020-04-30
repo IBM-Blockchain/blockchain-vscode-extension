@@ -17,6 +17,7 @@ import { FabricCommittedSmartContract } from '../fabricModel/FabricCommittedSmar
 import {IFabricWallet} from './IFabricWallet';
 import { FabricNode } from '../fabricModel/FabricNode';
 import { Attribute } from '../fabricModel/FabricCertificate';
+import { FabricInstalledSmartContract } from '../fabricModel/FabricInstalledSmartContract';
 
 export interface IFabricEnvironmentConnection {
 
@@ -38,11 +39,11 @@ export interface IFabricEnvironmentConnection {
 
     getAllCertificateAuthorityNames(): Array<string>;
 
-    getInstalledChaincode(peerName: string): Promise<{label: string, packageId: string}[]>;
+    getInstalledSmartContracts(peerName: string): Promise<FabricInstalledSmartContract[]>;
 
     getAllOrdererNames(): Array<string>;
 
-    installChaincode(pathToPackage: string, peerName: string): Promise<string>;
+    installSmartContract(pathToPackage: string, peerName: string): Promise<string>;
 
     instantiateChaincode(chaincodeName: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionPath: string, contractEP: any): Promise<Buffer>;
 

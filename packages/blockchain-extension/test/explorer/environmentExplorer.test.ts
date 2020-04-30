@@ -36,12 +36,13 @@ import { CertificateAuthorityTreeItem } from '../../extension/explorer/runtimeOp
 import { OrdererTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/OrdererTreeItem';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, LogType, EnvironmentType, FabricEnvironment } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, LogType, EnvironmentType, FabricEnvironment, FabricInstalledSmartContract } from 'ibm-blockchain-platform-common';
 import { EnvironmentConnectedTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/EnvironmentConnectedTreeItem';
 import { ImportNodesTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/ImportNodesTreeItem';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { ManagedAnsibleEnvironmentManager } from '../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
 import { CommittedContractTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/CommittedSmartContractTreeItem';
+import { DeployTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/DeployTreeItem';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -419,6 +420,7 @@ describe('environmentExplorer', () => {
             let executeCommandStub: sinon.SinonStub;
             let environmentStub: sinon.SinonStub;
             let connectedStateStub: sinon.SinonStub;
+            let environmentRegistry: FabricEnvironmentRegistryEntry;
 
             beforeEach(async () => {
 
@@ -435,13 +437,13 @@ describe('environmentExplorer', () => {
 
                 fabricConnection.getAllPeerNames.returns(['peerOne', 'peerTwo']);
 
-                const installedChaincodeMapOne: { label: string, packageId: string }[] = [{ label: 'sample-car-network', packageId: '1.0' }, { label: 'sample-car-network', packageId: '1.2' }, { label: 'sample-food-network', packageId: '0.6' }];
+                const installedChaincodeMapOne: FabricInstalledSmartContract[] = [{ label: 'sample-car-network', packageId: '1.0' }, { label: 'sample-car-network', packageId: '1.2' }, { label: 'sample-food-network', packageId: '0.6' }];
 
-                fabricConnection.getInstalledChaincode.withArgs('peerOne').returns(installedChaincodeMapOne);
+                fabricConnection.getInstalledSmartContracts.withArgs('peerOne').returns(installedChaincodeMapOne);
 
-                const installedChaincodeMapTwo: { label: string, packageId: string }[] = [{ label: 'biscuit-network', packageId: '0.7' }, { label: 'sample-food-network', packageId: '0.6' }];
+                const installedChaincodeMapTwo: FabricInstalledSmartContract[] = [{ label: 'biscuit-network', packageId: '0.7' }, { label: 'sample-food-network', packageId: '0.6' }];
 
-                fabricConnection.getInstalledChaincode.withArgs('peerTwo').returns(installedChaincodeMapTwo);
+                fabricConnection.getInstalledSmartContracts.withArgs('peerTwo').returns(installedChaincodeMapTwo);
 
                 fabricConnection.getCommittedSmartContracts.withArgs(['peerOne'], 'channelOne').resolves([{
                     name: 'biscuit-network',
@@ -471,7 +473,7 @@ describe('environmentExplorer', () => {
                 map.set('channelThree', ['peerOne']);
                 fabricConnection.createChannelMap.resolves(map);
 
-                const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                environmentRegistry = new FabricEnvironmentRegistryEntry();
                 environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
                 environmentRegistry.managedRuntime = true;
                 environmentRegistry.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
@@ -574,17 +576,23 @@ describe('environmentExplorer', () => {
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
                 allChildren.length.should.equal(6);
 
-                const smartContractsChannelOne: Array<CommittedContractTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
+                const smartContractsChannelOne: Array<CommittedContractTreeItem | DeployTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
 
-                smartContractsChannelOne.length.should.equal(1);
+                smartContractsChannelOne.length.should.equal(2);
 
                 smartContractsChannelOne[0].label.should.equal('biscuit-network@0.7');
                 smartContractsChannelOne[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 smartContractsChannelOne[0].tooltip.should.equal('biscuit-network@0.7');
 
+                smartContractsChannelOne[1].label.should.equal('+ Deploy');
+                smartContractsChannelOne[1].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                smartContractsChannelOne[1].tooltip.should.equal('+ Deploy');
+                smartContractsChannelOne[1].command.command.should.equal(ExtensionCommands.OPEN_DEPLOY_PAGE);
+                smartContractsChannelOne[1].command.arguments.should.deep.equal([environmentRegistry, 'channelOne']);
+
                 const smartContractsChannelTwo: Array<CommittedContractTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[2]);
 
-                smartContractsChannelTwo.length.should.equal(3);
+                smartContractsChannelTwo.length.should.equal(4);
 
                 smartContractsChannelTwo[0].label.should.equal('biscuit-network@0.7');
                 smartContractsChannelTwo[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
@@ -597,6 +605,12 @@ describe('environmentExplorer', () => {
                 smartContractsChannelTwo[2].label.should.equal('legacy-network@2.34');
                 smartContractsChannelTwo[2].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 smartContractsChannelTwo[2].tooltip.should.equal('legacy-network@2.34');
+
+                smartContractsChannelTwo[3].label.should.equal('+ Deploy');
+                smartContractsChannelTwo[3].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                smartContractsChannelTwo[3].tooltip.should.equal('+ Deploy');
+                smartContractsChannelTwo[3].command.command.should.equal(ExtensionCommands.OPEN_DEPLOY_PAGE);
+                smartContractsChannelTwo[3].command.arguments.should.deep.equal([environmentRegistry, 'channelTwo']);
             });
 
             it('should show peers, certificate authorities, and orderer nodes correctly', async () => {
@@ -656,10 +670,10 @@ describe('environmentExplorer', () => {
             });
 
             it('should show peers, certificate authorities, and orderer nodes correctly with none local fabric', async () => {
-                const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
-                environmentRegistry.name = 'myEnvironment';
+                const anotherEnvironmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                anotherEnvironmentRegistry.name = 'myEnvironment';
 
-                environmentStub.returns(environmentRegistry);
+                environmentStub.returns(anotherEnvironmentRegistry);
 
                 fabricConnection.getAllCertificateAuthorityNames.returns(['ca-name']);
                 fabricConnection.getNode.withArgs('peerOne').returns(FabricNode.newPeer('peerOne', 'peerOne', 'grpc://localhost:7051', 'wallet', 'identity', 'Org1MSP'));
@@ -726,13 +740,13 @@ describe('environmentExplorer', () => {
                 // reconnecting (this is dealt with in 'refresh' test section), hence the state must be CONNECTING.
                 connectedStateStub.returns(ConnectedState.CONNECTING);
                 const setStateStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'setState');
-                const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
-                environmentRegistry.name = 'myEnvironment';
-                environmentRegistry.url = 'someURL';
-                environmentRegistry.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
+                const anotherEnvironmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                anotherEnvironmentRegistry.name = 'myEnvironment';
+                anotherEnvironmentRegistry.url = 'someURL';
+                anotherEnvironmentRegistry.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
 
-                const connectCommandStub: sinon.SinonStub = executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistry).resolves();
-                environmentStub.returns(environmentRegistry);
+                const connectCommandStub: sinon.SinonStub = executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT, anotherEnvironmentRegistry).resolves();
+                environmentStub.returns(anotherEnvironmentRegistry);
 
                 fabricConnection.getAllCertificateAuthorityNames.returns(['ca-name']);
                 fabricConnection.getNode.withArgs('peerOne').returns(FabricNode.newPeer('peerOne', 'peerOne', 'grpc://localhost:7051', 'wallet', 'identity', 'Org1MSP'));

@@ -30,7 +30,13 @@ module.exports = function(): any {
      */
 
     this.Given('the contract has been packaged', this.timeout, async () => {
-        await this.smartContractHelper.packageSmartContract(this.contractName, this.contractVersion, this.contractLanguage, this.contractDirectory);
+        this.packageRegistryEntry = await this.smartContractHelper.packageSmartContract(this.contractName, this.contractVersion, this.contractLanguage, this.contractDirectory);
+    });
+
+    this.Given(/the package has been deleted/, this.timeout, async () => {
+        if (this.packageRegistryEntry) {
+            await PackageRegistry.instance().delete(this.packageRegistryEntry);
+        }
     });
 
     /**
@@ -38,7 +44,7 @@ module.exports = function(): any {
      */
 
     this.When('I package the contract', this.timeout, async () => {
-        await this.smartContractHelper.packageSmartContract(this.contractName, this.contractVersion, this.contractLanguage, this.contractDirectory);
+        this.packageRegistryEntry = await this.smartContractHelper.packageSmartContract(this.contractName, this.contractVersion, this.contractLanguage, this.contractDirectory);
     });
 
     this.When(/I run the command View package Information for package with name (.*) and version (.\S+)/, this.timeout, async (packagedName: string, version: string) => {
