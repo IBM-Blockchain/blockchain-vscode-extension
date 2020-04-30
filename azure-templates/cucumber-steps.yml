@@ -59,9 +59,27 @@ steps:
     condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
   - task: DownloadSecureFile@1
-    name: ibmcloud_account_0_0_1_vscode_1_35_1
+    name: SaaSOrderingServiceCAAdmin
     inputs:
-      secureFile: ibmcloud_account_0_0_1_vscode_1_35_1.vsix
+      secureFile: SaaSOrderingServiceCAAdmin.json
+    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+
+  - task: DownloadSecureFile@1
+    name: SaaSOrderingServiceMSPAdmin
+    inputs:
+      secureFile: SaaSOrderingServiceMSPAdmin.json
+    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+
+  - task: DownloadSecureFile@1
+    name: SaaSOrg1CAAdmin
+    inputs:
+      secureFile: SaaSOrg1CAAdmin.json
+    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+
+  - task: DownloadSecureFile@1
+    name: SaaSOrg1MSPAdmin
+    inputs:
+      secureFile: SaaSOrg1MSPAdmin.json
     condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
   - bash: |
@@ -81,7 +99,7 @@ steps:
   - bash: |
       set -ev
       cd ./packages/blockchain-extension
-      npm run cucumber -- $(opsTools_url) $(opsTools_key) $(opsTools_secret)
+      npm run cucumber -- $(opsTools_url) $(opsTools_key) $(opsTools_secret) $(opsTools_SaaS_api_key)
     env:
       DISPLAY: ':99.0'
       JSON_DIR: $(Agent.TempDirectory)

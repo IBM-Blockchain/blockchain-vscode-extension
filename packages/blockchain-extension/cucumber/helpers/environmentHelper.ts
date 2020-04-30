@@ -29,6 +29,7 @@ import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
 import { ModuleUtilHelper } from './moduleUtilHelper';
 import { FabricEnvironmentTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
+import { ExtensionsInteractionUtilHelper } from './extensionsInteractionUtilHelper';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -38,14 +39,16 @@ export class EnvironmentHelper {
     mySandBox: sinon.SinonSandbox;
     userInputUtilHelper: UserInputUtilHelper;
     moduleUtilHelper: ModuleUtilHelper;
+    extensionsInteractionUtilHelper: ExtensionsInteractionUtilHelper;
 
-    constructor(sandbox: sinon.SinonSandbox, userInputUtilHelper: UserInputUtilHelper, moduleUtilHelper: ModuleUtilHelper) {
+    constructor(sandbox: sinon.SinonSandbox, userInputUtilHelper: UserInputUtilHelper, moduleUtilHelper: ModuleUtilHelper, extensionsInteractionUtilHelper: ExtensionsInteractionUtilHelper) {
         this.mySandBox = sandbox;
         this.userInputUtilHelper = userInputUtilHelper;
         this.moduleUtilHelper = moduleUtilHelper;
+        this.extensionsInteractionUtilHelper = extensionsInteractionUtilHelper;
     }
 
-    public async createEnvironment(name: string): Promise<IBlockchainQuickPickItem<FabricNode>[]> {
+    public async createEnvironment(name: string, opsType?: string): Promise<IBlockchainQuickPickItem<FabricNode>[]> {
         let treeItem: FabricEnvironmentTreeItem;
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         // need to make sure its not showing the setup tree
@@ -61,11 +64,15 @@ export class EnvironmentHelper {
             if (process.env.OPSTOOLS_FABRIC) {
                 // Connect to OpsTools and create environment without nodes
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
-                this.userInputUtilHelper.showYesNoQuickPick.withArgs('Are you connecting to a service instance on IBM Cloud?').resolves({data: UserInputUtil.NO});
-                this.userInputUtilHelper.inputBoxStub.withArgs('Enter the URL of the IBM Blockchain Platform Console you want to connect to').resolves(process.env.MAP_OPSTOOLS_URL);
-                this.userInputUtilHelper.inputBoxStub.withArgs('Enter the API key or the User ID of the IBM Blockchain Platform Console you want to connect to').resolves(process.env.MAP_OPSTOOLS_KEY);
-                this.userInputUtilHelper.inputBoxStub.withArgs('Enter the API secret or the password of the IBM Blockchain Platform Console you want to connect to').resolves(process.env.MAP_OPSTOOLS_SECRET);
-                this.userInputUtilHelper.showQuickPickItemStub.withArgs('Unable to perform certificate verification. Please choose how to proceed', [{ label: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN, data: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN }, { label: UserInputUtil.CANCEL_NO_CERT_CHAIN, data: UserInputUtil.CANCEL_NO_CERT_CHAIN, description: UserInputUtil.CANCEL_NO_CERT_CHAIN_DESCRIPTION }]).resolves({ label: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN, data: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN });
+                if (opsType === 'SaaS') {
+                    this.userInputUtilHelper.showYesNoQuickPick.withArgs('Are you connecting to a service instance on IBM Cloud?').resolves(UserInputUtil.YES);
+                } else if (opsType === 'software') {
+                    this.userInputUtilHelper.showYesNoQuickPick.withArgs('Are you connecting to a service instance on IBM Cloud?').resolves(UserInputUtil.NO);
+                    this.userInputUtilHelper.inputBoxStub.withArgs('Enter the URL of the IBM Blockchain Platform Console you want to connect to').resolves(process.env.MAP_OPSTOOLS_URL);
+                    this.userInputUtilHelper.inputBoxStub.withArgs('Enter the API key or the User ID of the IBM Blockchain Platform Console you want to connect to').resolves(process.env.MAP_OPSTOOLS_KEY);
+                    this.userInputUtilHelper.inputBoxStub.withArgs('Enter the API secret or the password of the IBM Blockchain Platform Console you want to connect to').resolves(process.env.MAP_OPSTOOLS_SECRET);
+                    this.userInputUtilHelper.showQuickPickItemStub.withArgs('Unable to perform certificate verification. Please choose how to proceed', [{ label: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN, data: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN }, { label: UserInputUtil.CANCEL_NO_CERT_CHAIN, data: UserInputUtil.CANCEL_NO_CERT_CHAIN, description: UserInputUtil.CANCEL_NO_CERT_CHAIN_DESCRIPTION }]).resolves({ label: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN, data: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN });
+                }
                 this.userInputUtilHelper.opsToolsNodeQuickPickStub.resolves([]);
             } else if (process.env.ANSIBLE_FABRIC) {
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR});
@@ -87,9 +94,13 @@ export class EnvironmentHelper {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
             if (process.env.OPSTOOLS_FABRIC) {
+                if (opsType === 'SaaS') {
+                    this.extensionsInteractionUtilHelper.cloudAccountGetAccessTokenStub.called.should.equal(true);
+                } else {
+                    this.moduleUtilHelper.setPasswordStub.called.should.equal(true);
+                    this.moduleUtilHelper.getPasswordStub.called.should.equal(true);
+                }
                 this.userInputUtilHelper.opsToolsNodeQuickPickStub.called.should.equal(true);
-                this.moduleUtilHelper.setPasswordStub.called.should.equal(true);
-                this.moduleUtilHelper.getPasswordStub.called.should.equal(true);
                 const call: sinon.SinonSpyCall = this.userInputUtilHelper.opsToolsNodeQuickPickStub.getCall(0);
                 return call.args[0];
             }

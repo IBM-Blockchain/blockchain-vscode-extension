@@ -34,7 +34,11 @@ import { SampleHelper } from '../helpers/sampleHelper';
 import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 import { ModuleUtilHelper } from '../helpers/moduleUtilHelper';
 import { TimerUtil } from '../../extension/util/TimerUtil';
+<<<<<<< HEAD
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+=======
+import { ExtensionsInteractionUtilHelper } from '../helpers/extensionsInteractionUtilHelper';
+>>>>>>> d160f3c1... IBM OpsTools - cucummber tests (#2247)
 
 // tslint:disable:no-unused-expression
 
@@ -69,7 +73,8 @@ module.exports = function(): any {
             this.generatedTestsHelper = new GeneratedTestsHelper(this.mySandBox, this.userInputUtilHelper, this.smartContractHelper);
             this.walletAndIdentityHelper = new WalletAndIdentityHelper(this.mySandBox, this.userInputUtilHelper);
             this.gatewayHelper = new GatewayHelper(this.mySandBox, this.userInputUtilHelper);
-            this.fabricEnvironmentHelper = new EnvironmentHelper(this.mySandbox, this.userInputUtilHelper, this.moduleUtilHelper);
+            this.extensionsInteractionUtilHelper = new ExtensionsInteractionUtilHelper(this.mySandBox);
+            this.fabricEnvironmentHelper = new EnvironmentHelper(this.mySandbox, this.userInputUtilHelper, this.moduleUtilHelper, this.extensionsInteractionUtilHelper);
             this.sampleHelper = new SampleHelper(this.mySandBox, this.userInputUtilHelper, this.smartContractHelper);
 
             VSCodeBlockchainOutputAdapter.instance().setConsole(true);
