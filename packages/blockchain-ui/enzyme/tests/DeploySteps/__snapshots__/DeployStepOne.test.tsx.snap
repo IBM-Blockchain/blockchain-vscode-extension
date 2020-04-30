@@ -1,0 +1,138 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DeployStepOne component render should render the expected snapshot 1`] = `
+Array [
+  <div
+    className="bx--row dropdown-row"
+  >
+    <div
+      className="bx--col"
+    >
+      <div
+        style={
+          Object {
+            "width": 384,
+          }
+        }
+      >
+        <div
+          className="bx--dropdown__wrapper bx--list-box__wrapper"
+        >
+          <span
+            className="bx--label"
+          >
+            Choose a smart contract to deploy
+          </span>
+          <div
+            aria-label="dropdown"
+            className="bx--dropdown bx--list-box"
+            id="package-select"
+            onClick={[Function]}
+            onKeyDown={[Function]}
+          >
+            <div
+              aria-controls={null}
+              aria-disabled={false}
+              aria-expanded={false}
+              aria-haspopup={true}
+              aria-labelledby="dropdown-label-package-select dropdown-field-label-package-select"
+              aria-owns={null}
+              className="bx--list-box__field"
+              data-toggle={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onKeyDown={[Function]}
+              role="button"
+              tabIndex="0"
+              type="button"
+            >
+              <span
+                className="bx--list-box__label"
+                htmlFor="downshift-0-input"
+                id="dropdown-field-label-package-select"
+              >
+                mycontract@0.0.1 (packaged)
+              </span>
+              <div
+                className="bx--list-box__menu-icon"
+              >
+                <svg
+                  aria-label="Open menu"
+                  focusable="false"
+                  height={16}
+                  name="chevron--down"
+                  preserveAspectRatio="xMidYMid meet"
+                  role="img"
+                  viewBox="0 0 16 16"
+                  width={16}
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <polygon
+                    points="8,11 3,6 3.7,5.3 8,9.6 12.3,5.3 13,6"
+                  />
+                  <title>
+                    Open menu
+                  </title>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>,
+  <div
+    className="bx--row"
+  >
+    <div
+      className="bx--col-lg-10 "
+    >
+      <ul
+        className="bx--accordion bx--accordion--end"
+      >
+        <li
+          className="bx--accordion__item"
+          onAnimationEnd={[Function]}
+        >
+          <button
+            aria-expanded={false}
+            className="bx--accordion__heading"
+            onClick={[Function]}
+            onKeyDown={[Function]}
+            title="Expand/Collapse"
+            type="button"
+          >
+            <svg
+              aria-label="Expand/Collapse"
+              className="bx--accordion__arrow"
+              focusable="false"
+              height={16}
+              preserveAspectRatio="xMidYMid meet"
+              role="img"
+              viewBox="0 0 16 16"
+              width={16}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <polygon
+                points="11,8 6,13 5.3,12.3 9.6,8 5.3,3.7 6,3"
+              />
+            </svg>
+            <div
+              className="bx--accordion__title"
+            >
+              How does Fabric v2.X smart contract deployment work?
+            </div>
+          </button>
+          <div
+            className="bx--accordion__content"
+          >
+            <p>
+              TODO
+            </p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>,
+]
+`;

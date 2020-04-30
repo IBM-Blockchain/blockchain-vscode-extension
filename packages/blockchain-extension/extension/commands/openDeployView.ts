@@ -21,6 +21,8 @@ import { GlobalState } from '../util/GlobalState';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
+import { PackageRegistry } from '../registries/PackageRegistry';
 
 export async function openDeployView(fabricRegistryEntry?: FabricEnvironmentRegistryEntry, channelName?: string): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -69,9 +71,12 @@ export async function openDeployView(fabricRegistryEntry?: FabricEnvironmentRegi
             channelName = _chosenChannel.label;
         }
 
-        const appState: { channelName: string, environmentName: string } = {
-            channelName: channelName,
-            environmentName: selectedEnvironmentName
+        const packageEntries: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
+
+        const appState: { channelName: string, environmentName: string, packageEntries: PackageRegistryEntry[] } = {
+            channelName,
+            environmentName: selectedEnvironmentName,
+            packageEntries
         };
 
         const context: vscode.ExtensionContext = GlobalState.getExtensionContext();

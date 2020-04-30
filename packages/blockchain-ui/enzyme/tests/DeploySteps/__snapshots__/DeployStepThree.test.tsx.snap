@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DeployStepThree component render should render the expected snapshot 1`] = `
+<div
+  className="bx--row margin-bottom-06"
+>
+  <div
+    className="bx--col"
+  >
+    The following steps will all be automatically carried out to deploy this smart contract:
+    <ul
+      className="bx--list--unordered"
+    >
+      <li
+        className="bx--list__item"
+      >
+        Install smart contract package \`
+        mycontract
+        @
+        0.0.1
+        \` on all peers
+      </li>
+      <li
+        className="bx--list__item"
+      >
+        Approve the same smart contract definition for each organization
+      </li>
+      <li
+        className="bx--list__item"
+      >
+        Commit the definition to \`
+        mychannel
+        \`
+      </li>
+    </ul>
+  </div>
+</div>
+`;

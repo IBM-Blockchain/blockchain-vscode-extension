@@ -2,10 +2,8 @@
 
 exports[`DeployProgressBar component should render the expected snapshot 1`] = `
 <div
-  className="bx--col"
+  className="bx--col-lg-10"
 >
-  <br />
-  <br />
   <ul
     className="bx--progress"
   >
@@ -147,8 +145,5 @@ exports[`DeployProgressBar component should render the expected snapshot 1`] = `
       </button>
     </li>
   </ul>
-  <br />
-  <br />
-  <br />
 </div>
 `;

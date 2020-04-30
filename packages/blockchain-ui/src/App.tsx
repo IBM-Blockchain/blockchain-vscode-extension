@@ -5,12 +5,13 @@ import HomePage from './components/pages/HomePage/HomePage';
 import TutorialPage from './components/pages/TutorialPage/TutorialPage';
 import ITutorialObject from './interfaces/ITutorialObject';
 import DeployPage from './components/pages/DeployPage/DeployPage';
+import IPackageRegistryEntry from './interfaces/IPackageRegistryEntry';
 
 interface AppState {
     redirectPath: string;
     extensionVersion: string;
     tutorialData: Array<{name: string, tutorials: ITutorialObject[]}>;
-    deployData: {channelName: string, environmentName: string};
+    deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[]};
 }
 
 class App extends Component<{}, AppState> {
@@ -20,7 +21,7 @@ class App extends Component<{}, AppState> {
             redirectPath: '',
             extensionVersion: '',
             tutorialData: [],
-            deployData: {channelName: '', environmentName: ''}
+            deployData: {channelName: '', environmentName: '', packageEntries: []}
         };
     }
 
