@@ -65,7 +65,8 @@ describe('View', () => {
             },
             reveal: (): void => { return; },
             onDidDispose: mySandBox.stub(),
-            onDidChangeViewState: mySandBox.stub()
+            onDidChangeViewState: mySandBox.stub(),
+            _isDisposed: false
 
         });
 
@@ -82,7 +83,6 @@ describe('View', () => {
         await testView.openView(false);
         createWebviewPanelStub.should.have.been.called;
     });
-
     it('should dispose page', async () => {
 
         const disposeStub: sinon.SinonStub = mySandBox.stub().yields();
@@ -94,8 +94,8 @@ describe('View', () => {
             },
             reveal: (): void => { return; },
             onDidDispose: disposeStub,
-            onDidChangeViewState: mySandBox.stub()
-
+            onDidChangeViewState: mySandBox.stub(),
+            _isDisposed: false
         });
 
         const testView: TestView = new TestView(context, 'myPanel', 'my panel');
@@ -128,6 +128,28 @@ describe('View', () => {
         should.equal(createWebviewPanelStub.getCall(1), null);
     });
 
+    it('should reveal panel if open already (VS Code 1.44.x)', async () => {
+        createWebviewPanelStub.returns({
+            title: 'my panel',
+            webview: {
+                onDidReceiveMessage: mySandBox.stub()
+            },
+            reveal: (): void => { return; },
+            onDidDispose: mySandBox.stub(),
+            onDidChangeViewState: mySandBox.stub(),
+            _store: {
+                _isDisposed: false // 1.44.x support
+            }
+
+        });
+
+        const testView: TestView = new TestView(context, 'myPanel', 'my panel');
+        await testView.openView(false);
+        await testView.openView(false);
+
+        should.equal(createWebviewPanelStub.getCall(1), null);
+    });
+
     it('should keep the context of what was open before', async () => {
 
         const onDidChangeViewStub: sinon.SinonStub = mySandBox.stub().yields();
@@ -139,7 +161,8 @@ describe('View', () => {
             },
             reveal: (): void => { return; },
             onDidDispose: mySandBox.stub(),
-            onDidChangeViewState: onDidChangeViewStub
+            onDidChangeViewState: onDidChangeViewStub,
+            _isDisposed: false
         });
 
         const testView: TestView = new TestView(context, 'myPanel', 'my panel');
@@ -160,7 +183,8 @@ describe('View', () => {
             },
             reveal: (): void => { return; },
             onDidDispose: mySandBox.stub(),
-            onDidChangeViewState: onDidChangeViewStub
+            onDidChangeViewState: onDidChangeViewStub,
+            _isDisposed: false
         });
 
         const testView: TestView = new TestView(context, 'myPanel', 'my panel');
