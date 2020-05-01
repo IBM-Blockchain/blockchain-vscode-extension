@@ -86,11 +86,8 @@ export class ExtensionCommands {
     static readonly OPEN_RELEASE_NOTES: string = 'releaseNotes.open';
     static readonly OPEN_SAMPLE_PAGE: string = 'sample.open';
     static readonly OPEN_TUTORIAL_GALLERY: string = 'tutorialGallery.open';
-    static readonly OPEN_REACT_TUTORIAL_GALLERY: string = 'reactTutorialGallery.open';
     static readonly OPEN_DEPLOY_PAGE: string = 'deploy.open';
-
     static readonly OPEN_TUTORIAL_PAGE: string = 'tutorial.open';
-    static readonly OPEN_REACT_TUTORIAL_PAGE: string = 'reactTutorial.open';
     static readonly OPEN_TRANSACTION_PAGE: string = 'transactionPage.open';
     static readonly DEBUG_COMMAND_LIST: string = 'debug.commandList';
     static readonly SAVE_TUTORIAL_AS_PDF: string = 'tutorial.save';

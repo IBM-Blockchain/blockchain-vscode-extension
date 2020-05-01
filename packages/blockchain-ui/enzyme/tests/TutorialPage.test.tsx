@@ -11,10 +11,11 @@ chai.use(sinonChai);
 
 describe('TutorialPage component', () => {
 
-    const tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string}> = [
+    const tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string}> = [
         {
             name: 'Basic tutorials',
             tutorialFolder: 'basic-tutorials',
+            tutorialDescription: 'some description',
             tutorials: [
                 {
                     title: 'a1',

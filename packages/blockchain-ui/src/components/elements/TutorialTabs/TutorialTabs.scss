@@ -29,23 +29,40 @@
         padding-left: 0px !important;
     }
 
+    .series-description-container {
+        margin-top: $spacing-03;
+        margin-bottom: $spacing-06;
+
+        .series-description {
+            max-width: 650px;
+            font-family: 'IBMPlexSans', sans-serif;
+            font-size: 14px;
+            line-height: 1.25rem;
+            margin-bottom: $spacing-06;
+            color: $gray-100;
+        }
+        
+        .download-all {
+            cursor: pointer;
+            font-family: 'IBMPlexSans', sans-serif;
+            font-size: 14px;
+            margin-top: $spacing-03;
+            letter-spacing: 0.16px;
+            line-height: 18px;
+        }
+    }
 }
 
-.download-all-container {
-    margin-top: $spacing-03;
-    margin-bottom: $spacing-06;
-}
+.series-description-container {
+    .bx--link {
+        color: $blue-60;
 
-.download-all {
-    cursor: pointer;
-    text-decoration: none;
-    font-family: 'IBMPlexSans', sans-serif;
-    font-size: 14px;
-    color: $blue-60;
-    letter-spacing: 0.16px;
-    line-height: 18px;
-}
+        &:hover {
+            color: $blue-60;
+        }
 
-a:hover {
-    color: $blue-60;
-}
+        &:focus {
+            outline: none;
+        }
+    }
+    }

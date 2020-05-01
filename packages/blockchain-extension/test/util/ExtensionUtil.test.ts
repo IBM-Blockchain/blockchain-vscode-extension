@@ -25,11 +25,9 @@ import {SettingConfigurations} from '../../extension/configurations';
 import {ExtensionData, GlobalState} from '../../extension/util/GlobalState';
 import {ExtensionCommands} from '../../ExtensionCommands';
 import {TutorialGalleryView} from '../../extension/webview/TutorialGalleryView';
-import {ReactTutorialGalleryView} from '../../extension/webview/ReactTutorialGalleryView';
 import {HomeView} from '../../extension/webview/HomeView';
 import {SampleView} from '../../extension/webview/SampleView';
 import {TutorialView} from '../../extension/webview/TutorialView';
-import {ReactTutorialView} from '../../extension/webview/ReactTutorialView';
 import {Reporter} from '../../extension/util/Reporter';
 import {PreReqView} from '../../extension/webview/PreReqView';
 import {DependencyManager} from '../../extension/dependencies/DependencyManager';
@@ -375,7 +373,6 @@ describe('ExtensionUtil Tests', () => {
                 `onCommand:${ExtensionCommands.OPEN_PRE_REQ_PAGE}`,
                 `onCommand:${ExtensionCommands.OPEN_RELEASE_NOTES}`,
                 `onCommand:${ExtensionCommands.OPEN_TUTORIAL_GALLERY}`,
-                `onCommand:${ExtensionCommands.OPEN_REACT_TUTORIAL_GALLERY}`,
                 `onCommand:${ExtensionCommands.OPEN_DEPLOY_PAGE}`,
                 `onCommand:${ExtensionCommands.OPEN_TRANSACTION_PAGE}`,
                 `onCommand:${ExtensionCommands.SAVE_TUTORIAL_AS_PDF}`,
@@ -411,8 +408,8 @@ describe('ExtensionUtil Tests', () => {
         });
 
         it('should register and show tutorial gallery', async () => {
-            const tutorialGalleryViewStub: sinon.SinonStub = mySandBox.stub(TutorialGalleryView.prototype, 'openView');
-            tutorialGalleryViewStub.resolves();
+            const TutorialGalleryViewStub: sinon.SinonStub = mySandBox.stub(TutorialGalleryView.prototype, 'openView');
+            TutorialGalleryViewStub.resolves();
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
             const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
@@ -422,22 +419,7 @@ describe('ExtensionUtil Tests', () => {
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_TUTORIAL_GALLERY);
 
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
-            tutorialGalleryViewStub.should.have.been.calledOnce;
-        });
-
-        it('should register and show react tutorial gallery', async () => {
-            const reactTutorialGalleryViewStub: sinon.SinonStub = mySandBox.stub(ReactTutorialGalleryView.prototype, 'openView');
-            reactTutorialGalleryViewStub.resolves();
-
-            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
-
-            await ExtensionUtil.registerCommands(ctx);
-
-            await vscode.commands.executeCommand(ExtensionCommands.OPEN_REACT_TUTORIAL_GALLERY);
-
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
-            reactTutorialGalleryViewStub.should.have.been.calledOnce;
+            TutorialGalleryViewStub.should.have.been.calledOnce;
         });
 
         it('should register and show transaction page', async () => {
@@ -453,8 +435,8 @@ describe('ExtensionUtil Tests', () => {
         });
 
         it('should register and show tutorial page', async () => {
-            const tutorialViewStub: sinon.SinonStub = mySandBox.stub(TutorialView.prototype, 'openView');
-            tutorialViewStub.resolves();
+            const TutorialViewStub: sinon.SinonStub = mySandBox.stub(TutorialView.prototype, 'openView');
+            TutorialViewStub.resolves();
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
             const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
@@ -464,22 +446,7 @@ describe('ExtensionUtil Tests', () => {
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_TUTORIAL_PAGE, 'IBMCode/Code-Tutorials', 'Developing smart contracts with IBM Blockchain VSCode Extension');
 
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
-            tutorialViewStub.should.have.been.calledOnce;
-        });
-
-        it('should register and show react tutorial page', async () => {
-            const reactTutorialViewStub: sinon.SinonStub = mySandBox.stub(ReactTutorialView.prototype, 'openView');
-            reactTutorialViewStub.resolves();
-
-            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
-
-            await ExtensionUtil.registerCommands(ctx);
-
-            await vscode.commands.executeCommand(ExtensionCommands.OPEN_REACT_TUTORIAL_PAGE, 'IBMCode/Code-Tutorials', 'Developing smart contracts with IBM Blockchain VSCode Extension');
-
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
-            reactTutorialViewStub.should.have.been.calledOnce;
+            TutorialViewStub.should.have.been.calledOnce;
         });
 
         it('should register and show sample page', async () => {

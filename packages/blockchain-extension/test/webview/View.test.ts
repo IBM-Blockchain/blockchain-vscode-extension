@@ -21,7 +21,6 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { View } from '../../extension/webview/View';
-import { FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
@@ -273,30 +272,35 @@ describe('View', () => {
     describe('getTutorial', () => {
         it('should get tutorial', async () => {
             const series: any = {
-                name: 'Introduction',
-                length: '3 hours',
-                difficulty: 'simple',
-                description: 'Series of tutorials that will introduce the basic concepts',
+                name: 'Other tutorials',
                 tutorials: [
                     {
-                        title: 'Local smart contract development',
-                        length: '30 mins',
-                        source: 'https://developer.ibm.com/tutorials/ibm-blockchain-platform-vscode-smart-contract',
-                        description: `Follow the typical workflow from generating a new smart contract project, deploying code to the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime, and testing your transactions via an application gateway.`,
-                        file: 'ibm-blockchain-platform-vscode-smart-contract/index.md'
-                    }
+                        title: 'Getting Started with Private Data',
+                        series: 'Other tutorials',
+                        length: '30-40 mins',
+                        objectives:
+                        [
+                          'Understand what private data is and how it can be a beneficial addition to smart contracts',
+                          'Implement private data so that you can use it in your smart contracts'
+                        ],
+                        file: 'developer-tutorials/privateData.md'
+                      }
                 ]
             };
 
             const testView: TestView = new TestView(context, 'myPanel', 'my panel');
-            const result: any = await testView.getTutorial(series, 'Local smart contract development');
+            const result: any = await testView.getTutorial(series, 'Getting Started with Private Data');
 
             result.should.deep.equal({
-                title: 'Local smart contract development',
-                length: '30 mins',
-                source: 'https://developer.ibm.com/tutorials/ibm-blockchain-platform-vscode-smart-contract',
-                description: `Follow the typical workflow from generating a new smart contract project, deploying code to the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime, and testing your transactions via an application gateway.`,
-                file: 'ibm-blockchain-platform-vscode-smart-contract/index.md'
+                title: 'Getting Started with Private Data',
+                series: 'Other tutorials',
+                length: '30-40 mins',
+                objectives:
+                [
+                    'Understand what private data is and how it can be a beneficial addition to smart contracts',
+                    'Implement private data so that you can use it in your smart contracts'
+                ],
+                file: 'developer-tutorials/privateData.md'
             });
         });
     });
@@ -304,85 +308,134 @@ describe('View', () => {
     describe('getSeries', () => {
         it('should get a series', async () => {
             const testView: TestView = new TestView(context, 'myPanel', 'my panel');
-            const result: any = await testView.getSeries('Introduction');
+            const result: any = await testView.getSeries('Basic tutorials');
             result.should.deep.equal({
-                name: 'Introduction',
-                length: '2 hours',
-                difficulty: 'simple',
-                shortDescription: 'Series of tutorials that will introduce the basic concepts',
-                longDescription: "Get started with a series of tutorials that show you how to develop a Hyperledger Fabric smart contract locally, then deploy it into an IBM Blockchain Platform cloud environment. You'll also create a gateway to the cloud environment and see how client applications submit and evaluate transactions against a ledger.",
+                name: 'Basic tutorials',
+                tutorialDescription: 'The basic tutorials explain key blockchain technical concepts and take you through how to develop a Hyperledger Fabric smart contract and application using IBM Blockchain Platform.',
+                tutorialFolder: 'basic-tutorials',
                 tutorials: [
                     {
-                        title: 'Local smart contract development',
-                        length: '20-30 mins',
-                        description: `Follow the typical workflow from generating a new default smart contract project, deploying code to the ${FabricRuntimeUtil.LOCAL_FABRIC} runtime, and testing your transactions via an application gateway.`,
-                        file: 'ibm-blockchain-platform-vscode-smart-contract/local-dev.md'
+                        title: 'A1: Introduction',
+                        series: 'Basic tutorials',
+                        length: '10 minutes',
+                        firstInSeries: true,
+                        objectives:
+                        [
+                          'Learn what blockchain is and why it is important',
+                          'Learn about the Linux Foundation Hyperledger Project and Hyperledger Fabric',
+                          'Learn about IBM Blockchain Platform and the VS Code extension'
+                        ],
+                        badge: true,
+                        file: 'new-tutorials/basic-tutorials/a1.md'
                     },
                     {
-                        title: 'Create a cloud blockchain deployment',
-                        length: '50-60 mins',
-                        description: 'Sign up for the IBM Blockchain Platform service on IBM Cloud, and configure a simple environment ready to deploy your smart contracts to.',
-                        file: 'ibm-blockchain-platform-vscode-smart-contract/cloud-setup.md'
+                        title: 'A2: Creating a smart contract',
+                        series: 'Basic tutorials',
+                        length: '10 minutes',
+                        objectives:
+                        [
+                          'Create a new smart contract project',
+                          'Implement a basic smart contract using a standard template',
+                          'Understand what the smart contract does'
+                        ],
+                        file: 'new-tutorials/basic-tutorials/a2.md'
                     },
                     {
-                        title: 'Deploying and transacting with IBM Cloud',
-                        length: '15-20 mins',
-                        description: 'Export smart contracts from VSCode, deploy them in your environment on IBM Cloud, then send transactions from your local machine by creating a gateway.',
-                        file: 'ibm-blockchain-platform-vscode-smart-contract/cloud-deploy.md'
-                    }
-                ]
-            });
-        });
-
-        it('should get the stand alone tutorials if can\'t match name', async () => {
-            const testView: TestView = new TestView(context, 'myPanel', 'my panel');
-            const result: any = await testView.getSeries('Additional');
-            result.should.deep.equal({
-                name: 'Additional',
-                tutorials: [
-                    {
-                        title: 'Adding an Environment to connect to IBM Cloud',
-                        length: '20-30 mins',
-                        difficulty: 'simple',
-                        shortDescription: 'Add an environment to connect to a cloud instance and deploy a smart contract',
-                        file: 'developer-tutorials/add-environment.md'
+                        title: 'A3: Deploying a smart contract',
+                        series: 'Basic tutorials',
+                        length: '10 minutes',
+                        objectives:
+                        [
+                          'Start an instance of a Hyperledger Fabric network in the local workspace',
+                          'Package the smart contract we previously created',
+                          'Deploy the smart contract to the running Hyperledger Fabric network'
+                        ],
+                        file: 'new-tutorials/basic-tutorials/a3.md'
                     },
                     {
-                        title: 'Create a new identity',
-                        length: '5-10 mins',
-                        difficulty: 'simple',
-                        description: 'Learn how to create new identities for any Fabric environment',
-                        file: 'developer-tutorials/createNewIdentity.md'
+                        title: 'A4: Invoking a smart contract from VS Code',
+                        series: 'Basic tutorials',
+                        length: '15 minutes',
+                        objectives:
+                        [
+                          'Learn about identities, wallets and gateways',
+                          'Exercise a smart contract directly from VS Code',
+                          'Understand the difference between evaluating and submitting transactions'
+                        ],
+                        file: 'new-tutorials/basic-tutorials/a4.md'
                     },
                     {
-                        title: 'Create a new identity with attributes',
-                        length: '15-20 mins',
-                        difficulty: 'moderate',
-                        description: 'Learn how to create new identities with attributes for any Fabric environment',
-                        shortDescription: 'Create an identity with attributes and implement attribute-based access control',
-                        file: 'developer-tutorials/createNewIdentityAttributes.md'
+                        title: 'A5: Invoking a smart contract from an external application',
+                        series: 'Basic tutorials',
+                        length: '45 minutes',
+                        objectives:
+                        [
+                          'Build a new TypeScript application that interacts with Hyperledger Fabric',
+                          'Run the application to submit a new transaction',
+                          'Modify the application and test the changes'
+                        ],
+                        file: 'new-tutorials/basic-tutorials/a5.md'
                     },
                     {
-                        title: 'Create and use a custom Fabric network',
-                        length: '30-45 mins',
-                        difficulty: 'moderate',
-                        description: 'Learn how to create a new Fabric network using Ansible and import it',
-                        shortDescription: 'Create a new Fabric network using Ansible and import it',
-                        file: 'developer-tutorials/create-custom-networks.md'
-                      },
-                    {
-                        title: 'Debug a smart contract',
-                        length: '30-40 mins',
-                        difficulty: 'moderate',
-                        description: 'Learn how to make iterative changes to your smart contract using the VS Code debugger',
-                        file: 'developer-tutorials/debug.md'
+                        title: 'A6: Upgrading a smart contract',
+                        series: 'Basic tutorials',
+                        length: '20 minutes',
+                        objectives:
+                        [
+                          'Make a change to a smart contract',
+                          'Package, install and instantiate the new smart contract',
+                          'Try out the new smart contract'
+                        ],
+                        file: 'new-tutorials/basic-tutorials/a6.md'
                     },
                     {
-                        difficulty: 'moderate',
-                        file: 'developer-tutorials/privateData.md',
-                        length: '30-40 mins',
-                        shortDescription: 'Generate a private data smart contract, deploy it to a 2 Org Local Fabric network, and submit and evaluate transactions using private data',
-                        title: 'Getting Started with Private Data',
+                        title: 'A7: Debugging a smart contract',
+                        series: 'Basic tutorials',
+                        length: '15 minutes',
+                        objectives:
+                        [
+                          'Understand the tools to debug smart contracts',
+                          'Use the VS Code debugger to step through our newly added transaction to see how it works',
+                          "Use 'watches' to monitor variables in smart contracts"
+                        ],
+                        file: 'new-tutorials/basic-tutorials/a7.md'
+                    },
+                    {
+                        title: 'A8: Testing a smart contract',
+                        series: 'Basic tutorials',
+                        length: '20 minutes',
+                        objectives:
+                        [
+                          'Look at the features for generating functional tests',
+                          'Generate functional tests for our smart contract',
+                          'Customize and run a sample test'
+                        ],
+                        file: 'new-tutorials/basic-tutorials/a8.md'
+                    },
+                    {
+                        title: 'A9: Publishing an event',
+                        series: 'Basic tutorials',
+                        length: '30 minutes',
+                        objectives:
+                        [
+                          'Update a smart contract to emit an event',
+                          'Subscribe to an event notification in the IBM Blockchain Platform VS Code extension',
+                          'Submit a transaction and receive the resulting event notification'
+                        ],
+                        file: 'new-tutorials/basic-tutorials/a9.md'
+                    },
+                    {
+                        title: 'A10: Claim your badge!',
+                        series: 'Basic tutorials',
+                        length: '60 minutes',
+                        objectives:
+                        [
+                          'Summarize what you have learned so far',
+                          'Identify some additional resources that you might find interesting and helpful',
+                          'Invite you to test your learning and gain a badge'
+                        ],
+                        badge: true,
+                        file: 'new-tutorials/basic-tutorials/a10.md'
                     }
                 ]
             });

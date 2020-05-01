@@ -1,60 +1,73 @@
 {
-    "name": "demoapplication",
+    "name": "demo-application",
     "version": "1.0.0",
-    "description": "Demo application implemented in TypeScript",
+    "description": "Demo Application implemented in TypeScript",
+    "main": "dist/index.js",
+    "typings": "dist/index.d.ts",
     "engines": {
-        "node": ">=8",
-        "npm": ">=5"
+      "node": ">=8",
+      "npm": ">=5"
     },
     "scripts": {
-        "lint": "tslint -c tslint.json 'src/**/*.ts'",
-        "pretest": "npm run lint",
-        "test": "nyc mocha -r ts-node/register src/**/*.spec.ts",
-        "build": "tsc",
-        "build:watch": "tsc -w",
-        "prepublishOnly": "npm run build",
-        "start": "node ./dist/invoke.js"
+      "lint": "tslint -c tslint.json 'src/**/*.ts'",
+      "pretest": "npm run lint",
+      "test": "nyc mocha -r ts-node/register src/**/*.spec.ts",
+      "resolve": "npx npm-force-resolutions",
+      "build": "tsc",
+      "build:watch": "tsc -w",
+      "prepublishOnly": "npm run build",
+      "start": "node ./dist/create.js",
+      "create": "node ./dist/create.js",
+      "query": "node ./dist/query.js",
+      "listener": "node ./dist/listener.js"
     },
     "engineStrict": true,
     "author": "Hyperledger",
     "license": "Apache-2.0",
     "dependencies": {
-        "fabric-ca-client": "~1.4.0",
-        "fabric-network": "~1.4.0"
+      "fabric-network": "~1.4.0"
     },
     "devDependencies": {
-        "@types/chai": "^4.1.7",
-        "@types/mocha": "^5.2.5",
-        "@types/node": "^10.12.10",
-        "@types/sinon": "^5.0.7",
-        "@types/sinon-chai": "^3.2.1",
-        "chai": "^4.2.0",
-        "mocha": "^5.2.0",
-        "nyc": "^13.1.0",
-        "sinon": "^7.1.1",
-        "sinon-chai": "^3.3.0",
-        "ts-node": "^7.0.1",
-        "tslint": "^5.11.0",
-        "typescript": "^3.1.6"
+      "@types/chai": "^4.2.0",
+      "@types/mocha": "^5.2.7",
+      "@types/node": "^10.12.10",
+      "@types/sinon": "^7.0.13",
+      "@types/sinon-chai": "^3.2.3",
+      "chai": "^4.2.0",
+      "chai-as-promised": "^7.1.1",
+      "jsrsasign": "^8.0.13",
+      "minimist": "^1.2.5",
+      "mocha": "^6.2.0",
+      "nyc": "^14.1.1",
+      "sinon": "^7.4.1",
+      "sinon-chai": "^3.3.0",
+      "ts-node": "^8.3.0",
+      "tslint": "^5.19.0",
+      "typescript": "^3.6.2"
     },
     "nyc": {
-        "extension": [
-            ".ts",
-            ".tsx"
-        ],
-        "exclude": [
-            "coverage/**",
-            "dist/**"
-        ],
-        "reporter": [
-            "text-summary",
-            "html"
-        ],
-        "all": true,
-        "check-coverage": true,
-        "statements": 100,
-        "branches": 100,
-        "functions": 100,
-        "lines": 100
+      "extension": [
+        ".ts",
+        ".tsx"
+      ],
+      "exclude": [
+        "coverage/**",
+        "dist/**"
+      ],
+      "reporter": [
+        "text-summary",
+        "html"
+      ],
+      "all": true,
+      "check-coverage": true,
+      "statements": 100,
+      "branches": 100,
+      "functions": 100,
+      "lines": 100
+    },
+    "resolutions": {
+      "minimist": "^1.2.5",
+      "mkdirp": "^1.0.4",
+      "jsrsasign": "^8.0.13"
     }
-}
+  }
