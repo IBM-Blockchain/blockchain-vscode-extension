@@ -8,7 +8,7 @@ import ITutorialObject from './interfaces/ITutorialObject';
 interface AppState {
     redirectPath: string;
     extensionVersion: string;
-    tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string}>;
+    tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string}>;
 }
 
 class App extends Component<{}, AppState> {

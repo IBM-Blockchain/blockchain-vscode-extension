@@ -13,72 +13,44 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import * as ejs from 'ejs';
 import * as path from 'path';
+import { ReactView } from './ReactView';
 import { ExtensionUtil } from '../util/ExtensionUtil';
-import { ExtensionCommands } from '../../ExtensionCommands';
-import { View } from './View';
 import { Reporter } from '../util/Reporter';
+import * as fs from 'fs-extra';
 
-export class TutorialGalleryView extends View {
-
+export class TutorialGalleryView extends ReactView {
     constructor(context: vscode.ExtensionContext) {
         super(context, 'tutorialGallery', 'Tutorial Gallery');
     }
 
-    loadComponent(_panel: vscode.WebviewPanel): void {
-        return;
-    }
-
-    async getTutorialGalleryPage(options: any): Promise<any> {
-        const templatePath: string = path.join(__dirname, '..', '..', '..', 'templates', 'TutorialGallery.ejs');
-        return await new Promise((resolve: any, reject: any): any => {
-            ejs.renderFile(templatePath, options, { async: true }, (error: any, data: string) => {
-                if (error) {
-                    reject(error);
-                } else {
-                    resolve(data);
-                }
-            });
-        });
-    }
-
-    async getHTMLString(): Promise<string> {
-        const extensionPath: string = ExtensionUtil.getExtensionPath();
-
-        // Images
-        const chevronDark: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'dark', 'chevron.svg')).with({ scheme: 'vscode-resource' });
-        const chevronLight: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'light', 'chevron.svg')).with({ scheme: 'vscode-resource' });
-
-        const images: any = {
-            chevronLight: chevronLight,
-            chevronDark: chevronDark
-        };
-
-        const allSeries: any[] = await this.getAllSeries();
-
-        const additionalTutorials: any[] = await this.getAdditionalTutorials();
-
-        const additionalSeries: any = {
-            name: 'Additional Concepts',
-            tutorials: additionalTutorials
-        };
-
-        const options: any = {
-            commands : {
-                OPEN_TUTORIAL_PAGE: ExtensionCommands.OPEN_TUTORIAL_PAGE,
-            },
-            images: images,
-            allSeries: allSeries,
-            additionalSeries: additionalSeries
-        };
-
-        const tutorialGalleryString: string = await this.getTutorialGalleryPage(options);
-        return tutorialGalleryString;
-    }
-
     async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
         Reporter.instance().sendTelemetryEvent('openedView', {openedView: panel.title}); // Report that a user has opened a new panel
-        return;
+
+        const extensionPath: string = ExtensionUtil.getExtensionPath();
+        const panelIcon: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'logo.svg'));
+
+        panel.iconPath = panelIcon;
+
+        panel.webview.onDidReceiveMessage(async (message: {command: string, data: any}) => {
+            await vscode.commands.executeCommand(message.command, ...message.data);
+        });
+
+        await this.loadComponent(panel);
+    }
+
+    async getTutorialInfo(): Promise<Array<{seriesName: string, seriesTutorials: any[]}>> {
+        const extensionPath: any = ExtensionUtil.getExtensionPath();
+        const tutorialsPath: string = path.join(extensionPath, 'tutorials.json');
+        const json: any = await fs.readJson(tutorialsPath);
+        return json;
+    }
+
+    async loadComponent(panel: vscode.WebviewPanel): Promise<void> {
+        const tutorialData: Array<{seriesName: string, seriesTutorials: any[]}> = await this.getTutorialInfo();
+        panel.webview.postMessage({
+            path: '/tutorials',
+            tutorialData
+        });
     }
 }

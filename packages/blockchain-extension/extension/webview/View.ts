@@ -99,24 +99,6 @@ export abstract class View {
         return repositories;
     }
 
-    // Get all the series of tutorials
-    public async getAllSeries(): Promise<any[]> {
-        const extensionPath: any = ExtensionUtil.getExtensionPath();
-        const tutorialsPath: string = path.join(extensionPath, 'tutorials.json');
-        const json: any = await fs.readJson(tutorialsPath);
-        const allSeries: any[] = json.series;
-        return allSeries;
-    }
-
-    // Get all the individual tutorials
-    public async getAdditionalTutorials(): Promise<any[]> {
-        const extensionPath: any = ExtensionUtil.getExtensionPath();
-        const tutorialsPath: string = path.join(extensionPath, 'tutorials.json');
-        const json: any = await fs.readJson(tutorialsPath);
-        const allTutorials: any[] = json.tutorials;
-        return allTutorials;
-    }
-
     // Get individual repository
     public async getRepository(name: string): Promise<any> {
         const repositories: any[] = await this.getRepositories();
@@ -127,20 +109,13 @@ export abstract class View {
     }
 
     // Get individual series
-    public async getSeries(name: string): Promise<any> {
-        const allSeries: any[] = await this.getAllSeries();
-        let series: any = allSeries.find((_series: any) => {
+    async getSeries(name: string): Promise<any> {
+        const extensionPath: any = ExtensionUtil.getExtensionPath();
+        const tutorialsPath: string = path.join(extensionPath, 'tutorials.json');
+        const json: any[] = await fs.readJson(tutorialsPath);
+        const series: any = json.find((_series: {name: string, tutorials: any[]}) => {
             return _series.name === name;
         });
-
-        // if none matching probably want the stand alone ones
-        if (!series) {
-            const additionalutorials: any[] = await this.getAdditionalTutorials();
-            series = {
-                name: name,
-                tutorials: additionalutorials
-            };
-        }
         return series;
     }
 

@@ -91,10 +91,17 @@ Array [
     selected={true}
   >
     <div
-      className="download-all-container"
+      className="series-description-container"
     >
+      <p
+        className="series-description"
+      >
+        some description
+      </p>
       <a
-        className="download-all"
+        className="bx--link download-all"
+        href="#"
+        id="download-all-link"
         onClick={[Function]}
       >
         Download all "Basic tutorials" as PDF

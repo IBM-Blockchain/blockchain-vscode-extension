@@ -16,17 +16,12 @@ interface IProps {
 
 class HomePage extends Component<IProps> {
     render(): JSX.Element {
-        const tutorialTileString: string = 'Complete tutorials to level up your Fabric development skills. Earn rewards such as badges and access to our developer community by completing lessons.';
+        const tutorialTileString: string = 'Learn about Hyperledger Fabric development using IBM Blockchain Platform. Complete these tutorials to grow your blockchain skills and earn accredited badges along the way!';
 
-        // to access the new react tutorial page, comment out the first commandTileOptions and use the second one instead
         const commandTileOptions: {actionType: 'app' | 'vscode', command: string} = {
             actionType: 'vscode',
             command: ExtensionCommands.OPEN_TUTORIAL_GALLERY
         };
-        // const commandTileOptions: {actionType: 'app' | 'vscode', command: string} = {
-        //     actionType: 'vscode',
-        //     command: ExtensionCommands.OPEN_REACT_TUTORIAL_GALLERY
-        // };
 
         return (
             <div className='bx--grid home-page-container'>
