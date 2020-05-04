@@ -111,6 +111,16 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
       selected={true}
     >
       <div
+        className="download-all-container"
+      >
+        <a
+          className="download-all"
+          onClick={[Function]}
+        >
+          Download all "Basic tutorials" as PDF
+        </a>
+      </div>
+      <div
         className="tab-container"
       >
         <div
@@ -178,6 +188,7 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
           <button
             className="pdf-button bx--btn bx--btn--ghost"
             disabled={false}
+            onClick={[Function]}
             tabIndex={0}
             type="button"
           >
@@ -268,14 +279,6 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
         <div
           className="button-container"
         >
-          <button
-            className="pdf-button bx--btn bx--btn--ghost"
-            disabled={false}
-            tabIndex={0}
-            type="button"
-          >
-            Download as PDF
-          </button>
           <button
             className="button bx--btn bx--btn--secondary"
             disabled={false}

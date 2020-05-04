@@ -18,6 +18,7 @@ class TutorialTile extends Component <IProps> {
 
         this.populateObjectives = this.populateObjectives.bind(this);
         this.openTutorialHandler = this.openTutorialHandler.bind(this);
+        this.savePDFHandler = this.savePDFHandler.bind(this);
     }
 
     populateObjectives(): JSX.Element[] {
@@ -34,6 +35,15 @@ class TutorialTile extends Component <IProps> {
             data: [
                 this.props.tutorialObject.series,
                 this.props.tutorialObject.title
+            ]
+        });
+    }
+
+    savePDFHandler(): void {
+        Utils.postToVSCode({
+            command: ExtensionCommands.SAVE_TUTORIAL_AS_PDF,
+            data: [
+                this.props.tutorialObject
             ]
         });
     }
@@ -59,11 +69,14 @@ class TutorialTile extends Component <IProps> {
                     {this.populateObjectives()}
                 </div>
                 <div className='button-container'>
-                    <Button className='pdf-button' kind='ghost' size='default'>Download as PDF</Button>
-                    {this.props.tutorialObject.firstInSeries === true ?
-                        <Button className='button' kind='primary' size='default' onClick={this.openTutorialHandler}>Open tutorial</Button> :
-                        <Button className='button' kind='secondary' size='default' onClick={this.openTutorialHandler}>Open tutorial</Button>
+                    {this.props.tutorialObject.series === 'Basic tutorials' ?
+                        <Button className='pdf-button' kind='ghost' size='default' onClick={this.savePDFHandler}>Download as PDF</Button> :
+                        <></>
                     }
+                {this.props.tutorialObject.firstInSeries === true ?
+                    <Button className='button' kind='primary' size='default' onClick={this.openTutorialHandler}>Open tutorial</Button> :
+                    <Button className='button' kind='secondary' size='default' onClick={this.openTutorialHandler}>Open tutorial</Button>
+                }
                 </div>
             </div>
         );

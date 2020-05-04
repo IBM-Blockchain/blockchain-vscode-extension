@@ -69,6 +69,7 @@ exports[`TutorialTile component should render the expected snapshot 1`] = `
     <button
       className="pdf-button bx--btn bx--btn--ghost"
       disabled={false}
+      onClick={[Function]}
       tabIndex={0}
       type="button"
     >

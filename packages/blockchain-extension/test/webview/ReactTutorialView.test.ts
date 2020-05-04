@@ -47,7 +47,7 @@ describe('ReactTutorialView', () => {
         const tutorialView: ReactTutorialView = new ReactTutorialView('Basic tutorials', 'A1: Introduction');
         await tutorialView.openView();
 
-        const filePath: string = path.join(__dirname, '..', '..', '..', 'tutorials', 'basic-tutorials/a1.md');
+        const filePath: string = path.join(__dirname, '..', '..', '..', 'tutorials', 'new-tutorials', 'basic-tutorials', 'a1.md');
         const uri: vscode.Uri = vscode.Uri.file(filePath);
 
         commandSpy.getCall(0).args[0].should.equal('markdown.showPreview');
