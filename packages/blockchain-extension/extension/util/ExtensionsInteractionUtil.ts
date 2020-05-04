@@ -30,37 +30,33 @@ export class ExtensionsInteractionUtil {
         }
         const cloudAccount: CloudAccountApi = cloudAccountExtension.exports;
 
-        let isLoggedIn: boolean = await cloudAccount.loggedIn();
-        let hasAccount: boolean;
+        const isLoggedIn: boolean = await cloudAccount.loggedIn();
+        let result: boolean;
         if ( !isLoggedIn ) {
             if (userInteraction) {
                 // If not logged in, ask the user to login, and then to select the account.
-                await vscode.commands.executeCommand('ibmcloud-account.login');
+                result = await vscode.commands.executeCommand('ibmcloud-account.login');
+                if (!result) {
+                    return;
+                }
             } else {
                 // Just return if we are not supposed request user interaction.
                 return;
             }
         } else {
-            hasAccount = await cloudAccount.accountSelected();
+            const hasAccount: boolean = await cloudAccount.accountSelected();
             if ( !hasAccount ) {
                 if (userInteraction) {
                     // If not logged in, this will first ask the user to login, and then to select the account.
-                    await vscode.commands.executeCommand('ibmcloud-account.selectAccount');
+                    result = await vscode.commands.executeCommand('ibmcloud-account.selectAccount');
+                    if (!result) {
+                        return;
+                    }
                 } else {
                     // Just return if we are not supposed request user interaction.
                     return;
                 }
             }
-        }
-
-        isLoggedIn = await cloudAccount.loggedIn();
-        if ( !isLoggedIn ) {
-            return; // FIXME - evaluate if an error should be thrown after changes to cloud extension - tell the user we can't proceed without being logged in
-        }
-
-        hasAccount = await cloudAccount.accountSelected();
-        if ( !hasAccount ) {
-            return; // FIXME - evaluate if an error should be thrown after changes to cloud extension - tell the user we can't proceed without selecting an account
         }
 
         const accessToken: string = await cloudAccount.getAccessToken();
