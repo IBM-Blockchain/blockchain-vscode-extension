@@ -10,8 +10,12 @@ import IPackageRegistryEntry from './interfaces/IPackageRegistryEntry';
 interface AppState {
     redirectPath: string;
     extensionVersion: string;
+<<<<<<< HEAD
     tutorialData: Array<{name: string, tutorials: ITutorialObject[]}>;
     deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[]};
+=======
+    tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string}>;
+>>>>>>> fe5ad04b... Added extension command to save tutorial as PDF (#2246)
 }
 
 class App extends Component<{}, AppState> {

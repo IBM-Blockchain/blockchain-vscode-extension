@@ -3,16 +3,31 @@ import { Tabs, Tab } from 'carbon-components-react';
 import TutorialTile from '../TutorialTile/TutorialTile';
 import ITutorialObject from '../../../interfaces/ITutorialObject';
 import './TutorialTabs.scss';
+import Utils from '../../../Utils';
+import { ExtensionCommands } from '../../../ExtensionCommands';
+
+// tslint:disable: typedef
 
 interface IProps {
-    tutorialData: Array<{name: string, tutorials: ITutorialObject[]}>;
+    tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string}>;
 }
 
 class TutorialTabs extends Component<IProps> {
 
+    savePDFHandler(tutorialFolder: string): void {
+        Utils.postToVSCode({
+            command: ExtensionCommands.SAVE_TUTORIAL_AS_PDF,
+            data: [
+                undefined,
+                true,
+                tutorialFolder
+            ]
+        });
+    }
+
     createTabs(): Array<JSX.Element> {
         const tabArray: JSX.Element[] = [];
-        this.props.tutorialData.map((tutorialSeries: {name: string, tutorials: ITutorialObject[]}, index: number) => {
+        this.props.tutorialData.map((tutorialSeries: {name: string, tutorials: ITutorialObject[], tutorialFolder: string}, index: number) => {
             const tabLabel: string = `${tutorialSeries.name} (${tutorialSeries.tutorials.length})`;
             tabArray.push(
                 // @ts-ignore
@@ -21,6 +36,12 @@ class TutorialTabs extends Component<IProps> {
                     tabIndex={index}
                     label={tabLabel}
                 >
+                    {tutorialSeries.name === 'Basic tutorials' ?
+                        <div className='download-all-container'>
+                            <a className='download-all' onClick={() => this.savePDFHandler(tutorialSeries.tutorialFolder)}>{`Download all "${tutorialSeries.name}" as PDF`}</a>
+                        </div> :
+                        <></>
+                    }
                     {this.populateTabs(tutorialSeries.tutorials)}
                 </Tab>
             );

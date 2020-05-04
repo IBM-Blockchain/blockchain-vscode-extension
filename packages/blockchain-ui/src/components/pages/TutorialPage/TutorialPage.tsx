@@ -5,7 +5,7 @@ import ITutorialObject from '../../../interfaces/ITutorialObject';
 import './TutorialPage.scss';
 
 interface IProps {
-    tutorialData: Array<{name: string, tutorials: ITutorialObject[]}>;
+    tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string}>;
 }
 
 class TutorialPage extends Component<IProps> {

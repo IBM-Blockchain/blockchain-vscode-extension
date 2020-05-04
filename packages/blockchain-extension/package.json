@@ -105,8 +105,13 @@
             "releaseNotes.open",
             "tutorialGallery.open",
             "reactTutorialGallery.open",
+<<<<<<< HEAD
             "deploy.open",
             "transactionPage.open"
+=======
+            "transactionPage.open",
+            "tutorial.save"
+>>>>>>> fe5ad04b... Added extension command to save tutorial as PDF (#2246)
         ]
     },
     "main": "./build/extension/extension",
@@ -216,6 +221,11 @@
                     "light": "resources/blockchain_marketplace.png",
                     "dark": "resources/blockchain_marketplace.png"
                 }
+            },
+            {
+                "command": "tutorial.save",
+                "title": "Save Tutorial",
+                "category": "IBM Blockchain Platform"
             },
             {
                 "command": "sample.open",
@@ -606,6 +616,10 @@
             "commandPalette": [
                 {
                     "command": "sample.open",
+                    "when": "false"
+                },
+                {
+                    "command": "tutorial.save",
                     "when": "false"
                 },
                 {
