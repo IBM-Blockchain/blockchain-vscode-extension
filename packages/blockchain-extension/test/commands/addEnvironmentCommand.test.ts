@@ -1100,7 +1100,6 @@ describe('AddEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${error.message}`, `Failed to add a new environment: ${error.toString()}`);
         });
 
-        // FIXME - this behaviour might change after decision is made regarding return values for ibmcloud-account extension commands
         it('should handle user canceling while getting access token when adding an OpsTool instance (SaaA)', async () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             showQuickPickYesNoStub.withArgs('Are you connecting to a service instance on IBM Cloud?').resolves(UserInputUtil.YES);
