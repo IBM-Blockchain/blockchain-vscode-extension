@@ -40,7 +40,8 @@ html {
             @import 'carbon-components/scss/components/accordion/_accordion';
             @import 'carbon-components/scss/components/progress-indicator/_progress-indicator';
             @import 'carbon-components/scss/components/tile/_tile';
-
+            @import 'carbon-components/scss/components/file-uploader/_file-uploader';
+            @import 'carbon-components/scss/components/list/_list';
 
             // Commenting this out until I determine whether it can be deleted or not.
 
@@ -49,8 +50,7 @@ html {
             #root {
                 // Color will default to #000000 otherwise
                 color: $text-01;
-                margin-left: $spacing-05;
-                margin-top: $spacing-05;
+                margin: $spacing-06;
                 @include select-dark;
                 
                 
@@ -117,7 +117,8 @@ html {
     }
 
     .vscode-light {
-        @include carbon--theme($carbon--theme--g10) {
+        // Deploy designs are based off of 'white', should all the others? If not, then we might have trouble.
+        @include carbon--theme($carbon--theme--white) {
             
             /* This seems to make themes work. In the initial react technical spike we did:
                 @import 'node_modules/carbon-components/scss/globals/scss/styles.scss';
@@ -145,11 +146,12 @@ html {
             @import 'carbon-components/scss/components/accordion/_accordion';
             @import 'carbon-components/scss/components/progress-indicator/_progress-indicator';
             @import 'carbon-components/scss/components/tile/_tile';
+            @import 'carbon-components/scss/components/file-uploader/_file-uploader';
+            @import 'carbon-components/scss/components/list/_list';
 
             #root {
                 color: $text-01;
-                margin-left: $spacing-05;
-                margin-top: $spacing-05;
+                margin: $spacing-06;
             }
 
             // home page image

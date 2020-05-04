@@ -7,6 +7,7 @@ import sinonChai from 'sinon-chai';
 
 import App from '../../src/App';
 import ITutorialObject from '../../src/interfaces/ITutorialObject';
+import IPackageRegistryEntry from '../../src/interfaces/IPackageRegistryEntry';
 
 chai.should();
 chai.use(sinonChai);
@@ -88,7 +89,7 @@ describe('App', () => {
 
     it('should redirect to the deploy page', async () => {
         const component: any = mount(<App/>);
-        const deployData: {channelName: string, environmentName: string} = {channelName: 'mychannel', environmentName: 'myEnvironment'};
+        const deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[]} = {channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: []};
         const msg: MessageEvent = new MessageEvent('message', {
             data: {
                 path: '/deploy',

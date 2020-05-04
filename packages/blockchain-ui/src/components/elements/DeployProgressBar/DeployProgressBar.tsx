@@ -3,7 +3,7 @@ import { ProgressIndicator, ProgressStep } from 'carbon-components-react';
 import './DeployProgressBar.scss';
 
 interface IProps {
-    //
+    currentIndex: number;
 }
 
 class DeployProgressBar extends Component<IProps> {
@@ -12,11 +12,8 @@ class DeployProgressBar extends Component<IProps> {
 
     render(): JSX.Element {
         return (
-            <div className='bx--col'>
-                <br/>
-                <br/>
-
-                <ProgressIndicator currentIndex={0} vertical={false}>
+            <div className='bx--col-lg-10'>
+                <ProgressIndicator currentIndex={this.props.currentIndex} vertical={false}>
 
                     <ProgressStep
                         label='Step 1'
@@ -37,10 +34,6 @@ class DeployProgressBar extends Component<IProps> {
                     />
 
                 </ProgressIndicator>
-
-                <br/>
-                <br/>
-                <br/>
             </div>
         );
     }

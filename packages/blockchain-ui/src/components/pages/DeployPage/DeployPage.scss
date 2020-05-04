@@ -4,6 +4,49 @@
 @import '@carbon/grid/scss/grid';
 @import "carbon-components/scss/globals/scss/_css--helpers";
 
-// .deploy-page-container {
+
+html{
+    overflow: overlay !important;
     
-// }
+    #root {
+        .deploy-page-container {
+            
+    
+            .progress-row{
+                margin-top: $spacing-05;
+                margin-bottom: $spacing-08;
+            }
+    
+            .dropdown-row{
+                margin-bottom: $spacing-09 * 2;
+            }
+    
+            .margin-bottom-06 {
+                margin-bottom: $spacing-06;
+    
+                
+            }
+    
+            .margin-bottom-05 {
+                margin-bottom: $spacing-05;
+            }
+    
+            .margin-right-06{
+                margin-right: $spacing-06;
+            }        
+    
+            .heading-combo-container{
+                p {
+                    font-size: 0.875rem;
+                }
+            }
+    
+            #buttonList {
+                display: flex;
+                justify-content: flex-end;
+                height: fit-content;
+            }
+        }
+    
+    }
+}

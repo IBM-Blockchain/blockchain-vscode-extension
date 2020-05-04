@@ -1,5 +1,23 @@
-.bx--tab-content {
-    width: 100%;
-    padding-left: 0px;
-    background-color: transparent;
+#root {
+
+
+    #buttonList{
+        .bx--btn{
+            width: 140px;
+            margin-right:16px;
+
+            &:last-of-type{
+                margin-right: 0;
+            }
+        }
+    
+        .bx--tab-content {
+            width: 100%;
+            padding-left: 0px;
+            background-color: transparent;
+        }
+
+        
+    }
+
 }

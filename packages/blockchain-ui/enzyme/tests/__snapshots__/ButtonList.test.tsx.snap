@@ -1,7 +1,17 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ButtonList component should render the expected snapshot 1`] = `
+exports[`ButtonList component render should render the expected snapshot 1`] = `
 <div
-  className="bx--btn-set"
-/>
+  id="buttonList"
+>
+  <button
+    className="bx--btn bx--btn--primary"
+    disabled={false}
+    onClick={[Function]}
+    tabIndex={0}
+    type="button"
+  >
+    Next
+  </button>
+</div>
 `;
