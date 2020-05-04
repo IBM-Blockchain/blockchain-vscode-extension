@@ -61,17 +61,18 @@ export class FabricEnvironmentRegistry extends FileRegistry<FabricEnvironmentReg
                 }
             }
 
-            // if nothing is included we just return all thats not on the excluded list
+            // if nothing is included we just return all that is not on the excluded list
             if (includeFilter.length > 0) {
                 // check if it's one we want
+                let match: boolean = false;
                 for (const include of includeFilter) {
                     const result: number = environmentType & include;
-                    if (result !== include) {
-                        return false;
+                    if (result === include) {
+                        match = true;
+                        break;
                     }
                 }
-
-                return true;
+                return match;
             } else {
                 return true;
             }

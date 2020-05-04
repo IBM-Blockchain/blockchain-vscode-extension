@@ -517,7 +517,7 @@ describe('environmentExplorer', () => {
 
                 const channelThree: ChannelTreeItem = allChildren[3] as ChannelTreeItem;
                 channelThree.tooltip.should.equal('Associated peers: peerOne');
-                channelThree.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                channelThree.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
                 channelThree.contextValue.should.equal('blockchain-channel-item');
                 channelThree.label.should.equal('channelThree');
 
