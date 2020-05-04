@@ -3,7 +3,8 @@ Feature: Fabric Environments
 
     Scenario Outline: There should be a tree item (disconnected)
         Given the 1 Org Local Fabric environment is running
-        Then there should be a tree item with a label '<label>' in the 'Fabric Environments' panel
+        Then there should be a tree item with a label 'Simple local networks' in the 'Fabric Environments' panel
+        And the 'Fabric Environments' tree item should have a child '<label>'
         And the tree item should have a tooltip equal to '<tooltip>'
         Examples:
         | label                     | tooltip                                  |
@@ -36,8 +37,9 @@ Feature: Fabric Environments
         And the package has been installed
         And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
         When I stop the 1 Org Local Fabric
-        Then there should be a tree item with a label '<label>' in the 'Fabric Environments' panel
-        Then the tree item should have a tooltip equal to '<tooltip>'
+        Then there should be a tree item with a label 'Simple local networks' in the 'Fabric Environments' panel
+        And the 'Fabric Environments' tree item should have a child '<label>'
+        And the tree item should have a tooltip equal to '<tooltip>'
         When I start the 1 Org Local Fabric
         And the '1 Org Local Fabric' environment is connected
         Then there should be a instantiated smart contract tree item with a label '<instantiatedName>' in the 'Fabric Environments' panel
@@ -48,14 +50,16 @@ Feature: Fabric Environments
     @otherFabric
     Scenario: It should create an environment
         When I create an environment 'myFabric'
-        Then there should be a tree item with a label 'myFabric' in the 'Fabric Environments' panel
+        Then there should be a tree item with a label 'Other networks' in the 'Fabric Environments' panel
+        And the 'Fabric Environments' tree item should have a child 'myFabric'
         And the tree item should have a tooltip equal to 'myFabric'
 
     @opsToolsFabric
     Scenario Outline: It should create an environment without nodes
         When I create an environment '<environmentName>' of type '<environmentType>'
         And the wallet '<walletName>' with identity '<identity>' and mspid '<mspid>' exists
-        Then there should be a tree item with a label '<environmentName>' in the 'Fabric Environments' panel
+        Then there should be a tree item with a label 'IBM Cloud' in the 'Fabric Environments' panel
+        And the 'Fabric Environments' tree item should have a child '<environmentName>'
         And the tree item should have a tooltip equal to '<environmentName>'
         And there should be a tree item with a label 'Other wallets' in the 'Fabric Wallets' panel
         And the 'Fabric Wallets' tree item should have a child '<walletName>'
@@ -312,9 +316,10 @@ Feature: Fabric Environments
 
     @ansibleFabric
      Scenario: It should create an environment
-         When I create an environment 'myAnsibleFabric'
-         Then there should be a tree item with a label 'myAnsibleFabric' in the 'Fabric Environments' panel
-         And the tree item should have a tooltip equal to 'myAnsibleFabric'  
+        When I create an environment 'myAnsibleFabric'
+        Then there should be a tree item with a label 'Other networks' in the 'Fabric Environments' panel
+        And the 'Fabric Environments' tree item should have a child 'myAnsibleFabric'
+        And the tree item should have a tooltip equal to 'myAnsibleFabric'
 
     @ansibleFabric
     Scenario Outline: It should connect to an environment

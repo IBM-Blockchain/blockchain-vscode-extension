@@ -68,7 +68,8 @@ describe('startFabricRuntime', () => {
 
         const provider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const children: BlockchainTreeItem[] = await provider.getChildren();
-        runtimeTreeItem = children.find((child: BlockchainTreeItem) => child instanceof RuntimeTreeItem) as RuntimeTreeItem;
+        const groupChildren: BlockchainTreeItem[] = await provider.getChildren(children[0]);
+        runtimeTreeItem = groupChildren.find((child: BlockchainTreeItem) => child instanceof RuntimeTreeItem) as RuntimeTreeItem;
         commandStub = sandbox.stub(vscode.commands, 'executeCommand').callThrough();
         commandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT).resolves();
         logSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
