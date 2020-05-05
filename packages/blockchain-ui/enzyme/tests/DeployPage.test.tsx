@@ -10,6 +10,7 @@ import { ReactWrapper, mount, shallow, ShallowWrapper } from 'enzyme';
 import DeployStepOne from '../../src/components/elements/DeploySteps/DeployStepOne/DeployStepOne';
 import DeployStepTwo from '../../src/components/elements/DeploySteps/DeployStepTwo/DeployStepTwo';
 import DeployStepThree from '../../src/components/elements/DeploySteps/DeployStepThree/DeployStepThree';
+import Utils from '../../src/Utils';
 
 chai.should();
 chai.use(sinonChai);
@@ -21,6 +22,7 @@ describe('DeployPage component', () => {
     let handlePackageChangeStub: sinon.SinonStub;
     let handleDefinitionNameChange: sinon.SinonStub;
     let handleDefinitionVersionChange: sinon.SinonStub;
+    let postToVscodeStub: sinon.SinonStub;
 
     const packageOne: IPackageRegistryEntry = {name: 'mycontract', version: '0.0.1', path: '/package/one', sizeKB: 9000};
     const packageTwo: IPackageRegistryEntry = {name: 'othercontract', version: '0.0.2', path: '/package/two', sizeKB: 12000};
@@ -123,7 +125,7 @@ describe('DeployPage component', () => {
 
             instance.handlePackageChange(packageTwo);
 
-            handlePackageChangeStub.should.have.been.calledOnceWithExactly({selectedPackage: packageTwo, definitionName: '', definitionVersion: '', disableNext: false});
+            handlePackageChangeStub.should.have.been.calledOnceWithExactly({selectedPackage: packageTwo, definitionName: packageTwo.name, definitionVersion: packageTwo.version, disableNext: false});
 
         });
     });
@@ -155,6 +157,38 @@ describe('DeployPage component', () => {
 
             handleDefinitionVersionChange.should.have.been.calledOnceWithExactly({definitionVersion: '0.0.3', disableNext: false});
 
+        });
+    });
+
+    describe('handleDeploy', () => {
+        it('should send deploy message', () => {
+            postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
+
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+
+            instance.setState({
+                environmentName: 'myEnvironment',
+                channelName: 'myChannel',
+                selectedPackage: packageTwo,
+                definitionName: packageTwo.name,
+                definitionVersion: packageTwo.version,
+                commitSmartContract: undefined
+            });
+
+            instance.handleDeploy();
+
+            postToVscodeStub.should.have.been.calledOnceWithExactly({
+                command: 'deploy',
+                data: {
+                    environmentName: 'myEnvironment',
+                    channelName: 'myChannel',
+                    selectedPackage: packageTwo,
+                    definitionName: packageTwo.name,
+                    definitionVersion: packageTwo.version,
+                    commitSmartContract: undefined
+                }
+            });
         });
     });
 

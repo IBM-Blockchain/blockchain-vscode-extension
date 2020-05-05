@@ -36,9 +36,9 @@ describe('fabricModel', () => {
 
     it('should create a fabric chaincode', () => {
         const myChaincode: FabricCommittedSmartContract = new FabricCommittedSmartContract('myChaincode', '0.0.1');
-
         myChaincode.name.should.equal('myChaincode');
         myChaincode.version.should.equal('0.0.1');
+        myChaincode.sequence.should.equal(1);
     });
 
     it('should create a fabric identity', () => {

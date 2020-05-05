@@ -448,14 +448,15 @@ describe('FabricConnection', () => {
             getAllChannelsForPeerStub.withArgs('peerOne').returns(['channel1']);
             getAllChannelsForPeerStub.withArgs('peerTwo').returns(['channel2']);
 
-            mySandBox.stub(LifecycleChannel.prototype, 'getAllCommittedSmartContracts').resolves([{smartContractName: 'biscuit-network', smartContractVersion: '0.7'}, {smartContractName: 'cake-network', smartContractVersion: '0.8'}]);
+            mySandBox.stub(LifecycleChannel.prototype, 'getAllCommittedSmartContracts').resolves([{smartContractName: 'biscuit-network', smartContractVersion: '0.7', sequence: 2}, {smartContractName: 'cake-network', smartContractVersion: '0.8', sequence: 3}]);
 
             await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
             const instantiatedChaincodes: Array<any> = await fabricConnection.getInstantiatedChaincode('channel1');
 
-            instantiatedChaincodes.should.deep.equal([{ name: 'biscuit-network', version: '0.7' }, {
+            instantiatedChaincodes.should.deep.equal([{ name: 'biscuit-network', version: '0.7', sequence: 2 }, {
                 name: 'cake-network',
-                version: '0.8'
+                version: '0.8',
+                sequence: 3
             }]);
         });
     });

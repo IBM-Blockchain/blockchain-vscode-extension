@@ -370,11 +370,13 @@ describe('FabricEnvironmentConnection', () => {
             getAllCommittedSmartContractsStub.resolves([
                 {
                     smartContractName: 'myChaincode',
-                    smartContractVersion: '0.0.2'
+                    smartContractVersion: '0.0.2',
+                    sequence: 1
                 },
                 {
                     smartContractName: 'otherChaincode',
-                    smartContractVersion: '0.0.1'
+                    smartContractVersion: '0.0.1',
+                    sequence: 2
                 }
             ]
             );
@@ -385,11 +387,13 @@ describe('FabricEnvironmentConnection', () => {
             chaincodes.should.deep.equal([
                 {
                     name: 'myChaincode',
-                    version: '0.0.2'
+                    version: '0.0.2',
+                    sequence: 1
                 },
                 {
                     name: 'otherChaincode',
-                    version: '0.0.1'
+                    version: '0.0.1',
+                    sequence: 2
                 }
             ]);
         });
@@ -417,26 +421,31 @@ describe('FabricEnvironmentConnection', () => {
             getAllCommittedSmartContractsStub.onFirstCall().resolves([
                 {
                     smartContractName: 'myChaincode',
-                    smartContractVersion: '0.0.1'
+                    smartContractVersion: '0.0.1',
+                    sequence: 1
                 },
                 {
                     smartContractName: 'otherChaincode',
-                    smartContractVersion: '0.0.1'
+                    smartContractVersion: '0.0.1',
+                    sequence: 2
                 }
             ]
             );
             getAllCommittedSmartContractsStub.onSecondCall().resolves([
                 {
                     smartContractName: 'myChaincode',
-                    smartContractVersion: '0.0.2'
+                    smartContractVersion: '0.0.2',
+                    sequence: 2
                 },
                 {
                     smartContractName: 'otherChaincode',
-                    smartContractVersion: '0.0.1'
+                    smartContractVersion: '0.0.1',
+                    sequence: 2
                 },
                 {
                     smartContractName: 'kittyChaincode',
-                    smartContractVersion: '0.0.3'
+                    smartContractVersion: '0.0.3',
+                    sequence: 1
                 }
             ]
             );
@@ -447,19 +456,23 @@ describe('FabricEnvironmentConnection', () => {
             smartContracts.should.deep.equal([
                 {
                     name: 'kittyChaincode',
-                    version: '0.0.3'
+                    version: '0.0.3',
+                    sequence: 1
                 },
                 {
                     name: 'myChaincode',
-                    version: '0.0.1'
+                    version: '0.0.1',
+                    sequence: 1
                 },
                 {
                     name: 'myChaincode',
-                    version: '0.0.2'
+                    version: '0.0.2',
+                    sequence: 2
                 },
                 {
                     name: 'otherChaincode',
-                    version: '0.0.1'
+                    version: '0.0.1',
+                    sequence: 2
                 }
             ]);
         });

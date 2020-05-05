@@ -33,7 +33,7 @@ export interface IFabricEnvironmentConnection {
 
     getCommittedSmartContracts(peerNames: Array<string>, channelName: string): Promise<Array<FabricCommittedSmartContract>>;
 
-    getAllCommittedSmartContracts(): Promise<Array<{name: string, version: string}>>;
+    getAllCommittedSmartContracts(): Promise<Array<FabricCommittedSmartContract>>;
 
     getAllOrganizationNames(): Array<string>;
 
