@@ -24,6 +24,7 @@ import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironme
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 
 export class DeployView extends ReactView {
+    public panel: vscode.WebviewPanel;
     protected appState: any;
 
     constructor(context: vscode.ExtensionContext, appState: any) {
@@ -33,6 +34,8 @@ export class DeployView extends ReactView {
 
     async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
         Reporter.instance().sendTelemetryEvent('openedView', {openedView: panel.title}); // Report that a user has opened a new panel
+
+        this.panel = panel;
 
         const extensionPath: string = ExtensionUtil.getExtensionPath();
         const panelIcon: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'logo.svg'));
@@ -66,6 +69,7 @@ export class DeployView extends ReactView {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         try {
+            this.panel.dispose(); // Close the panel before attempting to deploy.
 
             const environmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
 
