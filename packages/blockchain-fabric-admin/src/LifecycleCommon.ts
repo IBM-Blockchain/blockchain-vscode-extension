@@ -18,7 +18,7 @@ import {
 } from 'fabric-common';
 import {format} from 'util';
 
-const logger: any = Utils.getLogger('packager');
+const logger: any = Utils.getLogger('LifecycleCommon');
 
 export class LifecycleCommon {
 

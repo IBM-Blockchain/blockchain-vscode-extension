@@ -15,17 +15,21 @@
 import {Wallet} from 'fabric-network';
 import {DefinedSmartContract, Lifecycle, LifecycleChannel} from '../../src';
 
-
 export class CommitHelper {
 
-    public static async commitSmartContract(lifecycle: Lifecycle, peerNames: string[], name: string, version: string, wallet: Wallet, identity: string): Promise<void> {
+    public static async commitSmartContract(lifecycle: Lifecycle, peerNames: string[], name: string, version: string, wallet: Wallet, identity: string, policy?: string, sequence?: number): Promise<void> {
 
         const channel: LifecycleChannel = lifecycle.getChannel('mychannel', wallet, identity);
+
+        if (!sequence) {
+            sequence = 1;
+        }
 
         await channel.commitSmartContractDefinition(peerNames, 'orderer.example.com', {
             smartContractName: name,
             smartContractVersion: version,
-            sequence: 1
+            sequence: sequence,
+            endorsementPolicy: policy
         });
     }
 
