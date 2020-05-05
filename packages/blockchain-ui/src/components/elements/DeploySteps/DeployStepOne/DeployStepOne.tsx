@@ -26,6 +26,10 @@ class DeployStepOne extends Component<IProps, StepOneState> {
     }
 
     selectPackage(data: any): void {
+
+        // TODO: At some point we should move PackageRegistry to common, and call 'get' from here.
+        // There would also be no need to pass in all entries when creating DeployView.
+
         const _selectedParts: string[] = data.selectedItem.split('@');
         const packageName: string = _selectedParts[0];
         const packageVersion: string = _selectedParts[1].split(' (packaged)')[0];

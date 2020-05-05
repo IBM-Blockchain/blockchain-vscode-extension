@@ -142,7 +142,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
 
         // TODO: might need to update this to return more things but keeping the same for now
         return committedContracts.map((committedContract: DefinedSmartContract) => {
-            return new FabricCommittedSmartContract(committedContract.smartContractName, committedContract.smartContractVersion);
+            return new FabricCommittedSmartContract(committedContract.smartContractName, committedContract.smartContractVersion, committedContract.sequence);
         });
     }
 

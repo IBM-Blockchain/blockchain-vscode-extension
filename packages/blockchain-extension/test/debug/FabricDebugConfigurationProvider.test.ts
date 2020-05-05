@@ -126,7 +126,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             mockRuntimeConnection = mySandbox.createStubInstance(FabricEnvironmentConnection);
             mockRuntimeConnection.getAllPeerNames.resolves(['peerOne']);
-            const instantiatedChaincodes: FabricCommittedSmartContract[] = [{ name: 'myOtherContract', version: 'vscode-debug-13232112018' }, { name: 'cake-network', version: 'vscode-debug-174758735087' }];
+            const instantiatedChaincodes: FabricCommittedSmartContract[] = [{ name: 'myOtherContract', version: 'vscode-debug-13232112018', sequence: 1 }, { name: 'cake-network', version: 'vscode-debug-174758735087', sequence: 1 }];
             mockRuntimeConnection.getAllCommittedSmartContracts.resolves(instantiatedChaincodes);
 
             getConnectionStub = mySandbox.stub(FabricEnvironmentManager.instance(), 'getConnection');
@@ -390,7 +390,7 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should restore from a previous debug session and use the last instantiated package of the same name', async () => {
-            const instantiatedChaincodes: FabricCommittedSmartContract[] = [{ name: 'mySmartContract', version: '0.0.1' }, { name: 'cake-network', version: '0.0.2' }];
+            const instantiatedChaincodes: FabricCommittedSmartContract[] = [{ name: 'mySmartContract', version: '0.0.1', sequence: 1 }, { name: 'cake-network', version: '0.0.2', sequence: 1 }];
             mockRuntimeConnection.getAllCommittedSmartContracts.resolves(instantiatedChaincodes);
 
             isRunning.onFirstCall().resolves(true);
@@ -415,7 +415,7 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should kill the container if there is a container running with the smart contract already', async () => {
-            const instantiatedChaincodes: FabricCommittedSmartContract[] = [{ name: 'mySmartContract', version: '0.0.1' }, { name: 'cake-network', version: '0.0.2' }];
+            const instantiatedChaincodes: FabricCommittedSmartContract[] = [{ name: 'mySmartContract', version: '0.0.1', sequence: 1 }, { name: 'cake-network', version: '0.0.2', sequence: 1 }];
             mockRuntimeConnection.getAllCommittedSmartContracts.resolves(instantiatedChaincodes);
 
             isRunning.resolves(true);

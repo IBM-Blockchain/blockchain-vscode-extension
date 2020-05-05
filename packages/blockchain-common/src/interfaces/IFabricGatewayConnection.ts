@@ -15,6 +15,7 @@
 
 import { IFabricWallet } from './IFabricWallet';
 import { OutputAdapter } from '../logging/OutputAdapter';
+import { FabricCommittedSmartContract } from '../fabricModel/FabricCommittedSmartContract';
 
 export interface IFabricGatewayConnection {
 
@@ -32,7 +33,7 @@ export interface IFabricGatewayConnection {
 
     getChannelPeersInfo(channelName: string): Promise<{name: string, mspID: string}[]>;
 
-    getInstantiatedChaincode(channelName: string): Promise<Array<{name: string, version: string}>>;
+    getInstantiatedChaincode(channelName: string): Promise<Array<FabricCommittedSmartContract>>;
 
     isIBPConnection(): boolean;
 

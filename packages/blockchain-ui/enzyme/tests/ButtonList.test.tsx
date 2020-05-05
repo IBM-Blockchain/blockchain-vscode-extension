@@ -16,11 +16,13 @@ describe('ButtonList component', () => {
     let mySandBox: sinon.SinonSandbox;
 
     let onProgressChangeStub: sinon.SinonStub;
+    let onDeployClickedStub: sinon.SinonStub;
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
 
         onProgressChangeStub = mySandBox.stub();
+        onDeployClickedStub = mySandBox.stub();
     });
 
     afterEach(async () => {
@@ -30,13 +32,13 @@ describe('ButtonList component', () => {
     describe('render', () => {
         it('should render the expected snapshot', () => {
             const component: any = renderer
-                .create(<ButtonList currentIndex={0} disableNext={false} onProgressChange={onProgressChangeStub} />)
+                .create(<ButtonList currentIndex={0} disableNext={false} onProgressChange={onProgressChangeStub} onDeployClicked={onDeployClickedStub} />)
                 .toJSON();
             expect(component).toMatchSnapshot();
         });
 
         it('should render button for Step One', () => {
-            const component: ReactWrapper<ButtonList> = mount(<ButtonList currentIndex={0} disableNext={false} onProgressChange={onProgressChangeStub} />);
+            const component: ReactWrapper<ButtonList> = mount(<ButtonList currentIndex={0} disableNext={false} onProgressChange={onProgressChangeStub} onDeployClicked={onDeployClickedStub} />);
             const buttonContainer: ReactWrapper<any> = component.at(0);
 
             const children: ReactWrapper<JSX.Element> = buttonContainer.children();
@@ -49,7 +51,7 @@ describe('ButtonList component', () => {
         });
 
         it('should disable button if no package selected', () => {
-            const component: ReactWrapper<ButtonList> = mount(<ButtonList currentIndex={0} disableNext={true} onProgressChange={onProgressChangeStub} />);
+            const component: ReactWrapper<ButtonList> = mount(<ButtonList currentIndex={0} disableNext={true} onProgressChange={onProgressChangeStub} onDeployClicked={onDeployClickedStub} />);
             const buttonContainer: ReactWrapper<any> = component.at(0);
 
             const children: ReactWrapper<JSX.Element> = buttonContainer.children();
@@ -59,7 +61,7 @@ describe('ButtonList component', () => {
         });
 
         it('should render buttons for Step Two', () => {
-            const component: ReactWrapper<ButtonList> = mount(<ButtonList currentIndex={1} disableNext={false} onProgressChange={onProgressChangeStub} />);
+            const component: ReactWrapper<ButtonList> = mount(<ButtonList currentIndex={1} disableNext={false} onProgressChange={onProgressChangeStub} onDeployClicked={onDeployClickedStub} />);
             const buttonContainer: ReactWrapper<any> = component.at(0);
 
             const children: ReactWrapper<JSX.Element> = buttonContainer.children();
@@ -73,7 +75,7 @@ describe('ButtonList component', () => {
         });
 
         it('should render buttons for Step Three', () => {
-            const component: ReactWrapper<ButtonList> = mount(<ButtonList currentIndex={2} disableNext={false} onProgressChange={onProgressChangeStub} />);
+            const component: ReactWrapper<ButtonList> = mount(<ButtonList currentIndex={2} disableNext={false} onProgressChange={onProgressChangeStub} onDeployClicked={onDeployClickedStub} />);
             const buttonContainer: ReactWrapper<any> = component.at(0);
 
             const children: ReactWrapper<JSX.Element> = buttonContainer.children();
@@ -89,7 +91,7 @@ describe('ButtonList component', () => {
 
     describe('incrementIndex', () => {
         it('should increment progress index', () => {
-            const component: ReactWrapper<ButtonList> = mount(<ButtonList currentIndex={0} disableNext={false} onProgressChange={onProgressChangeStub} />);
+            const component: ReactWrapper<ButtonList> = mount(<ButtonList currentIndex={0} disableNext={false} onProgressChange={onProgressChangeStub} onDeployClicked={onDeployClickedStub} />);
             const instance: ButtonList = component.instance() as ButtonList;
             instance.incrementIndex();
 
@@ -99,11 +101,21 @@ describe('ButtonList component', () => {
 
     describe('decrementIndex', () => {
         it('should decrement progress index', () => {
-            const component: ReactWrapper<ButtonList> = mount(<ButtonList currentIndex={1} disableNext={false} onProgressChange={onProgressChangeStub} />);
+            const component: ReactWrapper<ButtonList> = mount(<ButtonList currentIndex={1} disableNext={false} onProgressChange={onProgressChangeStub} onDeployClicked={onDeployClickedStub} />);
             const instance: ButtonList = component.instance() as ButtonList;
             instance.decrementIndex();
 
             onProgressChangeStub.should.have.been.calledOnceWithExactly(0);
+        });
+    });
+
+    describe('deploy', () => {
+        it('should trigger deploy', () => {
+            const component: ReactWrapper<ButtonList> = mount(<ButtonList currentIndex={1} disableNext={false} onProgressChange={onProgressChangeStub} onDeployClicked={onDeployClickedStub} />);
+            const instance: ButtonList = component.instance() as ButtonList;
+            instance.deploy();
+
+            onDeployClickedStub.should.have.been.calledOnce;;
         });
     });
 

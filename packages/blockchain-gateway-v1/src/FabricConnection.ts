@@ -93,7 +93,7 @@ export abstract class FabricConnection {
         const smartContracts: DefinedSmartContract[] = await lifecycleChannel.getAllCommittedSmartContracts(peerNames[0]);
 
         return smartContracts.map((smartContract: DefinedSmartContract) => {
-            return { name: smartContract.smartContractName, version: smartContract.smartContractVersion };
+            return { name: smartContract.smartContractName, version: smartContract.smartContractVersion, sequence: smartContract.sequence };
         });
     }
 

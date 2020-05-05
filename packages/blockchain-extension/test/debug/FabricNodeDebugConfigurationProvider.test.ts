@@ -171,7 +171,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
             mockRuntimeConnection.connect.resolves();
             mockRuntimeConnection.getAllPeerNames.resolves('peerOne');
 
-            const instantiatedChaincodes: FabricCommittedSmartContract[] = [{ name: 'myOtherContract', version: 'vscode-debug-13232112018' }, { name: 'cake-network', version: 'vscode-debug-174758735087' }];
+            const instantiatedChaincodes: FabricCommittedSmartContract[] = [{ name: 'myOtherContract', version: 'vscode-debug-13232112018', sequence: 1 }, { name: 'cake-network', version: 'vscode-debug-174758735087', sequence: 1 }];
             mockRuntimeConnection.getAllCommittedSmartContracts.resolves(instantiatedChaincodes);
 
             mySandbox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns(mockRuntimeConnection);

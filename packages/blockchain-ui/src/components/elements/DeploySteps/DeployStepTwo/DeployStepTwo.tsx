@@ -10,10 +10,20 @@ interface IProps {
     currentDefinitionVersion: string;
 }
 
-class DeployStepTwo extends Component<IProps> {
+interface DeployStepTwoState {
+    definitionNameValue: string;
+    definitionVersionValue: string;
+}
+
+class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
 
     constructor(props: Readonly<IProps>) {
         super(props);
+
+        this.state = {
+            definitionNameValue: this.props.currentDefinitionName ? this.props.currentDefinitionName : this.props.selectedPackage.name,
+            definitionVersionValue: this.props.currentDefinitionVersion ? this.props.currentDefinitionVersion : this.props.selectedPackage.version
+        };
 
         this.handleDefinitionNameChange = this.handleDefinitionNameChange.bind(this);
         this.handleDefinitionVersionChange = this.handleDefinitionVersionChange.bind(this);
@@ -42,10 +52,10 @@ class DeployStepTwo extends Component<IProps> {
                 </div>
                 <div className='bx--row margin-bottom-06'>
                     <div className='bx--col-lg-5 margin-right-06'>
-                        <TextInput id='nameInput' labelText='Definition name' defaultValue={this.props.currentDefinitionName ? this.props.currentDefinitionName : this.props.selectedPackage.name} onChange={this.handleDefinitionNameChange}></TextInput>
+                        <TextInput id='nameInput' labelText='Definition name' defaultValue={this.state.definitionNameValue} onChange={this.handleDefinitionNameChange}></TextInput>
                     </div>
                     <div className='bx--col-lg-5'>
-                        <TextInput id='versionInput' labelText='Definition version' defaultValue={this.props.currentDefinitionVersion ? this.props.currentDefinitionVersion : this.props.selectedPackage.version} onChange={this.handleDefinitionVersionChange}></TextInput>
+                        <TextInput id='versionInput' labelText='Definition version' defaultValue={this.state.definitionVersionValue} onChange={this.handleDefinitionVersionChange}></TextInput>
                     </div>
                 </div>
 

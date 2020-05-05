@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import './ButtonList.scss';
 import { Button } from 'carbon-components-react';
-import IPackageRegistryEntry from '../../../interfaces/IPackageRegistryEntry';
 
 interface ButtonListProps {
     onProgressChange: (newIndex: number) => void;
+    onDeployClicked: () => void;
     currentIndex: number;
     disableNext: boolean; // Disable Next button?
 }
@@ -16,6 +16,7 @@ class ButtonList extends Component<ButtonListProps> {
 
         this.incrementIndex = this.incrementIndex.bind(this);
         this.decrementIndex = this.decrementIndex.bind(this);
+        this.deploy = this.deploy.bind(this);
 
     }
 
@@ -29,7 +30,7 @@ class ButtonList extends Component<ButtonListProps> {
             buttonList.push(<Button key='next' kind='primary' disabled={this.props.disableNext} onClick={this.incrementIndex}>Next</Button>);
         } else {
             buttonList.push(<Button key='back' kind='secondary' onClick={this.decrementIndex}>Back</Button>);
-            buttonList.push(<Button key='next' kind='primary' onClick={this.incrementIndex}>Deploy</Button>);
+            buttonList.push(<Button key='next' kind='primary' onClick={this.deploy}>Deploy</Button>);
         }
 
         return (
@@ -47,6 +48,10 @@ class ButtonList extends Component<ButtonListProps> {
     decrementIndex(): void {
         const newIndex: number = this.props.currentIndex - 1;
         this.props.onProgressChange(newIndex);
+    }
+
+    deploy(): void {
+        this.props.onDeployClicked();
     }
 }
 
