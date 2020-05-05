@@ -16,7 +16,7 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { FabricCommittedSmartContract, FabricIdentity } from '../..';
+import { FabricSmartContractDefinition, FabricIdentity } from '../..';
 
 chai.should();
 chai.use(sinonChai);
@@ -35,10 +35,12 @@ describe('fabricModel', () => {
     });
 
     it('should create a fabric chaincode', () => {
-        const myChaincode: FabricCommittedSmartContract = new FabricCommittedSmartContract('myChaincode', '0.0.1');
+        const myChaincode: FabricSmartContractDefinition = new FabricSmartContractDefinition('myChaincode', '0.0.1', 1, 'myPackageId',  Buffer.from('myPolicy'));
+
         myChaincode.name.should.equal('myChaincode');
         myChaincode.version.should.equal('0.0.1');
         myChaincode.sequence.should.equal(1);
+        myChaincode.endorsementPolicy.should.deep.equal(Buffer.from('myPolicy'));
     });
 
     it('should create a fabric identity', () => {

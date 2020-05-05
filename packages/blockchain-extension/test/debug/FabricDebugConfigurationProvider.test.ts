@@ -20,7 +20,7 @@ import { LocalEnvironmentManager } from '../../extension/fabric/environments/Loc
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
-import { FabricCommittedSmartContract, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, FabricEnvironmentRegistry, EnvironmentType, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricSmartContractDefinition, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, FabricEnvironmentRegistry, EnvironmentType, FabricGatewayRegistry, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { TestUtil } from '../TestUtil';
@@ -126,8 +126,8 @@ describe('FabricDebugConfigurationProvider', () => {
 
             mockRuntimeConnection = mySandbox.createStubInstance(FabricEnvironmentConnection);
             mockRuntimeConnection.getAllPeerNames.resolves(['peerOne']);
-            const instantiatedChaincodes: FabricCommittedSmartContract[] = [{ name: 'myOtherContract', version: 'vscode-debug-13232112018', sequence: 1 }, { name: 'cake-network', version: 'vscode-debug-174758735087', sequence: 1 }];
-            mockRuntimeConnection.getAllCommittedSmartContracts.resolves(instantiatedChaincodes);
+            const instantiatedChaincodes: FabricSmartContractDefinition[] = [{ name: 'myOtherContract', version: 'vscode-debug-13232112018', sequence: 2 }, { name: 'cake-network', version: 'vscode-debug-174758735087', sequence: 1 }];
+            mockRuntimeConnection.getAllCommittedSmartContractDefinitions.resolves(instantiatedChaincodes);
 
             getConnectionStub = mySandbox.stub(FabricEnvironmentManager.instance(), 'getConnection');
             getConnectionStub.returns(mockRuntimeConnection);
@@ -390,8 +390,8 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should restore from a previous debug session and use the last instantiated package of the same name', async () => {
-            const instantiatedChaincodes: FabricCommittedSmartContract[] = [{ name: 'mySmartContract', version: '0.0.1', sequence: 1 }, { name: 'cake-network', version: '0.0.2', sequence: 1 }];
-            mockRuntimeConnection.getAllCommittedSmartContracts.resolves(instantiatedChaincodes);
+            const instantiatedChaincodes: FabricSmartContractDefinition[] = [{ name: 'mySmartContract', version: '0.0.1', sequence: 1 }, { name: 'cake-network', version: '0.0.2', sequence: 1 }];
+            mockRuntimeConnection.getAllCommittedSmartContractDefinitions.resolves(instantiatedChaincodes);
 
             isRunning.onFirstCall().resolves(true);
             isRunning.onSecondCall().resolves(false);
@@ -415,8 +415,8 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should kill the container if there is a container running with the smart contract already', async () => {
-            const instantiatedChaincodes: FabricCommittedSmartContract[] = [{ name: 'mySmartContract', version: '0.0.1', sequence: 1 }, { name: 'cake-network', version: '0.0.2', sequence: 1 }];
-            mockRuntimeConnection.getAllCommittedSmartContracts.resolves(instantiatedChaincodes);
+            const instantiatedChaincodes: FabricSmartContractDefinition[] = [{ name: 'mySmartContract', version: '0.0.1', sequence: 1 }, { name: 'cake-network', version: '0.0.2', sequence: 1 }];
+            mockRuntimeConnection.getAllCommittedSmartContractDefinitions.resolves(instantiatedChaincodes);
 
             isRunning.resolves(true);
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
@@ -591,7 +591,7 @@ describe('FabricDebugConfigurationProvider', () => {
         let executeCommandStub: sinon.SinonStub;
         beforeEach(async () => {
             mockRuntimeConnection = mySandbox.createStubInstance(FabricEnvironmentConnection);
-            mockRuntimeConnection.getAllCommittedSmartContracts.resolves([
+            mockRuntimeConnection.getAllCommittedSmartContractDefinitions.resolves([
                 {name: 'chaincode1', version: '0.0.1'},
                 {name: 'chaincode2', version: '0.0.2'},
                 {name: 'chaincode3', version: '0.0.3'}
@@ -616,13 +616,13 @@ describe('FabricDebugConfigurationProvider', () => {
         });
         it('should get contract if already connected to correct environment', async () => {
 
-            const chaincode: FabricCommittedSmartContract = await FabricDebugConfigurationProvider.getInstantiatedChaincode('chaincode2');
+            const chaincode: FabricSmartContractDefinition = await FabricDebugConfigurationProvider.getInstantiatedChaincode('chaincode2');
             chaincode.should.deep.equal({name: 'chaincode2', version: '0.0.2'});
 
             getConnectionStub.should.have.been.calledTwice;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
-            mockRuntimeConnection.getAllCommittedSmartContracts.should.have.been.calledOnce;
+            mockRuntimeConnection.getAllCommittedSmartContractDefinitions.should.have.been.calledOnce;
         });
 
         it('should get contract if already connected to another environment with different name', async () => {
@@ -631,14 +631,14 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const fabricEnvironmentRegistryGetSpy: sinon.SinonSpy = mySandbox.spy(FabricEnvironmentRegistry.instance(), 'get');
 
-            const chaincode: FabricCommittedSmartContract = await FabricDebugConfigurationProvider.getInstantiatedChaincode('chaincode2');
+            const chaincode: FabricSmartContractDefinition = await FabricDebugConfigurationProvider.getInstantiatedChaincode('chaincode2');
             chaincode.should.deep.equal({name: 'chaincode2', version: '0.0.2'});
 
             getConnectionStub.should.have.been.calledTwice;
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             fabricEnvironmentRegistryGetSpy.should.have.been.calledOnceWithExactly(FabricDebugConfigurationProvider.environmentName);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
-            mockRuntimeConnection.getAllCommittedSmartContracts.should.have.been.calledOnce;
+            mockRuntimeConnection.getAllCommittedSmartContractDefinitions.should.have.been.calledOnce;
         });
 
         it('should get contract if already connected to another environment with different environment type', async () => {
@@ -647,14 +647,14 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const fabricEnvironmentRegistryGetSpy: sinon.SinonSpy = mySandbox.spy(FabricEnvironmentRegistry.instance(), 'get');
 
-            const chaincode: FabricCommittedSmartContract = await FabricDebugConfigurationProvider.getInstantiatedChaincode('chaincode2');
+            const chaincode: FabricSmartContractDefinition = await FabricDebugConfigurationProvider.getInstantiatedChaincode('chaincode2');
             chaincode.should.deep.equal({name: 'chaincode2', version: '0.0.2'});
 
             getConnectionStub.should.have.been.calledTwice;
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             fabricEnvironmentRegistryGetSpy.should.have.been.calledOnceWithExactly(FabricDebugConfigurationProvider.environmentName);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
-            mockRuntimeConnection.getAllCommittedSmartContracts.should.have.been.calledOnce;
+            mockRuntimeConnection.getAllCommittedSmartContractDefinitions.should.have.been.calledOnce;
         });
 
         it('should get contract if not already connected', async () => {
@@ -662,14 +662,14 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const fabricEnvironmentRegistryGetSpy: sinon.SinonSpy = mySandbox.spy(FabricEnvironmentRegistry.instance(), 'get');
 
-            const chaincode: FabricCommittedSmartContract = await FabricDebugConfigurationProvider.getInstantiatedChaincode('chaincode2');
+            const chaincode: FabricSmartContractDefinition = await FabricDebugConfigurationProvider.getInstantiatedChaincode('chaincode2');
             chaincode.should.deep.equal({name: 'chaincode2', version: '0.0.2'});
 
             getConnectionStub.should.have.been.calledTwice;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             fabricEnvironmentRegistryGetSpy.should.have.been.calledOnceWithExactly(FabricDebugConfigurationProvider.environmentName);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
-            mockRuntimeConnection.getAllCommittedSmartContracts.should.have.been.calledOnce;
+            mockRuntimeConnection.getAllCommittedSmartContractDefinitions.should.have.been.calledOnce;
         });
 
         it('should error if unable to connect to environment', async () => {
@@ -683,7 +683,7 @@ describe('FabricDebugConfigurationProvider', () => {
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             fabricEnvironmentRegistryGetSpy.should.have.been.calledOnceWithExactly(FabricDebugConfigurationProvider.environmentName);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
-            mockRuntimeConnection.getAllCommittedSmartContracts.should.not.have.been.called;
+            mockRuntimeConnection.getAllCommittedSmartContractDefinitions.should.not.have.been.called;
         });
 
     });

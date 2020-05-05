@@ -14,7 +14,7 @@
 
 // This is a JSON representation of a Fabric Committed Smart Contract.
 // tslint:disable variable-name
-export class FabricCommittedSmartContract {
-    public constructor(public name: string, public version: string, public sequence: number = 1) {
+export class FabricSmartContractDefinition {
+    public constructor(public name: string, public version: string, public sequence: number, public packageId?: string, public endorsementPolicy?: Buffer | string) {
     }
 }

@@ -94,7 +94,7 @@ describe('UpgradeCommand', () => {
 
             fabricRuntimeMock.getAllPeerNames.returns(['peerOne']);
 
-            fabricRuntimeMock.getCommittedSmartContracts.resolves([{ name: 'biscuit-network', version: '0.0.1' }]);
+            fabricRuntimeMock.getCommittedSmartContractDefinitions.resolves([{ name: 'biscuit-network', version: '0.0.1' }]);
 
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
             map.set('channelOne', ['peerOne']);

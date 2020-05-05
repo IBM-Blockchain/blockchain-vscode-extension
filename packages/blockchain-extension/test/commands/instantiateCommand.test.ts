@@ -115,7 +115,7 @@ describe('InstantiateCommand', () => {
 
             fabricRuntimeMock.getAllPeerNames.returns(['peerOne']);
 
-            fabricRuntimeMock.getCommittedSmartContracts.resolves([]);
+            fabricRuntimeMock.getCommittedSmartContractDefinitions.resolves([]);
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
             map.set('myChannel', ['peerOne']);
             fabricRuntimeMock.createChannelMap.resolves(map);

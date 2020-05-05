@@ -125,14 +125,14 @@ describe('UserInputUtil', () => {
         chaincodeArray.push({label: 'biscuit-network', packageId: '0.0.1'}, {label: 'biscuit-network', packageId: '0.0.2'}, {label: 'cake-network', packageId: '0.0.3'});
         fabricRuntimeConnectionStub.getInstalledSmartContracts.withArgs('myPeerOne').resolves(chaincodeArray);
         fabricRuntimeConnectionStub.getInstalledSmartContracts.withArgs('myPeerTwo').resolves([]);
-        fabricRuntimeConnectionStub.getCommittedSmartContracts.withArgs(['myPeerOne', 'myPeerTwo'], 'channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
+        fabricRuntimeConnectionStub.getCommittedSmartContractDefinitions.withArgs(['myPeerOne', 'myPeerTwo'], 'channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
         fabricRuntimeConnectionStub.getAllCertificateAuthorityNames.returns(['ca.example.cake.com', 'ca1.example.cake.com']);
         const map: Map<string, Array<string>> = new Map<string, Array<string>>();
         map.set('channelOne', ['myPeerOne', 'myPeerTwo']);
         fabricRuntimeConnectionStub.createChannelMap.resolves(map);
         const chaincodeMapTwo: Map<string, Array<string>> = new Map<string, Array<string>>();
 
-        fabricRuntimeConnectionStub.getCommittedSmartContracts.withArgs('channelTwo').resolves(chaincodeMapTwo);
+        fabricRuntimeConnectionStub.getCommittedSmartContractDefinitions.withArgs('channelTwo').resolves(chaincodeMapTwo);
 
         fabricClientConnectionStub = mySandBox.createStubInstance(FabricGatewayConnection);
         fabricClientConnectionStub.createChannelMap.resolves(map);
@@ -1054,7 +1054,7 @@ describe('UserInputUtil', () => {
 
         it('should not show quickpick if there are no packaged/installed contracts to instantiate', async () => {
             fabricRuntimeConnectionStub.getInstalledSmartContracts.withArgs('myPeerOne').resolves([]);
-            fabricRuntimeConnectionStub.getCommittedSmartContracts.withArgs(['myPeerOne'], 'myChannel').resolves([]);
+            fabricRuntimeConnectionStub.getCommittedSmartContractDefinitions.withArgs(['myPeerOne'], 'myChannel').resolves([]);
 
             await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', 'myChannel', ['myPeerOne']).should.eventually.be.rejectedWith('No contracts found');
         });
@@ -1747,7 +1747,7 @@ describe('UserInputUtil', () => {
         });
 
         it('should handle no instantiated chaincodes in connection', async () => {
-            fabricRuntimeConnectionStub.getCommittedSmartContracts.returns([]);
+            fabricRuntimeConnectionStub.getCommittedSmartContractDefinitions.returns([]);
             await UserInputUtil.showClientInstantiatedSmartContractsQuickPick('Choose an instantiated smart contract to test', 'channelTwo');
             logSpy.should.have.been.calledWith(LogType.ERROR, `${gatewayEntryOne.name} has no instantiated chaincodes`);
 
@@ -1851,7 +1851,7 @@ describe('UserInputUtil', () => {
         });
 
         it('should handle no instantiated chaincodes in connection', async () => {
-            fabricRuntimeConnectionStub.getCommittedSmartContracts.returns([]);
+            fabricRuntimeConnectionStub.getCommittedSmartContractDefinitions.returns([]);
             await UserInputUtil.showRuntimeInstantiatedSmartContractsQuickPick('Choose an instantiated smart contract to test', 'channelTwo');
             logSpy.should.have.been.calledWith(LogType.ERROR, `${environmentEntryOne.name} has no instantiated chaincodes`);
         });
