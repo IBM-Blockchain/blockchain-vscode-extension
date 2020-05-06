@@ -20,13 +20,12 @@ import { PackageRegistry } from '../registries/PackageRegistry';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { MetadataUtil } from '../util/MetadataUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricCertificate, FabricCommittedSmartContract, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricEnvironmentConnection, IFabricGatewayConnection, LogType, FabricEnvironment, FabricGatewayRegistryEntry, FabricGatewayRegistry, EnvironmentFlags } from 'ibm-blockchain-platform-common';
+import { FabricCertificate, FabricCommittedSmartContract, FabricInstalledSmartContract, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricEnvironmentConnection, IFabricGatewayConnection, LogType, FabricEnvironment, FabricGatewayRegistryEntry, FabricGatewayRegistry, EnvironmentFlags } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { TimerUtil } from '../util/TimerUtil';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
-import { FabricInstalledSmartContract } from 'ibm-blockchain-platform-common/build/src/fabricModel/FabricInstalledSmartContract';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -583,7 +582,7 @@ export class UserInputUtil {
         const connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
         const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
 
-        let instantiatedChaincodes: Array<{ name: string, version: string, channel: string }> = [];
+        let instantiatedChaincodes: Array<{ name: string, version: string, sequence: number, channel: string }> = [];
 
         for (const [thisChannelName] of channelMap) {
             if (channelName && (channelName !== thisChannelName)) {
@@ -591,7 +590,7 @@ export class UserInputUtil {
             }
             const chaincodes: Array<FabricCommittedSmartContract> = await connection.getInstantiatedChaincode(thisChannelName); // returns array of objects
             for (const chaincode of chaincodes) {
-                const data: { name: string, version: string, channel: string } = { name: chaincode.name, version: chaincode.version, channel: thisChannelName };
+                const data: { name: string, version: string, sequence: number, channel: string } = { name: chaincode.name, version: chaincode.version, sequence: chaincode.sequence, channel: thisChannelName };
                 instantiatedChaincodes.push(data);
             }
         }
@@ -604,7 +603,7 @@ export class UserInputUtil {
                 outputAdapter.log(LogType.ERROR, 'No smart contracts with associations to transaction data directories found');
                 return;
             } else {
-                const tempChaincodes: Array<{ name: string, version: string, channel: string }> = instantiatedChaincodes.filter((chaincode: FabricCommittedSmartContract) => {
+                const tempChaincodes: Array<{ name: string, version: string, sequence: number, channel: string }> = instantiatedChaincodes.filter((chaincode: FabricCommittedSmartContract) => {
                     return transactionDataDirectories.some((directory: { chaincodeName: string, channelName: string, transactionDataPath: string }) => {
                         return directory.chaincodeName === chaincode.name;
                     });

@@ -149,7 +149,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                 chaincodeName = config.env.CORE_CHAINCODE_ID_NAME.split(':')[0];
                 chaincodeVersion = config.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
             } else {
-                const nameAndVersion: FabricCommittedSmartContract = await this.getChaincodeNameAndVersion(folder);
+                const nameAndVersion: {name: string, version: string } = await this.getChaincodeNameAndVersion(folder);
 
                 if (!nameAndVersion || !nameAndVersion.name || !nameAndVersion.version) {
                     // User probably cancelled the prompt for the name.
@@ -216,7 +216,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
         }
     }
 
-    protected abstract async getChaincodeNameAndVersion(folder: vscode.WorkspaceFolder | undefined): Promise<FabricCommittedSmartContract>;
+    protected abstract async getChaincodeNameAndVersion(folder: vscode.WorkspaceFolder | undefined): Promise<{name: string, version: string}>;
 
     protected async getChaincodeAddress(): Promise<string> {
         // Need to strip off the protocol (grpc:// or grpcs://).

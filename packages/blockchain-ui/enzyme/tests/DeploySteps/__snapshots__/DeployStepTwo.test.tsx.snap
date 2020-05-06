@@ -1,0 +1,293 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DeployStepTwo component render should render the expected snapshot 1`] = `
+Array [
+  <div
+    className="bx--row margin-bottom-06"
+  >
+    <div
+      className="bx--col-lg-10"
+    >
+      A smart contract definition describes how the selected package will be deployed in this channel. The package's name and version (where available) are copied across to the definition as defaults. You may optionally change them.
+    </div>
+  </div>,
+  <div
+    className="bx--row"
+  >
+    <h5>
+      Smart contract definition
+    </h5>
+  </div>,
+  <div
+    className="bx--row margin-bottom-06"
+  >
+    <div
+      className="bx--col-lg-5 margin-right-06"
+    >
+      <div
+        className="bx--form-item bx--text-input-wrapper"
+      >
+        <label
+          className="bx--label"
+          htmlFor="nameInput"
+        >
+          Definition name
+        </label>
+        <div
+          className="bx--text-input__field-wrapper"
+          data-invalid={null}
+        >
+          <input
+            className="bx--text-input bx--text__input"
+            defaultValue="mycontract"
+            disabled={false}
+            id="nameInput"
+            onChange={[Function]}
+            onClick={[Function]}
+            type="text"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      className="bx--col-lg-5"
+    >
+      <div
+        className="bx--form-item bx--text-input-wrapper"
+      >
+        <label
+          className="bx--label"
+          htmlFor="versionInput"
+        >
+          Definition version
+        </label>
+        <div
+          className="bx--text-input__field-wrapper"
+          data-invalid={null}
+        >
+          <input
+            className="bx--text-input bx--text__input"
+            defaultValue="0.0.1"
+            disabled={false}
+            id="versionInput"
+            onChange={[Function]}
+            onClick={[Function]}
+            type="text"
+          />
+        </div>
+      </div>
+    </div>
+  </div>,
+  <div
+    className="bx--row margin-bottom-06"
+  >
+    <div
+      className="bx--col-lg-5 margin-right-06"
+    >
+      <div
+        className="bx--file__container"
+      >
+        <div
+          className="bx--form-item"
+          onClick={[Function]}
+          size="default"
+        >
+          <strong
+            className="bx--file--label"
+          >
+            Endorsement policy
+          </strong>
+          <p
+            className="bx--label-description"
+          >
+            Default (1 endorser, any org) will be used unless you add your own.
+          </p>
+          <label
+            aria-disabled={false}
+            className="bx--btn bx--btn--tertiary"
+            htmlFor="id2"
+            onChange={[Function]}
+            onClick={[Function]}
+            onKeyDown={[Function]}
+            tabIndex={0}
+          >
+            <span
+              role="button"
+            >
+              Add file
+            </span>
+          </label>
+          <input
+            accept={
+              Array [
+                ".json",
+              ]
+            }
+            className="bx--visually-hidden"
+            disabled={false}
+            id="id2"
+            multiple={false}
+            onChange={[Function]}
+            onClick={[Function]}
+            tabIndex="-1"
+            type="file"
+          />
+          <div
+            className="bx--file-container"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      className="bx--col-lg-5"
+    >
+      <div
+        className="bx--file__container"
+      >
+        <div
+          className="bx--form-item"
+          onClick={[Function]}
+          size="default"
+        >
+          <strong
+            className="bx--file--label"
+          >
+            Collections configuration
+          </strong>
+          <p
+            className="bx--label-description"
+          >
+            Default (implicit private data collections only) will be used unless you add your own.
+          </p>
+          <label
+            aria-disabled={false}
+            className="bx--btn bx--btn--tertiary"
+            htmlFor="id3"
+            onChange={[Function]}
+            onClick={[Function]}
+            onKeyDown={[Function]}
+            tabIndex={0}
+          >
+            <span
+              role="button"
+            >
+              Add file
+            </span>
+          </label>
+          <input
+            accept={
+              Array [
+                ".json",
+              ]
+            }
+            className="bx--visually-hidden"
+            disabled={false}
+            id="id3"
+            multiple={false}
+            onChange={[Function]}
+            onClick={[Function]}
+            tabIndex="-1"
+            type="file"
+          />
+          <div
+            className="bx--file-container"
+          />
+        </div>
+      </div>
+    </div>
+  </div>,
+  <div
+    className="bx--row"
+  >
+    <div
+      className="bx--col-lg-10"
+    >
+      <ul
+        className="bx--accordion bx--accordion--end"
+      >
+        <li
+          className="bx--accordion__item"
+          onAnimationEnd={[Function]}
+        >
+          <button
+            aria-expanded={false}
+            className="bx--accordion__heading"
+            onClick={[Function]}
+            onKeyDown={[Function]}
+            title="Expand/Collapse"
+            type="button"
+          >
+            <svg
+              aria-label="Expand/Collapse"
+              className="bx--accordion__arrow"
+              focusable="false"
+              height={16}
+              preserveAspectRatio="xMidYMid meet"
+              role="img"
+              viewBox="0 0 16 16"
+              width={16}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <polygon
+                points="11,8 6,13 5.3,12.3 9.6,8 5.3,3.7 6,3"
+              />
+            </svg>
+            <div
+              className="bx--accordion__title"
+            >
+              Learn about other smart contract definition parameters (advanced)
+            </div>
+          </button>
+          <div
+            className="bx--accordion__content"
+          >
+            <p
+              className="margin-bottom-05"
+            >
+              These developer tools automatically handle some parameters for simplied development. For a full explainabtion of definition parameters and Fabric v2.X smart contract lifecycle, see the 
+              <a
+                className="bx--link"
+                href="#"
+              >
+                Fabric documentation
+              </a>
+              .
+            </p>
+            <p
+              className="margin-bottom-05"
+            >
+              To deploy with full control of all parameters, please use the 
+              <a
+                className="bx--link"
+                href="#"
+              >
+                IBM Blockchain Platform Console
+              </a>
+               or 
+              <a
+                className="bx--link"
+                href="#"
+              >
+                Hyperledger Fabric CLIs
+              </a>
+              .
+            </p>
+            <p
+              className="margin-bottom-05"
+            >
+              Read about how our simplified deployment handles the other parameters in the 
+              <a
+                className="bx--link"
+                href="#"
+              >
+                IBM Blockchain Platform documentation
+              </a>
+              .
+            </p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>,
+]
+`;

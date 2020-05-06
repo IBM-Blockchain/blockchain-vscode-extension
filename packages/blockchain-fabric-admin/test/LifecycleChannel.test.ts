@@ -23,6 +23,7 @@ import * as sinon from 'sinon';
 import {DefinedSmartContract, LifecycleChannel} from '../src/LifecycleChannel';
 import {Lifecycle} from '../src/Lifecycle';
 import * as Long from 'long';
+import {EndorsementPolicy} from '../src/Policy';
 
 // this is horrible but needed as the transaction constructor isn't exported so can't stub it without stubbing the world
 // tslint:disable-next-line:no-var-requires
@@ -89,7 +90,7 @@ describe('LifecycleChannel', () => {
             mspid: 'myMSPID',
             name: 'myPeer2',
             sslTargetNameOverride: 'localhost'
-       });
+        });
 
         lifecycle.addOrderer({
             name: 'myOrderer',
@@ -226,6 +227,72 @@ describe('LifecycleChannel', () => {
                     sequence: 1,
                     smartContractName: 'myContract',
                     smartContractVersion: '0.0.1',
+                });
+
+                addEndorserStub.should.have.been.calledWith(sinon.match.instanceOf(Endorser));
+                addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
+
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser)]);
+                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+            });
+
+            it('should approve a smart contract definition with endorsement plugin', async () => {
+                arg.setEndorsementPlugin('myPlugin');
+
+                await channel.approveSmartContractDefinition(['myPeer'], 'myOrderer', {
+                    packageId: 'myPackageId',
+                    sequence: 1,
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1',
+                    endorsementPlugin: 'myPlugin'
+                });
+
+                addEndorserStub.should.have.been.calledWith(sinon.match.instanceOf(Endorser));
+                addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
+
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser)]);
+                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+            });
+
+            it('should approve a smart contract definition with validation plugin', async () => {
+                arg.setValidationPlugin('myPlugin');
+
+                await channel.approveSmartContractDefinition(['myPeer'], 'myOrderer', {
+                    packageId: 'myPackageId',
+                    sequence: 1,
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1',
+                    validationPlugin: 'myPlugin'
+                });
+
+                addEndorserStub.should.have.been.calledWith(sinon.match.instanceOf(Endorser));
+                addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
+
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser)]);
+                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+            });
+
+            it('should approve a smart contract definition with endorsement policy', async () => {
+                const policyString: string = `AND('org1.member', 'org2.member')`;
+
+                const policy: EndorsementPolicy = new EndorsementPolicy();
+
+                const policyResult: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(policyString);
+
+                const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
+
+                applicationPolicy.setSignaturePolicy(policyResult);
+
+                const policyBuffer: Buffer = applicationPolicy.toBuffer();
+
+                arg.setValidationParameter(policyBuffer);
+
+                await channel.approveSmartContractDefinition(['myPeer'], 'myOrderer', {
+                    packageId: 'myPackageId',
+                    sequence: 1,
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1',
+                    endorsementPolicy: policyString
                 });
 
                 addEndorserStub.should.have.been.calledWith(sinon.match.instanceOf(Endorser));
@@ -386,6 +453,94 @@ describe('LifecycleChannel', () => {
                     smartContractName: 'myContract',
                     smartContractVersion: '0.0.1',
                     initRequired: true
+                });
+
+                addEndorserStub.should.have.been.calledTwice;
+                addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
+
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser), sinon.match.instanceOf(Endorser)]);
+                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+            });
+
+            it('should commit a smart contract definition with endorsement plugin', async () => {
+                arg.setEndorsementPlugin('myPlugin');
+
+                await channel.commitSmartContractDefinition(['myPeer', 'myPeer2'], 'myOrderer', {
+                    sequence: 1,
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1',
+                    endorsementPlugin: 'myPlugin'
+                });
+
+                addEndorserStub.should.have.been.calledTwice;
+                addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
+
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser), sinon.match.instanceOf(Endorser)]);
+                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+            });
+
+            it('should commit a smart contract definition with validation plugin', async () => {
+                arg.setValidationPlugin('myPlugin');
+
+                await channel.commitSmartContractDefinition(['myPeer', 'myPeer2'], 'myOrderer', {
+                    sequence: 1,
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1',
+                    validationPlugin: 'myPlugin'
+                });
+
+                addEndorserStub.should.have.been.calledTwice;
+                addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
+
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser), sinon.match.instanceOf(Endorser)]);
+                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+            });
+
+            it('should commit a smart contract definition with endorsement policy', async () => {
+                const policyString: string = `AND('org1.member', 'org2.member')`;
+
+                const policy: EndorsementPolicy = new EndorsementPolicy();
+
+                const policyResult: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(policyString);
+
+                const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
+
+                applicationPolicy.setSignaturePolicy(policyResult);
+
+                const policyBuffer: Buffer = applicationPolicy.toBuffer();
+
+                arg.setValidationParameter(policyBuffer);
+
+                await channel.commitSmartContractDefinition(['myPeer', 'myPeer2'], 'myOrderer', {
+                    sequence: 1,
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1',
+                    endorsementPolicy: policyString
+                });
+
+                addEndorserStub.should.have.been.calledTwice;
+                addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
+
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser), sinon.match.instanceOf(Endorser)]);
+                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+            });
+
+            it('should commit a smart contract definition with endorsement policy channel reference', async () => {
+                const policyString: string = `myPolicyReference`;
+
+                const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
+
+                applicationPolicy.setChannelConfigPolicyReference(policyString);
+
+                const policyBuffer: Buffer = applicationPolicy.toBuffer();
+
+                arg.setValidationParameter(policyBuffer);
+
+                await channel.commitSmartContractDefinition(['myPeer', 'myPeer2'], 'myOrderer', {
+                    sequence: 1,
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1',
+                    endorsementPolicy: policyString
                 });
 
                 addEndorserStub.should.have.been.calledTwice;
@@ -599,6 +754,153 @@ describe('LifecycleChannel', () => {
                     smartContractVersion: '0.0.1',
                     sequence: 1,
                     initRequired: true
+                });
+
+                result.size.should.equal(2);
+                // @ts-ignore
+                result.get('org1').should.equal(true);
+                // @ts-ignore
+                result.get('org2').should.equal(false);
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)]
+                });
+            });
+
+            it('should get the commit readiness of a smart contract definition with endorsement plugin', async () => {
+
+                arg.setEndorsementPlugin('myPlugin');
+
+                buildRequest = {
+                    fcn: 'CheckCommitReadiness',
+                    args: [arg.toBuffer()]
+                };
+
+                const encodedResult: protos.lifecycle.CheckCommitReadinessResult = protos.lifecycle.CheckCommitReadinessResult.encode({
+                    approvals: {
+                        org1: true, org2: false
+                    }
+                });
+
+                endorsementSendStub.resolves({
+                    responses: [{
+                        response: {
+                            status: 200,
+                            payload: encodedResult
+                        }
+                    }]
+                });
+
+                const result: Map<string, boolean> = await channel.getCommitReadiness('myPeer', {
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1',
+                    sequence: 1,
+                    endorsementPlugin: 'myPlugin'
+                });
+
+                result.size.should.equal(2);
+                // @ts-ignore
+                result.get('org1').should.equal(true);
+                // @ts-ignore
+                result.get('org2').should.equal(false);
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)]
+                });
+            });
+
+            it('should get the commit readiness of a smart contract definition with validation plugin', async () => {
+
+                arg.setValidationPlugin('myPlugin');
+
+                buildRequest = {
+                    fcn: 'CheckCommitReadiness',
+                    args: [arg.toBuffer()]
+                };
+
+                const encodedResult: protos.lifecycle.CheckCommitReadinessResult = protos.lifecycle.CheckCommitReadinessResult.encode({
+                    approvals: {
+                        org1: true, org2: false
+                    }
+                });
+
+                endorsementSendStub.resolves({
+                    responses: [{
+                        response: {
+                            status: 200,
+                            payload: encodedResult
+                        }
+                    }]
+                });
+
+                const result: Map<string, boolean> = await channel.getCommitReadiness('myPeer', {
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1',
+                    sequence: 1,
+                    validationPlugin: 'myPlugin'
+                });
+
+                result.size.should.equal(2);
+                // @ts-ignore
+                result.get('org1').should.equal(true);
+                // @ts-ignore
+                result.get('org2').should.equal(false);
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)]
+                });
+            });
+
+            it('should get the commit readiness of a smart contract definition with endorsement policy', async () => {
+
+                const policyString: string = `AND('org1.member', 'org2.member')`;
+
+                const policy: EndorsementPolicy = new EndorsementPolicy();
+
+                const policyResult: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(policyString);
+
+                const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
+
+                applicationPolicy.setSignaturePolicy(policyResult);
+
+                const policyBuffer: Buffer = applicationPolicy.toBuffer();
+
+                arg.setValidationParameter(policyBuffer);
+
+                buildRequest = {
+                    fcn: 'CheckCommitReadiness',
+                    args: [arg.toBuffer()]
+                };
+
+                const encodedResult: protos.lifecycle.CheckCommitReadinessResult = protos.lifecycle.CheckCommitReadinessResult.encode({
+                    approvals: {
+                        org1: true, org2: false
+                    }
+                });
+
+                endorsementSendStub.resolves({
+                    responses: [{
+                        response: {
+                            status: 200,
+                            payload: encodedResult
+                        }
+                    }]
+                });
+
+                const result: Map<string, boolean> = await channel.getCommitReadiness('myPeer', {
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1',
+                    sequence: 1,
+                    endorsementPolicy: policyString
                 });
 
                 result.size.should.equal(2);

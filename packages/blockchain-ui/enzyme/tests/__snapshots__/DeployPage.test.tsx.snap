@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DeployPage component should render the expected snapshot 1`] = `
+exports[`DeployPage component render should render the expected snapshot 1`] = `
 <div
   className="bx--grid deploy-page-container"
 >
@@ -8,13 +8,13 @@ exports[`DeployPage component should render the expected snapshot 1`] = `
     className="bx--row"
   >
     <div
-      className="bx--col"
+      className="bx--col-lg-10"
     >
       <div
         className="heading-combo-container"
       >
         <h3>
-          Deploy smart contract to environment
+          Deploy smart contract
         </h3>
         <p>
           Deploying to mychannel in myEnvironment
@@ -22,14 +22,15 @@ exports[`DeployPage component should render the expected snapshot 1`] = `
       </div>
     </div>
     <div
-      className="bx--col"
+      className="bx--col-lg-4"
     >
       <div
-        className="bx--btn-set"
+        id="buttonList"
       >
         <button
           className="bx--btn bx--btn--primary bx--btn--disabled"
           disabled={true}
+          onClick={[Function]}
           tabIndex={0}
           type="button"
         >
@@ -37,15 +38,16 @@ exports[`DeployPage component should render the expected snapshot 1`] = `
         </button>
       </div>
     </div>
+    <div
+      className="bx--col-lg-2"
+    />
   </div>
   <div
-    className="bx--row"
+    className="bx--row progress-row"
   >
     <div
-      className="bx--col"
+      className="bx--col-lg-10"
     >
-      <br />
-      <br />
       <ul
         className="bx--progress"
       >
@@ -187,45 +189,18 @@ exports[`DeployPage component should render the expected snapshot 1`] = `
           </button>
         </li>
       </ul>
-      <br />
-      <br />
-      <br />
     </div>
   </div>
   <div
-    className="bx--row"
+    className="bx--row dropdown-row"
   >
     <div
       className="bx--col"
     >
-      These developer tools can deploy to networks where you have all the admin keys - for example, local Fabric runtimes or personal dev/test networks on cloud. For any more advanced deployments, please use the 
-      <a
-        className="bx--link"
-        href="#"
-      >
-        IBM Blockchain Platform Console
-      </a>
-       or 
-      <a
-        className="bx--link"
-        href="#"
-      >
-        Hyperledger Fabric CLIs
-      </a>
-      .
-    </div>
-  </div>
-  <div
-    className="bx--row"
-  >
-    <div
-      className="bx--col"
-    >
-      <br />
       <div
         style={
           Object {
-            "width": 300,
+            "width": 384,
           }
         }
       >
@@ -240,7 +215,7 @@ exports[`DeployPage component should render the expected snapshot 1`] = `
           <div
             aria-label="dropdown"
             className="bx--dropdown bx--list-box"
-            id="carbon-dropdown-example"
+            id="package-select"
             onClick={[Function]}
             onKeyDown={[Function]}
           >
@@ -249,7 +224,7 @@ exports[`DeployPage component should render the expected snapshot 1`] = `
               aria-disabled={false}
               aria-expanded={false}
               aria-haspopup={true}
-              aria-labelledby="dropdown-label-carbon-dropdown-example dropdown-field-label-carbon-dropdown-example"
+              aria-labelledby="dropdown-label-package-select dropdown-field-label-package-select"
               aria-owns={null}
               className="bx--list-box__field"
               data-toggle={true}
@@ -263,7 +238,7 @@ exports[`DeployPage component should render the expected snapshot 1`] = `
               <span
                 className="bx--list-box__label"
                 htmlFor="downshift-0-input"
-                id="dropdown-field-label-carbon-dropdown-example"
+                id="dropdown-field-label-package-select"
               >
                 Choose an option
               </span>
@@ -299,9 +274,8 @@ exports[`DeployPage component should render the expected snapshot 1`] = `
     className="bx--row"
   >
     <div
-      className="bx--col"
+      className="bx--col-lg-10 "
     >
-      <br />
       <ul
         className="bx--accordion bx--accordion--end"
       >
@@ -342,7 +316,7 @@ exports[`DeployPage component should render the expected snapshot 1`] = `
             className="bx--accordion__content"
           >
             <p>
-              Woah it finally worked.
+              TODO
             </p>
           </div>
         </li>

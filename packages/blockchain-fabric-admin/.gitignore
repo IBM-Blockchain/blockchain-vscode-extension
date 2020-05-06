@@ -21,3 +21,4 @@
 /.nyc_output/
 /unit-tests.xml
 /test/tmp/
+/src/pegjs/*.js

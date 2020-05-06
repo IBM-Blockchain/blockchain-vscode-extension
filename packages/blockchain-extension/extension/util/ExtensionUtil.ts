@@ -138,7 +138,7 @@ export class ExtensionUtil {
         return this.getExtension().extensionPath;
     }
 
-    public static async getContractNameAndVersion(folder: vscode.WorkspaceFolder): Promise<FabricCommittedSmartContract> {
+    public static async getContractNameAndVersion(folder: vscode.WorkspaceFolder): Promise<{name: string, version: string}> {
         try {
             const packageJson: any = await this.loadJSON(folder, 'package.json');
             return { name: packageJson.name, version: packageJson.version };

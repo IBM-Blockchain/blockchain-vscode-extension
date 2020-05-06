@@ -1,5 +1,18 @@
-.bx--tab-content {
-    width: 100%;
-    padding-left: 0px;
-    background-color: transparent;
+#root {
+
+    .deploy-page-container{
+        .bx--tab-content {
+            width: 100%;
+            padding-left: 0px;
+            background-color: transparent;
+        }
+    
+        .bx--progress-line {
+            width: 100%;
+        }
+    
+        .bx--progress-step {
+            width: 100%;
+        }
+    }
 }

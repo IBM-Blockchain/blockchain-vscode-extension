@@ -12,7 +12,7 @@ chai.use(sinonChai);
 describe('DeployProgressBar component', () => {
     it('should render the expected snapshot', () => {
         const component: any = renderer
-            .create(<DeployProgressBar/>)
+            .create(<DeployProgressBar currentIndex={0}/>)
             .toJSON();
         expect(component).toMatchSnapshot();
     });

@@ -37,7 +37,7 @@
         "unit": "npm run pretest && ./node_modules/.bin/jest",
         "licchk": "license-check-and-add",
         "tslint": "tslint --project tsconfig.json",
-        "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts'",
+        "lint": "npm run tslint 'src/**/*.ts' 'src/**/*.tsx' 'test/**/*.test.ts' 'test/**/*.test.tsx'",
         "productionFlag": "node ./.azure/rewritePackageJson.js publish",
         "build": "cp ../blockchain-extension/ExtensionCommands.ts ./src/ExtensionCommands.ts && ./scripts/build-non-split.js && tsc -p tsconfig.json",
         "cypress": "cypress open",
@@ -186,7 +186,7 @@
             "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/enzyme/__mocks__/fileMock.js"
         },
         "testMatch": [
-            "<rootDir>/enzyme/tests/*.(ts|tsx)"
+            "<rootDir>/enzyme/tests/**/*.(ts|tsx)"
         ],
         "setupFilesAfterEnv": [
             "<rootDir>/enzyme/setupTests.ts"

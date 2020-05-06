@@ -195,4 +195,39 @@ describe('FabricEnvironmentRegistry', () => {
 
         await registry.getAll([], [EnvironmentFlags.ANSIBLE]).should.eventually.deep.equal([environmentOne]);
     });
+
+    it('should get all the ansible and all the ops tools environments', async () => {
+        const environmentOne: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
+            name: 'environmentOne',
+            environmentType: EnvironmentType.ENVIRONMENT
+        });
+
+        const environmentTwo: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
+            name: 'environmentTwo',
+            managedRuntime: true,
+            environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT
+        });
+        await registry.getAll().should.eventually.deep.equal([]);
+
+        const environmentThree: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
+            name: FabricRuntimeUtil.LOCAL_FABRIC,
+            managedRuntime: true,
+            environmentType: EnvironmentType.LOCAL_ENVIRONMENT
+        });
+
+        await FabricEnvironmentRegistry.instance().add(environmentThree);
+
+        const environmentFour: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
+            name: 'opsToolsEnv',
+            managedRuntime: true,
+            environmentType: EnvironmentType.OPS_TOOLS_ENVIRONMENT
+        });
+
+        await FabricEnvironmentRegistry.instance().add(environmentFour);
+
+        await registry.add(environmentOne);
+        await registry.add(environmentTwo);
+
+        await registry.getAll([EnvironmentFlags.ANSIBLE, EnvironmentFlags.OPS_TOOLS]).should.eventually.deep.equal([environmentThree, environmentTwo, environmentFour]);
+    });
 });

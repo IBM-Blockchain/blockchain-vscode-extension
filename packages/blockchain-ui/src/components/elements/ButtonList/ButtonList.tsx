@@ -2,31 +2,56 @@ import React, { Component } from 'react';
 import './ButtonList.scss';
 import { Button } from 'carbon-components-react';
 
-interface IProps {
-    buttons: any[];
+interface ButtonListProps {
+    onProgressChange: (newIndex: number) => void;
+    onDeployClicked: () => void;
+    currentIndex: number;
+    disableNext: boolean; // Disable Next button?
 }
 
-class ButtonList extends Component<IProps> {
+class ButtonList extends Component<ButtonListProps> {
 
-    // This element will probably just be an array of button elements.
-    // Will then loop through the array and render the buttons.
-    // E.g. this could have 'Back', 'Next' buttons inline next to each other.
+    constructor(props: Readonly<ButtonListProps>) {
+        super(props);
 
-    // This should also make it easy to add/remove buttons from this list.
-    // E.g. Remove 'Next' button and add 'Finish' button.
+        this.incrementIndex = this.incrementIndex.bind(this);
+        this.decrementIndex = this.decrementIndex.bind(this);
+        this.deploy = this.deploy.bind(this);
+
+    }
 
     render(): JSX.Element {
-
         const buttonList: JSX.Element[] = [];
-        for (const button of this.props.buttons) {
-            buttonList.push(<Button kind={button.kind} disabled={button.disabled}>{button.label}</Button>);
+
+        if (this.props.currentIndex === 0) {
+            buttonList.push(<Button key='next' kind='primary' disabled={this.props.disableNext} onClick={this.incrementIndex}>Next</Button>);
+        } else if (this.props.currentIndex === 1) {
+            buttonList.push(<Button key='back' kind='secondary' onClick={this.decrementIndex}>Back</Button>);
+            buttonList.push(<Button key='next' kind='primary' disabled={this.props.disableNext} onClick={this.incrementIndex}>Next</Button>);
+        } else {
+            buttonList.push(<Button key='back' kind='secondary' onClick={this.decrementIndex}>Back</Button>);
+            buttonList.push(<Button key='next' kind='primary' onClick={this.deploy}>Deploy</Button>);
         }
 
         return (
-            <div className='bx--btn-set'>
+            <div id='buttonList'>
                 {buttonList}
             </div>
         );
+    }
+
+    incrementIndex(): void {
+        const newIndex: number = this.props.currentIndex + 1;
+        this.props.onProgressChange(newIndex);
+    }
+
+    decrementIndex(): void {
+        const newIndex: number = this.props.currentIndex - 1;
+        this.props.onProgressChange(newIndex);
+    }
+
+    deploy(): void {
+        this.props.onDeployClicked();
     }
 }
 

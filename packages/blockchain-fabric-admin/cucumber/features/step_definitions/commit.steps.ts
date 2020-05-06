@@ -12,18 +12,22 @@
  * limitations under the License.
 */
 
-
 import {When} from 'cucumber'
 import {Then} from 'cucumber'
 import {CommitHelper} from '../../helpers/CommitHelper';
 import {Helper} from '../../helpers/Helper';
 import {DefinedSmartContract} from '../../../src';
 
-When(/^I commit the contract$/, async function (): Promise<void> {
-    await CommitHelper.commitSmartContract(this.lifecycle, [Helper.org1Peer, Helper.org2Peer], this.label, '0.0.1', this.wallet, this.org1Identity);
+When(/^I commit the contract( with sequence )?(.?)( and policy )?(.*?)$/, async function(_thing: string, sequence: number, _thing2: string, policy: string): Promise<void> {
+    if (sequence) {
+        this.sequence = sequence;
+    } else {
+        this.sequence = 1;
+    }
+    await CommitHelper.commitSmartContract(this.lifecycle, [Helper.org1Peer, Helper.org2Peer], this.label, '0.0.1', this.wallet, this.org1Identity, policy, sequence);
 });
 
-Then(/^the smart contract should committed$/, async function (): Promise<void> {
+Then(/^the smart contract should committed$/, async function(): Promise<void> {
     const result: string[] = await CommitHelper.getCommittedSmartContracts(this.lifecycle, Helper.org1Peer, this.wallet, this.org1Identity);
 
     result.should.include(this.label);
@@ -32,7 +36,7 @@ Then(/^the smart contract should committed$/, async function (): Promise<void> {
 
     definedContract.smartContractName.should.equal(this.label);
     definedContract.smartContractVersion.should.equal('0.0.1');
-    definedContract.sequence.should.equal(1);
+    definedContract.sequence.should.equal(parseInt(this.sequence, 10));
 
     definedContract.approvals!.size.should.equal(2);
     definedContract.approvals!.get('Org1MSP')!.should.equal(true);

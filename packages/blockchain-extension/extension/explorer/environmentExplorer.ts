@@ -288,12 +288,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
                 const smartContracts: FabricCommittedSmartContract[] = await connection.getCommittedSmartContracts(peers, channel);
 
-                let collapsedState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.None;
-                if (smartContracts.length > 0) {
-                    collapsedState = vscode.TreeItemCollapsibleState.Collapsed;
-                }
-
-                tree.push(new ChannelTreeItem(this, channel, peers, smartContracts, collapsedState));
+                tree.push(new ChannelTreeItem(this, channel, peers, smartContracts, vscode.TreeItemCollapsibleState.Collapsed));
             }
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error populating channel view: ${error.message}`, `Error populating channel view: ${error.toString()}`);
