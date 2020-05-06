@@ -296,7 +296,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 }
             ]});
 
-            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, OpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, opsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             getCoreNodeModuleStub.should.have.been.calledOnce;
             ensureDirStub.should.have.been.calledOnce;
