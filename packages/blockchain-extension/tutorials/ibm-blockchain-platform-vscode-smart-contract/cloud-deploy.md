@@ -1,5 +1,5 @@
 <!-- # TUTORIAL 3: Deploying and transacting with IBM Cloud -->
-**Tutorial 3**
+
 ## **Deploying and transacting with IBM Cloud**
 `15-20 mins`
 
