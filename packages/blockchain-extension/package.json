@@ -201,10 +201,10 @@
                     "default": true,
                     "description": "Allow this extension to use Docker and Docker Compose to run a simple pre-configured local Hyperledger Fabric network.\n\nIf you change this setting whilst the Prerequistes page is open, you may need to close it and re-open it for the changes to take effect."
                 },
-                "ibm-blockchain-platform.ext.requireCloudLogin": {
+                "ibm-blockchain-platform.ext.PollForConfigUpdatesWhenConnectedToIBM BlockchainPlatformOnIBM CloudEnvironments": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Always require IBM Cloud login when connecting to existing IBM Blockchain Platform on IBM Cloud"
+                    "description": "Disabling this option prevents repeated prompts when not logged in to IBM Cloud. You will still be asked to log in if you try to perform an action that requires you to be logged in (e.g. editing node filters)."
                 }
             }
         },

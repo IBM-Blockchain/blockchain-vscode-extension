@@ -111,7 +111,7 @@ describe('AddEnvironmentCommand', () => {
             // Ops tools requirements
             axiosGetStub = mySandBox.stub(Axios, 'get');
             showQuickPickYesNoStub = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').callThrough();
-            showQuickPickYesNoStub.withArgs('Are you connecting to a service instance on IBM Cloud?').resolves(UserInputUtil.NO);
+            showQuickPickYesNoStub.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves(UserInputUtil.NO);
 
             url = 'https://my.OpsTool.url';
             userAuth1 = 'myOpsToolKey';
@@ -1021,7 +1021,7 @@ describe('AddEnvironmentCommand', () => {
 
         it('should handle when user cancels while choosing location of the OpsTool instance', async () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
-            showQuickPickYesNoStub.withArgs('Are you connecting to a service instance on IBM Cloud?').resolves();
+            showQuickPickYesNoStub.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
@@ -1039,10 +1039,10 @@ describe('AddEnvironmentCommand', () => {
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
         });
 
-        it('should suggest default name when adding environment from a SaaS OpsTool instance (SaaA)', async () => {
+        it('should suggest default name when adding environment from a SaaS OpsTool instance (SaaS)', async () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().returnsArg(1);
-            showQuickPickYesNoStub.withArgs('Are you connecting to a service instance on IBM Cloud?').resolves(UserInputUtil.YES);
+            showQuickPickYesNoStub.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves(UserInputUtil.YES);
             axiosGetStub.onFirstCall().resolves(resourcesResponseMock);
             axiosGetStub.onSecondCall().resolves(consoleStatusMock);
 
@@ -1068,10 +1068,10 @@ describe('AddEnvironmentCommand', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
         });
 
-        it('should handle errors getting the access token when adding an OpsTool instance (SaaA)', async () => {
+        it('should handle errors getting the access token when adding an OpsTool instance (SaaS)', async () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('mySaaSOpsToolsEnvironment');
-            showQuickPickYesNoStub.withArgs('Are you connecting to a service instance on IBM Cloud?').resolves(UserInputUtil.YES);
+            showQuickPickYesNoStub.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves(UserInputUtil.YES);
             const error: Error = new Error('some error');
             cloudAccountGetAccessTokenStub.rejects(error);
 
@@ -1092,9 +1092,9 @@ describe('AddEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${error.message}`, `Failed to add a new environment: ${error.toString()}`);
         });
 
-        it('should handle user canceling while getting access token when adding an OpsTool instance (SaaA)', async () => {
+        it('should handle user canceling while getting access token when adding an OpsTool instance (SaaS)', async () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
-            showQuickPickYesNoStub.withArgs('Are you connecting to a service instance on IBM Cloud?').resolves(UserInputUtil.YES);
+            showQuickPickYesNoStub.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves(UserInputUtil.YES);
             cloudAccountGetAccessTokenStub.resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
@@ -1113,10 +1113,10 @@ describe('AddEnvironmentCommand', () => {
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
         });
 
-        it('should handle more than one page of resources when adding an OpsTool instance (SaaA)', async () => {
+        it('should handle more than one page of resources when adding an OpsTool instance (SaaS)', async () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('mySaaSOpsToolsEnvironment');
-            showQuickPickYesNoStub.withArgs('Are you connecting to a service instance on IBM Cloud?').resolves(UserInputUtil.YES);
+            showQuickPickYesNoStub.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves(UserInputUtil.YES);
             axiosGetStub.onFirstCall().resolves({
                 data: {
                     next_url: '/some/resource/path',
@@ -1149,10 +1149,10 @@ describe('AddEnvironmentCommand', () => {
 
         });
 
-        it('should fail if there are no IBM Blockchain Platform resources for the selected account when adding an OpsTool instance (SaaA)', async () => {
+        it('should fail if there are no IBM Blockchain Platform resources for the selected account when adding an OpsTool instance (SaaS)', async () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('mySaaSOpsToolsEnvironment');
-            showQuickPickYesNoStub.withArgs('Are you connecting to a service instance on IBM Cloud?').resolves(UserInputUtil.YES);
+            showQuickPickYesNoStub.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves(UserInputUtil.YES);
             const noBlockchainError: Error = new Error('There are no IBM Blockchain Platform service instances associated with the chosen account');
             axiosGetStub.onFirstCall().resolves({
                 data: {
@@ -1183,10 +1183,10 @@ describe('AddEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${noBlockchainError.message}`, `Failed to add a new environment: ${noBlockchainError.toString()}`);
         });
 
-        it('should ask user to select resource if more than one IBM Blockchain platform exists when adding an OpsTool instance (SaaA)', async () => {
+        it('should ask user to select resource if more than one IBM Blockchain platform exists when adding an OpsTool instance (SaaS)', async () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('mySaaSOpsToolsEnvironment');
-            showQuickPickYesNoStub.withArgs('Are you connecting to a service instance on IBM Cloud?').resolves(UserInputUtil.YES);
+            showQuickPickYesNoStub.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves(UserInputUtil.YES);
             axiosGetStub.onFirstCall().resolves({
                 data: {
                         next_url: null,
@@ -1237,10 +1237,10 @@ describe('AddEnvironmentCommand', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
         });
 
-        it('should handle user canceling while selecting an IBM Blockchain platform when adding an OpsTool instance (SaaA)', async () => {
+        it('should handle user canceling while selecting an IBM Blockchain platform when adding an OpsTool instance (SaaS)', async () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('mySaaSOpsToolsEnvironment');
-            showQuickPickYesNoStub.withArgs('Are you connecting to a service instance on IBM Cloud?').resolves(UserInputUtil.YES);
+            showQuickPickYesNoStub.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves(UserInputUtil.YES);
             axiosGetStub.onFirstCall().resolves({
                 data: {
                         next_url: null,
@@ -1274,10 +1274,10 @@ describe('AddEnvironmentCommand', () => {
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
         });
 
-        it('should fail if OpsTools not deployed adding an OpsTool instance (SaaA)', async () => {
+        it('should fail if OpsTools not deployed adding an OpsTool instance (SaaS)', async () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('mySaaSOpsToolsEnvironment');
-            showQuickPickYesNoStub.withArgs('Are you connecting to a service instance on IBM Cloud?').resolves(UserInputUtil.YES);
+            showQuickPickYesNoStub.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves(UserInputUtil.YES);
             axiosGetStub.onFirstCall().resolves(resourcesResponseMock);
             axiosGetStub.onSecondCall().resolves({
                 status: 100,
