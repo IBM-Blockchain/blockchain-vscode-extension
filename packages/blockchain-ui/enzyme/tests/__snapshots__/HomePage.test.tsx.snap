@@ -43,7 +43,7 @@ exports[`HomePage component should render the expected snapshot 1`] = `
               Tutorials
             </h3>
             <p>
-              Complete tutorials to level up your Fabric development skills. Earn rewards such as badges and access to our developer community by completing lessons.
+              Learn about Hyperledger Fabric development using IBM Blockchain Platform. Complete these tutorials to grow your blockchain skills and earn accredited badges along the way!
             </p>
           </div>
           <img

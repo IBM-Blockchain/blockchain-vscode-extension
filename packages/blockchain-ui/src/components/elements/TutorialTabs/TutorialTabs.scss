@@ -16,9 +16,18 @@
     background-color: transparent;
 }
 
-.download-all-container {
+.series-description-container {
     margin-top: $spacing-03;
     margin-bottom: $spacing-06;
+}
+
+.series-description {
+    max-width: 650px;
+    font-family: 'IBMPlexSans', sans-serif;
+    font-size: 14px;
+    line-height: 1.25rem;
+    margin-bottom: $spacing-06;
+    color: $gray-100;
 }
 
 .download-all {
@@ -26,6 +35,7 @@
     text-decoration: none;
     font-family: 'IBMPlexSans', sans-serif;
     font-size: 14px;
+    margin-top: $spacing-03;
     color: $blue-60;
     letter-spacing: 0.16px;
     line-height: 18px;
