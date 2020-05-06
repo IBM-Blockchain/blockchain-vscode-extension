@@ -61,3 +61,79 @@ Next, run the Docker image by using the following command:
 Note: you will need to update this command for your local machine to reflect port availability and storage locations.
 
 Finally, you can access Visual Studio Code from a web browser using the following URL: http://localhost:8080
+
+## Using with Ansible networks
+
+The `vscode` container will work with Hyperledger Fabric networks built using
+the `ibm-blockchain-platform-manager` [Ansible
+role](https://github.com/IBM-Blockchain/ansible-role-blockchain-platform-manager).
+This includes both local Fabric Docker networks and remote Fabric networks.
+
+### Using with local Fabric Docker networks
+
+A playbook using the `ibm-blockchain-platform-manager` role can be configured to
+generate a local Fabric network comprising:
+
+ - A set of Fabric components hosted in local Docker containers
+ - A set of node, gateway and wallet information to enable connectivity to these
+   containers
+
+The `vscode` container can interact with this Fabric network using Docker
+networking.
+
+To generate node and gateway information compatible with docker networking, a
+playbook can be configured with the variable
+`infrastructure.docker.use_internal_hostname`. This information can then be
+imported into the `vscode` container to allow it to interact with the generated
+local Fabric network.
+
+### A local Fabric Docker network example
+
+Let's build a sample Ansible
+[network](https://github.com/IBM-Blockchain/ansible-examples/tree/master/one-org-network)
+and connect it to the `vscode` container. You will find it easier to perform
+Ansible-related commands in a separate window.
+
+In the `one-org-network`
+[playbook](https://github.com/IBM-Blockchain/ansible-examples/blob/master/one-org-network/playbook.yml), set the variable as follows:
+
+    # one-org-network playbook
+    ...
+    infrastructure:
+      type: docker
+      docker:
+        network: ibp_network
+        use_internal_hostname: true
+    ...
+
+Note how the `docker.network` variable identifies the `ibp_network` Docker
+network that will be generated.
+
+Then run the playbook as usual:
+
+    ansible-playbook playbook.yml
+
+The Ansible output is generated in the `gateways`, `nodes` and `wallets`
+directories. Copy these directories to the `vscode` container storage location:
+
+    cp -R ../one-org-network/ /path/to/storage
+
+Now connect the `vscode` container to the generated Docker network:
+
+    docker network connect ibp_network vscode
+
+Return to the blockchain sidebar in VS Code and add a new `FABRIC ENVIRONMENT`:
+
+![environments](./media/diagram1.png)
+
+Select `Add an Ansible-create network` from the available options. Subsequently,
+select the copied `one-org-network` directory containing the `gateways`, `nodes`
+and `wallet` sub folders. Click on `OK` to select a name for the Fabric
+environment, for example `dockernet`.
+
+The information in these folders populates the `FABRIC ENVIRONMENTS`, `FABRIC
+GATEWAYS` and `FABRIC WALLETS` views:
+
+![environments](./media/diagram2.png)
+
+You can now interact as usual with this network.
