@@ -52,6 +52,7 @@ html {
                 color: $text-01;
                 margin: $spacing-06;
                 @include select-dark;
+<<<<<<< HEAD
                 
                 
                 #app-container {
@@ -111,6 +112,65 @@ html {
                 #output-panel {
                     @include output-panel-dark;
                 }
+=======
+            }
+
+            #app-container {
+                @include app__tutorial-page-dark;
+            }
+
+            // CustomTile component
+            #tutorial-tile-container {
+                @include custom-tile-dark;
+            }
+
+            // extension version tag
+            #extension-version-tag {
+                background-color: $gray-80;
+                color: inherit;
+            }
+
+            // home page links
+            #home-link-01, #home-link-02, #home-link-03, #home-link-04, #home-link-05, #home-link-06, #home-link-07, #home-link-08, #home-link-09, #home-link-10, #home-link-11, #acclaim-link, #download-all-link {
+                color: $blue-40;
+            }
+
+            // home page image
+            #dev-learner-themed-image {
+                @include themed-image-dark;
+            }
+
+            #tutorial-page-background {
+                @include tutorial-page-dark;
+            }
+
+            #tutorial-tabs-container {
+                @include tutorial-tabs-dark;
+                @include tutorial-tile-dark;
+            }
+
+            // text inputs on the create transaction screen
+            #create-txn-form {
+                @include text-inputs-dark;
+            }
+
+            // data tables on home page
+            #recent-txns-table, #saved-txns-table {
+                @include data-table-dark;
+            }
+
+            // InlineSelect components
+            #smart-contract-select-wrapper {
+                @include inline-select-dark;
+            }
+
+            // Checkbox
+            @include checkbox-dark;
+
+            //panel containing transaction output
+            #output-panel {
+                @include output-panel-dark;
+>>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
             }
 
         }

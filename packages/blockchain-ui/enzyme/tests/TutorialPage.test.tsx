@@ -11,9 +11,17 @@ chai.use(sinonChai);
 
 describe('TutorialPage component', () => {
 
+<<<<<<< HEAD
     const tutorialData: Array<{name: string, tutorials: ITutorialObject[]}> = [
         {
             name: 'Basic tutorials',
+=======
+    const tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string}> = [
+        {
+            name: 'Basic tutorials',
+            tutorialFolder: 'basic-tutorials',
+            tutorialDescription: 'some description',
+>>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
             tutorials: [
                 {
                     title: 'a1',

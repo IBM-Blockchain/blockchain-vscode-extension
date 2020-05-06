@@ -104,9 +104,14 @@
             "preReq.open",
             "releaseNotes.open",
             "tutorialGallery.open",
+<<<<<<< HEAD
             "reactTutorialGallery.open",
             "deploy.open",
             "transactionPage.open"
+=======
+            "transactionPage.open",
+            "tutorial.save"
+>>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
         ]
     },
     "main": "./build/extension/extension",
@@ -228,11 +233,6 @@
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "reactTutorial.open",
-                "title": "Open Tutorial",
-                "category": "IBM Blockchain Platform"
-            },
-            {
                 "command": "extensionHome.open",
                 "title": "View Homepage",
                 "category": "IBM Blockchain Platform",
@@ -257,6 +257,7 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+<<<<<<< HEAD
                 "command": "reactTutorialGallery.open",
                 "title": "View React Tutorial Gallery",
                 "category": "IBM Blockchain Platform"
@@ -267,6 +268,8 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+=======
+>>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
                 "command": "transactionPage.open",
                 "title": "Transact with Smart Contract",
                 "category": "IBM Blockchain Platform"
@@ -613,10 +616,6 @@
                     "when": "false"
                 },
                 {
-                    "command": "reactTutorial.open",
-                    "when": "false"
-                },
-                {
                     "command": "debug.commandList",
                     "when": "false"
                 },
@@ -626,10 +625,6 @@
                 },
                 {
                     "command": "transactionPage.open",
-                    "when": "false"
-                },
-                {
-                    "command": "reactTutorialGallery.open",
                     "when": "false"
                 },
                 {

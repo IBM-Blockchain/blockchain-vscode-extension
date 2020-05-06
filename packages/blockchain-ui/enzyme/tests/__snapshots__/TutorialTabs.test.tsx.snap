@@ -91,6 +91,26 @@ Array [
     selected={true}
   >
     <div
+<<<<<<< HEAD
+=======
+      className="series-description-container"
+    >
+      <p
+        className="series-description"
+      >
+        some description
+      </p>
+      <a
+        className="bx--link download-all"
+        href="#"
+        id="download-all-link"
+        onClick={[Function]}
+      >
+        Download all "Basic tutorials" as PDF
+      </a>
+    </div>
+    <div
+>>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
       className="tab-container"
     >
       <div

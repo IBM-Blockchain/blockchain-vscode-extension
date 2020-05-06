@@ -8,13 +8,23 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
     className="bx--row"
   >
     <div
-      className="heading-combo-container"
+      className="tutorial-page-description-container"
     >
       <h3>
         Blockchain Tutorials
       </h3>
       <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        In these tutorials you will learn about Hyperledger Fabric development using IBM Blockchain Platform.
+        <br />
+        As you complete the learning objectives you will be invited to gain 
+        <a
+          className="bx--link"
+          href="https://www.youracclaim.com/"
+          id="acclaim-link"
+        >
+          accredited badges
+        </a>
+         from IBM.
       </p>
     </div>
   </div>
@@ -111,6 +121,26 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
       selected={true}
     >
       <div
+<<<<<<< HEAD
+=======
+        className="series-description-container"
+      >
+        <p
+          className="series-description"
+        >
+          some description
+        </p>
+        <a
+          className="bx--link download-all"
+          href="#"
+          id="download-all-link"
+          onClick={[Function]}
+        >
+          Download all "Basic tutorials" as PDF
+        </a>
+      </div>
+      <div
+>>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
         className="tab-container"
       >
         <div

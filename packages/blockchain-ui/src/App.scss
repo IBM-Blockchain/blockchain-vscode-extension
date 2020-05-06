@@ -14,6 +14,7 @@
 // Commenting this out until I determine whether it can be deleted or not.
 @import '@carbon/colors/scss/colors';
 
+<<<<<<< HEAD
 #root{
     .app-container__tutorial-page {
         background-color: $gray-10;
@@ -25,5 +26,13 @@
         left: 0;
 
     }
+=======
+.app-container__tutorial-page {
+    background-color: $gray-10;
+    position: absolute;
+    width: 100%;
+    z-index: -1;
+    box-shadow: inset 0px 164px #FFFFFF;
+>>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
 }
     

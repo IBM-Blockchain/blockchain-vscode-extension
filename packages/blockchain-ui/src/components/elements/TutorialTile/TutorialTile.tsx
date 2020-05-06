@@ -30,7 +30,7 @@ class TutorialTile extends Component <IProps> {
 
     openTutorialHandler(): void {
         Utils.postToVSCode({
-            command: ExtensionCommands.OPEN_REACT_TUTORIAL_PAGE,
+            command: ExtensionCommands.OPEN_TUTORIAL_PAGE,
             data: [
                 this.props.tutorialObject.series,
                 this.props.tutorialObject.title

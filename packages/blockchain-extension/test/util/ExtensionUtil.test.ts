@@ -20,6 +20,7 @@ import * as sinonChai from 'sinon-chai';
 import {ExtensionUtil} from '../../extension/util/ExtensionUtil';
 import * as fs from 'fs-extra';
 import * as chaiAsPromised from 'chai-as-promised';
+<<<<<<< HEAD
 import {dependencies, version as currentExtensionVersion} from '../../package.json';
 import {SettingConfigurations} from '../../extension/configurations';
 import {ExtensionData, GlobalState} from '../../extension/util/GlobalState';
@@ -49,6 +50,28 @@ import {
 } from 'ibm-blockchain-platform-common';
 import {FabricDebugConfigurationProvider} from '../../extension/debug/FabricDebugConfigurationProvider';
 import {TestUtil} from '../TestUtil';
+=======
+import { dependencies, version as currentExtensionVersion } from '../../package.json';
+import { SettingConfigurations } from '../../configurations';
+import { GlobalState, ExtensionData } from '../../extension/util/GlobalState';
+import { ExtensionCommands } from '../../ExtensionCommands';
+import { TutorialGalleryView } from '../../extension/webview/TutorialGalleryView';
+import { HomeView } from '../../extension/webview/HomeView';
+import { SampleView } from '../../extension/webview/SampleView';
+import { TutorialView } from '../../extension/webview/TutorialView';
+import { Reporter } from '../../extension/util/Reporter';
+import { PreReqView } from '../../extension/webview/PreReqView';
+import { DependencyManager } from '../../extension/dependencies/DependencyManager';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { TemporaryCommandRegistry } from '../../extension/dependencies/TemporaryCommandRegistry';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FabricWalletRegistryEntry, LogType, FabricWalletRegistry, FabricGatewayRegistry, FabricWalletUtil, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
+import { TestUtil } from '../TestUtil';
+import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistry';
+import { RepositoryRegistryEntry } from '../../extension/registries/RepositoryRegistryEntry';
+>>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
 import * as openTransactionViewCommand from '../../extension/commands/openTransactionViewCommand';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
@@ -375,8 +398,11 @@ describe('ExtensionUtil Tests', () => {
                 `onCommand:${ExtensionCommands.OPEN_PRE_REQ_PAGE}`,
                 `onCommand:${ExtensionCommands.OPEN_RELEASE_NOTES}`,
                 `onCommand:${ExtensionCommands.OPEN_TUTORIAL_GALLERY}`,
+<<<<<<< HEAD
                 `onCommand:${ExtensionCommands.OPEN_REACT_TUTORIAL_GALLERY}`,
                 `onCommand:${ExtensionCommands.OPEN_DEPLOY_PAGE}`,
+=======
+>>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
                 `onCommand:${ExtensionCommands.OPEN_TRANSACTION_PAGE}`,
                 `onDebug`
             ]);
@@ -410,8 +436,8 @@ describe('ExtensionUtil Tests', () => {
         });
 
         it('should register and show tutorial gallery', async () => {
-            const tutorialGalleryViewStub: sinon.SinonStub = mySandBox.stub(TutorialGalleryView.prototype, 'openView');
-            tutorialGalleryViewStub.resolves();
+            const TutorialGalleryViewStub: sinon.SinonStub = mySandBox.stub(TutorialGalleryView.prototype, 'openView');
+            TutorialGalleryViewStub.resolves();
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
             const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
@@ -421,6 +447,7 @@ describe('ExtensionUtil Tests', () => {
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_TUTORIAL_GALLERY);
 
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+<<<<<<< HEAD
             tutorialGalleryViewStub.should.have.been.calledOnce;
         });
 
@@ -437,6 +464,9 @@ describe('ExtensionUtil Tests', () => {
 
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
             reactTutorialGalleryViewStub.should.have.been.calledOnce;
+=======
+            TutorialGalleryViewStub.should.have.been.calledOnce;
+>>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
         });
 
         it('should register and show transaction page', async () => {
@@ -452,8 +482,8 @@ describe('ExtensionUtil Tests', () => {
         });
 
         it('should register and show tutorial page', async () => {
-            const tutorialViewStub: sinon.SinonStub = mySandBox.stub(TutorialView.prototype, 'openView');
-            tutorialViewStub.resolves();
+            const TutorialViewStub: sinon.SinonStub = mySandBox.stub(TutorialView.prototype, 'openView');
+            TutorialViewStub.resolves();
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
             const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
@@ -463,6 +493,7 @@ describe('ExtensionUtil Tests', () => {
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_TUTORIAL_PAGE, 'IBMCode/Code-Tutorials', 'Developing smart contracts with IBM Blockchain VSCode Extension');
 
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+<<<<<<< HEAD
             tutorialViewStub.should.have.been.calledOnce;
         });
 
@@ -479,6 +510,9 @@ describe('ExtensionUtil Tests', () => {
 
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
             reactTutorialViewStub.should.have.been.calledOnce;
+=======
+            TutorialViewStub.should.have.been.calledOnce;
+>>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
         });
 
         it('should register and show sample page', async () => {

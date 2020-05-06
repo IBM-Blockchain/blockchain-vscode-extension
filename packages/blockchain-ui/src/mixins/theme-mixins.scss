@@ -26,7 +26,7 @@
 @mixin app__tutorial-page-dark {
     .app-container__tutorial-page {
         background-color: $gray-90;
-        box-shadow: inset 0px 148px #000000;
+        box-shadow: inset 0px 164px #000000;
     }
 }
 
@@ -186,6 +186,21 @@
     a.bx--tabs__nav-link:focus {
         outline: 2px solid $blue-40;
     }
+<<<<<<< HEAD
+=======
+
+    .download-all {
+        color: $blue-40;
+    }
+
+    .series-description {
+        color: $gray-10;
+    }
+    
+    a:hover {
+        color: $blue-40;
+    }
+>>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
 }
 
 @mixin tutorial-tile-dark {

@@ -4,6 +4,7 @@
     }
 }
 
+<<<<<<< HEAD
 .vscode-light{
     .bx--tab-content{
         background-color: #f4f4f4 !important;
@@ -25,5 +26,31 @@
         width: 100% !important;
         padding-left: 0px !important;
     }
+=======
+.series-description-container {
+    margin-top: $spacing-03;
+    margin-bottom: $spacing-06;
+}
+
+.series-description {
+    max-width: 650px;
+    font-family: 'IBMPlexSans', sans-serif;
+    font-size: 14px;
+    line-height: 1.25rem;
+    margin-bottom: $spacing-06;
+    color: $gray-100;
+}
+
+.download-all {
+    cursor: pointer;
+    text-decoration: none;
+    font-family: 'IBMPlexSans', sans-serif;
+    font-size: 14px;
+    margin-top: $spacing-03;
+    color: $blue-60;
+    letter-spacing: 0.16px;
+    line-height: 18px;
+}
+>>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
 
 }
