@@ -1,5 +1,4 @@
 <!-- # TUTORIAL 2: Create a cloud blockchain deployment -->
-**Tutorial 2** 
 
 ## **Create a cloud blockchain deployment**
 `50-60 mins`
