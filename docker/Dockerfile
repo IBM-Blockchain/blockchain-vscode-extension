@@ -1,12 +1,12 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-FROM codercom/code-server:2.1698
+FROM codercom/code-server:3.1.1
 # Revert back to root
 USER root
 # Add essential build dependencies
 RUN apt-get update && \
-    apt-get -y install build-essential python && \
+    apt-get -y install build-essential python wget && \
     rm -rf /var/lib/apt/lists/*
 # Install Go and the various Go dependencies
 RUN wget -qO go1.13.6.linux-amd64.tar.gz https://dl.google.com/go/go1.13.6.linux-amd64.tar.gz && \
@@ -43,7 +43,8 @@ RUN mkdir /usr/local/node && \
 ENV PATH /usr/local/node/bin:${PATH}
 # Install other extensions for Visual Studio Code
 RUN code-server --extensions-dir /usr/local/extensions --install-extension ms-vscode.go && \
-    code-server --extensions-dir /usr/local/extensions --install-extension vscjava.vscode-java-pack && \
+    code-server --extensions-dir /usr/local/extensions --install-extension redhat.java && \
+    code-server --extensions-dir /usr/local/extensions --install-extension vscjava.vscode-java-debug && \
     chmod a+w /usr/local/extensions/redhat.java-*/server/config_linux
 # Install our extension for Visual Studio Code
 COPY ibm-blockchain-platform-docker.vsix /tmp/
