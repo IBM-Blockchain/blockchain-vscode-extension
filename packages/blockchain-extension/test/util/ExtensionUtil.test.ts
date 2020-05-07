@@ -2160,10 +2160,10 @@ describe('ExtensionUtil Tests', () => {
         });
     });
 
-    describe('getExtensionRequireCloudLoginSetting', () => {
+    describe('getExtensionSaasConfigUpdatesSetting', () => {
         it('should get required cloud login setting', async () => {
 
-            const result: any = ExtensionUtil.getExtensionRequireCloudLoginSetting();
+            const result: any = ExtensionUtil.getExtensionSaasConfigUpdatesSetting();
             result.should.deep.equal( true );
         });
     });

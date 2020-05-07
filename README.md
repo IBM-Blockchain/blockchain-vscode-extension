@@ -65,9 +65,9 @@ The extension allow you to connect to any Hyperledger Fabric instance and perfor
 
 To connect to a Hyperledger Fabric instance on the `Fabric Environments` panel click the `+` button. This will ask you for JSON node files that describe how to connect to a Hyperledger Fabric Node i.e. peer, orderer, or certificate authority.
 
-If you are connecting to an instance of IBM Blockchain Platform console on IBM Cloud the JSON node files can be exported, (see the tutorials for more information).
+If you are connecting to an instance of IBM Blockchain Platform console on IBM Cloud, you can add an environment by connecting directly to the console. You will be able to login to IBM Cloud using username and password, API key or single sign-on, as well as create a new account if you don't already have one. Once the environment is created, if you prefer to work whilst logged out and do not want to be prompted to login on connect, you can disable 'Poll For Config Updates When Connected To IBM Blockchain Platform On IBM Cloud Environments' in the user settings.
 
-If connecting to an IBM Blockchain Platform console software version, you can add an environment by connecting directly to the console. When prompted for authentication credentials you can either provide User ID and password, or API key and API secret.
+If connecting to an IBM Blockchain Platform console software version, you can also add an environment by connecting directly to the console. When prompted for authentication credentials you can either provide User ID and password, or API key and API secret.
 
 For other instances of Hyperledger Fabric you can create the JSON node files yourself.
 

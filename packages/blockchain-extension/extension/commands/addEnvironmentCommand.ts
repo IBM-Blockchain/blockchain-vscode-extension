@@ -100,7 +100,7 @@ export async function addEnvironment(): Promise<void> {
 
         } else if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS) {
 
-            const isSaaS: string = await UserInputUtil.showQuickPickYesNo('Are you connecting to a service instance on IBM Cloud?');
+            const isSaaS: string = await UserInputUtil.showQuickPickYesNo('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?');
             if (!isSaaS) {
                 return;
             } else if (isSaaS === UserInputUtil.NO) {

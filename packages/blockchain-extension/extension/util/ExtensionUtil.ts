@@ -722,8 +722,8 @@ export class ExtensionUtil {
         return vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
     }
 
-    public static getExtensionRequireCloudLoginSetting(): boolean {
-        return vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_REQUIRE_CLOUD_LOGIN);
+    public static getExtensionSaasConfigUpdatesSetting(): boolean {
+        return vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_SAAS_CONFIG_UPDATES);
     }
 
     private static getExtension(): vscode.Extension<any> {
