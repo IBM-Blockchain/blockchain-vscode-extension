@@ -101,6 +101,11 @@ describe('AddEnvironmentCommand', () => {
 
             // Ops tools requirements
             axiosGetStub = mySandBox.stub(Axios, 'get');
+<<<<<<< HEAD
+=======
+            showQuickPickYesNoStub = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').callThrough();
+            showQuickPickYesNoStub.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves(UserInputUtil.NO);
+>>>>>>> 6818110e... Connect to IBM cloud - multi-node orderer fixes and word changes (#2276)
 
             url = 'my/OpsTool/url';
             userAuth1 = 'myOpsToolKey';
@@ -984,5 +989,292 @@ describe('AddEnvironmentCommand', () => {
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
             sendTelemetryEventStub.should.not.have.been.calledOnceWithExactly('addEnvironmentCommand');
         });
+<<<<<<< HEAD
+=======
+
+        it('should handle when user cancels while choosing location of the OpsTool instance', async () => {
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
+            showQuickPickYesNoStub.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(0);
+
+            cloudAccountGetAccessTokenStub.should.have.not.been.called;
+            chooseNameStub.should.have.not.been.called;
+            axiosGetStub.should.have.not.been.called;
+            chooseBlockchainStub.should.have.not.been.called;
+            deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+        });
+
+        it('should suggest default name when adding environment from a SaaS OpsTool instance (SaaS)', async () => {
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
+            chooseNameStub.onFirstCall().returnsArg(1);
+            showQuickPickYesNoStub.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves(UserInputUtil.YES);
+            axiosGetStub.onFirstCall().resolves(resourcesResponseMock);
+            axiosGetStub.onSecondCall().resolves(consoleStatusMock);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(1);
+            environments[0].should.deep.equal({
+                name: originalSaaSName,
+                url: urlSaaS,
+                environmentType: EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT
+            });
+
+            cloudAccountGetAccessTokenStub.should.have.been.called;
+            axiosGetStub.should.have.been.calledTwice;
+            chooseBlockchainStub.should.have.not.been.called;
+            deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
+        });
+
+        it('should handle errors getting the access token when adding an OpsTool instance (SaaS)', async () => {
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
+            chooseNameStub.onFirstCall().resolves('mySaaSOpsToolsEnvironment');
+            showQuickPickYesNoStub.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves(UserInputUtil.YES);
+            const error: Error = new Error('some error');
+            cloudAccountGetAccessTokenStub.rejects(error);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(0);
+
+            cloudAccountGetAccessTokenStub.should.have.been.calledOnce;
+            axiosGetStub.should.have.not.been.called;
+            chooseBlockchainStub.should.have.not.been.called;
+            deleteEnvironmentSpy.should.have.not.been.called;
+            chooseNameStub.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${error.message}`, `Failed to add a new environment: ${error.toString()}`);
+        });
+
+        it('should handle user canceling while getting access token when adding an OpsTool instance (SaaS)', async () => {
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
+            showQuickPickYesNoStub.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves(UserInputUtil.YES);
+            cloudAccountGetAccessTokenStub.resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(0);
+
+            cloudAccountGetAccessTokenStub.should.have.been.called;
+            axiosGetStub.should.have.not.been.called;
+            chooseBlockchainStub.should.have.not.been.called;
+            deleteEnvironmentSpy.should.have.not.been.called;
+            chooseNameStub.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+        });
+
+        it('should handle more than one page of resources when adding an OpsTool instance (SaaS)', async () => {
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
+            chooseNameStub.onFirstCall().resolves('mySaaSOpsToolsEnvironment');
+            showQuickPickYesNoStub.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves(UserInputUtil.YES);
+            axiosGetStub.onFirstCall().resolves({
+                data: {
+                    next_url: '/some/resource/path',
+                    resources: [{
+                        resource_plan_id: 'otherService-standard',
+                        name: 'myOtherService10',
+                        guid: 'someGUID10',
+                        dashboard_url: 'https://some.dashboard.url10/some/path'
+                            }]
+                        }
+                    });
+            axiosGetStub.onSecondCall().resolves(resourcesResponseMock);
+            axiosGetStub.onThirdCall().resolves(consoleStatusMock);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(1);
+
+            cloudAccountGetAccessTokenStub.should.have.been.called;
+            axiosGetStub.should.have.been.calledThrice;
+            chooseBlockchainStub.should.have.not.been.called;
+            deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
+
+        });
+
+        it('should fail if there are no IBM Blockchain Platform resources for the selected account when adding an OpsTool instance (SaaS)', async () => {
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
+            chooseNameStub.onFirstCall().resolves('mySaaSOpsToolsEnvironment');
+            showQuickPickYesNoStub.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves(UserInputUtil.YES);
+            const noBlockchainError: Error = new Error('There are no IBM Blockchain Platform service instances associated with the chosen account');
+            axiosGetStub.onFirstCall().resolves({
+                data: {
+                        next_url: null,
+                        resources: [{
+                                        resource_plan_id: 'otherService-standard',
+                                        name: 'myOtherService',
+                                        guid: 'someGUID2',
+                                        dashboard_url: 'https://some.dashboard.url2/some/path'
+                                    }]
+                }
+            });
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(0);
+
+            cloudAccountGetAccessTokenStub.should.have.been.called;
+            chooseNameStub.should.have.not.been.called;
+            axiosGetStub.should.have.been.calledOnce;
+            chooseBlockchainStub.should.have.not.been.called;
+            deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${noBlockchainError.message}`, `Failed to add a new environment: ${noBlockchainError.toString()}`);
+        });
+
+        it('should ask user to select resource if more than one IBM Blockchain platform exists when adding an OpsTool instance (SaaS)', async () => {
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
+            chooseNameStub.onFirstCall().resolves('mySaaSOpsToolsEnvironment');
+            showQuickPickYesNoStub.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves(UserInputUtil.YES);
+            axiosGetStub.onFirstCall().resolves({
+                data: {
+                        next_url: null,
+                        resources: [{
+                                        resource_plan_id: 'blockchain-standard',
+                                        name: 'myBlockchainPlatform',
+                                        guid: 'someGUID1',
+                                        dashboard_url: 'https://some.dashboard.url1/some/path'
+                                    }, {
+                                        resource_plan_id: 'blockchain-standard',
+                                        name: 'myBlockchainPlatform2',
+                                        guid: 'someGUID2',
+                                        dashboard_url: 'https://some.dashboard.url2/some/path'
+                                    }]
+                }
+            });
+            chooseBlockchainStub.resolves(
+                {
+                    data: {
+                        resource_plan_id: 'blockchain-standard',
+                        name: 'myBlockchainPlatform',
+                        guid: 'someGUID1',
+                        dashboard_url: 'https://some.dashboard.url1/some/path'
+                    }
+                }
+            );
+            axiosGetStub.onSecondCall().resolves(consoleStatusMock);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(1);
+            environments[0].should.deep.equal({
+                name: 'mySaaSOpsToolsEnvironment',
+                url: urlSaaS,
+                environmentType: EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT
+            });
+
+            cloudAccountGetAccessTokenStub.should.have.been.called;
+            axiosGetStub.should.have.been.calledTwice;
+            chooseBlockchainStub.should.have.been.calledOnce;
+            deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
+        });
+
+        it('should handle user canceling while selecting an IBM Blockchain platform when adding an OpsTool instance (SaaS)', async () => {
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
+            chooseNameStub.onFirstCall().resolves('mySaaSOpsToolsEnvironment');
+            showQuickPickYesNoStub.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves(UserInputUtil.YES);
+            axiosGetStub.onFirstCall().resolves({
+                data: {
+                        next_url: null,
+                        resources: [{
+                                        resource_plan_id: 'blockchain-standard',
+                                        name: 'myBlockchainPlatform',
+                                        guid: 'someGUID1',
+                                        dashboard_url: 'https://some.dashboard.url1/some/path'
+                                    }, {
+                                        resource_plan_id: 'blockchain-standard',
+                                        name: 'myBlockchainPlatform2',
+                                        guid: 'someGUID2',
+                                        dashboard_url: 'https://some.dashboard.url2/some/path'
+                                    }]
+                }
+            });
+            chooseBlockchainStub.resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(0);
+
+            cloudAccountGetAccessTokenStub.should.have.been.called;
+            axiosGetStub.should.have.been.calledOnce;
+            chooseBlockchainStub.should.have.been.calledOnce;
+            deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+        });
+
+        it('should fail if OpsTools not deployed adding an OpsTool instance (SaaS)', async () => {
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
+            chooseNameStub.onFirstCall().resolves('mySaaSOpsToolsEnvironment');
+            showQuickPickYesNoStub.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves(UserInputUtil.YES);
+            axiosGetStub.onFirstCall().resolves(resourcesResponseMock);
+            axiosGetStub.onSecondCall().resolves({
+                status: 100,
+                data: {
+                    endpoint: urlSaaS
+                }
+            });
+            const deploymentError: Error = new Error(`Got status 100. Please make sure the IBM Blockchain Platform Console deployment has finished before adding environment.`);
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(0);
+
+            cloudAccountGetAccessTokenStub.should.have.been.called;
+            axiosGetStub.should.have.been.calledTwice;
+            chooseBlockchainStub.should.have.not.been.called;
+            deleteEnvironmentSpy.should.have.not.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${deploymentError.message}`, `Failed to add a new environment: ${deploymentError.toString()}`);
+        });
+
+>>>>>>> 6818110e... Connect to IBM cloud - multi-node orderer fixes and word changes (#2276)
     });
 });

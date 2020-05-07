@@ -157,11 +157,49 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             let response: any;
 
             try {
+<<<<<<< HEAD
                 // establish connection to Ops Tools and retrieve json file
                 const credentials: string = await keytar.getPassword('blockchain-vscode-ext', environmentRegistryEntry.url);
                 const credentialsArray: string[] = credentials.split(':');
                 if (credentialsArray.length !== 3) {
                     throw new Error(`Unable to retrieve the stored credentials`);
+=======
+                if (environmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
+                    let askUserInput: boolean;
+                    if ( fromConnectEnvironment ) {
+                        askUserInput = ExtensionUtil.getExtensionSaasConfigUpdatesSetting();
+                    } else {
+                        askUserInput = true;
+                    }
+
+                    const accessToken: string = await ExtensionsInteractionUtil.cloudAccountGetAccessToken( askUserInput );
+                    if (!accessToken) {
+                        if (fromConnectEnvironment) {
+                            throw new Error('User must be logged in to an IBM Cloud account');
+                        }
+                        return;
+                    }
+                    requestOptions = { headers: { Authorization: `Bearer ${accessToken}` } };
+                } else {
+                    const keytar: any = ModuleUtil.getCoreNodeModule('keytar');
+                    if (!keytar) {
+                        throw new Error('Error importing the keytar module');
+                    }
+
+                    const credentials: string = await keytar.getPassword('blockchain-vscode-ext', environmentRegistryEntry.url);
+                    const credentialsArray: string[] = credentials.split(':'); // 'API key or User ID' : 'API secret or password' : rejectUnauthorized
+                    if (credentialsArray.length !== 3) {
+                        throw new Error(`Unable to retrieve the stored credentials`);
+                    }
+                    const userAuth1: string = credentialsArray[0];
+                    const userAuth2: string = credentialsArray[1];
+                    const rejectUnauthorized: boolean = credentialsArray[2] === 'true';
+                    requestOptions = {
+                        headers: { 'Content-Type': 'application/json' },
+                        auth: { username: userAuth1, password: userAuth2 }
+                    };
+                    requestOptions.httpsAgent = new https.Agent({rejectUnauthorized: rejectUnauthorized});
+>>>>>>> 6818110e... Connect to IBM cloud - multi-node orderer fixes and word changes (#2276)
                 }
                 const userAuth1: string = credentialsArray[0];
                 const userAuth2: string = credentialsArray[1];

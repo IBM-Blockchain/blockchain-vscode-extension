@@ -27,6 +27,10 @@ export class SettingConfigurations {
     static readonly EXTENSION_DIRECTORY: string = 'ibm-blockchain-platform.ext.directory';
     static readonly EXTENSION_BYPASS_PREREQS: string = 'ibm-blockchain-platform.ext.bypassPreReqs';
     static readonly EXTENSION_LOCAL_FABRIC: string = 'ibm-blockchain-platform.ext.enableLocalFabric';
+<<<<<<< HEAD:packages/blockchain-extension/extension/configurations.ts
+=======
+    static readonly EXTENSION_SAAS_CONFIG_UPDATES: string = 'ibm-blockchain-platform.ext.PollForConfigUpdatesWhenConnectedToIBM BlockchainPlatformOnIBM CloudEnvironments';
+>>>>>>> 6818110e... Connect to IBM cloud - multi-node orderer fixes and word changes (#2276):packages/blockchain-extension/configurations.ts
 
     // HOME CONFIGURATIONS
     static readonly HOME_SHOW_ON_STARTUP: string = 'ibm-blockchain-platform.home.showOnStartup';

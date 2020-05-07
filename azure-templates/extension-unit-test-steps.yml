@@ -17,7 +17,10 @@ steps:
       npm test
     env:
       DISPLAY: ':99.0'
+<<<<<<< HEAD
       REFRESH_PANELS: 'false'
+=======
+>>>>>>> 6818110e... Connect to IBM cloud - multi-node orderer fixes and word changes (#2276)
     displayName: Run unit tests
     condition: succeeded()
 

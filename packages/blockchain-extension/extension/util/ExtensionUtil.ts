@@ -720,6 +720,13 @@ export class ExtensionUtil {
         return vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
     }
 
+<<<<<<< HEAD
+=======
+    public static getExtensionSaasConfigUpdatesSetting(): boolean {
+        return vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_SAAS_CONFIG_UPDATES);
+    }
+
+>>>>>>> 6818110e... Connect to IBM cloud - multi-node orderer fixes and word changes (#2276)
     private static getExtension(): vscode.Extension<any> {
         return vscode.extensions.getExtension(EXTENSION_ID);
     }

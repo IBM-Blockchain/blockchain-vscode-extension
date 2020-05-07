@@ -2157,5 +2157,131 @@ describe('ExtensionUtil Tests', () => {
 
             stopLogsStub.should.not.have.been.called;
         });
+<<<<<<< HEAD
+=======
+
+    });
+
+    describe('#purgeOldRuntimes', () => {
+
+        it(`should delete old ${FabricRuntimeUtil.OLD_LOCAL_FABRIC} and teardown if it exists`, async () => {
+
+            const deleteEnvironmentStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'delete').resolves();
+            const deleteGatewayStub: sinon.SinonStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'delete').resolves();
+            const deleteWalletStub: sinon.SinonStub = mySandBox.stub(FabricWalletRegistry.instance(), 'delete').resolves();
+
+            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
+            pathExistsStub.onCall(0).resolves(true);
+            pathExistsStub.onCall(1).resolves(false);
+
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'update').resolves();
+
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC).resolves();
+
+            await ExtensionUtil.purgeOldRuntimes();
+
+            pathExistsStub.should.have.been.calledTwice;
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC);
+            deleteEnvironmentStub.should.have.been.calledOnceWith(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
+            deleteGatewayStub.should.have.been.calledOnceWith(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
+            deleteWalletStub.should.have.been.calledOnceWith(FabricWalletUtil.OLD_LOCAL_WALLET, true);
+        });
+
+        it(`should delete old ${FabricRuntimeUtil.LOCAL_SPACE_FABRIC} and teardown if it exists`, async () => {
+
+            const deleteEnvironmentStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'delete').resolves();
+            const deleteGatewayStub: sinon.SinonStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'delete').resolves();
+            const deleteWalletStub: sinon.SinonStub = mySandBox.stub(FabricWalletRegistry.instance(), 'delete').resolves();
+
+            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
+            pathExistsStub.onCall(0).resolves(false);
+            pathExistsStub.onCall(1).resolves(true);
+
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'update').resolves();
+
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_SPACE_FABRIC).resolves();
+
+            await ExtensionUtil.purgeOldRuntimes();
+
+            pathExistsStub.should.have.been.calledTwice;
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_SPACE_FABRIC);
+            deleteEnvironmentStub.should.have.been.calledOnceWith(FabricRuntimeUtil.LOCAL_SPACE_FABRIC, true);
+            deleteGatewayStub.should.not.have.been.called;
+            deleteWalletStub.should.not.have.been.called;
+        });
+
+        it(`should delete the ${FabricRuntimeUtil.OLD_LOCAL_FABRIC} and ${FabricRuntimeUtil.LOCAL_SPACE_FABRIC} if they exist`, async () => {
+            const deleteEnvironmentStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'delete').resolves();
+            const deleteGatewayStub: sinon.SinonStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'delete').resolves();
+            const deleteWalletStub: sinon.SinonStub = mySandBox.stub(FabricWalletRegistry.instance(), 'delete').resolves();
+
+            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
+            pathExistsStub.onCall(0).resolves(true);
+            pathExistsStub.onCall(1).resolves(true);
+
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'update').resolves();
+
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_SPACE_FABRIC).resolves();
+
+            await ExtensionUtil.purgeOldRuntimes();
+
+            pathExistsStub.should.have.been.calledTwice;
+
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC);
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_SPACE_FABRIC);
+
+            deleteEnvironmentStub.should.have.been.calledTwice;
+
+            deleteEnvironmentStub.getCall(0).should.have.been.calledWithExactly(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
+            deleteEnvironmentStub.getCall(1).should.have.been.calledWithExactly(FabricRuntimeUtil.LOCAL_SPACE_FABRIC, true);
+
+            deleteGatewayStub.should.have.been.calledOnceWith(FabricRuntimeUtil.OLD_LOCAL_FABRIC, true);
+            deleteWalletStub.should.have.been.calledOnceWith(FabricWalletUtil.OLD_LOCAL_WALLET, true);
+
+        });
+
+        it(`should nothing if older runtimes don't exist`, async () => {
+            const deleteEnvironmentStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'delete').resolves();
+            const deleteGatewayStub: sinon.SinonStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'delete').resolves();
+            const deleteWalletStub: sinon.SinonStub = mySandBox.stub(FabricWalletRegistry.instance(), 'delete').resolves();
+
+            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').resolves(false);
+
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'update').resolves();
+
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_SPACE_FABRIC).resolves();
+
+            await ExtensionUtil.purgeOldRuntimes();
+
+            pathExistsStub.should.have.been.calledTwice;
+
+            executeCommandStub.should.not.have.been.calledWithExactly(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.OLD_LOCAL_FABRIC);
+            executeCommandStub.should.not.have.been.calledWithExactly(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_SPACE_FABRIC);
+
+            deleteEnvironmentStub.should.not.have.been.called;
+
+            deleteGatewayStub.should.not.have.been.called;
+            deleteWalletStub.should.not.have.been.called;
+        });
+
+    });
+
+    describe('getExtensionSaasConfigUpdatesSetting', () => {
+        it('should get required cloud login setting', async () => {
+
+            const result: any = ExtensionUtil.getExtensionSaasConfigUpdatesSetting();
+            result.should.deep.equal( true );
+        });
+>>>>>>> 6818110e... Connect to IBM cloud - multi-node orderer fixes and word changes (#2276)
     });
 });

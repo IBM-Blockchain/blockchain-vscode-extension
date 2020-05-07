@@ -119,6 +119,20 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
             environmentData = 'user environment';
         }
 
+<<<<<<< HEAD
+=======
+        let envType: string;
+        if (fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.ENVIRONMENT) {
+            envType = 'Fabric Network created via JSON files';
+        } else if (fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.ANSIBLE_ENVIRONMENT) {
+            envType = 'Network created using Ansible';
+        } else if (fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
+            envType = 'Ops Tools network';
+        } else {
+            envType = 'Local network';
+        }
+
+>>>>>>> 6818110e... Connect to IBM cloud - multi-node orderer fixes and word changes (#2276)
         const isIBMer: boolean = ExtensionUtil.checkIfIBMer();
         Reporter.instance().sendTelemetryEvent('fabricEnvironmentConnectCommand', { environmentData: environmentData, connectEnvironmentIBM: isIBMer + '' });
     } catch (error) {

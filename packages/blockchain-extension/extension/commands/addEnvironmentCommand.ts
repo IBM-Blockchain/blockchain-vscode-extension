@@ -100,11 +100,16 @@ export async function addEnvironment(): Promise<void> {
                 throw new Error('Error importing the keytar module');
             }
 
+<<<<<<< HEAD
             const HEALTH_CHECK: string = '/ak/api/v1/health';
             const GET_ALL_COMPONENTS: string = '/ak/api/v1/components';
             let url: string;
             const userUrl: string = await UserInputUtil.showInputBox('Enter the URL of the IBM Blockchain Platform Console you want to connect to');
             if (!userUrl) {
+=======
+            const isSaaS: string = await UserInputUtil.showQuickPickYesNo('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?');
+            if (!isSaaS) {
+>>>>>>> 6818110e... Connect to IBM cloud - multi-node orderer fixes and word changes (#2276)
                 return;
             } else {
                 url = userUrl.split('/', 3).join('/');
