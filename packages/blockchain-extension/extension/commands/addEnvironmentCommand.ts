@@ -71,8 +71,8 @@ export async function addEnvironment(): Promise<void> {
             if (configurationChosen === UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS_DATA) {
                 // Open 'create custom tutorial'
                 const extensionPath: string = ExtensionUtil.getExtensionPath();
-                const releaseNotes: string = path.join(extensionPath, 'tutorials', 'developer-tutorials', 'create-custom-networks.md');
-                const uri: vscode.Uri = vscode.Uri.file(releaseNotes);
+                const tutorialPath: string = path.join(extensionPath, 'tutorials', 'developer-tutorials', 'create-custom-networks.md');
+                const uri: vscode.Uri = vscode.Uri.file(tutorialPath);
 
                 await vscode.commands.executeCommand('markdown.showPreview', uri);
 

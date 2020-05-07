@@ -95,4 +95,5 @@ export class ExtensionCommands {
     static readonly OPEN_TUTORIAL_PAGE: string = 'tutorial.open';
     static readonly OPEN_TRANSACTION_PAGE: string = 'transactionPage.open';
     static readonly DEBUG_COMMAND_LIST: string = 'debug.commandList';
+    static readonly SAVE_TUTORIAL_AS_PDF: string = 'tutorial.save';
 }

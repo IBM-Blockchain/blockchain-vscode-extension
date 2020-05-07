@@ -104,14 +104,10 @@
             "preReq.open",
             "releaseNotes.open",
             "tutorialGallery.open",
-<<<<<<< HEAD
-            "reactTutorialGallery.open",
-            "deploy.open",
-            "transactionPage.open"
-=======
             "transactionPage.open",
+            "tutorial.save",
+            "deploy.open",
             "tutorial.save"
->>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
         ]
     },
     "main": "./build/extension/extension",
@@ -223,6 +219,11 @@
                 }
             },
             {
+                "command": "tutorial.save",
+                "title": "Save Tutorial",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "sample.open",
                 "title": "Open Sample",
                 "category": "IBM Blockchain Platform"
@@ -257,19 +258,11 @@
                 "category": "IBM Blockchain Platform"
             },
             {
-<<<<<<< HEAD
-                "command": "reactTutorialGallery.open",
-                "title": "View React Tutorial Gallery",
-                "category": "IBM Blockchain Platform"
-            },
-            {
                 "command": "deploy.open",
                 "title": "Deploy Smart Contract",
                 "category": "IBM Blockchain Platform"
             },
             {
-=======
->>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
                 "command": "transactionPage.open",
                 "title": "Transact with Smart Contract",
                 "category": "IBM Blockchain Platform"
@@ -609,6 +602,10 @@
             "commandPalette": [
                 {
                     "command": "sample.open",
+                    "when": "false"
+                },
+                {
+                    "command": "tutorial.save",
                     "when": "false"
                 },
                 {

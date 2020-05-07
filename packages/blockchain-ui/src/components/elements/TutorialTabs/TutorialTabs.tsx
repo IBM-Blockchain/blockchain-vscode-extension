@@ -3,24 +3,31 @@ import { Tabs, Tab, Link } from 'carbon-components-react';
 import TutorialTile from '../TutorialTile/TutorialTile';
 import ITutorialObject from '../../../interfaces/ITutorialObject';
 import './TutorialTabs.scss';
+import Utils from '../../../Utils';
+import { ExtensionCommands } from '../../../ExtensionCommands';
+
+// tslint:disable: typedef
 
 interface IProps {
-<<<<<<< HEAD
-    tutorialData: Array<{name: string, tutorials: ITutorialObject[]}>;
-=======
     tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string}>;
->>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
 }
 
 class TutorialTabs extends Component<IProps> {
 
+    savePDFHandler(tutorialFolder: string): void {
+        Utils.postToVSCode({
+            command: ExtensionCommands.SAVE_TUTORIAL_AS_PDF,
+            data: [
+                undefined,
+                true,
+                tutorialFolder
+            ]
+        });
+    }
+
     createTabs(): Array<JSX.Element> {
         const tabArray: JSX.Element[] = [];
-<<<<<<< HEAD
-        this.props.tutorialData.map((tutorialSeries: {name: string, tutorials: ITutorialObject[]}, index: number) => {
-=======
         this.props.tutorialData.map((tutorialSeries: {name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string}, index: number) => {
->>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
             const tabLabel: string = `${tutorialSeries.name} (${tutorialSeries.tutorials.length})`;
             tabArray.push(
                 // @ts-ignore
@@ -29,8 +36,6 @@ class TutorialTabs extends Component<IProps> {
                     tabIndex={index}
                     label={tabLabel}
                 >
-<<<<<<< HEAD
-=======
                     {tutorialSeries.name === 'Basic tutorials' ?
                         <div className='series-description-container'>
                             <p className='series-description'>{tutorialSeries.tutorialDescription}</p>
@@ -38,7 +43,6 @@ class TutorialTabs extends Component<IProps> {
                         </div> :
                         <></>
                     }
->>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
                     {this.populateTabs(tutorialSeries.tutorials)}
                 </Tab>
             );

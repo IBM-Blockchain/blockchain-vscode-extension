@@ -186,8 +186,6 @@
     a.bx--tabs__nav-link:focus {
         outline: 2px solid $blue-40;
     }
-<<<<<<< HEAD
-=======
 
     .download-all {
         color: $blue-40;
@@ -200,7 +198,6 @@
     a:hover {
         color: $blue-40;
     }
->>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
 }
 
 @mixin tutorial-tile-dark {

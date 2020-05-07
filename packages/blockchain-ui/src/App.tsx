@@ -10,12 +10,8 @@ import IPackageRegistryEntry from './interfaces/IPackageRegistryEntry';
 interface AppState {
     redirectPath: string;
     extensionVersion: string;
-<<<<<<< HEAD
-    tutorialData: Array<{name: string, tutorials: ITutorialObject[]}>;
     deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[]};
-=======
     tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string}>;
->>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
 }
 
 class App extends Component<{}, AppState> {

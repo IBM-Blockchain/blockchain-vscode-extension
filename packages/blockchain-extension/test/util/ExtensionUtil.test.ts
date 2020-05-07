@@ -404,6 +404,7 @@ describe('ExtensionUtil Tests', () => {
 =======
 >>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
                 `onCommand:${ExtensionCommands.OPEN_TRANSACTION_PAGE}`,
+                `onCommand:${ExtensionCommands.SAVE_TUTORIAL_AS_PDF}`,
                 `onDebug`
             ]);
         });

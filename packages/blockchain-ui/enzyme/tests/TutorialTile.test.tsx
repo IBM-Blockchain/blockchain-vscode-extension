@@ -20,9 +20,20 @@ interface IProps {
 
 describe('TutorialTile component', () => {
     let mySandBox: sinon.SinonSandbox;
+    let postToVSCodeStub: sinon.SinonStub;
+
+    beforeEach(() => {
+        mySandBox = sinon.createSandbox();
+        postToVSCodeStub = mySandBox.stub(Utils, 'postToVSCode').resolves();
+    });
+
+    afterEach(() => {
+        mySandBox.restore();
+    });
+
     const tutorialObject: ITutorialObject = {
             title: 'a1',
-            series: 'my series',
+            series: 'Basic tutorials',
             firstInSeries: true,
             length: '4 weeks',
             objectives: [
@@ -32,10 +43,6 @@ describe('TutorialTile component', () => {
             ],
             file: 'some/file/path'
     };
-
-    beforeEach(() => {
-        mySandBox = sinon.createSandbox();
-    });
 
     it('should render the expected snapshot', () => {
         const component: any = renderer
@@ -52,7 +59,7 @@ describe('TutorialTile component', () => {
     it('should render a secondary button if tutorial is not first in series', () => {
         const anotherTutorialObject: ITutorialObject = {
             title: 'a4',
-            series: 'my series',
+            series: 'Basic tutorials',
             length: '3 weeks',
             objectives: [
                 'objective 1',
@@ -66,7 +73,6 @@ describe('TutorialTile component', () => {
     });
 
     it(`should post a message to VS Code when the 'Open tutorial' button is clicked`, () => {
-        const postToVSCodeStub: sinon.SinonStub = mySandBox.stub(Utils, 'postToVSCode').resolves();
         const component: ReactWrapper<IProps> = mount(<TutorialTile tutorialObject={tutorialObject}/>);
         component.find('button').at(1).simulate('click');
         postToVSCodeStub.should.have.been.calledOnceWithExactly({
@@ -76,14 +82,30 @@ describe('TutorialTile component', () => {
                 tutorialObject.title
             ]
         });
+        component.find('button').at(1).hasClass('bx--btn--primary').should.equal(true);
+    });
+
+    it('should test user is able to download a tutorial as a pdf', () => {
+
+        const component: ReactWrapper<IProps> = mount(<TutorialTile tutorialObject={tutorialObject}/>);
+
+        component.find('button').at(0).simulate('click');
+        postToVSCodeStub.should.have.been.calledOnceWithExactly({
+            command: ExtensionCommands.SAVE_TUTORIAL_AS_PDF,
+            data: [
+                tutorialObject
+            ]
+        });
+        component.find('button').at(0).hasClass('bx--btn--ghost').should.equal(true);
     });
 
     it('should show badge available if the tutorial has a badge available', () => {
-        const anotherTutorialObject: any = {
+        const anotherTutorialObject: ITutorialObject = {
             title: 'a4',
             length: '3 weeks',
             badge: true,
             file: 'some/file/path',
+            series: 'someSeries',
             objectives: [
                 'objective 1',
                 'objective 2',

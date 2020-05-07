@@ -91,8 +91,6 @@ Array [
     selected={true}
   >
     <div
-<<<<<<< HEAD
-=======
       className="series-description-container"
     >
       <p
@@ -110,7 +108,6 @@ Array [
       </a>
     </div>
     <div
->>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
       className="tab-container"
     >
       <div
@@ -178,6 +175,7 @@ Array [
         <button
           className="pdf-button bx--btn bx--btn--ghost"
           disabled={false}
+          onClick={[Function]}
           tabIndex={0}
           type="button"
         >
@@ -268,14 +266,6 @@ Array [
       <div
         className="button-container"
       >
-        <button
-          className="pdf-button bx--btn bx--btn--ghost"
-          disabled={false}
-          tabIndex={0}
-          type="button"
-        >
-          Download as PDF
-        </button>
         <button
           className="button bx--btn bx--btn--secondary"
           disabled={false}

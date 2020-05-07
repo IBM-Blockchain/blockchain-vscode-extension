@@ -1,3 +1,6 @@
+@import '@carbon/colors/scss/colors';
+@import '@carbon/layout/scss/_spacing';
+
 .vscode-dark{
     .bx--tab-content{
         background-color: #262626 !important;
@@ -53,4 +56,23 @@
 }
 >>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
 
+}
+
+.download-all-container {
+    margin-top: $spacing-03;
+    margin-bottom: $spacing-06;
+}
+
+.download-all {
+    cursor: pointer;
+    text-decoration: none;
+    font-family: 'IBMPlexSans', sans-serif;
+    font-size: 14px;
+    color: $blue-60;
+    letter-spacing: 0.16px;
+    line-height: 18px;
+}
+
+a:hover {
+    color: $blue-60;
 }

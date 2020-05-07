@@ -2,20 +2,20 @@ import React from 'react';
 import renderer from 'react-test-renderer';
 import chai from 'chai';
 import sinonChai from 'sinon-chai';
-
 import TutorialTabs from '../../src/components/elements/TutorialTabs/TutorialTabs';
 import ITutorialObject from '../../src/interfaces/ITutorialObject';
+import sinon, { SinonSandbox } from 'sinon';
+import Utils from '../../src/Utils';
+import { ReactWrapper, mount } from 'enzyme';
+import { ExtensionCommands } from '../../src/ExtensionCommands';
 
 chai.should();
 chai.use(sinonChai);
 
+// tslint:disable no-unused-expression
+
 describe('TutorialTabs component', () => {
 
-<<<<<<< HEAD
-    const tutorialData: Array<{name: string, tutorials: ITutorialObject[]}> = [
-        {
-            name: 'Basic tutorials',
-=======
     let mySandBox: SinonSandbox;
     let savePDFHandlerStub: sinon.SinonStub;
 
@@ -33,7 +33,6 @@ describe('TutorialTabs component', () => {
             name: 'Basic tutorials',
             tutorialFolder: 'basic-tutorials',
             tutorialDescription: 'some description',
->>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
             tutorials: [
                 {
                     title: 'a1',
@@ -50,6 +49,7 @@ describe('TutorialTabs component', () => {
         },
         {
             name: 'Other tutorials',
+            tutorialFolder: 'other-tutorials',
             tutorials: [
                 {
                     title: 'something really interesting',
@@ -79,8 +79,6 @@ describe('TutorialTabs component', () => {
             .toJSON();
         expect(component).toMatchSnapshot();
     });
-<<<<<<< HEAD
-=======
 
     it('should test link to download all tutorials is rendered if the series has pdf tutorials', () => {
         const otherTutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string}> = [
@@ -141,5 +139,4 @@ describe('TutorialTabs component', () => {
         component.find('a').at(2).exists().should.equal(false); // only two `a` tags exist - one for each tab
         savePDFHandlerStub.should.not.have.been.called;
     });
->>>>>>> cc1877d5... Pruned old tutorials and edited extension to use new tutorial gallery (#2261)
 });
