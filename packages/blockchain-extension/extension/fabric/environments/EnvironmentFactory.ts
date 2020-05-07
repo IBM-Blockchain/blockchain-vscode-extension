@@ -13,7 +13,7 @@
 */
 'use strict';
 import { ManagedAnsibleEnvironment } from './ManagedAnsibleEnvironment';
-import { FabricEnvironmentRegistryEntry, EnvironmentType, FabricEnvironment, FileSystemUtil, AnsibleEnvironment, FileConfigurations } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, EnvironmentType, FabricEnvironment, FileSystemUtil, AnsibleEnvironment, FileConfigurations, FabletEnvironment } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from './LocalEnvironment';
 import { LocalEnvironmentManager } from './LocalEnvironmentManager';
 import * as vscode from 'vscode';
@@ -44,6 +44,8 @@ export class EnvironmentFactory {
             return runtime;
         } else if (!managedRuntime && type === EnvironmentType.ANSIBLE_ENVIRONMENT) {
             return new AnsibleEnvironment(name, environmentRegistryEntry.environmentDirectory);
+        } else if (type === EnvironmentType.FABLET_ENVIRONMENT) {
+            return new FabletEnvironment(name, environmentRegistryEntry.environmentDirectory, environmentRegistryEntry.url);
         } else {
             // Safest to assume that it's a non-managed remote environment
             const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);

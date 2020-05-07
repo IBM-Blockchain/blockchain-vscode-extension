@@ -20,6 +20,7 @@ import { FileConfigurations } from '../registries/FileConfigurations';
 import { FileRegistry } from '../registries/FileRegistry';
 import { FabricEnvironmentRegistryEntry, EnvironmentType } from '../registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
+import { FabletEnvironment } from '../environments/FabletEnvironment';
 
 export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEntry> {
 
@@ -65,27 +66,30 @@ export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEnt
         const normalEntries: FabricGatewayRegistryEntry[] = await super.getEntries();
         const otherEntries: FabricGatewayRegistryEntry[] = [];
 
-        let environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
+        const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
 
-        // just get the ansible ones
-        environmentEntries = environmentEntries.filter((entry: FabricEnvironmentRegistryEntry) => {
+        // Get gateways from all Ansible environments.
+        const ansibleEnvironmentEntries: FabricEnvironmentRegistryEntry[] = environmentEntries.filter((entry: FabricEnvironmentRegistryEntry) => {
             return entry.environmentType === EnvironmentType.ANSIBLE_ENVIRONMENT || entry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT;
         });
+        for (const ansibleEnvironmentEntry of ansibleEnvironmentEntries) {
+            const environment: AnsibleEnvironment = new AnsibleEnvironment(ansibleEnvironmentEntry.name, ansibleEnvironmentEntry.environmentDirectory);
+            const gatewayEntries: FabricGatewayRegistryEntry[] = await environment.getGateways();
+            otherEntries.push(...gatewayEntries);
+        }
 
-        for (const environmentEntry of environmentEntries) {
-            const environment: AnsibleEnvironment = new AnsibleEnvironment(environmentEntry.name, environmentEntry.environmentDirectory);
+        // Get gateways from all Fablet environments.
+        const fabletEnvironmentEntries: FabricEnvironmentRegistryEntry[] = environmentEntries.filter((entry: FabricEnvironmentRegistryEntry) => {
+            return entry.environmentType === EnvironmentType.FABLET_ENVIRONMENT;
+        });
+        for (const fabletEnvironmentEntry of fabletEnvironmentEntries) {
+            const environment: FabletEnvironment = this.newFabletEnvironment(fabletEnvironmentEntry.name, fabletEnvironmentEntry.environmentDirectory, fabletEnvironmentEntry.url);
             const gatewayEntries: FabricGatewayRegistryEntry[] = await environment.getGateways();
             otherEntries.push(...gatewayEntries);
         }
 
         return [...normalEntries, ...otherEntries].sort((a: FabricGatewayRegistryEntry, b: FabricGatewayRegistryEntry): number => {
-            const aName: string = a.name;
-            const bName: string = b.name;
-            if (aName > bName) {
-                return 1;
-            } else {
-                return -1;
-            }
+            return a.name.localeCompare(b.name);
         });
     }
 
@@ -98,6 +102,10 @@ export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEnt
         } else {
             await super.update(newEntry);
         }
+    }
+
+    public newFabletEnvironment(name: string, directory: string, url: string): FabletEnvironment {
+        return new FabletEnvironment(name, directory, url);
     }
 
 }
