@@ -106,7 +106,8 @@
             "tutorialGallery.open",
             "deploy.open",
             "transactionPage.open",
-            "tutorial.save"
+            "tutorial.save",
+            "manageFeatureFlags"
         ]
     },
     "main": "./build/extension/extension",
@@ -209,6 +210,11 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Disabling this option prevents repeated prompts when not logged in to IBM Cloud. You will still be asked to log in if you try to perform an action that requires you to be logged in (e.g. editing node filters)."
+                },
+                "ibm-blockchain-platform.ext.featureFlags": {
+                    "type": "object",
+                    "default": {},
+                    "description": "Enable or disable experimental features in the IBM Blockchain Platform extension"
                 }
             }
         },
@@ -584,6 +590,11 @@
             {
                 "command": "gatewaysExplorer.subscribeToEventEntry",
                 "title": "Subscribe to Events",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "manageFeatureFlags",
+                "title": "Enable or disable experimental features",
                 "category": "IBM Blockchain Platform"
             }
         ],
