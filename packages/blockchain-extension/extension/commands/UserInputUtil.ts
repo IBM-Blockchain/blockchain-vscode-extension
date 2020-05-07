@@ -81,6 +81,8 @@ export class UserInputUtil {
     static readonly ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION: string = '(browse for directory)';
     static readonly ADD_ENVIRONMENT_FROM_OPS_TOOLS: string = 'Add an IBM Blockchain Platform network';
     static readonly ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION: string = '(connect to IBM Blockchain Platform Console)';
+    static readonly ADD_ENVIRONMENT_FROM_FABLET: string = 'Add a Fablet network';
+    static readonly ADD_ENVIRONMENT_FROM_FABLET_DESCRIPTION: string = '(connect to an instance of the Fablet runtime)';
     static readonly CANCEL_NO_CERT_CHAIN: string = 'Cancel';
     static readonly CANCEL_NO_CERT_CHAIN_DESCRIPTION: string = `(CA certificates must be added to the operating system trusted CA certificate store)`;
     static readonly CONNECT_NO_CA_CERT_CHAIN: string = 'Proceed without certificate verification';

@@ -23,6 +23,7 @@ import { FabricEnvironmentRegistryEntry, EnvironmentType } from '../../src/regis
 import { FabricEnvironmentRegistry } from '../../src/registries/FabricEnvironmentRegistry';
 import { FileConfigurations } from '../../src/registries/FileConfigurations';
 import { FabricWalletGeneratorFactory } from '../../src/util/FabricWalletGeneratorFactory';
+import { FabletEnvironment } from '../../src/environments/FabletEnvironment';
 
 chai.use(chaiAsPromised);
 chai.should();
@@ -52,14 +53,18 @@ describe('FabricWalletRegistry', () => {
 
     describe('getAll', () => {
 
+        let sandbox: sinon.SinonSandbox;
+
         beforeEach(async () => {
             await registry.clear();
             await environmentRegistry.clear();
+            sandbox = sinon.createSandbox();
         });
 
         afterEach(async () => {
             await registry.clear();
             await environmentRegistry.clear();
+            sandbox.restore();
         });
 
         it('should get all the wallets and put local fabric first', async () => {
@@ -121,15 +126,40 @@ describe('FabricWalletRegistry', () => {
 
             await registry.add(walletOne);
 
-            await environmentRegistry.add(new FabricEnvironmentRegistryEntry({ name: 'myEnvironment', environmentDirectory: path.join('test', 'data', 'nonManagedAnsible'), environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT, managedRuntime: false }));
+            await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
+                name: 'ansibleEnvironment',
+                environmentDirectory: path.join('test', 'data', 'nonManagedAnsible'),
+                environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
+                managedRuntime: false
+            }));
+            await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
+                name: 'fabletEnvironment',
+                environmentDirectory: path.join('test', 'data', 'fablet'),
+                environmentType: EnvironmentType.FABLET_ENVIRONMENT,
+                managedRuntime: false
+            }));
+
+            const newFabletEnvironmentStub: sinon.SinonStub = sandbox.stub(FabricWalletRegistry.instance(), 'newFabletEnvironment');
+            const mockFabletEnvironment: sinon.SinonStubbedInstance<FabletEnvironment> = sinon.createStubInstance(FabletEnvironment);
+            mockFabletEnvironment.getWalletsAndIdentities.resolves([
+                {
+                    name: 'myWallet',
+                    displayName: 'fabletEnvironment - myWallet'
+                }
+            ]);
+            newFabletEnvironmentStub.callsFake((name: string, directory: string, url: string): sinon.SinonStubbedInstance<FabletEnvironment> => {
+                newFabletEnvironmentStub['wrappedMethod'](name, directory, url);
+                return mockFabletEnvironment;
+            });
 
             const entries: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
 
-            entries.length.should.equal(2);
+            entries.length.should.equal(3);
 
-            entries[0].name.should.equal('myWallet');
+            entries[0].displayName.should.equal('ansibleEnvironment - myWallet');
+            entries[1].displayName.should.equal('fabletEnvironment - myWallet');
+            entries[2].should.deep.equal(walletOne);
 
-            entries[1].should.deep.equal(walletOne);
         });
 
         it('should get all including environments ones and set managed if from a managed environment', async () => {
