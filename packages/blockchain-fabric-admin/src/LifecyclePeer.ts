@@ -28,7 +28,7 @@ import * as protos from 'fabric-protos';
 import { Identity, IdentityProvider, Wallet } from 'fabric-network';
 import { LifecycleCommon } from './LifecycleCommon';
 
-const logger: any = Utils.getLogger('packager');
+const logger: any = Utils.getLogger('LifecyclePeer');
 
 export interface LifecyclePeerOptions {
     name: string,

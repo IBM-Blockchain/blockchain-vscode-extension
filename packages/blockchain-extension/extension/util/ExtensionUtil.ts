@@ -103,14 +103,11 @@ import { openReleaseNotes } from '../commands/openReleaseNotesCommand';
 import { viewPackageInformation } from '../commands/viewPackageInformationCommand';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { subscribeToEvent } from '../commands/subscribeToEventCommand';
-<<<<<<< HEAD
 import { approveSmartContract } from '../commands/approveCommand';
 import { commitSmartContract } from '../commands/commitCommand';
 import { deploySmartContract } from '../commands/deployCommand';
 import { openDeployView } from '../commands/openDeployView';
-=======
 import { saveTutorial } from '../commands/saveTutorialCommand';
->>>>>>> fe5ad04b... Added extension command to save tutorial as PDF (#2246)
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -142,7 +139,7 @@ export class ExtensionUtil {
         return this.getExtension().extensionPath;
     }
 
-    public static async getContractNameAndVersion(folder: vscode.WorkspaceFolder): Promise<FabricCommittedSmartContract> {
+    public static async getContractNameAndVersion(folder: vscode.WorkspaceFolder): Promise<{name: string, version: string}> {
         try {
             const packageJson: any = await this.loadJSON(folder, 'package.json');
             return { name: packageJson.name, version: packageJson.version };
@@ -256,11 +253,8 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY, (treeItem: ContractTreeItem | InstantiatedTreeItem) => associateTransactionDataDirectory(treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY, (treeItem: ContractTreeItem | InstantiatedTreeItem) => dissociateTransactionDataDirectory(treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.SUBSCRIBE_TO_EVENT, (treeItem: ContractTreeItem | InstantiatedTreeItem) => subscribeToEvent(treeItem)));
-<<<<<<< HEAD
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_DEPLOY_PAGE, (fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry, channelName: string) => openDeployView(fabricEnvironmentRegistryEntry, channelName)));
-=======
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.SAVE_TUTORIAL_AS_PDF, (tutorialObject: any, saveAll?: boolean, tutorialFolder?: string) => saveTutorial(tutorialObject, saveAll, tutorialFolder)));
->>>>>>> fe5ad04b... Added extension command to save tutorial as PDF (#2246)
 
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_HOME_PAGE, async () => {
             const homeView: HomeView = new HomeView(context);

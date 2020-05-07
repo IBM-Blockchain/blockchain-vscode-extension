@@ -24,17 +24,18 @@ import * as Long from 'long';
 import {LifecycleCommon} from './LifecycleCommon';
 import {Lifecycle} from './Lifecycle';
 import {LifecyclePeer} from './LifecyclePeer';
+import {EndorsementPolicy} from './Policy';
 
-const logger: any = Utils.getLogger('packager');
+const logger: any = Utils.getLogger('LifecycleChannel');
 
 export interface SmartContractDefinitionOptions {
     sequence: number;
     smartContractName: string;
     smartContractVersion: string;
     packageId?: string;
-    // endorsementPlugin?: string;
-    // validationPlugin?: string;
-    // endorsementPolicy?: string | object | Buffer;
+    endorsementPlugin?: string;
+    validationPlugin?: string;
+    endorsementPolicy?: string;
     // collectionConfig?: object | Buffer;
     initRequired?: boolean;
 }
@@ -142,19 +143,17 @@ export class LifecycleChannel {
                 arg.setInitRequired(options.initRequired);
             }
 
-            // if (options.endorsementPlugin) {
-            //     arg.setEndorsementPlugin(options.endorsementPlugin);
-            // } else {
-            // arg.setEndorsementPlugin('escc');
-            // }
-            // if (options.validationPlugin) {
-            //     arg.setValidationPlugin(options.validationPlugin);
-            // } else {
-            // arg.setValidationPlugin('vscc');
-            // }
-            // if (options.endorsementPolicy) {
-            //     arg.setValidationParameter(getEndorsementPolicyBytes(options.endorsementPolicy));
-            // }
+            if (options.endorsementPlugin) {
+                arg.setEndorsementPlugin(options.endorsementPlugin);
+            }
+
+            if (options.validationPlugin) {
+                arg.setValidationPlugin(options.validationPlugin);
+            }
+
+            if (options.endorsementPolicy) {
+                arg.setValidationParameter(this.getEndorsementPolicyBytes(options.endorsementPolicy));
+            }
             // if (options.collectionConfig) {
             //     arg.setCollections(getCollectionConfig(options.collectionConfig));
             // }
@@ -411,17 +410,18 @@ export class LifecycleChannel {
                 arg.setInitRequired(options.initRequired);
             }
 
-            // TODO add this back in when done policies epic
-            // if (options.endorsementPlugin) {
-            //     arg.setEndorsementPlugin(options.endorsementPlugin);
-            // }
-            // if (options.validationPlugin) {
-            //     arg.setValidationPlugin(options.validationPlugin);
-            // }
+            if (options.endorsementPlugin) {
+                arg.setEndorsementPlugin(options.endorsementPlugin);
+            }
+            if (options.validationPlugin) {
+                arg.setValidationPlugin(options.validationPlugin);
+            }
 
-            // if (options.endorsementPolicy) {
-            //     arg.setValidationParameter(getEndorsementPolicyBytes(options.endorsementPolicy));
-            // }
+            if (options.endorsementPolicy) {
+                const endorsementPolicyBuffer: Buffer = this.getEndorsementPolicyBytes(options.endorsementPolicy);
+                arg.setValidationParameter(endorsementPolicyBuffer);
+            }
+            // TODO add this back in when done collections
             // if (options.collectionConfig) {
             //     arg.setCollections(getCollectionConfig(options.collectionConfig));
             // }
@@ -521,5 +521,24 @@ export class LifecycleChannel {
             gateway.disconnect();
             endorser.disconnect();
         }
+    }
+
+    private getEndorsementPolicyBytes(endorsementPolicy: string): Buffer {
+        const method: string = 'getEndorsementPolicyBytes';
+        logger.debug('%s - start', method);
+
+        const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
+
+        if (endorsementPolicy.startsWith(EndorsementPolicy.AND) || endorsementPolicy.startsWith(EndorsementPolicy.OR) || endorsementPolicy.startsWith(EndorsementPolicy.OUT_OF)) {
+            logger.debug('%s - have an  actual policy :: %s', method, endorsementPolicy);
+            const policy: EndorsementPolicy = new EndorsementPolicy();
+            const signaturePolicy: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(endorsementPolicy);
+            applicationPolicy.setSignaturePolicy(signaturePolicy);
+        } else {
+            logger.debug('%s - have a policy reference :: %s', method, endorsementPolicy);
+            applicationPolicy.setChannelConfigPolicyReference(endorsementPolicy);
+        }
+
+        return applicationPolicy.toBuffer();
     }
 }

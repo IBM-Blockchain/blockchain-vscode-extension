@@ -105,13 +105,9 @@
             "releaseNotes.open",
             "tutorialGallery.open",
             "reactTutorialGallery.open",
-<<<<<<< HEAD
             "deploy.open",
-            "transactionPage.open"
-=======
             "transactionPage.open",
             "tutorial.save"
->>>>>>> fe5ad04b... Added extension command to save tutorial as PDF (#2246)
         ]
     },
     "main": "./build/extension/extension",

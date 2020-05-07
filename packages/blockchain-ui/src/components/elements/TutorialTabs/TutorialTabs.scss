@@ -1,4 +1,6 @@
-<<<<<<< HEAD
+@import '@carbon/colors/scss/colors';
+@import '@carbon/layout/scss/_spacing';
+
 .vscode-dark{
     .bx--tab-content{
         background-color: #262626 !important;
@@ -27,24 +29,6 @@
         padding-left: 0px !important;
     }
 
-=======
-@import '@carbon/colors/scss/colors';
-@import '@carbon/layout/scss/_spacing';
-
-.tutorial-tabs-background {
-    width: 100%;
-    height: 48px;
-    position: absolute;
-    left: 0px;
-    z-index: -1;
-    background-color: white;
-}
-
-.bx--tab-content {
-    width: 100%;
-    padding-left: 0px;
-    background-color: transparent;
->>>>>>> fe5ad04b... Added extension command to save tutorial as PDF (#2246)
 }
 
 .download-all-container {

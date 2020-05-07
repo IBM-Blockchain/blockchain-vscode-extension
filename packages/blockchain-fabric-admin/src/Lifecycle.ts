@@ -17,7 +17,7 @@ import {LifecyclePeer, LifecyclePeerOptions} from './LifecyclePeer';
 import {Wallet} from 'fabric-network';
 import {LifecycleChannel} from './LifecycleChannel';
 
-const logger: any = Utils.getLogger('packager');
+const logger: any = Utils.getLogger('Lifecycle');
 
 export interface OrdererOptions {
     name: string,
