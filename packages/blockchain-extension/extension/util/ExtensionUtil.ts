@@ -108,6 +108,7 @@ import { commitSmartContract } from '../commands/commitCommand';
 import { deploySmartContract } from '../commands/deployCommand';
 import { openDeployView } from '../commands/openDeployView';
 import { saveTutorial } from '../commands/saveTutorialCommand';
+import { manageFeatureFlags } from '../commands/manageFeatureFlags';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -290,6 +291,14 @@ export class ExtensionUtil {
             await openTransactionView(treeItem);
         }));
 
+<<<<<<< HEAD
+=======
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.MANAGE_FEATURE_FLAGS, () => manageFeatureFlags()));
+
+        // Teardown old containers and delete environments, wallets, gateways.
+        await this.purgeOldRuntimes();
+
+>>>>>>> 56aeb9f6... Add support for feature flags (resolves #2268) (#2271)
         const goDebugProvider: FabricGoDebugConfigurationProvider = new FabricGoDebugConfigurationProvider();
         const javaDebugProvider: FabricJavaDebugConfigurationProvider = new FabricJavaDebugConfigurationProvider();
         const nodeDebugProvider: FabricNodeDebugConfigurationProvider = new FabricNodeDebugConfigurationProvider();
