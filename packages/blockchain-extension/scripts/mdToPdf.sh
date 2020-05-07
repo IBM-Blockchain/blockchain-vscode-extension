@@ -13,7 +13,7 @@ for D in `find . -mindepth 1 -maxdepth 1 -type d`; do
     echo "Current directory --> $D"
     for file in `find . -name "*.md" -maxdepth 1 -type f`; do
         if [ "$file" != "./index.md" ] && [ "$file" != "./styleguide.md" ]; then
-        ../../../node-modules/pretty-md-pdf -i $file
+        pretty-md-pdf -i $file
         echo "$file"
         fi
     done
