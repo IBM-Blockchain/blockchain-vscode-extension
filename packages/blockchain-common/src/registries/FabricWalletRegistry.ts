@@ -18,6 +18,7 @@ import { FileRegistry } from './FileRegistry';
 import { FabricEnvironmentRegistryEntry, EnvironmentType, EnvironmentFlags } from './FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentRegistry } from './FabricEnvironmentRegistry';
 import { AnsibleEnvironment } from '../environments/AnsibleEnvironment';
+import { FabletEnvironment } from '../environments/FabletEnvironment';
 
 export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry> {
 
@@ -83,14 +84,25 @@ export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry
         const normalEntries: FabricWalletRegistryEntry[] = await super.getEntries();
         const otherEntries: FabricWalletRegistryEntry[] = [];
 
+<<<<<<< HEAD
         // just get the ansible ones
         const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.ANSIBLE]);
 
         for (const environmentEntry of environmentEntries) {
             const environment: AnsibleEnvironment = new AnsibleEnvironment(environmentEntry.name, environmentEntry.environmentDirectory);
+=======
+        const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
+
+        // Get wallets from all Ansible environments.
+        const ansibleEnvironmentEntries: FabricEnvironmentRegistryEntry[] = environmentEntries.filter((entry: FabricEnvironmentRegistryEntry) => {
+            return entry.environmentType === EnvironmentType.ANSIBLE_ENVIRONMENT || entry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT;
+        });
+        for (const ansibleEnvironmentEntry of ansibleEnvironmentEntries) {
+            const environment: AnsibleEnvironment = new AnsibleEnvironment(ansibleEnvironmentEntry.name, ansibleEnvironmentEntry.environmentDirectory);
+>>>>>>> 6de269b0... Allow creation of a Fablet environment (resolves #2280)
             let walletEntries: FabricWalletRegistryEntry[] = await environment.getWalletsAndIdentities();
             walletEntries = walletEntries.map((entry: FabricWalletRegistryEntry) => {
-                if (environmentEntry.managedRuntime) {
+                if (ansibleEnvironmentEntry.managedRuntime) {
                     entry.managedWallet = true;
                 }
 
@@ -99,14 +111,25 @@ export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry
             otherEntries.push(...walletEntries);
         }
 
+        // Get wallets from all Fablet environments.
+        const fabletEnvironmentEntries: FabricEnvironmentRegistryEntry[] = environmentEntries.filter((entry: FabricEnvironmentRegistryEntry) => {
+            return entry.environmentType === EnvironmentType.FABLET_ENVIRONMENT;
+        });
+        for (const fabletEnvironmentEntry of fabletEnvironmentEntries) {
+            const environment: FabletEnvironment = this.newFabletEnvironment(fabletEnvironmentEntry.name, fabletEnvironmentEntry.environmentDirectory, fabletEnvironmentEntry.url);
+            const walletEntries: FabricWalletRegistryEntry[] = await environment.getWalletsAndIdentities();
+            otherEntries.push(...walletEntries);
+        }
+
         return [...normalEntries, ...otherEntries].sort((a: FabricWalletRegistryEntry, b: FabricWalletRegistryEntry): number => {
             const aName: string = a.displayName ? a.displayName : a.name;
             const bName: string = b.displayName ? b.displayName : b.name;
-            if (aName > bName) {
-                return 1;
-            } else {
-                return -1;
-            }
+            return aName.localeCompare(bName);
         });
     }
+
+    public newFabletEnvironment(name: string, directory: string, url: string): FabletEnvironment {
+        return new FabletEnvironment(name, directory, url);
+    }
+
 }

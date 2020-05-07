@@ -16,7 +16,7 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { TestUtil } from '../../TestUtil';
 import { EnvironmentFactory } from '../../../extension/fabric/environments/EnvironmentFactory';
-import { FabricRuntimeUtil, FabricEnvironmentRegistryEntry, EnvironmentType, AnsibleEnvironment, FabricEnvironment } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricEnvironmentRegistryEntry, EnvironmentType, AnsibleEnvironment, FabricEnvironment, FabletEnvironment } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';
 import { ManagedAnsibleEnvironment } from '../../../extension/fabric/environments/ManagedAnsibleEnvironment';
 import { LocalEnvironmentManager } from '../../../extension/fabric/environments/LocalEnvironmentManager';
@@ -124,6 +124,16 @@ describe('EnvironmentFactory', () => {
 
         const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = EnvironmentFactory.getEnvironment(registryEntry);
         environment.should.be.an.instanceOf(AnsibleEnvironment);
+    });
+
+    it('should return a Fablet environment', async () => {
+        const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+        registryEntry.name = 'fabletEnvironment';
+        registryEntry.managedRuntime = false;
+        registryEntry.environmentType = EnvironmentType.FABLET_ENVIRONMENT;
+
+        const environment: LocalEnvironment | ManagedAnsibleEnvironment | AnsibleEnvironment | FabricEnvironment = EnvironmentFactory.getEnvironment(registryEntry);
+        environment.should.be.an.instanceOf(FabletEnvironment);
     });
 
 });

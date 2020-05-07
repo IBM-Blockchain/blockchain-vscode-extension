@@ -20,7 +20,7 @@ import * as path from 'path';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, EnvironmentType, FabricEnvironment, FabricNode, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, EnvironmentType, FabricEnvironment, FabricNode, FabricRuntimeUtil, FileSystemUtil, FileConfigurations } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { ModuleUtil } from '../util/ModuleUtil';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
@@ -30,6 +30,7 @@ import { ExtensionUtil } from '../util/ExtensionUtil';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { URL } from 'url';
 import { ExtensionsInteractionUtil } from '../util/ExtensionsInteractionUtil';
+import { FeatureFlagManager } from '../util/FeatureFlags';
 
 export async function addEnvironment(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -39,12 +40,38 @@ export async function addEnvironment(): Promise<void> {
     try {
         outputAdapter.log(LogType.INFO, undefined, 'Add environment');
 
-        const items: IBlockchainQuickPickItem<string>[] = [{ label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }];
+        const items: IBlockchainQuickPickItem<string>[] = [{
+            label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR,
+            data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR,
+            description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION
+        }, {
+            label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS,
+            data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS,
+            description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION
+        }, {
+            label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES,
+            data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES,
+            description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION
+        }];
 
         // Can only create from template if Docker is enabled.
         const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
         if (localFabricEnabled) {
-            items.unshift({label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION});
+            items.unshift({
+                label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE,
+                data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE,
+                description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION
+            });
+        }
+
+        // Can only create Fablet environments if feature flag is enabled.
+        const fabletEnabled: boolean = await FeatureFlagManager.enabled(FeatureFlagManager.FABLET);
+        if (fabletEnabled) {
+            items.push({
+                label: UserInputUtil.ADD_ENVIRONMENT_FROM_FABLET,
+                data: UserInputUtil.ADD_ENVIRONMENT_FROM_FABLET,
+                description: UserInputUtil.ADD_ENVIRONMENT_FROM_FABLET_DESCRIPTION
+            });
         }
 
         const chosenMethod: IBlockchainQuickPickItem<string> = await UserInputUtil.showQuickPickItem('Select a method to add an environment', items) as IBlockchainQuickPickItem<string>;
@@ -119,8 +146,21 @@ export async function addEnvironment(): Promise<void> {
                 fabricEnvironmentEntry.environmentType = EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT;
                 defaultName = accessInfo[1];
             }
+<<<<<<< HEAD
         } else {
            fabricEnvironmentEntry.environmentType = EnvironmentType.ENVIRONMENT;
+=======
+        } else if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_FABLET) {
+            const url: string = await UserInputUtil.showInputBox(
+                'Enter the URL of the Fablet network you want to connect to',
+                'http://console.127-0-0-1.nip.io:8080'
+            );
+            if (!url) {
+                return;
+            }
+            fabricEnvironmentEntry.url = url;
+            fabricEnvironmentEntry.environmentType = EnvironmentType.FABLET_ENVIRONMENT;
+>>>>>>> 6de269b0... Allow creation of a Fablet environment (resolves #2280)
         }
 
         const environmentName: string = await UserInputUtil.showInputBox('Enter a name for the environment', defaultName);
@@ -170,12 +210,19 @@ export async function addEnvironment(): Promise<void> {
             fabricEnvironmentEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
         }
 
+        if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_FABLET) {
+            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const resolvedExtDir: string = FileSystemUtil.getDirPath(extDir);
+            envDir = path.join(resolvedExtDir, FileConfigurations.FABRIC_ENVIRONMENTS, environmentName);
+            fabricEnvironmentEntry.environmentDirectory = envDir;
+        }
+
         if (createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE) {
             // We don't want to add an entry if creating from a template, as the initialize handles this.
             await fabricEnvironmentRegistry.add(fabricEnvironmentEntry);
         }
 
-        if (createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_DIR && createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE) {
+        if (createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_DIR && createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE && createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_FABLET) {
 
             let addedAllNodes: boolean;
 
