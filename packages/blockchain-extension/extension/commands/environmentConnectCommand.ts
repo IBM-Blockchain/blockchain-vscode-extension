@@ -133,7 +133,7 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
             envType = 'Fabric Network created via JSON files';
         } else if (fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.ANSIBLE_ENVIRONMENT) {
             envType = 'Network created using Ansible';
-        } else if (fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT) {
+        } else if (fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
             envType = 'Ops Tools network';
         } else {
             envType = 'Local network';
