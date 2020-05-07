@@ -664,6 +664,7 @@ describe('ExtensionUtil Tests', () => {
                 `onCommand:${ExtensionCommands.OPEN_TUTORIAL_GALLERY}`,
                 `onCommand:${ExtensionCommands.OPEN_TRANSACTION_PAGE}`,
                 `onCommand:${ExtensionCommands.SAVE_TUTORIAL_AS_PDF}`,
+                `onCommand:${ExtensionCommands.MANAGE_FEATURE_FLAGS}`,
                 `onDebug`
             ]);
         });

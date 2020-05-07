@@ -106,6 +106,7 @@ import { viewPackageInformation } from '../commands/viewPackageInformationComman
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { subscribeToEvent } from '../commands/subscribeToEventCommand';
 import { saveTutorial } from '../commands/saveTutorialCommand';
+import { manageFeatureFlags } from '../commands/manageFeatureFlags';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -351,6 +352,8 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE, async (treeItem: InstantiatedTreeItem) => {
             await openTransactionView(treeItem);
         }));
+
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.MANAGE_FEATURE_FLAGS, () => manageFeatureFlags()));
 
         // Teardown old containers and delete environments, wallets, gateways.
         await this.purgeOldRuntimes();
