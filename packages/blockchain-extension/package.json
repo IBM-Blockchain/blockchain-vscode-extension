@@ -12,7 +12,7 @@
     ],
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
-    "version": "1.0.28",
+    "version": "1.0.29",
     "publisher": "IBMBlockchain",
     "icon": "resources/blockchain_marketplace.png",
     "galleryBanner": {
@@ -201,10 +201,10 @@
                     "default": true,
                     "description": "Allow this extension to use Docker and Docker Compose to run a simple pre-configured local Hyperledger Fabric network.\n\nIf you change this setting whilst the Prerequistes page is open, you may need to close it and re-open it for the changes to take effect."
                 },
-                "ibm-blockchain-platform.ext.requireCloudLogin": {
+                "ibm-blockchain-platform.ext.PollForConfigUpdatesWhenConnectedToIBM BlockchainPlatformOnIBM CloudEnvironments": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Always require IBM Cloud login when connecting to existing IBM Blockchain Platform on IBM Cloud"
+                    "description": "Disabling this option prevents repeated prompts when not logged in to IBM Cloud. You will still be asked to log in if you try to perform an action that requires you to be logged in (e.g. editing node filters)."
                 }
             }
         },
@@ -1437,11 +1437,11 @@
         "generator-fabric": "0.1.11",
         "handlebars": "^4.5.3",
         "home-dir": "1.0.0",
-        "ibm-blockchain-platform-common": "^1.0.28",
-        "ibm-blockchain-platform-environment-v1": "^1.0.28",
-        "ibm-blockchain-platform-gateway-v1": "^1.0.28",
-        "ibm-blockchain-platform-ui": "^1.0.28",
-        "ibm-blockchain-platform-wallet": "^1.0.28",
+        "ibm-blockchain-platform-common": "^1.0.29",
+        "ibm-blockchain-platform-environment-v1": "^1.0.29",
+        "ibm-blockchain-platform-gateway-v1": "^1.0.29",
+        "ibm-blockchain-platform-ui": "^1.0.29",
+        "ibm-blockchain-platform-wallet": "^1.0.29",
         "request": "^2.88.0",
         "semver": "^6.3.0",
         "shelljs": "^0.8.3",

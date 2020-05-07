@@ -74,6 +74,26 @@ export class FabricEnvironment extends EventEmitter {
         const nodesToUpdate: FabricNode[] = [];
         const allNodes: FabricNode[] = await this.getNodes(false, true);
 
+        if (isOpsTools) {
+            // If this node already exists keep wallet and identity properties.
+            // Check name matches, if not rename the node JSON file.
+            const allUrls: string[] = allNodes.map((_node: FabricNode) => _node.api_url);
+            const index: number = allUrls.indexOf(node.api_url);
+            if (index > -1) {
+                if (allNodes[index].wallet !== undefined) {
+                    node.wallet = allNodes[index].wallet;
+                }
+                if (allNodes[index].identity !== undefined) {
+                    node.identity = allNodes[index].identity;
+                }
+                if (allNodes[index].name !== undefined && node.name !== allNodes[index].name) {
+                    const newNodePath: string = path.resolve(nodesPath, `${node.name}.json`);
+                    const oldNodePath: string = path.resolve(nodesPath, `${allNodes[index].name}.json`);
+                    await fs.move(oldNodePath, newNodePath);
+                }
+            }
+        }
+
         if (node.type === FabricNodeType.ORDERER) {
             // need to also update all the nodes in the same cluster
             const ordererNodes: FabricNode[] = allNodes.filter((_node: FabricNode) => {
@@ -81,31 +101,13 @@ export class FabricEnvironment extends EventEmitter {
             }).map((_node: FabricNode) => {
                 _node.wallet = node.wallet;
                 _node.identity = node.identity;
+                _node.hidden = node.hidden;
                 return _node;
             });
 
             nodesToUpdate.push(...ordererNodes);
         }
 
-        if (isOpsTools) {
-            // If this node already exists keep wallet and identity properties.
-            // Check name matches, if not rename the node JSON file.
-            const allUrls: string[] = allNodes.map((_node: FabricNode) => _node.api_url);
-            const index: number = allUrls.indexOf(node.api_url);
-            if (index > -1) {
-                if (allNodes[index].wallet) {
-                    node.wallet = allNodes[index].wallet;
-                }
-                if (allNodes[index].identity) {
-                    node.identity = allNodes[index].identity;
-                }
-                if (node.name !== allNodes[index].name) {
-                    const newNodePath: string = path.resolve(nodesPath, `${node.name}.json`);
-                    const oldNodePath: string = path.resolve(nodesPath, `${allNodes[index].name}.json`);
-                    await fs.move(oldNodePath, newNodePath);
-                }
-            }
-        }
         // always needs to update itself
         nodesToUpdate.push(node);
 
