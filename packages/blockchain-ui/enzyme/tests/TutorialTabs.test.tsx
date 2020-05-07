@@ -5,15 +5,34 @@ import sinonChai from 'sinon-chai';
 
 import TutorialTabs from '../../src/components/elements/TutorialTabs/TutorialTabs';
 import ITutorialObject from '../../src/interfaces/ITutorialObject';
+import sinon, { SinonSandbox } from 'sinon';
+import Utils from '../../src/Utils';
+import { ReactWrapper, mount } from 'enzyme';
+import { ExtensionCommands } from '../../src/ExtensionCommands';
 
 chai.should();
 chai.use(sinonChai);
 
+// tslint:disable no-unused-expression
+
 describe('TutorialTabs component', () => {
 
-    const tutorialData: Array<{name: string, tutorials: ITutorialObject[]}> = [
+    let mySandBox: SinonSandbox;
+    let savePDFHandlerStub: sinon.SinonStub;
+
+    beforeEach(() => {
+        mySandBox = sinon.createSandbox();
+        savePDFHandlerStub = mySandBox.stub(Utils, 'postToVSCode').resolves();
+    });
+
+    afterEach(() => {
+        mySandBox.restore();
+    });
+
+    const tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string}> = [
         {
             name: 'Basic tutorials',
+            tutorialFolder: 'basic-tutorials',
             tutorials: [
                 {
                     title: 'a1',
@@ -30,6 +49,7 @@ describe('TutorialTabs component', () => {
         },
         {
             name: 'Other tutorials',
+            tutorialFolder: 'other-tutorials',
             tutorials: [
                 {
                     title: 'something really interesting',
@@ -58,5 +78,62 @@ describe('TutorialTabs component', () => {
             .create(<TutorialTabs tutorialData={[]}/>)
             .toJSON();
         expect(component).toMatchSnapshot();
+    });
+
+    it('should test link to download all tutorials is rendered if the series has pdf tutorials', () => {
+        const otherTutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string}> = [
+            {
+                name: 'Basic tutorials',
+                tutorialFolder: 'basic-tutorials',
+                tutorials: [
+                    {
+                        title: 'a1',
+                        series: 'Basic tutorials',
+                        length: '4 weeks',
+                        objectives: [
+                        'objective 1',
+                        'objective 2',
+                        'objective 3'
+                        ],
+                        file: 'some/file/path'
+                    }
+                ]
+            }
+        ];
+        const component: ReactWrapper<{tutorialObject: any, tutorialSeries: string}, {}> = mount(<TutorialTabs tutorialData={otherTutorialData}/>);
+        component.find('a').at(2).simulate('click');
+        savePDFHandlerStub.should.have.been.calledOnceWithExactly({
+            command: ExtensionCommands.SAVE_TUTORIAL_AS_PDF,
+            data: [
+                undefined,
+                true,
+                otherTutorialData[0].tutorialFolder
+            ]
+        });
+    });
+
+    it('should test there is no link to download all tutorials if the series does not have pdf tutorials', () => {
+        const otherTutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string}> = [
+            {
+                name: 'Some tutorials',
+                tutorialFolder: 'some-tutorials',
+                tutorials: [
+                    {
+                        title: 'something really interesting',
+                        series: 'Other tutorials',
+                        length: '10 minutes',
+                        objectives: [
+                            'objective 1',
+                            'objective 2',
+                            'objective 3'
+                        ],
+                        file: 'another/file/path'
+                    }
+                ]
+            }
+        ];
+        const component: ReactWrapper<{tutorialObject: any, tutorialSeries: string}, {}> = mount(<TutorialTabs tutorialData={otherTutorialData}/>);
+        component.find('a').at(2).exists().should.equal(false); // only two `a` tags exist - one for each tab
+        savePDFHandlerStub.should.not.have.been.called;
     });
 });

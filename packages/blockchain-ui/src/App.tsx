@@ -10,8 +10,8 @@ import IPackageRegistryEntry from './interfaces/IPackageRegistryEntry';
 interface AppState {
     redirectPath: string;
     extensionVersion: string;
-    tutorialData: Array<{name: string, tutorials: ITutorialObject[]}>;
     deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[]};
+    tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string}>;
 }
 
 class App extends Component<{}, AppState> {

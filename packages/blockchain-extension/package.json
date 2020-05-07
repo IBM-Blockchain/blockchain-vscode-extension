@@ -106,7 +106,8 @@
             "tutorialGallery.open",
             "reactTutorialGallery.open",
             "deploy.open",
-            "transactionPage.open"
+            "transactionPage.open",
+            "tutorial.save"
         ]
     },
     "main": "./build/extension/extension",
@@ -216,6 +217,11 @@
                     "light": "resources/blockchain_marketplace.png",
                     "dark": "resources/blockchain_marketplace.png"
                 }
+            },
+            {
+                "command": "tutorial.save",
+                "title": "Save Tutorial",
+                "category": "IBM Blockchain Platform"
             },
             {
                 "command": "sample.open",
@@ -606,6 +612,10 @@
             "commandPalette": [
                 {
                     "command": "sample.open",
+                    "when": "false"
+                },
+                {
+                    "command": "tutorial.save",
                     "when": "false"
                 },
                 {

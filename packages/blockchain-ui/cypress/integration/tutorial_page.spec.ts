@@ -6,11 +6,11 @@ describe('Tutorial page', () => {
 
     const tutorialData: Array<{name: string, tutorials: Array<ITutorialObject>}> = [
         {
-            name: 'Basic tutorials',
-             tutorials: [
+            name: 'Basic tutorials',
+            tutorials: [
                 {
                     title: 'a1',
-                    series: 'Basic tutorials',
+                    series: 'Basic tutorials',
                     length: '4 weeks',
                     firstInSeries: true,
                     objectives: [
@@ -55,6 +55,7 @@ describe('Tutorial page', () => {
         let currentTutorial: ITutorialObject = tutorialData[0].tutorials[0];
 
         cy.get('.bx--tabs__nav-item--selected > .bx--tabs__nav-link').contains(tutorialData[0].name);
+        cy.get('.download-all').contains(`Download all "${currentTutorial.series}" as PDF`);
         cy.get('[aria-hidden="false"] > .tab-container').contains(currentTutorial.title);
         cy.get('[aria-hidden="false"] > .tab-container').contains(currentTutorial.length);
 
@@ -76,7 +77,6 @@ describe('Tutorial page', () => {
         cy.get('[aria-hidden="false"] > .tab-container > .tutorial-objectives > :nth-child(2)').contains(currentTutorial.objectives[1]);
         cy.get('[aria-hidden="false"] > .tab-container > .tutorial-objectives > :nth-child(3)').contains(currentTutorial.objectives[2]);
 
-        cy.get('[aria-hidden="false"] > .tab-container > .button-container > .pdf-button').contains('Download as PDF');
         cy.get('[aria-hidden="false"] > .tab-container > .button-container > .button').contains('Open tutorial');
 
     });
