@@ -56,11 +56,13 @@ export class FabricEnvironmentManager extends EventEmitter {
         this.state = newState;
     }
 
-    public connect(connection: IFabricEnvironmentConnection, environmentRegistryEntry: FabricEnvironmentRegistryEntry, state: ConnectedState): void {
+    public connect(connection: IFabricEnvironmentConnection, environmentRegistryEntry: FabricEnvironmentRegistryEntry, state: ConnectedState, startRefresh: boolean = true): void {
         this.connection = connection;
         this.environmentRegistryEntry = environmentRegistryEntry;
         this.state = state;
-        this.startEnvironmentRefresh();
+        if (startRefresh) {
+            this.startEnvironmentRefresh();
+        }
         this.emit('connected');
     }
 
@@ -75,7 +77,7 @@ export class FabricEnvironmentManager extends EventEmitter {
             TimerUtil.cancelInterval(this.timeoutObject);
         }
 
-        if ((this.state === ConnectedState.CONNECTING || this.state === ConnectedState.CONNECTED) && (this.environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT)) {
+        if ((this.state === ConnectedState.CONNECTING || this.state === ConnectedState.CONNECTED) && (this.environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || this.environmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT)) {
             this.timeoutObject = TimerUtil.setInterval(ExtensionCommands.CONNECT_TO_ENVIRONMENT, [this.environmentRegistryEntry, false], 10000);
         }
     }

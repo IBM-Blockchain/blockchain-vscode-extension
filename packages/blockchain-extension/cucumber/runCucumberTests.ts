@@ -27,6 +27,7 @@ async function main(): Promise<void> {
         process.env.MAP_OPSTOOLS_URL = process.argv[2];
         process.env.MAP_OPSTOOLS_KEY = process.argv[3];
         process.env.MAP_OPSTOOLS_SECRET = process.argv[4];
+        process.env.MAP_OPSTOOLS_SAAS_API_KEY = process.argv[5];
 
         // The folder containing the Extension Manifest package.json
         // Passed to `--extensionDevelopmentPath`
