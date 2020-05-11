@@ -1,3 +1,13 @@
-#root {
-
+html{
+    overflow: overlay !important;
+    
+    #root {
+        .deploy-page-container {
+            #customize{
+                p {
+                    margin-bottom: 8px;
+                }
+            }
+        }
+    }
 }

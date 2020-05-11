@@ -1,6 +1,66 @@
 @import '@carbon/colors/scss/colors';
 @import '@carbon/type/scss/type'; 
 
+
+@mixin accordion-content {
+    .bx--accordion__item--active {
+        .bx--accordion__content {
+            padding-right: $spacing-09 !important;
+        }
+    }
+}
+
+@mixin custom-spacing {
+
+    .margin-bottom-03 {
+        margin-bottom: $spacing-03;
+    }
+
+    .margin-bottom-05 {
+        margin-bottom: $spacing-05;
+    }
+
+    .margin-bottom-06 {
+        margin-bottom: $spacing-06;
+    }
+
+    .margin-bottom-07 {
+        margin-bottom: $spacing-07;
+    }
+
+    .margin-right-06 {
+        margin-right: $spacing-06;
+    }        
+
+    .margin-top-06{
+        margin-top: $spacing-06;
+    }
+
+    .margin-top-07{
+        margin-top: $spacing-07;
+    }
+
+    .padding-left-05 {
+        padding-left: $spacing-05;
+    }
+
+    .padding-left-07 {
+        padding-left: $spacing-07;
+    }
+
+    .padding-top-05{
+        padding-top: $spacing-05;
+    }
+
+    .padding-bottom-05 {
+        padding-bottom: $spacing-05;
+    }
+
+    .padding-bottom-07 {
+        padding-bottom: $spacing-07;
+    }
+}
+
 //-------------------------
 // dark theme styles
 //-------------------------

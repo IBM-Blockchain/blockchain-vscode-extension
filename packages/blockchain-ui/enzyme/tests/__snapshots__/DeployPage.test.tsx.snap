@@ -274,7 +274,7 @@ exports[`DeployPage component render should render the expected snapshot 1`] = `
     className="bx--row"
   >
     <div
-      className="bx--col-lg-10 "
+      className="bx--col-lg-10"
     >
       <ul
         className="bx--accordion bx--accordion--end"
