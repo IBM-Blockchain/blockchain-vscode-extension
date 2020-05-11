@@ -26,7 +26,7 @@
 @mixin app__tutorial-page-dark {
     .app-container__tutorial-page {
         background-color: $gray-90;
-        box-shadow: inset 0px 148px #000000;
+        box-shadow: inset 0px 164px #000000;
     }
 }
 
@@ -189,6 +189,10 @@
 
     .download-all {
         color: $blue-40;
+    }
+
+    .series-description {
+        color: $gray-10;
     }
     
     a:hover {

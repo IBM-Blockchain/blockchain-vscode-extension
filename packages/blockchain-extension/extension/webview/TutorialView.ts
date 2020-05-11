@@ -40,7 +40,7 @@ export class TutorialView extends View {
 
         const uri: vscode.Uri = vscode.Uri.file(tutorialPath);
 
-        await vscode.commands.executeCommand('markdown.showPreviewToSide', uri);
+        await vscode.commands.executeCommand('markdown.showPreview', uri);
         Reporter.instance().sendTelemetryEvent('Tutorial Viewed', {series: this.seriesName, tutorial: this.tutorialName});
     }
 

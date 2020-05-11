@@ -76,7 +76,7 @@ describe('TutorialTile component', () => {
         const component: ReactWrapper<IProps> = mount(<TutorialTile tutorialObject={tutorialObject}/>);
         component.find('button').at(1).simulate('click');
         postToVSCodeStub.should.have.been.calledOnceWithExactly({
-            command: ExtensionCommands.OPEN_REACT_TUTORIAL_PAGE,
+            command: ExtensionCommands.OPEN_TUTORIAL_PAGE,
             data: [
                 tutorialObject.series,
                 tutorialObject.title
