@@ -27,6 +27,7 @@ import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 
 export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry, showSuccess: boolean = true): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+    let startRefresh: boolean = true;
     if (showSuccess) {
         outputAdapter.log(LogType.INFO, undefined, `connecting to fabric environment`);
     }
@@ -66,7 +67,7 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
 
         let nodes: FabricNode[] = await fabricEnvironment.getNodes();
 
-        if (fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT) {
+        if (fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
             let informOfChanges: boolean = true;
             if (nodes.length === 0) {
                 const importNodes: boolean = await UserInputUtil.showConfirmationWarningMessage(`Problem connecting to environment ${fabricEnvironmentRegistryEntry.name}: no visible nodes. Would you like to filter nodes?`);
@@ -75,7 +76,15 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
                 }
                 informOfChanges = false;
             }
-            await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, fabricEnvironmentRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, informOfChanges, showSuccess);
+            try {
+                await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, fabricEnvironmentRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, informOfChanges, showSuccess, true);
+            } catch (error) {
+                if (error.message.match(/might be out of date/) !== null) {
+                    startRefresh = false;
+                } else {
+                    throw error;
+                }
+            }
             nodes = await fabricEnvironment.getNodes();
             if (nodes.length === 0) {
                 FabricEnvironmentManager.instance().disconnect();
@@ -105,7 +114,7 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
             return;
         }
 
-        FabricEnvironmentManager.instance().connect(connection, fabricEnvironmentRegistryEntry, ConnectedState.CONNECTING);
+        FabricEnvironmentManager.instance().connect(connection, fabricEnvironmentRegistryEntry, ConnectedState.CONNECTING, startRefresh);
 
         const environmentName: string = fabricEnvironment.getName();
 

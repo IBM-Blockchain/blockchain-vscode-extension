@@ -20,6 +20,7 @@ export enum EnvironmentFlags {
     MANAGED = 1 << 2,
     LOCAL = 1 << 3,
     OPS_TOOLS = 1 << 4,
+    SAAS = 1 << 5,
 }
 
 export enum EnvironmentType {
@@ -28,6 +29,7 @@ export enum EnvironmentType {
     MANAGED_ANSIBLE_ENVIRONMENT = EnvironmentFlags.MANAGED | EnvironmentFlags.ANSIBLE,
     LOCAL_ENVIRONMENT = EnvironmentFlags.LOCAL | EnvironmentFlags.MANAGED | EnvironmentFlags.ANSIBLE, // Local environments,
     OPS_TOOLS_ENVIRONMENT = EnvironmentFlags.OPS_TOOLS,
+    SAAS_OPS_TOOLS_ENVIRONMENT = EnvironmentFlags.OPS_TOOLS | EnvironmentFlags.SAAS,
 }
 
 export class FabricEnvironmentRegistryEntry extends RegistryEntry {
