@@ -126,14 +126,9 @@ module.exports = function(): any {
      * When
      */
 
-<<<<<<< HEAD
-    this.When("I create an environment '{string}'", this.timeout, async (environmentName: string) => {
-        opsToolsAllNodesQuickPick = await this.fabricEnvironmentHelper.createEnvironment(environmentName);
-        await TimerUtil.sleep(3000);
-=======
     this.When(/I create an environment '(.*?)' ?(?:of type '(.*?)')?/, this.timeout, async (environmentName: string, opsType: string) => {
         opsToolsAllNodesQuickPick = await this.fabricEnvironmentHelper.createEnvironment(environmentName, opsType);
->>>>>>> d160f3c1... IBM OpsTools - cucummber tests (#2247)
+        await TimerUtil.sleep(3000);
     });
 
     this.When("I associate identity '{string}' in wallet '{string}' with node '{string}'", this.timeout, async (identity: string, wallet: string, node: string) => {

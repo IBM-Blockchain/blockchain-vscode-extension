@@ -375,13 +375,8 @@ describe('EnvironmentConnectCommand', () => {
                 connectExplorerStub.should.have.been.calledOnce;
                 chooseEnvironmentQuickPick.should.have.been.calledWith(sinon.match.string, false, true);
                 mockConnection.connect.should.have.been.calledOnce;
-<<<<<<< HEAD
                 connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTING);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'managed environment', connectEnvironmentIBM: sinon.match.string });
-=======
-                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTING, true);
-                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'managed environment', connectEnvironmentIBM: sinon.match.string, environmentType: 'Local network' });
->>>>>>> 679b511f... IBM OpsTools - OOD nodes when unable to connect to console. Closes #2055 (#2197)
                 logSpy.calledWith(LogType.SUCCESS, `Connected to ${FabricRuntimeUtil.LOCAL_FABRIC}`);
             });
 

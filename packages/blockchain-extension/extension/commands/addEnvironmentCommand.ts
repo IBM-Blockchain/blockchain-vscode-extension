@@ -119,27 +119,8 @@ export async function addEnvironment(): Promise<void> {
                 fabricEnvironmentEntry.environmentType = EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT;
                 defaultName = accessInfo[1];
             }
-<<<<<<< HEAD
-            // We will now atempt to connect using key and secret. If it fails, there is a problem with the key and secret provided.
-            try {
-                requestOptions.auth = { username: userAuth1, password: userAuth2 };
-                await Axios.get(api, requestOptions);
-            } catch (errorConnecting) {
-                throw new Error(`Problem detected with the authentication information provided: ${errorConnecting.message}`);
-            }
-            // Securely store API key and secret
-            try {
-                await keytar.setPassword('blockchain-vscode-ext', url, `${userAuth1}:${userAuth2}:${requestOptions.httpsAgent.options.rejectUnauthorized}`);
-            } catch (errorStorePass) {
-                throw new Error(`Unable to store the required credentials: ${errorStorePass.message}`);
-            }
-
-            fabricEnvironmentEntry.url = url;
-            fabricEnvironmentEntry.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
         } else {
-            fabricEnvironmentEntry.environmentType = EnvironmentType.ENVIRONMENT;
-=======
->>>>>>> b9e3503c... IBM OpsTools - add environment. Closes #1339 (#2093)
+           fabricEnvironmentEntry.environmentType = EnvironmentType.ENVIRONMENT;
         }
 
         const environmentName: string = await UserInputUtil.showInputBox('Enter a name for the environment', defaultName);

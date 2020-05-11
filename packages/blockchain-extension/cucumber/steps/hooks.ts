@@ -34,11 +34,8 @@ import { SampleHelper } from '../helpers/sampleHelper';
 import { FabricRuntimeUtil, LogType } from 'ibm-blockchain-platform-common';
 import { ModuleUtilHelper } from '../helpers/moduleUtilHelper';
 import { TimerUtil } from '../../extension/util/TimerUtil';
-<<<<<<< HEAD
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-=======
 import { ExtensionsInteractionUtilHelper } from '../helpers/extensionsInteractionUtilHelper';
->>>>>>> d160f3c1... IBM OpsTools - cucummber tests (#2247)
 
 // tslint:disable:no-unused-expression
 

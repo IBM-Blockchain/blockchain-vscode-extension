@@ -317,13 +317,8 @@ describe('ImportNodesToEnvironmentCommand', () => {
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.calledTwice;
             getNodesStub.should.have.been.calledTwice;
-<<<<<<< HEAD
             showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, true, [EnvironmentFlags.OPS_TOOLS]);
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, OpsToolRegistryEntry);
-=======
-            showEnvironmentQuickPickStub.should.have.been.calledWith('Choose an OpsTool environment to filter nodes', false, false, false, IncludeEnvironmentOptions.OPSTOOLSENV);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, opsToolRegistryEntry);
->>>>>>> 679b511f... IBM OpsTools - OOD nodes when unable to connect to console. Closes #2055 (#2197)
             stopEnvironmentRefreshStub.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
