@@ -12,19 +12,26 @@
  * limitations under the License.
 */
 
-import {When} from 'cucumber'
-import {Then} from 'cucumber'
+import {When, Then} from 'cucumber';
 import {CommitHelper} from '../../helpers/CommitHelper';
 import {Helper} from '../../helpers/Helper';
-import {DefinedSmartContract} from '../../../src';
+import {Collection, DefinedSmartContract} from '../../../src';
 
-When(/^I commit the contract( with sequence )?(.?)( and policy )?(.*?)$/, async function(_thing: string, sequence: number, _thing2: string, policy: string): Promise<void> {
-    if (sequence) {
-        this.sequence = sequence;
-    } else {
-        this.sequence = 1;
-    }
+When(/^I commit the contract$/, async function(): Promise<void> {
+    this.sequence = 1;
+    await CommitHelper.commitSmartContract(this.lifecycle, [Helper.org1Peer, Helper.org2Peer], this.label, '0.0.1', this.wallet, this.org1Identity);
+});
+
+When(/^I commit the contract with sequence '(.*)' and policy '(.*)'$/, async function(sequence: number, policy: string): Promise<void> {
+    this.sequence = sequence;
     await CommitHelper.commitSmartContract(this.lifecycle, [Helper.org1Peer, Helper.org2Peer], this.label, '0.0.1', this.wallet, this.org1Identity, policy, sequence);
+});
+
+When(/^I commit the contract with collection config and policy '(.*)'$/, async function(policy: string): Promise<void> {
+    const collectionConfig: Collection[] = await Helper.getCollectionConfig();
+    this.sequence = 1;
+
+    await CommitHelper.commitSmartContract(this.lifecycle, [Helper.org1Peer, Helper.org2Peer], this.label, '0.0.1', this.wallet, this.org1Identity, policy, this.sequence, collectionConfig);
 });
 
 Then(/^the smart contract should committed$/, async function(): Promise<void> {
