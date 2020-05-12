@@ -201,11 +201,18 @@ describe('DeployView', () => {
     describe('deploy', () => {
 
         it('should commit new contract if already connected', async () => {
+
             getConnectionStub.returns(localEnvironmentConnectionMock);
 
-            const deployView: DeployView = new DeployView(context, deployData);
-            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined);
+            const disposeStub: sinon.SinonStub = mySandBox.stub();
+            const webviewPanel: vscode.WebviewPanel = {
+                dispose: disposeStub
+            } as unknown as vscode.WebviewPanel;
 
+            const deployView: DeployView = new DeployView(context, deployData);
+            deployView.panel = webviewPanel;
+            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined);
+            disposeStub.should.have.been.calledOnce;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
 
@@ -220,7 +227,13 @@ describe('DeployView', () => {
             getConnectionStub.onCall(0).returns(otherEnvironmentConnectionMock);
             getConnectionStub.onCall(1).returns(localEnvironmentConnectionMock);
 
+            const disposeStub: sinon.SinonStub = mySandBox.stub();
+            const webviewPanel: vscode.WebviewPanel = {
+                dispose: disposeStub
+            } as unknown as vscode.WebviewPanel;
+
             const deployView: DeployView = new DeployView(context, deployData);
+            deployView.panel = webviewPanel;
             await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined);
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
@@ -237,7 +250,13 @@ describe('DeployView', () => {
             getConnectionStub.onCall(0).returns(undefined);
             getConnectionStub.onCall(1).returns(localEnvironmentConnectionMock);
 
+            const disposeStub: sinon.SinonStub = mySandBox.stub();
+            const webviewPanel: vscode.WebviewPanel = {
+                dispose: disposeStub
+            } as unknown as vscode.WebviewPanel;
+
             const deployView: DeployView = new DeployView(context, deployData);
+            deployView.panel = webviewPanel;
             await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
@@ -253,7 +272,13 @@ describe('DeployView', () => {
         it('should error if unable to connect to environment', async () => {
             getConnectionStub.returns(undefined);
 
+            const disposeStub: sinon.SinonStub = mySandBox.stub();
+            const webviewPanel: vscode.WebviewPanel = {
+                dispose: disposeStub
+            } as unknown as vscode.WebviewPanel;
+
             const deployView: DeployView = new DeployView(context, deployData);
+            deployView.panel = webviewPanel;
             await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
@@ -271,6 +296,12 @@ describe('DeployView', () => {
 
         it('should be able to change the package for a committed definition and default to not comitting', async () => {
             getConnectionStub.returns(localEnvironmentConnectionMock);
+
+            const disposeStub: sinon.SinonStub = mySandBox.stub();
+            const webviewPanel: vscode.WebviewPanel = {
+                dispose: disposeStub
+            } as unknown as vscode.WebviewPanel;
+
             localEnvironmentConnectionMock.getCommittedSmartContracts.resolves([{
                 name: 'defName',
                 version: '0.0.1',
@@ -278,6 +309,7 @@ describe('DeployView', () => {
             }]);
 
             const deployView: DeployView = new DeployView(context, deployData);
+            deployView.panel = webviewPanel;
             await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryTwo, 'defName', '0.0.1', undefined);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
@@ -298,7 +330,13 @@ describe('DeployView', () => {
                 sequence: 1
             }]);
 
+            const disposeStub: sinon.SinonStub = mySandBox.stub();
+            const webviewPanel: vscode.WebviewPanel = {
+                dispose: disposeStub
+            } as unknown as vscode.WebviewPanel;
+
             const deployView: DeployView = new DeployView(context, deployData);
+            deployView.panel = webviewPanel;
             await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryTwo, 'defName', '0.0.1', true);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
@@ -319,7 +357,13 @@ describe('DeployView', () => {
                 sequence: 1
             }]);
 
+            const disposeStub: sinon.SinonStub = mySandBox.stub();
+            const webviewPanel: vscode.WebviewPanel = {
+                dispose: disposeStub
+            } as unknown as vscode.WebviewPanel;
+
             const deployView: DeployView = new DeployView(context, deployData);
+            deployView.panel = webviewPanel;
             await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.2', undefined);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
