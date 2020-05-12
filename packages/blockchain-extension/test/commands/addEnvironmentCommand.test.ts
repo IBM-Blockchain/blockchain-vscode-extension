@@ -22,7 +22,7 @@ import { TestUtil } from '../TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, EnvironmentType, FabricEnvironment, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, EnvironmentType, FabricEnvironment, FabricRuntimeUtil, FileSystemUtil, FileConfigurations } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { UserInputUtil} from '../../extension/commands/UserInputUtil';
@@ -31,6 +31,7 @@ import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { ExtensionData, GlobalState } from '../../extension/util/GlobalState';
 import { ExtensionsInteractionUtil } from '../../extension/util/ExtensionsInteractionUtil';
+import { FeatureFlagManager } from '../../extension/util/FeatureFlags';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -1300,6 +1301,52 @@ describe('AddEnvironmentCommand', () => {
             executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${deploymentError.message}`, `Failed to add a new environment: ${deploymentError.toString()}`);
+        });
+
+        it('should add a Fablet environment', async () => {
+            mySandBox.stub(FeatureFlagManager, 'enabled').withArgs(FeatureFlagManager.FABLET).resolves(true);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_FABLET});
+            chooseNameStub.onFirstCall().resolves('fabletEnvironment');
+            showInputBoxStub.withArgs('Enter the URL of the Fablet network you want to connect to').resolves('http://console.fablet.example.org');
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const resolvedExtDir: string = FileSystemUtil.getDirPath(extDir);
+            const envDir: string = path.join(resolvedExtDir, FileConfigurations.FABRIC_ENVIRONMENTS, 'fabletEnvironment');
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(1);
+            environments[0].should.deep.equal({
+                name: 'fabletEnvironment',
+                url: 'http://console.fablet.example.org',
+                environmentType: EnvironmentType.FABLET_ENVIRONMENT,
+                environmentDirectory: envDir
+            });
+        });
+
+        it('should not add a Fablet environment if the user cancels the URL input box', async () => {
+            mySandBox.stub(FeatureFlagManager, 'enabled').withArgs(FeatureFlagManager.FABLET).resolves(true);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_FABLET});
+            chooseNameStub.onFirstCall().resolves('fabletEnvironment');
+            showInputBoxStub.withArgs('Enter the URL of the Fablet network you want to connect to').resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(0);
+        });
+
+        it('should not add a Fablet environment if the user cancels the name input box', async () => {
+            mySandBox.stub(FeatureFlagManager, 'enabled').withArgs(FeatureFlagManager.FABLET).resolves(true);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_FABLET});
+            chooseNameStub.onFirstCall().resolves();
+            showInputBoxStub.withArgs('Enter the URL of the Fablet network you want to connect to').resolves('http://console.fablet.example.org');
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(0);
         });
 
     });

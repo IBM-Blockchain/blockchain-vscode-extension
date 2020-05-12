@@ -23,6 +23,7 @@ import { FabricGatewayRegistryEntry } from '../../src/registries/FabricGatewayRe
 import { FabricRuntimeUtil } from '../../src/util/FabricRuntimeUtil';
 import { FabricEnvironmentRegistry } from '../../src/registries/FabricEnvironmentRegistry';
 import { FabricEnvironmentRegistryEntry, EnvironmentType } from '../../src/registries/FabricEnvironmentRegistryEntry';
+import { FabletEnvironment } from '../../src/environments/FabletEnvironment';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -32,6 +33,7 @@ describe('FabricGatewayRegistry', () => {
 
     const registry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const environmentRegistry: FabricEnvironmentRegistry = FabricEnvironmentRegistry.instance();
+    let sandbox: sinon.SinonSandbox;
 
     before(async () => {
         const registryPath: string = path.join(__dirname, 'tmp', 'registries');
@@ -42,11 +44,13 @@ describe('FabricGatewayRegistry', () => {
     beforeEach(async () => {
         await registry.clear();
         await environmentRegistry.clear();
+        sandbox = sinon.createSandbox();
     });
 
     afterEach(async () => {
         await registry.clear();
         await environmentRegistry.clear();
+        sandbox.restore();
     });
 
     it('should get all the gateways and put local fabrics first', async () => {
@@ -101,17 +105,41 @@ describe('FabricGatewayRegistry', () => {
 
         await registry.add(gatewayOne);
 
-        await environmentRegistry.add(new FabricEnvironmentRegistryEntry({ name: 'myEnvironment', environmentDirectory: path.join('test', 'data', 'nonManagedAnsible'), environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT, managedRuntime: false }));
+        await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
+            name: 'ansibleEnvironment',
+            environmentDirectory: path.join('test', 'data', 'nonManagedAnsible'),
+            environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
+            managedRuntime: false
+        }));
+        await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
+            name: 'fabletEnvironment',
+            environmentDirectory: path.join('test', 'data', 'fablet'),
+            environmentType: EnvironmentType.FABLET_ENVIRONMENT,
+            managedRuntime: false,
+            url: 'http://console.fablet.example.org'
+        }));
+
+        const newFabletEnvironmentStub: sinon.SinonStub = sandbox.stub(FabricGatewayRegistry.instance(), 'newFabletEnvironment');
+        const mockFabletEnvironment: sinon.SinonStubbedInstance<FabletEnvironment> = sinon.createStubInstance(FabletEnvironment);
+        mockFabletEnvironment.getGateways.resolves([
+            {
+                name: 'fabletEnvironment - myGateway'
+            }
+        ]);
+        newFabletEnvironmentStub.callsFake((name: string, directory: string, url: string): sinon.SinonStubbedInstance<FabletEnvironment> => {
+            newFabletEnvironmentStub['wrappedMethod'](name, directory, url);
+            return mockFabletEnvironment;
+        });
 
         const entries: FabricGatewayRegistryEntry[] = await FabricGatewayRegistry.instance().getAll();
 
-        entries.length.should.equal(4);
+        entries.length.should.equal(5);
 
-        entries[0].should.deep.equal(gatewayOne);
-
-        entries[1].name.should.equal('myEnvironment - myGateway');
-        entries[2].name.should.equal('myEnvironment - yofn-org1');
-        entries[3].name.should.equal('myEnvironment - yofn-org2');
+        entries[0].name.should.equal('ansibleEnvironment - myGateway');
+        entries[1].name.should.equal('ansibleEnvironment - yofn-org1');
+        entries[2].name.should.equal('ansibleEnvironment - yofn-org2');
+        entries[3].name.should.equal('fabletEnvironment - myGateway');
+        entries[4].should.deep.equal(gatewayOne);
     });
 
     it('should update an unmanaged gateway', async () => {

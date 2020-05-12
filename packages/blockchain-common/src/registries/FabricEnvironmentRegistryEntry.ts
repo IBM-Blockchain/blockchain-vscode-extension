@@ -20,7 +20,8 @@ export enum EnvironmentType {
     ANSIBLE_ENVIRONMENT = 2, // Ansible environment (non-managed or managed)
     OPS_TOOLS_ENVIRONMENT = 3,
     LOCAL_ENVIRONMENT = 4, // Local environments
-    SAAS_OPS_TOOLS_ENVIRONMENT = 5
+    SAAS_OPS_TOOLS_ENVIRONMENT = 5,
+    FABLET_ENVIRONMENT = 6
 }
 
 export class FabricEnvironmentRegistryEntry extends RegistryEntry {
