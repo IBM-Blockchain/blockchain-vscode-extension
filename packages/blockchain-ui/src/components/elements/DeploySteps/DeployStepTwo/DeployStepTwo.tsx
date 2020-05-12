@@ -4,8 +4,8 @@ import IPackageRegistryEntry from '../../../../interfaces/IPackageRegistryEntry'
 
 interface IProps {
     selectedPackage: IPackageRegistryEntry;
-    onDefinitionNameChange: (data: any) => void;
-    onDefinitionVersionChange: (data: any) => void;
+    onDefinitionNameChange: (name: string, nameInvalid: boolean) => void;
+    onDefinitionVersionChange: (name: string, versionInvalid: boolean) => void;
     currentDefinitionName: string;
     currentDefinitionVersion: string;
 }
@@ -16,6 +16,8 @@ interface DeployStepTwoState {
 }
 
 class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
+    nameInvalid: boolean;
+    versionInvalid: boolean;
 
     constructor(props: Readonly<IProps>) {
         super(props);
@@ -27,14 +29,45 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
 
         this.handleDefinitionNameChange = this.handleDefinitionNameChange.bind(this);
         this.handleDefinitionVersionChange = this.handleDefinitionVersionChange.bind(this);
+        this.isNameInvalid = this.isNameInvalid.bind(this);
+        this.isVersionInvalid = this.isVersionInvalid.bind(this);
 
+        this.nameInvalid = this.isNameInvalid(this.state.definitionNameValue);
+        this.versionInvalid = this.isVersionInvalid(this.state.definitionVersionValue);
     }
 
     handleDefinitionNameChange(data: any): void {
-        this.props.onDefinitionNameChange(data.target.value);
+        const name: string = data.target.value.trim();
+
+        this.nameInvalid = this.isNameInvalid(name);
+
+        this.props.onDefinitionNameChange(name, this.nameInvalid);
     }
+
     handleDefinitionVersionChange(data: any): void {
-        this.props.onDefinitionVersionChange(data.target.value);
+        const version: string = data.target.value.trim();
+
+        this.versionInvalid = this.isVersionInvalid(version);
+
+        this.props.onDefinitionVersionChange(version, this.versionInvalid);
+    }
+
+    isNameInvalid(name: string): boolean {
+        const regex: RegExp = /^[a-zA-Z0-9-_]+$/;
+        const validName: boolean = regex.test(name);
+        if (name.length === 0 || !validName) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    isVersionInvalid(version: string): boolean {
+        if (version.length === 0) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     render(): JSX.Element {
@@ -52,10 +85,10 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
                 </div>
                 <div className='bx--row margin-bottom-06'>
                     <div className='bx--col-lg-5 margin-right-06'>
-                        <TextInput id='nameInput' labelText='Definition name' defaultValue={this.state.definitionNameValue} onChange={this.handleDefinitionNameChange}></TextInput>
+                        <TextInput invalidText={`Name can only contain alphanumeric, '_' and '-' characters.`} invalid={this.nameInvalid} id='nameInput' labelText='Definition name' defaultValue={this.state.definitionNameValue} onChange={this.handleDefinitionNameChange}></TextInput>
                     </div>
                     <div className='bx--col-lg-5'>
-                        <TextInput id='versionInput' labelText='Definition version' defaultValue={this.state.definitionVersionValue} onChange={this.handleDefinitionVersionChange}></TextInput>
+                        <TextInput invalidText={'Version cannot be empty'} invalid={this.versionInvalid} id='versionInput' labelText='Definition version' defaultValue={this.state.definitionVersionValue} onChange={this.handleDefinitionVersionChange}></TextInput>
                     </div>
                 </div>
 

@@ -131,31 +131,63 @@ describe('DeployPage component', () => {
     });
 
     describe('handleDefinitionNameChange', () => {
-        it('should update definition name', () => {
+        it('should update definition name and disable Next button if name or version invalid', () => {
 
             const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            component.setState({versionInvalid: true});
             const instance: DeployPage = component.instance() as DeployPage;
 
             handleDefinitionNameChange = mySandBox.stub(instance, 'setState').resolves();
 
-            instance.handleDefinitionNameChange('newName');
+            instance.handleDefinitionNameChange('newName', true);
 
-            handleDefinitionNameChange.should.have.been.calledOnceWithExactly({definitionName: 'newName', disableNext: false});
+            handleDefinitionNameChange.should.have.been.calledOnceWithExactly({definitionName: 'newName', nameInvalid: true, disableNext: true});
+
+        });
+
+        it('should update definition name and enable Next button if name and version is valid', () => {
+
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            component.setState({versionInvalid: false});
+            const instance: DeployPage = component.instance() as DeployPage;
+
+            handleDefinitionNameChange = mySandBox.stub(instance, 'setState').resolves();
+
+            instance.handleDefinitionNameChange('newName', false);
+
+            handleDefinitionNameChange.should.have.been.calledOnceWithExactly({definitionName: 'newName', nameInvalid: false, disableNext: false});
 
         });
     });
 
     describe('handleDefinitionVersionChange', () => {
-        it('should update definition version', () => {
+        it('should update definition version and disable Next button if name or version is invalid', () => {
 
             const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            component.setState({nameInvalid: true});
+
             const instance: DeployPage = component.instance() as DeployPage;
 
             handleDefinitionVersionChange = mySandBox.stub(instance, 'setState').resolves();
 
-            instance.handleDefinitionVersionChange('0.0.3');
+            instance.handleDefinitionVersionChange('0.0.3', true);
 
-            handleDefinitionVersionChange.should.have.been.calledOnceWithExactly({definitionVersion: '0.0.3', disableNext: false});
+            handleDefinitionVersionChange.should.have.been.calledOnceWithExactly({definitionVersion: '0.0.3', versionInvalid: true, disableNext: true});
+
+        });
+
+        it('should update definition version and enable Next button if name and version are valid', () => {
+
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            component.setState({nameInvalid: false});
+
+            const instance: DeployPage = component.instance() as DeployPage;
+
+            handleDefinitionVersionChange = mySandBox.stub(instance, 'setState').resolves();
+
+            instance.handleDefinitionVersionChange('0.0.3', false);
+
+            handleDefinitionVersionChange.should.have.been.calledOnceWithExactly({definitionVersion: '0.0.3', versionInvalid: false, disableNext: false});
 
         });
     });

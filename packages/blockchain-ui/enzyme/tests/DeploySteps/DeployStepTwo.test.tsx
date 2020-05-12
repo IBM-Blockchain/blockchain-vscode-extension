@@ -68,9 +68,13 @@ describe('DeployStepTwo component', () => {
                     value: 'newDefinitionName'
                 }
             };
+
+            const isNameInvalidStub: sinon.SinonStub = mySandBox.stub(instance, 'isNameInvalid').returns(false);
+
             instance.handleDefinitionNameChange(textInputData);
 
-            onDefinitionNameChangeStub.should.have.been.calledOnceWithExactly('newDefinitionName');
+            isNameInvalidStub.should.have.been.calledOnceWithExactly('newDefinitionName');
+            onDefinitionNameChangeStub.should.have.been.calledOnceWithExactly('newDefinitionName', false);
         });
     });
 
@@ -83,10 +87,57 @@ describe('DeployStepTwo component', () => {
                     value: '0.0.2'
                 }
             };
+
+            const isVersionInvalidStub: sinon.SinonStub = mySandBox.stub(instance, 'isVersionInvalid').returns(false);
+
             instance.handleDefinitionVersionChange(textInputData);
 
-            onDefinitionVersionChangeStub.should.have.been.calledOnceWithExactly('0.0.2');
+            isVersionInvalidStub.should.have.been.calledOnceWithExactly('0.0.2');
+            onDefinitionVersionChangeStub.should.have.been.calledOnceWithExactly('0.0.2', false);
         });
     });
 
+    describe('isNameInvalid', () => {
+        it('should handle empty name', async () => {
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} />);
+            const instance: DeployStepTwo = component.instance() as DeployStepTwo;
+
+            const result: boolean = instance.isNameInvalid('');
+            result.should.equal(true);
+        });
+
+        it('should handle invalid name', async () => {
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} />);
+            const instance: DeployStepTwo = component.instance() as DeployStepTwo;
+
+            const result: boolean = instance.isNameInvalid('invalid#name');
+            result.should.equal(true);
+        });
+
+        it('should handle valid name', async () => {
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} />);
+            const instance: DeployStepTwo = component.instance() as DeployStepTwo;
+
+            const result: boolean = instance.isNameInvalid('valid_contract-name-123');
+            result.should.equal(false);
+        });
+    });
+
+    describe('isVersionInvalid', () => {
+        it('should handle empty version', async () => {
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} />);
+            const instance: DeployStepTwo = component.instance() as DeployStepTwo;
+
+            const result: boolean = instance.isVersionInvalid('');
+            result.should.equal(true);
+        });
+
+        it('should handle valid version', async () => {
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} />);
+            const instance: DeployStepTwo = component.instance() as DeployStepTwo;
+
+            const result: boolean = instance.isVersionInvalid('0.0.1');
+            result.should.equal(false);
+        });
+    });
 });
