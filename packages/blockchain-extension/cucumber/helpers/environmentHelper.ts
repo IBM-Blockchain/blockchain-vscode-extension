@@ -65,9 +65,9 @@ export class EnvironmentHelper {
                 // Connect to OpsTools and create environment without nodes
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
                 if (opsType === 'SaaS') {
-                    this.userInputUtilHelper.showYesNoQuickPick.withArgs('Are you connecting to a service instance on IBM Cloud?').resolves(UserInputUtil.YES);
+                    this.userInputUtilHelper.showYesNoQuickPick.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves(UserInputUtil.YES);
                 } else if (opsType === 'software') {
-                    this.userInputUtilHelper.showYesNoQuickPick.withArgs('Are you connecting to a service instance on IBM Cloud?').resolves(UserInputUtil.NO);
+                    this.userInputUtilHelper.showYesNoQuickPick.withArgs('Are you connecting to an IBM Blockchain Platform service instance on IBM Cloud?').resolves(UserInputUtil.NO);
                     this.userInputUtilHelper.inputBoxStub.withArgs('Enter the URL of the IBM Blockchain Platform Console you want to connect to').resolves(process.env.MAP_OPSTOOLS_URL);
                     this.userInputUtilHelper.inputBoxStub.withArgs('Enter the API key or the User ID of the IBM Blockchain Platform Console you want to connect to').resolves(process.env.MAP_OPSTOOLS_KEY);
                     this.userInputUtilHelper.inputBoxStub.withArgs('Enter the API secret or the password of the IBM Blockchain Platform Console you want to connect to').resolves(process.env.MAP_OPSTOOLS_SECRET);

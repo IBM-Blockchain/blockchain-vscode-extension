@@ -159,7 +159,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                 if (environmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
                     let askUserInput: boolean;
                     if ( fromConnectEnvironment ) {
-                        askUserInput = ExtensionUtil.getExtensionRequireCloudLoginSetting();
+                        askUserInput = ExtensionUtil.getExtensionSaasConfigUpdatesSetting();
                     } else {
                         askUserInput = true;
                     }

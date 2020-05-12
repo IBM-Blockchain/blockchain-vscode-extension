@@ -309,6 +309,46 @@ describe('FabricEnvironment', () => {
             moveStub.should.not.have.been.called;
             writeStub.should.have.been.calledWith(nodePath, updatedNode);
         });
+
+        it('should update node with wallet and identity of existing Ops Tools node if those fields no not exist on new version of the node - multi-node orderer ', async () => {
+            const existingNode1: FabricNode = FabricNode.newOrderer('order1', 'orderer1.example.com', 'http://localhost:17056', 'myWallet', 'myIdentity', 'osmsp', 'myCluster');
+            const existingNode2: FabricNode = FabricNode.newOrderer('order2', 'orderer2.example.com', 'http://localhost:17057', 'myWallet', 'myIdentity', 'osmsp', 'myCluster');
+            const newVersionNode1: FabricNode = FabricNode.newOrderer('order1', 'orderer1.example.com', 'http://localhost:17056', undefined, undefined, 'osmsp', 'myCluster');
+
+            sandbox.stub(environment, 'getNodes').resolves([existingNode1, existingNode2]);
+
+            const nodePath1: string = path.join(environmentPath, 'nodes', 'orderer1.example.com.json');
+            const nodePath2: string = path.join(environmentPath, 'nodes', 'orderer2.example.com.json');
+            const moveStub: sinon.SinonStub = sandbox.stub(fs, 'move');
+            const writeStub: sinon.SinonStub = sandbox.stub(fs, 'writeJson');
+
+            await environment.updateNode(newVersionNode1, true);
+
+            moveStub.should.not.have.been.called;
+            writeStub.should.have.been.calledWith(nodePath1, existingNode1);
+            writeStub.should.have.been.calledWith(nodePath2, existingNode2);
+        });
+
+        it('should hide all nodes in multi-node orderer on ops tools environment', async () => {
+            const existingNode1: FabricNode = FabricNode.newOrderer('order1', 'orderer1.example.com', 'http://localhost:17056', 'myWallet', 'myIdentity', 'osmsp', 'myCluster');
+            const existingNode2: FabricNode = FabricNode.newOrderer('order2', 'orderer2.example.com', 'http://localhost:17057', 'myWallet', 'myIdentity', 'osmsp', 'myCluster');
+            const newVersionNode1: FabricNode = FabricNode.newOrderer('order1', 'orderer1.example.com', 'http://localhost:17056', 'myWallet', 'myIdentity', 'osmsp', 'myCluster', true);
+            const expectedNode1: FabricNode = FabricNode.newOrderer('order1', 'orderer1.example.com', 'http://localhost:17056', 'myWallet', 'myIdentity', 'osmsp', 'myCluster', true);
+            const expectedNode2: FabricNode = FabricNode.newOrderer('order2', 'orderer2.example.com', 'http://localhost:17057', 'myWallet', 'myIdentity', 'osmsp', 'myCluster', true);
+
+            sandbox.stub(environment, 'getNodes').resolves([existingNode1, existingNode2]);
+
+            const nodePath1: string = path.join(environmentPath, 'nodes', 'orderer1.example.com.json');
+            const nodePath2: string = path.join(environmentPath, 'nodes', 'orderer2.example.com.json');
+            const moveStub: sinon.SinonStub = sandbox.stub(fs, 'move');
+            const writeStub: sinon.SinonStub = sandbox.stub(fs, 'writeJson');
+
+            await environment.updateNode(newVersionNode1);
+
+            moveStub.should.not.have.been.called;
+            writeStub.should.have.been.calledWith(nodePath1, expectedNode1);
+            writeStub.should.have.been.calledWith(nodePath2, expectedNode2);
+        });
     });
 
     describe('#deleteNode', () => {
