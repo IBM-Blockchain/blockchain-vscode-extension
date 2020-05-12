@@ -106,6 +106,7 @@ import { commitSmartContract } from '../commands/commitCommand';
 import { deploySmartContract } from '../commands/deployCommand';
 import { openDeployView } from '../commands/openDeployView';
 import { saveTutorial } from '../commands/saveTutorialCommand';
+import { manageFeatureFlags } from '../commands/manageFeatureFlags';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -277,6 +278,8 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE, async (treeItem: InstantiatedTreeItem) => {
             await openTransactionView(treeItem);
         }));
+
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.MANAGE_FEATURE_FLAGS, () => manageFeatureFlags()));
 
         const goDebugProvider: FabricGoDebugConfigurationProvider = new FabricGoDebugConfigurationProvider();
         const javaDebugProvider: FabricJavaDebugConfigurationProvider = new FabricJavaDebugConfigurationProvider();

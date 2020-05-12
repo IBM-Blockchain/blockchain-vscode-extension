@@ -33,6 +33,9 @@ export class SettingConfigurations {
     static readonly HOME_SHOW_ON_STARTUP: string = 'ibm-blockchain-platform.home.showOnStartup';
     static readonly HOME_SHOW_ON_NEXT_ACTIVATION: string = 'ibm-blockchain-platform.home.showOnNextActivation';
 
+    // Feature flags
+    static readonly FEATURE_FLAGS: string = 'ibm-blockchain-platform.ext.featureFlags';
+
     static getExtensionDir(): string {
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         return path.join(extDir, 'v2');
