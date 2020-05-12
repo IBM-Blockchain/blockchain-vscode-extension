@@ -11,7 +11,7 @@ interface AppState {
     redirectPath: string;
     extensionVersion: string;
     deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[]};
-    tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string}>;
+    tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string}>;
 }
 
 class App extends Component<{}, AppState> {

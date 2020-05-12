@@ -1,5 +1,4 @@
 <!-- # TUTORIAL 2: Create a cloud blockchain deployment -->
-**Tutorial 2** 
 
 ## **Create a cloud blockchain deployment**
 `50-60 mins`
@@ -45,5 +44,3 @@ Now you've got a basic network running on IBM Cloud, the next tutorial will teac
 > **Important:** Before moving on to the next tutorial, make sure you've got a simple blockchain network running on the cloud service by having followed both the [Getting started with IBM Blockchain Platform on IBM Cloud](https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-v2-deploy-iks&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+Getting+started&cm_mmca1=000026VG&cm_mmca2=10008691#ibp-v2-deploy-iks) and [Build a network tutorial](https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-console-build-network&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+Build+a+network+tutorial&cm_mmca1=000026VG&cm_mmca2=10008691#ibp-console-build-network) instructions!
 
 <a href='./cloud-deploy.md'><h2 align='right'><b>Next: Deploying and transacting with IBM Cloud ➔</h2></a>
-
-<a href='./local-dev.md'><h4 align='right'><b> ◀ Prev: Local Smart Contract Development</b></h4></a>

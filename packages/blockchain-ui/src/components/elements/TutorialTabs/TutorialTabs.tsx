@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Tabs, Tab } from 'carbon-components-react';
+import { Tabs, Tab, Link } from 'carbon-components-react';
 import TutorialTile from '../TutorialTile/TutorialTile';
 import ITutorialObject from '../../../interfaces/ITutorialObject';
 import './TutorialTabs.scss';
@@ -9,7 +9,7 @@ import { ExtensionCommands } from '../../../ExtensionCommands';
 // tslint:disable: typedef
 
 interface IProps {
-    tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string}>;
+    tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string}>;
 }
 
 class TutorialTabs extends Component<IProps> {
@@ -27,7 +27,7 @@ class TutorialTabs extends Component<IProps> {
 
     createTabs(): Array<JSX.Element> {
         const tabArray: JSX.Element[] = [];
-        this.props.tutorialData.map((tutorialSeries: {name: string, tutorials: ITutorialObject[], tutorialFolder: string}, index: number) => {
+        this.props.tutorialData.map((tutorialSeries: {name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string}, index: number) => {
             const tabLabel: string = `${tutorialSeries.name} (${tutorialSeries.tutorials.length})`;
             tabArray.push(
                 // @ts-ignore
@@ -37,8 +37,9 @@ class TutorialTabs extends Component<IProps> {
                     label={tabLabel}
                 >
                     {tutorialSeries.name === 'Basic tutorials' ?
-                        <div className='download-all-container'>
-                            <a className='download-all' onClick={() => this.savePDFHandler(tutorialSeries.tutorialFolder)}>{`Download all "${tutorialSeries.name}" as PDF`}</a>
+                        <div className='series-description-container'>
+                            <p className='series-description'>{tutorialSeries.tutorialDescription}</p>
+                            <Link id='download-all-link' className='download-all' href='#' onClick={() => this.savePDFHandler(tutorialSeries.tutorialFolder)}>{`Download all "${tutorialSeries.name}" as PDF`}</Link>
                         </div> :
                         <></>
                     }

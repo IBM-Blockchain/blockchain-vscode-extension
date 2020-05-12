@@ -44,31 +44,31 @@ describe('TutorialView', () => {
     it('should show tutorial', async () => {
         const commandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-        const tutorialView: TutorialView = new TutorialView('Introduction', 'Local smart contract development');
+        const tutorialView: TutorialView = new TutorialView('Basic tutorials', 'A1: Introduction');
         await tutorialView.openView();
 
-        const filePath: string = path.join(__dirname, '..', '..', '..', 'tutorials', 'ibm-blockchain-platform-vscode-smart-contract/local-dev.md');
+        const filePath: string = path.join(__dirname, '..', '..', '..', 'tutorials', 'new-tutorials', 'basic-tutorials', 'a1.md');
         const uri: vscode.Uri = vscode.Uri.file(filePath);
 
-        commandSpy.getCall(0).args[0].should.equal('markdown.showPreviewToSide');
+        commandSpy.getCall(0).args[0].should.equal('markdown.showPreview');
         commandSpy.getCall(0).args[1].fsPath.should.equal(uri.fsPath);
-        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('Tutorial Viewed', {series: 'Introduction', tutorial: 'Local smart contract development'});
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('Tutorial Viewed', {series: 'Basic tutorials', tutorial: 'A1: Introduction'});
     });
 
     it('should do nothing on openPanelInner', async () => {
-        const tutorialView: TutorialView = new TutorialView('Introduction', 'Local smart contract development');
+        const tutorialView: TutorialView = new TutorialView('Basic tutorials', 'A1: Introduction');
         await tutorialView['openPanelInner']();
         sendTelemetryEventStub.should.not.have.been.called;
     });
 
     it('should return empty string on getHTMLString', async () => {
-        const tutorialView: TutorialView = new TutorialView('Introduction', 'Local smart contract development');
+        const tutorialView: TutorialView = new TutorialView('Basic tutorials', 'A1: Introduction');
         const result: string = await tutorialView['getHTMLString']();
         result.should.equal('');
     });
 
     it('should load component', async () => {
-        const tutorialView: TutorialView = new TutorialView('Introduction', 'Local smart contract development');
+        const tutorialView: TutorialView = new TutorialView('Basic tutorials', 'A1: Introduction');
         tutorialView.loadComponent({} as vscode.WebviewPanel);
     });
 });

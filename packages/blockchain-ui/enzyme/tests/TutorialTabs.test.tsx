@@ -29,10 +29,11 @@ describe('TutorialTabs component', () => {
         mySandBox.restore();
     });
 
-    const tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string}> = [
+    const tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string}> = [
         {
             name: 'Basic tutorials',
             tutorialFolder: 'basic-tutorials',
+            tutorialDescription: 'some description',
             tutorials: [
                 {
                     title: 'a1',
@@ -81,10 +82,11 @@ describe('TutorialTabs component', () => {
     });
 
     it('should test link to download all tutorials is rendered if the series has pdf tutorials', () => {
-        const otherTutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string}> = [
+        const otherTutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string}> = [
             {
                 name: 'Basic tutorials',
                 tutorialFolder: 'basic-tutorials',
+                tutorialDescription: 'some desc',
                 tutorials: [
                     {
                         title: 'a1',
@@ -101,6 +103,7 @@ describe('TutorialTabs component', () => {
             }
         ];
         const component: ReactWrapper<{tutorialObject: any, tutorialSeries: string}, {}> = mount(<TutorialTabs tutorialData={otherTutorialData}/>);
+        component.find('p').at(0).hasClass('series-description').should.be.true;
         component.find('a').at(2).simulate('click');
         savePDFHandlerStub.should.have.been.calledOnceWithExactly({
             command: ExtensionCommands.SAVE_TUTORIAL_AS_PDF,
@@ -113,7 +116,7 @@ describe('TutorialTabs component', () => {
     });
 
     it('should test there is no link to download all tutorials if the series does not have pdf tutorials', () => {
-        const otherTutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string}> = [
+        const otherTutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string}> = [
             {
                 name: 'Some tutorials',
                 tutorialFolder: 'some-tutorials',
@@ -133,6 +136,7 @@ describe('TutorialTabs component', () => {
             }
         ];
         const component: ReactWrapper<{tutorialObject: any, tutorialSeries: string}, {}> = mount(<TutorialTabs tutorialData={otherTutorialData}/>);
+        component.find('p').at(0).hasClass('series-description').should.be.false;
         component.find('a').at(2).exists().should.equal(false); // only two `a` tags exist - one for each tab
         savePDFHandlerStub.should.not.have.been.called;
     });
