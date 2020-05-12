@@ -12,7 +12,7 @@ Features & Enhancements
  > When adding an environment, selecting ‘Add an IBM Blockchain Platform network’ will now let you discover nodes from your IBM Blockchain Platform Console for IBM Cloud instance.
 
 * New developer tutorials and updated tutorial view [#1197](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1197).
- > There are 10 new tutorials that will take you through core concepts, preparing you to take the IBM Blockchain Essentials and IBM Blockchain Foundation Developer courses and hopefully earn the badges!
+ > There are 10 new tutorials (written by the team who run IBM’s developer labs and create official blockchain certifications) that will take you through core concepts, preparing you to take the IBM Blockchain Essentials and IBM Blockchain Foundation Developer courses and hopefully earn the badges!
  > 
  > These tutorials cover topics such as:
  > -	Introduction to Blockchain
