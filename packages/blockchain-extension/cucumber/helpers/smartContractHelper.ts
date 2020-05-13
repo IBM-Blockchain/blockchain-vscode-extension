@@ -19,27 +19,22 @@ import * as path from 'path';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import {UserInputUtil} from '../../extension/commands/UserInputUtil';
-import {UserInputUtilHelper} from './userInputUtilHelper';
-import {ExtensionCommands} from '../../ExtensionCommands';
-import {CommandUtil} from '../../extension/util/CommandUtil';
-import {VSCodeBlockchainOutputAdapter} from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import {PackageRegistry} from '../../extension/registries/PackageRegistry';
-import {PackageRegistryEntry} from '../../extension/registries/PackageRegistryEntry';
-import {BlockchainEnvironmentExplorerProvider} from '../../extension/explorer/environmentExplorer';
-
-import {ExtensionUtil} from '../../extension/util/ExtensionUtil';
-import {FabricEnvironmentManager} from '../../extension/fabric/environments/FabricEnvironmentManager';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import { UserInputUtilHelper } from './userInputUtilHelper';
+import { ExtensionCommands } from '../../ExtensionCommands';
+import { CommandUtil } from '../../extension/util/CommandUtil';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { PackageRegistry } from '../../extension/registries/PackageRegistry';
+import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
+import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import {
     FabricCommittedSmartContract,
     IFabricEnvironmentConnection,
     FabricEnvironmentRegistryEntry
 } from 'ibm-blockchain-platform-common';
-import {FabricInstalledSmartContract} from 'ibm-blockchain-platform-common/build/src/fabricModel/FabricInstalledSmartContract';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
-const should: Chai.Should = chai.should();
 
 export enum LanguageType {
     CHAINCODE = 'chaincode',
@@ -84,7 +79,7 @@ export class SmartContractHelper {
             this.userInputUtilHelper.inputBoxStub.withArgs('Name the type of asset managed by this smart contract', 'MyAsset').resolves(assetType);
         }
 
-        this.userInputUtilHelper.showLanguagesQuickPickStub.resolves({label: language, type});
+        this.userInputUtilHelper.showLanguagesQuickPickStub.resolves({ label: language, type });
 
         this.userInputUtilHelper.showFolderOptionsStub.withArgs('Choose how to open your new project').resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
@@ -132,17 +127,17 @@ export class SmartContractHelper {
             let workspaceFolder: vscode.WorkspaceFolder;
 
             if (language === 'JavaScript') {
-                workspaceFolder = {index: 0, name: name, uri: vscode.Uri.file(directory)};
+                workspaceFolder = { index: 0, name: name, uri: vscode.Uri.file(directory) };
             } else if (language === 'TypeScript') {
-                workspaceFolder = {index: 0, name: name, uri: vscode.Uri.file(directory)};
+                workspaceFolder = { index: 0, name: name, uri: vscode.Uri.file(directory) };
             } else if (language === 'Java') {
                 this.userInputUtilHelper.inputBoxStub.withArgs('Enter a name for your Java package').resolves(name);
                 this.userInputUtilHelper.inputBoxStub.withArgs('Enter a version for your Java package').resolves(version);
-                workspaceFolder = {index: 0, name: name, uri: vscode.Uri.file(directory)};
+                workspaceFolder = { index: 0, name: name, uri: vscode.Uri.file(directory) };
             } else if (language === 'Go') {
                 this.userInputUtilHelper.inputBoxStub.withArgs('Enter a name for your Go package').resolves(name);
                 this.userInputUtilHelper.inputBoxStub.withArgs('Enter a version for your Go package').resolves(version);
-                workspaceFolder = {index: 0, name: name, uri: vscode.Uri.file(directory)};
+                workspaceFolder = { index: 0, name: name, uri: vscode.Uri.file(directory) };
             } else {
                 throw new Error(`I do not know how to handle language ${language}`);
             }
@@ -153,62 +148,26 @@ export class SmartContractHelper {
         }
     }
 
-    public async installSmartContract(name: string, version: string): Promise<string> {
-        const fabricEnvironmentConnection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
-        const peerNames: string[] = fabricEnvironmentConnection.getAllPeerNames();
-
-        const installedContracts: FabricInstalledSmartContract[] = [];
-
-        for (const peerName of peerNames) {
-            const contracts: FabricInstalledSmartContract[] = await fabricEnvironmentConnection.getInstalledSmartContracts(peerName);
-            installedContracts.push(...contracts);
-        }
-
-        const installedContract: FabricInstalledSmartContract = installedContracts.find((contract: FabricInstalledSmartContract) => {
-            return contract.label === name;
-        });
-
-        if (!installedContract) {
-            const _package: PackageRegistryEntry = await PackageRegistry.instance().get(name, version);
-
-            should.exist(_package);
-
-            return vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, peerNames, _package);
-        } else {
-            return installedContract.packageId;
-        }
-    }
-
-    public async approveSmartContract(channel: string, name: string, version: string, packageId: string): Promise<void> {
-        let peers: string[];
-        if (process.env.OTHER_FABRIC) {
-            // Using old Fabric
-            peers = ['peer0.org1.example.com'];
-        } else {
-            // Using new Ansible Fabric
-            peers = ['Org1Peer1', 'Org1Peer2', 'Org2Peer1', 'Org1Peer2'];
-        }
-
-        // TODO assuming sequence number is 1 for now this might need to be updated later
-        const result: boolean = await this.checkCommitReadiness(channel, peers[0], name, version, 1);
-
-        if (!result) {
-            // TODO assuming sequence number is 1 for now this might need to be updated later and assuming orderer name
-            await vscode.commands.executeCommand(ExtensionCommands.APPROVE_SMART_CONTRACT, 'orderer.example.com', channel, peers, name, version, packageId, 1);
-        }
-    }
-
     public async deploySmartContract(channel: string, name: string, version: string, packageRegistryEntry: PackageRegistryEntry, sequence: string = '1', ignorePreviousDeploy: boolean = false): Promise<void> {
         const fabricEnvironmentConnection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
         const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
 
         let peers: string[];
+        let orderer: string = 'orderer.example.com';
         if (process.env.OTHER_FABRIC) {
             // Using old Fabric
             peers = ['peer0.org1.example.com'];
-        } else {
+        } else if (process.env.ANSIBLE_FABRIC) {
             // Using new Ansible Fabric
             peers = ['Org1Peer1', 'Org1Peer2', 'Org2Peer1', 'Org1Peer2'];
+        } else if (process.env.TWO_ORG_FABRIC) {
+            // local fabric 2 orgs
+            peers = ['Org1Peer1', 'Org2Peer1'];
+            orderer = 'Orderer';
+        } else {
+            // local fabric 1 org
+            peers = ['Org1Peer1'];
+            orderer = 'Orderer';
         }
 
         let committedContract: FabricCommittedSmartContract;
@@ -223,135 +182,8 @@ export class SmartContractHelper {
         }
 
         if (!committedContract) {
-            // TODO assuming sequence number is 1 for now this might need to be updated later, assuming name of orderer
-            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'orderer.example.com', channel, peers, name, version, sequence, packageRegistryEntry);
+            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, orderer, channel, peers, name, version, sequence, packageRegistryEntry);
         }
-    }
-
-    public async checkCommitReadiness(channel: string, peerName: string, name: string, version: string, sequence: number): Promise<boolean> {
-        try {
-            const fabricEnvironmentConnection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
-
-            const result: boolean = await fabricEnvironmentConnection.getCommitReadiness(channel, peerName, name, version, sequence);
-            return result;
-        } catch (error) {
-            // no way to actually query approved so if its just the sequence number is wrong then assume we have already committed therefore approved
-            if (error.message.includes('requested sequence is 1, but new definition must be sequence 2')) {
-                return true;
-            } else {
-                throw error;
-            }
-        }
-    }
-
-    public async instantiateSmartContract(name: string, version: string, transaction: string, args: string, privateData: boolean, channel: string): Promise<void> {
-        // Check if instantiated contract exists
-        const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
-        const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
-        const smartContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[0]);
-        const instantiatedLabel: any[] = await blockchainRuntimeExplorerProvider.getChildren(smartContracts[1]); // smart contracts
-        const instantiatedContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(instantiatedLabel[1]); // instantiated contracts
-        const instantiatedContract: any = instantiatedContracts.find((contract: any) => {
-            return contract.name === name;
-        });
-
-        if (!instantiatedContract) {
-
-            let peer: string;
-            if (process.env.OTHER_FABRIC) {
-                // Using old Fabric
-                peer = 'peer0.org1.example.com';
-            } else {
-                // Using new Ansible Fabric
-                peer = 'Org1Peer1';
-            }
-
-            this.userInputUtilHelper.showChannelStub.resolves({
-                label: channel,
-                data: [peer]
-            });
-
-            const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
-
-            const wantedPackage: PackageRegistryEntry = allPackages.find((packageEntry: PackageRegistryEntry) => {
-                return packageEntry.name === name && packageEntry.version === version;
-            });
-
-            this.userInputUtilHelper.showChaincodeAndVersionStub.resolves({
-                label: `${name}@${version}`,
-                description: 'Installed',
-                data: {
-                    packageEntry: wantedPackage,
-                    workspaceFolder: undefined,
-                }
-            });
-
-            this.userInputUtilHelper.inputBoxStub.withArgs('optional: What function do you want to call on instantiate?').resolves(transaction);
-            this.userInputUtilHelper.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves(args);
-
-            this.userInputUtilHelper.showYesNoQuickPick.resolves(UserInputUtil.NO);
-            if (privateData) {
-                this.userInputUtilHelper.showYesNoQuickPick.resolves(UserInputUtil.YES);
-                this.userInputUtilHelper.getWorkspaceFoldersStub.callThrough();
-                const collectionPath: string = path.join(__dirname, '../../../cucumber/data/collection.json');
-                this.userInputUtilHelper.browseStub.resolves(collectionPath);
-            }
-
-            this.userInputUtilHelper.showQuickPickStub.withArgs('Choose a smart contract endorsement policy', [UserInputUtil.DEFAULT_SC_EP, UserInputUtil.CUSTOM]).resolves(UserInputUtil.DEFAULT_SC_EP);
-            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
-        }
-    }
-
-    public async upgradeSmartContract(name: string, version: string, transaction: string, args: string, privateData: boolean, channel: string): Promise<void> {
-
-        let peer: string;
-        if (process.env.OTHER_FABRIC) {
-            // Using old Fabric
-            peer = 'peer0.org1.example.com';
-        } else {
-            // Using new Ansible Fabric
-            peer = 'Org1Peer1';
-        }
-
-        this.userInputUtilHelper.showChannelStub.resolves({
-            label: channel,
-            data: [peer]
-        });
-
-        const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
-
-        const wantedPackage: PackageRegistryEntry = allPackages.find((packageEntry: PackageRegistryEntry) => {
-            return packageEntry.name === name && packageEntry.version === version;
-        });
-
-        this.userInputUtilHelper.showChaincodeAndVersionStub.resolves({
-            label: `${name}@${version}`,
-            description: 'Installed',
-            data: {
-                packageEntry: wantedPackage,
-                workspaceFolder: undefined,
-            }
-        });
-
-        // Upgrade from instantiated contract at version 0.0.1
-        this.userInputUtilHelper.showRuntimeInstantiatedSmartContractsStub.resolves({
-            label: `${name}@0.0.1`,
-            data: {name: name, channel: 'mychannel', version: '0.0.1'}
-        });
-
-        this.userInputUtilHelper.inputBoxStub.withArgs('optional: What function do you want to call on upgrade?').resolves(transaction);
-        this.userInputUtilHelper.inputBoxStub.withArgs('optional: What are the arguments to the function, (e.g. ["arg1", "arg2"])', '[]').resolves(args);
-
-        this.userInputUtilHelper.showYesNoQuickPick.resolves(UserInputUtil.NO);
-        if (privateData) {
-            this.userInputUtilHelper.showYesNoQuickPick.resolves(UserInputUtil.YES);
-            const collectionPath: string = path.join(__dirname, '../../../cucumber/data/collection.json');
-            this.userInputUtilHelper.browseStub.resolves(collectionPath);
-        }
-
-        this.userInputUtilHelper.showQuickPickStub.withArgs('Choose a smart contract endorsement policy', [UserInputUtil.DEFAULT_SC_EP, UserInputUtil.CUSTOM]).resolves(UserInputUtil.DEFAULT_SC_EP);
-
-        await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
     }
 
     public async viewContractInformation(name: string, version: string): Promise<void> {
@@ -363,5 +195,4 @@ export class SmartContractHelper {
         });
         await vscode.commands.executeCommand(ExtensionCommands.VIEW_PACKAGE_INFORMATION);
     }
-
 }

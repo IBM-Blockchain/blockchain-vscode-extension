@@ -19,7 +19,7 @@ import * as Cucumber from 'cucumber';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as chai from 'chai';
-import { TestUtil } from '../test/TestUtil';
+import {TestUtil} from '../test/TestUtil';
 
 chai.should();
 chai.use(require('chai-as-promised'));
@@ -74,26 +74,24 @@ async function runCucumberTest(): Promise<any> {
             uri: path.join(featurePath, file)
         });
 
-        if (file === 'create.feature') {
+        if (file === 'fabric-environments.feature') {
             features[0] = feature;
-        } else if (file === 'package.feature') {
+        } else if (file === 'create.feature') {
             features[1] = feature;
-        } else if (file === 'install.feature') {
-            // features[2] = feature;
-        } else if (file === 'instantiate.feature') {
-            // features[3] = feature;
+        } else if (file === 'package.feature') {
+            features[2] = feature;
+        } else if (file === 'deploy.feature') {
+            features[3] = feature;
         } else if (file === 'upgrade.feature') {
-            // features[4] = feature;
-        } else if (file === 'fabric-environments.feature') {
-             features[2] = feature;
+            features[4] = feature;
         } else if (file === 'submit.feature') {
-             features[3] = feature;
+            features[5] = feature;
         } else if (file === 'evaluate.feature') {
-             // features[7] = feature;
+            features[6] = feature;
         } else if (file === 'wallet.feature') {
-             features[4] = feature;
+            features[7] = feature;
         } else {
-             otherFeatures.push(feature);
+            otherFeatures.push(feature);
         }
     }
 
@@ -139,7 +137,7 @@ async function runCucumberTest(): Promise<any> {
     const runtime: any = new Cucumber.Runtime({
         features: features,
         listeners: [jsonFormatter, prettyFormatter],
-        options: { strict: true },
+        options: {strict: true},
         supportCodeLibrary: supportCodeLibrary,
     });
     return runtime.start();
