@@ -45,6 +45,7 @@ import { ManagedAnsibleEnvironmentManager } from '../fabric/environments/Managed
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { GatewayTreeItem } from './model/GatewayTreeItem';
 import { GatewayGroupTreeItem } from './model/GatewayGroupTreeItem';
+import { ExplorerUtil } from '../util/ExplorerUtil';
 
 export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProvider {
 
@@ -179,9 +180,14 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         const allGateways: FabricGatewayRegistryEntry[] = await this.fabricGatewayRegistry.getAll();
 
         const gatewayGroups: Array<FabricGatewayRegistryEntry[]> = [];
+        const otherGateways: Array<FabricGatewayRegistryEntry> = [];
         for (const gateway of allGateways) {
             if (gatewayGroups.length === 0) {
-                gatewayGroups.push([gateway]);
+                if (gateway.fromEnvironment) {
+                    gatewayGroups.push([gateway]);
+                } else {
+                    otherGateways.push(gateway);
+                }
                 continue;
             }
 
@@ -194,9 +200,17 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
                 // If a group with the same fromEnvironment exists, then push gateway to the group
                 gatewayGroups[groupIndex].push(gateway);
             } else {
-                // Create new group
-                gatewayGroups.push([gateway]);
+                if (gateway.fromEnvironment) {
+                    // Create new group
+                    gatewayGroups.push([gateway]);
+                } else {
+                    // group gateways that don't belong to environments
+                    otherGateways.push(gateway);
+                }
             }
+        }
+        if (otherGateways.length > 0) {
+            gatewayGroups.push(otherGateways);
         }
 
         if (gatewayGroups.length === 0) {
@@ -204,13 +218,12 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         } else {
 
             for (const group of gatewayGroups) {
-                if (group.length === 1) {
-                    const gatewayTreeItems: GatewayTreeItem[] = await this.populateGateways(group); // There will only be one
-                    tree.push(gatewayTreeItems[0]);
-                } else {
-                    // Group length is greater than 1
-                    tree.push(new GatewayGroupTreeItem(this, group[0].fromEnvironment, group, vscode.TreeItemCollapsibleState.Expanded));
+                const groupName: string = group[0].fromEnvironment ? group[0].fromEnvironment : 'Other gateways';
+                const groupTreeItem: GatewayGroupTreeItem = new GatewayGroupTreeItem(this, groupName, group, vscode.TreeItemCollapsibleState.Expanded);
+                if (group[0].fromEnvironment) {
+                    groupTreeItem.iconPath = await ExplorerUtil.getGroupIcon(group[0]);
                 }
+                tree.push(groupTreeItem);
             }
         }
 
@@ -311,14 +324,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
                 arguments: [gateway]
             };
 
-            let gatewayName: string;
-            if (gateways.length === 1) {
-                gatewayName = gateway.name;
-            } else {
-                // If there's more than one gateway, it's either local or Ansible - both which have a display name.
-                gatewayName = gateway.displayName;
-
-            }
+            const gatewayName: string = gateway.displayName ? gateway.displayName : gateway.name;
 
             let environmentEntry: FabricEnvironmentRegistryEntry;
             let runtime: LocalEnvironment | ManagedAnsibleEnvironment;

@@ -17,7 +17,7 @@ import { UserInputUtil, IBlockchainQuickPickItem, IncludeEnvironmentOptions } fr
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
-import { FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
 
 export async function addGateway(): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -111,6 +111,9 @@ async function createGatewayFromEnvironment(gatewayName: string, environmentRegi
     const fabricGatewayEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
     fabricGatewayEntry.name = gatewayName;
     fabricGatewayEntry.associatedWallet = peerNode.wallet;
+    if (environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || environmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
+        fabricGatewayEntry.fromEnvironment = environmentRegistryEntry.name;
+    }
 
     const connectionProfilePath: string = await FabricGatewayHelper.generateConnectionProfile(gatewayName, peerNode, caNode);
     fabricGatewayEntry.connectionProfilePath = connectionProfilePath;

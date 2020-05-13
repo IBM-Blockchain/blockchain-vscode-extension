@@ -36,13 +36,15 @@ Feature: Fabric Gateways
     @otherFabric
     Scenario: Create another gateway
         When I create a gateway 'myGateway' from a 'profile'
-        Then there should be a tree item with a label 'myGateway' in the 'Fabric Gateways' panel
+        Then there should be a tree item with a label 'Other gateways' in the 'Fabric Gateways' panel
+        And the 'Fabric Gateways' tree item should have a child 'myGateway'
 
     @otherFabric
     Scenario: Connect to another gateway
         Given the gateway 'myGateway' is created
         And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
-        Then there should be a tree item with a label 'myGateway' in the 'Fabric Gateways' panel
+        Then there should be a tree item with a label 'Other gateways' in the 'Fabric Gateways' panel
+        And the 'Fabric Gateways' tree item should have a child 'myGateway'
         When connecting to the 'myGateway' gateway without association
         Then there should be a tree item with a label 'Connected via gateway: myGateway' in the 'Fabric Gateways' panel
         And the tree item should have a tooltip equal to 'Connected via gateway: myGateway'
@@ -57,7 +59,8 @@ Feature: Fabric Gateways
         And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
         And the environment is setup
         When I create a gateway 'gatewayFromEnv' from an 'environment'
-        Then there should be a tree item with a label 'gatewayFromEnv ⧉' in the 'Fabric Gateways' panel
+        Then there should be a tree item with a label 'Other gateways' in the 'Fabric Gateways' panel
+        And the 'Fabric Gateways' tree item should have a child 'gatewayFromEnv ⧉'
         And the tree item should have a tooltip equal to 'ⓘ Associated wallet:\n    myWallet'
         When connecting to the 'gatewayFromEnv' gateway
         Then there should be a tree item with a label 'Connected via gateway: gatewayFromEnv' in the 'Fabric Gateways' panel

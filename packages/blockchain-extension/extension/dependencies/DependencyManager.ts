@@ -641,7 +641,7 @@ export class DependencyManager {
 
             return { modules: modules, longVersion: version.longVersion, shortVersion: version.shortVersion };
         } catch (error) {
-            throw new Error(`Could not get electron verion, ${error.message}`);
+            throw new Error(`Could not get electron version, ${error.message}`);
         }
     }
 

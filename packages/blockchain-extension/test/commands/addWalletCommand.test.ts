@@ -23,7 +23,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
-import { FabricWalletRegistry, FabricWalletRegistryEntry, FileConfigurations, LogType } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistry, FabricWalletRegistryEntry, FileConfigurations, LogType, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();
@@ -125,7 +125,29 @@ describe('AddWalletCommand', () => {
             const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll();
             wallets.length.should.equal(0);
             logSpy.should.have.been.calledWith(LogType.ERROR, `A wallet with this name already exists.`);
+        });
 
+        it('should add wallet with fromEnvironment property', async () => {
+            choseWalletAddMethod.resolves(UserInputUtil.IMPORT_WALLET);
+            browseStub.resolves(uri);
+            getIdentitiesStub.resolves(['someName', 'anotherName']);
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get').resolves({name: 'myEnvironment'});
+
+            const result: FabricWalletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET, false, 'myEnvironment');
+
+            result.name.should.equal(path.basename(uri.fsPath));
+
+            showInputBoxStub.should.not.have.been.called;
+
+            const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll();
+
+            wallets.length.should.equal(1);
+            wallets[0].should.deep.equal({
+                name: path.basename(uri.fsPath),
+                walletPath: uri.fsPath,
+                fromEnvironment: 'myEnvironment'
+            });
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new wallet');
         });
 
     });
@@ -231,6 +253,30 @@ describe('AddWalletCommand', () => {
             const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll();
             wallets.length.should.equal(0);
             logSpy.should.have.been.calledWith(LogType.ERROR, `A wallet with this name already exists.`);
+        });
+
+        it('should add wallet with fromEnvironment property', async () => {
+            choseWalletAddMethod.resolves(UserInputUtil.WALLET_NEW_ID);
+            showInputBoxStub.resolves('someWalletName');
+            executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs(ExtensionCommands.ADD_WALLET_IDENTITY, sinon.match.instanceOf(FabricWalletRegistryEntry)).resolves();
+            getIdentitiesStub.resolves(['someName', 'anotherName']);
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get').resolves({name: 'myEnvironment'});
+
+            const result: FabricWalletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET, false, 'myEnvironment');
+            result.name.should.equal('someWalletName');
+
+            browseStub.should.not.have.been.called;
+            showInputBoxStub.should.have.been.calledOnce;
+            const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll();
+            wallets.length.should.equal(1);
+            wallets[0].should.deep.equal({
+                name: 'someWalletName',
+                walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, 'someWalletName'),
+                fromEnvironment: 'myEnvironment'
+            });
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new wallet');
         });
     });
 });
