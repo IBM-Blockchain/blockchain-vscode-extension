@@ -115,7 +115,7 @@ describe('ButtonList component', () => {
             const instance: ButtonList = component.instance() as ButtonList;
             instance.deploy();
 
-            onDeployClickedStub.should.have.been.calledOnce;;
+            onDeployClickedStub.should.have.been.calledOnce;
         });
     });
 
