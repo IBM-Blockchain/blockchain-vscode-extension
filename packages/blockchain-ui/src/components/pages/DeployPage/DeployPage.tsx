@@ -20,6 +20,8 @@ interface DeployState {
     definitionName: string;
     definitionVersion: string;
     disableNext: boolean;
+    nameInvalid: boolean;
+    versionInvalid: boolean;
     commitSmartContract: boolean | undefined;
 }
 
@@ -35,6 +37,8 @@ class DeployPage extends Component<IProps, DeployState> {
             definitionName: '',
             definitionVersion: '',
             disableNext: true,
+            nameInvalid: false,
+            versionInvalid: false,
             commitSmartContract: undefined // If undefined, we'll assume the user wants to commit (but they haven't specified)
         };
 
@@ -59,13 +63,23 @@ class DeployPage extends Component<IProps, DeployState> {
         this.setState({selectedPackage, definitionName: selectedPackage.name, definitionVersion: selectedPackage.version, disableNext: false}); // Reset definition name and version back to default.
     }
 
-    handleDefinitionNameChange(definitionName: string): void {
+    handleDefinitionNameChange(definitionName: string, nameInvalid: boolean): void {
+        let disableNext: boolean = false;
+        if (nameInvalid || this.state.versionInvalid) {
+            disableNext = true;
+        }
+
         // Disable Next button if name is undefined
-        this.setState({definitionName, disableNext: !definitionName});
+        this.setState({definitionName, disableNext, nameInvalid});
     }
-    handleDefinitionVersionChange(definitionVersion: string): void {
+    handleDefinitionVersionChange(definitionVersion: string, versionInvalid: boolean): void {
+        let disableNext: boolean = false;
+        if (versionInvalid || this.state.nameInvalid) {
+            disableNext = true;
+        }
+
         // Disable Next button if version is undefined
-        this.setState({definitionVersion, disableNext: !definitionVersion});
+        this.setState({definitionVersion, disableNext, versionInvalid});
     }
 
     handleDeploy(): void {

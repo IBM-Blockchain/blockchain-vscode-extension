@@ -107,14 +107,22 @@ describe('Deploy page', () => {
         nameInput.click();
         nameInput.clear(); // Delete all
 
+        nextButton = cy.get('button').contains('Next');
+        nextButton.should('be.disabled');
+
+        nameInput = cy.get('#nameInput');
         nameInput.type('newDefinition');
 
         let versionInput: Cypress.Chainable<JQuery<HTMLInputElement>> = cy.get('#versionInput');
 
         versionInput.click();
-        nameInput.clear(); // Delete all
+        versionInput.clear(); // Delete all
 
-        nameInput.type('0.0.2');
+        nextButton = cy.get('button').contains('Next');
+        nextButton.should('be.disabled');
+
+        versionInput = cy.get('#versionInput');
+        versionInput.type('0.0.2');
 
         const backButton: Cypress.Chainable<JQuery<HTMLButtonElement>> = cy.get('button').contains('Back');
         backButton.should('not.be.disabled');
@@ -147,6 +155,10 @@ describe('Deploy page', () => {
         nameInput.click();
         nameInput.clear(); // Delete all
 
+        nextButton = cy.get('button').contains('Next');
+        nextButton.should('be.disabled');
+
+        nameInput = cy.get('#nameInput');
         nameInput.type('newDefinition');
 
         let versionInput: Cypress.Chainable<JQuery<HTMLInputElement>> = cy.get('#versionInput');
@@ -154,6 +166,10 @@ describe('Deploy page', () => {
         versionInput.click();
         nameInput.clear(); // Delete all
 
+        nextButton = cy.get('button').contains('Next');
+        nextButton.should('be.disabled');
+
+        nameInput = cy.get('#versionInput');
         nameInput.type('0.0.2');
 
         const backButton: Cypress.Chainable<JQuery<HTMLButtonElement>> = cy.get('button').contains('Back');
