@@ -19,7 +19,7 @@ const steps: any = require('./steps');
 const hooks: any = require('./hooks');
 const smartContractSteps: any = require('./smartContract.steps');
 const packageContractSteps: any = require('./package.steps');
-const installInstantiateUpgradeSteps: any = require('./installInstantiateUpgrade.steps');
+const deploySteps: any = require('./deploy.steps');
 const wallletAndIdentitySteps: any = require('./walletAndIdentity.steps');
 const gatewaySteps: any = require('./gateway.steps');
 const fabricEnvironmentSteps: any = require('./fabricEnvironment.steps');
@@ -30,7 +30,7 @@ module.exports = function(): any {
     steps.call(this);
     smartContractSteps.call(this);
     packageContractSteps.call(this);
-    installInstantiateUpgradeSteps.call(this);
+    deploySteps.call(this);
     wallletAndIdentitySteps.call(this);
     gatewaySteps.call(this);
     fabricEnvironmentSteps.call(this);
