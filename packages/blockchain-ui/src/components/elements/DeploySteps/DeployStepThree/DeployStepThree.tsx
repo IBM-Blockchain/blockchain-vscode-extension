@@ -5,6 +5,8 @@ import IPackageRegistryEntry from '../../../../interfaces/IPackageRegistryEntry'
 interface IProps {
     selectedPackage: IPackageRegistryEntry;
     channelName: string;
+    commitSmartContract: undefined | boolean;
+    onCommitChange: (value: boolean) => void;
 }
 
 interface StepThreeState {
@@ -15,7 +17,7 @@ class DeployStepThree extends Component<IProps, StepThreeState> {
     constructor(props: Readonly<IProps>) {
         super(props);
         this.state = {
-            showCommitListItem: true
+            showCommitListItem: this.props.commitSmartContract !== undefined ? this.props.commitSmartContract : true
         };
 
         this.toggleCommit = this.toggleCommit.bind(this);
@@ -25,6 +27,7 @@ class DeployStepThree extends Component<IProps, StepThreeState> {
 
     toggleCommit(checked: boolean, _id: string, _event: any): void {
       this.setState({showCommitListItem: checked});
+      this.props.onCommitChange(checked);
     }
 
     changePeers(_selectedItems: {selectedItems: {id: string; label: string; }[]}): void {
@@ -81,14 +84,14 @@ class DeployStepThree extends Component<IProps, StepThreeState> {
                 </div>
                 <div className='bx--row margin-bottom-07'>
                     <div className='bx--col-lg-10'>
-                        <Accordion>
+                        <Accordion id='advancedAccordion'>
                             <AccordionItem id='customize' title={'Customize deployment step (advanced)'}>
                                 <div className='bx--row margin-top-06'>
                                     <div className='bx--col'>
                                         <p>Perform commit step</p>
                                         <Toggle
-                                            defaultToggled
-                                            id='toggle-1'
+                                            defaultToggled={this.state.showCommitListItem}
+                                            id='commitToggle'
                                             labelA='Off'
                                             labelB='On'
                                             onToggle={this.toggleCommit}
