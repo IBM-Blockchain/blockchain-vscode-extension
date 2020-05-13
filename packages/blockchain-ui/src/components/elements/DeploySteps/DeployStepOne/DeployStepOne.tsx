@@ -74,7 +74,7 @@ class DeployStepOne extends Component<IProps, StepOneState> {
                     </div>
                 </div>
                 <div className='bx--row'>
-                    <div className='bx--col-lg-10 '>
+                    <div className='bx--col-lg-10'>
                         <Accordion>
                             <AccordionItem title={'How does Fabric v2.X smart contract deployment work?'}>
                                 <p>TODO</p>

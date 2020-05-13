@@ -1,38 +1,302 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`DeployStepThree component render should render the expected snapshot 1`] = `
-<div
-  className="bx--row margin-bottom-06"
->
+Array [
   <div
-    className="bx--col"
+    className="bx--row margin-bottom-06"
   >
-    The following steps will all be automatically carried out to deploy this smart contract:
-    <ul
-      className="bx--list--unordered"
+    <div
+      className="bx--col-lg-10"
     >
-      <li
-        className="bx--list__item"
+      <span>
+        When you select 'Deploy', the following steps will automatically occur:
+      </span>
+      <ul
+        className="bx--list--unordered padding-left-07 padding-top-05"
       >
-        Install smart contract package \`
-        mycontract
-        @
-        0.0.1
-        \` on all peers
-      </li>
-      <li
-        className="bx--list__item"
+        <li
+          className="bx--list__item"
+        >
+          Install smart contract package \`
+          mycontract
+          @
+          0.0.1
+          \` on all peers
+        </li>
+        <li
+          className="bx--list__item"
+        >
+          Approve the same smart contract definition for each organization
+        </li>
+        <li
+          className="bx--list__item"
+        >
+          Commit the definition to \`
+          mychannel
+          \`
+        </li>
+      </ul>
+    </div>
+  </div>,
+  <div
+    className="bx--row margin-bottom-07"
+  >
+    <div
+      className="bx--col-lg-10"
+    >
+      <ul
+        className="bx--accordion bx--accordion--end"
       >
-        Approve the same smart contract definition for each organization
-      </li>
-      <li
-        className="bx--list__item"
-      >
-        Commit the definition to \`
-        mychannel
-        \`
-      </li>
-    </ul>
-  </div>
-</div>
+        <li
+          className="bx--accordion__item"
+          id="customize"
+          onAnimationEnd={[Function]}
+        >
+          <button
+            aria-expanded={false}
+            className="bx--accordion__heading"
+            onClick={[Function]}
+            onKeyDown={[Function]}
+            title="Expand/Collapse"
+            type="button"
+          >
+            <svg
+              aria-label="Expand/Collapse"
+              className="bx--accordion__arrow"
+              focusable="false"
+              height={16}
+              preserveAspectRatio="xMidYMid meet"
+              role="img"
+              viewBox="0 0 16 16"
+              width={16}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <polygon
+                points="11,8 6,13 5.3,12.3 9.6,8 5.3,3.7 6,3"
+              />
+            </svg>
+            <div
+              className="bx--accordion__title"
+            >
+              Customize deployment step (advanced)
+            </div>
+          </button>
+          <div
+            className="bx--accordion__content"
+          >
+            <div
+              className="bx--row margin-top-06"
+            >
+              <div
+                className="bx--col"
+              >
+                <p>
+                  Perform commit step
+                </p>
+                <div
+                  className="bx--form-item"
+                >
+                  <input
+                    aria-label={null}
+                    className="bx--toggle-input"
+                    defaultChecked={true}
+                    id="toggle-1"
+                    onChange={[Function]}
+                    onKeyUp={[Function]}
+                    type="checkbox"
+                  />
+                  <label
+                    aria-label="Toggle"
+                    className="bx--toggle-input__label"
+                    htmlFor="toggle-1"
+                  >
+                    <span
+                      className="bx--toggle__switch"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="bx--toggle__text--off"
+                      >
+                        Off
+                      </span>
+                      <span
+                        aria-hidden="true"
+                        className="bx--toggle__text--on"
+                      >
+                        On
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+              <div
+                className="bx--col"
+              >
+                <p>
+                  Peers to endorse commit transactions
+                </p>
+                <div
+                  className="bx--multi-select__wrapper bx--list-box__wrapper"
+                >
+                  <div
+                    className="bx--multi-select bx--multi-select--selected bx--list-box"
+                    id="carbon-multiselect-example"
+                    onClick={[Function]}
+                    onKeyDown={[Function]}
+                  >
+                    <div
+                      aria-controls={null}
+                      aria-disabled={false}
+                      aria-expanded={false}
+                      aria-haspopup={true}
+                      aria-labelledby="multiselect-label-1 multiselect-field-label-1"
+                      aria-owns={null}
+                      className="bx--list-box__field"
+                      data-toggle={true}
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onKeyDown={[Function]}
+                      role="button"
+                      tabIndex="0"
+                      type="button"
+                    >
+                      <div
+                        aria-label="Clear Selection"
+                        className="bx--list-box__selection bx--tag--filter bx--list-box__selection--multi"
+                        onClick={[Function]}
+                        onKeyDown={[Function]}
+                        role="button"
+                        tabIndex={0}
+                        title="Clear all selected items"
+                      >
+                        2
+                        <svg
+                          aria-hidden={true}
+                          focusable="false"
+                          height={16}
+                          preserveAspectRatio="xMidYMid meet"
+                          viewBox="0 0 32 32"
+                          width={16}
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <polygon
+                            points="24 9.4 22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4"
+                          />
+                        </svg>
+                      </div>
+                      <span
+                        className="bx--list-box__label"
+                        id="multiselect-field-label-1"
+                      >
+                        MultiSelect Label
+                      </span>
+                      <div
+                        className="bx--list-box__menu-icon"
+                      >
+                        <svg
+                          aria-label="Open menu"
+                          focusable="false"
+                          height={16}
+                          name="chevron--down"
+                          preserveAspectRatio="xMidYMid meet"
+                          role="img"
+                          viewBox="0 0 16 16"
+                          width={16}
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <polygon
+                            points="8,11 3,6 3.7,5.3 8,9.6 12.3,5.3 13,6"
+                          />
+                          <title>
+                            Open menu
+                          </title>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              className="bx--row margin-top-07"
+            >
+              <div
+                className="bx--col"
+              >
+                <div
+                  className="bx--data-table-container"
+                >
+                  <table
+                    className="bx--data-table bx--data-table--short bx--data-table--no-border"
+                  >
+                    <thead>
+                      <tr>
+                        <th
+                          scope="col"
+                        >
+                          <span
+                            className="bx--table-header-label"
+                          >
+                            Organization
+                          </span>
+                        </th>
+                        <th
+                          scope="col"
+                        >
+                          <span
+                            className="bx--table-header-label"
+                          >
+                            Approval status
+                          </span>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody
+                      aria-live="polite"
+                    >
+                      <tr>
+                        <td>
+                          Hardcoded
+                        </td>
+                        <td>
+                          Value
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          Needs to be
+                        </td>
+                        <td>
+                          Changed
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div
+              className="bx--row margin-top-07"
+            >
+              <div
+                className="bx--col"
+              >
+                <p>
+                  For an explanation of advanced scenarios, see the 
+                  <a
+                    className="bx--link"
+                    href="#"
+                  >
+                    documentation
+                  </a>
+                  .
+                </p>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>,
+]
 `;

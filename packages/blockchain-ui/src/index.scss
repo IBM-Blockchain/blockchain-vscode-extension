@@ -10,7 +10,6 @@
 @include carbon--font-face-sans();
 
 html {
-
     .vscode-dark {
         @include carbon--theme($carbon--theme--g90) {
 
@@ -42,6 +41,9 @@ html {
             @import 'carbon-components/scss/components/tile/_tile';
             @import 'carbon-components/scss/components/file-uploader/_file-uploader';
             @import 'carbon-components/scss/components/list/_list';
+            @import 'carbon-components/scss/components/toggle/_toggle';
+            @import 'carbon-components/scss/components/multi-select/_multi-select';
+            @import 'carbon-components/scss/components/data-table/_data-table';
 
             // Commenting this out until I determine whether it can be deleted or not.
 
@@ -52,63 +54,69 @@ html {
                 color: $text-01;
                 margin: $spacing-06;
                 @include select-dark;
-            }
+                @include custom-spacing;
+                
+                #app-container {
+                    @include app__tutorial-page-dark;
+                }
 
-            #app-container {
-                @include app__tutorial-page-dark;
-            }
+                // CustomTile component
+                #tutorial-tile-container {
+                    @include custom-tile-dark;
+                }
 
-            // CustomTile component
-            #tutorial-tile-container {
-                @include custom-tile-dark;
-            }
+                // extension version tag
+                #extension-version-tag {
+                    background-color: $gray-80;
+                    color: inherit;
+                }
 
-            // extension version tag
-            #extension-version-tag {
-                background-color: $gray-80;
-                color: inherit;
-            }
+                // home page links
+                #home-link-01, #home-link-02, #home-link-03, #home-link-04, #home-link-05, #home-link-06, #home-link-07, #home-link-08, #home-link-09, #home-link-10, #home-link-11, #acclaim-link, #download-all-link {
+                    color: $blue-40;
+                }
 
-            // home page links
-            #home-link-01, #home-link-02, #home-link-03, #home-link-04, #home-link-05, #home-link-06, #home-link-07, #home-link-08, #home-link-09, #home-link-10, #home-link-11, #acclaim-link, #download-all-link {
-                color: $blue-40;
-            }
+                // home page image
+                #dev-learner-themed-image {
+                    @include themed-image-dark;
+                }
 
-            // home page image
-            #dev-learner-themed-image {
-                @include themed-image-dark;
-            }
+                #tutorial-page-background {
+                    @include tutorial-page-dark;
+                }
 
-            #tutorial-page-background {
-                @include tutorial-page-dark;
-            }
+                #tutorial-tabs-container {
+                    @include tutorial-tabs-dark;
+                    @include tutorial-tile-dark;
+                }
 
-            #tutorial-tabs-container {
-                @include tutorial-tabs-dark;
-                @include tutorial-tile-dark;
-            }
+                // text inputs on the create transaction screen
+                #create-txn-form {
+                    @include text-inputs-dark;
+                }
 
-            // text inputs on the create transaction screen
-            #create-txn-form {
-                @include text-inputs-dark;
-            }
+                // data tables on home page
+                #recent-txns-table, #saved-txns-table {
+                    @include data-table-dark;
+                }
 
-            // data tables on home page
-            #recent-txns-table, #saved-txns-table {
-                @include data-table-dark;
-            }
+                // InlineSelect components
+                #smart-contract-select-wrapper {
+                    @include inline-select-dark;
+                }
 
-            // InlineSelect components
-            #smart-contract-select-wrapper {
-                @include inline-select-dark;
-            }
+                // Checkbox
+                @include checkbox-dark;
 
-            // Checkbox
-            @include checkbox-dark;
+                //panel containing transaction output
+                #output-panel {
+                    @include output-panel-dark;
+                }
 
-            //panel containing transaction output
-            #output-panel {
-                @include output-panel-dark;
+                .deploy-page-container {
+                    // Had to add this for css specificity priority 
+                    @include accordion-content;
+                }
             }
 
         }
@@ -146,10 +154,19 @@ html {
             @import 'carbon-components/scss/components/tile/_tile';
             @import 'carbon-components/scss/components/file-uploader/_file-uploader';
             @import 'carbon-components/scss/components/list/_list';
+            @import 'carbon-components/scss/components/toggle/_toggle';
+            @import 'carbon-components/scss/components/multi-select/_multi-select';
+            @import 'carbon-components/scss/components/data-table/_data-table';
 
             #root {
                 color: $text-01;
                 margin: $spacing-06;
+                @include custom-spacing;
+
+                .deploy-page-container {
+                    // Had to add this for css specificity priority 
+                    @include accordion-content;
+                }
             }
 
             // home page image
