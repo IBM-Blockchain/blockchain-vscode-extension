@@ -61,4 +61,5 @@ firstPublicationDate: 2019-04-19
 spec:
   extensions:
   - https://github.com/IBM-Blockchain/blockchain-vscode-extension/releases/download/v${VERSION}/ibm-blockchain-platform-che-${VERSION}.vsix
+  - https://open-vsx.org/api/vscode/markdown-language-features/1.39.1/file/vscode.markdown-language-features-1.39.1.vsix
 EOF
