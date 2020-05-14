@@ -767,7 +767,7 @@
                 },
                 {
                     "command": "environmentExplorer.startFabricRuntimeShort",
-                    "when": "view == environmentExplorer && viewItem == blockchain-environment-item || view == environmentExplorer && viewItem == blockchain-runtime-item"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-item"
                 },
                 {
                     "command": "environmentExplorer.stopFabricRuntime",
