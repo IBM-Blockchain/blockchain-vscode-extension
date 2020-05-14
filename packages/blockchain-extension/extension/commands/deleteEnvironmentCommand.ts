@@ -20,7 +20,7 @@ import { FabricEnvironmentTreeItem } from '../explorer/runtimeOps/disconnectedTr
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
-import { SettingConfigurations } from '../../extension/configurations';
+import { SettingConfigurations } from '../configurations';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { ManagedAnsibleEnvironmentManager } from '../fabric/environments/ManagedAnsibleEnvironmentManager';
