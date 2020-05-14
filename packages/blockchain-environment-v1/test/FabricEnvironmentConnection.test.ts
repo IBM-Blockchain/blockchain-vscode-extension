@@ -186,16 +186,54 @@ describe('FabricEnvironmentConnection', () => {
 
     describe('connect', () => {
 
+<<<<<<< HEAD
         it('should create a peer for each peer node', async () => {
             const peerNames: string[] = Array.from(connection['lifecycle']['peers'].keys());
             const peerValues: LifecyclePeer[] = Array.from(connection['lifecycle']['peers'].values());
 
+=======
+        it('should create peer clients for each peer node with API options', async () => {
+            const node: FabricNode = FabricNode.newPeer(
+                'org1peer',
+                'Org1 Peer',
+                `grpc://localhost:8080`,
+                `Org1`,
+                FabricRuntimeUtil.ADMIN_USER,
+                'Org1MSP'
+            );
+            node.api_options = {
+                'grpc.default_authority': 'org1peer.127-0-0-1.nip.io:8080',
+                'grpc.ssl_target_name_override': 'org1peer.127-0-0-1.nip.io:8080'
+            };
+            connection.disconnect();
+            await connection.connect([node]);
+            const peerNames: string[] = Array.from(connection['peers'].keys());
+            const peerValues: Client.Peer[] = Array.from(connection['peers'].values());
+            peerNames.should.deep.equal(['Org1 Peer']);
+            peerValues.should.have.lengthOf(1);
+            peerValues[0].should.be.an.instanceOf(Client.Peer);
+            const characteristics: any = peerValues[0]['getCharacteristics']();
+            characteristics.name.should.equal('org1peer.127-0-0-1.nip.io:8080');
+            characteristics.url.should.equal('grpc://localhost:8080');
+        });
+
+        it('should create secure peer clients for each secure peer node', async () => {
+            const peerNames: string[] = Array.from(connection['peers'].keys());
+            const peerValues: Client.Peer[] = Array.from(connection['peers'].values());
+>>>>>>> 4653e531... Add api_options and chaincode_options to a peer/orderer (resolves #2312)
             peerNames.should.deep.equal(['peer0.org1.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com', 'peer0.org2.example.com']);
 
             peerValues.should.have.lengthOf(4);
+<<<<<<< HEAD
             peerValues[0].should.be.an.instanceOf(LifecyclePeer);
             peerValues[0]['url'].should.equal('grpc://localhost:7051');
             peerValues[0]['name'].should.equal('peer0.org1.example.com');
+=======
+            peerValues[3].should.be.an.instanceOf(Client.Peer);
+            const characteristics: any = peerValues[3]['getCharacteristics']();
+            characteristics.name.should.equal('localhost:8051');
+            characteristics.url.should.equal('grpcs://localhost:8051');
+>>>>>>> 4653e531... Add api_options and chaincode_options to a peer/orderer (resolves #2312)
         });
 
         it('should create secure peer clients for each secure peer node with an SSL target name override', async () => {
@@ -228,12 +266,50 @@ describe('FabricEnvironmentConnection', () => {
 
             results.length.should.equal(2);
 
+<<<<<<< HEAD
             let orderer: ConnectOptions = connection['lifecycle'].getOrderer(results[0]);
             orderer.url.should.equal('grpc://localhost:7050');
 
             orderer = connection['lifecycle'].getOrderer(results[1]);
             orderer.url.should.equal('grpcs://localhost:8050');
             orderer.pem.should.equal(PEM_TLS_CA_CERTIFICATE);
+=======
+        it('should create orderer clients for each orderer node with API options', async () => {
+            const node: FabricNode = FabricNode.newOrderer(
+                'orderer',
+                'Orderer',
+                `grpc://localhost:8080`,
+                'Org1',
+                FabricRuntimeUtil.ADMIN_USER,
+                'OrdererMSP',
+                'myCluster'
+            );
+            node.api_options = {
+                'grpc.default_authority': 'orderer.127-0-0-1.nip.io:8080',
+                'grpc.ssl_target_name_override': 'orderer.127-0-0-1.nip.io:8080'
+            };
+            connection.disconnect();
+            await connection.connect([node]);
+            const ordererNames: string[] = Array.from(connection['orderers'].keys());
+            const ordererValues: Client.Orderer[] = Array.from(connection['orderers'].values());
+            ordererNames.should.deep.equal(['Orderer']);
+            ordererValues.should.have.lengthOf(1);
+            ordererValues[0].should.be.an.instanceOf(Client.Orderer);
+            const characteristics: any = ordererValues[0]['getCharacteristics']();
+            characteristics.name.should.equal('orderer.127-0-0-1.nip.io:8080');
+            characteristics.url.should.equal('grpc://localhost:8080');
+        });
+
+        it('should create secure orderer clients for each secure orderer node', async () => {
+            const ordererNames: string[] = Array.from(connection['orderers'].keys());
+            const ordererValues: Client.Orderer[] = Array.from(connection['orderers'].values());
+            ordererNames.should.deep.equal(['orderer.example.com', 'orderer2.example.com']);
+            ordererValues.should.have.lengthOf(2);
+            ordererValues[1].should.be.an.instanceOf(Client.Orderer);
+            const characteristics: any = ordererValues[1]['getCharacteristics']();
+            characteristics.name.should.equal('localhost:8050');
+            characteristics.url.should.equal('grpcs://localhost:8050');
+>>>>>>> 4653e531... Add api_options and chaincode_options to a peer/orderer (resolves #2312)
         });
 
         it('should create secure orderer clients for each secure orderer node with an SSL target name override', async () => {

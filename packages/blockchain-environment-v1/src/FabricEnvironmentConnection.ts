@@ -40,16 +40,19 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
 
         for (const node of nodes) {
             switch (node.type) {
-                case FabricNodeType.PEER: {
-                    const url: URL = new URL(node.api_url);
+                case FabricNodeType.PEER:
+                case FabricNodeType.ORDERER: {
+                    // Build the default options - don't specify pem or ssl_target_name_override unless they're actually specified
+                    // as part of the node, as they stop us being able to set some of the 'grpc.*' options below.
                     let pem: string;
                     if (node.pem) {
                         pem = Buffer.from(node.pem, 'base64').toString();
                     }
-                    let sslTargetNameOverride: string = url.hostname;
+                    let sslTargetNameOverride: string;
                     if (node.ssl_target_name_override) {
                         sslTargetNameOverride = node.ssl_target_name_override;
                     }
+<<<<<<< HEAD
 
                     this.lifecycle.addPeer({ name: node.name, mspid: node.msp_id, pem: pem, sslTargetNameOverride: sslTargetNameOverride, url: node.api_url });
 
@@ -60,13 +63,32 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
                     let pem: string;
                     if (node.pem) {
                         pem = Buffer.from(node.pem, 'base64').toString();
+=======
+                    const defaultOptions: Client.ConnectionOpts = { pem, 'ssl-target-name-override': sslTargetNameOverride };
+                    // Merge these with any user provided options.
+                    const mergedOptions: Client.ConnectionOpts = Object.assign(defaultOptions, node.api_options);
+                    // Figure out what the name of the node should be; if the hostname is localhost, and any of these options are
+                    // being used to set the actual name in the host/authority header - then we should use that name instead.
+                    const nameOverrides: string[] = ['grpc.default_authority', 'grpc.ssl_target_name_override'];
+                    for (const nameOverride of nameOverrides) {
+                        if (mergedOptions[nameOverride]) {
+                            mergedOptions.name = mergedOptions[nameOverride];
+                            break;
+                        }
+>>>>>>> 4653e531... Add api_options and chaincode_options to a peer/orderer (resolves #2312)
                     }
-                    let sslTargetNameOverride: string = url.hostname;
-                    if (node.ssl_target_name_override) {
-                        sslTargetNameOverride = node.ssl_target_name_override;
+                    if (node.type === FabricNodeType.PEER) {
+                        const peer: Client.Peer = this.client.newPeer(node.api_url, mergedOptions);
+                        this.peers.set(node.name, peer);
+                    } else {
+                        const orderer: Client.Orderer = this.client.newOrderer(node.api_url, mergedOptions);
+                        this.orderers.set(node.name, orderer);
                     }
+<<<<<<< HEAD
 
                     this.lifecycle.addOrderer({ name: node.name, pem: pem, sslTargetNameOverride: sslTargetNameOverride, url: node.api_url });
+=======
+>>>>>>> 4653e531... Add api_options and chaincode_options to a peer/orderer (resolves #2312)
                     break;
                 }
                 case FabricNodeType.CERTIFICATE_AUTHORITY: {
