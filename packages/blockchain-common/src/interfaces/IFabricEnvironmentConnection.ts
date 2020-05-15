@@ -13,8 +13,8 @@
 */
 'use strict';
 
-import { FabricCommittedSmartContract } from '../fabricModel/FabricCommittedSmartContract';
-import {IFabricWallet} from './IFabricWallet';
+import { FabricSmartContractDefinition } from '../fabricModel/FabricSmartContractDefinition';
+import { IFabricWallet } from './IFabricWallet';
 import { FabricNode } from '../fabricModel/FabricNode';
 import { Attribute } from '../fabricModel/FabricCertificate';
 import { FabricInstalledSmartContract } from '../fabricModel/FabricInstalledSmartContract';
@@ -29,11 +29,13 @@ export interface IFabricEnvironmentConnection {
 
     getAllPeerNames(): Array<string>;
 
+    getAllPeerNamesForOrg(orgName: string): Array<string>;
+
     createChannelMap(): Promise<Map<string, Array<string>>>;
 
-    getCommittedSmartContracts(peerNames: Array<string>, channelName: string): Promise<Array<FabricCommittedSmartContract>>;
+    getCommittedSmartContractDefinitions(peerNames: Array<string>, channelName: string): Promise<Array<FabricSmartContractDefinition>>;
 
-    getAllCommittedSmartContracts(): Promise<Array<FabricCommittedSmartContract>>;
+    getAllCommittedSmartContractDefinitions(): Promise<Array<FabricSmartContractDefinition>>;
 
     getAllOrganizationNames(): Array<string>;
 
@@ -49,7 +51,7 @@ export interface IFabricEnvironmentConnection {
 
     upgradeChaincode(chaincodeName: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionPath: string, contractEP: any): Promise<Buffer>;
 
-    enroll(certificateAuthorityName: string, enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}>;
+    enroll(certificateAuthorityName: string, enrollmentID: string, enrollmentSecret: string): Promise<{ certificate: string, privateKey: string }>;
 
     register(certificateAuthorityName: string, enrollmentID: string, affiliation: string, attributes?: Attribute[]): Promise<string>;
 
@@ -57,9 +59,11 @@ export interface IFabricEnvironmentConnection {
 
     getWallet(nodeName: string): Promise<IFabricWallet>;
 
-    approveSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[],  name: string, version: string, packageId: string, sequence: number): Promise<void>;
+    approveSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[], smartContractDefinition: FabricSmartContractDefinition): Promise<void>;
 
-    commitSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[],  name: string, version: string, sequence: number): Promise<void>;
+    commitSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[], smartContractDefinition: FabricSmartContractDefinition): Promise<void>;
 
-    getCommitReadiness(channelName: string, peerName: string, name: string, version: string, sequence: number ): Promise<boolean>;
+    getCommitReadiness(channelName: string, peerName: string, smartContractDefinition: FabricSmartContractDefinition): Promise<boolean>;
+
+    getEndorsementPolicyBuffer(policy: string): Buffer;
 }

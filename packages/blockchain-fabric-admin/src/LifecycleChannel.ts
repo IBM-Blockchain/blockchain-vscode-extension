@@ -44,8 +44,8 @@ export interface DefinedSmartContract {
     smartContractName: string;
     smartContractVersion: string;
     sequence: number;
-    endorsementPolicy?: string | object | Buffer;
-    collectionConfig?: object | Buffer;
+    endorsementPolicy?: Buffer;
+    collectionConfig?: Buffer;
     initRequired?: boolean;
     endorsementPlugin?: string;
     validationPlugin?: string;
@@ -152,7 +152,7 @@ export class LifecycleChannel {
             }
 
             if (options.endorsementPolicy) {
-                arg.setValidationParameter(this.getEndorsementPolicyBytes(options.endorsementPolicy));
+                arg.setValidationParameter(LifecycleChannel.getEndorsementPolicyBytes(options.endorsementPolicy));
             }
             // if (options.collectionConfig) {
             //     arg.setCollections(getCollectionConfig(options.collectionConfig));
@@ -218,6 +218,7 @@ export class LifecycleChannel {
             const results: protos.lifecycle.QueryChaincodeDefinitionsResult = protos.lifecycle.QueryChaincodeDefinitionsResult.decode(payloads[0]);
             const smartContractDefinitions: any = results.getChaincodeDefinitions();
             for (const smartContractDefinition of smartContractDefinitions) {
+
                 const defined: DefinedSmartContract = {
                     smartContractName: smartContractDefinition.getName(),
                     sequence: smartContractDefinition.getSequence().toNumber(),
@@ -418,7 +419,7 @@ export class LifecycleChannel {
             }
 
             if (options.endorsementPolicy) {
-                const endorsementPolicyBuffer: Buffer = this.getEndorsementPolicyBytes(options.endorsementPolicy);
+                const endorsementPolicyBuffer: Buffer = LifecycleChannel.getEndorsementPolicyBytes(options.endorsementPolicy);
                 arg.setValidationParameter(endorsementPolicyBuffer);
             }
             // TODO add this back in when done collections
@@ -448,6 +449,29 @@ export class LifecycleChannel {
             // this will disconnect the endorsers and committer
             gateway.disconnect();
         }
+    }
+
+    public static getEndorsementPolicyBytes(endorsementPolicy: string): Buffer {
+        const method: string = 'getEndorsementPolicyBytes';
+        logger.debug('%s - start', method);
+
+        if (!endorsementPolicy || endorsementPolicy === '') {
+            throw new Error('Missing parameter endorsementPolicy');
+        }
+
+        const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
+
+        if (endorsementPolicy.startsWith(EndorsementPolicy.AND) || endorsementPolicy.startsWith(EndorsementPolicy.OR) || endorsementPolicy.startsWith(EndorsementPolicy.OUT_OF)) {
+            logger.debug('%s - have an  actual policy :: %s', method, endorsementPolicy);
+            const policy: EndorsementPolicy = new EndorsementPolicy();
+            const signaturePolicy: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(endorsementPolicy);
+            applicationPolicy.setSignaturePolicy(signaturePolicy);
+        } else {
+            logger.debug('%s - have a policy reference :: %s', method, endorsementPolicy);
+            applicationPolicy.setChannelConfigPolicyReference(endorsementPolicy);
+        }
+
+        return applicationPolicy.toBuffer();
     }
 
     private async createEndorser(peerName: string, fabricClient: Client): Promise<Endorser> {
@@ -521,24 +545,5 @@ export class LifecycleChannel {
             gateway.disconnect();
             endorser.disconnect();
         }
-    }
-
-    private getEndorsementPolicyBytes(endorsementPolicy: string): Buffer {
-        const method: string = 'getEndorsementPolicyBytes';
-        logger.debug('%s - start', method);
-
-        const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
-
-        if (endorsementPolicy.startsWith(EndorsementPolicy.AND) || endorsementPolicy.startsWith(EndorsementPolicy.OR) || endorsementPolicy.startsWith(EndorsementPolicy.OUT_OF)) {
-            logger.debug('%s - have an  actual policy :: %s', method, endorsementPolicy);
-            const policy: EndorsementPolicy = new EndorsementPolicy();
-            const signaturePolicy: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(endorsementPolicy);
-            applicationPolicy.setSignaturePolicy(signaturePolicy);
-        } else {
-            logger.debug('%s - have a policy reference :: %s', method, endorsementPolicy);
-            applicationPolicy.setChannelConfigPolicyReference(endorsementPolicy);
-        }
-
-        return applicationPolicy.toBuffer();
     }
 }

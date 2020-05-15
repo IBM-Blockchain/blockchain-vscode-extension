@@ -17,10 +17,10 @@ import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
-import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, EnvironmentType, FabricSmartContractDefinition } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 
-export async function approveSmartContract(ordererName: string, channelName: string, peerNames: Array<string>, smartContractName: string, smartContractVersion: string, packageId: string, sequence: number): Promise<void> {
+export async function approveSmartContract(ordererName: string, channelName: string, orgMap: Map<string, string[]>, smartContractDefinition: FabricSmartContractDefinition): Promise<void> {
 
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'approveSmartContract');
@@ -49,7 +49,11 @@ export async function approveSmartContract(ordererName: string, channelName: str
                 VSCodeBlockchainDockerOutputAdapter.instance(fabricEnvironmentRegistryEntry.name).show();
             }
 
-            await connection.approveSmartContractDefinition(ordererName, channelName, peerNames, smartContractName, smartContractVersion, packageId, sequence);
+            for (const org of orgMap.keys()) {
+                progress.report({ message: `Approving Smart Contract for org ${org}` });
+                const peers: string[] = orgMap.get(org);
+                await connection.approveSmartContractDefinition(ordererName, channelName, peers, smartContractDefinition);
+            }
 
             Reporter.instance().sendTelemetryEvent('approveCommand');
 

@@ -24,7 +24,7 @@ import { VSCodeBlockchainDockerOutputAdapter } from '../../extension/logging/VSC
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { Reporter } from '../../extension/util/Reporter';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, EnvironmentType, FabricSmartContractDefinition } from 'ibm-blockchain-platform-common';
 
 chai.use(sinonChai);
 
@@ -78,8 +78,25 @@ describe('commitCommand', () => {
         });
 
         it('should commit the smart contract through the command', async () => {
-            await vscode.commands.executeCommand(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'mychannel', ['peerOne', 'peerTwo'], 'mySmartContract', '0.0.1',  1);
-            fabricRuntimeMock.commitSmartContractDefinition.should.have.been.calledWith('myOrderer', 'mychannel', ['peerOne', 'peerTwo'], 'mySmartContract', '0.0.1',  1);
+            const orgMap: Map<string, string[]> = new Map<string, string[]>();
+            orgMap.set('Org1MSP', ['peerOne']);
+            orgMap.set('Org2MSP', ['peerTwo', 'peerThree']);
+            await vscode.commands.executeCommand(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, ));
+            fabricRuntimeMock.commitSmartContractDefinition.should.have.been.calledWith('myOrderer', 'mychannel', ['peerOne', 'peerTwo', 'peerThree'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1));
+
+            dockerLogsOutputSpy.should.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'commitSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully committed smart contract definition');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('commitCommand');
+        });
+
+        it('should commit the smart contract through the command with endorsement policy', async () => {
+            const orgMap: Map<string, string[]> = new Map<string, string[]>();
+            orgMap.set('Org1MSP', ['peerOne']);
+            await vscode.commands.executeCommand(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, undefined, `AND('Org1.member', 'Org2.member', 'Org3.member')`));
+            fabricRuntimeMock.commitSmartContractDefinition.should.have.been.calledWith('myOrderer', 'mychannel', ['peerOne'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, undefined, `AND('Org1.member', 'Org2.member', 'Org3.member')`));
 
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'commitSmartContract');
@@ -90,10 +107,12 @@ describe('commitCommand', () => {
         });
 
         it('should commit the smart contract through the command when not connected', async () => {
+            const orgMap: Map<string, string[]> = new Map<string, string[]>();
+            orgMap.set('Org1MSP', ['peerOne']);
             environmentConnectionStub.resetHistory();
             environmentConnectionStub.onFirstCall().returns(undefined);
-            await vscode.commands.executeCommand(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'mychannel', ['peerOne', 'peerTwo'], 'mySmartContract', '0.0.1',  1);
-            fabricRuntimeMock.commitSmartContractDefinition.should.have.been.calledWith('myOrderer', 'mychannel', ['peerOne', 'peerTwo'], 'mySmartContract', '0.0.1',  1);
+            await vscode.commands.executeCommand(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1));
+            fabricRuntimeMock.commitSmartContractDefinition.should.have.been.calledWith('myOrderer', 'mychannel', ['peerOne'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, undefined));
 
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'commitSmartContract');
@@ -105,12 +124,14 @@ describe('commitCommand', () => {
         });
 
         it('should not show docker logs if not managed runtime', async () => {
+            const orgMap: Map<string, string[]> = new Map<string, string[]>();
+            orgMap.set('Org1MSP', ['peerOne']);
             const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             registryEntry.name = 'myFabric';
             registryEntry.managedRuntime = false;
             environmentRegistryStub.returns(registryEntry);
-            await vscode.commands.executeCommand(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'mychannel', ['peerOne', 'peerTwo'], 'mySmartContract', '0.0.1',  1);
-            fabricRuntimeMock.commitSmartContractDefinition.should.have.been.calledWith('myOrderer', 'mychannel', ['peerOne', 'peerTwo'], 'mySmartContract', '0.0.1',  1);
+            await vscode.commands.executeCommand(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1));
+            fabricRuntimeMock.commitSmartContractDefinition.should.have.been.calledWith('myOrderer', 'mychannel', ['peerOne'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1));
 
             dockerLogsOutputSpy.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'commitSmartContract');
@@ -121,21 +142,25 @@ describe('commitCommand', () => {
         });
 
         it('should return if no connection', async () => {
+            const orgMap: Map<string, string[]> = new Map<string, string[]>();
+            orgMap.set('Org1MSP', ['peerOne']);
             environmentConnectionStub.returns(undefined);
-            await vscode.commands.executeCommand(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'mychannel', ['peerOne', 'peerTwo'], 'mySmartContract', '0.0.1',  1);
+            await vscode.commands.executeCommand(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1));
             fabricRuntimeMock.commitSmartContractDefinition.should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'commitSmartContract');
         });
 
         it('should handle error from committing smart contract', async () => {
+            const orgMap: Map<string, string[]> = new Map<string, string[]>();
+            orgMap.set('Org1MSP', ['peerOne']);
             const error: Error = new Error('some error');
 
             fabricRuntimeMock.commitSmartContractDefinition.rejects(error);
 
-            await vscode.commands.executeCommand(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'mychannel', ['peerOne', 'peerTwo'], 'mySmartContract', '0.0.1',  1).should.eventually.be.rejectedWith('some error');
+            await vscode.commands.executeCommand(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1)).should.eventually.be.rejectedWith('some error');
 
-            fabricRuntimeMock.commitSmartContractDefinition.should.have.been.calledWith('myOrderer', 'mychannel', ['peerOne', 'peerTwo'], 'mySmartContract', '0.0.1',  1);
+            fabricRuntimeMock.commitSmartContractDefinition.should.have.been.calledWith('myOrderer', 'mychannel', ['peerOne'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1));
 
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'commitSmartContract');

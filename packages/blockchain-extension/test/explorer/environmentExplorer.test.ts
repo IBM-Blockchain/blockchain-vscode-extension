@@ -213,11 +213,11 @@ describe('environmentExplorer', () => {
                 map.set('channelTwo', ['peerOne', 'peerTwo']);
                 fabricConnection.createChannelMap.resolves(map);
 
-                fabricConnection.getCommittedSmartContracts.withArgs(['peerOne'], 'channelOne').resolves([{
+                fabricConnection.getCommittedSmartContractDefinitions.withArgs(['peerOne'], 'channelOne').resolves([{
                     name: 'biscuit-network',
                     version: '0.7'
                 }]);
-                fabricConnection.getCommittedSmartContracts.withArgs(['peerOne', 'peerTwo'], 'channelTwo').resolves([
+                fabricConnection.getCommittedSmartContractDefinitions.withArgs(['peerOne', 'peerTwo'], 'channelTwo').resolves([
                     {
                         name: 'biscuit-network',
                         version: '0.7'
@@ -445,11 +445,11 @@ describe('environmentExplorer', () => {
 
                 fabricConnection.getInstalledSmartContracts.withArgs('peerTwo').returns(installedChaincodeMapTwo);
 
-                fabricConnection.getCommittedSmartContracts.withArgs(['peerOne'], 'channelOne').resolves([{
+                fabricConnection.getCommittedSmartContractDefinitions.withArgs(['peerOne'], 'channelOne').resolves([{
                     name: 'biscuit-network',
                     version: '0.7'
                 }]);
-                fabricConnection.getCommittedSmartContracts.withArgs(['peerOne', 'peerTwo'], 'channelTwo').resolves([
+                fabricConnection.getCommittedSmartContractDefinitions.withArgs(['peerOne', 'peerTwo'], 'channelTwo').resolves([
                     {
                         name: 'biscuit-network',
                         version: '0.7'
@@ -461,7 +461,7 @@ describe('environmentExplorer', () => {
                         version: '2.34'
                     }]);
 
-                fabricConnection.getCommittedSmartContracts.withArgs(['peerOne'], 'channelThree').resolves([]);
+                fabricConnection.getCommittedSmartContractDefinitions.withArgs(['peerOne'], 'channelThree').resolves([]);
 
                 fabricConnection.getAllOrganizationNames.returns(['Org1', 'Org2']);
 
@@ -974,11 +974,11 @@ describe('environmentExplorer', () => {
             const fabricConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection> = mySandBox.createStubInstance(FabricEnvironmentConnection);
             fabricConnection.createChannelMap.resolves(map);
 
-            fabricConnection.getCommittedSmartContracts.withArgs(['peerOne'], 'channelOne').resolves([{
+            fabricConnection.getCommittedSmartContractDefinitions.withArgs(['peerOne'], 'channelOne').resolves([{
                 name: 'biscuit-network',
                 version: '0.7'
             }]);
-            fabricConnection.getCommittedSmartContracts.withArgs(['peerOne', 'peerTwo'], 'channelTwo').resolves([
+            fabricConnection.getCommittedSmartContractDefinitions.withArgs(['peerOne', 'peerTwo'], 'channelTwo').resolves([
                 {
                     name: 'biscuit-network',
                     version: '0.7'

@@ -20,7 +20,7 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { FabricCommittedSmartContract, FabricNodeType, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType, FabricWalletGeneratorFactory } from 'ibm-blockchain-platform-common';
+import { FabricSmartContractDefinition, FabricNodeType, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType, FabricWalletGeneratorFactory } from 'ibm-blockchain-platform-common';
 import { FabricWallet, FabricWalletGenerator } from 'ibm-blockchain-platform-wallet';
 import { LifecyclePeer, LifecycleChannel } from 'ibm-blockchain-platform-fabric-admin';
 import { ConnectOptions } from 'fabric-common';
@@ -320,6 +320,12 @@ describe('FabricEnvironmentConnection', () => {
         });
     });
 
+    describe('getAllPeerNamesForOrg', () => {
+        it('should get all of the peer names for an org', () => {
+            connection.getAllPeerNamesForOrg('Org1MSP').should.deep.equal(['peer0.org1.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com']);
+        });
+    });
+
     describe('createChannelMap', () => {
         let mockPeer1: sinon.SinonStubbedInstance<LifecyclePeer>;
         let mockPeer2: sinon.SinonStubbedInstance<LifecyclePeer>;
@@ -376,28 +382,31 @@ describe('FabricEnvironmentConnection', () => {
                 {
                     smartContractName: 'otherChaincode',
                     smartContractVersion: '0.0.1',
-                    sequence: 2
-                }
-            ]
-            );
-        });
-
-        it('should return the list of committed smart contracts', async () => {
-            const chaincodes: Array<FabricCommittedSmartContract> = await connection.getCommittedSmartContracts(['peer0.org1.example.com'], 'mychannel');
-            chaincodes.should.deep.equal([
-                {
-                    name: 'myChaincode',
-                    version: '0.0.2',
-                    sequence: 1
-                },
-                {
-                    name: 'otherChaincode',
-                    version: '0.0.1',
-                    sequence: 2
+                    sequence: 2,
+                    endorsementPolicy: Buffer.from('myPolicy')
                 }
             ]);
         });
 
+        it('should return the list of committed smart contracts', async () => {
+            const chaincodes: Array<FabricSmartContractDefinition> = await connection.getCommittedSmartContractDefinitions(['peer0.org1.example.com'], 'mychannel');
+            chaincodes.should.deep.equal([
+                {
+                    name: 'myChaincode',
+                    version: '0.0.2',
+                    sequence: 1,
+                    packageId: undefined,
+                    endorsementPolicy: undefined
+                },
+                {
+                    name: 'otherChaincode',
+                    version: '0.0.1',
+                    sequence: 2,
+                    packageId: undefined,
+                    endorsementPolicy: Buffer.from('myPolicy')
+                }
+            ]);
+        });
     });
 
     describe('getAllCommittedSmartContracts', () => {
@@ -427,10 +436,10 @@ describe('FabricEnvironmentConnection', () => {
                 {
                     smartContractName: 'otherChaincode',
                     smartContractVersion: '0.0.1',
-                    sequence: 2
+                    sequence: 2,
+                    endorsementPolicy: Buffer.from('myPolicy')
                 }
-            ]
-            );
+            ]);
             getAllCommittedSmartContractsStub.onSecondCall().resolves([
                 {
                     smartContractName: 'myChaincode',
@@ -440,39 +449,47 @@ describe('FabricEnvironmentConnection', () => {
                 {
                     smartContractName: 'otherChaincode',
                     smartContractVersion: '0.0.1',
-                    sequence: 2
+                    sequence: 2,
+                    endorsementPolicy: Buffer.from('myPolicy')
                 },
                 {
                     smartContractName: 'kittyChaincode',
                     smartContractVersion: '0.0.3',
                     sequence: 1
                 }
-            ]
-            );
+            ]);
         });
 
         it('should return the list of committed smart contracts on all channels', async () => {
-            const smartContracts: Array<FabricCommittedSmartContract> = await connection.getAllCommittedSmartContracts();
+            const smartContracts: Array<FabricSmartContractDefinition> = await connection.getAllCommittedSmartContractDefinitions();
             smartContracts.should.deep.equal([
                 {
                     name: 'kittyChaincode',
                     version: '0.0.3',
-                    sequence: 1
+                    sequence: 1,
+                    packageId: undefined,
+                    endorsementPolicy: undefined
                 },
                 {
                     name: 'myChaincode',
                     version: '0.0.1',
-                    sequence: 1
+                    sequence: 1,
+                    packageId: undefined,
+                    endorsementPolicy: undefined
                 },
                 {
                     name: 'myChaincode',
                     version: '0.0.2',
-                    sequence: 2
+                    sequence: 2,
+                    packageId: undefined,
+                    endorsementPolicy: undefined
                 },
                 {
                     name: 'otherChaincode',
                     version: '0.0.1',
-                    sequence: 2
+                    sequence: 2,
+                    packageId: undefined,
+                    endorsementPolicy: Buffer.from('myPolicy')
                 }
             ]);
         });
@@ -480,7 +497,7 @@ describe('FabricEnvironmentConnection', () => {
         it('should rethrow any errors', async () => {
             getAllCommittedSmartContractsStub.resetBehavior();
             getAllCommittedSmartContractsStub.rejects(new Error('such error'));
-            await connection.getAllCommittedSmartContracts()
+            await connection.getAllCommittedSmartContractDefinitions()
                 .should.be.rejectedWith(/such error/);
         });
     });
@@ -608,9 +625,17 @@ describe('FabricEnvironmentConnection', () => {
         it('should approve a smart contract', async () => {
             const approveSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'approveSmartContractDefinition');
 
-            await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], 'myContract', '0.0.1', 'myPackageId', 1);
+            await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId'));
 
-            approveSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', { smartContractName: 'myContract', smartContractVersion: '0.0.1', packageId: 'myPackageId', sequence: 1 });
+            approveSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', { smartContractName: 'myContract', smartContractVersion: '0.0.1', packageId: 'myPackageId', sequence: 1, endorsementPolicy: undefined });
+        });
+
+        it('should approve a smart contract with endorsement policy', async () => {
+            const approveSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'approveSmartContractDefinition');
+
+            await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId', `OR('Org1.member', 'Org2.member')`));
+
+            approveSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', { smartContractName: 'myContract', smartContractVersion: '0.0.1', packageId: 'myPackageId', sequence: 1, endorsementPolicy: `OR('Org1.member', 'Org2.member')`});
         });
     });
 
@@ -618,9 +643,17 @@ describe('FabricEnvironmentConnection', () => {
         it('should commit a smart contract', async () => {
             const commitSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'commitSmartContractDefinition');
 
-            await connection.commitSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], 'myContract', '0.0.1', 1);
+            await connection.commitSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1));
 
-            commitSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', { smartContractName: 'myContract', smartContractVersion: '0.0.1', sequence: 1 });
+            commitSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', { smartContractName: 'myContract', smartContractVersion: '0.0.1', sequence: 1, endorsementPolicy: undefined });
+        });
+
+        it('should commit a smart contract with endorsement policy', async () => {
+            const commitSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'commitSmartContractDefinition');
+
+            await connection.commitSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, undefined, `OutOf(1, 'Org1.member', 'Org2.member)`));
+
+            commitSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', { smartContractName: 'myContract', smartContractVersion: '0.0.1', sequence: 1, endorsementPolicy: `OutOf(1, 'Org1.member', 'Org2.member)` });
         });
     });
 
@@ -631,11 +664,11 @@ describe('FabricEnvironmentConnection', () => {
             resultMap.set('org2', true);
             const getCommitReadinessStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'getCommitReadiness').resolves(resultMap);
 
-            const result: boolean = await connection.getCommitReadiness('myChannel', 'peer0.org1.example.com', 'myContract', '0.0.1', 1);
+            const result: boolean = await connection.getCommitReadiness('myChannel', 'peer0.org1.example.com', new FabricSmartContractDefinition('myContract', '0.0.1', 1, undefined));
 
             result.should.equal(true);
 
-            getCommitReadinessStub.should.have.been.calledWith('peer0.org1.example.com', { smartContractName: 'myContract', smartContractVersion: '0.0.1', sequence: 1 });
+            getCommitReadinessStub.should.have.been.calledWith('peer0.org1.example.com', { smartContractName: 'myContract', smartContractVersion: '0.0.1', sequence: 1, endorsementPolicy: undefined });
         });
 
         it('should get the commit readiness and return false', async () => {
@@ -644,11 +677,20 @@ describe('FabricEnvironmentConnection', () => {
             resultMap.set('org2', false);
             const getCommitReadinessStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'getCommitReadiness').resolves(resultMap);
 
-            const result: boolean = await connection.getCommitReadiness('myChannel', 'peer0.org1.example.com', 'myContract', '0.0.1', 1);
+            const result: boolean = await connection.getCommitReadiness('myChannel', 'peer0.org1.example.com', new FabricSmartContractDefinition('myContract', '0.0.1', 1, undefined));
 
             result.should.equal(false);
 
-            getCommitReadinessStub.should.have.been.calledWith('peer0.org1.example.com', { smartContractName: 'myContract', smartContractVersion: '0.0.1', sequence: 1 });
+            getCommitReadinessStub.should.have.been.calledWith('peer0.org1.example.com', { smartContractName: 'myContract', smartContractVersion: '0.0.1', sequence: 1, endorsementPolicy: undefined });
+        });
+    });
+
+    describe('getEndorsementPolicyBuffer', () => {
+        it('should get the endorsement policy buffer', () => {
+            mySandBox.stub(LifecycleChannel, 'getEndorsementPolicyBytes').returns(Buffer.from('myPolicy'));
+            const result: Buffer = connection.getEndorsementPolicyBuffer('myPolicy');
+
+            result.should.deep.equal(Buffer.from('myPolicy'));
         });
     });
 
