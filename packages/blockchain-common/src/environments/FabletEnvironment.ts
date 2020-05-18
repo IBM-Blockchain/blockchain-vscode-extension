@@ -18,27 +18,70 @@ import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEnt
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricIdentity } from '../fabricModel/FabricIdentity';
 import { FabricGateway } from '../fabricModel/FabricGateway';
+import { FabletClient, isPeer, isOrderer, FabletComponent, FabletIdentity, isIdentity, isGateway, FabletGateway } from './FabletClient';
+import { FileConfigurations } from '../registries/FileConfigurations';
+import { IFabricWalletGenerator } from '../interfaces/IFabricWalletGenerator';
+import { FabricWalletGeneratorFactory } from '../util/FabricWalletGeneratorFactory';
+import { IFabricWallet } from '../interfaces/IFabricWallet';
+
+import * as fs from 'fs-extra';
+import * as path from 'path';
 
 export class FabletEnvironment extends AnsibleEnvironment {
 
-    constructor(name: string, environmentPath: string, _url: string) {
+    private client: FabletClient;
+
+    constructor(name: string, environmentPath: string, private url: string) {
         super(name, environmentPath);
+        this.client = new FabletClient(this.url);
     }
 
-    public async getAllOrganizationNames(_showOrderer: boolean = true): Promise<string[]> {
-        return [];
+    public async getAllOrganizationNames(showOrderer: boolean = true): Promise<string[]> {
+        return super.getAllOrganizationNames(showOrderer);
     }
 
     public async getNodes(_withoutIdentities: boolean = false, _showAll: boolean = false): Promise<FabricNode[]> {
-        return [];
+        const components: FabletComponent[] = await this.client.getComponents();
+        const nodes: FabricNode[] = [];
+        for (const component of components) {
+            if (isPeer(component)) {
+                const node: FabricNode = FabricNode.newPeer(
+                    component.id,
+                    component.display_name,
+                    component.api_url,
+                    component.wallet,
+                    component.identity,
+                    component.msp_id,
+                    false
+                );
+                node.api_options = component.api_options;
+                node.chaincode_url = component.chaincode_url;
+                node.chaincode_options = component.chaincode_options;
+                nodes.push(node);
+            } else if (isOrderer(component)) {
+                const node: FabricNode = FabricNode.newOrderer(
+                    component.id,
+                    component.display_name,
+                    component.api_url,
+                    component.wallet,
+                    component.identity,
+                    component.msp_id,
+                    component.display_name,
+                    false
+                );
+                node.api_options = component.api_options;
+                nodes.push(node);
+            }
+        }
+        return nodes;
     }
 
     public async updateNode(_node: FabricNode, _isOpsTools: boolean = false): Promise<void> {
-        return;
+        throw new Error('Operation not supported');
     }
 
     public async deleteNode(_node: FabricNode): Promise<void> {
-        return;
+        throw new Error('Operation not supported');
     }
 
     public async requireSetup(): Promise<boolean> {
@@ -46,23 +89,105 @@ export class FabletEnvironment extends AnsibleEnvironment {
     }
 
     public async getWalletsAndIdentities(): Promise<FabricWalletRegistryEntry[]> {
-        return [];
+        const walletNames: string[] = await this.getWalletNames();
+        const walletRegistryEntries: FabricWalletRegistryEntry[] = [];
+        const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
+        for (const walletName of walletNames) {
+            const walletPath: string = path.join(this.path, FileConfigurations.FABRIC_WALLETS, walletName);
+            await fs.mkdirp(walletPath);
+            const walletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+                name: walletName,
+                displayName: `${this.name} - ${walletName}`,
+                walletPath,
+                managedWallet: false,
+                fromEnvironment: this.name
+            });
+            walletRegistryEntries.push(walletRegistryEntry);
+            const wallet: IFabricWallet = await walletGenerator.getWallet(walletRegistryEntry);
+            const expectedIdentities: FabricIdentity[] = await this.getIdentities(walletName);
+            const existingIdentities: FabricIdentity[] = await wallet.getIdentities();
+            const identitiesToImport: FabricIdentity[] = [];
+            for (const expectedIdentity of expectedIdentities) {
+                const identityExists: boolean = await wallet.exists(expectedIdentity.name);
+                if (!identityExists) {
+                    identitiesToImport.push(expectedIdentity);
+                    continue;
+                }
+                const existingIdentity: FabricIdentity = existingIdentities.find((identity: FabricIdentity) => identity.name === expectedIdentity.name);
+                const identityMatches: boolean = existingIdentity.msp_id === expectedIdentity.msp_id
+                    && Buffer.from(existingIdentity.cert, 'utf8').toString('base64') === expectedIdentity.cert
+                    && Buffer.from(existingIdentity.private_key, 'utf8').toString('base64') === expectedIdentity.private_key;
+                if (!identityMatches) {
+                    identitiesToImport.push(expectedIdentity);
+                    continue;
+                }
+            }
+            for (const identityToImport of identitiesToImport) {
+                await wallet.importIdentity(
+                    Buffer.from(identityToImport.cert, 'base64').toString('utf8'),
+                    Buffer.from(identityToImport.private_key, 'base64').toString('utf8'),
+                    identityToImport.name,
+                    identityToImport.msp_id
+                );
+            }
+        }
+        return walletRegistryEntries;
     }
 
     public async getGateways(): Promise<FabricGatewayRegistryEntry[]> {
-        return [];
+        const gateways: FabricGateway[] = await this.getFabricGateways();
+        return gateways.map((gateway: FabricGateway) => {
+            return new FabricGatewayRegistryEntry({
+                name: `${this.name} - ${gateway.name}`,
+                associatedWallet: (gateway.connectionProfile as any).wallet,
+                displayName: gateway.name,
+                connectionProfilePath: gateway.path,
+                fromEnvironment: this.name
+            });
+        });
     }
 
     public async getWalletNames(): Promise<string[]> {
-        return [];
+        const components: FabletComponent[] = await this.client.getComponents();
+        const identities: FabletIdentity[] = components.filter((component: FabletComponent) => isIdentity(component)) as FabletIdentity[];
+        const walletNames: string[] = [];
+        for (const identity of identities) {
+            if (walletNames.indexOf(identity.wallet) < 0) {
+                walletNames.push(identity.wallet);
+            }
+        }
+        return walletNames;
     }
 
-    public async getIdentities(_walletName: string): Promise<FabricIdentity[]> {
-        return [];
+    public async getIdentities(walletName: string): Promise<FabricIdentity[]> {
+        const components: FabletComponent[] = await this.client.getComponents();
+        const identities: FabletIdentity[] = components.filter((component: FabletComponent) => isIdentity(component) && component.wallet === walletName) as FabletIdentity[];
+        return identities.map((identity: FabletIdentity) => {
+            return new FabricIdentity(identity.display_name, identity.cert, identity.private_key, identity.msp_id);
+        });
     }
 
     public async getFabricGateways(): Promise<FabricGateway[]> {
-        return [];
+        const components: FabletComponent[] = await this.client.getComponents();
+        const gateways: FabletGateway[] = components.filter((component: FabletComponent) => isGateway(component)) as FabletGateway[];
+        const result: FabricGateway[] = [];
+        for (const gateway of gateways) {
+            const gatewaysPath: string = path.join(this.path, FileConfigurations.FABRIC_GATEWAYS);
+            await fs.mkdirp(gatewaysPath);
+            const gatewayPath: string = path.join(gatewaysPath, `${gateway.display_name}.json`);
+            const gatewayExists: boolean = await fs.pathExists(gatewayPath);
+            if (!gatewayExists) {
+                await fs.writeJson(gatewayPath, gateway);
+            } else {
+                const existingGateway: any = await fs.readJson(gatewayPath);
+                const gatewaysMatch: boolean = JSON.stringify(existingGateway) === JSON.stringify(gateway);
+                if (!gatewaysMatch) {
+                    await fs.writeJson(gatewayPath, gateway);
+                }
+            }
+            result.push(new FabricGateway(gateway.name, gatewayPath, gateway));
+        }
+        return result;
     }
 
 }
