@@ -52,9 +52,10 @@ export async function deploySmartContract(requireCommit: boolean, fabricEnvironm
             if (requireCommit) {
                 progress.report({message: `Committing Smart Contract`});
                 await vscode.commands.executeCommand(ExtensionCommands.COMMIT_SMART_CONTRACT, ordererName, channelName, orgMap, smartContractDefinition);
+                outputAdapter.log(LogType.SUCCESS, 'Successfully deployed smart contract');
+            } else {
+                outputAdapter.log(LogType.SUCCESS, 'Partially deployed smart contract - commit not performed');
             }
-
-            outputAdapter.log(LogType.SUCCESS, 'Successfully deployed smart contract');
         });
 
     } catch (error) {

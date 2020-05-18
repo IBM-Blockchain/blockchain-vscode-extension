@@ -189,4 +189,32 @@ describe('Deploy page', () => {
         versionInput = cy.get('#versionInput');
         versionInput.should('contain.value', packageTwo.version);
     });
+
+    it(`should be able to toggle 'Perform Commit'`, () => {
+        const _package: string = `${packageOne.name}@${packageOne.version} (packaged)`;
+
+        cy.get('#package-select').click(); // Expand dropdown
+        cy.get('#package-select').contains(_package).click(); // Click on option
+
+        let nextButton: Cypress.Chainable<JQuery<HTMLButtonElement>> = cy.get('button').contains('Next');
+        nextButton.should('not.be.disabled');
+        nextButton.click();
+
+        nextButton = cy.get('button').contains('Next');
+        nextButton.should('not.be.disabled');
+        nextButton.click();
+
+        const advancedSection: Cypress.Chainable<JQuery<HTMLElement>> = cy.get('#advancedAccordion');
+        advancedSection.click();
+
+        const commitToggle: Cypress.Chainable<JQuery<HTMLButtonElement>> = cy.get('#commitToggle');
+        commitToggle.should('be.checked');
+
+        commitToggle.uncheck({force: true});
+        commitToggle.should('not.be.checked');
+
+        commitToggle.check({force: true});
+        commitToggle.should('be.checked');
+    });
+
 });
