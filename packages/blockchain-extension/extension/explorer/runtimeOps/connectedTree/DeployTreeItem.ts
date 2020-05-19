@@ -20,6 +20,6 @@ export class DeployTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-deploy-item';
 
     constructor(provider: BlockchainExplorerProvider, public readonly command: vscode.Command) {
-        super(provider, '+ Deploy', vscode.TreeItemCollapsibleState.None);
+        super(provider, '+ Deploy smart contract', vscode.TreeItemCollapsibleState.None);
     }
 }

@@ -21,6 +21,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { SettingConfigurations } from '../configurations';
+import { DeployView } from '../webview/DeployView';
 
 export async function importSmartContractPackageCommand(): Promise<void> {
 
@@ -79,6 +80,11 @@ export async function importSmartContractPackageCommand(): Promise<void> {
 
         await fs.copy(packagePath, resolvedPkgPath);
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_PACKAGES);
+
+        const panel: vscode.WebviewPanel = DeployView.panel;
+        if (panel) {
+           await DeployView.updatePackages();
+        }
 
         VSCodeBlockchainOutputAdapter.instance().log(LogType.SUCCESS, 'Successfully imported smart contract package', `Successfully imported smart contract package ${packageName}`);
         Reporter.instance().sendTelemetryEvent('importSmartContractPackageCommand');

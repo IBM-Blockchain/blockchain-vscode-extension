@@ -584,9 +584,9 @@ describe('environmentExplorer', () => {
                 smartContractsChannelOne[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 smartContractsChannelOne[0].tooltip.should.equal('biscuit-network@0.7');
 
-                smartContractsChannelOne[1].label.should.equal('+ Deploy');
+                smartContractsChannelOne[1].label.should.equal('+ Deploy smart contract');
                 smartContractsChannelOne[1].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                smartContractsChannelOne[1].tooltip.should.equal('+ Deploy');
+                smartContractsChannelOne[1].tooltip.should.equal('+ Deploy smart contract');
                 smartContractsChannelOne[1].command.command.should.equal(ExtensionCommands.OPEN_DEPLOY_PAGE);
                 smartContractsChannelOne[1].command.arguments.should.deep.equal([environmentRegistry, 'channelOne']);
 
@@ -606,9 +606,9 @@ describe('environmentExplorer', () => {
                 smartContractsChannelTwo[2].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 smartContractsChannelTwo[2].tooltip.should.equal('legacy-network@2.34');
 
-                smartContractsChannelTwo[3].label.should.equal('+ Deploy');
+                smartContractsChannelTwo[3].label.should.equal('+ Deploy smart contract');
                 smartContractsChannelTwo[3].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                smartContractsChannelTwo[3].tooltip.should.equal('+ Deploy');
+                smartContractsChannelTwo[3].tooltip.should.equal('+ Deploy smart contract');
                 smartContractsChannelTwo[3].command.command.should.equal(ExtensionCommands.OPEN_DEPLOY_PAGE);
                 smartContractsChannelTwo[3].command.arguments.should.deep.equal([environmentRegistry, 'channelTwo']);
             });

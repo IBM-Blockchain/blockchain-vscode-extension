@@ -22,20 +22,34 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, IFabricEnvironmentConnection, FabricSmartContractDefinition, LogType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
+import { PackageRegistry } from '../registries/PackageRegistry';
 
 export class DeployView extends ReactView {
-    public panel: vscode.WebviewPanel;
-    protected appState: any;
+    public static panel: vscode.WebviewPanel;
+    public static appState: any;
+
+    static async updatePackages(): Promise<void> {
+        const packages: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
+        DeployView.appState.packageEntries = packages;
+        DeployView.panel.webview.postMessage({
+            path: '/deploy',
+            deployData: DeployView.appState
+        });
+    }
 
     constructor(context: vscode.ExtensionContext, appState: any) {
         super(context, 'deploySmartContract', 'Deploy Smart Contract');
-        this.appState = appState;
+        DeployView.appState = appState;
     }
 
     async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
         Reporter.instance().sendTelemetryEvent('openedView', { openedView: panel.title }); // Report that a user has opened a new panel
 
-        this.panel = panel;
+        DeployView.panel = panel;
+
+        panel.onDidDispose(() => {
+            DeployView.panel = undefined;
+        });
 
         const extensionPath: string = ExtensionUtil.getExtensionPath();
         const panelIcon: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'logo.svg'));
@@ -61,7 +75,7 @@ export class DeployView extends ReactView {
 
         panel.webview.postMessage({
             path: '/deploy',
-            deployData: this.appState
+            deployData: DeployView.appState
         });
     }
 
@@ -69,7 +83,7 @@ export class DeployView extends ReactView {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         try {
-            this.panel.dispose(); // Close the panel before attempting to deploy.
+            DeployView.panel.dispose(); // Close the panel before attempting to deploy.
 
             const environmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
 
