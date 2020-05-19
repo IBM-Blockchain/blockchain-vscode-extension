@@ -29,7 +29,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { CertificateAuthorityTreeItem } from './runtimeOps/connectedTree/CertificateAuthorityTreeItem';
 import { OrdererTreeItem } from './runtimeOps/connectedTree/OrdererTreeItem';
 import { FabricEnvironmentManager, ConnectedState } from '../fabric/environments/FabricEnvironmentManager';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, IFabricEnvironmentConnection, LogType, FabricEnvironment, EnvironmentType, FabricCommittedSmartContract } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricRuntimeUtil, IFabricEnvironmentConnection, LogType, FabricEnvironment, EnvironmentType, FabricSmartContractDefinition } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentTreeItem } from './runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { SetupTreeItem } from './runtimeOps/identitySetupTree/SetupTreeItem';
 import { EnvironmentConnectedTreeItem } from './runtimeOps/connectedTree/EnvironmentConnectedTreeItem';
@@ -286,7 +286,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             for (const channel of channels) {
                 const peers: Array<string> = channelMap.get(channel);
 
-                const smartContracts: FabricCommittedSmartContract[] = await connection.getCommittedSmartContracts(peers, channel);
+                const smartContracts: FabricSmartContractDefinition[] = await connection.getCommittedSmartContractDefinitions(peers, channel);
 
                 tree.push(new ChannelTreeItem(this, channel, peers, smartContracts, vscode.TreeItemCollapsibleState.Collapsed));
             }

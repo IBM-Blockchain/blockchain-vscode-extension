@@ -21,7 +21,7 @@ import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, 
 import { Reporter } from '../util/Reporter';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 
-export async function installSmartContract(peerNames: Array<string>, chosenPackage: PackageRegistryEntry): Promise<string> {
+export async function installSmartContract(orgMap: Map<string, string[]>, chosenPackage: PackageRegistryEntry): Promise<string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'installSmartContract');
 
@@ -38,6 +38,7 @@ export async function installSmartContract(peerNames: Array<string>, chosenPacka
     }
 
     let successfulInstall: boolean = true; // Have all packages been installed successfully
+    let peerCount: number = 0;
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         title: 'IBM Blockchain Platform Extension',
@@ -49,14 +50,18 @@ export async function installSmartContract(peerNames: Array<string>, chosenPacka
             VSCodeBlockchainDockerOutputAdapter.instance(environmentRegistryEntry.name).show();
         }
 
-        for (const peer of peerNames) {
-            progress.report({ message: `Installing Smart Contract on peer ${peer}` });
-            try {
-                packageId = await connection.installSmartContract(chosenPackage.path, peer);
-                outputAdapter.log(LogType.SUCCESS, `Successfully installed on peer ${peer}`);
-            } catch (error) {
-                outputAdapter.log(LogType.ERROR, `Failed to install on peer ${peer} with reason: ${error.message}`, `Failed to install on peer ${peer} with reason: ${error.toString()}`);
-                successfulInstall = false;
+        for (const org of orgMap.keys()) {
+            const peers: string[] = orgMap.get(org);
+            for (const peer of peers) {
+                peerCount++;
+                progress.report({ message: `Installing Smart Contract on peer ${peer}` });
+                try {
+                    packageId = await connection.installSmartContract(chosenPackage.path, peer);
+                    outputAdapter.log(LogType.SUCCESS, `Successfully installed on peer ${peer}`);
+                } catch (error) {
+                    outputAdapter.log(LogType.ERROR, `Failed to install on peer ${peer} with reason: ${error.message}`, `Failed to install on peer ${peer} with reason: ${error.toString()}`);
+                    successfulInstall = false;
+                }
             }
         }
 
@@ -66,7 +71,7 @@ export async function installSmartContract(peerNames: Array<string>, chosenPacka
 
     if (successfulInstall) {
         // Package was installed on all peers successfully
-        if (peerNames.length > 1) {
+        if (peerCount > 1) {
             // If the package has only been installed on one peer, we disregard this success message
             outputAdapter.log(LogType.SUCCESS, 'Successfully installed smart contract on all peers');
         }

@@ -18,10 +18,8 @@ chai.use(sinonChai);
 describe('DeployPage component', () => {
     let mySandBox: sinon.SinonSandbox;
 
-    let handleProgressChangeStub: sinon.SinonStub;
-    let handlePackageChangeStub: sinon.SinonStub;
-    let handleDefinitionNameChange: sinon.SinonStub;
-    let handleDefinitionVersionChange: sinon.SinonStub;
+    let setStateStub: sinon.SinonStub;
+    let handleCommitChange: sinon.SinonStub;
     let postToVscodeStub: sinon.SinonStub;
 
     const packageOne: IPackageRegistryEntry = {name: 'mycontract', version: '0.0.1', path: '/package/one', sizeKB: 9000};
@@ -94,11 +92,11 @@ describe('DeployPage component', () => {
             const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
             const instance: DeployPage = component.instance() as DeployPage;
 
-            handleProgressChangeStub = mySandBox.stub(instance, 'setState').resolves();
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
 
             instance.handleProgressChange(1);
 
-            handleProgressChangeStub.should.have.been.calledOnceWithExactly({progressIndex: 1});
+            setStateStub.should.have.been.calledOnceWithExactly({progressIndex: 1});
 
         });
 
@@ -107,11 +105,11 @@ describe('DeployPage component', () => {
             component.setState({selectedPackage: packageOne});
             const instance: DeployPage = component.instance() as DeployPage;
 
-            handleProgressChangeStub = mySandBox.stub(instance, 'setState').resolves();
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
 
             instance.handleProgressChange(0);
 
-            handleProgressChangeStub.should.have.been.calledOnceWithExactly({progressIndex: 0, disableNext: false});
+            setStateStub.should.have.been.calledOnceWithExactly({progressIndex: 0, disableNext: false});
         });
     });
 
@@ -121,11 +119,11 @@ describe('DeployPage component', () => {
             const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
             const instance: DeployPage = component.instance() as DeployPage;
 
-            handlePackageChangeStub = mySandBox.stub(instance, 'setState').resolves();
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
 
             instance.handlePackageChange(packageTwo);
 
-            handlePackageChangeStub.should.have.been.calledOnceWithExactly({selectedPackage: packageTwo, definitionName: packageTwo.name, definitionVersion: packageTwo.version, disableNext: false});
+            setStateStub.should.have.been.calledOnceWithExactly({selectedPackage: packageTwo, definitionName: packageTwo.name, definitionVersion: packageTwo.version, disableNext: false});
 
         });
     });
@@ -137,11 +135,11 @@ describe('DeployPage component', () => {
             component.setState({versionInvalid: true});
             const instance: DeployPage = component.instance() as DeployPage;
 
-            handleDefinitionNameChange = mySandBox.stub(instance, 'setState').resolves();
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
 
             instance.handleDefinitionNameChange('newName', true);
 
-            handleDefinitionNameChange.should.have.been.calledOnceWithExactly({definitionName: 'newName', nameInvalid: true, disableNext: true});
+            setStateStub.should.have.been.calledOnceWithExactly({definitionName: 'newName', nameInvalid: true, disableNext: true});
 
         });
 
@@ -151,11 +149,11 @@ describe('DeployPage component', () => {
             component.setState({versionInvalid: false});
             const instance: DeployPage = component.instance() as DeployPage;
 
-            handleDefinitionNameChange = mySandBox.stub(instance, 'setState').resolves();
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
 
             instance.handleDefinitionNameChange('newName', false);
 
-            handleDefinitionNameChange.should.have.been.calledOnceWithExactly({definitionName: 'newName', nameInvalid: false, disableNext: false});
+            setStateStub.should.have.been.calledOnceWithExactly({definitionName: 'newName', nameInvalid: false, disableNext: false});
 
         });
     });
@@ -168,11 +166,11 @@ describe('DeployPage component', () => {
 
             const instance: DeployPage = component.instance() as DeployPage;
 
-            handleDefinitionVersionChange = mySandBox.stub(instance, 'setState').resolves();
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
 
             instance.handleDefinitionVersionChange('0.0.3', true);
 
-            handleDefinitionVersionChange.should.have.been.calledOnceWithExactly({definitionVersion: '0.0.3', versionInvalid: true, disableNext: true});
+            setStateStub.should.have.been.calledOnceWithExactly({definitionVersion: '0.0.3', versionInvalid: true, disableNext: true});
 
         });
 
@@ -183,11 +181,11 @@ describe('DeployPage component', () => {
 
             const instance: DeployPage = component.instance() as DeployPage;
 
-            handleDefinitionVersionChange = mySandBox.stub(instance, 'setState').resolves();
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
 
             instance.handleDefinitionVersionChange('0.0.3', false);
 
-            handleDefinitionVersionChange.should.have.been.calledOnceWithExactly({definitionVersion: '0.0.3', versionInvalid: false, disableNext: false});
+            setStateStub.should.have.been.calledOnceWithExactly({definitionVersion: '0.0.3', versionInvalid: false, disableNext: false});
 
         });
     });
@@ -221,6 +219,25 @@ describe('DeployPage component', () => {
                     commitSmartContract: undefined
                 }
             });
+        });
+    });
+
+    describe('handleCommitChange', () => {
+        it('should update commit value', () => {
+
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
+
+            instance.handleCommitChange(false);
+
+            setStateStub.should.have.been.calledWithExactly({commitSmartContract: false});
+
+            instance.handleCommitChange(true);
+
+            setStateStub.should.have.been.calledWithExactly({commitSmartContract: true});
+
         });
     });
 

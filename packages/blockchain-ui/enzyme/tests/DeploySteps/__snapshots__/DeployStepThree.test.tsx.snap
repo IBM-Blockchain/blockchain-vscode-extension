@@ -46,6 +46,7 @@ Array [
     >
       <ul
         className="bx--accordion bx--accordion--end"
+        id="advancedAccordion"
       >
         <li
           className="bx--accordion__item"
@@ -100,7 +101,7 @@ Array [
                     aria-label={null}
                     className="bx--toggle-input"
                     defaultChecked={true}
-                    id="toggle-1"
+                    id="commitToggle"
                     onChange={[Function]}
                     onKeyUp={[Function]}
                     type="checkbox"
@@ -108,7 +109,7 @@ Array [
                   <label
                     aria-label="Toggle"
                     className="bx--toggle-input__label"
-                    htmlFor="toggle-1"
+                    htmlFor="commitToggle"
                   >
                     <span
                       className="bx--toggle__switch"

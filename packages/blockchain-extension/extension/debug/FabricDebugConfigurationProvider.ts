@@ -16,7 +16,7 @@ import * as vscode from 'vscode';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricCommittedSmartContract, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, IFabricGatewayConnection, FabricGatewayRegistry, EnvironmentType, FabricGatewayRegistryEntry, EnvironmentFlags } from 'ibm-blockchain-platform-common';
+import { FabricSmartContractDefinition, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, IFabricGatewayConnection, FabricGatewayRegistry, EnvironmentType, FabricGatewayRegistryEntry, EnvironmentFlags } from 'ibm-blockchain-platform-common';
 import { URL } from 'url';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { SettingConfigurations } from '../configurations';
@@ -36,12 +36,12 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
 
     static orgName: string;
 
-    public static async getInstantiatedChaincode(chaincodeName: string): Promise<FabricCommittedSmartContract> {
+    public static async getInstantiatedChaincode(chaincodeName: string): Promise<FabricSmartContractDefinition> {
         // Determine what smart contracts are instantiated already
         // Assume Local Fabric has one peer
         const connection: IFabricEnvironmentConnection = await this.getConnection();
-        const allInstantiatedContracts: FabricCommittedSmartContract[] = await connection.getAllCommittedSmartContracts();
-        const smartContractVersionName: FabricCommittedSmartContract = allInstantiatedContracts.find((contract: FabricCommittedSmartContract) => {
+        const allInstantiatedContracts: FabricSmartContractDefinition[] = await connection.getAllCommittedSmartContractDefinitions();
+        const smartContractVersionName: FabricSmartContractDefinition = allInstantiatedContracts.find((contract: FabricSmartContractDefinition) => {
             return contract.name === chaincodeName;
         });
 
@@ -162,7 +162,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             const replaceRegex: RegExp = /@.*?\//;
             chaincodeName = chaincodeName.replace(replaceRegex, '');
 
-            const smartContract: FabricCommittedSmartContract = await FabricDebugConfigurationProvider.getInstantiatedChaincode(chaincodeName);
+            const smartContract: FabricSmartContractDefinition = await FabricDebugConfigurationProvider.getInstantiatedChaincode(chaincodeName);
 
             if (smartContract) {
                 const isContainerRunning: boolean = await this.runtime.isRunning([smartContract.name, smartContract.version]);

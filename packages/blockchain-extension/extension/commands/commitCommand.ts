@@ -17,10 +17,16 @@ import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
-import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
+import {
+    FabricEnvironmentRegistryEntry,
+    IFabricEnvironmentConnection,
+    LogType,
+    EnvironmentType,
+    FabricSmartContractDefinition
+} from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 
-export async function commitSmartContract(ordererName: string, channelName: string, peerNames: Array<string>, smartContractName: string, smartContractVersion: string, sequence: number): Promise<void> {
+export async function commitSmartContract(ordererName: string, channelName: string, orgMap: Map<string, string[]>, smartContractDefinition: FabricSmartContractDefinition): Promise<void> {
 
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'commitSmartContract');
@@ -49,7 +55,12 @@ export async function commitSmartContract(ordererName: string, channelName: stri
                 VSCodeBlockchainDockerOutputAdapter.instance(fabricEnvironmentRegistryEntry.name).show();
             }
 
-            await connection.commitSmartContractDefinition(ordererName, channelName, peerNames, smartContractName, smartContractVersion, sequence);
+            const peerNames: string[] = [];
+            for (const org of orgMap.keys()) {
+                const peers: string[] = orgMap.get(org);
+                peerNames.push(...peers);
+            }
+            await connection.commitSmartContractDefinition(ordererName, channelName, peerNames, smartContractDefinition);
 
             Reporter.instance().sendTelemetryEvent('commitCommand');
 

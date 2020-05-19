@@ -19,7 +19,7 @@ import { ExtensionUtil } from '../util/ExtensionUtil';
 import { Reporter } from '../../extension/util/Reporter';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, IFabricEnvironmentConnection, FabricCommittedSmartContract, LogType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, IFabricEnvironmentConnection, FabricSmartContractDefinition, LogType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 
@@ -33,7 +33,7 @@ export class DeployView extends ReactView {
     }
 
     async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
-        Reporter.instance().sendTelemetryEvent('openedView', {openedView: panel.title}); // Report that a user has opened a new panel
+        Reporter.instance().sendTelemetryEvent('openedView', { openedView: panel.title }); // Report that a user has opened a new panel
 
         this.panel = panel;
 
@@ -42,7 +42,7 @@ export class DeployView extends ReactView {
 
         panel.iconPath = panelIcon;
 
-        panel.webview.onDidReceiveMessage(async (message: {command: string, data: any}) => {
+        panel.webview.onDidReceiveMessage(async (message: { command: string, data: any }) => {
             if (message.command === 'deploy') {
                 const channelName: string = message.data.channelName;
                 const environmentName: string = message.data.environmentName;
@@ -93,14 +93,25 @@ export class DeployView extends ReactView {
                 throw new Error(`Unable to deploy, cannot connect to environment: ${environmentEntry.name}`);
             }
 
-            const peerNames: string[] = connection.getAllPeerNames();
+            const orgMap: Map<string, string[]> = new Map<string, string[]>();
+            const orgNames: string[] = connection.getAllOrganizationNames();
+
+            for (const orgName of orgNames) {
+                const peerNames: string[] = connection.getAllPeerNamesForOrg(orgName);
+                // ignore any orderer orgs
+                if (peerNames.length > 0) {
+                    orgMap.set(orgName, peerNames);
+                }
+            }
+
+            const allPeerNames: string[] = connection.getAllPeerNames();
 
             // Does this get the orderer on the channel?
             const ordererNames: string[] = connection.getAllOrdererNames();
 
-            const allCommittedContracts: FabricCommittedSmartContract[] = await connection.getCommittedSmartContracts(peerNames, channelName);
+            const allCommittedContracts: FabricSmartContractDefinition[] = await connection.getCommittedSmartContractDefinitions(allPeerNames, channelName);
 
-            const committedContract: FabricCommittedSmartContract = allCommittedContracts.find((_contract: FabricCommittedSmartContract) => {
+            const committedContract: FabricSmartContractDefinition = allCommittedContracts.find((_contract: FabricSmartContractDefinition) => {
                 return _contract.name === definitionName;
             });
 
@@ -129,7 +140,7 @@ export class DeployView extends ReactView {
                 commitSmartContract = true; // Commit by default
             }
 
-            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, commitSmartContract, environmentEntry, ordererNames[0], channelName, peerNames, definitionName, definitionVersion, sequenceNumber, selectedPackage);
+            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, commitSmartContract, environmentEntry, ordererNames[0], channelName, orgMap, selectedPackage, new FabricSmartContractDefinition(definitionName, definitionVersion, sequenceNumber));
         } catch (error) {
             outputAdapter.log(LogType.ERROR, error.message, error.toString());
         }

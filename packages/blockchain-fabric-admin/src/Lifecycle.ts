@@ -96,8 +96,29 @@ export class Lifecycle {
         return peer;
     }
 
+    /**
+     * Get all the names of the peers
+     * @returns string[], all the names or the peers
+     */
     public getAllPeerNames(): string[] {
         return Array.from(this.peers.keys()).sort();
+    }
+
+    /**
+     * Get all the peer names for a org
+     * @param orgName
+     * @returns string[], the names of the peer in an org
+     */
+    public getAllPeerNamesForOrg(orgName: string): string[] {
+        const allPeerNames: string[] = this.getAllPeerNames();
+        const peerNames: string [] = [];
+        for (const peerName of allPeerNames) {
+            const lifecyclePeer: LifecyclePeer = this.peers.get(peerName);
+            if (lifecyclePeer.mspid === orgName) {
+                peerNames.push(peerName);
+            }
+        }
+        return peerNames.sort();
     }
 
     /**

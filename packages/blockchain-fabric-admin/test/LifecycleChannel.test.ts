@@ -1263,5 +1263,81 @@ describe('LifecycleChannel', () => {
                 await channel.getCommittedSmartContract('myPeer', 'mySmartContract').should.eventually.be.rejectedWith('Could not get smart contract definition, received error: some error');
             });
         });
+
+        describe('getEndorsementPolicyBytes', () => {
+            it('should get the buffer of the endorsment policy using AND', () => {
+                const policyString: string = `AND('org1.member', 'org2.member')`;
+
+                const policy: EndorsementPolicy = new EndorsementPolicy();
+
+                const policyResult: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(policyString);
+
+                const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
+
+                applicationPolicy.setSignaturePolicy(policyResult);
+
+                const policyBuffer: Buffer = applicationPolicy.toBuffer();
+
+                const result: Buffer = LifecycleChannel.getEndorsementPolicyBytes(policyString);
+
+                result.should.deep.equal(policyBuffer);
+            });
+
+            it('should get the buffer of the endorsment policy when using OR', () => {
+                const policyString: string = `OR('org1.member', 'org2.member')`;
+
+                const policy: EndorsementPolicy = new EndorsementPolicy();
+
+                const policyResult: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(policyString);
+
+                const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
+
+                applicationPolicy.setSignaturePolicy(policyResult);
+
+                const policyBuffer: Buffer = applicationPolicy.toBuffer();
+
+                const result: Buffer = LifecycleChannel.getEndorsementPolicyBytes(policyString);
+
+                result.should.deep.equal(policyBuffer);
+            });
+
+            it('should get the buffer of the endorsment policy when using outOf', () => {
+                const policyString: string = `OutOf(1, 'org1.member', 'org2.member')`;
+
+                const policy: EndorsementPolicy = new EndorsementPolicy();
+
+                const policyResult: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(policyString);
+
+                const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
+
+                applicationPolicy.setSignaturePolicy(policyResult);
+
+                const policyBuffer: Buffer = applicationPolicy.toBuffer();
+
+                const result: Buffer = LifecycleChannel.getEndorsementPolicyBytes(policyString);
+
+                result.should.deep.equal(policyBuffer);
+            });
+
+            it('should get the buffer of the endorsment policy when using channel reference', () => {
+                const policyString: string = `myPolicyReference`;
+
+                const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
+
+                applicationPolicy.setChannelConfigPolicyReference(policyString);
+
+                const policyBuffer: Buffer = applicationPolicy.toBuffer();
+
+                const result: Buffer = LifecycleChannel.getEndorsementPolicyBytes(policyString);
+
+                result.should.deep.equal(policyBuffer);
+            });
+
+            it('should handle no policy string', () => {
+                const policyString: string = '';
+
+                (() => LifecycleChannel.getEndorsementPolicyBytes(policyString)).should.throw('Missing parameter endorsementPolicy');
+            });
+        });
     });
 });
