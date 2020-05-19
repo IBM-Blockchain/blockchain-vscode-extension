@@ -46,6 +46,7 @@ class DeployPage extends Component<IProps, DeployState> {
         this.handlePackageChange = this.handlePackageChange.bind(this);
         this.handleDefinitionNameChange = this.handleDefinitionNameChange.bind(this);
         this.handleDefinitionVersionChange = this.handleDefinitionVersionChange.bind(this);
+        this.handleCommitChange = this.handleCommitChange.bind(this);
         this.handleDeploy = this.handleDeploy.bind(this);
     }
 
@@ -82,6 +83,10 @@ class DeployPage extends Component<IProps, DeployState> {
         this.setState({definitionVersion, disableNext, versionInvalid});
     }
 
+    handleCommitChange(value: boolean): void {
+        this.setState({commitSmartContract: value});
+    }
+
     handleDeploy(): void {
         Utils.postToVSCode({
             command: 'deploy',
@@ -110,7 +115,7 @@ class DeployPage extends Component<IProps, DeployState> {
         } else if (currentIndex === 1) {
             currentStepComponent = <DeployStepTwo selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} currentDefinitionName={this.state.definitionName} currentDefinitionVersion={this.state.definitionVersion} onDefinitionNameChange={this.handleDefinitionNameChange} onDefinitionVersionChange={this.handleDefinitionVersionChange}/>;
         } else {
-            currentStepComponent = <DeployStepThree selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} channelName={this.state.channelName}/>;
+            currentStepComponent = <DeployStepThree selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} channelName={this.state.channelName} commitSmartContract={this.state.commitSmartContract} onCommitChange={this.handleCommitChange}/>;
         }
 
         return (

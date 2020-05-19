@@ -115,7 +115,7 @@ describe('deployCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.COMMIT_SMART_CONTRACT);
             logSpy.should.have.been.calledWith(LogType.INFO, 'Deploy Smart Contract');
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully deployed smart contract');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Partially deployed smart contract - commit not performed');
         });
 
         it('should return if no connection', async () => {
