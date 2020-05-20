@@ -22,7 +22,6 @@ import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, EnvironmentType, FabricEnvironment, FabricNode, FabricRuntimeUtil, FileSystemUtil, FileConfigurations } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { ModuleUtil } from '../util/ModuleUtil';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { SettingConfigurations } from '../../configurations';
@@ -31,6 +30,8 @@ import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { URL } from 'url';
 import { ExtensionsInteractionUtil } from '../util/ExtensionsInteractionUtil';
 import { FeatureFlagManager } from '../util/FeatureFlags';
+import { SecureStore } from '../util/SecureStore';
+import { SecureStoreFactory } from '../util/SecureStoreFactory';
 
 export async function addEnvironment(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -288,10 +289,7 @@ export async function addEnvironment(): Promise<void> {
     }
 
     async function getOpsToolsAccessInfo(): Promise<string> {
-        const keytar: any = ModuleUtil.getCoreNodeModule('keytar');
-        if (!keytar) {
-            throw new Error('Error importing the keytar module');
-        }
+        const secureStore: SecureStore = await SecureStoreFactory.getSecureStore();
 
         const HEALTH_CHECK: string = '/ak/api/v1/health';
         const GET_ALL_COMPONENTS: string = '/ak/api/v1/components';
@@ -350,7 +348,7 @@ export async function addEnvironment(): Promise<void> {
         }
         // Securely store API key and secret
         try {
-            await keytar.setPassword('blockchain-vscode-ext', url, `${userAuth1}:${userAuth2}:${requestOptions.httpsAgent.options.rejectUnauthorized}`);
+            await secureStore.setPassword('blockchain-vscode-ext', url, `${userAuth1}:${userAuth2}:${requestOptions.httpsAgent.options.rejectUnauthorized}`);
         } catch (errorStorePass) {
             throw new Error(`Unable to store the required credentials: ${errorStorePass.message}`);
         }
