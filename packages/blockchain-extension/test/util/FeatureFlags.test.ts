@@ -15,6 +15,7 @@
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as vscode from 'vscode';
+import * as sinon from 'sinon';
 import { SettingConfigurations } from '../../extension/configurations';
 import { FeatureFlagManager } from '../../extension/util/FeatureFlags';
 
@@ -39,9 +40,20 @@ describe('FeatureFlag', () => {
 
     });
 
+    describe('#getContext', () => {
+
+        it('should return the context', () => {
+            FeatureFlagManager.EXPORTAPPDATA.getContext().should.equal(true);
+        });
+    });
+
 });
 
 describe('FeatureFlags', () => {
+    let mySandBox: sinon.SinonSandbox;
+    let executeCommandSpy: sinon.SinonSpy;
+    let getSettingsStub: sinon.SinonStub;
+    let getConfigurationStub: sinon.SinonStub;
 
     async function get(): Promise<object> {
         const configuration: vscode.WorkspaceConfiguration = await vscode.workspace.getConfiguration();
@@ -54,10 +66,13 @@ describe('FeatureFlags', () => {
     }
 
     beforeEach(async () => {
+        mySandBox = sinon.createSandbox();
+        executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
         await set({});
     });
 
     afterEach(async () => {
+        mySandBox.restore();
         await set({});
     });
 
@@ -70,15 +85,31 @@ describe('FeatureFlags', () => {
             });
         });
 
+        it('should set a context to true when a feature flag with contextFlag is enabled', async () => {
+            await FeatureFlagManager.enable(FeatureFlagManager.EXPORTAPPDATA);
+            get().should.eventually.deep.equal({
+                exportAppData: true
+            });
+            executeCommandSpy.should.have.been.calledWithExactly('setContext', 'exportAppData', true);
+        });
+
     });
 
     describe('#disable', () => {
 
-        it('should enable a feature flag', async () => {
+        it('should disable a feature flag', async () => {
             await FeatureFlagManager.disable(FeatureFlagManager.MICROFAB);
             get().should.eventually.deep.equal({
                 microfab: false
             });
+        });
+
+        it('should set a context to false when a feature flag with contextFlag is enabled', async () => {
+            await FeatureFlagManager.disable(FeatureFlagManager.EXPORTAPPDATA);
+            get().should.eventually.deep.equal({
+                exportAppData: false
+            });
+            executeCommandSpy.should.have.been.calledWithExactly('setContext', 'exportAppData', false);
         });
 
     });
@@ -125,6 +156,30 @@ describe('FeatureFlags', () => {
             await FeatureFlagManager.disabled(FeatureFlagManager.MICROFAB).should.eventually.be.false;
         });
 
+    });
+
+    describe('#get', () => {
+
+        beforeEach(async () => {
+            getSettingsStub = mySandBox.stub();
+            getSettingsStub.withArgs(SettingConfigurations.FEATURE_FLAGS).returns({
+                microfab: false,
+                exportAppData: false
+            });
+
+            getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
+            getConfigurationStub.returns({
+                get: getSettingsStub,
+                update: mySandBox.stub().callThrough()
+            });
+        });
+
+        it('should get all feature flags from the settings configuration', async () => {
+            await FeatureFlagManager.get().should.eventually.deep.equal({
+                microfab: false,
+                exportAppData: false
+            });
+        });
     });
 
 });

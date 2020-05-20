@@ -45,18 +45,32 @@ export class FabricWallet implements IFabricWallet {
             type: 'X.509',
         };
 
-        await  this.wallet.put(identityName, identity);
+        await this.wallet.put(identityName, identity);
     }
 
     public async getIdentityNames(): Promise<string[]> {
-        return  this.wallet.list();
+        return this.wallet.list();
+    }
+
+    public async getIDs(identities: string[]): Promise<FabricIdentity[]> {
+        const allIDs: FabricIdentity[] = [];
+        for (const identity of identities) {
+            const ID: X509Identity = await this.wallet.get(identity) as X509Identity;
+            const cert: string = Buffer.from(ID.credentials.certificate).toString('base64');
+            const privKey: string = Buffer.from(ID.credentials.privateKey).toString('base64');
+            const fabricIdentity: FabricIdentity = new FabricIdentity(identity, cert, privKey, ID.mspId);
+
+            allIDs.push(fabricIdentity);
+        }
+
+        return allIDs;
     }
 
     public async getIdentities(): Promise<FabricIdentity[]> {
         const identityNames: string[] = await this.getIdentityNames();
         const identities: FabricIdentity[] = [];
         for (const identityName of identityNames) {
-            const identity: X509Identity = await  this.wallet.get(identityName) as X509Identity;
+            const identity: X509Identity = await this.wallet.get(identityName) as X509Identity;
             const fabricIdentity: FabricIdentity = new FabricIdentity(identityName, identity.credentials.certificate, identity.credentials.privateKey, identity.mspId);
             identities.push(fabricIdentity);
         }
@@ -65,7 +79,7 @@ export class FabricWallet implements IFabricWallet {
     }
 
     public async getIdentity(identityName: string): Promise<FabricIdentity> {
-        const identity: X509Identity = await  this.wallet.get(identityName) as X509Identity;
+        const identity: X509Identity = await this.wallet.get(identityName) as X509Identity;
         return new FabricIdentity(identityName, identity.credentials.certificate, identity.credentials.privateKey, identity.mspId);
     }
 
