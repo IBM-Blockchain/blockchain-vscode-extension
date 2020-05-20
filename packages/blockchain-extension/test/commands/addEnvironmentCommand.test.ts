@@ -26,16 +26,41 @@ import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, Env
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { UserInputUtil} from '../../extension/commands/UserInputUtil';
-import { ModuleUtil } from '../../extension/util/ModuleUtil';
 import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { ExtensionData, GlobalState } from '../../extension/util/GlobalState';
 import { ExtensionsInteractionUtil } from '../../extension/util/ExtensionsInteractionUtil';
 import { FeatureFlagManager } from '../../extension/util/FeatureFlags';
+import { SecureStoreFactory } from '../../extension/util/SecureStoreFactory';
+import { SecureStore, SecureStoreCredentials } from '../../extension/util/SecureStore';
 
 // tslint:disable no-unused-expression
 chai.should();
 chai.use(sinonChai);
+
+class TestSecureStore implements SecureStore {
+
+    async getPassword(_service: string, _account: string): Promise<string | null> {
+        return null;
+    }
+
+    async setPassword(_service: string, _account: string, _password: string): Promise<void> {
+        return;
+    }
+
+    async deletePassword(_service: string, _account: string): Promise<boolean> {
+        return false;
+    }
+
+    async findCredentials(_service: string): Promise<SecureStoreCredentials> {
+        return [];
+    }
+
+    async findPassword(_service: string): Promise<string | null> {
+        return null;
+    }
+
+}
 
 describe('AddEnvironmentCommand', () => {
     let mySandBox: sinon.SinonSandbox;
@@ -51,7 +76,6 @@ describe('AddEnvironmentCommand', () => {
     let axiosGetStub: sinon.SinonStub;
     let chooseCertVerificationStub: sinon.SinonStub;
     let setPasswordStub: sinon.SinonStub;
-    let getCoreNodeModuleStub: sinon.SinonStub;
     let getNodesStub: sinon.SinonStub;
     let url: string;
     let userAuth1: string;
@@ -129,8 +153,10 @@ describe('AddEnvironmentCommand', () => {
             axiosGetStub.onFirstCall().rejects(certVerificationError);
             axiosGetStub.onSecondCall().rejects(certVerificationError2);
             axiosGetStub.onThirdCall().resolves();
-            setPasswordStub = mySandBox.stub().resolves();
-            getCoreNodeModuleStub = mySandBox.stub(ModuleUtil, 'getCoreNodeModule').returns({setPassword: setPasswordStub});
+            const mockSecureStore: sinon.SinonStubbedInstance<TestSecureStore> = sinon.createStubInstance(TestSecureStore);
+            setPasswordStub = mockSecureStore.setPassword;
+            setPasswordStub.resolves();
+            mySandBox.stub(SecureStoreFactory, 'getSecureStore').resolves(mockSecureStore);
             getNodesStub = mySandBox.stub(FabricEnvironment.prototype, 'getNodes');
             getNodesStub.resolves([{nodeOneData: {}}, {nodeTwoData: {}}]);
             getExtensionLocalFabricSettingStub = mySandBox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting');
@@ -572,24 +598,6 @@ describe('AddEnvironmentCommand', () => {
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'Add environment');
         });
 
-        it('should handle when the keytar module cannot be imported at all when creating a new OpsTool instance (Software support)', async () => {
-            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
-            chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
-            getCoreNodeModuleStub.withArgs('keytar').returns(undefined);
-
-            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
-
-            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
-            environments.length.should.equal(0);
-
-            getCoreNodeModuleStub.should.have.been.calledOnce;
-            deleteEnvironmentSpy.should.not.have.been.called;
-            removeRuntimeSpy.should.not.have.been.called;
-
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: Error importing the keytar module`, `Failed to add a new environment: Error: Error importing the keytar module`);
-        });
-
         it('should handle when certificate is present in OS trust store when creating new OpsTool instance (Software support)', async () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
@@ -598,7 +606,6 @@ describe('AddEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
-            getCoreNodeModuleStub.should.have.been.calledOnce;
             deleteEnvironmentSpy.should.have.not.been.called;
             removeRuntimeSpy.should.not.have.been.called;
 
@@ -615,7 +622,6 @@ describe('AddEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
-            getCoreNodeModuleStub.should.have.been.calledOnce;
             deleteEnvironmentSpy.should.not.have.been.called;
             removeRuntimeSpy.should.not.have.been.called;
 
@@ -632,7 +638,6 @@ describe('AddEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
-            getCoreNodeModuleStub.should.have.been.calledOnce;
             deleteEnvironmentSpy.should.not.have.been.called;
             removeRuntimeSpy.should.not.have.been.called;
 
@@ -673,7 +678,6 @@ describe('AddEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
-            getCoreNodeModuleStub.should.have.been.calledOnce;
             deleteEnvironmentSpy.should.not.have.been.called;
             removeRuntimeSpy.should.not.have.been.called;
 
