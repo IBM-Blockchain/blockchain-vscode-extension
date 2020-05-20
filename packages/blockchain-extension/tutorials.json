@@ -137,7 +137,6 @@
                 "title": "Create a cloud blockchain deployment",
                 "series": "Other tutorials",
                 "length": "50-60 mins",
-                "firstInSeries": true,
                 "objectives": 
                 [
                   "Deploy and configure an instance of the cloud service",
