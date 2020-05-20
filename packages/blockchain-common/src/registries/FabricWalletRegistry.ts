@@ -64,7 +64,7 @@ export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry
         const entries: FabricWalletRegistryEntry[] = await this.getAll();
 
         const entry: FabricWalletRegistryEntry = entries.find((item: FabricWalletRegistryEntry) => {
-            if (item.fromEnvironment) {
+            if (fromEnvironment && item.fromEnvironment) {
                 return item.name === name && item.fromEnvironment === fromEnvironment;
             } else {
                 return item.name === name;
