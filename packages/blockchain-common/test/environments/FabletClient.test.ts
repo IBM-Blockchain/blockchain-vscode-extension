@@ -153,6 +153,10 @@ describe('FabletClient', () => {
         });
     });
 
+    afterEach(() => {
+        mockAxios.restore();
+    });
+
     describe('#getComponents', () => {
 
         it('should get the list of components', async () => {
