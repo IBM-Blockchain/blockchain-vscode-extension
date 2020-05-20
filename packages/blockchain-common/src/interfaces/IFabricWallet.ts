@@ -25,6 +25,8 @@ export interface IFabricWallet {
 
     getIdentityNames(): Promise<string[]>;
 
+    getIDs(identities: string[]): Promise<FabricIdentity[]>;
+
     getIdentities(): Promise<FabricIdentity[]>;
 
     getWalletPath(): string;
