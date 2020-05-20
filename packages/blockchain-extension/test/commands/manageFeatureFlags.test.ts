@@ -30,7 +30,8 @@ chai.use(sinonChai);
 
 const FAKE_FEATURE: IFeatureFlag = {
     getName: (): string => 'fake',
-    getDescription: (): string => 'some fake description'
+    getDescription: (): string => 'some fake description',
+    getContext: (): boolean => false
 };
 
 describe('manageFeatureFlags', () => {
