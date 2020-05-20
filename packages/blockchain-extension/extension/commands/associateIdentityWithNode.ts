@@ -14,7 +14,7 @@
 'use strict';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import {  FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType, FabricEnvironment, FabricWalletGeneratorFactory } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricNodeType, FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType, FabricEnvironment, FabricWalletGeneratorFactory, FabricWalletRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
 import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricCertificateAuthorityFactory } from '../fabric/FabricCertificateAuthorityFactory';
@@ -96,7 +96,11 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
         }
 
         if (!chosenWallet.data) {
-            walletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET, false);
+            if (environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || environmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
+                walletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET, false, environmentRegistryEntry.name);
+            } else {
+                walletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET, false);
+            }
             if (!walletRegistryEntry) {
                 return;
             }
@@ -145,6 +149,11 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
         const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
 
         await environment.updateNode(node);
+
+        if (!walletRegistryEntry.fromEnvironment && (environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || environmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT)) {
+            walletRegistryEntry.fromEnvironment = environmentRegistryEntry.name;
+            await FabricWalletRegistry.instance().update(walletRegistryEntry);
+        }
 
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
         outputAdapter.log(LogType.SUCCESS, `Successfully associated identity ${node.identity} from wallet ${node.wallet} with node ${node.name}`);
