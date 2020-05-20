@@ -47,6 +47,8 @@ import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { ManagedAnsibleEnvironmentManager } from '../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
 import { ManagedAnsibleEnvironment } from '../../extension/fabric/environments/ManagedAnsibleEnvironment';
+import Axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -1785,6 +1787,16 @@ describe('ExtensionUtil Tests', () => {
 
             executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
         });
+
+        it('should discover environments', async () => {
+            dependencies['generator-fabric'] = '0.0.2';
+            globalStateGetStub.returns({
+                generatorVersion: '0.0.1'
+            });
+            const spy: sinon.SinonSpy = mySandBox.spy(ExtensionUtil, 'discoverEnvironments');
+            await ExtensionUtil.completeActivation(false);
+            spy.should.have.been.calledOnce;
+        });
     });
 
     describe('setupLocalRuntime', () => {
@@ -2512,6 +2524,94 @@ describe('ExtensionUtil Tests', () => {
             const result: any = ExtensionUtil.getExtensionSaasConfigUpdatesSetting();
             result.should.deep.equal( true );
         });
+    });
+
+    describe('discoverEnvironments', () => {
+
+        let addStub: sinon.SinonStub;
+        let updateStub: sinon.SinonStub;
+        let existsStub: sinon.SinonStub;
+        let mockAxios: MockAdapter;
+
+        beforeEach(() => {
+            addStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'add');
+            updateStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'update');
+            existsStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'exists');
+            existsStub.resolves(false);
+            mockAxios = new MockAdapter(Axios);
+            mockAxios.onGet('http://console.fablet.example.org:9876/ak/api/v1/health').reply(200, {});
+        });
+
+        afterEach(() => {
+            delete process.env.CHE_WORKSPACE_ID;
+            delete process.env.FABLET_SERVICE_HOST;
+            delete process.env.FABLET_SERVICE_PORT;
+            mockAxios.restore();
+        });
+
+        it('should not do anything if not running in Eclipse Che', async () => {
+            await ExtensionUtil.discoverEnvironments();
+            addStub.should.not.have.been.called;
+            updateStub.should.not.have.been.called;
+        });
+
+        it('should not do anything if running in Eclipse Che, but FABLET_SERVICE_HOST is not set', async () => {
+            process.env.CHE_WORKSPACE_ID = 'workspacen5jfcuq4dy2cthww';
+            // process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
+            process.env.FABLET_SERVICE_PORT = '9876';
+            await ExtensionUtil.discoverEnvironments();
+            addStub.should.not.have.been.called;
+            updateStub.should.not.have.been.called;
+        });
+
+        it('should not do anything if running in Eclipse Che, but FABLET_SERVICE_PORT is not set', async () => {
+            process.env.CHE_WORKSPACE_ID = 'workspacen5jfcuq4dy2cthww';
+            process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
+            // process.env.FABLET_SERVICE_PORT = '9876';
+            await ExtensionUtil.discoverEnvironments();
+            addStub.should.not.have.been.called;
+            updateStub.should.not.have.been.called;
+        });
+
+        it('should not do anything if running in Eclipse Che, but the Fablet instance does not work', async () => {
+            process.env.CHE_WORKSPACE_ID = 'workspacen5jfcuq4dy2cthww';
+            process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
+            process.env.FABLET_SERVICE_PORT = '9876';
+            mockAxios.onGet('http://console.fablet.example.org:9876/ak/api/v1/health').reply(404, {});
+            await ExtensionUtil.discoverEnvironments();
+            addStub.should.not.have.been.called;
+            updateStub.should.not.have.been.called;
+        });
+
+        it('should discover and add a new environment for a Fablet instance running in Eclipse Che', async () => {
+            process.env.CHE_WORKSPACE_ID = 'workspacen5jfcuq4dy2cthww';
+            process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
+            process.env.FABLET_SERVICE_PORT = '9876';
+            await ExtensionUtil.discoverEnvironments();
+            addStub.should.have.been.calledOnceWithExactly({
+                name: 'Fablet',
+                managedRuntime: false,
+                environmentType: EnvironmentType.FABLET_ENVIRONMENT,
+                environmentDirectory: sinon.match.any,
+                url: 'http://console.fablet.example.org:9876'
+            });
+        });
+
+        it('should discover and update an existing environment for a Fablet instance running in Eclipse Che', async () => {
+            process.env.CHE_WORKSPACE_ID = 'workspacen5jfcuq4dy2cthww';
+            process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
+            process.env.FABLET_SERVICE_PORT = '9876';
+            existsStub.resolves(true);
+            await ExtensionUtil.discoverEnvironments();
+            updateStub.should.have.been.calledOnceWithExactly({
+                name: 'Fablet',
+                managedRuntime: false,
+                environmentType: EnvironmentType.FABLET_ENVIRONMENT,
+                environmentDirectory: sinon.match.any,
+                url: 'http://console.fablet.example.org:9876'
+            });
+        });
+
     });
 
 });
