@@ -65,11 +65,11 @@ module.exports = function(): any {
 
     this.Given(/^the transaction '(.*?)' has been submitted on the channel '(.*?)' with args '(.*?)' ?(?:and with the transient data )?('.*?')?$/, this.timeout, async (transaction: string, channel: string, args: string, transientData: string) => {
         // submit tx
-        await this.gatewayHelper.submitTransaction(this.contractName, this.contractVersion, this.contractLanguage, transaction, channel, args, this.gateway, `${this.contractAssetType}Contract`, transientData, false);
+        await this.gatewayHelper.submitTransaction(this.contractDefinitionName, this.contractDefinitionVersion, this.contractLanguage, transaction, channel, args, this.gateway, `${this.contractAssetType}Contract`, transientData, false);
     });
 
     this.Given('the contract has been associated with a directory of transaction data', this.timeout, async () => {
-        await this.gatewayHelper.associateTransactionDataDirectory(this.contractName, this.contractVersion, this.contractLanguage, this.gateway);
+        await this.gatewayHelper.associateTransactionDataDirectory(this.contractDefinitionName, this.contractDefinitionVersion, this.contractLanguage, this.gateway);
     });
 
     /**
@@ -102,7 +102,7 @@ module.exports = function(): any {
 
     this.When('I generate a {string} functional test for a {string} contract', this.timeout, async (testLanguage: string, contractLanguage: string) => {
 
-        await this.generatedTestsHelper.generateSmartContractTests(this.contractName, '0.0.1', testLanguage, this.gateway);
+        await this.generatedTestsHelper.generateSmartContractTests(this.contractDefinitionName, '0.0.1', testLanguage, this.gateway);
         this.testLanguage = testLanguage;
         this.contractLanguage = contractLanguage;
     });
@@ -114,7 +114,7 @@ module.exports = function(): any {
         } else if (submitEvaluate === 'evaluate') {
             evaluateBoolean = true;
         }
-        await this.gatewayHelper.submitTransaction(this.contractName, this.contractVersion, this.contractLanguage, transaction, channel, args, this.gateway, this.namespace, transientData, evaluateBoolean);
+        await this.gatewayHelper.submitTransaction(this.contractDefinitionName, this.contractDefinitionVersion, this.contractLanguage, transaction, channel, args, this.gateway, this.namespace, transientData, evaluateBoolean);
     });
 
     this.When(/^I (submit|evaluate) the transaction '(.*?)' on the channel '(.*?)' using the transaction data labelled '(.*?)'$/, this.timeout, async (submitEvaluate: string, transaction: string, channel: string, transactionLabel: string) => {
@@ -124,7 +124,7 @@ module.exports = function(): any {
         } else if (submitEvaluate === 'evaluate') {
             evaluateBoolean = true;
         }
-        await this.gatewayHelper.submitTransaction(this.contractName, this.contractVersion, this.contractLanguage, transaction, channel, undefined, this.gateway, this.namespace, undefined, evaluateBoolean, transactionLabel);
+        await this.gatewayHelper.submitTransaction(this.contractDefinitionName, this.contractDefinitionVersion, this.contractLanguage, transaction, channel, undefined, this.gateway, this.namespace, undefined, evaluateBoolean, transactionLabel);
     });
 
     this.When('I export the connection profile', this.timeout, async () => {
@@ -168,7 +168,7 @@ module.exports = function(): any {
 
                 // Get the smart contract metadata
                 const connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
-                const smartContractTransactionsMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, this.contractName, 'mychannel');
+                const smartContractTransactionsMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, this.contractDefinitionName, 'mychannel');
                 let smartContractTransactionsArray: string[];
                 for (const name of smartContractTransactionsMap.keys()) {
                     smartContractTransactionsArray = smartContractTransactionsMap.get(name);
@@ -178,7 +178,7 @@ module.exports = function(): any {
                     testFileContents.includes(capsContractName).should.be.true;
                     testFileContents.includes('builder.connect').should.be.true;
                 } else {
-                    testFileContents.includes(this.contractName).should.be.true;
+                    testFileContents.includes(this.contractDefinitionName).should.be.true;
                     testFileContents.includes('gateway.connect').should.be.true;
                 }
                 testFileContents.startsWith('/*').should.be.true;
@@ -190,7 +190,7 @@ module.exports = function(): any {
 
     this.Then('the tests should be runnable', this.timeout, async () => {
         if (this.contractLanguage === 'TypeScript' || this.contractLanguage === 'Java') {
-            const testRunResult: boolean = await this.generatedTestsHelper.runSmartContractTests(this.contractName, this.testLanguage, this.contractAssetType);
+            const testRunResult: boolean = await this.generatedTestsHelper.runSmartContractTests(this.contractDefinitionName, this.testLanguage, this.contractAssetType);
             testRunResult.should.equal(true);
         }
     });

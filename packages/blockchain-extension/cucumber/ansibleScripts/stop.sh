@@ -18,6 +18,4 @@ cd "${DIR}/ansible"
 
 pwd
 
-docker run --rm -v $PWD:/network -v /var/run/docker.sock:/var/run/docker.sock --network host ibmblockchain/vscode-prereqs:latest ansible-playbook --extra-vars state=absent /network/playbook.yaml
-
-
+docker run --rm -v $PWD:/network -v /var/run/docker.sock:/var/run/docker.sock --network host ibmblockchain/vscode-prereqs:issue-94 ansible-playbook --extra-vars state=absent /network/playbook.yaml

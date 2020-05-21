@@ -69,9 +69,9 @@ module.exports = function(): any {
             this.contractDirectory = path.join(pathToCheck, 'chaincode', namespace.toLowerCase(), 'src', sampleName.toLowerCase());
             process.env.GOPATH = path.join(pathToCheck, 'chaincode', namespace.toLowerCase());
         }
-        this.contractName = sampleName.toLowerCase();
+        this.contractDefinitionName = sampleName.toLowerCase();
         this.namespace = namespace;
-        this.contractVersion = '1.0.0';
+        this.contractDefinitionVersion = '1.0.0';
         this.contractLanguage = language;
     });
 };

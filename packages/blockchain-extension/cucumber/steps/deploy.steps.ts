@@ -27,13 +27,17 @@ module.exports = function(): any {
      * Given
      */
     this.Given(/the contract has been deployed on channel '(.*?)'/, this.timeout, async (channel: string) => {
-        await this.smartContractHelper.deploySmartContract(channel, this.contractName, this.contractVersion, this.packageRegistryEntry);
+        await this.smartContractHelper.deploySmartContract(channel, this.contractDefinitionName, this.contractDefinitionVersion, this.packageRegistryEntry);
     });
 
     /**
      * When
      */
-    this.When(/I deploy the contract on channel '(.*?)' with sequence '(.*?)'/, this.timeout, async (channel: string, sequence: string) => {
-        await this.smartContractHelper.deploySmartContract(channel, this.contractDefinitionName, this.contractDefinitionVersion, this.packageRegistryEntry, sequence, true);
+    this.When(/^I deploy the contract on channel '(.*?)' with sequence '(.*?)'( with private data)?$/, this.timeout, async (channel: string, sequence: string, privateDataString: string) => {
+        let privateData: boolean = false;
+        if (privateDataString) {
+            privateData = true;
+        }
+        await this.smartContractHelper.deploySmartContract(channel, this.contractDefinitionName, this.contractDefinitionVersion, this.packageRegistryEntry, sequence, privateData, true);
     });
 };

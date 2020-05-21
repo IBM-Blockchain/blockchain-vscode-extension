@@ -16,7 +16,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 # Switch into the system tests directory.
 cd "${DIR}/ansible"
 
-docker run --rm -v $PWD:/network -v /var/run/docker.sock:/var/run/docker.sock --network host ibmblockchain/vscode-prereqs:latest ansible-playbook /network/playbook.yaml
-docker run --rm -v $PWD:/network ibmblockchain/vscode-prereqs:0.0.16 chown -R $(id -u):$(id -g) /network
+docker run --rm -v $PWD:/network -v /var/run/docker.sock:/var/run/docker.sock --network host ibmblockchain/vscode-prereqs:issue-94 ansible-playbook /network/playbook.yaml
+docker run --rm -v $PWD:/network ibmblockchain/vscode-prereqs:issue-94 chown -R $(id -u):$(id -g) /network
 
 

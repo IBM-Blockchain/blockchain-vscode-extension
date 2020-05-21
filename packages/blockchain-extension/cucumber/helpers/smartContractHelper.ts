@@ -16,6 +16,7 @@
 import * as vscode from 'vscode';
 import * as sinon from 'sinon';
 import * as path from 'path';
+import * as fs from 'fs-extra';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
@@ -31,6 +32,7 @@ import {
     FabricSmartContractDefinition,
     IFabricEnvironmentConnection,
     FabricEnvironmentRegistryEntry,
+    FabricCollectionDefinition
 } from 'ibm-blockchain-platform-common';
 
 chai.use(sinonChai);
@@ -148,22 +150,24 @@ export class SmartContractHelper {
         }
     }
 
-    public async deploySmartContract(channel: string, name: string, version: string, packageRegistryEntry: PackageRegistryEntry, sequence: number = 1, ignorePreviousDeploy: boolean = false): Promise<void> {
+    public async deploySmartContract(channel: string, name: string, version: string, packageRegistryEntry: PackageRegistryEntry, sequence: number = 1, privateData: boolean = false, ignorePreviousDeploy: boolean = false): Promise<void> {
         const fabricEnvironmentConnection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
         const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
 
         const orgMap: Map<string, string[]> = new Map<string, string[]>();
         let peers: string [] = [];
-        let orderer: string = 'orderer.example.com';
+        let orderer: string = '';
         if (process.env.OTHER_FABRIC) {
             // Using old Fabric
             peers = ['peer0.org1.example.com'];
             orgMap.set('Org1MSP', peers);
+            orderer = 'orderer.example.com';
         } else if (process.env.ANSIBLE_FABRIC) {
             // Using new Ansible Fabric
             peers = ['Org1Peer1', 'Org1Peer2', 'Org2Peer1', 'Org1Peer2'];
             orgMap.set('Org1MSP', ['Org1Peer1', 'Org1Peer2']);
             orgMap.set('Org2MSP', ['Org2Peer1', 'Org2Peer2']);
+            orderer = 'Orderer1';
         } else if (process.env.TWO_ORG_FABRIC) {
             // local fabric 2 orgs
             peers = ['Org1Peer1', 'Org2Peer1'];
@@ -188,8 +192,14 @@ export class SmartContractHelper {
             });
         }
 
+        let collectionConfig: FabricCollectionDefinition[];
+        if (privateData) {
+            const collectionPath: string = path.join(__dirname, '../../../cucumber/data/collection.json');
+            collectionConfig = await fs.readJSON(collectionPath);
+        }
+
         if (!committedContract) {
-            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, orderer, channel, orgMap, packageRegistryEntry, new FabricSmartContractDefinition(name, version, sequence));
+            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, orderer, channel, orgMap, packageRegistryEntry, new FabricSmartContractDefinition(name, version, sequence, undefined, undefined, collectionConfig));
         }
     }
 
