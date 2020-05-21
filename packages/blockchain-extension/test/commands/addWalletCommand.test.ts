@@ -47,6 +47,7 @@ describe('AddWalletCommand', () => {
     beforeEach(async () => {
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
+        await FabricEnvironmentRegistry.instance().clear();
         await FabricWalletRegistry.instance().clear();
 
         showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
