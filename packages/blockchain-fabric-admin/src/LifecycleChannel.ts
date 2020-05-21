@@ -156,7 +156,7 @@ export class LifecycleChannel {
                 arg.setValidationParameter(LifecycleChannel.getEndorsementPolicyBytes(options.endorsementPolicy));
             }
             if (options.collectionConfig) {
-                arg.setCollections(CollectionConfig.buildCollectionConfigPackage(options.collectionConfig));
+                arg.setCollections(LifecycleChannel.getCollectionConfig(options.collectionConfig));
             }
 
             const buildRequest: { fcn: string; args: Promise<Buffer>[] } = {
@@ -425,7 +425,7 @@ export class LifecycleChannel {
             }
 
             if (options.collectionConfig) {
-                arg.setCollections(CollectionConfig.buildCollectionConfigPackage(options.collectionConfig));
+                arg.setCollections(LifecycleChannel.getCollectionConfig(options.collectionConfig));
             }
 
             const contract: Contract = network.getContract('_lifecycle');
@@ -473,6 +473,16 @@ export class LifecycleChannel {
         }
 
         return applicationPolicy.toBuffer();
+    }
+
+    public static getCollectionConfig(collectionConfig: Collection[], asBuffer: boolean = false): Buffer | protos.common {
+        const collection: protos.common.CollectionConfigPackage = CollectionConfig.buildCollectionConfigPackage(collectionConfig);
+
+        if (asBuffer) {
+            return collection.toBuffer();
+        } else {
+            return collection;
+        }
     }
 
     private async createEndorser(peerName: string, fabricClient: Client): Promise<Endorser> {

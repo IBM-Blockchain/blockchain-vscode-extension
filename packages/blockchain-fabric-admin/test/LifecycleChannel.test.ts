@@ -1454,5 +1454,35 @@ describe('LifecycleChannel', () => {
                 (() => LifecycleChannel.getEndorsementPolicyBytes(policyString)).should.throw('Missing parameter endorsementPolicy');
             });
         });
+
+        describe('getCollectionConfig', () => {
+            it('should get the collection config', () => {
+                const collection: Collection = {
+                    name: 'myCollection',
+                    policy: `OR('Org1MSP.member', 'Org2MSP.member')`,
+                    requiredPeerCount: 0,
+                    maxPeerCount: 3
+                };
+
+                const expectedResult: protos.common.CollectionConfigPackage = CollectionConfig.buildCollectionConfigPackage([collection]);
+                const actualResult: protos.common.CollectionConfigPackage = LifecycleChannel.getCollectionConfig([collection]);
+
+                actualResult.should.deep.equal(expectedResult);
+            });
+
+            it('should get the collection config as a buffer', () => {
+                const collection: Collection = {
+                    name: 'myCollection',
+                    policy: `OR('Org1MSP.member', 'Org2MSP.member')`,
+                    requiredPeerCount: 0,
+                    maxPeerCount: 3
+                };
+
+                const expectedResult: protos.common.CollectionConfigPackage = CollectionConfig.buildCollectionConfigPackage([collection]);
+                const actualResult: protos.common.CollectionConfigPackage = LifecycleChannel.getCollectionConfig([collection], true);
+
+                actualResult.should.deep.equal(expectedResult.toBuffer());
+            });
+        });
     });
 });
