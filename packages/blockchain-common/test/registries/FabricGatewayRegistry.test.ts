@@ -142,6 +142,27 @@ describe('FabricGatewayRegistry', () => {
         entries[4].should.deep.equal(gatewayOne);
     });
 
+    it(`should remove the fromEnvironment property if the environment doesn't exist`, async () => {
+        const walletOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
+            name: 'walletOne',
+            associatedWallet: '',
+            fromEnvironment: 'someEnvironment'
+        });
+
+        await registry.getAll().should.eventually.deep.equal([]);
+
+        await registry.add(walletOne);
+
+        const entries: FabricGatewayRegistryEntry[] = await FabricGatewayRegistry.instance().getAll();
+
+        entries.length.should.equal(1);
+
+        entries[0].should.deep.equal({
+            name: 'walletOne',
+            associatedWallet: '',
+        });
+    });
+
     it('should update an unmanaged gateway', async () => {
         const gatewayOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
             name: 'gatewayOne',
