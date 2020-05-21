@@ -19,3 +19,9 @@ pull_request_rules:
       label:
         add:
           - v2 pr
+
+  - name: Update tutorials
+    conditions: []
+    actions:
+      comment:
+        message: 'Please speak to the engagement team regarding updating tutorial & screenshots if any UI changes have been made!'
