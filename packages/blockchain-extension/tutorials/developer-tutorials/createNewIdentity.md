@@ -6,9 +6,9 @@
 
 * Create a new identity using Local Fabric CA
 
-> Note: This tutorial assumes you have a basic understanding of the VSCode extension and have followed the <a href='../ibm-blockchain-platform-vscode-smart-contract/local-dev.md'> first tutorial</a>.
+> Note: This tutorial assumes you have a basic understanding of the VSCode extension and have followed the <a href='../new-tutorials/basic-tutorials/a1.md'> Basic Tutorials</a> series.
 
-In the very first tutorial (Tutorial 1: Local smart contract development), we used a pre-set identity (`admin`) to connect to the 1 Org Local Fabric gateway and submit/evaluate transactions. In this tutorial, we will learn how to create _our own_ identity.
+In 'Tutorial A4: Invoking a smart contract from VS Code', we used a pre-set identity (`org1Admin`) to connect to the 1 Org Local Fabric gateway and submit/evaluate transactions. In this tutorial, we will learn how to create _our own_ identity.
 
 ***Why use multiple identities?*** 
 
@@ -28,7 +28,7 @@ For the purpose of this tutorial, we’ll use a fictional example of a manufactu
 
 3. Upon submitting your request, you should see a confirmation message at the bottom right of the screen confirming that your identity `Jack` has been created. The newly created identity should also appear in the `Fabric Wallets` panel under `1 Org Local Fabric > Org1`. 
 
-4. To connect to the 1 Org Local Fabric gateway using this identity, you simply click `1 Org Local Fabric - Org1` under the Fabric Gateways panel and select the identity you wish to connect with (Jack in our case).
+4. To connect to the 1 Org Local Fabric gateway using this identity, you simply click `1 Org Local Fabric > Org1` under the Fabric Gateways panel and select the identity you wish to connect with (Jack in our case).
 
 __*Note*__: If you are connected to the gateway already using the `admin` identity, you will need to disconnect from the gateway before you can reconnect with another identity. 
 
