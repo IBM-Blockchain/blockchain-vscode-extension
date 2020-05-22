@@ -840,8 +840,7 @@ export class ExtensionUtil {
 
         // First, check to see if we're running in Eclipse Che; currently
         // we can only discover environments created by Eclipse Che.
-        const che: boolean = 'CHE_WORKSPACE_ID' in process.env;
-        if (che) {
+        if (ExtensionUtil.isChe()) {
             await this.discoverCheEnvironments();
         }
 
@@ -886,6 +885,10 @@ export class ExtensionUtil {
             await environmentRegistry.update(environmentRegistryEntry);
         }
 
+    }
+
+    public static isChe(): boolean {
+        return 'CHE_WORKSPACE_ID' in process.env;
     }
 
     private static getExtension(): vscode.Extension<any> {
