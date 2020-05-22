@@ -2171,7 +2171,6 @@ describe('ExtensionUtil Tests', () => {
         });
 
         afterEach(() => {
-            delete process.env.CHE_WORKSPACE_ID;
             delete process.env.FABLET_SERVICE_HOST;
             delete process.env.FABLET_SERVICE_PORT;
             mockAxios.restore();
@@ -2184,7 +2183,7 @@ describe('ExtensionUtil Tests', () => {
         });
 
         it('should not do anything if running in Eclipse Che, but FABLET_SERVICE_HOST is not set', async () => {
-            process.env.CHE_WORKSPACE_ID = 'workspacen5jfcuq4dy2cthww';
+            mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
             // process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
             process.env.FABLET_SERVICE_PORT = '9876';
             await ExtensionUtil.discoverEnvironments();
@@ -2193,7 +2192,7 @@ describe('ExtensionUtil Tests', () => {
         });
 
         it('should not do anything if running in Eclipse Che, but FABLET_SERVICE_PORT is not set', async () => {
-            process.env.CHE_WORKSPACE_ID = 'workspacen5jfcuq4dy2cthww';
+            mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
             process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
             // process.env.FABLET_SERVICE_PORT = '9876';
             await ExtensionUtil.discoverEnvironments();
@@ -2202,7 +2201,7 @@ describe('ExtensionUtil Tests', () => {
         });
 
         it('should not do anything if running in Eclipse Che, but the Fablet instance does not work', async () => {
-            process.env.CHE_WORKSPACE_ID = 'workspacen5jfcuq4dy2cthww';
+            mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
             process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
             process.env.FABLET_SERVICE_PORT = '9876';
             mockAxios.onGet('http://console.fablet.example.org:9876/ak/api/v1/health').reply(404, {});
@@ -2212,7 +2211,7 @@ describe('ExtensionUtil Tests', () => {
         });
 
         it('should discover and add a new environment for a Fablet instance running in Eclipse Che', async () => {
-            process.env.CHE_WORKSPACE_ID = 'workspacen5jfcuq4dy2cthww';
+            mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
             process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
             process.env.FABLET_SERVICE_PORT = '9876';
             await ExtensionUtil.discoverEnvironments();
@@ -2226,7 +2225,7 @@ describe('ExtensionUtil Tests', () => {
         });
 
         it('should discover and update an existing environment for a Fablet instance running in Eclipse Che', async () => {
-            process.env.CHE_WORKSPACE_ID = 'workspacen5jfcuq4dy2cthww';
+            mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
             process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
             process.env.FABLET_SERVICE_PORT = '9876';
             existsStub.resolves(true);
@@ -2238,6 +2237,27 @@ describe('ExtensionUtil Tests', () => {
                 environmentDirectory: expectedEnvironmentDirectory,
                 url: 'http://console.fablet.example.org:9876'
             });
+        });
+
+    });
+
+    describe('isChe', () => {
+
+        beforeEach(async () => {
+            delete process.env.CHE_WORKSPACE_ID;
+        });
+
+        afterEach(async () => {
+            delete process.env.CHE_WORKSPACE_ID;
+        });
+
+        it('should return true on Eclipse Che', () => {
+            process.env.CHE_WORKSPACE_ID = 'workspacen5jfcuq4dy2cthww';
+            ExtensionUtil.isChe().should.be.true;
+        });
+
+        it('should return false when not on Eclipse Che', () => {
+            ExtensionUtil.isChe().should.be.false;
         });
 
     });
