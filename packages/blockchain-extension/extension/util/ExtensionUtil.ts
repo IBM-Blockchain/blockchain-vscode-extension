@@ -867,7 +867,8 @@ export class ExtensionUtil {
 
         // Determine where this environment should store any files.
         const extensionDirectory: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-        const environmentDirectory: string = path.join(extensionDirectory, FileConfigurations.FABRIC_ENVIRONMENTS, 'Fablet');
+        const resolvedExtensionDirectory: string = FileSystemUtil.getDirPath(extensionDirectory);
+        const environmentDirectory: string = path.join(resolvedExtensionDirectory, FileConfigurations.FABRIC_ENVIRONMENTS, 'Fablet');
 
         // Register the Fablet instance.
         const environmentRegistry: FabricEnvironmentRegistry = FabricEnvironmentRegistry.instance();

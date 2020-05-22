@@ -35,7 +35,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { TemporaryCommandRegistry } from '../../extension/dependencies/TemporaryCommandRegistry';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FabricWalletRegistryEntry, LogType, FabricWalletRegistry, FabricGatewayRegistry, FabricWalletUtil, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FabricWalletRegistryEntry, LogType, FabricWalletRegistry, FabricGatewayRegistry, FabricWalletUtil, EnvironmentType, FileConfigurations, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
 import { TestUtil } from '../TestUtil';
 import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistry';
@@ -533,14 +533,14 @@ describe('ExtensionUtil Tests', () => {
             const allCommands: Array<string> = await vscode.commands.getCommands();
 
             const commands: Array<string> = allCommands.filter((command: string) => {
+                if (command.endsWith('.focus') || command.endsWith('.resetViewLocation')) {
+                    // VSCode creates commands for tree views, so ignore those.
+                    return false;
+                }
                 return command.startsWith('gatewaysExplorer') || command.startsWith('aPackagesExplorer') || command.startsWith('environmentExplorer') || command.startsWith('extensionHome') || command.startsWith('walletExplorer') || command.startsWith('preReq') || command.startsWith('releaseNotes');
             });
 
             commands.should.deep.equal([
-                'aPackagesExplorer.focus',
-                'environmentExplorer.focus',
-                'gatewaysExplorer.focus',
-                'walletExplorer.focus',
                 ExtensionCommands.REFRESH_GATEWAYS,
                 ExtensionCommands.CONNECT_TO_GATEWAY,
                 ExtensionCommands.DISCONNECT_GATEWAY,
@@ -2532,6 +2532,7 @@ describe('ExtensionUtil Tests', () => {
         let updateStub: sinon.SinonStub;
         let existsStub: sinon.SinonStub;
         let mockAxios: MockAdapter;
+        let expectedEnvironmentDirectory: string;
 
         beforeEach(() => {
             addStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'add');
@@ -2540,6 +2541,9 @@ describe('ExtensionUtil Tests', () => {
             existsStub.resolves(false);
             mockAxios = new MockAdapter(Axios);
             mockAxios.onGet('http://console.fablet.example.org:9876/ak/api/v1/health').reply(200, {});
+            const extensionDirectory: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const resolvedExtensionDirectory: string = FileSystemUtil.getDirPath(extensionDirectory);
+            expectedEnvironmentDirectory = path.join(resolvedExtensionDirectory, FileConfigurations.FABRIC_ENVIRONMENTS, 'Fablet');
         });
 
         afterEach(() => {
@@ -2592,7 +2596,7 @@ describe('ExtensionUtil Tests', () => {
                 name: 'Fablet',
                 managedRuntime: false,
                 environmentType: EnvironmentType.FABLET_ENVIRONMENT,
-                environmentDirectory: sinon.match.any,
+                environmentDirectory: expectedEnvironmentDirectory,
                 url: 'http://console.fablet.example.org:9876'
             });
         });
@@ -2607,7 +2611,7 @@ describe('ExtensionUtil Tests', () => {
                 name: 'Fablet',
                 managedRuntime: false,
                 environmentType: EnvironmentType.FABLET_ENVIRONMENT,
-                environmentDirectory: sinon.match.any,
+                environmentDirectory: expectedEnvironmentDirectory,
                 url: 'http://console.fablet.example.org:9876'
             });
         });
