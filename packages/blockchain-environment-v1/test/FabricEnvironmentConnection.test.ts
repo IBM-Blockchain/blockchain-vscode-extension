@@ -198,6 +198,64 @@ describe('FabricEnvironmentConnection', () => {
             peerValues[0]['name'].should.equal('peer0.org1.example.com');
         });
 
+        it('should create peer clients for each peer node with API options', async () => {
+            const node: FabricNode = FabricNode.newPeer(
+                'org1peer',
+                'Org1 Peer',
+                `grpc://localhost:8080`,
+                'Org1',
+                FabricRuntimeUtil.ADMIN_USER,
+                'Org1MSP'
+            );
+            node.api_options = {
+                'grpc.some_option': 'some_value'
+            };
+            connection.disconnect();
+            await connection.connect([node]);
+
+            const peerNames: string[] = Array.from(connection['lifecycle']['peers'].keys());
+            const peerValues: LifecyclePeer[] = Array.from(connection['lifecycle']['peers'].values());
+
+            peerNames.should.deep.equal(['Org1 Peer']);
+            peerValues.should.have.lengthOf(1);
+            peerValues[0].should.be.an.instanceOf(LifecyclePeer);
+            peerValues[0]['url'].should.equal('grpc://localhost:8080');
+            peerValues[0]['name'].should.equal('Org1 Peer');
+            peerValues[0]['apiOptions'].should.deep.equal({
+                'grpc.some_option': 'some_value'
+            });
+        });
+
+        it('should create peer clients for each peer node with API options that override the name', async () => {
+            const node: FabricNode = FabricNode.newPeer(
+                'org1peer',
+                'Org1 Peer',
+                `grpc://localhost:8080`,
+                'Org1',
+                FabricRuntimeUtil.ADMIN_USER,
+                'Org1MSP'
+            );
+            node.api_options = {
+                'grpc.default_authority': 'org1peer.127-0-0-1.nip.io:8080',
+                'grpc.ssl_target_name_override': 'org1peer.127-0-0-1.nip.io:8080'
+            };
+            connection.disconnect();
+            await connection.connect([node]);
+
+            const peerNames: string[] = Array.from(connection['lifecycle']['peers'].keys());
+            const peerValues: LifecyclePeer[] = Array.from(connection['lifecycle']['peers'].values());
+
+            peerNames.should.deep.equal(['org1peer.127-0-0-1.nip.io:8080']);
+            peerValues.should.have.lengthOf(1);
+            peerValues[0].should.be.an.instanceOf(LifecyclePeer);
+            peerValues[0]['url'].should.equal('grpc://localhost:8080');
+            peerValues[0]['name'].should.equal('org1peer.127-0-0-1.nip.io:8080');
+            peerValues[0]['apiOptions'].should.deep.equal({
+                'grpc.default_authority': 'org1peer.127-0-0-1.nip.io:8080',
+                'grpc.ssl_target_name_override': 'org1peer.127-0-0-1.nip.io:8080'
+            });
+        });
+
         it('should create secure peer clients for each secure peer node with an SSL target name override', async () => {
             const node: FabricNode = FabricNode.newSecurePeer(
                 'peer0.org2.example.com',
@@ -234,6 +292,60 @@ describe('FabricEnvironmentConnection', () => {
             orderer = connection['lifecycle'].getOrderer(results[1]);
             orderer.url.should.equal('grpcs://localhost:8050');
             orderer.pem.should.equal(PEM_TLS_CA_CERTIFICATE);
+        });
+
+        it('should create orderer clients for each orderer node with API options', async () => {
+            const node: FabricNode = FabricNode.newOrderer(
+                'orderer',
+                'Orderer',
+                `grpc://localhost:8080`,
+                'Org1',
+                FabricRuntimeUtil.ADMIN_USER,
+                'OrdererMSP',
+                'myCluster'
+            );
+            node.api_options = {
+                'grpc.some_option': 'some_value'
+            };
+            connection.disconnect();
+            await connection.connect([node]);
+
+            const results: string[] = connection['lifecycle'].getAllOrdererNames();
+
+            results.length.should.equal(1);
+            results[0].should.equal('Orderer');
+
+            const orderer: ConnectOptions = connection['lifecycle'].getOrderer(results[0]);
+            orderer.url.should.equal('grpc://localhost:8080');
+            orderer['grpc.some_option'].should.equal('some_value');
+        });
+
+        it('should create orderer clients for each orderer node with API options that override the name', async () => {
+            const node: FabricNode = FabricNode.newOrderer(
+                'orderer',
+                'Orderer',
+                `grpc://localhost:8080`,
+                'Org1',
+                FabricRuntimeUtil.ADMIN_USER,
+                'OrdererMSP',
+                'myCluster'
+            );
+            node.api_options = {
+                'grpc.default_authority': 'orderer.127-0-0-1.nip.io:8080',
+                'grpc.ssl_target_name_override': 'orderer.127-0-0-1.nip.io:8080'
+            };
+            connection.disconnect();
+            await connection.connect([node]);
+
+            const results: string[] = connection['lifecycle'].getAllOrdererNames();
+
+            results.length.should.equal(1);
+            results[0].should.equal('orderer.127-0-0-1.nip.io:8080');
+
+            const orderer: ConnectOptions = connection['lifecycle'].getOrderer(results[0]);
+            orderer.url.should.equal('grpc://localhost:8080');
+            orderer['grpc.default_authority'].should.equal('orderer.127-0-0-1.nip.io:8080');
+            orderer['grpc.ssl_target_name_override'].should.equal('orderer.127-0-0-1.nip.io:8080');
         });
 
         it('should create secure orderer clients for each secure orderer node with an SSL target name override', async () => {

@@ -39,6 +39,7 @@ export interface LifecyclePeerOptions {
     clientCertKey?: string;
     clientKey?: string;
     requestTimeout?: number;
+    apiOptions?: object;
 }
 
 export interface InstalledSmartContract {
@@ -56,6 +57,7 @@ export class LifecyclePeer {
     public clientCertKey?: string;
     public clientKey?: string;
     public requestTimeout?: number;
+    public apiOptions?: object;
 
     private wallet: Wallet | undefined;
     private identity: string | undefined;
@@ -271,6 +273,10 @@ export class LifecyclePeer {
 
         if (this.requestTimeout) {
             options.requestTimeout = this.requestTimeout;
+        }
+
+        if (this.apiOptions) {
+            Object.assign(options, this.apiOptions);
         }
 
         const endpoint: Endpoint = fabricClient.newEndpoint(options);

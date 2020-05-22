@@ -105,6 +105,7 @@ export class FabricNode {
     public display_name?: string;
     public type: FabricNodeType;
     public api_url: string;
+    public api_options?: object;
     public ca_name?: string;
     public pem?: string;
     public tls_cert?: string;
@@ -115,6 +116,7 @@ export class FabricNode {
     public msp_id?: string;
     public container_name?: string;
     public chaincode_url?: string;
+    public chaincode_options?: object;
     public enroll_secret?: string;
     public enroll_id?: string;
     public cluster_name?: string;
