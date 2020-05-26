@@ -35,7 +35,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { TemporaryCommandRegistry } from '../../extension/dependencies/TemporaryCommandRegistry';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FabricWalletRegistryEntry, LogType, FabricWalletRegistry, FabricGatewayRegistry, FabricWalletUtil, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FabricWalletRegistryEntry, LogType, FabricWalletRegistry, FabricGatewayRegistry, FabricWalletUtil, EnvironmentType, FileConfigurations, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
 import { TestUtil } from '../TestUtil';
 import { RepositoryRegistry } from '../../extension/registries/RepositoryRegistry';
@@ -533,14 +533,14 @@ describe('ExtensionUtil Tests', () => {
             const allCommands: Array<string> = await vscode.commands.getCommands();
 
             const commands: Array<string> = allCommands.filter((command: string) => {
+                if (command.endsWith('.focus') || command.endsWith('.resetViewLocation')) {
+                    // VSCode creates commands for tree views, so ignore those.
+                    return false;
+                }
                 return command.startsWith('gatewaysExplorer') || command.startsWith('aPackagesExplorer') || command.startsWith('environmentExplorer') || command.startsWith('extensionHome') || command.startsWith('walletExplorer') || command.startsWith('preReq') || command.startsWith('releaseNotes');
             });
 
             commands.should.deep.equal([
-                'aPackagesExplorer.focus',
-                'environmentExplorer.focus',
-                'gatewaysExplorer.focus',
-                'walletExplorer.focus',
                 ExtensionCommands.REFRESH_GATEWAYS,
                 ExtensionCommands.CONNECT_TO_GATEWAY,
                 ExtensionCommands.DISCONNECT_GATEWAY,
@@ -2532,6 +2532,7 @@ describe('ExtensionUtil Tests', () => {
         let updateStub: sinon.SinonStub;
         let existsStub: sinon.SinonStub;
         let mockAxios: MockAdapter;
+        let expectedEnvironmentDirectory: string;
 
         beforeEach(() => {
             addStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'add');
@@ -2540,10 +2541,12 @@ describe('ExtensionUtil Tests', () => {
             existsStub.resolves(false);
             mockAxios = new MockAdapter(Axios);
             mockAxios.onGet('http://console.fablet.example.org:9876/ak/api/v1/health').reply(200, {});
+            const extensionDirectory: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const resolvedExtensionDirectory: string = FileSystemUtil.getDirPath(extensionDirectory);
+            expectedEnvironmentDirectory = path.join(resolvedExtensionDirectory, FileConfigurations.FABRIC_ENVIRONMENTS, 'Fablet');
         });
 
         afterEach(() => {
-            delete process.env.CHE_WORKSPACE_ID;
             delete process.env.FABLET_SERVICE_HOST;
             delete process.env.FABLET_SERVICE_PORT;
             mockAxios.restore();
@@ -2556,7 +2559,7 @@ describe('ExtensionUtil Tests', () => {
         });
 
         it('should not do anything if running in Eclipse Che, but FABLET_SERVICE_HOST is not set', async () => {
-            process.env.CHE_WORKSPACE_ID = 'workspacen5jfcuq4dy2cthww';
+            mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
             // process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
             process.env.FABLET_SERVICE_PORT = '9876';
             await ExtensionUtil.discoverEnvironments();
@@ -2565,7 +2568,7 @@ describe('ExtensionUtil Tests', () => {
         });
 
         it('should not do anything if running in Eclipse Che, but FABLET_SERVICE_PORT is not set', async () => {
-            process.env.CHE_WORKSPACE_ID = 'workspacen5jfcuq4dy2cthww';
+            mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
             process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
             // process.env.FABLET_SERVICE_PORT = '9876';
             await ExtensionUtil.discoverEnvironments();
@@ -2574,7 +2577,7 @@ describe('ExtensionUtil Tests', () => {
         });
 
         it('should not do anything if running in Eclipse Che, but the Fablet instance does not work', async () => {
-            process.env.CHE_WORKSPACE_ID = 'workspacen5jfcuq4dy2cthww';
+            mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
             process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
             process.env.FABLET_SERVICE_PORT = '9876';
             mockAxios.onGet('http://console.fablet.example.org:9876/ak/api/v1/health').reply(404, {});
@@ -2584,7 +2587,7 @@ describe('ExtensionUtil Tests', () => {
         });
 
         it('should discover and add a new environment for a Fablet instance running in Eclipse Che', async () => {
-            process.env.CHE_WORKSPACE_ID = 'workspacen5jfcuq4dy2cthww';
+            mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
             process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
             process.env.FABLET_SERVICE_PORT = '9876';
             await ExtensionUtil.discoverEnvironments();
@@ -2592,13 +2595,13 @@ describe('ExtensionUtil Tests', () => {
                 name: 'Fablet',
                 managedRuntime: false,
                 environmentType: EnvironmentType.FABLET_ENVIRONMENT,
-                environmentDirectory: sinon.match.any,
+                environmentDirectory: expectedEnvironmentDirectory,
                 url: 'http://console.fablet.example.org:9876'
             });
         });
 
         it('should discover and update an existing environment for a Fablet instance running in Eclipse Che', async () => {
-            process.env.CHE_WORKSPACE_ID = 'workspacen5jfcuq4dy2cthww';
+            mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
             process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
             process.env.FABLET_SERVICE_PORT = '9876';
             existsStub.resolves(true);
@@ -2607,9 +2610,30 @@ describe('ExtensionUtil Tests', () => {
                 name: 'Fablet',
                 managedRuntime: false,
                 environmentType: EnvironmentType.FABLET_ENVIRONMENT,
-                environmentDirectory: sinon.match.any,
+                environmentDirectory: expectedEnvironmentDirectory,
                 url: 'http://console.fablet.example.org:9876'
             });
+        });
+
+    });
+
+    describe('isChe', () => {
+
+        beforeEach(async () => {
+            delete process.env.CHE_WORKSPACE_ID;
+        });
+
+        afterEach(async () => {
+            delete process.env.CHE_WORKSPACE_ID;
+        });
+
+        it('should return true on Eclipse Che', () => {
+            process.env.CHE_WORKSPACE_ID = 'workspacen5jfcuq4dy2cthww';
+            ExtensionUtil.isChe().should.be.true;
+        });
+
+        it('should return false when not on Eclipse Che', () => {
+            ExtensionUtil.isChe().should.be.false;
         });
 
     });
