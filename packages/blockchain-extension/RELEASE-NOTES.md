@@ -18,8 +18,9 @@ Fixes
 
 * Only show right-click ‘Start’ option on local environments [#2285](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2285).
 
-* Updated ‘Open Tutorial’ buttons [#2275](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2275).
+* Updated ‘Open Tutorial’ buttons [#2275](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2275).
 
+* Fixed webview on Windows [#2233](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2233).
 
 This release's Conga Comic:
 ---
