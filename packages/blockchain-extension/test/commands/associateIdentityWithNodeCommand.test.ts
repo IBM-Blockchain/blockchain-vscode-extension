@@ -62,6 +62,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
         let wallet: FabricWalletRegistryEntry;
         let identityExistsStub: sinon.SinonStub;
         let showNodesInEnvironmentQuickPickStub: sinon.SinonStub;
+        let updateWalletSpy: sinon.SinonSpy;
 
         const nodes: any = {};
 
@@ -123,6 +124,8 @@ describe('AssociateIdentityWithNodeCommand', () => {
             commandsStub.withArgs(ExtensionCommands.ADD_WALLET_IDENTITY).resolves('identityOne');
 
             certAuthorityStub = mySandBox.stub(FabricCertificateAuthority.prototype, 'enroll').resolves({ certificate: 'myCert', privateKey: 'myKey' });
+
+            updateWalletSpy = mySandBox.spy(FabricWalletRegistry.instance(), 'update');
         });
 
         afterEach(async () => {
@@ -157,6 +160,8 @@ describe('AssociateIdentityWithNodeCommand', () => {
                     node.identity = 'identityOne';
                     node.wallet = 'blueWallet';
                     updateStub.should.have.been.calledOnceWith(node);
+
+                    updateWalletSpy.should.not.have.been.called;
 
                     commandsStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
 
@@ -208,7 +213,63 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 peerNode.wallet = 'blueWallet';
                 updateStub.should.have.been.calledOnceWith(peerNode);
 
+                updateWalletSpy.should.not.have.been.called;
+
                 commandsStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+
+                logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
+                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated identity ${peerNode.identity} from wallet ${peerNode.wallet} with node ${peerNode.name}`);
+            });
+
+            it('should create a new wallet and add fromEnvironment if created from an ops tools environment', async () => {
+                showWalletsQuickPickBoxStub.resolves({ label: '+ create new wallet', data: undefined });
+
+                const opsToolsEnv: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                opsToolsEnv.name = 'opsToolsEnv';
+                opsToolsEnv.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
+
+                await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, ...[opsToolsEnv, peerNode]);
+
+                commandsStub.should.have.been.calledWith(ExtensionCommands.ADD_WALLET, false, opsToolsEnv.name);
+
+                peerNode.identity = 'identityOne';
+                peerNode.wallet = 'blueWallet';
+                updateStub.should.have.been.calledOnceWith(peerNode);
+
+                updateWalletSpy.should.have.been.calledWith({
+                    name: 'blueWallet',
+                    walletPath: walletPath,
+                    fromEnvironment: opsToolsEnv.name
+                });
+
+                commandsStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, opsToolsEnv);
+
+                logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
+                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated identity ${peerNode.identity} from wallet ${peerNode.wallet} with node ${peerNode.name}`);
+            });
+
+            it('should create a new wallet and add fromEnvironment if created from a saas ops tools environment', async () => {
+                showWalletsQuickPickBoxStub.resolves({ label: '+ create new wallet', data: undefined });
+
+                const saasEnv: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                saasEnv.name = 'saasEnv';
+                saasEnv.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
+
+                await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, ...[saasEnv, peerNode]);
+
+                commandsStub.should.have.been.calledWith(ExtensionCommands.ADD_WALLET, false, saasEnv.name);
+
+                peerNode.identity = 'identityOne';
+                peerNode.wallet = 'blueWallet';
+                updateStub.should.have.been.calledOnceWith(peerNode);
+
+                updateWalletSpy.should.have.been.calledWith({
+                    name: 'blueWallet',
+                    walletPath: walletPath,
+                    fromEnvironment: saasEnv.name
+                });
+
+                commandsStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, saasEnv);
 
                 logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
                 logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated identity ${peerNode.identity} from wallet ${peerNode.wallet} with node ${peerNode.name}`);
@@ -223,6 +284,8 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 peerNode.identity = 'identityOne';
                 peerNode.wallet = 'blueWallet';
                 updateStub.should.have.been.calledOnceWith(peerNode);
+
+                updateWalletSpy.should.not.have.been.called;
 
                 commandsStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
 
@@ -243,6 +306,8 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 updateStub.should.have.been.calledTwice;
                 updateStub.firstCall.should.have.been.calledWith(peerNode);
                 updateStub.secondCall.should.have.been.calledWith(ordererNode);
+
+                updateWalletSpy.should.not.have.been.called;
 
                 commandsStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
 
@@ -268,6 +333,8 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 updateStub.secondCall.should.have.been.calledWith(ordererNode);
                 updateStub.thirdCall.should.have.been.calledWith(caNodeWithoutCreds);
 
+                updateWalletSpy.should.not.have.been.called;
+
                 commandsStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
 
                 logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
@@ -285,6 +352,8 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 updateStub.should.have.been.calledOnce;
                 updateStub.firstCall.should.have.been.calledWith(peerNode);
 
+                updateWalletSpy.should.not.have.been.called;
+
                 commandsStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
 
                 logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
@@ -299,6 +368,8 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 peerNode.wallet = 'blueWallet';
                 updateStub.should.have.been.calledOnce;
                 updateStub.firstCall.should.have.been.calledWith(peerNode);
+
+                updateWalletSpy.should.not.have.been.called;
 
                 showQuickPickStub.withArgs('Do you want to associate the same identity with another node?').should.not.have.been.called;
 
@@ -338,6 +409,36 @@ describe('AssociateIdentityWithNodeCommand', () => {
 
                 logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
                 logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to associate identity with node ${error.message}`, `Failed to associate identity with node ${error.toString()}`);
+            });
+
+            it('should not update fromEnvironment if wallet already has one', async () => {
+                const walletFromEnvironment: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+                    name: 'blueWallet',
+                    walletPath: walletPath,
+                    fromEnvironment: 'myEnvironment'
+                });
+
+                await FabricWalletRegistry.instance().clear();
+                await FabricWalletRegistry.instance().add(walletFromEnvironment);
+
+                showWalletsQuickPickBoxStub.resolves({ label: 'blueWallet', data: walletFromEnvironment });
+
+                getNodesStub.resolves([]);
+                await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, ...[environmentRegistryEntry, peerNode]);
+
+                peerNode.identity = 'identityOne';
+                peerNode.wallet = 'blueWallet';
+                updateStub.should.have.been.calledOnce;
+                updateStub.firstCall.should.have.been.calledWith(peerNode);
+
+                updateWalletSpy.should.not.have.been.called;
+
+                showQuickPickStub.withArgs('Do you want to associate the same identity with another node?').should.not.have.been.called;
+
+                commandsStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+
+                logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
+                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated identity ${peerNode.identity} from wallet ${peerNode.wallet} with node ${peerNode.name}`);
             });
         });
 

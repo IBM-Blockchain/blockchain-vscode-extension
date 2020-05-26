@@ -1,0 +1,25 @@
+{
+    "type": [
+        "pdf"
+    ],
+    "styles": [],
+    "stylesRelativePathFile": false,
+    "includeDefaultStyles": true,
+    "highlight": true,
+    "highlightStyle": "",
+    "breaks": false,
+    "executablePath": "",
+    "scale": 1,
+    "orientation": "portrait",
+    "pageRanges": "",
+    "format": "A4",
+    "width": "",
+    "height": "",
+    "margin": {
+        "top": "1.5cm",
+        "bottom": "1cm",
+        "right": "1cm",
+        "left": "1cm"
+    },
+    "quality": 100
+}
