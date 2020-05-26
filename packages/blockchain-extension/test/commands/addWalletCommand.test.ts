@@ -23,7 +23,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
-import { FabricWalletRegistry, FabricWalletRegistryEntry, FileConfigurations, LogType, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistry, FabricWalletRegistryEntry, FileConfigurations, LogType, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry } from 'ibm-blockchain-platform-common';
 
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();
@@ -47,6 +47,7 @@ describe('AddWalletCommand', () => {
     beforeEach(async () => {
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
+        await FabricEnvironmentRegistry.instance().clear();
         await FabricWalletRegistry.instance().clear();
 
         showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
@@ -131,6 +132,10 @@ describe('AddWalletCommand', () => {
             choseWalletAddMethod.resolves(UserInputUtil.IMPORT_WALLET);
             browseStub.resolves(uri);
             getIdentitiesStub.resolves(['someName', 'anotherName']);
+
+            const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            environmentRegistryEntry.name = 'myEnvironment';
+            await FabricEnvironmentRegistry.instance().add(environmentRegistryEntry);
             mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get').resolves({name: 'myEnvironment'});
 
             const result: FabricWalletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET, false, 'myEnvironment');
@@ -262,6 +267,10 @@ describe('AddWalletCommand', () => {
             executeCommandStub.callThrough();
             executeCommandStub.withArgs(ExtensionCommands.ADD_WALLET_IDENTITY, sinon.match.instanceOf(FabricWalletRegistryEntry)).resolves();
             getIdentitiesStub.resolves(['someName', 'anotherName']);
+
+            const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            environmentRegistryEntry.name = 'myEnvironment';
+            await FabricEnvironmentRegistry.instance().add(environmentRegistryEntry);
             mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get').resolves({name: 'myEnvironment'});
 
             const result: FabricWalletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET, false, 'myEnvironment');

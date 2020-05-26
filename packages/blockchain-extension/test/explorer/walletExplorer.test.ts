@@ -65,6 +65,7 @@ describe('walletExplorer', () => {
             walletPath: '/some/other/path'
         });
 
+        await FabricEnvironmentRegistry.instance().clear();
         await FabricWalletRegistry.instance().clear();
 
         await TestUtil.setupLocalFabric();
@@ -212,72 +213,125 @@ describe('walletExplorer', () => {
     });
 
     it('should display an ops tools wallet', async () => {
+        await FabricEnvironmentRegistry.instance().clear();
         await FabricWalletRegistry.instance().clear();
 
         const opsToolsEnv: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         opsToolsEnv.name = 'opsToolsEnv';
         opsToolsEnv.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
-
-        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get').resolves(opsToolsEnv);
+        await FabricEnvironmentRegistry.instance().add(opsToolsEnv);
 
         const opsToolsWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
             name: 'myOpsToolsWallet',
             walletPath: '/some/path',
-            fromEnvironment: 'opsToolsEnv'
+            fromEnvironment: opsToolsEnv.name
         });
-
         await FabricWalletRegistry.instance().add(opsToolsWallet);
 
         const walletGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
-        const walletGroupChildren: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletGroups[1]) as Array<WalletTreeItem>;
+        const walletGroupChildren: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletGroups[0]) as Array<WalletTreeItem>;
         const opsToolsWalletItem: WalletTreeItem  = walletGroupChildren[0];
         opsToolsWalletItem.label.should.deep.equal(opsToolsWallet.name);
     });
 
     it('should display a saas ops tools wallet', async () => {
+        await FabricEnvironmentRegistry.instance().clear();
         await FabricWalletRegistry.instance().clear();
 
         const saasEnv: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         saasEnv.name = 'saasEnv';
         saasEnv.environmentType = EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT;
-
-        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get').resolves(saasEnv);
+        await FabricEnvironmentRegistry.instance().add(saasEnv);
 
         const saasWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
             name: 'myOpsToolsWallet',
             walletPath: '/some/path',
-            fromEnvironment: 'opsToolsEnv'
+            fromEnvironment: saasEnv.name
         });
-
         await FabricWalletRegistry.instance().add(saasWallet);
 
         const walletGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
-        const walletGroupChildren: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletGroups[1]) as Array<WalletTreeItem>;
+        const walletGroupChildren: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletGroups[0]) as Array<WalletTreeItem>;
         const saasWalletItem: WalletTreeItem  = walletGroupChildren[0];
         saasWalletItem.label.should.deep.equal(saasWallet.name);
     });
 
     it('should display a managed ansible wallet', async () => {
+        await FabricEnvironmentRegistry.instance().clear();
         await FabricWalletRegistry.instance().clear();
 
         const managedAnsible: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         managedAnsible.name = 'managedAnsible';
         managedAnsible.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-
+        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'exists').resolves(true);
         mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get').resolves(managedAnsible);
 
         const managedAnsibleWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
             name: 'myManagedAnsibleWallet',
             walletPath: '/some/path',
-            fromEnvironment: 'managedAnsible'
+            fromEnvironment: managedAnsible.name
         });
-
         await FabricWalletRegistry.instance().add(managedAnsibleWallet);
 
         const walletGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
-        const walletGroupChildren: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletGroups[1]) as Array<WalletTreeItem>;
+        const walletGroupChildren: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletGroups[0]) as Array<WalletTreeItem>;
         const managedAnsibleWalletItem: WalletTreeItem  = walletGroupChildren[0];
         managedAnsibleWalletItem.label.should.deep.equal(managedAnsibleWallet.name);
+    });
+
+    it(`should display an 'other' wallet`, async () => {
+        await FabricEnvironmentRegistry.instance().clear();
+        await FabricWalletRegistry.instance().clear();
+
+        const otherWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'myManagedAnsibleWallet',
+            walletPath: '/some/path',
+        });
+        await FabricWalletRegistry.instance().add(otherWallet);
+
+        const walletGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
+        const walletGroupChildren: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletGroups[0]) as Array<WalletTreeItem>;
+        const otherWalletItem: WalletTreeItem  = walletGroupChildren[0];
+        otherWalletItem.label.should.deep.equal(otherWallet.name);
+    });
+
+    it(`should display multiple wallet groups at once`, async () => {
+        await FabricWalletRegistry.instance().clear();
+
+        const opsToolsEnv: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+        opsToolsEnv.name = 'opsToolsEnv';
+        opsToolsEnv.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
+        await FabricEnvironmentRegistry.instance().add(opsToolsEnv);
+
+        const opsToolsWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'myOpsToolsWallet',
+            walletPath: '/some/path',
+            fromEnvironment: opsToolsEnv.name
+        });
+        const otherWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'myManagedAnsibleWallet',
+            walletPath: '/some/path',
+        });
+        await FabricWalletRegistry.instance().add(opsToolsWallet);
+        await FabricWalletRegistry.instance().add(otherWallet);
+
+        const walletGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
+        walletGroups.should.have.length(3);
+
+        walletGroups[0].label.should.deep.equal('1 Org Local Fabric');
+        const localWalletGroupChildren: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletGroups[0]) as Array<WalletTreeItem>;
+        localWalletGroupChildren[0].label.should.deep.equal('Orderer');
+        localWalletGroupChildren[1].label.should.deep.equal('Org1');
+
+        walletGroups[1].label.should.deep.equal(opsToolsEnv.name);
+        const opsToolsWalletGroupChildren: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletGroups[1]) as Array<WalletTreeItem>;
+        const opsWalletItem: WalletTreeItem  = opsToolsWalletGroupChildren[0];
+        opsWalletItem.label.should.deep.equal(opsToolsWallet.name);
+
+        walletGroups[2].label.should.deep.equal('Other wallets');
+        const otherWalletGroupChildren: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletGroups[2]) as Array<WalletTreeItem>;
+        const otherWalletItem: WalletTreeItem  = otherWalletGroupChildren[0];
+        otherWalletItem.label.should.deep.equal(otherWallet.name);
     });
 
     it('should handle errors when populating the BlockchainWalletExplorer view', async () => {

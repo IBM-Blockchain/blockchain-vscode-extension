@@ -103,7 +103,7 @@ import { ClientIdentity } from 'fabric-shim';
 
 The above simply checks if the identity trying to access the `createCar()` function has the attribute `manufacturer` set to `true`. If it does, allow the transaction to be executed. If the identity does not have the attribute `manufacturer` (or it isn't set to true), do not let the identity carry out the transaction and show an error message.
 
-> Alternatively, you could use the <a href='https://fabric-shim.github.io/release-1.4/fabric-contract-api.Contract.html#beforeTransaction__anchor'> beforeTransaction()</a> function. This function could be used to seperate your business logic from your permissions.
+> Alternatively, you could use the <a href='https://hyperledger.github.io/fabric-chaincode-node/release-1.4/api/fabric-contract-api.Contract.html#beforeTransaction__anchor'> beforeTransaction()</a> function. This function could be used to seperate your business logic from your permissions.
 
 </details>
 
@@ -162,7 +162,7 @@ Instantiation will take a while longer than install - watch out for the success 
 
 We can now test out the attribute-based access control that we implemented earlier. To do, we will first demonstrate what happens when an identity with incorrect attributes tries to submit the `createCar` transaction.
 
-1. To test that attribute-based access control works, we can connect to the gateway by pressing `1 Org Local Fabric - Org1` under the `FABRIC GATEWAYS` panel. You will now be asked which identity you wish to connect with - choose `Jack` (created in our previous tutorial). 
+1. To test that attribute-based access control works, we can connect to the gateway by pressing `1 Org Local Fabric > Org1` under the `FABRIC GATEWAYS` panel. You will now be asked which identity you wish to connect with - choose `Jack` (created in our previous tutorial). 
 > Command Palette alternative: `Connect Via Gateway` 
 
 2. To execute a transaction, navigate to `mychannel`, `carContract@0.0.1` under the `FABRIC GATEWAYS` panel. Here, you will see a list of all the transactions you can carry out. 
@@ -180,7 +180,7 @@ We can now test out the attribute-based access control that we implemented earli
 Now we will show how an identity with the correct attributes can submit the `createCar` transaction
 1. Firstly, disconnect from the gateway (by hovering on the `FABRIC GATEWAYS` panel and pressing the button that looks like an exit symbol). 
 
-2. To reconnect with a different identity, click `1 Org Local Fabric - Org1` in the `FABRIC GATEWAYS` panel. You will then be asked which identity to connect with, choose `Arium`
+2. To reconnect with a different identity, click `1 Org Local Fabric > Org1` in the `FABRIC GATEWAYS` panel. You will then be asked which identity to connect with, choose `Arium`
 > Command Palette alternative: `Connect Via Gateway`
 
 3. Next, submit the `createCar` transaction again by navigating to `mychannel`, `carContract@0.0.1` on the `FABRIC GATEWAYS` panel.
