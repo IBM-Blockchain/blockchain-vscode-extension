@@ -13,11 +13,11 @@
 */
 
 import {Wallet} from 'fabric-network';
-import {DefinedSmartContract, Lifecycle, LifecycleChannel} from '../../src';
+import {Collection, DefinedSmartContract, Lifecycle, LifecycleChannel} from '../../src';
 
 export class CommitHelper {
 
-    public static async commitSmartContract(lifecycle: Lifecycle, peerNames: string[], name: string, version: string, wallet: Wallet, identity: string, policy?: string, sequence?: number): Promise<void> {
+    public static async commitSmartContract(lifecycle: Lifecycle, peerNames: string[], name: string, version: string, wallet: Wallet, identity: string, policy?: string, sequence?: number, collectionConfig?: Collection[]): Promise<void> {
 
         const channel: LifecycleChannel = lifecycle.getChannel('mychannel', wallet, identity);
 
@@ -29,7 +29,8 @@ export class CommitHelper {
             smartContractName: name,
             smartContractVersion: version,
             sequence: sequence,
-            endorsementPolicy: policy
+            endorsementPolicy: policy,
+            collectionConfig: collectionConfig
         });
     }
 

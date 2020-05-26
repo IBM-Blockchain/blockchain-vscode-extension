@@ -13,11 +13,11 @@
 */
 
 import {Wallet} from 'fabric-network';
-import {Lifecycle, LifecycleChannel} from '../../src';
+import {Lifecycle, LifecycleChannel, Collection} from '../../src';
 
 export class ApproveHelper {
 
-    public static async approveSmartContract(lifecycle: Lifecycle, peerName: string, name: string, version: string, packageId: string, wallet: Wallet, identity: string, policy?: string, sequence?: number): Promise<void> {
+    public static async approveSmartContract(lifecycle: Lifecycle, peerName: string, name: string, version: string, packageId: string, wallet: Wallet, identity: string, policy?: string, sequence?: number, collectionConfig?: Collection[]): Promise<void> {
         const channel: LifecycleChannel = lifecycle.getChannel('mychannel', wallet, identity);
 
         if (!sequence) {
@@ -29,11 +29,12 @@ export class ApproveHelper {
             smartContractVersion: version,
             packageId: packageId,
             sequence: sequence,
-            endorsementPolicy: policy
+            endorsementPolicy: policy,
+            collectionConfig: collectionConfig
         });
     }
 
-    public static async checkCommitReadiness(lifecycle: Lifecycle, peerName: string, name: string, version: string, wallet: Wallet, identity: string, policy?: string, sequence?: number): Promise<boolean> {
+    public static async checkCommitReadiness(lifecycle: Lifecycle, peerName: string, name: string, version: string, wallet: Wallet, identity: string, policy?: string, sequence?: number, collectionConfig?: Collection[]): Promise<boolean> {
         try {
             const channel: LifecycleChannel = lifecycle.getChannel('mychannel', wallet, identity);
 
@@ -45,7 +46,8 @@ export class ApproveHelper {
                 smartContractName: name,
                 smartContractVersion: version,
                 sequence: sequence,
-                endorsementPolicy: policy
+                endorsementPolicy: policy,
+                collectionConfig: collectionConfig
             });
 
             return Array.from(result.values()).every((value) => value);
