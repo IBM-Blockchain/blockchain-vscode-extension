@@ -21,7 +21,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWallet, IFabricWalletGenerator, LogType, FabricWalletGeneratorFactory } from 'ibm-blockchain-platform-common';
 import { FabricWalletHelper} from '../fabric/FabricWalletHelper';
 
-export async function addWallet(createIdentity: boolean = true): Promise<FabricWalletRegistryEntry> {
+export async function addWallet(createIdentity: boolean = true, fromEnvironment?: string): Promise<FabricWalletRegistryEntry> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'addWallet');
 
@@ -39,7 +39,7 @@ export async function addWallet(createIdentity: boolean = true): Promise<FabricW
         if (!walletMethod) {
             // User cancelled dialog box
             return;
-        }
+    }
         if (walletMethod === UserInputUtil.IMPORT_WALLET) {
             // User has a wallet - get the path
             const openDialogOptions: vscode.OpenDialogOptions = {
@@ -66,6 +66,9 @@ export async function addWallet(createIdentity: boolean = true): Promise<FabricW
             // Add the wallet to the registry
             fabricWalletRegistryEntry.name = walletName;
             fabricWalletRegistryEntry.walletPath = walletPath;
+            if (fromEnvironment) {
+                fabricWalletRegistryEntry.fromEnvironment = fromEnvironment;
+            }
             await fabricWalletRegistry.add(fabricWalletRegistryEntry);
 
             // Check it contains identities
@@ -95,6 +98,9 @@ export async function addWallet(createIdentity: boolean = true): Promise<FabricW
             // Add the wallet to the registry
             fabricWalletRegistryEntry.name = walletName;
             fabricWalletRegistryEntry.walletPath = FabricWalletHelper.getWalletPath(walletName);
+            if (fromEnvironment) {
+                fabricWalletRegistryEntry.fromEnvironment = fromEnvironment;
+            }
             await fabricWalletRegistry.add(fabricWalletRegistryEntry);
 
             if (createIdentity) {

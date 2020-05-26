@@ -28,7 +28,6 @@ import {
     FabricInstalledSmartContract
 } from 'ibm-blockchain-platform-common';
 import {FabricWalletGenerator, FabricWallet} from 'ibm-blockchain-platform-wallet';
-import {URL} from 'url';
 import {
     Lifecycle,
     LifecyclePeer,
@@ -57,42 +56,72 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         for (const node of nodes) {
             switch (node.type) {
                 case FabricNodeType.PEER: {
-                    const url: URL = new URL(node.api_url);
                     let pem: string;
                     if (node.pem) {
                         pem = Buffer.from(node.pem, 'base64').toString();
                     }
-                    let sslTargetNameOverride: string = url.hostname;
+                    let sslTargetNameOverride: string;
                     if (node.ssl_target_name_override) {
                         sslTargetNameOverride = node.ssl_target_name_override;
                     }
-
+                    let apiOptions: object;
+                    if (node.api_options) {
+                        apiOptions = node.api_options;
+                    }
+                    // Figure out what the name of the node should be; if the hostname is localhost, and any of these options are
+                    // being used to set the actual name in the host/authority header - then we should use that name instead.
+                    let name: string = node.name;
+                    if (apiOptions) {
+                        const nameOverrides: string[] = ['grpc.default_authority', 'grpc.ssl_target_name_override'];
+                        for (const nameOverride of nameOverrides) {
+                            if (apiOptions[nameOverride]) {
+                                name = apiOptions[nameOverride];
+                                break;
+                            }
+                        }
+                    }
                     this.lifecycle.addPeer({
-                        name: node.name,
+                        name,
                         mspid: node.msp_id,
-                        pem: pem,
-                        sslTargetNameOverride: sslTargetNameOverride,
-                        url: node.api_url
+                        pem,
+                        sslTargetNameOverride,
+                        url: node.api_url,
+                        apiOptions
                     });
 
                     break;
                 }
                 case FabricNodeType.ORDERER: {
-                    const url: URL = new URL(node.api_url);
                     let pem: string;
                     if (node.pem) {
                         pem = Buffer.from(node.pem, 'base64').toString();
                     }
-                    let sslTargetNameOverride: string = url.hostname;
+                    let sslTargetNameOverride: string;
                     if (node.ssl_target_name_override) {
                         sslTargetNameOverride = node.ssl_target_name_override;
                     }
-
+                    let apiOptions: object;
+                    if (node.api_options) {
+                        apiOptions = node.api_options;
+                    }
+                    // Figure out what the name of the node should be; if the hostname is localhost, and any of these options are
+                    // being used to set the actual name in the host/authority header - then we should use that name instead.
+                    let name: string = node.name;
+                    if (apiOptions) {
+                        const nameOverrides: string[] = ['grpc.default_authority', 'grpc.ssl_target_name_override'];
+                        for (const nameOverride of nameOverrides) {
+                            if (apiOptions[nameOverride]) {
+                                name = apiOptions[nameOverride];
+                                break;
+                            }
+                        }
+                    }
                     this.lifecycle.addOrderer({
-                        name: node.name,
+                        name,
                         pem: pem,
-                        sslTargetNameOverride: sslTargetNameOverride,
-                        url: node.api_url
+                        sslTargetNameOverride,
+                        url: node.api_url,
+                        apiOptions
                     });
                     break;
                 }

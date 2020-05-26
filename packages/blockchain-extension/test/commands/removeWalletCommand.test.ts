@@ -301,8 +301,9 @@ describe('removeWalletCommand', () => {
 
         it('should remove a wallet when called from the wallet tree', async () => {
             const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
-            const walletsTreeItems: WalletTreeItem[] = await blockchainWalletExplorerProvider.getChildren() as WalletTreeItem[];
-            const purpleWalletTreeItem: WalletTreeItem = walletsTreeItems[walletsTreeItems.length - 1];
+            const walletGroups: WalletTreeItem[] = await blockchainWalletExplorerProvider.getChildren() as WalletTreeItem[];
+            const groupChildren: WalletTreeItem[] = await blockchainWalletExplorerProvider.getChildren(walletGroups[0]) as WalletTreeItem[];
+            const purpleWalletTreeItem: WalletTreeItem = groupChildren[groupChildren.length - 1];
             warningStub.resolves('Yes');
 
             await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET, purpleWalletTreeItem);

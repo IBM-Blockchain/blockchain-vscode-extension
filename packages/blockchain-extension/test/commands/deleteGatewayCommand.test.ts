@@ -113,8 +113,8 @@ describe('DeleteGatewayCommand', () => {
             const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
-
-            const gatewayToDelete: BlockchainTreeItem = allChildren[0];
+            const groupChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[0]);
+            const gatewayToDelete: BlockchainTreeItem = groupChildren[0];
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY, gatewayToDelete);
 
             gateways = await FabricGatewayRegistry.instance().getAll();
