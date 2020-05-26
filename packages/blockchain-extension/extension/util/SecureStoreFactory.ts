@@ -19,6 +19,7 @@ import { SettingConfigurations } from '../configurations';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { FileSystemSecureStore } from './FileSystemSecureStore';
+import { FileSystemUtil } from 'ibm-blockchain-platform-common';
 
 export class SecureStoreFactory {
 
@@ -28,7 +29,8 @@ export class SecureStoreFactory {
             return new KeytarSecureStore(keytar);
         }
         const extensionDirectory: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-        const storePath: string = path.join(extensionDirectory, 'ibm-blockchain-platform.store');
+        const resolvedExtensionDirectory: string = FileSystemUtil.getDirPath(extensionDirectory);
+        const storePath: string = path.join(resolvedExtensionDirectory, 'ibm-blockchain-platform.store');
         return new FileSystemSecureStore(storePath);
     }
 

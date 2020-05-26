@@ -717,6 +717,64 @@ export class ExtensionUtil {
         return vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_SAAS_CONFIG_UPDATES);
     }
 
+<<<<<<< HEAD
+=======
+    public static async discoverEnvironments(): Promise<void> {
+
+        // First, check to see if we're running in Eclipse Che; currently
+        // we can only discover environments created by Eclipse Che.
+        if (ExtensionUtil.isChe()) {
+            await this.discoverCheEnvironments();
+        }
+
+    }
+
+    public static async discoverCheEnvironments(): Promise<void> {
+
+        // Check for a Fablet instance running within this Eclipse Che.
+        const FABLET_SERVICE_HOST: string = process.env['FABLET_SERVICE_HOST'];
+        const FABLET_SERVICE_PORT: string = process.env['FABLET_SERVICE_PORT'];
+        if (!FABLET_SERVICE_HOST || !FABLET_SERVICE_PORT) {
+            return;
+        }
+        const url: string = `http://${FABLET_SERVICE_HOST}:${FABLET_SERVICE_PORT}`;
+
+        // Try to connect to the Fablet instance.
+        try {
+            await Axios.get(new URL('/ak/api/v1/health', url).toString());
+        } catch (error) {
+            // This isn't a valid Fablet instance.
+            return;
+        }
+
+        // Determine where this environment should store any files.
+        const extensionDirectory: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const resolvedExtensionDirectory: string = FileSystemUtil.getDirPath(extensionDirectory);
+        const environmentDirectory: string = path.join(resolvedExtensionDirectory, FileConfigurations.FABRIC_ENVIRONMENTS, 'Fablet');
+
+        // Register the Fablet instance.
+        const environmentRegistry: FabricEnvironmentRegistry = FabricEnvironmentRegistry.instance();
+        const environmentExists: boolean = await environmentRegistry.exists('Fablet');
+        const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
+            name: 'Fablet',
+            managedRuntime: false,
+            environmentType: EnvironmentType.FABLET_ENVIRONMENT,
+            environmentDirectory,
+            url
+        });
+        if (!environmentExists) {
+            await environmentRegistry.add(environmentRegistryEntry);
+        } else {
+            await environmentRegistry.update(environmentRegistryEntry);
+        }
+
+    }
+
+    public static isChe(): boolean {
+        return 'CHE_WORKSPACE_ID' in process.env;
+    }
+
+>>>>>>> 72067ce5... Eclipse Che changes #2336, #2344 for v1 branch (#2368)
     private static getExtension(): vscode.Extension<any> {
         return vscode.extensions.getExtension(EXTENSION_ID);
     }

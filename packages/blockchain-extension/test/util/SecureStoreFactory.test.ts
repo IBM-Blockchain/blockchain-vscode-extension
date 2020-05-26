@@ -23,7 +23,12 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
+<<<<<<< HEAD
 import { SettingConfigurations } from '../../extension/configurations';
+=======
+import { SettingConfigurations } from '../../configurations';
+import { FileSystemUtil } from 'ibm-blockchain-platform-common';
+>>>>>>> 72067ce5... Eclipse Che changes #2336, #2344 for v1 branch (#2368)
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -54,7 +59,8 @@ describe('SecureStoreFactory', () => {
             const secureStore: SecureStore = await SecureStoreFactory.getSecureStore();
             secureStore.should.be.an.instanceOf(FileSystemSecureStore);
             const extensionDirectory: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const storePath: string = path.join(extensionDirectory, 'ibm-blockchain-platform.store');
+            const resolvedExtensionDirectory: string = FileSystemUtil.getDirPath(extensionDirectory);
+            const storePath: string = path.join(resolvedExtensionDirectory, 'ibm-blockchain-platform.store');
             secureStore['path'].should.equal(storePath);
         });
 

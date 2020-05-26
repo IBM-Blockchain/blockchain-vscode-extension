@@ -25,7 +25,12 @@ export class FileSystemUtil {
      */
     public static getDirPath(dir: string): string {
         if (dir.startsWith('~')) {
-            dir = homeDir(dir.replace('~', ''));
+            const CHE_PROJECTS_ROOT: string = process.env.CHE_PROJECTS_ROOT;
+            if (CHE_PROJECTS_ROOT) {
+                dir = dir.replace('~', CHE_PROJECTS_ROOT);
+            } else {
+                dir = homeDir(dir.replace('~', ''));
+            }
         }
         return dir;
     }
