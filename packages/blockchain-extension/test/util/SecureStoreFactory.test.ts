@@ -24,6 +24,7 @@ import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { SettingConfigurations } from '../../configurations';
+import { FileSystemUtil } from 'ibm-blockchain-platform-common';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -54,7 +55,8 @@ describe('SecureStoreFactory', () => {
             const secureStore: SecureStore = await SecureStoreFactory.getSecureStore();
             secureStore.should.be.an.instanceOf(FileSystemSecureStore);
             const extensionDirectory: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const storePath: string = path.join(extensionDirectory, 'ibm-blockchain-platform.store');
+            const resolvedExtensionDirectory: string = FileSystemUtil.getDirPath(extensionDirectory);
+            const storePath: string = path.join(resolvedExtensionDirectory, 'ibm-blockchain-platform.store');
             secureStore['path'].should.equal(storePath);
         });
 
