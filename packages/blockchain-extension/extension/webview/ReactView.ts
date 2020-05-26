@@ -36,15 +36,15 @@ export abstract class ReactView extends View {
         const mainScript: string = manifest.files['main.js'];
         const mainStyle: string = manifest.files['main.css'];
 
-        const scriptPathOnDisk: {scheme: string, authority: string, path: string} = vscode.Uri.file(
+        const scriptPathOnDisk: vscode.Uri = vscode.Uri.file(
             path.join(this._extensionPath, 'build', mainScript)
           );
-        const scriptContents: Buffer = fs.readFileSync(scriptPathOnDisk.path);
+        const scriptContents: Buffer = fs.readFileSync(scriptPathOnDisk.fsPath);
 
-        const stylePathOnDisk: {scheme: string, authority: string, path: string} = vscode.Uri.file(
+        const stylePathOnDisk: vscode.Uri = vscode.Uri.file(
             path.join(this._extensionPath, 'build', mainStyle)
           );
-        const styleContents: Buffer = fs.readFileSync(stylePathOnDisk.path);
+        const styleContents: Buffer = fs.readFileSync(stylePathOnDisk.fsPath);
 
         const actualExtensionPath: string = ExtensionUtil.getExtensionPath();
 
