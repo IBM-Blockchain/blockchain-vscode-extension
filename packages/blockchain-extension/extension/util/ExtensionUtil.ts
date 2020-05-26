@@ -242,7 +242,7 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, (channelName?: string, peerNames?: Array<string>) => upgradeSmartContract(channelName, peerNames)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.CREATE_NEW_IDENTITY, (certificateAuthorityTreeItem?: CertificateAuthorityTreeItem) => createNewIdentity(certificateAuthorityTreeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_WALLETS, (element: BlockchainTreeItem) => blockchainWalletExplorerProvider.refresh(element)));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_WALLET, (createIdentity: boolean) => addWallet(createIdentity)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_WALLET, (createIdentity: boolean, fromEnvironment?: string) => addWallet(createIdentity, fromEnvironment)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DEBUG_COMMAND_LIST, (commandName?: string) => debugCommandList(commandName)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REMOVE_WALLET, (treeItem: WalletTreeItem) => removeWallet(treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_IDENTITY, (treeItem: IdentityTreeItem) => deleteIdentity(treeItem)));

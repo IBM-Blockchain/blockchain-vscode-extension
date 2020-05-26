@@ -251,6 +251,32 @@ describe('AddGatewayCommand', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addGatewayCommand');
         });
 
+        it('should add fromEnvironment if created from an ops tools environment', async () => {
+            const opsToolsEnv: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            opsToolsEnv.name = 'opsToolsEnv';
+            opsToolsEnv.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
+            await FabricEnvironmentRegistry.instance().clear();
+            await FabricEnvironmentRegistry.instance().add(opsToolsEnv);
+            showEnvironmentQuickPickStub.resolves({ label: 'opsToolsEnv', data: opsToolsEnv });
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
+
+            const gateways: Array<FabricGatewayRegistryEntry> = await FabricGatewayRegistry.instance().getAll();
+
+            gateways.length.should.equal(1);
+            gateways[0].should.deep.equal({
+                name: 'myGateway',
+                connectionProfilePath,
+                fromEnvironment: opsToolsEnv.name,
+                associatedWallet: 'Org1'
+            });
+            executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            generateConnectionProfileStub.should.have.been.calledOnceWith('myGateway', peerNode, caNode);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new gateway');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addGatewayCommand');
+        });
+
         it('should error if there are no non-ansible environments to create the gateway from', async () => {
             mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([]);
 

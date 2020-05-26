@@ -48,17 +48,18 @@ Feature: Fabric Environments
     Then there should be a tree item with a label 'myFabric' in the 'Fabric Environments' panel
     And the tree item should have a tooltip equal to 'myFabric'
 
-  @opsToolsFabric
-  Scenario Outline: It should create an environment without nodes
-    When I create an environment '<environmentName>' of type '<environmentType>'
-    And the wallet '<walletName>' with identity '<identtity>' and mspid '<mspid>' exists
-    Then there should be a tree item with a label '<environmentName>' in the 'Fabric Environments' panel
-    And the tree item should have a tooltip equal to '<environmentName>'
-    And there should be a tree item with a label '<walletName>' in the 'Fabric Wallets' panel
-    Examples:
-      | environmentName      | environmentType | walletName         | identtity       | mspid   |
-      | myOpsToolsFabric     | software        | opsToolsWallet     | Org1CAAdmin     | org1msp |
-      | mySaaSOpsToolsFabric | SaaS            | SaaSOpsToolsWallet | SaaSOrg1CAAdmin | org1msp |
+    @opsToolsFabric
+    Scenario Outline: It should create an environment without nodes
+      When I create an environment '<environmentName>' of type '<environmentType>'
+      And the wallet '<walletName>' with identity '<identtity>' and mspid '<mspid>' exists
+      Then there should be a tree item with a label '<environmentName>' in the 'Fabric Environments' panel
+      And the tree item should have a tooltip equal to '<environmentName>'
+      And there should be a tree item with a label 'Other wallets' in the 'Fabric Wallets' panel
+      And the 'Fabric Wallets' tree item should have a child '<walletName>'
+      Examples:
+        | environmentName      | environmentType    | walletName            | identtity         | mspid     |
+        | myOpsToolsFabric     | software           | opsToolsWallet        | Org1CAAdmin       | org1msp   |
+        | mySaaSOpsToolsFabric | SaaS               | SaaSOpsToolsWallet    | SaaSOrg1CAAdmin   | org1msp   |
 
   @opsToolsFabric
   Scenario Outline: It should edit filters, add all nodes and connect automatically

@@ -25,6 +25,7 @@ export interface OrdererOptions {
     pem?: string
     sslTargetNameOverride?: string,
     requestTimeout?: number;
+    apiOptions?: object;
 }
 
 /**
@@ -175,6 +176,10 @@ export class Lifecycle {
 
         if (options.requestTimeout) {
             connectOptions.requestTimeout = options.requestTimeout;
+        }
+
+        if (options.apiOptions) {
+            Object.assign(connectOptions, options.apiOptions);
         }
 
         this.orderers.set(options.name, connectOptions);

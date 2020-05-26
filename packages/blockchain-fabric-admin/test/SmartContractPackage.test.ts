@@ -34,10 +34,12 @@ describe('SmartContractPackage', () => {
         let mysandbox: sinon.SinonSandbox;
 
         beforeEach(() => {
+            delete process.env.GOPATH;
             mysandbox = sinon.createSandbox();
         });
 
         afterEach(() => {
+            delete process.env.GOPATH;
             mysandbox.restore();
         });
 
