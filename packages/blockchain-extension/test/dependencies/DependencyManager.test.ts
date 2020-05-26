@@ -43,10 +43,6 @@ describe('DependencyManager Tests', () => {
         getExtensionLocalFabricSetting = mySandBox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting').returns(true);
     });
 
-    afterEach(async () => {
-        delete process.env.CHE_WORKSPACE_ID;
-    });
-
     describe('hasNativeDependenciesInstalled', () => {
 
         afterEach(() => {
@@ -480,7 +476,7 @@ describe('DependencyManager Tests', () => {
                 extensionKindStub.onThirdCall().returns({ extensionKind: 2 });
                 mySandBox.stub(process, 'platform').value(platform);
                 mySandBox.stub(process, 'arch').value(arch);
-                process.env.CHE_WORKSPACE_ID = 'wowsuchcheworkspaceid';
+                mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
 
                 const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
                 const dependencyManager: DependencyManager = DependencyManager.instance();

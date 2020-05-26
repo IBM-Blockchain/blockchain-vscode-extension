@@ -314,14 +314,15 @@ describe('environmentExplorer', () => {
                 getStateStub.returns(ConnectedState.SETUP);
 
                 const peerNode: FabricNode = FabricNode.newPeer('peer1', 'peer1.org1.example.com', 'http://peer.sample.org', undefined, undefined, undefined);
-                const ordererNode: FabricNode = FabricNode.newOrderer('orderer', 'orderer.example.com', 'http://orderer.sample.org', undefined, undefined, undefined, 'Ordering Service');
-                const ordererNode1: FabricNode = FabricNode.newOrderer('orderer1', 'orderer1.example.com', 'http://orderer.sample.org', undefined, undefined, undefined, 'Ordering Service');
-                const ordererNode2: FabricNode = FabricNode.newOrderer('orderer2', 'orderer2.example.com', 'http://orderer.sample.org', undefined, undefined, undefined, 'Another Ordering Service');
-                const ordererNode3: FabricNode = FabricNode.newOrderer('orderer3', 'orderer3.example.com', 'http://orderer.sample.org', undefined, undefined, undefined, 'Another Ordering Service');
+                const peerNode2: FabricNode = FabricNode.newPeer('peer2', 'peer2.org1.example.com', 'http://peer.sample.org', 'some wallet', 'some identity', undefined);
+                const ordererNode: FabricNode = FabricNode.newOrderer('orderer', 'orderer.example.com', 'http://orderer.sample.org', 'some wallet', undefined, undefined, 'Ordering Service');
+                const ordererNode1: FabricNode = FabricNode.newOrderer('orderer1', 'orderer1.example.com', 'http://orderer.sample.org', 'some wallet', undefined, undefined, 'Ordering Service');
+                const ordererNode2: FabricNode = FabricNode.newOrderer('orderer2', 'orderer2.example.com', 'http://orderer.sample.org', undefined, 'some identity', undefined, 'Another Ordering Service');
+                const ordererNode3: FabricNode = FabricNode.newOrderer('orderer3', 'orderer3.example.com', 'http://orderer.sample.org', undefined, 'some identity', undefined, 'Another Ordering Service');
 
                 const caNode: FabricNode = FabricNode.newCertificateAuthority('ca1', 'ca1.org1.example.com', 'http://ca.sample.org', undefined, undefined, undefined, undefined, undefined, undefined);
 
-                mySandBox.stub(FabricEnvironment.prototype, 'getNodes').resolves([peerNode, ordererNode, ordererNode1, ordererNode2, ordererNode3, caNode]);
+                mySandBox.stub(FabricEnvironment.prototype, 'getNodes').resolves([peerNode, peerNode2, ordererNode, ordererNode1, ordererNode2, ordererNode3, caNode]);
 
                 const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
                 environmentRegistry.name = 'myEnvironment';
@@ -335,25 +336,29 @@ describe('environmentExplorer', () => {
                 commandStub.should.have.been.calledWith('setContext', 'blockchain-environment-setup', true);
                 should.not.exist(blockchainRuntimeExplorerProvider['fabricEnvironmentToSetUp']);
 
-                children.length.should.equal(6);
+                children.length.should.equal(7);
                 children[0].label.should.equal(`Setting up: ${environmentRegistry.name}`);
                 children[1].label.should.equal(`(Click each node to perform setup)`);
                 children[2].label.should.equal('peer1.org1.example.com   ⚠');
                 children[2].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
                 children[2].command.arguments.should.deep.equal([environmentRegistry, peerNode]);
                 children[2].tooltip.should.equal(peerNode.name);
-                children[3].label.should.equal('Ordering Service   ⚠');
+                children[3].label.should.equal('peer2.org1.example.com');
                 children[3].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
-                children[3].command.arguments.should.deep.equal([environmentRegistry, ordererNode]);
-                children[3].tooltip.should.equal(ordererNode.cluster_name);
-                children[4].label.should.equal('Another Ordering Service   ⚠');
+                children[3].command.arguments.should.deep.equal([environmentRegistry, peerNode2]);
+                children[3].tooltip.should.equal(peerNode2.name);
+                children[4].label.should.equal('Ordering Service   ⚠');
                 children[4].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
-                children[4].command.arguments.should.deep.equal([environmentRegistry, ordererNode2]);
-                children[4].tooltip.should.equal(ordererNode2.cluster_name);
-                children[5].label.should.equal('ca1.org1.example.com   ⚠');
+                children[4].command.arguments.should.deep.equal([environmentRegistry, ordererNode]);
+                children[4].tooltip.should.equal(ordererNode.cluster_name);
+                children[5].label.should.equal('Another Ordering Service   ⚠');
                 children[5].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
-                children[5].command.arguments.should.deep.equal([environmentRegistry, caNode]);
-                children[5].tooltip.should.equal(caNode.name);
+                children[5].command.arguments.should.deep.equal([environmentRegistry, ordererNode2]);
+                children[5].tooltip.should.equal(ordererNode2.cluster_name);
+                children[6].label.should.equal('ca1.org1.example.com   ⚠');
+                children[6].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
+                children[6].command.arguments.should.deep.equal([environmentRegistry, caNode]);
+                children[6].tooltip.should.equal(caNode.name);
             });
 
             it('should error if gRPC cant connect to Fabric', async () => {

@@ -509,7 +509,7 @@ export class DependencyManager {
             let info: { modules?: string, longVersion: string, shortVersion?: string };
 
             const remote: boolean = vscode.extensions.getExtension(EXTENSION_ID).extensionKind === vscode.ExtensionKind.Workspace;
-            const che: boolean = 'CHE_WORKSPACE_ID' in process.env;
+            const che: boolean = ExtensionUtil.isChe();
 
             if (remote || che) {
                 runtime = 'node';

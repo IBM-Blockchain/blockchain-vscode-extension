@@ -26,6 +26,7 @@ import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { TimerUtil } from '../util/TimerUtil';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
+import { ExtensionUtil } from '../util/ExtensionUtil';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -1193,7 +1194,15 @@ export class UserInputUtil {
                 // stop the refresh until the user has finished making changes
                 FabricEnvironmentManager.instance().stopEnvironmentRefresh();
                 // Ask user if they want to edit filters
-                const editFilters: boolean = await UserInputUtil.showConfirmationWarningMessage('Differences have been detected between the local environment and the Ops Tools environment. Would you like to filter nodes?');
+                let editFilters: boolean;
+                if (ExtensionUtil.isChe()) {
+                    // Issue 2336: see below; because we never show the filter quick pick, we don't want
+                    // to show this message either. Just pretend that they said yes, and then went on
+                    // to select all of the nodes,
+                    editFilters = true;
+                } else {
+                    editFilters = await UserInputUtil.showConfirmationWarningMessage('Differences have been detected between the local environment and the Ops Tools environment. Would you like to filter nodes?');
+                }
                 if (!editFilters) {
                     return;
                 }
@@ -1210,6 +1219,14 @@ export class UserInputUtil {
             placeHolder: prompt
         };
 
+        if (ExtensionUtil.isChe()) {
+            // Issue 2336: Eclipse Che doesn't support canPickMany, and that makes this quick pick pointless
+            // as 99% of the time you want to pick many. Just return all of the nodes instead for now.
+            return sortedQuickPickItems.map((sortedQuickPickItem: IBlockchainQuickPickItem<FabricNode>) => {
+                sortedQuickPickItem.picked = true;
+                return sortedQuickPickItem;
+            })
+        }
         return vscode.window.showQuickPick(sortedQuickPickItems, quickPickOptions);
     }
 
