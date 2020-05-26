@@ -80,15 +80,21 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
                         You may optionally change them.
                     </div>
                 </div>
-                <div className='bx--row'>
-                    <h5>Smart contract definition</h5>
-                </div>
                 <div className='bx--row margin-bottom-06'>
-                    <div className='bx--col-lg-5 margin-right-06'>
-                        <TextInput invalidText={`Name can only contain alphanumeric, '_' and '-' characters.`} invalid={this.nameInvalid} id='nameInput' labelText='Definition name' defaultValue={this.state.definitionNameValue} onChange={this.handleDefinitionNameChange}></TextInput>
+                    <div className='bx--col-lg-10'>
+                        <h5>Smart contract definition</h5>
                     </div>
-                    <div className='bx--col-lg-5'>
-                        <TextInput invalidText={'Version cannot be empty'} invalid={this.versionInvalid} id='versionInput' labelText='Definition version' defaultValue={this.state.definitionVersionValue} onChange={this.handleDefinitionVersionChange}></TextInput>
+                    <div className='bx--col-lg-10'>
+                        <div className='bx--row'>
+
+                            <div className='bx--col-lg-7 bx--col-md-3 bx--col-sm-4'>
+                                <TextInput invalidText={`Name can only contain alphanumeric, '_' and '-' characters.`} invalid={this.nameInvalid} id='nameInput' labelText='Definition name' defaultValue={this.state.definitionNameValue} onChange={this.handleDefinitionNameChange}></TextInput>
+                            </div>
+                            <div className='bx--col-lg-2 bx--col-md-1 bx--col-sm-0'></div>
+                            <div className='bx--col-lg-7 bx--col-md-3 bx--col-sm-4'>
+                                <TextInput invalidText={'Version cannot be empty'} invalid={this.versionInvalid} id='versionInput' labelText='Definition version' defaultValue={this.state.definitionVersionValue} onChange={this.handleDefinitionVersionChange}></TextInput>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

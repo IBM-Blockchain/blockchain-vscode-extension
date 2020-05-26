@@ -30,16 +30,20 @@ chai.use(chaiAsPromised);
 
 setDefaultTimeout(60 * 1000);
 
-Given(/a '(.*)' smart contract of type '(.*)'/, async function(language: string, type: string): Promise<void> {
+Given(/^a '(.*)' smart contract of type '(.*)' using '(.*)'$/, function(language: string, type: string, contract: string): void {
 
-    this.projectPath = path.join(Helper.TMP_DIR, 'fabric-samples', 'chaincode', 'fabcar', language);
+    if (contract === 'marbles') {
+        this.projectPath = path.join(Helper.TMP_DIR, 'fabric-samples', 'chaincode', 'marbles02_private', language);
+    } else {
+        this.projectPath = path.join(Helper.TMP_DIR, 'fabric-samples', 'chaincode', contract, language);
+    }
+
     this.language = language;
     this.type = type;
-    this.label = `fabcar-${language}`;
-
+    this.label = `${contract}-${language}`;
 });
 
-Given(/the package exists$/, {timeout: 120000 * 1000},  async function (): Promise<void> {
+Given(/the package exists$/, {timeout: 120000 * 1000}, async function(): Promise<void> {
     const packagedContractPath: string = path.join(Helper.PACKAGE_DIR, `${this.label}.tar.gz`);
 
     const exists: boolean = await fs.pathExists(packagedContractPath);

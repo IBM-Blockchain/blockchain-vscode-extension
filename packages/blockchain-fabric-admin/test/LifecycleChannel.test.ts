@@ -24,6 +24,8 @@ import {DefinedSmartContract, LifecycleChannel} from '../src/LifecycleChannel';
 import {Lifecycle} from '../src/Lifecycle';
 import * as Long from 'long';
 import {EndorsementPolicy} from '../src/Policy';
+import {Collection} from '../src';
+import {CollectionConfig} from '../src/CollectionConfig';
 
 // this is horrible but needed as the transaction constructor isn't exported so can't stub it without stubbing the world
 // tslint:disable-next-line:no-var-requires
@@ -302,6 +304,35 @@ describe('LifecycleChannel', () => {
                 transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
             });
 
+            it('should approve a smart contract definition with collection config', async () => {
+                const collectionConfig: Collection [] = [
+                    {
+                        name: 'CollectionOne',
+                        policy: `OR('Org1MSP.member')`,
+                        requiredPeerCount: 1,
+                        maxPeerCount: 1,
+                        blockToLive: 0,
+                        memberOnlyRead: true
+                    }
+                ];
+
+                arg.setCollections(CollectionConfig.buildCollectionConfigPackage(collectionConfig));
+
+                await channel.approveSmartContractDefinition(['myPeer'], 'myOrderer', {
+                    packageId: 'myPackageId',
+                    sequence: 1,
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1',
+                    collectionConfig: collectionConfig
+                });
+
+                addEndorserStub.should.have.been.calledWith(sinon.match.instanceOf(Endorser));
+                addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
+
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser)]);
+                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+            });
+
             it('should handle no peerNames set', async () => {
                 await channel.approveSmartContractDefinition([], 'myOrderer', {
                     packageId: 'myPackageId',
@@ -541,6 +572,34 @@ describe('LifecycleChannel', () => {
                     smartContractName: 'myContract',
                     smartContractVersion: '0.0.1',
                     endorsementPolicy: policyString
+                });
+
+                addEndorserStub.should.have.been.calledTwice;
+                addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
+
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser), sinon.match.instanceOf(Endorser)]);
+                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+            });
+
+            it('should commit a smart contract definition with collection config', async () => {
+                const collectionConfig: Collection [] = [
+                    {
+                        name: 'CollectionOne',
+                        policy: `OR('Org1MSP.member')`,
+                        requiredPeerCount: 1,
+                        maxPeerCount: 1,
+                        blockToLive: 0,
+                        memberOnlyRead: true
+                    }
+                ];
+
+                arg.setCollections(CollectionConfig.buildCollectionConfigPackage(collectionConfig));
+
+                await channel.commitSmartContractDefinition(['myPeer', 'myPeer2'], 'myOrderer', {
+                    sequence: 1,
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1',
+                    collectionConfig: collectionConfig
                 });
 
                 addEndorserStub.should.have.been.calledTwice;
@@ -901,6 +960,62 @@ describe('LifecycleChannel', () => {
                     smartContractVersion: '0.0.1',
                     sequence: 1,
                     endorsementPolicy: policyString
+                });
+
+                result.size.should.equal(2);
+                // @ts-ignore
+                result.get('org1').should.equal(true);
+                // @ts-ignore
+                result.get('org2').should.equal(false);
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)]
+                });
+            });
+
+            it('should get the commit readiness of a smart contract definition with collection config', async () => {
+
+                const collectionConfig: Collection [] = [
+                    {
+                        name: 'CollectionOne',
+                        policy: `OR('Org1MSP.member')`,
+                        requiredPeerCount: 1,
+                        maxPeerCount: 1,
+                        blockToLive: 0,
+                        memberOnlyRead: true
+                    }
+                ];
+
+                arg.setCollections(CollectionConfig.buildCollectionConfigPackage(collectionConfig));
+
+                buildRequest = {
+                    fcn: 'CheckCommitReadiness',
+                    args: [arg.toBuffer()]
+                };
+
+                const encodedResult: protos.lifecycle.CheckCommitReadinessResult = protos.lifecycle.CheckCommitReadinessResult.encode({
+                    approvals: {
+                        org1: true, org2: false
+                    }
+                });
+
+                endorsementSendStub.resolves({
+                    responses: [{
+                        response: {
+                            status: 200,
+                            payload: encodedResult
+                        }
+                    }]
+                });
+
+                const result: Map<string, boolean> = await channel.getCommitReadiness('myPeer', {
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1',
+                    sequence: 1,
+                    collectionConfig: collectionConfig
                 });
 
                 result.size.should.equal(2);
