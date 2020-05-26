@@ -163,13 +163,18 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 arguments: [environmentRegistryEntry, node]
             };
 
+            let label: string = node.cluster_name || node.name;
+            if (!node.wallet || !node.identity) {
+                label += '   ⚠';
+            }
+
             if (node.type === FabricNodeType.PEER) {
-                const peerTreeItem: PeerTreeItem = new PeerTreeItem(this, node.name, node.name, environmentRegistryEntry, node, command);
+                const peerTreeItem: PeerTreeItem = new PeerTreeItem(this, label, node.name, environmentRegistryEntry, node, command);
                 tree.push(peerTreeItem);
             }
 
             if (node.type === FabricNodeType.CERTIFICATE_AUTHORITY) {
-                const certificateAuthorityTreeItem: CertificateAuthorityTreeItem = new CertificateAuthorityTreeItem(this, node.name, node.name, environmentRegistryEntry, node, command);
+                const certificateAuthorityTreeItem: CertificateAuthorityTreeItem = new CertificateAuthorityTreeItem(this, label, node.name, environmentRegistryEntry, node, command);
                 tree.push(certificateAuthorityTreeItem);
             }
 
@@ -177,10 +182,10 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 if (node.cluster_name) {
                     const foundTreeItem: BlockchainTreeItem = tree.find((treeItem: OrdererTreeItem) => treeItem.node && treeItem.node.type === FabricNodeType.ORDERER && node.cluster_name === treeItem.node.cluster_name);
                     if (!foundTreeItem) {
-                        tree.push(new OrdererTreeItem(this, node.cluster_name, node.cluster_name, environmentRegistryEntry, node, command));
+                        tree.push(new OrdererTreeItem(this, label, node.cluster_name, environmentRegistryEntry, node, command));
                     }
                 } else {
-                    tree.push(new OrdererTreeItem(this, node.name, node.name, environmentRegistryEntry, node, command));
+                    tree.push(new OrdererTreeItem(this, label, node.name, environmentRegistryEntry, node, command));
                 }
             }
         }

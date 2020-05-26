@@ -21,7 +21,7 @@ pr: # Hopefully this causes PR's to trigger
 
 stages:
   - stage: unitTest
-    condition: or(eq(variables['Build.Reason'], 'PullRequest'), and(eq(variables['Build.Reason'], 'IndividualCI'), or(eq(variables['Build.SourceBranchName'], 'v1*'), eq(variables['Build.SourceBranchName'], 'v2*'))))
+    condition: or(eq(variables['Build.Reason'], 'PullRequest'), and(eq(variables['Build.Reason'], 'IndividualCI'), or(startsWith(variables['Build.SourceBranch'], 'refs/tags/v1'), startsWith(variables['Build.SourceBranch'], 'refs/tags/v2'))))
     dependsOn: []
     jobs:
       - job: unit
@@ -49,7 +49,7 @@ stages:
           - template: azure-templates/extension-unit-test-steps.yml
 
   - stage: cucumberTest
-    condition: or(eq(variables['Build.Reason'], 'PullRequest'), and(eq(variables['Build.Reason'], 'IndividualCI'), or(eq(variables['Build.SourceBranchName'], 'v1*'), eq(variables['Build.SourceBranchName'], 'v2*'))))
+    condition: or(eq(variables['Build.Reason'], 'PullRequest'), and(eq(variables['Build.Reason'], 'IndividualCI'), or(startsWith(variables['Build.SourceBranch'], 'refs/tags/v1'), startsWith(variables['Build.SourceBranch'], 'refs/tags/v2'))))
     dependsOn: []
 
     jobs:
@@ -68,7 +68,7 @@ stages:
       - template: azure-templates/cucumber-report-job.yml
 
   - stage: cypressTest
-    condition: or(eq(variables['Build.Reason'], 'PullRequest'), and(eq(variables['Build.Reason'], 'IndividualCI'), or(eq(variables['Build.SourceBranchName'], 'v1*'), eq(variables['Build.SourceBranchName'], 'v2*'))))
+    condition: or(eq(variables['Build.Reason'], 'PullRequest'), and(eq(variables['Build.Reason'], 'IndividualCI'), or(startsWith(variables['Build.SourceBranch'], 'refs/tags/v1'), startsWith(variables['Build.SourceBranch'], 'refs/tags/v2'))))
     dependsOn: []
     jobs:
       - job: cypress

@@ -43,7 +43,9 @@ import {
     FabricRuntimeUtil,
     FabricWalletRegistry,
     FabricWalletRegistryEntry,
-    LogType
+    LogType,
+    FileSystemUtil,
+    FileConfigurations
 } from 'ibm-blockchain-platform-common';
 import {FabricDebugConfigurationProvider} from '../../extension/debug/FabricDebugConfigurationProvider';
 import {TestUtil} from '../TestUtil';
@@ -54,6 +56,8 @@ import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { ManagedAnsibleEnvironmentManager } from '../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
 import { ManagedAnsibleEnvironment } from '../../extension/fabric/environments/ManagedAnsibleEnvironment';
+import Axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -236,14 +240,14 @@ describe('ExtensionUtil Tests', () => {
             const allCommands: Array<string> = await vscode.commands.getCommands();
 
             const commands: Array<string> = allCommands.filter((command: string) => {
+                if (command.endsWith('.focus') || command.endsWith('.resetViewLocation')) {
+                    // VSCode creates commands for tree views, so ignore those.
+                    return false;
+                }
                 return command.startsWith('gatewaysExplorer') || command.startsWith('aPackagesExplorer') || command.startsWith('environmentExplorer') || command.startsWith('extensionHome') || command.startsWith('walletExplorer') || command.startsWith('preReq') || command.startsWith('releaseNotes');
             });
 
             commands.should.deep.equal([
-                'aPackagesExplorer.focus',
-                'environmentExplorer.focus',
-                'gatewaysExplorer.focus',
-                'walletExplorer.focus',
                 ExtensionCommands.REFRESH_GATEWAYS,
                 ExtensionCommands.CONNECT_TO_GATEWAY,
                 ExtensionCommands.DISCONNECT_GATEWAY,
@@ -1527,6 +1531,16 @@ describe('ExtensionUtil Tests', () => {
 
             executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
         });
+
+        it('should discover environments', async () => {
+            dependencies['generator-fabric'] = '0.0.2';
+            globalStateGetStub.returns({
+                generatorVersion: '0.0.1'
+            });
+            const spy: sinon.SinonSpy = mySandBox.spy(ExtensionUtil, 'discoverEnvironments');
+            await ExtensionUtil.completeActivation(false);
+            spy.should.have.been.calledOnce;
+        });
     });
 
     describe('setupLocalRuntime', () => {
@@ -2134,6 +2148,118 @@ describe('ExtensionUtil Tests', () => {
             const result: any = ExtensionUtil.getExtensionSaasConfigUpdatesSetting();
             result.should.deep.equal( true );
         });
+    });
+
+    describe('discoverEnvironments', () => {
+
+        let addStub: sinon.SinonStub;
+        let updateStub: sinon.SinonStub;
+        let existsStub: sinon.SinonStub;
+        let mockAxios: MockAdapter;
+        let expectedEnvironmentDirectory: string;
+
+        beforeEach(() => {
+            addStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'add');
+            updateStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'update');
+            existsStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'exists');
+            existsStub.resolves(false);
+            mockAxios = new MockAdapter(Axios);
+            mockAxios.onGet('http://console.fablet.example.org:9876/ak/api/v1/health').reply(200, {});
+            const extensionDirectory: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const resolvedExtensionDirectory: string = FileSystemUtil.getDirPath(extensionDirectory);
+            expectedEnvironmentDirectory = path.join(resolvedExtensionDirectory, FileConfigurations.FABRIC_ENVIRONMENTS, 'Fablet');
+        });
+
+        afterEach(() => {
+            delete process.env.FABLET_SERVICE_HOST;
+            delete process.env.FABLET_SERVICE_PORT;
+            mockAxios.restore();
+        });
+
+        it('should not do anything if not running in Eclipse Che', async () => {
+            await ExtensionUtil.discoverEnvironments();
+            addStub.should.not.have.been.called;
+            updateStub.should.not.have.been.called;
+        });
+
+        it('should not do anything if running in Eclipse Che, but FABLET_SERVICE_HOST is not set', async () => {
+            mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
+            // process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
+            process.env.FABLET_SERVICE_PORT = '9876';
+            await ExtensionUtil.discoverEnvironments();
+            addStub.should.not.have.been.called;
+            updateStub.should.not.have.been.called;
+        });
+
+        it('should not do anything if running in Eclipse Che, but FABLET_SERVICE_PORT is not set', async () => {
+            mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
+            process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
+            // process.env.FABLET_SERVICE_PORT = '9876';
+            await ExtensionUtil.discoverEnvironments();
+            addStub.should.not.have.been.called;
+            updateStub.should.not.have.been.called;
+        });
+
+        it('should not do anything if running in Eclipse Che, but the Fablet instance does not work', async () => {
+            mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
+            process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
+            process.env.FABLET_SERVICE_PORT = '9876';
+            mockAxios.onGet('http://console.fablet.example.org:9876/ak/api/v1/health').reply(404, {});
+            await ExtensionUtil.discoverEnvironments();
+            addStub.should.not.have.been.called;
+            updateStub.should.not.have.been.called;
+        });
+
+        it('should discover and add a new environment for a Fablet instance running in Eclipse Che', async () => {
+            mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
+            process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
+            process.env.FABLET_SERVICE_PORT = '9876';
+            await ExtensionUtil.discoverEnvironments();
+            addStub.should.have.been.calledOnceWithExactly({
+                name: 'Fablet',
+                managedRuntime: false,
+                environmentType: EnvironmentType.FABLET_ENVIRONMENT,
+                environmentDirectory: expectedEnvironmentDirectory,
+                url: 'http://console.fablet.example.org:9876'
+            });
+        });
+
+        it('should discover and update an existing environment for a Fablet instance running in Eclipse Che', async () => {
+            mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
+            process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
+            process.env.FABLET_SERVICE_PORT = '9876';
+            existsStub.resolves(true);
+            await ExtensionUtil.discoverEnvironments();
+            updateStub.should.have.been.calledOnceWithExactly({
+                name: 'Fablet',
+                managedRuntime: false,
+                environmentType: EnvironmentType.FABLET_ENVIRONMENT,
+                environmentDirectory: expectedEnvironmentDirectory,
+                url: 'http://console.fablet.example.org:9876'
+            });
+        });
+
+    });
+
+    describe('isChe', () => {
+
+        beforeEach(async () => {
+            delete process.env.CHE_WORKSPACE_ID;
+        });
+
+        afterEach(async () => {
+            delete process.env.CHE_WORKSPACE_ID;
+        });
+
+        it('should return true on Eclipse Che', () => {
+            process.env.CHE_WORKSPACE_ID = 'workspacen5jfcuq4dy2cthww';
+            ExtensionUtil.isChe().should.be.true;
+        });
+
+        it('should return false when not on Eclipse Che', () => {
+            ExtensionUtil.isChe().should.be.false;
+        });
+
     });
 
 });
