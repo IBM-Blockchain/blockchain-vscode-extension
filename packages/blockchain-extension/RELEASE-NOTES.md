@@ -1,9 +1,9 @@
-# IBM Blockchain Platform Extension updated to v1.0.30
-_Release date: May 22nd 2020_
+# IBM Blockchain Platform Extension updated to v1.0.31
+_Release date: May 26th 2020_
 
 Announcements
 ---
-* This version of the extension is a republish of our v1.0.29 release which didn't publish to the marketplace correctly.
+* This version of the extension is a republish of our v1.0.30 release which didn't publish to the marketplace correctly.
 
 * We’re still waiting for the gRPC v1.25.0 binaries to be published so you may be affected by [this issue](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621), where gRPC fails to rebuild when using VS Code >1.40.x.
  > Please see [this comment](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621#issuecomment-552926559) for a workaround. 
