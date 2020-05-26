@@ -13,6 +13,8 @@
 */
 
 import * as path from 'path';
+import {Collection} from '../../src';
+import * as fs from 'fs-extra';
 
 export class Helper {
     public static TMP_DIR: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp');
@@ -23,5 +25,11 @@ export class Helper {
 
     public static org1Peer: string = 'peer0.org1.example.com';
     public static org2Peer: string = 'peer0.org2.example.com';
-    public static orderer: string = 'orderer.example.com'
+    public static orderer: string = 'orderer.example.com';
+
+    public static async getCollectionConfig(): Promise<Collection[]> {
+        const collectionConfigPath: string = path.join(Helper.TMP_DIR, 'fabric-samples', 'chaincode', 'marbles02_private', 'collections_config.json');
+        const collectionConfig: Collection[] = await fs.readJson(collectionConfigPath);
+        return collectionConfig;
+    }
 }
