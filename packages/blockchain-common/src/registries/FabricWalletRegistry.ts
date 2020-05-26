@@ -42,8 +42,14 @@ export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry
             const envName: string = entry.fromEnvironment;
             let environmentType: EnvironmentType;
             if (envName) {
-                const environment: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(envName);
-                environmentType = environment.environmentType;
+                const envExists: boolean = await FabricEnvironmentRegistry.instance().exists(envName);
+                if (envExists) {
+                    const environment: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(envName);
+                    environmentType = environment.environmentType;
+                } else {
+                    delete entry.fromEnvironment;
+                    await this.update(entry);
+                }
             }
             if (environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
                 localWallets.push(entry);
