@@ -44,7 +44,7 @@ describe('NodeTreeItem', () => {
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
 
-        node = FabricNode.newPeer('peer1', 'peer1.org1.example.com', 'http://peer.sample.org', undefined, undefined, undefined);
+        node = FabricNode.newPeer('peer1', 'peer1.org1.example.com', 'http://peer.sample.org', 'admin', 'myWallet', 'Org1MSP');
 
         provider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
     });
@@ -54,16 +54,7 @@ describe('NodeTreeItem', () => {
     });
 
     describe('#constructor', () => {
-        it('should have the right properties for a node without identity and wallet', async () => {
-            const treeItem: TestTreeItem = new TestTreeItem(provider, 'peer1.org1.example.com', 'peer1.org1.example.com', new FabricEnvironmentRegistryEntry(), node);
-
-            treeItem.label.should.equal('peer1.org1.example.com   ⚠');
-            treeItem.tooltip.should.equal('peer1.org1.example.com');
-        });
-
-        it('should have the right properties for a node with identity and wallet', async () => {
-            node.identity = 'admin';
-            node.wallet = 'myWallet';
+        it('should have the right properties for a node', async () => {
             const tooltip: string = `Name: ${node.name}\nMSPID: ${node.msp_id}\nAssociated Identity:\n${node.identity}`;
             const treeItem: TestTreeItem = new TestTreeItem(provider, 'peer1.org1.example.com', tooltip, new FabricEnvironmentRegistryEntry(), node);
 

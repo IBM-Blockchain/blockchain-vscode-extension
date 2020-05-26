@@ -21,10 +21,26 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 describe('FileSystemUtil', () => {
     describe('getDirPath', () => {
+
+        beforeEach(() => {
+            delete process.env.CHE_PROJECTS_ROOT;
+        });
+
+        afterEach(() => {
+            delete process.env.CHE_PROJECTS_ROOT;
+        });
+
         it('should replace ~ with the users home directory', () => {
             const packageDirOriginal: string = '~/smartContractDir';
             const packageDirNew: string = FileSystemUtil.getDirPath(packageDirOriginal);
             packageDirNew.should.not.contain('~');
+        });
+
+        it('should replace ~ with the users projects directory on Eclipse Che', () => {
+            process.env.CHE_PROJECTS_ROOT = '/projects';
+            const packageDirOriginal: string = '~/smartContractDir';
+            const packageDirNew: string = FileSystemUtil.getDirPath(packageDirOriginal);
+            packageDirNew.should.equal('/projects/smartContractDir');
         });
 
         it('should not replace if not ~', () => {
