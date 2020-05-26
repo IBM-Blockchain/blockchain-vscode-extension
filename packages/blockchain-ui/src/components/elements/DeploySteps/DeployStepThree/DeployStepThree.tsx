@@ -64,6 +64,13 @@ class DeployStepThree extends Component<IProps, StepThreeState> {
           commitListItem = <ListItem>Commit the definition to `{this.props.channelName}`</ListItem>;
         }
 
+        let packageName: string;
+        if (this.props.selectedPackage.version) {
+          packageName = `${this.props.selectedPackage.name}@${this.props.selectedPackage.version}`;
+        } else {
+          packageName = `${this.props.selectedPackage.name}`;
+        }
+
         return (
             <>
                 <div className='bx--row margin-bottom-06'>
@@ -72,7 +79,7 @@ class DeployStepThree extends Component<IProps, StepThreeState> {
 
                         <UnorderedList className='padding-left-07 padding-top-05'>
                             <ListItem>
-                                Install smart contract package `{this.props.selectedPackage.name}@{this.props.selectedPackage.version}` on all peers
+                                Install smart contract package `{packageName}` on all peers
                             </ListItem>
                             <ListItem>
                                 Approve the same smart contract definition for each organization

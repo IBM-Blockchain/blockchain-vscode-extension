@@ -30,6 +30,7 @@ import { LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { SettingConfigurations } from '../../extension/configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
+import { DeployView } from '../../extension/webview/DeployView';
 
 chai.should();
 chai.use(sinonChai);
@@ -48,11 +49,12 @@ describe('DeleteSmartContractPackageCommand', () => {
 
         let _package: PackageRegistryEntry;
         let logStub: sinon.SinonStub;
-
+        let packagesStub: sinon.SinonStub;
         beforeEach(async () => {
+            DeployView.panel = undefined;
             mySandBox.restore();
             showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
-            const packagesStub: sinon.SinonStub = mySandBox.stub(PackageRegistry.instance(), 'getAll');
+            packagesStub = mySandBox.stub(PackageRegistry.instance(), 'getAll');
             _package = new PackageRegistryEntry();
             _package.name = 'myPackage';
             _package.path = 'myPath';
@@ -166,5 +168,54 @@ describe('DeleteSmartContractPackageCommand', () => {
             deleteSpy.should.not.have.been.called;
             logStub.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `deleteSmartContractPackage`);
         });
+
+        it(`should test that the deploy view packages update (if open)`, async () => {
+            const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = ExtensionUtil.getBlockchainPackageExplorerProvider();
+            const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainPackageExplorerProvider['_onDidChangeTreeData'], 'fire');
+
+            const _packageOne: PackageRegistryEntry = new PackageRegistryEntry();
+            _packageOne.name = 'vscode-pkg-1';
+            _packageOne.path = 'myPath';
+            _packageOne.version = '0.0.1';
+
+            const _packageTwo: PackageRegistryEntry = new PackageRegistryEntry();
+            _packageTwo.name = 'vscode-pkg-1';
+            _packageTwo.path = 'myPath';
+            _packageTwo.version = '0.0.2';
+
+            const _packageThree: PackageRegistryEntry = new PackageRegistryEntry();
+            _packageThree.name = 'vscode-pkg-2';
+            _packageThree.path = 'myPath';
+            _packageThree.version = '0.0.1';
+
+            packagesStub.resolves([_packageOne, _packageTwo, _packageThree]);
+
+            mySandBox.stub(UserInputUtil, 'showSmartContractPackagesQuickPickBox').resolves([{
+                label: 'vscode-pkg-1@0.0.1',
+                data: _packageOne
+            }, {
+                label: 'vscode-pkg-1@0.0.2',
+                data: _packageTwo
+            }]);
+
+            DeployView.panel = {
+                webview: {}
+            } as unknown as vscode.WebviewPanel;
+
+            const updatePackagesStub: sinon.SinonStub = mySandBox.stub(DeployView, 'updatePackages').resolves();
+
+            const deleteStub: sinon.SinonStub = mySandBox.stub(PackageRegistry.instance(), 'delete').resolves();
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_SMART_CONTRACT);
+
+            onDidChangeTreeDataSpy.should.have.been.called;
+            deleteStub.should.have.been.calledTwice;
+            deleteStub.should.have.been.calledWithExactly(_packageOne);
+            deleteStub.should.have.been.calledWithExactly(_packageTwo);
+            logStub.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteSmartContractPackage`);
+            logStub.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted packages`);
+
+            updatePackagesStub.should.have.been.calledOnce;
+        });
+
     });
 });

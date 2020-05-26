@@ -18,9 +18,7 @@ Array [
           className="bx--list__item"
         >
           Install smart contract package \`
-          mycontract
-          @
-          0.0.1
+          mycontract@0.0.1
           \` on all peers
         </li>
         <li

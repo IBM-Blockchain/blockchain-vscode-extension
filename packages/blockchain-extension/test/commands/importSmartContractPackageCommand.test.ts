@@ -27,6 +27,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { Reporter } from '../../extension/util/Reporter';
 import { SettingConfigurations } from '../../extension/configurations';
+import { DeployView } from '../../extension/webview/DeployView';
 
 chai.use(sinonChai);
 
@@ -52,6 +53,7 @@ describe('importSmartContractPackageCommand', () => {
     let packagesList: string[];
 
     beforeEach(async () => {
+        DeployView.panel = undefined;
         srcPackage = path.join('myPath', 'test.tar.gz');
         packagesList = ['myPackage.tar.gz', 'badPackage'];
         browseStub = sandbox.stub(UserInputUtil, 'browse').resolves(srcPackage);
@@ -148,4 +150,25 @@ describe('importSmartContractPackageCommand', () => {
         logSpy.secondCall.should.have.been.calledWith(LogType.ERROR, `Failed to import smart contract package: ${error.message}`, `Failed to import smart contract package: ${error.toString()}`);
         sendTelemetryEventStub.should.not.have.been.called;
     });
+
+    it('should update deploy view (if open) when importing package', async () => {
+        DeployView.panel = {
+            webview: {}
+        } as unknown as vscode.WebviewPanel;
+
+        const updatePackagesStub: sinon.SinonStub = sandbox.stub(DeployView, 'updatePackages').resolves();
+
+        await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
+
+        const endPackage: string = path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages', 'test.tar.gz');
+        copyStub.should.have.been.calledWith(srcPackage, endPackage);
+        logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
+        logSpy.secondCall.should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported smart contract package', 'Successfully imported smart contract package test.tar.gz');
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_PACKAGES);
+        readdirStub.should.have.been.calledWith(path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages'));
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('importSmartContractPackageCommand');
+
+        updatePackagesStub.should.have.been.calledOnce;
+    });
+
 });

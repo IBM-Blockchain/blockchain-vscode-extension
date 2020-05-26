@@ -34,6 +34,7 @@ import { FabricEnvironmentManager } from '../../extension/fabric/environments/Fa
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { FabricInstalledSmartContract } from 'ibm-blockchain-platform-common/build/src/fabricModel/FabricInstalledSmartContract';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -2988,6 +2989,22 @@ describe('UserInputUtil', () => {
             stopRefreshStub.should.not.have.been.called;
         });
 
+        it('should just select all nodes from Ops Tools without asking on Eclipse Che', async () => {
+            mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
+            quickPickStub.rejects(new Error('should not be called'));
+
+            const result: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesQuickPickBox('choose your nodes', nodes, true) as IBlockchainQuickPickItem<FabricNode>[];
+
+            for (const node of nodesPickWithoutCurrent) {
+                node.picked = true;
+            }
+
+            result.should.deep.equal(nodesPickWithoutCurrent);
+            quickPickStub.should.not.have.been.called;
+            sortNodesForQuickpickStub.should.have.been.called;
+            stopRefreshStub.should.not.have.been.called;
+        });
+
         it('should show description "(new)" when a new node is present from Ops Tool', async () => {
             const newPeerNode: FabricNode = FabricNode.newPeer('peerNew.org1.example.com', 'peerNew.org1.example.com', 'grps://somehost:7056', 'cake_fabric_wallet', 'admin', 'Org1MSP');
             const newNodes: FabricNode[] = Array.from(nodes);
@@ -3059,6 +3076,28 @@ describe('UserInputUtil', () => {
             quickPickStub.should.have.been.calledWith(nodesPickWithCurrent);
             sortNodesForQuickpickStub.should.have.been.called;
             changeDetectedWarningMessage.should.have.been.called;
+            stopRefreshStub.should.have.been.called;
+        });
+
+        it('should just select all nodes without asking on Eclipse Che when informOfChanges is true and changes are detected when connecting to Ops Tool', async () => {
+            mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
+            const newPeerNode: FabricNode = FabricNode.newPeer('peerNew.org1.example.com', 'peerNew.org1.example.com', 'grps://somehost:7056', 'cake_fabric_wallet', 'admin', 'Org1MSP');
+            const newNodes: FabricNode[] = Array.from(nodes);
+            newNodes.push(newPeerNode);
+            nodesPickWithoutCurrent.push({ label: newPeerNode.name, data: newPeerNode, description: '(new)' });
+            changeDetectedWarningMessage.resolves(true);
+            quickPickStub.rejects(new Error('should not be called'));
+
+            const result: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showNodesQuickPickBox('choose your nodes', newNodes, true, nodes, true) as IBlockchainQuickPickItem<FabricNode>[];
+
+            for (const node of nodesPickWithoutCurrent) {
+                node.picked = true;
+            }
+
+            result.should.deep.equal(nodesPickWithoutCurrent);
+            quickPickStub.should.not.have.been.called;
+            sortNodesForQuickpickStub.should.have.been.called;
+            changeDetectedWarningMessage.should.not.have.been.called;
             stopRefreshStub.should.have.been.called;
         });
     });

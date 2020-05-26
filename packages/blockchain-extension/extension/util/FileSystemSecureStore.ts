@@ -88,7 +88,7 @@ export class FileSystemSecureStore implements SecureStore {
 
     private async save(store: Store): Promise<void> {
         const data: string = Buffer.from(JSON.stringify(store), 'utf8').toString('base64');
-        return fs.writeJson(this.path, data, { encoding: 'utf8', mode: 0o600 });
+        return fs.writeFile(this.path, data, { encoding: 'utf8', mode: 0o600 });
     }
 
 }

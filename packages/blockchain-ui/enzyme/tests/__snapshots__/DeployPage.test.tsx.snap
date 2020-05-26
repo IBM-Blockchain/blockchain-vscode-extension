@@ -240,7 +240,7 @@ exports[`DeployPage component render should render the expected snapshot 1`] = `
                 htmlFor="downshift-0-input"
                 id="dropdown-field-label-package-select"
               >
-                Choose an option
+                Select smart contract
               </span>
               <div
                 className="bx--list-box__menu-icon"
