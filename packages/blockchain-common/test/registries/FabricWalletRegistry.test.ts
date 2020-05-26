@@ -183,6 +183,27 @@ describe('FabricWalletRegistry', () => {
 
             entries[1].should.deep.equal(walletOne);
         });
+
+        it(`should remove the fromEnvironment property if the environment doesn't exist`, async () => {
+            const walletOne: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+                name: 'walletOne',
+                walletPath: 'myPath',
+                fromEnvironment: 'someEnvironment'
+            });
+
+            await registry.getAll().should.eventually.deep.equal([]);
+
+            await registry.add(walletOne);
+
+            const entries: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
+
+            entries.length.should.equal(1);
+
+            entries[0].should.deep.equal({
+                name: 'walletOne',
+                walletPath: 'myPath'
+            });
+        });
     });
 
     describe('get', () => {

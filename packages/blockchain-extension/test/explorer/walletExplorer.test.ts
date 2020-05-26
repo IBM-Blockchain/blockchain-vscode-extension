@@ -67,6 +67,7 @@ describe('walletExplorer', () => {
             walletPath: path.join(__dirname, '../../test/tmp/v2/wallets/wallet')
         });
 
+        await FabricEnvironmentRegistry.instance().clear();
         await FabricWalletRegistry.instance().clear();
 
         await TestUtil.setupLocalFabric();
