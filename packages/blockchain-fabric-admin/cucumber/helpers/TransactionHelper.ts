@@ -16,7 +16,7 @@ import {Contract, Gateway, Network, Transaction, Wallet} from 'fabric-network';
 import {Channel, Endorser} from 'fabric-common';
 
 export class TransactionHelper {
-    public static async submitTransaction(wallet: Wallet, identity: string, connectionProfile: any, contractName: string, transactionName: string, argumements: string[], channelName: string, orgNames: string[]): Promise<void> {
+    public static async submitTransaction(submit: boolean, wallet: Wallet, identity: string, connectionProfile: any, contractName: string, transactionName: string, args: string[], channelName: string, orgNames: string[], transientData?: { [key: string]: Buffer }): Promise<void> {
 
         const gateway: Gateway = new Gateway();
         try {
@@ -43,7 +43,16 @@ export class TransactionHelper {
 
             transaction.setEndorsingPeers(endorsers);
 
-            await transaction.submit(...argumements);
+            if (transientData) {
+                transaction.setTransient(transientData);
+            }
+
+            if (submit) {
+                await transaction.submit(...args);
+            } else {
+                await transaction.evaluate(...args);
+            }
+
         } finally {
             gateway.disconnect();
         }

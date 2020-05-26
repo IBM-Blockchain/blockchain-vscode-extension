@@ -2,7 +2,7 @@ Feature: Package Smart Contract
   Package smart contracts for each of the languages
 
   Scenario Outline: Package Smart Contract
-    Given a '<language>' smart contract of type '<type>'
+    Given a '<language>' smart contract of type '<type>' using 'fabcar'
     When I package the smart contract
     Then a package should exist
     Examples:
@@ -13,7 +13,7 @@ Feature: Package Smart Contract
       | go         | golang |
 
   Scenario Outline: Get list of files
-    Given a '<language>' smart contract of type '<type>'
+    Given a '<language>' smart contract of type '<type>' using 'fabcar'
     And the package exists
     When I get the list of files from a file
     Then the file list is correct '<fileList>'
@@ -25,7 +25,7 @@ Feature: Package Smart Contract
       | go         | golang | metadata.json src/fabcar.go src/go.mod src/go.sum src/vendor/google.golang.org/grpc/backoff.go                                                                                               |
 
   Scenario Outline: Get the package metadata
-    Given a '<language>' smart contract of type '<type>'
+    Given a '<language>' smart contract of type '<type>' using 'fabcar'
     And the package exists
     When I get the package metadata
     Then the metadata is correct '<metadata>'

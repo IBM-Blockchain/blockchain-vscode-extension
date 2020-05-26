@@ -25,6 +25,7 @@ import {LifecycleCommon} from './LifecycleCommon';
 import {Lifecycle} from './Lifecycle';
 import {LifecyclePeer} from './LifecyclePeer';
 import {EndorsementPolicy} from './Policy';
+import {Collection, CollectionConfig} from './CollectionConfig';
 
 const logger: any = Utils.getLogger('LifecycleChannel');
 
@@ -36,7 +37,7 @@ export interface SmartContractDefinitionOptions {
     endorsementPlugin?: string;
     validationPlugin?: string;
     endorsementPolicy?: string;
-    // collectionConfig?: object | Buffer;
+    collectionConfig?: Collection[]
     initRequired?: boolean;
 }
 
@@ -154,9 +155,9 @@ export class LifecycleChannel {
             if (options.endorsementPolicy) {
                 arg.setValidationParameter(LifecycleChannel.getEndorsementPolicyBytes(options.endorsementPolicy));
             }
-            // if (options.collectionConfig) {
-            //     arg.setCollections(getCollectionConfig(options.collectionConfig));
-            // }
+            if (options.collectionConfig) {
+                arg.setCollections(CollectionConfig.buildCollectionConfigPackage(options.collectionConfig));
+            }
 
             const buildRequest: { fcn: string; args: Promise<Buffer>[] } = {
                 fcn: 'CheckCommitReadiness',
@@ -422,10 +423,10 @@ export class LifecycleChannel {
                 const endorsementPolicyBuffer: Buffer = LifecycleChannel.getEndorsementPolicyBytes(options.endorsementPolicy);
                 arg.setValidationParameter(endorsementPolicyBuffer);
             }
-            // TODO add this back in when done collections
-            // if (options.collectionConfig) {
-            //     arg.setCollections(getCollectionConfig(options.collectionConfig));
-            // }
+
+            if (options.collectionConfig) {
+                arg.setCollections(CollectionConfig.buildCollectionConfigPackage(options.collectionConfig));
+            }
 
             const contract: Contract = network.getContract('_lifecycle');
 
