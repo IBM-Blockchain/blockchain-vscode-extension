@@ -20,6 +20,7 @@ import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { DeployView } from '../webview/DeployView';
 
 export async function deleteSmartContractPackage(packageTreeItem: PackageTreeItem): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -54,6 +55,11 @@ export async function deleteSmartContractPackage(packageTreeItem: PackageTreeIte
             outputAdapter.log(LogType.SUCCESS, `Successfully deleted packages`);
         } else {
             outputAdapter.log(LogType.SUCCESS, `Successfully deleted ${packagesToDelete[0].name} package`);
+        }
+
+        const panel: vscode.WebviewPanel = DeployView.panel;
+        if (panel) {
+           await DeployView.updatePackages();
         }
     }
 }

@@ -1,7 +1,7 @@
 interface IPackageRegistryEntry {
     name: string;
     path: string;
-    version: string;
+    version?: string;
     sizeKB: number;
 }
 

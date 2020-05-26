@@ -33,9 +33,10 @@ import {FabricEnvironmentManager} from '../../extension/fabric/environments/Fabr
 import {FabricEnvironmentConnection} from 'ibm-blockchain-platform-environment-v1';
 import {ExtensionCommands} from '../../ExtensionCommands';
 import {VSCodeBlockchainOutputAdapter} from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 
 chai.use(sinonChai);
-
+const should: Chai.Should = chai.should();
 // tslint:disable no-unused-expression
 
 describe('DeployView', () => {
@@ -174,6 +175,30 @@ describe('DeployView', () => {
         deployStub.should.not.have.been.called;
     });
 
+    it('should set panel to undefined if disposed', async () => {
+        const disposeStub: sinon.SinonStub = mySandBox.stub().yields();
+
+        createWebviewPanelStub.returns({
+            title: 'Deploy Smart Contract',
+            webview: {
+                postMessage: postMessageStub,
+                onDidReceiveMessage: mySandBox.stub()
+            },
+            reveal: (): void => {
+                return;
+            },
+            onDidDispose: disposeStub,
+            onDidChangeViewState: mySandBox.stub(),
+            _isDisposed: false
+        });
+
+        const deployView: DeployView = new DeployView(context, deployData);
+
+        await deployView.openView(false);
+        should.not.exist(DeployView.panel);
+
+    });
+
     describe('deploy message', () => {
 
         it('should receive deploy message', async () => {
@@ -233,7 +258,7 @@ describe('DeployView', () => {
             } as unknown as vscode.WebviewPanel;
 
             const deployView: DeployView = new DeployView(context, deployData);
-            deployView.panel = webviewPanel;
+            DeployView.panel = webviewPanel;
             await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined);
             disposeStub.should.have.been.calledOnce;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
@@ -261,7 +286,7 @@ describe('DeployView', () => {
             } as unknown as vscode.WebviewPanel;
 
             const deployView: DeployView = new DeployView(context, deployData);
-            deployView.panel = webviewPanel;
+            DeployView.panel = webviewPanel;
             await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined);
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
@@ -290,7 +315,7 @@ describe('DeployView', () => {
             } as unknown as vscode.WebviewPanel;
 
             const deployView: DeployView = new DeployView(context, deployData);
-            deployView.panel = webviewPanel;
+            DeployView.panel = webviewPanel;
             await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
@@ -318,7 +343,7 @@ describe('DeployView', () => {
             } as unknown as vscode.WebviewPanel;
 
             const deployView: DeployView = new DeployView(context, deployData);
-            deployView.panel = webviewPanel;
+            DeployView.panel = webviewPanel;
             await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
@@ -349,7 +374,7 @@ describe('DeployView', () => {
             }]);
 
             const deployView: DeployView = new DeployView(context, deployData);
-            deployView.panel = webviewPanel;
+            DeployView.panel = webviewPanel;
             await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryTwo, 'defName', '0.0.1', undefined);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
@@ -381,7 +406,7 @@ describe('DeployView', () => {
             } as unknown as vscode.WebviewPanel;
 
             const deployView: DeployView = new DeployView(context, deployData);
-            deployView.panel = webviewPanel;
+            DeployView.panel = webviewPanel;
             await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryTwo, 'defName', '0.0.1', true);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
@@ -413,7 +438,7 @@ describe('DeployView', () => {
             } as unknown as vscode.WebviewPanel;
 
             const deployView: DeployView = new DeployView(context, deployData);
-            deployView.panel = webviewPanel;
+            DeployView.panel = webviewPanel;
             await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.2', undefined);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
@@ -430,5 +455,37 @@ describe('DeployView', () => {
             orgMap.set('Org2', ['peer0.org2.example.com']);
             executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', orgMap, packageEntryOne, new FabricSmartContractDefinition('defName', '0.0.2', 2));
         });
+    });
+
+    describe('updatePackages', () => {
+
+        it('should update deploy view with new packages', async () => {
+            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry();
+            packageEntry.name = 'packageOne';
+            packageEntry.version = '0.0.1';
+            packageEntry.sizeKB = 90000;
+            packageEntry.path = '/some/path';
+            const getAllStub: sinon.SinonStub = mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([packageEntry]);
+
+            const webviewPanel: vscode.WebviewPanel = {
+                webview: {
+                    postMessage: postMessageStub
+                }
+            } as unknown as vscode.WebviewPanel;
+            DeployView.panel = webviewPanel;
+            DeployView.appState = {};
+
+            await DeployView.updatePackages();
+
+            DeployView.appState.packageEntries.should.deep.equal([packageEntry]);
+
+            getAllStub.should.have.been.calledOnce;
+            postMessageStub.should.have.been.calledOnceWithExactly({
+                path: '/deploy',
+                deployData: DeployView.appState
+            });
+
+        });
+
     });
 });

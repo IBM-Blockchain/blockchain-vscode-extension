@@ -24,7 +24,7 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
 
         this.state = {
             definitionNameValue: this.props.currentDefinitionName ? this.props.currentDefinitionName : this.props.selectedPackage.name,
-            definitionVersionValue: this.props.currentDefinitionVersion ? this.props.currentDefinitionVersion : this.props.selectedPackage.version
+            definitionVersionValue: this.props.currentDefinitionVersion ? this.props.currentDefinitionVersion : this.props.selectedPackage.version as string
         };
 
         this.handleDefinitionNameChange = this.handleDefinitionNameChange.bind(this);

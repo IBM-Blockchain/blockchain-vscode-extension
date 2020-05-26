@@ -6,7 +6,7 @@ import sinonChai from 'sinon-chai';
 
 import DeployStepThree from '../../../src/components/elements/DeploySteps/DeployStepThree/DeployStepThree';
 import IPackageRegistryEntry from '../../../src/interfaces/IPackageRegistryEntry';
-import { ReactWrapper, mount } from 'enzyme';
+import { ReactWrapper, mount, shallow, ShallowWrapper } from 'enzyme';
 
 chai.should();
 chai.use(sinonChai);
@@ -15,6 +15,7 @@ describe('DeployStepThree component', () => {
     let mySandBox: sinon.SinonSandbox;
 
     const packageOne: IPackageRegistryEntry = {name: 'mycontract', version: '0.0.1', path: '/package/one', sizeKB: 9000};
+    const packageTwo: IPackageRegistryEntry = {name: 'importedContract', path: '/package/one', sizeKB: 9000};
 
     let commitChangeStub: sinon.SinonStub;
     beforeEach(async () => {
@@ -32,6 +33,16 @@ describe('DeployStepThree component', () => {
                 .create(<DeployStepThree selectedPackage={packageOne} channelName='mychannel' commitSmartContract={undefined} onCommitChange={commitChangeStub} />)
                 .toJSON();
             expect(component).toMatchSnapshot();
+        });
+
+        it('should display package with a version', async () => {
+            const component: ShallowWrapper<DeployStepThree> = shallow(<DeployStepThree selectedPackage={packageOne} channelName='mychannel' commitSmartContract={undefined} onCommitChange={commitChangeStub} />);
+            component.html().includes(`\`${packageOne.name}@${packageOne.version}\``);
+        });
+
+        it('should display package without a version', async () => {
+            const component: ShallowWrapper<DeployStepThree> = shallow(<DeployStepThree selectedPackage={packageTwo} channelName='mychannel' commitSmartContract={undefined} onCommitChange={commitChangeStub} />);
+            component.html().includes(`\`${packageTwo.name}\``);
         });
 
         it('should show commit list item if toggled on', async () => {
