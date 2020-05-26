@@ -21,29 +21,7 @@ import * as vscode from 'vscode';
 
 export abstract class NodeTreeItem extends BlockchainTreeItem {
 
-    private orginalLabel: string;
-
     constructor(provider: BlockchainExplorerProvider, label: string, public readonly tooltip: string, public readonly environmentRegistryEntry: FabricEnvironmentRegistryEntry, public readonly node: FabricNode, public readonly command?: vscode.Command) {
         super(provider, label, vscode.TreeItemCollapsibleState.None);
-
-        this.orginalLabel = label;
-
-        this.updateProperties();
-    }
-
-    protected updateProperties(): void {
-        let newLabel: string = this.orginalLabel;
-
-        if (!this.node.wallet || !this.node.identity) {
-            newLabel += '   ⚠';
-        }
-
-        this.setLabel(newLabel);
-        this.refresh();
-    }
-
-    private setLabel(label: string): void {
-        // label is readonly so make it less readonly
-        (this as any).label = label;
     }
 }
