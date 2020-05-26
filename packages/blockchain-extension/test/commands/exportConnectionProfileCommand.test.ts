@@ -67,8 +67,8 @@ describe('exportConnectionProfileCommand', () => {
 
         const provider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
         const allChildren: BlockchainTreeItem[] = await provider.getChildren();
-
-        gatewayTreeItem = allChildren[0] as GatewayTreeItem;
+        const groupChildren: BlockchainTreeItem[] = await provider.getChildren(allChildren[0]);
+        gatewayTreeItem = groupChildren[0] as GatewayTreeItem;
 
         workspaceFolder = {
             name: 'myFolder',

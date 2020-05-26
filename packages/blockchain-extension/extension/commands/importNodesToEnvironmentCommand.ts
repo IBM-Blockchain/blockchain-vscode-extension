@@ -23,9 +23,10 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import Axios from 'axios';
-import { ModuleUtil } from '../util/ModuleUtil';
 import { ExtensionsInteractionUtil } from '../util/ExtensionsInteractionUtil';
 import { ExtensionUtil } from '../util/ExtensionUtil';
+import { SecureStore } from '../util/SecureStore';
+import { SecureStoreFactory } from '../util/SecureStoreFactory';
 
 export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false, createMethod?: string, informOfChanges: boolean = false, showSuccess: boolean = true, fromConnectEnvironment: boolean = false): Promise<boolean> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -173,12 +174,9 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                     }
                     requestOptions = { headers: { Authorization: `Bearer ${accessToken}` } };
                 } else {
-                    const keytar: any = ModuleUtil.getCoreNodeModule('keytar');
-                    if (!keytar) {
-                        throw new Error('Error importing the keytar module');
-                    }
+                    const secureStore: SecureStore = await SecureStoreFactory.getSecureStore();
 
-                    const credentials: string = await keytar.getPassword('blockchain-vscode-ext', environmentRegistryEntry.url);
+                    const credentials: string = await secureStore.getPassword('blockchain-vscode-ext', environmentRegistryEntry.url);
                     const credentialsArray: string[] = credentials.split(':'); // 'API key or User ID' : 'API secret or password' : rejectUnauthorized
                     if (credentialsArray.length !== 3) {
                         throw new Error(`Unable to retrieve the stored credentials`);

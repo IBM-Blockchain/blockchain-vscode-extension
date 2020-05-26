@@ -789,7 +789,8 @@ describe('AddWalletIdentityCommand', () => {
                 const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
 
                 const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
-                const walletItem: WalletTreeItem = walletItems[2] as WalletTreeItem;
+                const walletGroupItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletItems[1]);
+                const walletItem: WalletTreeItem = walletGroupItems[1] as WalletTreeItem;
 
                 const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
                 result.should.equal('greenConga');

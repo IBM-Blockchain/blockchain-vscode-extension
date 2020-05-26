@@ -84,8 +84,9 @@ describe('AssociateWalletCommand', () => {
             });
 
             const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
-            const gateways: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
-            const gatewayTreeItem: GatewayDissociatedTreeItem = gateways[0] as GatewayDissociatedTreeItem;
+            const gatewayGroups: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
+            const gatewayGroupChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(gatewayGroups[0]);
+            const gatewayTreeItem: GatewayDissociatedTreeItem = gatewayGroupChildren[0] as GatewayDissociatedTreeItem;
 
             await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_WALLET, gatewayTreeItem);
 
