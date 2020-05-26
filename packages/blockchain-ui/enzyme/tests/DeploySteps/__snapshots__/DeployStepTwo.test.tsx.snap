@@ -12,68 +12,79 @@ Array [
     </div>
   </div>,
   <div
-    className="bx--row"
-  >
-    <h5>
-      Smart contract definition
-    </h5>
-  </div>,
-  <div
     className="bx--row margin-bottom-06"
   >
     <div
-      className="bx--col-lg-5 margin-right-06"
+      className="bx--col-lg-10"
     >
-      <div
-        className="bx--form-item bx--text-input-wrapper"
-      >
-        <label
-          className="bx--label"
-          htmlFor="nameInput"
-        >
-          Definition name
-        </label>
-        <div
-          className="bx--text-input__field-wrapper"
-          data-invalid={null}
-        >
-          <input
-            className="bx--text-input bx--text__input"
-            defaultValue="mycontract"
-            disabled={false}
-            id="nameInput"
-            onChange={[Function]}
-            onClick={[Function]}
-            type="text"
-          />
-        </div>
-      </div>
+      <h5>
+        Smart contract definition
+      </h5>
     </div>
     <div
-      className="bx--col-lg-5"
+      className="bx--col-lg-10"
     >
       <div
-        className="bx--form-item bx--text-input-wrapper"
+        className="bx--row"
       >
-        <label
-          className="bx--label"
-          htmlFor="versionInput"
-        >
-          Definition version
-        </label>
         <div
-          className="bx--text-input__field-wrapper"
-          data-invalid={null}
+          className="bx--col-lg-7 bx--col-md-3 bx--col-sm-4"
         >
-          <input
-            className="bx--text-input bx--text__input"
-            defaultValue="0.0.1"
-            disabled={false}
-            id="versionInput"
-            onChange={[Function]}
-            onClick={[Function]}
-            type="text"
-          />
+          <div
+            className="bx--form-item bx--text-input-wrapper"
+          >
+            <label
+              className="bx--label"
+              htmlFor="nameInput"
+            >
+              Definition name
+            </label>
+            <div
+              className="bx--text-input__field-wrapper"
+              data-invalid={null}
+            >
+              <input
+                className="bx--text-input bx--text__input"
+                defaultValue="mycontract"
+                disabled={false}
+                id="nameInput"
+                onChange={[Function]}
+                onClick={[Function]}
+                type="text"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          className="bx--col-lg-2 bx--col-md-1 bx--col-sm-0"
+        />
+        <div
+          className="bx--col-lg-7 bx--col-md-3 bx--col-sm-4"
+        >
+          <div
+            className="bx--form-item bx--text-input-wrapper"
+          >
+            <label
+              className="bx--label"
+              htmlFor="versionInput"
+            >
+              Definition version
+            </label>
+            <div
+              className="bx--text-input__field-wrapper"
+              data-invalid={null}
+            >
+              <input
+                className="bx--text-input bx--text__input"
+                defaultValue="0.0.1"
+                disabled={false}
+                id="versionInput"
+                onChange={[Function]}
+                onClick={[Function]}
+                type="text"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
