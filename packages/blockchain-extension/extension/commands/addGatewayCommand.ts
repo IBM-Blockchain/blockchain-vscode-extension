@@ -19,6 +19,7 @@ import {VSCodeBlockchainOutputAdapter} from '../logging/VSCodeBlockchainOutputAd
 import {FabricGatewayHelper} from '../fabric/FabricGatewayHelper';
 import {
     FabricEnvironmentRegistryEntry,
+    EnvironmentType,
     FabricNode,
     FabricNodeType,
     FabricRuntimeUtil,
@@ -123,6 +124,10 @@ async function createGatewayFromEnvironment(gatewayName: string, environmentRegi
     const fabricGatewayEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
     fabricGatewayEntry.name = gatewayName;
     fabricGatewayEntry.associatedWallet = peerNode.wallet;
+    if (environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || environmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
+        fabricGatewayEntry.fromEnvironment = environmentRegistryEntry.name;
+    }
+
     fabricGatewayEntry.connectionProfilePath = connectionProfilePath;
     fabricGatewayEntry.fromEnvironment = environmentRegistryEntry.name;
 

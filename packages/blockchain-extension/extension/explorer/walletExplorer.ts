@@ -24,6 +24,7 @@ import { IdentityTreeItem } from './model/IdentityTreeItem';
 import { AdminIdentityTreeItem } from './model/AdminIdentityTreeItem';
 import { TextTreeItem } from './model/TextTreeItem';
 import { WalletGroupTreeItem } from './model/WalletGroupTreeItem';
+import { ExplorerUtil } from '../util/ExplorerUtil';
 
 export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvider {
 
@@ -74,11 +75,16 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
         const walletRegistryEntries: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
 
         const walletGroups: Array<FabricWalletRegistryEntry[]> = [];
+        const otherWallets: Array<FabricWalletRegistryEntry> = [];
         // Populate the tree with the name of each wallet
         for (const walletRegistryEntry of walletRegistryEntries) {
 
             if (walletGroups.length === 0) {
-                walletGroups.push([walletRegistryEntry]);
+                if (walletRegistryEntry.fromEnvironment) {
+                    walletGroups.push([walletRegistryEntry]);
+                } else {
+                    otherWallets.push(walletRegistryEntry);
+                }
                 continue;
             }
 
@@ -92,8 +98,19 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
                 walletGroups[groupIndex].push(walletRegistryEntry);
             } else {
                 // Create new group
-                walletGroups.push([walletRegistryEntry]);
+                if (walletRegistryEntry.fromEnvironment) {
+                    walletGroups.push([walletRegistryEntry]);
+                } else {
+                    // group wallets that don't belong to environments
+                    // don't add wallet if it doesn't have a wallet path
+                    if (walletRegistryEntry.walletPath) {
+                        otherWallets.push(walletRegistryEntry);
+                    }
+                }
             }
+        }
+        if (otherWallets.length > 0) {
+            walletGroups.push(otherWallets);
         }
 
         if (walletGroups.length === 0) {
@@ -101,16 +118,12 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
         } else {
 
             for (const group of walletGroups) {
-                if (group.length === 1) {
-                    const walletTreeItems: WalletTreeItem[] = await this.populateWallets(group); // There will only be one
-                    if (walletTreeItems.length > 0) {
-                        // Only push if there's a wallet path
-                        tree.push(walletTreeItems[0]);
-                    }
-                } else {
-                    // Group length is greater than 1
-                    tree.push(new WalletGroupTreeItem(this, group[0].fromEnvironment, group, vscode.TreeItemCollapsibleState.Expanded));
+                const groupName: string = group[0].fromEnvironment ? group[0].fromEnvironment : 'Other wallets';
+                const groupTreeItem: WalletGroupTreeItem = new WalletGroupTreeItem(this, groupName, group, vscode.TreeItemCollapsibleState.Expanded);
+                if (group[0].fromEnvironment) {
+                    groupTreeItem.iconPath = await ExplorerUtil.getGroupIcon(group[0]);
                 }
+                tree.push(groupTreeItem);
             }
         }
 
@@ -120,20 +133,18 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
     private async populateWallets(walletRegistryEntries: FabricWalletRegistryEntry[]): Promise<Array<WalletTreeItem>> {
         const tree: Array<WalletTreeItem> = [];
         for (const walletRegistryEntry of walletRegistryEntries) {
-            if (walletRegistryEntry.walletPath) {
-                // get identityNames in the wallet
-                const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
-                const wallet: IFabricWallet = await walletGenerator.getWallet(walletRegistryEntry);
-                const identityNames: string[] = await wallet.getIdentityNames();
+            // get identityNames in the wallet
+            const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
+            const wallet: IFabricWallet = await walletGenerator.getWallet(walletRegistryEntry);
+            const identityNames: string[] = await wallet.getIdentityNames();
 
-                // Collapse if there are identities, otherwise the expanded tree takes up a lot of room in the panel
-                const treeState: vscode.TreeItemCollapsibleState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None; //
+            // Collapse if there are identities, otherwise the expanded tree takes up a lot of room in the panel
+            const treeState: vscode.TreeItemCollapsibleState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None; //
 
-                if (walletRegistryEntry.managedWallet) {
-                    tree.push(new LocalWalletTreeItem(this, walletRegistryEntry.name, identityNames, treeState, walletRegistryEntry));
-                } else {
-                    tree.push(new WalletTreeItem(this, walletRegistryEntry.name, identityNames, treeState, walletRegistryEntry));
-                }
+            if (walletRegistryEntry.managedWallet) {
+                tree.push(new LocalWalletTreeItem(this, walletRegistryEntry.name, identityNames, treeState, walletRegistryEntry));
+            } else {
+                tree.push(new WalletTreeItem(this, walletRegistryEntry.name, identityNames, treeState, walletRegistryEntry));
             }
         }
         return tree;

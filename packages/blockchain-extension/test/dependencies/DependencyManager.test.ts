@@ -443,7 +443,7 @@ describe('DependencyManager Tests', () => {
             const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
             const dependencyManager: DependencyManager = DependencyManager.instance();
 
-            await dependencyManager.installNativeDependencies().should.be.eventually.rejectedWith(/Could not get electron verion, no matching electron versions for modules 69/);
+            await dependencyManager.installNativeDependencies().should.be.eventually.rejectedWith(/Could not get electron version, no matching electron versions for modules 69/);
 
             dependencyManager['dependencies'].length.should.equal(1);
             dependencyManager['dependencies'][0].should.equal('grpc');
@@ -460,7 +460,7 @@ describe('DependencyManager Tests', () => {
             const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
             const dependencyManager: DependencyManager = DependencyManager.instance();
 
-            await dependencyManager.installNativeDependencies().should.be.eventually.rejectedWith(/Could not get electron verion, some error/);
+            await dependencyManager.installNativeDependencies().should.be.eventually.rejectedWith(/Could not get electron version, some error/);
 
             dependencyManager['dependencies'].length.should.equal(1);
             dependencyManager['dependencies'][0].should.equal('grpc');
