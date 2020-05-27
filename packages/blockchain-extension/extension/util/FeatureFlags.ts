@@ -42,10 +42,10 @@ type FeatureFlags = Map<string, boolean>;
 
 export class FeatureFlagManager {
 
-    static readonly FABLET: IFeatureFlag = new FeatureFlag('fablet', 'Enable connectivity to a Fablet instance');
+    static readonly MICROFAB: IFeatureFlag = new FeatureFlag('microfab', 'Enable connectivity to a Microfab instance');
 
     static readonly ALL: IFeatureFlag[] = [
-        FeatureFlagManager.FABLET
+        FeatureFlagManager.MICROFAB
     ];
 
     static async enable(featureFlag: IFeatureFlag): Promise<void> {

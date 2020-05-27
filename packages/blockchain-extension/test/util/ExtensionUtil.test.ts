@@ -2540,15 +2540,15 @@ describe('ExtensionUtil Tests', () => {
             existsStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'exists');
             existsStub.resolves(false);
             mockAxios = new MockAdapter(Axios);
-            mockAxios.onGet('http://console.fablet.example.org:9876/ak/api/v1/health').reply(200, {});
+            mockAxios.onGet('http://console.microfab.example.org:9876/ak/api/v1/health').reply(200, {});
             const extensionDirectory: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
             const resolvedExtensionDirectory: string = FileSystemUtil.getDirPath(extensionDirectory);
-            expectedEnvironmentDirectory = path.join(resolvedExtensionDirectory, FileConfigurations.FABRIC_ENVIRONMENTS, 'Fablet');
+            expectedEnvironmentDirectory = path.join(resolvedExtensionDirectory, FileConfigurations.FABRIC_ENVIRONMENTS, 'Microfab');
         });
 
         afterEach(() => {
-            delete process.env.FABLET_SERVICE_HOST;
-            delete process.env.FABLET_SERVICE_PORT;
+            delete process.env.MICROFAB_SERVICE_HOST;
+            delete process.env.MICROFAB_SERVICE_PORT;
             mockAxios.restore();
         });
 
@@ -2558,60 +2558,60 @@ describe('ExtensionUtil Tests', () => {
             updateStub.should.not.have.been.called;
         });
 
-        it('should not do anything if running in Eclipse Che, but FABLET_SERVICE_HOST is not set', async () => {
+        it('should not do anything if running in Eclipse Che, but MICROFAB_SERVICE_HOST is not set', async () => {
             mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
-            // process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
-            process.env.FABLET_SERVICE_PORT = '9876';
+            // process.env.MICROFAB_SERVICE_HOST = 'console.microfab.example.org';
+            process.env.MICROFAB_SERVICE_PORT = '9876';
             await ExtensionUtil.discoverEnvironments();
             addStub.should.not.have.been.called;
             updateStub.should.not.have.been.called;
         });
 
-        it('should not do anything if running in Eclipse Che, but FABLET_SERVICE_PORT is not set', async () => {
+        it('should not do anything if running in Eclipse Che, but MICROFAB_SERVICE_PORT is not set', async () => {
             mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
-            process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
-            // process.env.FABLET_SERVICE_PORT = '9876';
+            process.env.MICROFAB_SERVICE_HOST = 'console.microfab.example.org';
+            // process.env.MICROFAB_SERVICE_PORT = '9876';
             await ExtensionUtil.discoverEnvironments();
             addStub.should.not.have.been.called;
             updateStub.should.not.have.been.called;
         });
 
-        it('should not do anything if running in Eclipse Che, but the Fablet instance does not work', async () => {
+        it('should not do anything if running in Eclipse Che, but the Microfab instance does not work', async () => {
             mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
-            process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
-            process.env.FABLET_SERVICE_PORT = '9876';
-            mockAxios.onGet('http://console.fablet.example.org:9876/ak/api/v1/health').reply(404, {});
+            process.env.MICROFAB_SERVICE_HOST = 'console.microfab.example.org';
+            process.env.MICROFAB_SERVICE_PORT = '9876';
+            mockAxios.onGet('http://console.microfab.example.org:9876/ak/api/v1/health').reply(404, {});
             await ExtensionUtil.discoverEnvironments();
             addStub.should.not.have.been.called;
             updateStub.should.not.have.been.called;
         });
 
-        it('should discover and add a new environment for a Fablet instance running in Eclipse Che', async () => {
+        it('should discover and add a new environment for a Microfab instance running in Eclipse Che', async () => {
             mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
-            process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
-            process.env.FABLET_SERVICE_PORT = '9876';
+            process.env.MICROFAB_SERVICE_HOST = 'console.microfab.example.org';
+            process.env.MICROFAB_SERVICE_PORT = '9876';
             await ExtensionUtil.discoverEnvironments();
             addStub.should.have.been.calledOnceWithExactly({
-                name: 'Fablet',
+                name: 'Microfab',
                 managedRuntime: false,
-                environmentType: EnvironmentType.FABLET_ENVIRONMENT,
+                environmentType: EnvironmentType.MICROFAB_ENVIRONMENT,
                 environmentDirectory: expectedEnvironmentDirectory,
-                url: 'http://console.fablet.example.org:9876'
+                url: 'http://console.microfab.example.org:9876'
             });
         });
 
-        it('should discover and update an existing environment for a Fablet instance running in Eclipse Che', async () => {
+        it('should discover and update an existing environment for a Microfab instance running in Eclipse Che', async () => {
             mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
-            process.env.FABLET_SERVICE_HOST = 'console.fablet.example.org';
-            process.env.FABLET_SERVICE_PORT = '9876';
+            process.env.MICROFAB_SERVICE_HOST = 'console.microfab.example.org';
+            process.env.MICROFAB_SERVICE_PORT = '9876';
             existsStub.resolves(true);
             await ExtensionUtil.discoverEnvironments();
             updateStub.should.have.been.calledOnceWithExactly({
-                name: 'Fablet',
+                name: 'Microfab',
                 managedRuntime: false,
-                environmentType: EnvironmentType.FABLET_ENVIRONMENT,
+                environmentType: EnvironmentType.MICROFAB_ENVIRONMENT,
                 environmentDirectory: expectedEnvironmentDirectory,
-                url: 'http://console.fablet.example.org:9876'
+                url: 'http://console.microfab.example.org:9876'
             });
         });
 
