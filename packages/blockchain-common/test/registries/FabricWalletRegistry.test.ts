@@ -23,7 +23,7 @@ import { FabricEnvironmentRegistryEntry, EnvironmentType } from '../../src/regis
 import { FabricEnvironmentRegistry } from '../../src/registries/FabricEnvironmentRegistry';
 import { FileConfigurations } from '../../src/registries/FileConfigurations';
 import { FabricWalletGeneratorFactory } from '../../src/util/FabricWalletGeneratorFactory';
-import { FabletEnvironment } from '../../src/environments/FabletEnvironment';
+import { MicrofabEnvironment } from '../../src/environments/MicrofabEnvironment';
 
 chai.use(chaiAsPromised);
 chai.should();
@@ -133,23 +133,23 @@ describe('FabricWalletRegistry', () => {
                 managedRuntime: false
             }));
             await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
-                name: 'fabletEnvironment',
-                environmentDirectory: path.join('test', 'data', 'fablet'),
-                environmentType: EnvironmentType.FABLET_ENVIRONMENT,
+                name: 'microfabEnvironment',
+                environmentDirectory: path.join('test', 'data', 'microfab'),
+                environmentType: EnvironmentType.MICROFAB_ENVIRONMENT,
                 managedRuntime: false
             }));
 
-            const newFabletEnvironmentStub: sinon.SinonStub = sandbox.stub(FabricWalletRegistry.instance(), 'newFabletEnvironment');
-            const mockFabletEnvironment: sinon.SinonStubbedInstance<FabletEnvironment> = sinon.createStubInstance(FabletEnvironment);
-            mockFabletEnvironment.getWalletsAndIdentities.resolves([
+            const newMicrofabEnvironmentStub: sinon.SinonStub = sandbox.stub(FabricWalletRegistry.instance(), 'newMicrofabEnvironment');
+            const mockMicrofabEnvironment: sinon.SinonStubbedInstance<MicrofabEnvironment> = sinon.createStubInstance(MicrofabEnvironment);
+            mockMicrofabEnvironment.getWalletsAndIdentities.resolves([
                 {
                     name: 'myWallet',
-                    displayName: 'fabletEnvironment - myWallet'
+                    displayName: 'microfabEnvironment - myWallet'
                 }
             ]);
-            newFabletEnvironmentStub.callsFake((name: string, directory: string, url: string): sinon.SinonStubbedInstance<FabletEnvironment> => {
-                newFabletEnvironmentStub['wrappedMethod'](name, directory, url);
-                return mockFabletEnvironment;
+            newMicrofabEnvironmentStub.callsFake((name: string, directory: string, url: string): sinon.SinonStubbedInstance<MicrofabEnvironment> => {
+                newMicrofabEnvironmentStub['wrappedMethod'](name, directory, url);
+                return mockMicrofabEnvironment;
             });
 
             const entries: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
@@ -157,7 +157,7 @@ describe('FabricWalletRegistry', () => {
             entries.length.should.equal(3);
 
             entries[0].displayName.should.equal('ansibleEnvironment - myWallet');
-            entries[1].displayName.should.equal('fabletEnvironment - myWallet');
+            entries[1].displayName.should.equal('microfabEnvironment - myWallet');
             entries[2].should.deep.equal(walletOne);
 
         });
