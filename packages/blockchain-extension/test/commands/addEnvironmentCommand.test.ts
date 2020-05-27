@@ -1315,33 +1315,33 @@ describe('AddEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${deploymentError.message}`, `Failed to add a new environment: ${deploymentError.toString()}`);
         });
 
-        it('should add a Fablet environment', async () => {
-            mySandBox.stub(FeatureFlagManager, 'enabled').withArgs(FeatureFlagManager.FABLET).resolves(true);
-            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_FABLET});
-            chooseNameStub.onFirstCall().resolves('fabletEnvironment');
-            showInputBoxStub.withArgs('Enter the URL of the Fablet network you want to connect to').resolves('http://console.fablet.example.org');
+        it('should add a Microfab environment', async () => {
+            mySandBox.stub(FeatureFlagManager, 'enabled').withArgs(FeatureFlagManager.MICROFAB).resolves(true);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB});
+            chooseNameStub.onFirstCall().resolves('microfabEnvironment');
+            showInputBoxStub.withArgs('Enter the URL of the Microfab network you want to connect to').resolves('http://console.microfab.example.org');
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
             const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
             const resolvedExtDir: string = FileSystemUtil.getDirPath(extDir);
-            const envDir: string = path.join(resolvedExtDir, FileConfigurations.FABRIC_ENVIRONMENTS, 'fabletEnvironment');
+            const envDir: string = path.join(resolvedExtDir, FileConfigurations.FABRIC_ENVIRONMENTS, 'microfabEnvironment');
 
             const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
             environments.length.should.equal(1);
             environments[0].should.deep.equal({
-                name: 'fabletEnvironment',
-                url: 'http://console.fablet.example.org',
-                environmentType: EnvironmentType.FABLET_ENVIRONMENT,
+                name: 'microfabEnvironment',
+                url: 'http://console.microfab.example.org',
+                environmentType: EnvironmentType.MICROFAB_ENVIRONMENT,
                 environmentDirectory: envDir
             });
         });
 
-        it('should not add a Fablet environment if the user cancels the URL input box', async () => {
-            mySandBox.stub(FeatureFlagManager, 'enabled').withArgs(FeatureFlagManager.FABLET).resolves(true);
-            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_FABLET});
-            chooseNameStub.onFirstCall().resolves('fabletEnvironment');
-            showInputBoxStub.withArgs('Enter the URL of the Fablet network you want to connect to').resolves();
+        it('should not add a Microfab environment if the user cancels the URL input box', async () => {
+            mySandBox.stub(FeatureFlagManager, 'enabled').withArgs(FeatureFlagManager.MICROFAB).resolves(true);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB});
+            chooseNameStub.onFirstCall().resolves('microfabEnvironment');
+            showInputBoxStub.withArgs('Enter the URL of the Microfab network you want to connect to').resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
@@ -1349,11 +1349,11 @@ describe('AddEnvironmentCommand', () => {
             environments.length.should.equal(0);
         });
 
-        it('should not add a Fablet environment if the user cancels the name input box', async () => {
-            mySandBox.stub(FeatureFlagManager, 'enabled').withArgs(FeatureFlagManager.FABLET).resolves(true);
-            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_FABLET});
+        it('should not add a Microfab environment if the user cancels the name input box', async () => {
+            mySandBox.stub(FeatureFlagManager, 'enabled').withArgs(FeatureFlagManager.MICROFAB).resolves(true);
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB});
             chooseNameStub.onFirstCall().resolves();
-            showInputBoxStub.withArgs('Enter the URL of the Fablet network you want to connect to').resolves('http://console.fablet.example.org');
+            showInputBoxStub.withArgs('Enter the URL of the Microfab network you want to connect to').resolves('http://console.microfab.example.org');
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
