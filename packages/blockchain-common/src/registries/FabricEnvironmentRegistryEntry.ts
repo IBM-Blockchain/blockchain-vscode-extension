@@ -25,6 +25,7 @@ export enum EnvironmentFlags {
 }
 
 export enum EnvironmentType {
+<<<<<<< HEAD
     ENVIRONMENT = EnvironmentFlags.ENVIRONMENT,
     ANSIBLE_ENVIRONMENT = EnvironmentFlags.ANSIBLE,
     MANAGED_ANSIBLE_ENVIRONMENT = EnvironmentFlags.MANAGED | EnvironmentFlags.ANSIBLE,
@@ -32,6 +33,15 @@ export enum EnvironmentType {
     OPS_TOOLS_ENVIRONMENT = EnvironmentFlags.OPS_TOOLS,
     SAAS_OPS_TOOLS_ENVIRONMENT = EnvironmentFlags.OPS_TOOLS | EnvironmentFlags.SAAS,
     FABLET_ENVIRONMENT = EnvironmentFlags.FABLET
+=======
+    // If we update this enum, we must update environmentConnectCommand too!
+    ENVIRONMENT = 1, // Standard remote environment
+    ANSIBLE_ENVIRONMENT = 2, // Ansible environment (non-managed or managed)
+    OPS_TOOLS_ENVIRONMENT = 3,
+    LOCAL_ENVIRONMENT = 4, // Local environments
+    SAAS_OPS_TOOLS_ENVIRONMENT = 5,
+    MICROFAB_ENVIRONMENT = 6
+>>>>>>> bad48f85... Rename Fablet to Microfab (resolves #2378) (#2379)
 }
 
 export class FabricEnvironmentRegistryEntry extends RegistryEntry {

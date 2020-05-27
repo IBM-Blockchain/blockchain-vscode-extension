@@ -16,22 +16,22 @@
 
 import Axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
-import { FabletClient, FabletComponent, isIdentity, isOrderer, isPeer, isGateway } from '../../src/environments/FabletClient';
+import { MicrofabClient, MicrofabComponent, isIdentity, isOrderer, isPeer, isGateway } from '../../src/environments/MicrofabClient';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
 chai.should();
 chai.use(chaiAsPromised);
 
-describe('FabletClient', () => {
+describe('MicrofabClient', () => {
 
-    let client: FabletClient;
+    let client: MicrofabClient;
     let mockAxios: MockAdapter;
 
     beforeEach(() => {
-        client = new FabletClient('http://console.fablet.example.org:8080');
+        client = new MicrofabClient('http://console.microfab.example.org:8080');
         mockAxios = new MockAdapter(Axios);
-        mockAxios.onGet('http://console.fablet.example.org:8080/ak/api/v1/components').reply(200, [
+        mockAxios.onGet('http://console.microfab.example.org:8080/ak/api/v1/components').reply(200, [
             {
                 id: 'ordereradmin',
                 display_name: 'Orderer Admin',
@@ -128,7 +128,7 @@ describe('FabletClient', () => {
                 wallet: 'Org1'
             }
         ]);
-        mockAxios.onGet('http://console.fablet.example.org:8080/ak/api/v1/components/org1peer').reply(200, {
+        mockAxios.onGet('http://console.microfab.example.org:8080/ak/api/v1/components/org1peer').reply(200, {
             id: 'org1peer',
             display_name: 'Org1 Peer',
             type: 'fabric-peer',
@@ -160,7 +160,7 @@ describe('FabletClient', () => {
     describe('#getComponents', () => {
 
         it('should get the list of components', async () => {
-            const components: FabletComponent[] = await client.getComponents();
+            const components: MicrofabComponent[] = await client.getComponents();
             components.should.have.lengthOf(5);
             isIdentity(components[0]).should.be.true;
             components[0].display_name.should.equal('Orderer Admin');
@@ -179,7 +179,7 @@ describe('FabletClient', () => {
     describe('#getComponent', () => {
 
         it('should get the component', async () => {
-            const component: FabletComponent = await client.getComponent('org1peer');
+            const component: MicrofabComponent = await client.getComponent('org1peer');
             isPeer(component).should.be.true;
             component.display_name.should.equal('Org1 Peer');
         });

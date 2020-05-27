@@ -65,13 +65,13 @@ export async function addEnvironment(): Promise<void> {
             });
         }
 
-        // Can only create Fablet environments if feature flag is enabled.
-        const fabletEnabled: boolean = await FeatureFlagManager.enabled(FeatureFlagManager.FABLET);
-        if (fabletEnabled) {
+        // Can only create Microfab environments if feature flag is enabled.
+        const microfabEnabled: boolean = await FeatureFlagManager.enabled(FeatureFlagManager.MICROFAB);
+        if (microfabEnabled) {
             items.push({
-                label: UserInputUtil.ADD_ENVIRONMENT_FROM_FABLET,
-                data: UserInputUtil.ADD_ENVIRONMENT_FROM_FABLET,
-                description: UserInputUtil.ADD_ENVIRONMENT_FROM_FABLET_DESCRIPTION
+                label: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB,
+                data: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB,
+                description: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB_DESCRIPTION
             });
         }
 
@@ -147,18 +147,22 @@ export async function addEnvironment(): Promise<void> {
                 fabricEnvironmentEntry.environmentType = EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT;
                 defaultName = accessInfo[1];
             }
-        } else if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_FABLET) {
+        } else if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB) {
             const url: string = await UserInputUtil.showInputBox(
-                'Enter the URL of the Fablet network you want to connect to',
+                'Enter the URL of the Microfab network you want to connect to',
                 'http://console.127-0-0-1.nip.io:8080'
             );
             if (!url) {
                 return;
             }
             fabricEnvironmentEntry.url = url;
+<<<<<<< HEAD
             fabricEnvironmentEntry.environmentType = EnvironmentType.FABLET_ENVIRONMENT;
         } else {
             fabricEnvironmentEntry.environmentType = EnvironmentType.ENVIRONMENT;
+=======
+            fabricEnvironmentEntry.environmentType = EnvironmentType.MICROFAB_ENVIRONMENT;
+>>>>>>> bad48f85... Rename Fablet to Microfab (resolves #2378) (#2379)
         }
 
         const environmentName: string = await UserInputUtil.showInputBox('Enter a name for the environment', defaultName);
@@ -208,7 +212,7 @@ export async function addEnvironment(): Promise<void> {
             fabricEnvironmentEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
         }
 
-        if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_FABLET) {
+        if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB) {
             const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
             const resolvedExtDir: string = FileSystemUtil.getDirPath(extDir);
             envDir = path.join(resolvedExtDir, FileConfigurations.FABRIC_ENVIRONMENTS, environmentName);
@@ -220,7 +224,7 @@ export async function addEnvironment(): Promise<void> {
             await fabricEnvironmentRegistry.add(fabricEnvironmentEntry);
         }
 
-        if (createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_DIR && createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE && createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_FABLET) {
+        if (createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_DIR && createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE && createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB) {
 
             let addedAllNodes: boolean;
 

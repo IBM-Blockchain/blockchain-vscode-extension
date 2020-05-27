@@ -734,34 +734,34 @@ export class ExtensionUtil {
 
     public static async discoverCheEnvironments(): Promise<void> {
 
-        // Check for a Fablet instance running within this Eclipse Che.
-        const FABLET_SERVICE_HOST: string = process.env['FABLET_SERVICE_HOST'];
-        const FABLET_SERVICE_PORT: string = process.env['FABLET_SERVICE_PORT'];
-        if (!FABLET_SERVICE_HOST || !FABLET_SERVICE_PORT) {
+        // Check for a Microfab instance running within this Eclipse Che.
+        const MICROFAB_SERVICE_HOST: string = process.env['MICROFAB_SERVICE_HOST'];
+        const MICROFAB_SERVICE_PORT: string = process.env['MICROFAB_SERVICE_PORT'];
+        if (!MICROFAB_SERVICE_HOST || !MICROFAB_SERVICE_PORT) {
             return;
         }
-        const url: string = `http://${FABLET_SERVICE_HOST}:${FABLET_SERVICE_PORT}`;
+        const url: string = `http://${MICROFAB_SERVICE_HOST}:${MICROFAB_SERVICE_PORT}`;
 
-        // Try to connect to the Fablet instance.
+        // Try to connect to the Microfab instance.
         try {
             await Axios.get(new URL('/ak/api/v1/health', url).toString());
         } catch (error) {
-            // This isn't a valid Fablet instance.
+            // This isn't a valid Microfab instance.
             return;
         }
 
         // Determine where this environment should store any files.
         const extensionDirectory: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const resolvedExtensionDirectory: string = FileSystemUtil.getDirPath(extensionDirectory);
-        const environmentDirectory: string = path.join(resolvedExtensionDirectory, FileConfigurations.FABRIC_ENVIRONMENTS, 'Fablet');
+        const environmentDirectory: string = path.join(resolvedExtensionDirectory, FileConfigurations.FABRIC_ENVIRONMENTS, 'Microfab');
 
-        // Register the Fablet instance.
+        // Register the Microfab instance.
         const environmentRegistry: FabricEnvironmentRegistry = FabricEnvironmentRegistry.instance();
-        const environmentExists: boolean = await environmentRegistry.exists('Fablet');
+        const environmentExists: boolean = await environmentRegistry.exists('Microfab');
         const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
-            name: 'Fablet',
+            name: 'Microfab',
             managedRuntime: false,
-            environmentType: EnvironmentType.FABLET_ENVIRONMENT,
+            environmentType: EnvironmentType.MICROFAB_ENVIRONMENT,
             environmentDirectory,
             url
         });
