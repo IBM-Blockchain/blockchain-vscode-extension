@@ -75,7 +75,11 @@ jobs:
           set -ex
           npm install lerna
           git checkout package.json
-          node ./node_modules/lerna/cli.js version patch --yes --no-git-tag-version
+          if [[ $(Build.SourceBranchName) == v1* ]]; then
+             node ./node_modules/lerna/cli.js version patch --yes --no-git-tag-version
+          else
+             node ./node_modules/lerna/cli.js version prerelease --yes --no-git-tag-version
+          fi
         displayName: Use lerna to bump version
         condition: succeeded()
 
