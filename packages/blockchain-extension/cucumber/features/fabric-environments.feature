@@ -9,21 +9,21 @@ Feature: Fabric Environments
       | label                 | tooltip                                  |
       | 1 Org Local Fabric  ● | The local development runtime is running |
 
-  Scenario Outline: There should be a tree item (connected)
-    Given the 1 Org Local Fabric environment is running
-    And the '1 Org Local Fabric' environment is connected
-    Then there should be a <treeItem> tree item with a label '<label>' in the 'Fabric Environments' panel
-    And the tree item should have a tooltip equal to '<tooltip>'
-    Examples:
-      | treeItem              | label                                        | tooltip                                                                 |
-      | environment connected | Connected to environment: 1 Org Local Fabric | Connected to environment: 1 Org Local Fabric                            |
-      | channel               | mychannel                                    | Associated peers: Org1Peer1                                             |
-      | Node                  | Org1Peer1                                    | Name: Org1Peer1\\nMSPID: Org1MSP\\nAssociated Identity:\\norg1Admin     |
-      | Node                  | OrdererCA                                    | Name: OrdererCA\\nAssociated Identity:\\nadmin                          |
-      | Node                  | Org1CA                                       | Name: Org1CA\\nAssociated Identity:\\nadmin                             |
-      | Node                  | Orderer                                      | Name: Orderer\\nMSPID: OrdererMSP\\nAssociated Identity:\\nordererAdmin |
-      | Organizations         | OrdererMSP                                   | OrdererMSP                                                              |
-      | Organizations         | Org1MSP                                      | Org1MSP                                                                 |
+  # Scenario Outline: There should be a tree item (connected)
+  #   Given the 1 Org Local Fabric environment is running
+  #   And the '1 Org Local Fabric' environment is connected
+  #   Then there should be a <treeItem> tree item with a label '<label>' in the 'Fabric Environments' panel
+  #   And the tree item should have a tooltip equal to '<tooltip>'
+  #   Examples:
+  #     | treeItem              | label                                        | tooltip                                                                 |
+  #     | environment connected | Connected to environment: 1 Org Local Fabric | Connected to environment: 1 Org Local Fabric                            |
+  #     | channel               | mychannel                                    | Associated peers: Org1Peer1                                             |
+  #     | Node                  | Org1Peer1                                    | Name: Org1Peer1\\nMSPID: Org1MSP\\nAssociated Identity:\\norg1Admin     |
+  #     | Node                  | OrdererCA                                    | Name: OrdererCA\\nAssociated Identity:\\nadmin                          |
+  #     | Node                  | Org1CA                                       | Name: Org1CA\\nAssociated Identity:\\nadmin                             |
+  #     | Node                  | Orderer                                      | Name: Orderer\\nMSPID: OrdererMSP\\nAssociated Identity:\\nordererAdmin |
+  #     | Organizations         | OrdererMSP                                   | OrdererMSP                                                              |
+  #     | Organizations         | Org1MSP                                      | Org1MSP                                                                 |
 
   Scenario Outline: It should persist data after being stopped
     Given the 1 Org Local Fabric environment is running
@@ -280,9 +280,7 @@ Feature: Fabric Environments
     Examples:
       | treeItem                    | label                                     | tooltip                                                                  |
       | environment connected       | Connected to environment: myAnsibleFabric | Connected to environment: myAnsibleFabric                                |
-      | installed smart contract    | + Install                                 | + Install                                                                |
-      | instantiated smart contract | + Instantiate                             | + Instantiate                                                            |
-      | Channels                    | channel1                                  | Associated peers: Org1Peer1, Org1Peer2, Org2Peer1, Org2Peer2             |
+      | channel                     | channel1                                  | Associated peers: Org1Peer1, Org1Peer2, Org2Peer1, Org2Peer2             |
       | Node                        | Org1Peer1                                 | Name: Org1Peer1\\nMSPID: Org1MSP\\nAssociated Identity:\\norg1Admin      |
       | Node                        | Org1Peer2                                 | Name: Org1Peer2\\nMSPID: Org1MSP\\nAssociated Identity:\\norg1Admin      |
       | Node                        | Org2Peer1                                 | Name: Org2Peer1\\nMSPID: Org2MSP\\nAssociated Identity:\\norg2Admin      |
@@ -294,40 +292,6 @@ Feature: Fabric Environments
       | Organizations               | OrdererMSP                                | OrdererMSP                                                               |
       | Organizations               | Org1MSP                                   | Org1MSP                                                                  |
       | Organizations               | Org2MSP                                   | Org2MSP                                                                  |
-
-  @ansibleFabric
-  Scenario Outline: It should instantiate a smart contract
-    Given an environment 'myAnsibleFabric' exists
-    And the 'myAnsibleFabric' environment is connected
-    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
-    And the contract has been created
-    And the contract has been packaged
-    #        And the package has been installed
-    #        When I instantiate the installed package with the transaction '' and args '', not using private data on channel 'channel1'
-    #        Then there should be a instantiated smart contract tree item with a label '<instantiatedName>' in the 'Fabric Environments' panel
-    #        And the tree item should have a tooltip equal to 'Instantiated on: channel1'
-    Examples:
-      | language   | assetType | name               | instantiatedName         | version |
-      | TypeScript | Conga     | TypeScriptContract | TypeScriptContract@0.0.1 | 0.0.1   |
-
-  @ansibleFabric
-  Scenario Outline: It should upgrade a smart contract
-    Given an environment 'myAnsibleFabric' exists
-    And the 'myAnsibleFabric' environment is connected
-    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
-    And the contract has been created
-    And the contract has been packaged
-    #        And the package has been installed
-    #        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'channel1'
-    #        And the contract version has been updated to '0.0.2'
-    #        And the contract has been packaged
-    #        And the package has been installed
-    #        When I upgrade the installed package with the transaction '' and args '', not using private data on channel 'channel1'
-    #        Then there should be a instantiated smart contract tree item with a label '<upgradedName>' in the 'Fabric Environments' panel
-    #        And the tree item should have a tooltip equal to 'Instantiated on: channel1'
-    Examples:
-      | language   | assetType | name               | upgradedName             | version |
-      | TypeScript | Conga     | TypeScriptContract | TypeScriptContract@0.0.2 | 0.0.1   |
 
   @ansibleFabric
   Scenario: It should delete an environment

@@ -14,9 +14,14 @@
 
 // This is a JSON representation of a Fabric Committed Smart Contract.
 // tslint:disable variable-name
-import {FabricCollectionDefinition} from './FabricCollectionDefinition';
-
-export class FabricSmartContractDefinition {
-    public constructor(public name: string, public version: string, public sequence: number, public packageId?: string, public endorsementPolicy?: Buffer | string, public collectionConfig?: FabricCollectionDefinition[] | Buffer) {
+export class FabricCollectionDefinition {
+    public constructor(public name: string,
+                       public policy: string,
+                       public maxPeerCount: number,
+                       public requiredPeerCount: number,
+                       public blockToLive?: number,
+                       public memberOnlyRead?: boolean,
+                       public memberOnlyWrite?: boolean,
+                       public  endorsementPolicy?: string) {
     }
 }

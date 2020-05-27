@@ -43,8 +43,8 @@ module.exports = function(): any {
 
         this.contractAssetType = assetType;
         this.namespace = `${this.contractAssetType}Contract`;
-        this.contractName = name;
-        this.contractVersion = version;
+        this.contractDefinitionName = name;
+        this.contractDefinitionVersion = version;
     });
 
     this.Given(/a smart contract definition with the name (.+) and version (.\S+)/, this.timeout, async (name: string, version: string) => {
@@ -53,7 +53,7 @@ module.exports = function(): any {
     });
 
     this.Given(/the contract hasn't been created already/, this.timeout, async () => {
-        const contractDirectory: string = this.smartContractHelper.getContractDirectory(this.contractName, this.contractLanguage);
+        const contractDirectory: string = this.smartContractHelper.getContractDirectory(this.contractDefinitionName, this.contractLanguage);
         const exists: boolean = await fs.pathExists(contractDirectory);
         if (exists) {
             await fs.remove(contractDirectory);
@@ -61,13 +61,13 @@ module.exports = function(): any {
     });
 
     this.Given(/the( private)? contract has been created/, this.timeout, async (_privateOrNot: string) => {
-        const contractDirectory: string = this.smartContractHelper.getContractDirectory(this.contractName, this.contractLanguage);
+        const contractDirectory: string = this.smartContractHelper.getContractDirectory(this.contractDefinitionName, this.contractLanguage);
         const exists: boolean = await fs.pathExists(contractDirectory);
         if (!exists) {
             if (_privateOrNot === ' private') {
-                this.contractDirectory = await this.smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractName, this.mspid);
+                this.contractDirectory = await this.smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractDefinitionName, this.mspid);
             } else {
-                this.contractDirectory = await this.smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractName);
+                this.contractDirectory = await this.smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractDefinitionName);
             }
         } else {
             this.contractDirectory = contractDirectory;
@@ -75,9 +75,9 @@ module.exports = function(): any {
     });
 
     this.Given("the contract version has been updated to '{string}'", this.timeout, async (version: string) => {
-        this.contractVersion = version;
+        this.contractDefinitionVersion = version;
         if (this.contractLanguage === 'JavaScript' || this.contractLanguage === 'TypeScript') {
-            const contractDirectory: string = this.smartContractHelper.getContractDirectory(this.contractName, this.contractLanguage);
+            const contractDirectory: string = this.smartContractHelper.getContractDirectory(this.contractDefinitionName, this.contractLanguage);
 
             // Actually write to the package.json
             const fileContents: Buffer = await fs.readFile(path.join(contractDirectory, 'package.json'));
@@ -89,7 +89,7 @@ module.exports = function(): any {
     });
 
     this.Given(/the contract has been deleted/, this.timeout, async () => {
-        const contractDirectory: string = this.smartContractHelper.getContractDirectory(this.contractName, this.contractLanguage);
+        const contractDirectory: string = this.smartContractHelper.getContractDirectory(this.contractDefinitionName, this.contractLanguage);
         const exists: boolean = await fs.pathExists(contractDirectory);
         if (exists) {
             await fs.remove(contractDirectory);
@@ -102,9 +102,9 @@ module.exports = function(): any {
 
     this.When(/I create the( private)? contract/, this.timeout, async (_privateOrNot: string) => {
         if (_privateOrNot === ' private') {
-            this.contractDirectory = await this.smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractName, this.mspid);
+            this.contractDirectory = await this.smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractDefinitionName, this.mspid);
         } else {
-            this.contractDirectory = await this.smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractName);
+            this.contractDirectory = await this.smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractDefinitionName);
         }
     });
 

@@ -19,7 +19,7 @@ Feature: Submit transaction
       | JavaScript | Conga     | JavaScriptContract | 0.0.1   |
       | TypeScript | Conga     | TypeScriptContract | 0.0.1   |
       | Java       | Conga     | JavaContract       | 0.0.1   |
-#      | Go         | null      | GoContract         | 0.0.1   |
+  #      | Go         | null      | GoContract         | 0.0.1   |
 
 
   Scenario Outline: Submit a transaction for a smart contract using generated transaction data
@@ -49,17 +49,18 @@ Feature: Submit transaction
     And I'm connected to the 'myAnsibleFabric - Org1 gateway' gateway
     And the private contract has been created
     And the contract has been packaged
-    And the package has been installed
-        #        And the contract has been instantiated with the transaction '' and args '', using private data on channel 'channel1'
-        #        When I submit the transaction 'createPrivateConga' on the channel 'channel1' with args '["001"]' and with the transient data '{"privateValue":"125"}'
-        #        Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'No value returned from createPrivateConga'
-        #        When I submit the transaction 'verifyPrivateConga' on the channel 'channel1' with args '["001", "{\"privateValue\":\"125\"}"]'
-        #        Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'Returned value from verifyPrivateConga: true'
+    And the contract has been packaged
+    When I deploy the contract on channel 'channel1' with sequence '1' with private data
+    When I submit the transaction 'createPrivateConga' on the channel 'channel1' with args '["001"]' and with the transient data '{"privateValue":"125"}'
+    Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'No value returned from createPrivateConga'
+    When I submit the transaction 'verifyPrivateConga' on the channel 'channel1' with args '["001", "{\"privateValue\":\"125\"}"]'
+    Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'Returned value from verifyPrivateConga: true'
     Examples:
       | language   | assetType    | name                      | mspid   | version |
       | JavaScript | PrivateConga | PrivateJavaScriptContract | Org1MSP | 0.0.1   |
-      | TypeScript | PrivateConga | PrivateTypeScriptContract | Org1MSP | 0.0.1   |
-      | Java       | PrivateConga | PrivateJavaContract       | Org1MSP | 0.0.1   |
+       | TypeScript | PrivateConga | PrivateTypeScriptContract | Org1MSP | 0.0.1   |
+       | Java       | PrivateConga | PrivateJavaContract       | Org1MSP | 0.0.1   |
+      # | Go         | PrivateConga | PrivateGoContract         | Org1MSP | 0.0.1   |
 
 
   @otherFabric

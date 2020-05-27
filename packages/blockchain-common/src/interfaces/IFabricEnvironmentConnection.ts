@@ -13,11 +13,12 @@
 */
 'use strict';
 
-import { FabricSmartContractDefinition } from '../fabricModel/FabricSmartContractDefinition';
-import { IFabricWallet } from './IFabricWallet';
-import { FabricNode } from '../fabricModel/FabricNode';
-import { Attribute } from '../fabricModel/FabricCertificate';
-import { FabricInstalledSmartContract } from '../fabricModel/FabricInstalledSmartContract';
+import {FabricSmartContractDefinition} from '../fabricModel/FabricSmartContractDefinition';
+import {IFabricWallet} from './IFabricWallet';
+import {FabricNode} from '../fabricModel/FabricNode';
+import {Attribute} from '../fabricModel/FabricCertificate';
+import {FabricInstalledSmartContract} from '../fabricModel/FabricInstalledSmartContract';
+import {FabricCollectionDefinition} from '../fabricModel/FabricCollectionDefinition';
 
 export interface IFabricEnvironmentConnection {
 
@@ -66,4 +67,6 @@ export interface IFabricEnvironmentConnection {
     getCommitReadiness(channelName: string, peerName: string, smartContractDefinition: FabricSmartContractDefinition): Promise<boolean>;
 
     getEndorsementPolicyBuffer(policy: string): Buffer;
+
+    getCollectionConfigBuffer(collectionConfig: FabricCollectionDefinition[]): Buffer;
 }
