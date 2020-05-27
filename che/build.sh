@@ -63,4 +63,5 @@ spec:
   extensions:
   - https://github.com/IBM-Blockchain/blockchain-vscode-extension/releases/download/v${VERSION}/ibm-blockchain-platform-che-${VERSION}.vsix
   - https://open-vsx.org/api/vscode/markdown-language-features/1.39.1/file/vscode.markdown-language-features-1.39.1.vsix
+  - https://github.com/IBM/vscode-ibmcloud-account/releases/download/v1.0.2/ibmcloud-account-1.0.2.vsix
 EOF
