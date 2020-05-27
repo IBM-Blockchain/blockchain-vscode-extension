@@ -26,7 +26,7 @@ describe('FeatureFlag', () => {
     describe('#getName', () => {
 
         it('should return the name', () => {
-            FeatureFlagManager.FABLET.getName().should.equal('fablet');
+            FeatureFlagManager.MICROFAB.getName().should.equal('microfab');
         });
 
     });
@@ -34,7 +34,7 @@ describe('FeatureFlag', () => {
     describe('#getDescription', () => {
 
         it('should return the description', () => {
-            FeatureFlagManager.FABLET.getDescription().should.equal('Enable connectivity to a Fablet instance');
+            FeatureFlagManager.MICROFAB.getDescription().should.equal('Enable connectivity to a Microfab instance');
         });
 
     });
@@ -64,9 +64,9 @@ describe('FeatureFlags', () => {
     describe('#enable', () => {
 
         it('should enable a feature flag', async () => {
-            await FeatureFlagManager.enable(FeatureFlagManager.FABLET);
+            await FeatureFlagManager.enable(FeatureFlagManager.MICROFAB);
             get().should.eventually.deep.equal({
-                fablet: true
+                microfab: true
             });
         });
 
@@ -75,9 +75,9 @@ describe('FeatureFlags', () => {
     describe('#disable', () => {
 
         it('should enable a feature flag', async () => {
-            await FeatureFlagManager.disable(FeatureFlagManager.FABLET);
+            await FeatureFlagManager.disable(FeatureFlagManager.MICROFAB);
             get().should.eventually.deep.equal({
-                fablet: false
+                microfab: false
             });
         });
 
@@ -87,20 +87,20 @@ describe('FeatureFlags', () => {
 
         it('should return true for an enabled feature flag', async () => {
             await set({
-                fablet: true
+                microfab: true
             });
-            await FeatureFlagManager.enabled(FeatureFlagManager.FABLET).should.eventually.be.true;
+            await FeatureFlagManager.enabled(FeatureFlagManager.MICROFAB).should.eventually.be.true;
         });
 
         it('should return false for an disabled feature flag', async () => {
             await set({
-                fablet: false
+                microfab: false
             });
-            await FeatureFlagManager.enabled(FeatureFlagManager.FABLET).should.eventually.be.false;
+            await FeatureFlagManager.enabled(FeatureFlagManager.MICROFAB).should.eventually.be.false;
         });
 
         it('should return false for a missing feature flag', async () => {
-            await FeatureFlagManager.enabled(FeatureFlagManager.FABLET).should.eventually.be.false;
+            await FeatureFlagManager.enabled(FeatureFlagManager.MICROFAB).should.eventually.be.false;
         });
 
     });
@@ -109,20 +109,20 @@ describe('FeatureFlags', () => {
 
         it('should return true for an disabled feature flag', async () => {
             await set({
-                fablet: false
+                microfab: false
             });
-            await FeatureFlagManager.disabled(FeatureFlagManager.FABLET).should.eventually.be.true;
+            await FeatureFlagManager.disabled(FeatureFlagManager.MICROFAB).should.eventually.be.true;
         });
 
         it('should return true for a missing feature flag', async () => {
-            await FeatureFlagManager.disabled(FeatureFlagManager.FABLET).should.eventually.be.true;
+            await FeatureFlagManager.disabled(FeatureFlagManager.MICROFAB).should.eventually.be.true;
         });
 
         it('should return false for an enabled feature flag', async () => {
             await set({
-                fablet: true
+                microfab: true
             });
-            await FeatureFlagManager.disabled(FeatureFlagManager.FABLET).should.eventually.be.false;
+            await FeatureFlagManager.disabled(FeatureFlagManager.MICROFAB).should.eventually.be.false;
         });
 
     });
