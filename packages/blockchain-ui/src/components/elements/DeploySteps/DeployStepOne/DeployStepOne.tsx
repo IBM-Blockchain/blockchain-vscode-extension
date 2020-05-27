@@ -1,15 +1,19 @@
 import React, { Component } from 'react';
-import { Dropdown, Accordion, AccordionItem, InlineNotification } from 'carbon-components-react';
+import { Dropdown, Accordion, AccordionItem, InlineNotification, NotificationActionButton } from 'carbon-components-react';
 import IPackageRegistryEntry from '../../../../interfaces/IPackageRegistryEntry';
 
 interface IProps {
+    workspaceNames: string[];
     deletedSelectedPackage: boolean;
     packageEntries: IPackageRegistryEntry[];
+    selectedWorkspace: string | undefined;
     selectedPackage: IPackageRegistryEntry | undefined; // Package the user has selected in dropdown
-    onPackageChange: (selectedPackage: IPackageRegistryEntry | undefined) => void; // Callback to DeployPage
+    onPackageChange: (selectedPackage: IPackageRegistryEntry | undefined, workspaceName?: string) => void; // Callback to DeployPage
+    onPackageWorkspace: (workspaceName: string) => void;
 }
 
 interface StepOneState {
+    workspaceNames: string[];
     packageEntries: IPackageRegistryEntry[];
 }
 
@@ -20,12 +24,15 @@ class DeployStepOne extends Component<IProps, StepOneState> {
     constructor(props: Readonly<IProps>) {
         super(props);
         this.state = {
-            packageEntries: this.props.packageEntries
+            packageEntries: this.props.packageEntries,
+            workspaceNames: this.props.workspaceNames.length > 0 ? this.props.workspaceNames : []
         };
 
-        this.formatPackageEntries = this.formatPackageEntries.bind(this);
-        this.formatEntry = this.formatEntry.bind(this);
+        this.formatAllEntries = this.formatAllEntries.bind(this);
+        this.formatPackageEntry = this.formatPackageEntry.bind(this);
+        this.formatWorkspaceEntry = this.formatWorkspaceEntry.bind(this);
         this.selectPackage = this.selectPackage.bind(this);
+        this.packageWorkspace = this.packageWorkspace.bind(this);
 
     }
 
@@ -61,45 +68,72 @@ class DeployStepOne extends Component<IProps, StepOneState> {
         let packageName: string;
         let packageVersion: string | undefined;
 
-        // Get 'name@version' or just 'name'
-        const packageIdentifier: string = data.selectedItem.split(' (packaged')[0];
-        if (packageIdentifier.includes('@')) {
-            // If it has a version
-            const _splitParts: string[] = packageIdentifier.split('@');
-            packageName = _splitParts[0];
-            packageVersion = _splitParts[1];
+        if (data.selectedItem.includes(' (packaged)')) {
+            // If selected a package
+
+             // Get 'name@version' or just 'name'
+            const packageIdentifier: string = data.selectedItem.split(' (packaged')[0];
+            if (packageIdentifier.includes('@')) {
+                // If it has a version
+                const _splitParts: string[] = packageIdentifier.split('@');
+                packageName = _splitParts[0];
+                packageVersion = _splitParts[1];
+            } else {
+                // If it doesn't have a version
+                packageName = packageIdentifier;
+            }
+
+            const selectedPackage: IPackageRegistryEntry | undefined = this.state.packageEntries.find((_entry: IPackageRegistryEntry) => {
+                return (packageVersion && _entry.name === packageName && _entry.version === packageVersion) || (!packageVersion && _entry.name === packageName);
+            }) as IPackageRegistryEntry;
+
+            this.props.onPackageChange(selectedPackage);
         } else {
-            // If it doesn't have a version
-            packageName = packageIdentifier;
+            // If selected an open workspace
+            this.props.onPackageChange(undefined, data.selectedItem.split(' (open project)')[0]);
+
         }
 
-        const selectedPackage: IPackageRegistryEntry | undefined = this.state.packageEntries.find((_entry: IPackageRegistryEntry) => {
-            return (packageVersion && _entry.name === packageName && _entry.version === packageVersion) || (!packageVersion && _entry.name === packageName);
-        }) as IPackageRegistryEntry;
-
-        this.props.onPackageChange(selectedPackage);
     }
 
-    formatPackageEntries(): string[] {
-        return this.state.packageEntries.map((entry: IPackageRegistryEntry) => {
-            return this.formatEntry(entry);
-        });
+    formatAllEntries(): string[] {
+        const packageNames: string[] = [];
+        for (const name of this.state.workspaceNames) {
+            const entryName: string = this.formatWorkspaceEntry(name);
+            packageNames.push(entryName);
+        }
+
+        for (const entry of this.state.packageEntries) {
+            const entryName: string = this.formatPackageEntry(entry);
+            packageNames.push(entryName);
+        }
+
+        return packageNames;
     }
 
-    formatEntry(entry: IPackageRegistryEntry): string {
+    formatPackageEntry(entry: IPackageRegistryEntry): string {
         if (entry.version) {
             return `${entry.name}@${entry.version} (packaged)`;
         } else {
             return `${entry.name} (packaged)`;
         }
+    }
 
+    formatWorkspaceEntry(workspaceName: string): string {
+        return `${workspaceName} (open project)`;
+    }
+
+    packageWorkspace(): void {
+        this.props.onPackageWorkspace(this.props.selectedWorkspace as string);
     }
 
     render(): JSX.Element {
-        const items: string[] = this.formatPackageEntries();
+        const items: string[] = this.formatAllEntries();
 
         let deletedMessage: JSX.Element | undefined;
+        let packageMessage: JSX.Element | undefined;
         let packageStillExists: boolean = false;
+
         if (this.props.selectedPackage) {
 
             const packageToCheck: IPackageRegistryEntry | undefined = this.state.packageEntries.find((_package: IPackageRegistryEntry) => {
@@ -116,19 +150,45 @@ class DeployStepOne extends Component<IProps, StepOneState> {
             if (this.props.deletedSelectedPackage) {
                 // If the selected package was deleted whilst in Step Two or Three
                 deletedMessage = (
-                    <InlineNotification
-                    lowContrast={true}
-                    kind='warning'
-                    hideCloseButton={true}
-                    title='The package you selected has been deleted'
-                    />
+                    <div className='bx--row margin-bottom-03'>
+                        <div className='bx--col-lg-10'>
+                            <InlineNotification
+                            lowContrast={true}
+                            kind='warning'
+                            hideCloseButton={true}
+                            title='The package you selected has been deleted'
+                            />
+                        </div>
+                    </div>
                 );
+            }
+
+            if (this.props.selectedWorkspace) {
+
+                packageMessage = (
+                    <div className='bx--row margin-bottom-03'>
+                        <div className='bx--col-lg-10'>
+                            <InlineNotification
+                                actions={<NotificationActionButton style={{fontWeight: 600}} onClick={this.packageWorkspace}>Package open project</NotificationActionButton>}
+                                hideCloseButton={true}
+                                kind='info'
+                                lowContrast={true}
+                                notificationType='inline'
+                                role='alert'
+                                statusIconDescription='describes the status icon'
+                                subtitle='before it can be used.'
+                                title='The contract must be packaged'
+                            />
+                        </div>
+                    </div>
+                );
+
             }
         }
 
-        return (
+        return(
             <>
-                <div className='bx--row dropdown-row'>
+                <div className={'bx--row' + (packageMessage || deletedMessage ? '' : ' margin-bottom-10')}>
                     <div className='bx--col'>
                         <div style={{width: 384}}>
                             <Dropdown
@@ -139,13 +199,14 @@ class DeployStepOne extends Component<IProps, StepOneState> {
                                 label={this.unselectedPackageLabel}
                                 titleText='Choose a smart contract to deploy'
                                 type='default'
-                                selectedItem={this.props.selectedPackage && packageStillExists  ? this.formatEntry(this.props.selectedPackage) :  this.unselectedPackageLabel}
+                                selectedItem={this.props.selectedPackage && packageStillExists  ? this.formatPackageEntry(this.props.selectedPackage) : (this.props.selectedWorkspace ? this.formatWorkspaceEntry(this.props.selectedWorkspace) :  this.unselectedPackageLabel)}
                                 onChange={this.selectPackage}
                             />
                         </div>
                     </div>
                 </div>
                 {deletedMessage}
+                {packageMessage}
                 <div className='bx--row'>
                     <div className='bx--col-lg-10'>
                         <Accordion>

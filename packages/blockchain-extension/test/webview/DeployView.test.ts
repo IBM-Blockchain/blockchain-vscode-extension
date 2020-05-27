@@ -34,6 +34,7 @@ import {FabricEnvironmentConnection} from 'ibm-blockchain-platform-environment-v
 import {ExtensionCommands} from '../../ExtensionCommands';
 import {VSCodeBlockchainOutputAdapter} from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -90,6 +91,7 @@ describe('DeployView', () => {
         executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT).resolves();
         executeCommandStub.withArgs(ExtensionCommands.DISCONNECT_ENVIRONMENT).resolves();
         executeCommandStub.withArgs(ExtensionCommands.DEPLOY_SMART_CONTRACT).resolves();
+        executeCommandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT).resolves();
 
         createWebviewPanelStub = mySandBox.stub(vscode.window, 'createWebviewPanel');
 
@@ -488,6 +490,93 @@ describe('DeployView', () => {
             });
 
         });
+    });
 
+    describe('package message', () => {
+
+        const onDidDisposePromises: any[] = [];
+        beforeEach(async () => {
+
+            onDidDisposePromises.push(new Promise((resolve: any): void => {
+                createWebviewPanelStub.returns({
+                    title: 'Deploy Smart Contract',
+                    webview: {
+                        postMessage: postMessageStub,
+                        onDidReceiveMessage: async (callback: any): Promise<void> => {
+                            await callback({
+                                command: 'package',
+                                data: {
+                                    workspaceName: 'myWorkspace'
+                                }
+                            });
+                            resolve();
+                        }
+                    },
+                    reveal: (): void => {
+                        return;
+                    },
+                    onDidDispose: mySandBox.stub(),
+                    onDidChangeViewState: mySandBox.stub(),
+                    _isDisposed: false
+                });
+            }));
+        });
+
+        it('should update packages after packaging workspace', async () => {
+
+            const deployView: DeployView = new DeployView(context, deployData);
+
+            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry();
+            packageEntry.name = 'packageName';
+            packageEntry.version = '0.0.1';
+            packageEntry.sizeKB = 20000;
+            packageEntry.path = '/some/path';
+
+            const packageStub: sinon.SinonStub = mySandBox.stub(deployView, 'package').resolves(packageEntry);
+            const updatePackagesStub: sinon.SinonStub = mySandBox.stub(DeployView, 'updatePackages').resolves();
+
+            await deployView.openView(false);
+            await Promise.all(onDidDisposePromises);
+
+            packageStub.should.have.been.calledOnceWithExactly('myWorkspace');
+            updatePackagesStub.should.have.been.calledOnce;
+        });
+
+        it('should not update packages if packaging workspace failed', async () => {
+
+            const deployView: DeployView = new DeployView(context, deployData);
+
+            const packageStub: sinon.SinonStub = mySandBox.stub(deployView, 'package').resolves();
+            const updatePackagesStub: sinon.SinonStub = mySandBox.stub(DeployView, 'updatePackages').resolves();
+
+            await deployView.openView(false);
+            await Promise.all(onDidDisposePromises);
+
+            packageStub.should.have.been.calledOnceWithExactly('myWorkspace');
+            updatePackagesStub.should.not.have.been.called;
+        });
+
+    });
+
+    describe('package', () => {
+        it('should package a workspace', async () => {
+            const workspaceOne: vscode.WorkspaceFolder = {
+                name: 'workspaceOne',
+                uri: vscode.Uri.file('myPath'),
+                index: 0
+            };
+            const workspaceTwo: vscode.WorkspaceFolder = {
+                name: 'workspaceTwo',
+                uri: vscode.Uri.file('otherPath'),
+                index: 1
+            };
+            const getWorkspaceFoldersStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([workspaceOne, workspaceTwo]);
+
+            const deployView: DeployView = new DeployView(context, deployData);
+            await deployView.package(workspaceTwo.name);
+
+            getWorkspaceFoldersStub.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledOnceWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceTwo);
+        });
     });
 });

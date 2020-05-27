@@ -73,10 +73,14 @@ export async function openDeployView(fabricRegistryEntry?: FabricEnvironmentRegi
 
         const packageEntries: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
 
-        const appState: { channelName: string, environmentName: string, packageEntries: PackageRegistryEntry[] } = {
+        const workspaceFolders: vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
+        const workspaceNames: string[] = workspaceFolders.map((item: vscode.WorkspaceFolder) => item.name);
+
+        const appState: { channelName: string, environmentName: string, packageEntries: PackageRegistryEntry[], workspaceNames: string[] } = {
             channelName,
             environmentName: selectedEnvironmentName,
-            packageEntries
+            packageEntries,
+            workspaceNames
         };
 
         const context: vscode.ExtensionContext = GlobalState.getExtensionContext();

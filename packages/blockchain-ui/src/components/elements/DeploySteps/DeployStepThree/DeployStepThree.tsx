@@ -75,7 +75,7 @@ class DeployStepThree extends Component<IProps, StepThreeState> {
             <>
                 <div className='bx--row margin-bottom-06'>
                     <div className='bx--col-lg-10'>
-                        <span>When you select 'Deploy', the following steps will automatically occur:</span>
+                        <span>When you select 'Deploy', the following actions will automatically occur:</span>
 
                         <UnorderedList className='padding-left-07 padding-top-05'>
                             <ListItem>
@@ -92,10 +92,10 @@ class DeployStepThree extends Component<IProps, StepThreeState> {
                 <div className='bx--row margin-bottom-07'>
                     <div className='bx--col-lg-10'>
                         <Accordion id='advancedAccordion'>
-                            <AccordionItem id='customize' title={'Customize deployment step (advanced)'}>
+                            <AccordionItem id='customize' title={'Customize commit (advanced)'}>
                                 <div className='bx--row margin-top-06'>
                                     <div className='bx--col'>
-                                        <p>Perform commit step</p>
+                                        <p>Perform commit</p>
                                         <Toggle
                                             defaultToggled={this.state.showCommitListItem}
                                             id='commitToggle'

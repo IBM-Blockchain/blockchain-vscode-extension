@@ -9,7 +9,7 @@ Array [
       className="bx--col-lg-10"
     >
       <span>
-        When you select 'Deploy', the following steps will automatically occur:
+        When you select 'Deploy', the following actions will automatically occur:
       </span>
       <ul
         className="bx--list--unordered padding-left-07 padding-top-05"
@@ -77,7 +77,7 @@ Array [
             <div
               className="bx--accordion__title"
             >
-              Customize deployment step (advanced)
+              Customize commit (advanced)
             </div>
           </button>
           <div
@@ -90,7 +90,7 @@ Array [
                 className="bx--col"
               >
                 <p>
-                  Perform commit step
+                  Perform commit
                 </p>
                 <div
                   className="bx--form-item"

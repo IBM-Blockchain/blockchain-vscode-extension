@@ -10,7 +10,7 @@ import IPackageRegistryEntry from './interfaces/IPackageRegistryEntry';
 interface AppState {
     redirectPath: string;
     extensionVersion: string;
-    deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[]};
+    deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined};
     tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string}>;
 }
 
@@ -21,7 +21,7 @@ class App extends Component<{}, AppState> {
             redirectPath: '',
             extensionVersion: '',
             tutorialData: [],
-            deployData: {channelName: '', environmentName: '', packageEntries: []}
+            deployData: {channelName: '', environmentName: '', packageEntries: [], workspaceNames: [], selectedPackage: undefined}
         };
     }
 

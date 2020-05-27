@@ -9,7 +9,7 @@ import DeployStepTwo from '../../elements/DeploySteps/DeployStepTwo/DeployStepTw
 import DeployStepThree from '../../elements/DeploySteps/DeployStepThree/DeployStepThree';
 import Utils from '../../../Utils';
 interface IProps {
-    deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[]};
+    deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined};
 }
 
 interface DeployState {
@@ -17,6 +17,7 @@ interface DeployState {
     environmentName: string;
     channelName: string;
     selectedPackage: IPackageRegistryEntry | undefined;
+    selectedWorkspace: string | undefined;
     definitionName: string;
     definitionVersion: string;
     disableNext: boolean;
@@ -34,7 +35,8 @@ class DeployPage extends Component<IProps, DeployState> {
             progressIndex: 0,
             environmentName: this.props.deployData.environmentName,
             channelName: this.props.deployData.channelName,
-            selectedPackage: undefined,
+            selectedPackage: this.props.deployData.selectedPackage ? this.props.deployData.selectedPackage : undefined,
+            selectedWorkspace: undefined,
             definitionName: '',
             definitionVersion: '',
             disableNext: true,
@@ -50,6 +52,7 @@ class DeployPage extends Component<IProps, DeployState> {
         this.handleDefinitionVersionChange = this.handleDefinitionVersionChange.bind(this);
         this.handleCommitChange = this.handleCommitChange.bind(this);
         this.handleDeploy = this.handleDeploy.bind(this);
+        this.handlePackageWorkspace = this.handlePackageWorkspace.bind(this);
     }
 
     handleProgressChange(indexValue: number): void {
@@ -62,16 +65,21 @@ class DeployPage extends Component<IProps, DeployState> {
         this.setState(newState);
     }
 
-    handlePackageChange(selectedPackage: IPackageRegistryEntry | undefined): void {
-        if (!selectedPackage) {
-            // User probably deleted the selected package.
-            this.setState({selectedPackage: undefined, disableNext: true});
-        } else {
+    handlePackageChange(selectedPackage: IPackageRegistryEntry | undefined, workspaceName?: string): void {
+        if (!selectedPackage && workspaceName) {
+             // Selected a workspace name
+             this.setState({selectedPackage: undefined, disableNext: true, selectedWorkspace: workspaceName, deletedSelectedPackage: false});
+        } else if (selectedPackage && !workspaceName) {
+            // Selected a package
 
             // If the user selects a package without a version, default to using '0.0.1'
             const newVersion: string = selectedPackage.version ? selectedPackage.version : '0.0.1';
 
-            this.setState({selectedPackage, definitionName: selectedPackage.name, definitionVersion: newVersion, disableNext: false, deletedSelectedPackage: false }); // Reset definition name and version back to default.
+            this.setState({selectedPackage, selectedWorkspace: undefined, definitionName: selectedPackage.name, definitionVersion: newVersion, disableNext: false, deletedSelectedPackage: false }); // Reset definition name and version back to default.
+        } else {
+            // User probably deleted the selected package or workspace.
+            this.setState({selectedPackage: undefined, selectedWorkspace: undefined, disableNext: true});
+
         }
     }
 
@@ -96,6 +104,15 @@ class DeployPage extends Component<IProps, DeployState> {
 
     handleCommitChange(value: boolean): void {
         this.setState({commitSmartContract: value});
+    }
+
+    handlePackageWorkspace(workspaceName: string): void {
+        Utils.postToVSCode({
+            command: 'package',
+            data: {
+                workspaceName
+            }
+        });
     }
 
     handleDeploy(): void {
@@ -123,7 +140,11 @@ class DeployPage extends Component<IProps, DeployState> {
                 // If the user has deleted the package in Step Two or Three - go back to Step One and show warning.
                 this.setState({progressIndex: 0, selectedPackage: undefined, disableNext: true, deletedSelectedPackage: true});
             }
+        }
 
+        if (props.deployData.selectedPackage) {
+            // If a new selected package is passed
+            this.setState({selectedPackage: props.deployData.selectedPackage, disableNext: false});
         }
 
     }
@@ -137,7 +158,7 @@ class DeployPage extends Component<IProps, DeployState> {
         let currentStepComponent: any;
         // Render components depending on the progress / step.
         if (currentIndex === 0) {
-            currentStepComponent = <DeployStepOne deletedSelectedPackage={this.state.deletedSelectedPackage} packageEntries={this.props.deployData.packageEntries} selectedPackage={this.state.selectedPackage} onPackageChange={this.handlePackageChange}/>;
+            currentStepComponent = <DeployStepOne packageEntries={this.props.deployData.packageEntries} selectedPackage={this.state.selectedPackage} workspaceNames={this.props.deployData.workspaceNames} selectedWorkspace={this.state.selectedWorkspace} deletedSelectedPackage={this.state.deletedSelectedPackage} onPackageChange={this.handlePackageChange} onPackageWorkspace={this.handlePackageWorkspace} />;
         } else if (currentIndex === 1) {
             currentStepComponent = <DeployStepTwo selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} currentDefinitionName={this.state.definitionName} currentDefinitionVersion={this.state.definitionVersion} onDefinitionNameChange={this.handleDefinitionNameChange} onDefinitionVersionChange={this.handleDefinitionVersionChange}/>;
         } else {
