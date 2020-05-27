@@ -22,7 +22,7 @@ jobs:
 
       - script: |
           set -ex
-          mdFiles="$(git diff --name-only --diff-filter=ADMR @~..@ | awk /.*tutorials/ | awk /.md$/)"
+          mdFiles="$(git diff --name-only --diff-filter=ADMR @~..@ | awk /.*new-tutorials/ | awk /.md$/)"
           if [ "$mdFiles" != "" ]; then
             cd ./packages/blockchain-extension/scripts
             ./mdToPdf.sh
@@ -31,19 +31,14 @@ jobs:
             git add ../tutorials/*
             git commit -asm "PDFs automatically generated"
             git status
+
+            if [[ $(Build.SourceBranchName) == v1* ]]; then
+              export branch_name=master
+            else
+              export branch_name=v2
+            fi
+
+            git -c http.extraheader="Authorization: Basic $(GITHUB_BASIC_AUTH)" push $(Build.Repository.Uri) HEAD:$branch_name -f
           fi
-        displayName: Commit updated PDFs
-        condition: succeeded()
-
-      - script: |
-          set -ex
-
-          if [[ $(Build.SourceBranchName) == v1* ]]; then
-            export branch_name=master
-          else
-            export branch_name=v2
-          fi
-
-          git -c http.extraheader="Authorization: Basic $(GITHUB_BASIC_AUTH)" push $(Build.Repository.Uri) HEAD:$branch_name -f
-        displayName: Push commit to GitHub
+        displayName: Commit updated PDFs & Push to GitHub if tutorials changed
         condition: succeeded()

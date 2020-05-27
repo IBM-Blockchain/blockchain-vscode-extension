@@ -22,6 +22,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { SettingConfigurations } from '../configurations';
+import { DeployView } from '../webview/DeployView';
 
 /**
  * Main function which calls the methods and refreshes the blockchain explorer box each time that it runs successfully.
@@ -164,6 +165,17 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
             packageEntry.name = properties.workspacePackageName;
             packageEntry.version = properties.workspacePackageVersion;
             packageEntry.path = pkgFile;
+
+            const stat: fs.Stats = await fs.lstat(pkgFile);
+
+            // get size
+            const sizeKB: number = Math.round(stat.size / 1000);
+            packageEntry.sizeKB = sizeKB;
+
+            const panel: vscode.WebviewPanel = DeployView.panel;
+            if (panel) {
+                await DeployView.updatePackages();
+            }
 
             return packageEntry;
         } catch (err) {

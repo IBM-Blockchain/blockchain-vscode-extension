@@ -15,16 +15,18 @@ import Utils from '../../src/Utils';
 chai.should();
 chai.use(sinonChai);
 
+// tslint:disable no-unused-expression
+
 describe('DeployPage component', () => {
     let mySandBox: sinon.SinonSandbox;
 
     let setStateStub: sinon.SinonStub;
-    let handleCommitChange: sinon.SinonStub;
     let postToVscodeStub: sinon.SinonStub;
 
     const packageOne: IPackageRegistryEntry = {name: 'mycontract', version: '0.0.1', path: '/package/one', sizeKB: 9000};
     const packageTwo: IPackageRegistryEntry = {name: 'othercontract', version: '0.0.2', path: '/package/two', sizeKB: 12000};
-    const deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[]} = {channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo]};
+    const packageThree: IPackageRegistryEntry = {name: 'importedContract', path: '/package/three', sizeKB: 16000};
+    const deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[]} = {channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo, packageThree]};
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
@@ -114,7 +116,7 @@ describe('DeployPage component', () => {
     });
 
     describe('handlePackageChange', () => {
-        it('should update package selected and reset definition name and version (so defaults get used)', () => {
+        it('should update package selected with version and reset definition name and version (so defaults get used)', () => {
 
             const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
             const instance: DeployPage = component.instance() as DeployPage;
@@ -123,7 +125,32 @@ describe('DeployPage component', () => {
 
             instance.handlePackageChange(packageTwo);
 
-            setStateStub.should.have.been.calledOnceWithExactly({selectedPackage: packageTwo, definitionName: packageTwo.name, definitionVersion: packageTwo.version, disableNext: false});
+            setStateStub.should.have.been.calledOnceWithExactly({selectedPackage: packageTwo, definitionName: packageTwo.name, definitionVersion: packageTwo.version, disableNext: false, deletedSelectedPackage: false});
+
+        });
+
+        it('should update package selected without version and reset definition name and set default definition version', () => {
+
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
+
+            instance.handlePackageChange(packageThree);
+
+            setStateStub.should.have.been.calledOnceWithExactly({selectedPackage: packageThree, definitionName: packageThree.name, definitionVersion: '0.0.1', disableNext: false, deletedSelectedPackage: false});
+
+        });
+
+        it('should handle an undefined package (package got deleted, so got set to default value)', () => {
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
+
+            instance.handlePackageChange(undefined);
+
+            setStateStub.should.have.been.calledOnceWithExactly({selectedPackage: undefined, disableNext: true});
 
         });
     });
@@ -202,7 +229,7 @@ describe('DeployPage component', () => {
                 channelName: 'myChannel',
                 selectedPackage: packageTwo,
                 definitionName: packageTwo.name,
-                definitionVersion: packageTwo.version,
+                definitionVersion: packageTwo.version as string,
                 commitSmartContract: undefined
             });
 
@@ -237,6 +264,84 @@ describe('DeployPage component', () => {
             instance.handleCommitChange(true);
 
             setStateStub.should.have.been.calledWithExactly({commitSmartContract: true});
+
+        });
+    });
+
+    describe('componentWillReceiveProps', () => {
+        it('should do nothing if there is no package selected', () => {
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
+
+            instance.componentWillReceiveProps({
+                deployData: {
+                    packageEntries: []
+                }
+            });
+
+            setStateStub.should.not.have.been.called;
+        });
+
+        it('should do nothing if the selected package (with version) still exists', () => {
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+            instance.setState({selectedPackage: packageOne});
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
+
+            instance.componentWillReceiveProps({
+                deployData: {
+                    packageEntries: [packageOne]
+                }
+            });
+
+            setStateStub.should.not.have.been.called;
+        });
+
+        it('should do nothing if the selected package (without version) still exists', () => {
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+            instance.setState({selectedPackage: packageThree});
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
+
+            instance.componentWillReceiveProps({
+                deployData: {
+                    packageEntries: [packageThree]
+                }
+            });
+
+            setStateStub.should.not.have.been.called;
+        });
+
+        it(`should do nothing if the selected package doesnt exist in Step One`, () => {
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+            instance.setState({selectedPackage: packageOne, progressIndex: 0});
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
+
+            instance.componentWillReceiveProps({
+                deployData: {
+                    packageEntries: []
+                }
+            });
+
+            setStateStub.should.not.have.been.called;
+        });
+
+        it(`should set state if the selected package doesnt exist in Step Two (or Three)`, () => {
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+            instance.setState({selectedPackage: packageOne, progressIndex: 1});
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
+
+            instance.componentWillReceiveProps({
+                deployData: {
+                    packageEntries: []
+                }
+            });
+
+            setStateStub.should.have.been.calledWith({progressIndex: 0, selectedPackage: undefined, disableNext: true, deletedSelectedPackage: true});
 
         });
     });

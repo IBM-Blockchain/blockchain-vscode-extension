@@ -24,6 +24,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
+import { DeployView } from '../../extension/webview/DeployView';
 
 chai.should();
 chai.use(sinonChai);
@@ -146,7 +147,7 @@ describe('packageSmartContract', () => {
     let sendTelemetryEventStub: sinon.SinonStub;
 
     beforeEach(async () => {
-
+        DeployView.panel = undefined;
         await TestUtil.deleteTestFiles(fileDest);
         await TestUtil.deleteTestFiles(testWorkspace);
 
@@ -1223,6 +1224,38 @@ describe('packageSmartContract', () => {
 
             executeTaskStub.should.not.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.not.have.been.calledOnceWithExactly('packageCommand');
+        });
+
+        it('should update deploy view if open', async () => {
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+            const testIndex: number = 0;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            DeployView.panel = {
+                webview: {}
+            } as unknown as vscode.WebviewPanel;
+
+            const updatePackagesStub: sinon.SinonStub = mySandBox.stub(DeployView, 'updatePackages').resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            executeTaskStub.should.have.not.been.called;
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
+
+            updatePackagesStub.should.have.been.calledOnce;
         });
     });
 });

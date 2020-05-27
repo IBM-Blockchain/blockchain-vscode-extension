@@ -16,7 +16,7 @@ for D in `find . -mindepth 1 -maxdepth 1 -type d`; do
     echo "Current directory --> $D"
     for file in `find . -name "*.md" -maxdepth 1 -type f`; do
         if [ "$file" != "./index.md" ] && [ "$file" != "./styleguide.md" ]; then
-        pretty-md-pdf -i $file -c $configPath
+        node ../../../node_modules/pretty-markdown-pdf/bin/pretty-md-pdf.js -i $file -c $configPath
         echo "$file"
         fi
     done

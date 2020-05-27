@@ -23,6 +23,7 @@ interface DeployState {
     nameInvalid: boolean;
     versionInvalid: boolean;
     commitSmartContract: boolean | undefined;
+    deletedSelectedPackage: boolean;
 }
 
 class DeployPage extends Component<IProps, DeployState> {
@@ -39,7 +40,8 @@ class DeployPage extends Component<IProps, DeployState> {
             disableNext: true,
             nameInvalid: false,
             versionInvalid: false,
-            commitSmartContract: undefined // If undefined, we'll assume the user wants to commit (but they haven't specified)
+            commitSmartContract: undefined, // If undefined, we'll assume the user wants to commit (but they haven't specified)
+            deletedSelectedPackage: false // Has the user deleted the package they've selected whilst on step two or three?
         };
 
         this.handleProgressChange = this.handleProgressChange.bind(this);
@@ -60,8 +62,17 @@ class DeployPage extends Component<IProps, DeployState> {
         this.setState(newState);
     }
 
-    handlePackageChange(selectedPackage: IPackageRegistryEntry): void {
-        this.setState({selectedPackage, definitionName: selectedPackage.name, definitionVersion: selectedPackage.version, disableNext: false}); // Reset definition name and version back to default.
+    handlePackageChange(selectedPackage: IPackageRegistryEntry | undefined): void {
+        if (!selectedPackage) {
+            // User probably deleted the selected package.
+            this.setState({selectedPackage: undefined, disableNext: true});
+        } else {
+
+            // If the user selects a package without a version, default to using '0.0.1'
+            const newVersion: string = selectedPackage.version ? selectedPackage.version : '0.0.1';
+
+            this.setState({selectedPackage, definitionName: selectedPackage.name, definitionVersion: newVersion, disableNext: false, deletedSelectedPackage: false }); // Reset definition name and version back to default.
+        }
     }
 
     handleDefinitionNameChange(definitionName: string, nameInvalid: boolean): void {
@@ -102,6 +113,21 @@ class DeployPage extends Component<IProps, DeployState> {
 
     }
 
+    componentWillReceiveProps(props: any): void {
+        if (this.state.selectedPackage) {
+            const entry: IPackageRegistryEntry = props.deployData.packageEntries.find((_entry: IPackageRegistryEntry) => {
+                return ((this.state.selectedPackage as IPackageRegistryEntry).version && _entry.name === (this.state.selectedPackage as IPackageRegistryEntry).name && _entry.version === (this.state.selectedPackage as IPackageRegistryEntry).version) || (!(this.state.selectedPackage as IPackageRegistryEntry).version && _entry.name === (this.state.selectedPackage as IPackageRegistryEntry).name);
+            });
+
+            if (!entry && this.state.progressIndex > 0) {
+                // If the user has deleted the package in Step Two or Three - go back to Step One and show warning.
+                this.setState({progressIndex: 0, selectedPackage: undefined, disableNext: true, deletedSelectedPackage: true});
+            }
+
+        }
+
+    }
+
     render(): JSX.Element {
 
         const subHeadingString: string = `Deploying to ${this.state.channelName} in ${this.state.environmentName}`;
@@ -111,7 +137,7 @@ class DeployPage extends Component<IProps, DeployState> {
         let currentStepComponent: any;
         // Render components depending on the progress / step.
         if (currentIndex === 0) {
-            currentStepComponent = <DeployStepOne packageEntries={this.props.deployData.packageEntries} selectedPackage={this.state.selectedPackage} onPackageChange={this.handlePackageChange}/>;
+            currentStepComponent = <DeployStepOne deletedSelectedPackage={this.state.deletedSelectedPackage} packageEntries={this.props.deployData.packageEntries} selectedPackage={this.state.selectedPackage} onPackageChange={this.handlePackageChange}/>;
         } else if (currentIndex === 1) {
             currentStepComponent = <DeployStepTwo selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} currentDefinitionName={this.state.definitionName} currentDefinitionVersion={this.state.definitionVersion} onDefinitionNameChange={this.handleDefinitionNameChange} onDefinitionVersionChange={this.handleDefinitionVersionChange}/>;
         } else {
