@@ -14,9 +14,9 @@
 
 // tslint:disable max-classes-per-file no-unused-expression
 
-import { FabletEnvironment } from '../../src/environments/FabletEnvironment';
+import { MicrofabEnvironment } from '../../src/environments/MicrofabEnvironment';
 import { FabricNode, FabricNodeType } from '../../src/fabricModel/FabricNode';
-import { FabletClient } from '../../src/environments/FabletClient';
+import { MicrofabClient } from '../../src/environments/MicrofabClient';
 import { FabricWalletRegistryEntry } from '../../src/registries/FabricWalletRegistryEntry';
 import { FabricGatewayRegistryEntry } from '../../src/registries/FabricGatewayRegistryEntry';
 import * as chai from 'chai';
@@ -79,20 +79,20 @@ class TestFabricWallet implements IFabricWallet {
 
 }
 
-describe('FabletEnvironment', () => {
+describe('MicrofabEnvironment', () => {
 
     let sandbox: sinon.SinonSandbox;
     let directory: string;
-    let environment: FabletEnvironment;
-    let mockClient: sinon.SinonStubbedInstance<FabletClient>;
+    let environment: MicrofabEnvironment;
+    let mockClient: sinon.SinonStubbedInstance<MicrofabClient>;
     let mockFabricWalletGenerator: sinon.SinonStubbedInstance<TestFabricWalletGenerator>;
     let mockFabricWallet: sinon.SinonStubbedInstance<TestFabricWallet>;
 
     beforeEach(() => {
         sandbox = sinon.createSandbox();
         directory = tmp.dirSync().name;
-        environment = new FabletEnvironment('fabletEnvironment', directory, 'http://console.fablet.example.org:8080');
-        mockClient =  sinon.createStubInstance(FabletClient);
+        environment = new MicrofabEnvironment('microfabEnvironment', directory, 'http://console.microfab.example.org:8080');
+        mockClient =  sinon.createStubInstance(MicrofabClient);
         mockClient.getComponents.resolves([
             {
                 id: 'ordereradmin',
@@ -112,7 +112,7 @@ describe('FabletEnvironment', () => {
                 msp_id: 'Org1MSP',
                 wallet: 'Org1'
             },
-            // This isn't actually relevant to Fablet, but we need to test a wallet that has multiple identities.
+            // This isn't actually relevant to Microfab, but we need to test a wallet that has multiple identities.
             {
                 id: 'org1user',
                 display_name: 'Org1 User',
@@ -274,7 +274,7 @@ describe('FabletEnvironment', () => {
             const node: FabricNode = {
                 short_name: 'org1peer',
                 name: 'Org1 Peer',
-                api_url: 'http://org1peer-api.fablet.example.org',
+                api_url: 'http://org1peer-api.microfab.example.org',
                 type: FabricNodeType.PEER,
                 hidden: false
             };
@@ -289,7 +289,7 @@ describe('FabletEnvironment', () => {
             const node: FabricNode = {
                 short_name: 'org1peer',
                 name: 'Org1 Peer',
-                api_url: 'http://org1peer-api.fablet.example.org',
+                api_url: 'http://org1peer-api.microfab.example.org',
                 type: FabricNodeType.PEER,
                 hidden: false
             };
@@ -312,15 +312,15 @@ describe('FabletEnvironment', () => {
             const walletRegistryEntries: FabricWalletRegistryEntry[] = await environment.getWalletsAndIdentities();
             walletRegistryEntries.should.have.lengthOf(2);
             walletRegistryEntries[0].should.deep.equal({
-                displayName: 'fabletEnvironment - Orderer',
-                fromEnvironment: 'fabletEnvironment',
+                displayName: 'microfabEnvironment - Orderer',
+                fromEnvironment: 'microfabEnvironment',
                 managedWallet: false,
                 name: 'Orderer',
                 walletPath: path.join(directory, FileConfigurations.FABRIC_WALLETS, 'Orderer')
             });
             walletRegistryEntries[1].should.deep.equal({
-                displayName: 'fabletEnvironment - Org1',
-                fromEnvironment: 'fabletEnvironment',
+                displayName: 'microfabEnvironment - Org1',
+                fromEnvironment: 'microfabEnvironment',
                 managedWallet: false,
                 name: 'Org1',
                 walletPath: path.join(directory, FileConfigurations.FABRIC_WALLETS, 'Org1')
@@ -398,8 +398,8 @@ describe('FabletEnvironment', () => {
                 associatedWallet: 'Org1',
                 connectionProfilePath: path.join(directory, FileConfigurations.FABRIC_GATEWAYS, 'Org1 Gateway.json'),
                 displayName: 'Org1 Gateway',
-                fromEnvironment: 'fabletEnvironment',
-                name: 'fabletEnvironment - Org1 Gateway'
+                fromEnvironment: 'microfabEnvironment',
+                name: 'microfabEnvironment - Org1 Gateway'
             });
             const connectionProfile: object = await fs.readJson(gatewayRegistryEntries[0].connectionProfilePath);
             connectionProfile['display_name'].should.equal('Org1 Gateway');

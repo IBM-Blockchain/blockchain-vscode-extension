@@ -18,7 +18,7 @@ import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEnt
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricIdentity } from '../fabricModel/FabricIdentity';
 import { FabricGateway } from '../fabricModel/FabricGateway';
-import { FabletClient, isPeer, isOrderer, FabletComponent, FabletIdentity, isIdentity, isGateway, FabletGateway } from './FabletClient';
+import { MicrofabClient, isPeer, isOrderer, MicrofabComponent, MicrofabIdentity, isIdentity, isGateway, MicrofabGateway } from './MicrofabClient';
 import { FileConfigurations } from '../registries/FileConfigurations';
 import { IFabricWalletGenerator } from '../interfaces/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../util/FabricWalletGeneratorFactory';
@@ -27,13 +27,13 @@ import { IFabricWallet } from '../interfaces/IFabricWallet';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 
-export class FabletEnvironment extends AnsibleEnvironment {
+export class MicrofabEnvironment extends AnsibleEnvironment {
 
-    private client: FabletClient;
+    private client: MicrofabClient;
 
     constructor(name: string, environmentPath: string, private url: string) {
         super(name, environmentPath);
-        this.client = new FabletClient(this.url);
+        this.client = new MicrofabClient(this.url);
     }
 
     public async getAllOrganizationNames(showOrderer: boolean = true): Promise<string[]> {
@@ -41,7 +41,7 @@ export class FabletEnvironment extends AnsibleEnvironment {
     }
 
     public async getNodes(_withoutIdentities: boolean = false, _showAll: boolean = false): Promise<FabricNode[]> {
-        const components: FabletComponent[] = await this.client.getComponents();
+        const components: MicrofabComponent[] = await this.client.getComponents();
         const nodes: FabricNode[] = [];
         for (const component of components) {
             if (isPeer(component)) {
@@ -148,8 +148,8 @@ export class FabletEnvironment extends AnsibleEnvironment {
     }
 
     public async getWalletNames(): Promise<string[]> {
-        const components: FabletComponent[] = await this.client.getComponents();
-        const identities: FabletIdentity[] = components.filter((component: FabletComponent) => isIdentity(component)) as FabletIdentity[];
+        const components: MicrofabComponent[] = await this.client.getComponents();
+        const identities: MicrofabIdentity[] = components.filter((component: MicrofabComponent) => isIdentity(component)) as MicrofabIdentity[];
         const walletNames: string[] = [];
         for (const identity of identities) {
             if (walletNames.indexOf(identity.wallet) < 0) {
@@ -160,16 +160,16 @@ export class FabletEnvironment extends AnsibleEnvironment {
     }
 
     public async getIdentities(walletName: string): Promise<FabricIdentity[]> {
-        const components: FabletComponent[] = await this.client.getComponents();
-        const identities: FabletIdentity[] = components.filter((component: FabletComponent) => isIdentity(component) && component.wallet === walletName) as FabletIdentity[];
-        return identities.map((identity: FabletIdentity) => {
+        const components: MicrofabComponent[] = await this.client.getComponents();
+        const identities: MicrofabIdentity[] = components.filter((component: MicrofabComponent) => isIdentity(component) && component.wallet === walletName) as MicrofabIdentity[];
+        return identities.map((identity: MicrofabIdentity) => {
             return new FabricIdentity(identity.display_name, identity.cert, identity.private_key, identity.msp_id);
         });
     }
 
     public async getFabricGateways(): Promise<FabricGateway[]> {
-        const components: FabletComponent[] = await this.client.getComponents();
-        const gateways: FabletGateway[] = components.filter((component: FabletComponent) => isGateway(component)) as FabletGateway[];
+        const components: MicrofabComponent[] = await this.client.getComponents();
+        const gateways: MicrofabGateway[] = components.filter((component: MicrofabComponent) => isGateway(component)) as MicrofabGateway[];
         const result: FabricGateway[] = [];
         for (const gateway of gateways) {
             const gatewaysPath: string = path.join(this.path, FileConfigurations.FABRIC_GATEWAYS);

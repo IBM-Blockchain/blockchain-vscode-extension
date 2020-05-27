@@ -20,7 +20,7 @@ import { FileConfigurations } from '../registries/FileConfigurations';
 import { FileRegistry } from '../registries/FileRegistry';
 import { FabricEnvironmentRegistryEntry, EnvironmentType, EnvironmentFlags } from '../registries/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentRegistry } from '../registries/FabricEnvironmentRegistry';
-import { FabletEnvironment } from '../environments/FabletEnvironment';
+import { MicrofabEnvironment } from '../environments/MicrofabEnvironment';
 
 export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEntry> {
 
@@ -80,10 +80,10 @@ export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEnt
             otherEntries.push(...gatewayEntries);
         }
 
-        // Get gateways from all Fablet environments.
-        const fabletEnvironmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.FABLET]);
-        for (const fabletEnvironmentEntry of fabletEnvironmentEntries) {
-            const environment: FabletEnvironment = this.newFabletEnvironment(fabletEnvironmentEntry.name, fabletEnvironmentEntry.environmentDirectory, fabletEnvironmentEntry.url);
+        // Get gateways from all Microfab environments.
+        const microfabEnvironmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.MICROFAB]);
+        for (const microfabEnvironmentEntry of microfabEnvironmentEntries) {
+            const environment: MicrofabEnvironment = this.newMicrofabEnvironment(microfabEnvironmentEntry.name, microfabEnvironmentEntry.environmentDirectory, microfabEnvironmentEntry.url);
             const gatewayEntries: FabricGatewayRegistryEntry[] = await environment.getGateways();
             otherEntries.push(...gatewayEntries);
         }
@@ -104,8 +104,8 @@ export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEnt
         }
     }
 
-    public newFabletEnvironment(name: string, directory: string, url: string): FabletEnvironment {
-        return new FabletEnvironment(name, directory, url);
+    public newMicrofabEnvironment(name: string, directory: string, url: string): MicrofabEnvironment {
+        return new MicrofabEnvironment(name, directory, url);
     }
 
 }

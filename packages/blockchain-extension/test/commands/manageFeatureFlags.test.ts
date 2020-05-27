@@ -52,7 +52,7 @@ describe('manageFeatureFlags', () => {
         disableStub = sandbox.stub(FeatureFlagManager, 'disable').resolves();
         enabledStub = sandbox.stub(FeatureFlagManager, 'enabled').resolves(false);
         sandbox.stub(FeatureFlagManager, 'ALL').value([
-            FeatureFlagManager.FABLET,
+            FeatureFlagManager.MICROFAB,
             FAKE_FEATURE
         ]);
     });
@@ -64,9 +64,9 @@ describe('manageFeatureFlags', () => {
     it('should handle the user cancelling', async () => {
         await vscode.commands.executeCommand(ExtensionCommands.MANAGE_FEATURE_FLAGS);
         showQuickPickItemStub.should.have.been.calledOnceWithExactly('Enable or disable experimental features', [{
-            data: FeatureFlagManager.FABLET,
-            label: FeatureFlagManager.FABLET.getName(),
-            description: FeatureFlagManager.FABLET.getDescription(),
+            data: FeatureFlagManager.MICROFAB,
+            label: FeatureFlagManager.MICROFAB.getName(),
+            description: FeatureFlagManager.MICROFAB.getDescription(),
             picked: false
         }, {
             data: FAKE_FEATURE,
@@ -79,12 +79,12 @@ describe('manageFeatureFlags', () => {
     });
 
     it('should mark any enabled flags as picked', async () => {
-        enabledStub.withArgs(FeatureFlagManager.FABLET).resolves(true);
+        enabledStub.withArgs(FeatureFlagManager.MICROFAB).resolves(true);
         await vscode.commands.executeCommand(ExtensionCommands.MANAGE_FEATURE_FLAGS);
         showQuickPickItemStub.should.have.been.calledOnceWithExactly('Enable or disable experimental features', [{
-            data: FeatureFlagManager.FABLET,
-            label: FeatureFlagManager.FABLET.getName(),
-            description: FeatureFlagManager.FABLET.getDescription(),
+            data: FeatureFlagManager.MICROFAB,
+            label: FeatureFlagManager.MICROFAB.getName(),
+            description: FeatureFlagManager.MICROFAB.getDescription(),
             picked: true
         }, {
             data: FAKE_FEATURE,
@@ -98,12 +98,12 @@ describe('manageFeatureFlags', () => {
 
     it('should handle the user enabling a flag', async () => {
         showQuickPickItemStub.resolves([{
-            data: FeatureFlagManager.FABLET,
-            label: FeatureFlagManager.FABLET.getName(),
-            description: FeatureFlagManager.FABLET.getDescription()
+            data: FeatureFlagManager.MICROFAB,
+            label: FeatureFlagManager.MICROFAB.getName(),
+            description: FeatureFlagManager.MICROFAB.getDescription()
         }]);
         await vscode.commands.executeCommand(ExtensionCommands.MANAGE_FEATURE_FLAGS);
-        enableStub.should.have.been.calledOnceWithExactly(FeatureFlagManager.FABLET);
+        enableStub.should.have.been.calledOnceWithExactly(FeatureFlagManager.MICROFAB);
         disableStub.should.have.been.calledOnceWithExactly(FAKE_FEATURE);
     });
 
@@ -112,7 +112,7 @@ describe('manageFeatureFlags', () => {
         await vscode.commands.executeCommand(ExtensionCommands.MANAGE_FEATURE_FLAGS);
         enableStub.should.not.have.been.called;
         disableStub.should.have.been.calledTwice;
-        disableStub.should.have.been.calledWithExactly(FeatureFlagManager.FABLET);
+        disableStub.should.have.been.calledWithExactly(FeatureFlagManager.MICROFAB);
         disableStub.should.have.been.calledWithExactly(FAKE_FEATURE);
     });
 

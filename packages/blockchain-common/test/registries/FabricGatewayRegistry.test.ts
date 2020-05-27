@@ -23,7 +23,7 @@ import { FabricGatewayRegistryEntry } from '../../src/registries/FabricGatewayRe
 import { FabricRuntimeUtil } from '../../src/util/FabricRuntimeUtil';
 import { FabricEnvironmentRegistry } from '../../src/registries/FabricEnvironmentRegistry';
 import { FabricEnvironmentRegistryEntry, EnvironmentType } from '../../src/registries/FabricEnvironmentRegistryEntry';
-import { FabletEnvironment } from '../../src/environments/FabletEnvironment';
+import { MicrofabEnvironment } from '../../src/environments/MicrofabEnvironment';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -115,23 +115,23 @@ describe('FabricGatewayRegistry', () => {
             managedRuntime: false
         }));
         await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
-            name: 'fabletEnvironment',
-            environmentDirectory: path.join('test', 'data', 'fablet'),
-            environmentType: EnvironmentType.FABLET_ENVIRONMENT,
+            name: 'microfabEnvironment',
+            environmentDirectory: path.join('test', 'data', 'microfab'),
+            environmentType: EnvironmentType.MICROFAB_ENVIRONMENT,
             managedRuntime: false,
-            url: 'http://console.fablet.example.org'
+            url: 'http://console.microfab.example.org'
         }));
 
-        const newFabletEnvironmentStub: sinon.SinonStub = sandbox.stub(FabricGatewayRegistry.instance(), 'newFabletEnvironment');
-        const mockFabletEnvironment: sinon.SinonStubbedInstance<FabletEnvironment> = sinon.createStubInstance(FabletEnvironment);
-        mockFabletEnvironment.getGateways.resolves([
+        const newMicrofabEnvironmentStub: sinon.SinonStub = sandbox.stub(FabricGatewayRegistry.instance(), 'newMicrofabEnvironment');
+        const mockMicrofabEnvironment: sinon.SinonStubbedInstance<MicrofabEnvironment> = sinon.createStubInstance(MicrofabEnvironment);
+        mockMicrofabEnvironment.getGateways.resolves([
             {
-                name: 'fabletEnvironment - myGateway'
+                name: 'microfabEnvironment - myGateway'
             }
         ]);
-        newFabletEnvironmentStub.callsFake((name: string, directory: string, url: string): sinon.SinonStubbedInstance<FabletEnvironment> => {
-            newFabletEnvironmentStub['wrappedMethod'](name, directory, url);
-            return mockFabletEnvironment;
+        newMicrofabEnvironmentStub.callsFake((name: string, directory: string, url: string): sinon.SinonStubbedInstance<MicrofabEnvironment> => {
+            newMicrofabEnvironmentStub['wrappedMethod'](name, directory, url);
+            return mockMicrofabEnvironment;
         });
 
         const entries: FabricGatewayRegistryEntry[] = await FabricGatewayRegistry.instance().getAll();
@@ -141,8 +141,8 @@ describe('FabricGatewayRegistry', () => {
         entries[0].name.should.equal('ansibleEnvironment - myGateway');
         entries[1].name.should.equal('ansibleEnvironment - yofn-org1');
         entries[2].name.should.equal('ansibleEnvironment - yofn-org2');
-        entries[3].name.should.equal('fabletEnvironment - myGateway');
-        entries[4].should.deep.equal(gatewayOne);
+        entries[3].should.deep.equal(gatewayOne);
+        entries[4].name.should.equal('microfabEnvironment - myGateway');
     });
 
     it(`should remove the fromEnvironment property if the environment doesn't exist`, async () => {
