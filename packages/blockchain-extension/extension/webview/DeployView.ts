@@ -14,15 +14,21 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { ReactView } from './ReactView';
-import { ExtensionUtil } from '../util/ExtensionUtil';
-import { Reporter } from '../../extension/util/Reporter';
-import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
-import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, IFabricEnvironmentConnection, FabricSmartContractDefinition, LogType } from 'ibm-blockchain-platform-common';
-import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
-import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { PackageRegistry } from '../registries/PackageRegistry';
+import {ReactView} from './ReactView';
+import {ExtensionUtil} from '../util/ExtensionUtil';
+import {Reporter} from '../util/Reporter';
+import {PackageRegistryEntry} from '../registries/PackageRegistryEntry';
+import {ExtensionCommands} from '../../ExtensionCommands';
+import {
+    FabricEnvironmentRegistryEntry,
+    FabricEnvironmentRegistry,
+    IFabricEnvironmentConnection,
+    FabricSmartContractDefinition,
+    LogType
+} from 'ibm-blockchain-platform-common';
+import {FabricEnvironmentManager} from '../fabric/environments/FabricEnvironmentManager';
+import {VSCodeBlockchainOutputAdapter} from '../logging/VSCodeBlockchainOutputAdapter';
+import {PackageRegistry} from '../registries/PackageRegistry';
 
 export class DeployView extends ReactView {
     public static panel: vscode.WebviewPanel;
@@ -43,7 +49,7 @@ export class DeployView extends ReactView {
     }
 
     async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
-        Reporter.instance().sendTelemetryEvent('openedView', { openedView: panel.title }); // Report that a user has opened a new panel
+        Reporter.instance().sendTelemetryEvent('openedView', {openedView: panel.title}); // Report that a user has opened a new panel
 
         DeployView.panel = panel;
 
@@ -107,23 +113,30 @@ export class DeployView extends ReactView {
                 throw new Error(`Unable to deploy, cannot connect to environment: ${environmentEntry.name}`);
             }
 
+            const channelMap: Map<string, string[]> = await connection.createChannelMap();
+
+            const channelPeers: string[] = channelMap.get(channelName);
+
             const orgMap: Map<string, string[]> = new Map<string, string[]>();
             const orgNames: string[] = connection.getAllOrganizationNames();
 
             for (const orgName of orgNames) {
-                const peerNames: string[] = connection.getAllPeerNamesForOrg(orgName);
+                let peerNames: string[] = connection.getAllPeerNamesForOrg(orgName);
                 // ignore any orderer orgs
                 if (peerNames.length > 0) {
+                    // filter out any peers that are not part of the channel
+                    peerNames = peerNames.filter((peerName: string) => {
+                        return channelPeers.includes(peerName);
+                    });
+
                     orgMap.set(orgName, peerNames);
                 }
             }
 
-            const allPeerNames: string[] = connection.getAllPeerNames();
-
             // Does this get the orderer on the channel?
             const ordererNames: string[] = connection.getAllOrdererNames();
 
-            const allCommittedContracts: FabricSmartContractDefinition[] = await connection.getCommittedSmartContractDefinitions(allPeerNames, channelName);
+            const allCommittedContracts: FabricSmartContractDefinition[] = await connection.getCommittedSmartContractDefinitions(channelPeers, channelName);
 
             const committedContract: FabricSmartContractDefinition = allCommittedContracts.find((_contract: FabricSmartContractDefinition) => {
                 return _contract.name === definitionName;

@@ -25,7 +25,8 @@ import {
     FabricWalletRegistryEntry,
     FabricWalletRegistry,
     IFabricWallet,
-    FabricInstalledSmartContract
+    FabricInstalledSmartContract,
+    FabricCollectionDefinition
 } from 'ibm-blockchain-platform-common';
 import {FabricWalletGenerator, FabricWallet} from 'ibm-blockchain-platform-wallet';
 import {
@@ -37,7 +38,6 @@ import {
 } from 'ibm-blockchain-platform-fabric-admin';
 import {Identity, IdentityProvider} from 'fabric-network';
 import {User} from 'fabric-common';
-import {FabricCollectionDefinition} from 'ibm-blockchain-platform-common/build/src/fabricModel/FabricCollectionDefinition';
 
 export class FabricEnvironmentConnection implements IFabricEnvironmentConnection {
     public environmentName: string;
