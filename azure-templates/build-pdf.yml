@@ -32,10 +32,12 @@ jobs:
             git commit -asm "PDFs automatically generated"
             git status
 
-            if [[ $(Build.SourceBranchName) == v1* ]]; then
+            if [[ $(Build.SourceBranchName) == master ]]; then
               export branch_name=master
-            else
+            elif [[ $(Build.SourceBranchName) == v2 ]]; then
               export branch_name=v2
+            else 
+              exit 1
             fi
 
             git -c http.extraheader="Authorization: Basic $(GITHUB_BASIC_AUTH)" push $(Build.Repository.Uri) HEAD:$branch_name -f
