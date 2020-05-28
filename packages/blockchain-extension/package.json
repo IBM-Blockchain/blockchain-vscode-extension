@@ -1454,7 +1454,11 @@
         "ejs": "^2.6.1",
         "find-free-port": "^2.0.0",
         "fs-extra": "^7.0.1",
+<<<<<<< HEAD
         "generator-fabric": "0.2.1",
+=======
+        "generator-fabric": "0.1.12",
+>>>>>>> a80754f4... Upgrade to generator-fabric@0.1.12 (resolves #2386) (#2387)
         "handlebars": "^4.5.3",
         "home-dir": "1.0.0",
         "ibm-blockchain-platform-common": "^2.0.0-beta.1",
