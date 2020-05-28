@@ -43,7 +43,7 @@ describe('OpenDeployView', () => {
     let getConnectionStub: sinon.SinonStub;
     let localEnvironmentConnectionMock: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
     let otherEnvironmentConnectionMock: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
-
+    let getWorkspaceFoldersStub: sinon.SinonStub;
     before(async () => {
         await TestUtil.setupTests(mySandBox);
         await TestUtil.setupLocalFabric();
@@ -74,6 +74,18 @@ describe('OpenDeployView', () => {
             getConnectionStub = mySandBox.stub(fabricEnvironmentManager, 'getConnection');
 
             openViewStub = mySandBox.stub(DeployView.prototype, 'openView').resolves();
+
+            const workspaceOne: vscode.WorkspaceFolder = {
+                name: 'workspaceOne',
+                uri: vscode.Uri.file('myPath'),
+                index: 0
+            };
+            const workspaceTwo: vscode.WorkspaceFolder = {
+                name: 'workspaceTwo',
+                uri: vscode.Uri.file('otherPath'),
+                index: 1
+            };
+            getWorkspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([workspaceOne, workspaceTwo]);
         });
 
         afterEach(async () => {
@@ -90,6 +102,7 @@ describe('OpenDeployView', () => {
             showChannelQuickPickBoxStub.should.not.have.been.called;
             openViewStub.should.not.have.been.called;
             logStub.should.not.have.been.called;
+            getWorkspaceFoldersStub.should.not.have.been.called;
         });
 
         it('should connect to an environment and open the deploy view', async () => {
@@ -106,6 +119,7 @@ describe('OpenDeployView', () => {
             showChannelQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select a channel');
             openViewStub.should.have.been.calledOnce;
             logStub.should.not.have.been.called;
+            getWorkspaceFoldersStub.should.have.been.calledOnce;
         });
 
         it('should connect to an environment and open the deploy view from the tree', async () => {
@@ -120,6 +134,7 @@ describe('OpenDeployView', () => {
             showChannelQuickPickBoxStub.should.not.have.been.called;
             openViewStub.should.have.been.calledOnce;
             logStub.should.not.have.been.called;
+            getWorkspaceFoldersStub.should.have.been.calledOnce;
         });
 
         it('should open the deploy view if already connected to the chosen environment', async () => {
@@ -135,6 +150,7 @@ describe('OpenDeployView', () => {
             showChannelQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select a channel');
             openViewStub.should.have.been.calledOnce;
             logStub.should.not.have.been.called;
+            getWorkspaceFoldersStub.should.have.been.calledOnce;
         });
 
         it('should disconnect and connect to the selected environment, then open the deploy view', async () => {
@@ -152,6 +168,7 @@ describe('OpenDeployView', () => {
             showChannelQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select a channel');
             openViewStub.should.have.been.calledOnce;
             logStub.should.not.have.been.called;
+            getWorkspaceFoldersStub.should.have.been.calledOnce;
         });
 
         it('should return if no channel is selected', async () => {
@@ -167,6 +184,7 @@ describe('OpenDeployView', () => {
             showChannelQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select a channel');
             openViewStub.should.not.have.been.called;
             logStub.should.not.have.been.called;
+            getWorkspaceFoldersStub.should.not.have.been.called;
         });
 
         it('should throw an error if unable to connect to the selected environment', async () => {
@@ -182,6 +200,7 @@ describe('OpenDeployView', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEnvironmentRegistryEntry);
             openViewStub.should.not.have.been.calledOnce;
             showChannelQuickPickBoxStub.should.not.have.been.called;
+            getWorkspaceFoldersStub.should.not.have.been.called;
             const error: Error = new Error(`Unable to connect to environment: ${FabricRuntimeUtil.LOCAL_FABRIC}`);
             logStub.should.have.been.calledOnceWithExactly(LogType.ERROR, error.message, error.toString());
         });

@@ -28,6 +28,10 @@
         margin-bottom: $spacing-07;
     }
 
+    .margin-bottom-10{
+        margin-bottom: $spacing-08 + $spacing-09;
+    }
+
     .margin-right-06 {
         margin-right: $spacing-06;
     }        
@@ -58,6 +62,10 @@
 
     .padding-bottom-07 {
         padding-bottom: $spacing-07;
+    }
+
+    .bx--inline-notification{
+        max-width: 100%;
     }
 }
 

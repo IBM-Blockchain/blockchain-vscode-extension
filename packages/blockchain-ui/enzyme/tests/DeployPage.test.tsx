@@ -26,10 +26,11 @@ describe('DeployPage component', () => {
     const packageOne: IPackageRegistryEntry = {name: 'mycontract', version: '0.0.1', path: '/package/one', sizeKB: 9000};
     const packageTwo: IPackageRegistryEntry = {name: 'othercontract', version: '0.0.2', path: '/package/two', sizeKB: 12000};
     const packageThree: IPackageRegistryEntry = {name: 'importedContract', path: '/package/three', sizeKB: 16000};
-    const deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[]} = {channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo, packageThree]};
+    let deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined};
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
+        deployData = {channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo, packageThree], workspaceNames: ['workspaceOne'], selectedPackage: undefined};
     });
 
     afterEach(async () => {
@@ -86,6 +87,14 @@ describe('DeployPage component', () => {
             const doesStepThreeExist: boolean = component.exists(DeployStepThree);
             doesStepThreeExist.should.equal(true);
         });
+
+        it('should handle passing in a selected package', () => {
+            deployData.selectedPackage = packageTwo;
+
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+
+            component.html().includes(`${packageTwo.name}@${packageTwo.version} (packaged)`).should.equal(true);
+        });
     });
 
     describe('handleProgressChange', () => {
@@ -125,7 +134,7 @@ describe('DeployPage component', () => {
 
             instance.handlePackageChange(packageTwo);
 
-            setStateStub.should.have.been.calledOnceWithExactly({selectedPackage: packageTwo, definitionName: packageTwo.name, definitionVersion: packageTwo.version, disableNext: false, deletedSelectedPackage: false});
+            setStateStub.should.have.been.calledOnceWithExactly({selectedPackage: packageTwo, definitionName: packageTwo.name, definitionVersion: packageTwo.version, disableNext: false, deletedSelectedPackage: false, selectedWorkspace: undefined});
 
         });
 
@@ -138,7 +147,7 @@ describe('DeployPage component', () => {
 
             instance.handlePackageChange(packageThree);
 
-            setStateStub.should.have.been.calledOnceWithExactly({selectedPackage: packageThree, definitionName: packageThree.name, definitionVersion: '0.0.1', disableNext: false, deletedSelectedPackage: false});
+            setStateStub.should.have.been.calledOnceWithExactly({selectedPackage: packageThree, definitionName: packageThree.name, definitionVersion: '0.0.1', disableNext: false, deletedSelectedPackage: false, selectedWorkspace: undefined});
 
         });
 
@@ -150,8 +159,19 @@ describe('DeployPage component', () => {
 
             instance.handlePackageChange(undefined);
 
-            setStateStub.should.have.been.calledOnceWithExactly({selectedPackage: undefined, disableNext: true});
+            setStateStub.should.have.been.calledOnceWithExactly({selectedPackage: undefined, selectedWorkspace: undefined, disableNext: true});
 
+        });
+
+        it('should handle a workspace selected', () => {
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
+
+            instance.handlePackageChange(undefined, 'workspaceOne');
+
+            setStateStub.should.have.been.calledOnceWithExactly({selectedPackage: undefined, disableNext: true, selectedWorkspace: 'workspaceOne', deletedSelectedPackage: false});
         });
     });
 
@@ -244,6 +264,24 @@ describe('DeployPage component', () => {
                     definitionName: packageTwo.name,
                     definitionVersion: packageTwo.version,
                     commitSmartContract: undefined
+                }
+            });
+        });
+    });
+
+    describe('handlePackageWorkspace', () => {
+        it('should handle a workspace being packaged', () => {
+            postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
+
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+
+            instance.handlePackageWorkspace('workspaceOne');
+
+            postToVscodeStub.should.have.been.calledOnceWithExactly({
+                command: 'package',
+                data: {
+                    workspaceName: 'workspaceOne'
                 }
             });
         });
@@ -343,6 +381,28 @@ describe('DeployPage component', () => {
 
             setStateStub.should.have.been.calledWith({progressIndex: 0, selectedPackage: undefined, disableNext: true, deletedSelectedPackage: true});
 
+        });
+
+        it('should update selected package if passed into app', () => {
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
+
+            const workspacePackage: IPackageRegistryEntry = {
+                name: 'createdFromWorkspace',
+                version: '0.0.1',
+                sizeKB: 30000,
+                path: '/somet/path'
+            };
+
+            instance.componentWillReceiveProps({
+                deployData: {
+                    selectedPackage: workspacePackage
+                }
+            });
+
+            setStateStub.should.have.been.calledWith({selectedPackage: workspacePackage, disableNext: false});
         });
     });
 

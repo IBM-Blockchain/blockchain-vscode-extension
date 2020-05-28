@@ -37,12 +37,12 @@ describe('DeployStepThree component', () => {
 
         it('should display package with a version', async () => {
             const component: ShallowWrapper<DeployStepThree> = shallow(<DeployStepThree selectedPackage={packageOne} channelName='mychannel' commitSmartContract={undefined} onCommitChange={commitChangeStub} />);
-            component.html().includes(`\`${packageOne.name}@${packageOne.version}\``);
+            component.html().includes(`\`${packageOne.name}@${packageOne.version}\``).should.equal(true);
         });
 
         it('should display package without a version', async () => {
             const component: ShallowWrapper<DeployStepThree> = shallow(<DeployStepThree selectedPackage={packageTwo} channelName='mychannel' commitSmartContract={undefined} onCommitChange={commitChangeStub} />);
-            component.html().includes(`\`${packageTwo.name}\``);
+            component.html().includes(`\`${packageTwo.name}\``).should.equal(true);
         });
 
         it('should show commit list item if toggled on', async () => {

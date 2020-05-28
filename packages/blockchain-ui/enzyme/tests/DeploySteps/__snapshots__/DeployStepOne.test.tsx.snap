@@ -3,7 +3,7 @@
 exports[`DeployStepOne component render should render the expected snapshot 1`] = `
 Array [
   <div
-    className="bx--row dropdown-row"
+    className="bx--row margin-bottom-10"
   >
     <div
       className="bx--col"

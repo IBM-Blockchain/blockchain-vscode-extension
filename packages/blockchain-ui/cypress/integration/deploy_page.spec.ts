@@ -6,7 +6,7 @@ chai.should();
 describe('Deploy page', () => {
     const packageOne: IPackageRegistryEntry = {name: 'mycontract', version: '0.0.1', path: '/package/one', sizeKB: 9000};
     const packageTwo: IPackageRegistryEntry = {name: 'othercontract', version: '0.0.2', path: '/package/two', sizeKB: 12000};
-    const deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[]} = {channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo]};
+    const deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined} = {channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo], workspaceNames: ['workspaceOne'], selectedPackage: undefined};
 
     const mockMessage: {path: string, deployData: any} = {
         path: 'deploy',
@@ -16,9 +16,9 @@ describe('Deploy page', () => {
     beforeEach(() => {
         cy.visit('build/index.html').then((window: Window) => {
             window.postMessage(mockMessage, '*');
-        });
 
-        cy.get('.vscode-dark').invoke('attr', 'class', 'vscode-light'); // Use the light theme as components render properly.
+            cy.get('.vscode-dark').invoke('attr', 'class', 'vscode-light'); // Use the light theme as components render properly.
+        });
     });
 
     it('should open the deploy page and show the correct channel name and environment name', () => {
@@ -215,6 +215,51 @@ describe('Deploy page', () => {
 
         commitToggle.check({force: true});
         commitToggle.should('be.checked');
+    });
+
+    it('should be able to select a workspace', () => {
+        const _package: string = `workspaceOne (open project)`;
+
+        cy.get('#package-select').click(); // Expand dropdown
+        cy.get('#package-select').contains(_package).click(); // Click on option
+
+        let nextButton: Cypress.Chainable<JQuery<HTMLButtonElement>> = cy.get('button').contains('Next');
+        nextButton.should('be.disabled');
+
+        const packageButton: Cypress.Chainable<JQuery<HTMLButtonElement>> = cy.get('button').contains('Package');
+        packageButton.should('not.be.disabled');
+
+        cy.stub(packageButton, 'click');
+        packageButton.click();
+
+        const packageThree: IPackageRegistryEntry = {
+            name: 'newPackage',
+            version: '0.0.1',
+            sizeKB: 40000,
+            path: '/some/path'
+        };
+
+        const newData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined} = {channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo, packageThree], workspaceNames: ['workspaceOne'], selectedPackage: packageThree};
+        const newMessage: {path: string, deployData: any} = {
+            path: 'deploy',
+            deployData: newData
+        };
+
+        cy.visit('build/index.html').then((window: Window) => {
+
+            window.postMessage(newMessage, '*');
+            cy.get('.vscode-dark').invoke('attr', 'class', 'vscode-light'); // Use the light theme as components render properly.
+
+            // Simulate componentWillReceiveProps selected new package
+            cy.get('#package-select').click();
+            cy.get('#package-select').contains(_package).click(); // Click on option
+            cy.get('#package-select').click();
+            cy.get('#package-select').contains('newPackage@0.0.1 (packaged)').click(); // Click on option
+        });
+
+        nextButton = cy.get('button').contains('Next');
+        nextButton.should('not.be.disabled');
+
     });
 
 });

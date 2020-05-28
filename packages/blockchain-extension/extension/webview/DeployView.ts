@@ -29,6 +29,7 @@ import {
 import {FabricEnvironmentManager} from '../fabric/environments/FabricEnvironmentManager';
 import {VSCodeBlockchainOutputAdapter} from '../logging/VSCodeBlockchainOutputAdapter';
 import {PackageRegistry} from '../registries/PackageRegistry';
+import {UserInputUtil} from '../commands/UserInputUtil';
 
 export class DeployView extends ReactView {
     public static panel: vscode.WebviewPanel;
@@ -71,6 +72,14 @@ export class DeployView extends ReactView {
                 const definitionVersion: string = message.data.definitionVersion;
                 const commitSmartContract: boolean = message.data.commitSmartContract;
                 await this.deploy(channelName, environmentName, selectedPackage, definitionName, definitionVersion, commitSmartContract);
+            } else if (message.command === 'package') {
+                const workspaceName: string = message.data.workspaceName;
+                const entry: PackageRegistryEntry = await this.package(workspaceName);
+                if (entry) {
+                    DeployView.appState.selectedPackage = entry;
+                    await DeployView.updatePackages();
+                }
+                // Else workspace failed to package
             }
         });
 
@@ -171,5 +180,14 @@ export class DeployView extends ReactView {
         } catch (error) {
             outputAdapter.log(LogType.ERROR, error.message, error.toString());
         }
+
+    }
+
+    async package(workspaceName: string): Promise<PackageRegistryEntry> {
+        const workspaces: vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
+        const workspace: vscode.WorkspaceFolder = workspaces.find((_workspace: vscode.WorkspaceFolder) => _workspace.name === workspaceName);
+
+        const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspace);
+        return packageEntry;
     }
 }
