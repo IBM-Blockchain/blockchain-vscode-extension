@@ -23,10 +23,18 @@ import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
+import { ExtensionUtil } from '../util/ExtensionUtil';
 
 export async function restartFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'restartFabricRuntime');
+
+    // If we're running on Eclipse Che, this is not a supported feature.
+    if (ExtensionUtil.isChe()) {
+        outputAdapter.log(LogType.ERROR, 'Local Fabric functionality is not supported in Eclipse Che or Red Hat CodeReady Workspaces.');
+        return;
+    }
+
     let registryEntry: FabricEnvironmentRegistryEntry;
     if (!runtimeTreeItem) {
 
