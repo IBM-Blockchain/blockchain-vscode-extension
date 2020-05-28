@@ -32,7 +32,7 @@ jobs:
             git commit -asm "PDFs automatically generated"
             git status
 
-            if [[ $(Build.SourceBranchName) == v1* ]]; then
+            if [[ $(Build.SourceBranch) == refs/tags/v1* ]]; then
               export branch_name=master
             else
               export branch_name=v2
