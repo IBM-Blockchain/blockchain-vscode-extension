@@ -12,7 +12,7 @@
  * limitations under the License.
 */
 
-import {Channel, Committer, Endorsement, Endorser, IdentityContext} from 'fabric-common';
+import {Channel, Committer, Discoverer, DiscoveryService, Endorsement, Endorser, IdentityContext} from 'fabric-common';
 import * as protos from 'fabric-protos';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
@@ -1482,6 +1482,95 @@ describe('LifecycleChannel', () => {
                 const actualResult: protos.common.CollectionConfigPackage = LifecycleChannel.getCollectionConfig([collection], true);
 
                 actualResult.should.deep.equal(expectedResult.toBuffer());
+            });
+        });
+
+        describe('getDiscoveredPeerNames', () => {
+
+            let mysandbox: sinon.SinonSandbox;
+
+            let gatewayConnectSpy: sinon.SinonSpy;
+
+            let discoverServiceSignStub: sinon.SinonStub;
+            let discoverServiceBuildStub: sinon.SinonStub;
+            let discoverServiceSendStub: sinon.SinonStub;
+
+            beforeEach(() => {
+                mysandbox = sinon.createSandbox();
+
+                mysandbox.stub(Endorser.prototype, 'connect').resolves();
+                mysandbox.stub(Discoverer.prototype, 'connect').resolves();
+
+                mysandbox.stub(Channel.prototype, 'addEndorser');
+                // @ts-ignore
+                mysandbox.stub(Channel.prototype, 'getEndorsers').returns([{name: 'myPeer'}, {name: 'myPeer:7051'}, {name: 'peer0.org2.example.com:9051'}]);
+
+                gatewayConnectSpy = mysandbox.spy(Gateway.prototype, 'connect');
+
+                discoverServiceBuildStub = mysandbox.stub(DiscoveryService.prototype, 'build');
+                discoverServiceSignStub = mysandbox.stub(DiscoveryService.prototype, 'sign');
+                discoverServiceSendStub = mysandbox.stub(DiscoveryService.prototype, 'send').resolves();
+            });
+
+            afterEach(() => {
+                mysandbox.restore();
+            });
+
+            it('should get the discovered peer names', async () => {
+                const result: string[] = await channel.getDiscoveredPeerNames(['myPeer'], true);
+
+                result.should.deep.equal(['myPeer', 'peer0.org2.example.com:9051']);
+
+                discoverServiceSignStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                discoverServiceBuildStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+
+                discoverServiceSendStub.should.have.been.calledWith({
+                    asLocalhost: true,
+                    targets: [sinon.match.instanceOf(Discoverer)]
+                });
+            });
+
+            it('should get the discovered peer names with timeout', async () => {
+                const result: string[] = await channel.getDiscoveredPeerNames(['myPeer'], true, 1234);
+
+                result.should.deep.equal(['myPeer', 'peer0.org2.example.com:9051']);
+
+                discoverServiceSignStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                discoverServiceBuildStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+
+                discoverServiceSendStub.should.have.been.calledWith({
+                    asLocalhost: true,
+                    targets: [sinon.match.instanceOf(Discoverer)]
+                });
+
+                const call: sinon.SinonSpyCall = gatewayConnectSpy.getCall(0);
+                call.args[1].eventHandlerOptions.should.deep.equal({
+                    commitTimeout: 1234,
+                    endorseTimeout: 1234
+                });
+            });
+
+            it('should handle no peerNames set', async () => {
+                await channel.getDiscoveredPeerNames(undefined, true).should.eventually.be.rejectedWith('parameter peers was missing or empty array');
+            });
+
+            it('should handle asLocalHost not set set', async () => {
+                // @ts-ignore
+                await channel.getDiscoveredPeerNames(['myPeer']).should.eventually.be.rejectedWith('parameter asLocalHost was missing');
+            });
+
+            it('should handle error', async () => {
+
+                discoverServiceSendStub.rejects({message: 'some error'});
+                await channel.getDiscoveredPeerNames(['myPeer'], true).should.eventually.be.rejectedWith('Could discover peers, received error some error');
+
+                discoverServiceSignStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                discoverServiceBuildStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+
+                discoverServiceSendStub.should.have.been.calledWith({
+                    asLocalhost: true,
+                    targets: [sinon.match.instanceOf(Discoverer)]
+                });
             });
         });
     });

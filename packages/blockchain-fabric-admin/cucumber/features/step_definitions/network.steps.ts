@@ -12,17 +12,22 @@
  * limitations under the License.
 */
 
-import {Given} from 'cucumber'
+import {Given} from 'cucumber';
 import {Wallet} from 'fabric-network';
 import {NetworkHelper} from '../../helpers/NetworkHelper';
 import {Lifecycle} from '../../../src';
 import {Helper} from '../../helpers/Helper';
 
 // tslint:disable-next-line:only-arrow-functions
-Given(/^the lifecycle is setup$/, async function (): Promise<void> {
+Given(/^the lifecycle is setup( orgOneOnly)?$/, async function(orgOneOnly: string): Promise<void> {
+    let onlyOneOrg: boolean = false;
+    if (orgOneOnly) {
+        onlyOneOrg = true;
+    }
+
     if (!this.lifecycle) {
 
-        const result: { lifecycle: Lifecycle, wallet: Wallet} = await NetworkHelper.setupLifecycle();
+        const result: { lifecycle: Lifecycle, wallet: Wallet } = await NetworkHelper.setupLifecycle(onlyOneOrg);
         this.lifecycle = result.lifecycle;
         this.wallet = result.wallet;
 

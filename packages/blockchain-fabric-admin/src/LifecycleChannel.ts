@@ -14,12 +14,30 @@
 
 import {
     Channel,
-    Client, Committer, ConnectOptions, Endorsement,
-    Endorser, Endpoint, ProposalResponse,
+    Client,
+    Committer,
+    ConnectOptions,
+    Discoverer,
+    DiscoveryService,
+    Endorsement,
+    Endorser,
+    Endpoint,
+    IdentityContext,
+    ProposalResponse,
+    User,
     Utils
 } from 'fabric-common';
 import * as protos from 'fabric-protos';
-import {Contract, Gateway, GatewayOptions, Network, Transaction, Wallet} from 'fabric-network';
+import {
+    Contract,
+    Gateway,
+    GatewayOptions,
+    Identity,
+    IdentityProvider,
+    Network,
+    Transaction,
+    Wallet
+} from 'fabric-network';
 import * as Long from 'long';
 import {LifecycleCommon} from './LifecycleCommon';
 import {Lifecycle} from './Lifecycle';
@@ -306,6 +324,97 @@ export class LifecycleChannel {
             logger.error('Problem with the request :: %s', error);
             logger.error(' problem at ::' + error.stack);
             throw new Error(`Could not get smart contract definition, received error: ${error.message}`);
+        }
+    }
+
+    public async getDiscoveredPeerNames(peerNames: string[], asLocalHost: boolean, requestTimeout?: number): Promise<string[]> {
+
+        if (!peerNames || peerNames.length === 0) {
+            throw new Error('parameter peers was missing or empty array');
+        }
+
+        if (!asLocalHost) {
+            throw new Error('parameter asLocalHost was missing');
+        }
+
+        const endorsers: Endorser[] = [];
+        const gateway: Gateway = new Gateway();
+
+        const gatewayOptions: GatewayOptions = {
+            wallet: this.wallet,
+            identity: this.identity,
+            discovery: {enabled: false}
+        };
+
+        if (requestTimeout) {
+            gatewayOptions.eventHandlerOptions = {
+                commitTimeout: requestTimeout,
+                endorseTimeout: requestTimeout
+            };
+        }
+
+        try {
+
+            const fabricClient: Client = new Client('lifecycle');
+
+            logger.debug('%s - connect to the network');
+            await gateway.connect(fabricClient, gatewayOptions);
+            const network: Network = await gateway.getNetwork(this.channelName);
+
+            logger.debug('%s - add the endorsers to the channel');
+            const channel: Channel = network.getChannel();
+
+            for (const peerName of peerNames) {
+                const endorser: Endorser = await this.createEndorser(peerName, fabricClient);
+
+                channel.addEndorser(endorser, true);
+                endorsers.push(endorser);
+            }
+
+            const discoverers: Discoverer[] = [];
+            for (const peer of endorsers) {
+                const discoverer: Discoverer = channel.client.newDiscoverer(peer.name, peer.mspid);
+                await discoverer.connect(peer.endpoint);
+                discoverers.push(discoverer);
+            }
+
+            const discoveryService: DiscoveryService = channel.newDiscoveryService(this.channelName);
+            const identity: Identity = gateway.getIdentity();
+            const provider: IdentityProvider = this.wallet.getProviderRegistry().getProvider(identity.type);
+            const user: User = await provider.getUserContext(identity, this.identity);
+            const identityContext: IdentityContext = fabricClient.newIdentityContext(user);
+
+            // do the three steps
+            discoveryService.build(identityContext);
+            discoveryService.sign(identityContext);
+            await discoveryService.send({
+                asLocalhost: asLocalHost,
+                targets: discoverers
+            });
+
+            const allEndorsers: Endorser[] = channel.getEndorsers();
+
+            // This list contains all the known about peers and discovered ones
+            // filter out duplicate peer names
+            return allEndorsers.map((endorser: Endorser) => {
+                return endorser.name;
+            }).filter((endorser: string) => {
+                if (peerNames.includes(endorser)) {
+                    return true;
+                } else {
+                    for (const peerName of peerNames) {
+                        if (endorser.startsWith(peerName)) {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
+            });
+        } catch (error) {
+            throw new Error(`Could discover peers, received error ${error.message}`);
+        } finally {
+            gateway.disconnect();
         }
     }
 

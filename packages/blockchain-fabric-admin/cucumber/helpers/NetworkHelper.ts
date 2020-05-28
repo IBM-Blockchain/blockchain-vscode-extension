@@ -20,7 +20,7 @@ import {Lifecycle, LifecyclePeer, LifecyclePeerOptions} from '../../src';
 
 export class NetworkHelper {
 
-    public static async setupLifecycle(): Promise<{lifecycle: Lifecycle, wallet: Wallet}> {
+    public static async setupLifecycle(onlyOneOrg: boolean = false): Promise<{ lifecycle: Lifecycle, wallet: Wallet }> {
 
         await this.importIdentity(1);
         const wallet: Wallet = await this.importIdentity(2);
@@ -28,10 +28,12 @@ export class NetworkHelper {
         const lifecycle: Lifecycle = new Lifecycle();
 
         const org1PeerDetails: LifecyclePeerOptions = await this.getPeerDetails(1);
-        const org2PeerDetails: LifecyclePeerOptions = await this.getPeerDetails(2);
-
         lifecycle.addPeer(org1PeerDetails);
-        lifecycle.addPeer(org2PeerDetails);
+
+        if (!onlyOneOrg) {
+            const org2PeerDetails: LifecyclePeerOptions = await this.getPeerDetails(2);
+            lifecycle.addPeer(org2PeerDetails);
+        }
 
         const ordererPemPath: string = path.join(Helper.NETWORK_DIR, 'organizations', 'ordererOrganizations', 'example.com', 'orderers', 'orderer.example.com', 'tls', 'ca.crt');
 
