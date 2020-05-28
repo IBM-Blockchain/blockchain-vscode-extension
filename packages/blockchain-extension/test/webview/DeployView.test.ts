@@ -99,9 +99,11 @@ describe('DeployView', () => {
 
         localEnvironmentConnectionMock = mySandBox.createStubInstance(FabricEnvironmentConnection);
         localEnvironmentConnectionMock.environmentName = FabricRuntimeUtil.LOCAL_FABRIC;
-        localEnvironmentConnectionMock.getAllPeerNames.returns(['peer0.org1.example.com', 'peer0.org2.example.com']);
+        const channelMap: Map<string, string[]> = new Map<string, string[]>();
+        channelMap.set('mychannel', ['peer0.org1.example.com', 'peer0.org2.example.com']);
+        localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
         localEnvironmentConnectionMock.getAllOrganizationNames.returns(['Org1', 'Org2', 'Orderer']);
-        localEnvironmentConnectionMock.getAllPeerNamesForOrg.withArgs('Org1').returns(['peer0.org1.example.com']);
+        localEnvironmentConnectionMock.getAllPeerNamesForOrg.withArgs('Org1').returns(['peer0.org1.example.com', 'random.peer']);
         localEnvironmentConnectionMock.getAllPeerNamesForOrg.withArgs('Org2').returns(['peer0.org2.example.com']);
         localEnvironmentConnectionMock.getAllPeerNamesForOrg.withArgs('Orderer').returns([]);
         localEnvironmentConnectionMock.getAllOrdererNames.returns(['orderer.example.com']);
@@ -264,7 +266,7 @@ describe('DeployView', () => {
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
 
-            localEnvironmentConnectionMock.getAllPeerNames.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllPeerNamesForOrg.should.have.been.calledThrice;
             localEnvironmentConnectionMock.getAllOrdererNames.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllOrganizationNames.should.have.been.calledOnce;
@@ -292,7 +294,7 @@ describe('DeployView', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
 
-            localEnvironmentConnectionMock.getAllPeerNames.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllOrdererNames.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllPeerNamesForOrg.should.have.been.calledThrice;
             localEnvironmentConnectionMock.getAllOrganizationNames.should.have.been.calledOnce;
@@ -321,7 +323,7 @@ describe('DeployView', () => {
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
 
-            localEnvironmentConnectionMock.getAllPeerNames.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllOrdererNames.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllPeerNamesForOrg.should.have.been.calledThrice;
             localEnvironmentConnectionMock.getAllOrganizationNames.should.have.been.calledOnce;
@@ -349,7 +351,7 @@ describe('DeployView', () => {
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
 
-            localEnvironmentConnectionMock.getAllPeerNames.should.not.have.been.called;
+            localEnvironmentConnectionMock.createChannelMap.should.not.have.been.called;
             localEnvironmentConnectionMock.getAllOrdererNames.should.not.have.been.called;
             localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.not.have.been.called;
 
@@ -380,7 +382,7 @@ describe('DeployView', () => {
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
 
-            localEnvironmentConnectionMock.getAllPeerNames.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllOrdererNames.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllPeerNamesForOrg.should.have.been.calledThrice;
             localEnvironmentConnectionMock.getAllOrganizationNames.should.have.been.calledOnce;
@@ -412,7 +414,7 @@ describe('DeployView', () => {
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
 
-            localEnvironmentConnectionMock.getAllPeerNames.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllOrdererNames.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllPeerNamesForOrg.should.have.been.calledThrice;
             localEnvironmentConnectionMock.getAllOrganizationNames.should.have.been.calledOnce;
@@ -444,7 +446,7 @@ describe('DeployView', () => {
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
 
-            localEnvironmentConnectionMock.getAllPeerNames.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllOrdererNames.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllPeerNamesForOrg.should.have.been.calledThrice;
             localEnvironmentConnectionMock.getAllOrganizationNames.should.have.been.calledOnce;
