@@ -660,6 +660,7 @@
                     "when": "false"
                 },
                 {
+<<<<<<< HEAD
                     "command": "environmentExplorer.installSmartContractEntry",
                     "when": "false"
                 },
@@ -670,6 +671,22 @@
                 {
                     "command": "environmentExplorer.commitSmartContractEntry",
                     "when": "false"
+=======
+                    "command": "environmentExplorer.startFabricRuntime",
+                    "when": "local-fabric-enabled"
+                },
+                {
+                    "command": "environmentExplorer.stopFabricRuntime",
+                    "when": "local-fabric-enabled"
+                },
+                {
+                    "command": "environmentExplorer.restartFabricRuntime",
+                    "when": "local-fabric-enabled"
+                },
+                {
+                    "command": "environmentExplorer.teardownFabricRuntime",
+                    "when": "local-fabric-enabled"
+>>>>>>> 8b1a6065... Explicitly disable local Fabric on Eclipse Che (resolves #2394)
                 }
             ],
             "view/title": [

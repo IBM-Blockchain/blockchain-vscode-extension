@@ -106,6 +106,12 @@ describe('teardownFabricRuntime', () => {
         await connectionRegistry.clear();
     });
 
+    it('should do nothing and report a warning on Eclipse Che', async () => {
+        sandbox.stub(ExtensionUtil, 'isChe').returns(true);
+        await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC_SHORT);
+        logSpy.should.have.been.calledWithExactly(LogType.ERROR, sinon.match(/not supported/));
+    });
+
     it('should teardown a Fabric environment from the tree', async () => {
         teardownStub = sandbox.stub(localEnvironment, 'teardown').resolves();
         sandbox.stub(localEnvironment, 'startLogs').resolves();
