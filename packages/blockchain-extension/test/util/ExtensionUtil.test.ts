@@ -1913,6 +1913,40 @@ describe('ExtensionUtil Tests', () => {
             promises = [];
         });
 
+        describe('local Fabric functionality is enabled on Eclipse Che', () => {
+
+            beforeEach(async () => {
+                mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
+                getSettingsStub.withArgs(SettingConfigurations.EXTENSION_LOCAL_FABRIC).returns(true);
+                updateSettingsStub.withArgs(SettingConfigurations.EXTENSION_LOCAL_FABRIC, false, vscode.ConfigurationTarget.Global).resolves();
+            });
+
+            it('should report a warning and disable local Fabric functionality', async () => {
+                const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+                await ExtensionUtil.registerCommands(ctx);
+                await Promise.all(promises);
+                logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, sinon.match(/not supported/));
+                updateSettingsStub.should.have.been.calledOnceWithExactly(SettingConfigurations.EXTENSION_LOCAL_FABRIC, false, vscode.ConfigurationTarget.Global);
+            });
+
+        });
+
+        describe('local Fabric functionality is disabled on Eclipse Che', () => {
+
+            beforeEach(async () => {
+                mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
+                getSettingsStub.withArgs(SettingConfigurations.EXTENSION_LOCAL_FABRIC).returns(false);
+                updateSettingsStub.withArgs(SettingConfigurations.EXTENSION_LOCAL_FABRIC, false, vscode.ConfigurationTarget.Global).resolves();
+            });
+
+            it('should do nothing', async () => {
+                const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+                await ExtensionUtil.registerCommands(ctx);
+                await Promise.all(promises);
+            });
+
+        });
+
         describe(`local fabric functionality is enabled`, () => {
             beforeEach(async () => {
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_LOCAL_FABRIC).returns(true);
@@ -2230,7 +2264,7 @@ describe('ExtensionUtil Tests', () => {
 
             });
 
-            it(`should not set context if there are no generated runtimes`, async () => {
+            it(`should set context if there are no generated runtimes`, async () => {
 
                 mockRuntime.isGenerated.resolves(false);
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
@@ -2247,7 +2281,7 @@ describe('ExtensionUtil Tests', () => {
 
                 deleteEnvironmentSpy.should.not.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
 
-                executeCommandStub.should.not.have.been.calledWith('setContext', 'local-fabric-enabled', false);
+                executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
                 executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
