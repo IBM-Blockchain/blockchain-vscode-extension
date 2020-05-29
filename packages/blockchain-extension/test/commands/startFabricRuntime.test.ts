@@ -83,6 +83,12 @@ describe('startFabricRuntime', () => {
         await connectionRegistry.clear();
     });
 
+    it('should do nothing and report a warning on Eclipse Che', async () => {
+        sandbox.stub(ExtensionUtil, 'isChe').returns(true);
+        await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
+        logSpy.should.have.been.calledWithExactly(LogType.ERROR, sinon.match(/not supported/));
+    });
+
     it('should start a Fabric runtime specified by clicking the tree', async () => {
         await vscode.commands.executeCommand(runtimeTreeItem.command.command);
         commandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT);

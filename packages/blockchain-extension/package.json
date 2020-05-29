@@ -639,6 +639,22 @@
                 {
                     "command": "environmentExplorer.startFabricRuntimeShort",
                     "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.startFabricRuntime",
+                    "when": "local-fabric-enabled"
+                },
+                {
+                    "command": "environmentExplorer.stopFabricRuntime",
+                    "when": "local-fabric-enabled"
+                },
+                {
+                    "command": "environmentExplorer.restartFabricRuntime",
+                    "when": "local-fabric-enabled"
+                },
+                {
+                    "command": "environmentExplorer.teardownFabricRuntime",
+                    "when": "local-fabric-enabled"
                 }
             ],
             "view/title": [
