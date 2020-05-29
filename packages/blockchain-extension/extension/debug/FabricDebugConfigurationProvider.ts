@@ -111,6 +111,12 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
     public async resolveDebugConfiguration(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         try {
+            // If we're running on Eclipse Che, this is not a supported feature.
+            if (ExtensionUtil.isChe()) {
+                outputAdapter.log(LogType.ERROR, 'Debugging smart contracts is not supported in Eclipse Che or Red Hat CodeReady Workspaces.');
+                return;
+            }
+
             const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
             if (!localFabricEnabled) {
                 outputAdapter.log(LogType.ERROR, `Setting '${SettingConfigurations.EXTENSION_LOCAL_FABRIC}' must be set to 'true' to enable debugging.`);
