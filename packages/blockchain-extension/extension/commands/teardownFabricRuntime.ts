@@ -23,12 +23,19 @@ import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsible
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
+import { ExtensionUtil } from '../util/ExtensionUtil';
 
 export async function teardownFabricRuntime(runtimeTreeItem: RuntimeTreeItem, force: boolean = false, environmentName?: string): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'teardownFabricRuntime');
-    let registryEntry: FabricEnvironmentRegistryEntry;
 
+    // If we're running on Eclipse Che, this is not a supported feature.
+    if (ExtensionUtil.isChe()) {
+        outputAdapter.log(LogType.ERROR, 'Local Fabric functionality is not supported in Eclipse Che or Red Hat CodeReady Workspaces.');
+        return;
+    }
+
+    let registryEntry: FabricEnvironmentRegistryEntry;
     if (environmentName) {
         registryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
     } else if (!runtimeTreeItem) {

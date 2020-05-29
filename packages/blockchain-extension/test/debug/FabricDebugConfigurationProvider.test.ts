@@ -466,6 +466,12 @@ describe('FabricDebugConfigurationProvider', () => {
             startDebuggingStub.should.not.have.been.called;
             commandStub.should.not.have.been.calledWith('setContext', 'blockchain-debug', true);
         });
+
+        it('should do nothing and report a warning on Eclipse Che', async () => {
+            mySandbox.stub(ExtensionUtil, 'isChe').returns(true);
+            await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, sinon.match(/not supported/));
+        });
     });
 
     describe('connectToGateway', () => {

@@ -341,6 +341,15 @@ export class ExtensionUtil {
 
                 const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
 
+                // If we're running on Eclipse Che, this is not a supported feature.
+                if (ExtensionUtil.isChe()) {
+                    if (localFabricEnabled) {
+                        outputAdapter.log(LogType.ERROR, 'Local Fabric functionality is not supported in Eclipse Che or Red Hat CodeReady Workspaces.');
+                        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_LOCAL_FABRIC, false, vscode.ConfigurationTarget.Global);
+                    }
+                    return;
+                }
+
                 const runtimes: LocalEnvironment[] = [];
                 const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.LOCAL]); // Get only local entries
                 for (const entry of environmentEntries) {
@@ -380,9 +389,9 @@ export class ExtensionUtil {
 
                             }
 
-                            await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', false);
-
                         }
+
+                        await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', false);
 
                     } catch (error) {
                         outputAdapter.log(LogType.ERROR, `Error whilst toggling local Fabric functionality to false: ${error.message}`, `Error whilst toggling local Fabric functionality to false: ${error.toString()}`);
