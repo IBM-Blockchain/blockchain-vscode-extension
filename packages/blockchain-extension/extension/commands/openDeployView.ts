@@ -15,7 +15,7 @@
 'use strict';
 import * as vscode from 'vscode';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { LogType, FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection } from 'ibm-blockchain-platform-common';
+import { LogType, FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, FabricSmartContractDefinition } from 'ibm-blockchain-platform-common';
 import { DeployView } from '../webview/DeployView';
 import { GlobalState } from '../util/GlobalState';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
@@ -76,11 +76,17 @@ export async function openDeployView(fabricRegistryEntry?: FabricEnvironmentRegi
         const workspaceFolders: vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
         const workspaceNames: string[] = workspaceFolders.map((item: vscode.WorkspaceFolder) => item.name);
 
-        const appState: { channelName: string, environmentName: string, packageEntries: PackageRegistryEntry[], workspaceNames: string[] } = {
+        const channelMap: Map<string, string[]> = await connection.createChannelMap();
+        const channelPeers: string[] = channelMap.get(channelName);
+        const allCommittedContracts: FabricSmartContractDefinition[] = await connection.getCommittedSmartContractDefinitions(channelPeers, channelName);
+        const definitionNames: string[] = allCommittedContracts.map((definition: FabricSmartContractDefinition) => definition.name);
+
+        const appState: { channelName: string, environmentName: string, packageEntries: PackageRegistryEntry[], workspaceNames: string[], definitionNames: string[] } = {
             channelName,
             environmentName: selectedEnvironmentName,
             packageEntries,
-            workspaceNames
+            workspaceNames,
+            definitionNames
         };
 
         const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
