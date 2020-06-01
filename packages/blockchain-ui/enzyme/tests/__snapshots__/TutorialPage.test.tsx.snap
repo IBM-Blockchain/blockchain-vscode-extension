@@ -33,281 +33,285 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
     id="tutorial-tabs-container"
   >
     <div
-      className="tutorial-tabs-background"
-    />
-    <div
-      className="bx--tabs bx--tabs--container"
-      role="navigation"
-      selected={0}
+      className="bx--col-lg-13 bx--col-md-8 bx--col-sm-4"
     >
       <div
-        aria-label="listbox"
-        className="bx--tabs-trigger"
-        onClick={[Function]}
-        onKeyPress={[Function]}
-        role="listbox"
-        tabIndex={0}
+        className="tutorial-tabs-background"
+      />
+      <div
+        className="bx--tabs bx--tabs--container"
+        role="navigation"
+        selected={0}
       >
-        <a
-          className="bx--tabs-trigger-text"
-          href="#"
+        <div
+          aria-label="listbox"
+          className="bx--tabs-trigger"
           onClick={[Function]}
-          tabIndex={-1}
-        >
-          Basic tutorials (1)
-        </a>
-        <svg
-          aria-hidden={true}
-          focusable="false"
-          height={16}
-          preserveAspectRatio="xMidYMid meet"
-          viewBox="0 0 16 16"
-          width={16}
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <polygon
-            points="8,11 3,6 3.7,5.3 8,9.6 12.3,5.3 13,6"
-          />
-          <title>
-            show menu options
-          </title>
-        </svg>
-      </div>
-      <ul
-        className="bx--tabs__nav bx--tabs__nav--hidden"
-        role="tablist"
-      >
-        <li
-          aria-controls="undefined__panel"
-          aria-selected={true}
-          className="bx--tabs__nav-item bx--tabs__nav-item--selected"
-          onClick={[Function]}
-          onKeyDown={[Function]}
-          role="tab"
-          tabIndex={-1}
+          onKeyPress={[Function]}
+          role="listbox"
+          tabIndex={0}
         >
           <a
-            className="bx--tabs__nav-link"
+            className="bx--tabs-trigger-text"
             href="#"
-            tabIndex={0}
+            onClick={[Function]}
+            tabIndex={-1}
           >
             Basic tutorials (1)
           </a>
-        </li>
-        <li
-          aria-controls="undefined__panel"
-          aria-selected={false}
-          className="bx--tabs__nav-item"
-          onClick={[Function]}
-          onKeyDown={[Function]}
-          role="tab"
-          tabIndex={-1}
+          <svg
+            aria-hidden={true}
+            focusable="false"
+            height={16}
+            preserveAspectRatio="xMidYMid meet"
+            viewBox="0 0 16 16"
+            width={16}
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <polygon
+              points="8,11 3,6 3.7,5.3 8,9.6 12.3,5.3 13,6"
+            />
+            <title>
+              show menu options
+            </title>
+          </svg>
+        </div>
+        <ul
+          className="bx--tabs__nav bx--tabs__nav--hidden"
+          role="tablist"
         >
-          <a
-            className="bx--tabs__nav-link"
-            href="#"
+          <li
+            aria-controls="undefined__panel"
+            aria-selected={true}
+            className="bx--tabs__nav-item bx--tabs__nav-item--selected"
+            onClick={[Function]}
+            onKeyDown={[Function]}
+            role="tab"
             tabIndex={-1}
           >
-            Other tutorials (1)
+            <a
+              className="bx--tabs__nav-link"
+              href="#"
+              tabIndex={0}
+            >
+              Basic tutorials (1)
+            </a>
+          </li>
+          <li
+            aria-controls="undefined__panel"
+            aria-selected={false}
+            className="bx--tabs__nav-item"
+            onClick={[Function]}
+            onKeyDown={[Function]}
+            role="tab"
+            tabIndex={-1}
+          >
+            <a
+              className="bx--tabs__nav-link"
+              href="#"
+              tabIndex={-1}
+            >
+              Other tutorials (1)
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div
+        aria-hidden={false}
+        className="bx--tab-content"
+        hidden={false}
+        role="tabpanel"
+        selected={true}
+      >
+        <div
+          className="series-description-container"
+        >
+          <p
+            className="series-description"
+          >
+            some description
+          </p>
+          <a
+            className="bx--link download-all"
+            href="#"
+            id="download-all-link"
+            onClick={[Function]}
+          >
+            Download all "Basic tutorials" as PDF
           </a>
-        </li>
-      </ul>
-    </div>
-    <div
-      aria-hidden={false}
-      className="bx--tab-content"
-      hidden={false}
-      role="tabpanel"
-      selected={true}
-    >
-      <div
-        className="series-description-container"
-      >
-        <p
-          className="series-description"
+        </div>
+        <div
+          className="tab-container"
         >
-          some description
-        </p>
-        <a
-          className="bx--link download-all"
-          href="#"
-          id="download-all-link"
-          onClick={[Function]}
-        >
-          Download all "Basic tutorials" as PDF
-        </a>
+          <div
+            className="tutorial-title"
+          >
+            a1
+          </div>
+          <div
+            className="time-container"
+          >
+            <svg
+              aria-hidden={true}
+              className="icon"
+              focusable="false"
+              height={16}
+              preserveAspectRatio="xMidYMid meet"
+              viewBox="0 0 32 32"
+              width={16}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <rect
+                height="9"
+                width="2"
+                x="15"
+                y="11"
+              />
+              <rect
+                height="2"
+                width="6"
+                x="13"
+                y="2"
+              />
+              <path
+                d="M28,9,26.58,7.59,24.33,9.84a10.94,10.94,0,1,0,1.18,1.65ZM16,26a9,9,0,1,1,9-9A9,9,0,0,1,16,26Z"
+              />
+            </svg>
+            <span
+              className="text"
+            >
+              4 weeks
+            </span>
+          </div>
+          <div
+            className="tutorial-objectives"
+          >
+            <p
+              className="objective"
+            >
+              objective 1
+            </p>
+            <p
+              className="objective"
+            >
+              objective 2
+            </p>
+            <p
+              className="objective"
+            >
+              objective 3
+            </p>
+          </div>
+          <div
+            className="button-container"
+          >
+            <button
+              className="pdf-button bx--btn bx--btn--ghost"
+              disabled={false}
+              onClick={[Function]}
+              tabIndex={0}
+              type="button"
+            >
+              Download as PDF
+            </button>
+            <button
+              className="button bx--btn bx--btn--secondary"
+              disabled={false}
+              onClick={[Function]}
+              tabIndex={0}
+              type="button"
+            >
+              Open tutorial
+            </button>
+          </div>
+        </div>
+        <br />
       </div>
       <div
-        className="tab-container"
+        aria-hidden={true}
+        className="bx--tab-content"
+        hidden={true}
+        role="tabpanel"
+        selected={false}
       >
         <div
-          className="tutorial-title"
+          className="tab-container"
         >
-          a1
+          <div
+            className="tutorial-title"
+          >
+            something really interesting
+          </div>
+          <div
+            className="time-container"
+          >
+            <svg
+              aria-hidden={true}
+              className="icon"
+              focusable="false"
+              height={16}
+              preserveAspectRatio="xMidYMid meet"
+              viewBox="0 0 32 32"
+              width={16}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <rect
+                height="9"
+                width="2"
+                x="15"
+                y="11"
+              />
+              <rect
+                height="2"
+                width="6"
+                x="13"
+                y="2"
+              />
+              <path
+                d="M28,9,26.58,7.59,24.33,9.84a10.94,10.94,0,1,0,1.18,1.65ZM16,26a9,9,0,1,1,9-9A9,9,0,0,1,16,26Z"
+              />
+            </svg>
+            <span
+              className="text"
+            >
+              10 minutes
+            </span>
+          </div>
+          <div
+            className="tutorial-objectives"
+          >
+            <p
+              className="objective"
+            >
+              objective 1
+            </p>
+            <p
+              className="objective"
+            >
+              objective 2
+            </p>
+            <p
+              className="objective"
+            >
+              objective 3
+            </p>
+          </div>
+          <div
+            className="button-container"
+          >
+            <button
+              className="button bx--btn bx--btn--secondary"
+              disabled={false}
+              onClick={[Function]}
+              tabIndex={0}
+              type="button"
+            >
+              Open tutorial
+            </button>
+          </div>
         </div>
-        <div
-          className="time-container"
-        >
-          <svg
-            aria-hidden={true}
-            className="icon"
-            focusable="false"
-            height={16}
-            preserveAspectRatio="xMidYMid meet"
-            viewBox="0 0 32 32"
-            width={16}
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <rect
-              height="9"
-              width="2"
-              x="15"
-              y="11"
-            />
-            <rect
-              height="2"
-              width="6"
-              x="13"
-              y="2"
-            />
-            <path
-              d="M28,9,26.58,7.59,24.33,9.84a10.94,10.94,0,1,0,1.18,1.65ZM16,26a9,9,0,1,1,9-9A9,9,0,0,1,16,26Z"
-            />
-          </svg>
-          <span
-            className="text"
-          >
-            4 weeks
-          </span>
-        </div>
-        <div
-          className="tutorial-objectives"
-        >
-          <p
-            className="objective"
-          >
-            objective 1
-          </p>
-          <p
-            className="objective"
-          >
-            objective 2
-          </p>
-          <p
-            className="objective"
-          >
-            objective 3
-          </p>
-        </div>
-        <div
-          className="button-container"
-        >
-          <button
-            className="pdf-button bx--btn bx--btn--ghost"
-            disabled={false}
-            onClick={[Function]}
-            tabIndex={0}
-            type="button"
-          >
-            Download as PDF
-          </button>
-          <button
-            className="button bx--btn bx--btn--secondary"
-            disabled={false}
-            onClick={[Function]}
-            tabIndex={0}
-            type="button"
-          >
-            Open tutorial
-          </button>
-        </div>
+        <br />
       </div>
-      <br />
-    </div>
-    <div
-      aria-hidden={true}
-      className="bx--tab-content"
-      hidden={true}
-      role="tabpanel"
-      selected={false}
-    >
-      <div
-        className="tab-container"
-      >
-        <div
-          className="tutorial-title"
-        >
-          something really interesting
-        </div>
-        <div
-          className="time-container"
-        >
-          <svg
-            aria-hidden={true}
-            className="icon"
-            focusable="false"
-            height={16}
-            preserveAspectRatio="xMidYMid meet"
-            viewBox="0 0 32 32"
-            width={16}
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <rect
-              height="9"
-              width="2"
-              x="15"
-              y="11"
-            />
-            <rect
-              height="2"
-              width="6"
-              x="13"
-              y="2"
-            />
-            <path
-              d="M28,9,26.58,7.59,24.33,9.84a10.94,10.94,0,1,0,1.18,1.65ZM16,26a9,9,0,1,1,9-9A9,9,0,0,1,16,26Z"
-            />
-          </svg>
-          <span
-            className="text"
-          >
-            10 minutes
-          </span>
-        </div>
-        <div
-          className="tutorial-objectives"
-        >
-          <p
-            className="objective"
-          >
-            objective 1
-          </p>
-          <p
-            className="objective"
-          >
-            objective 2
-          </p>
-          <p
-            className="objective"
-          >
-            objective 3
-          </p>
-        </div>
-        <div
-          className="button-container"
-        >
-          <button
-            className="button bx--btn bx--btn--secondary"
-            disabled={false}
-            onClick={[Function]}
-            tabIndex={0}
-            type="button"
-          >
-            Open tutorial
-          </button>
-        </div>
-      </div>
-      <br />
     </div>
   </div>
 </div>
