@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { TextInput, FileUploader, Accordion, AccordionItem, Link, FileUploaderItem } from 'carbon-components-react';
+import { TextInput, FileUploader, Accordion, AccordionItem, Link, FileUploaderItem, InlineNotification } from 'carbon-components-react';
 import IPackageRegistryEntry from '../../../../interfaces/IPackageRegistryEntry';
 
 interface IProps {
@@ -10,6 +10,7 @@ interface IProps {
     currentDefinitionName: string;
     currentDefinitionVersion: string;
     currentCollectionFile: File | undefined;
+    definitionNames: string[];
 }
 
 interface DeployStepTwoState {
@@ -40,6 +41,12 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
         this.versionInvalid = this.isVersionInvalid(this.state.definitionVersionValue);
         this.collectionChange = this.collectionChange.bind(this);
 
+    }
+
+    componentWillReceiveProps(props: any): void {
+        if (props.currentDefinitionName !== this.state.definitionNameValue) {
+            this.setState({definitionNameValue: props.currentDefinitionName});
+        }
     }
 
     handleDefinitionNameChange(data: any): void {
@@ -95,6 +102,28 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
             );
         }
 
+        let contractExists: JSX.Element | undefined;
+
+        if (this.props.definitionNames.indexOf(this.state.definitionNameValue) > -1 ) {
+            contractExists = (
+                <div className='bx--row margin-bottom-05'>
+                    <div className='bx--col-lg-10'>
+                        <InlineNotification
+                                hideCloseButton={true}
+                                kind='info'
+                                lowContrast={true}
+                                notificationType='inline'
+                                role='alert'
+                                statusIconDescription='describes the status icon'
+                                subtitle={<p>You should change the definition version to update the existing smart contract, or provide a new name to deploy as a new definition.</p>}
+                                title='Name matches an existing smart contract'
+                            />
+                    </div>
+                </div>
+
+            );
+        }
+
         return (
             <>
                 <div className='bx--row margin-bottom-06'>
@@ -104,7 +133,7 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
                         You may optionally change them.
                     </div>
                 </div>
-                <div className='bx--row margin-bottom-06'>
+                <div className={'bx--row' + (contractExists ? ' margin-bottom-03' : ' margin-bottom-06')}>
                     <div className='bx--col-lg-10'>
                         <h5>Smart contract definition</h5>
                     </div>
@@ -121,6 +150,8 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
                         </div>
                     </div>
                 </div>
+
+                {contractExists}
 
                 <div className='bx--row margin-bottom-06'>
                     <div className='bx--col-lg-10'>
