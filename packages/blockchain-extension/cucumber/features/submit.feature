@@ -85,20 +85,20 @@ Feature: Submit transaction
     @opsToolsFabric
     Scenario Outline: Submit a transaction for a smart contract (OpsTool software environment)
         Given an environment 'myOpsToolsFabric' of type 'software' exists
-        And the wallet 'opsToolsWallet' with identity 'Org1CAAdmin' and mspid 'org1msp' exists
-        And the wallet 'opsToolsWallet' with identity 'Org2CAAdmin' and mspid 'org2msp' exists
-        And the wallet 'opsToolsWallet' with identity 'OrderingServiceCAAdmin' and mspid 'osmsp' exists
-        And the wallet 'opsToolsWallet' with identity 'OrderingServiceMSPAdmin' and mspid 'osmsp' exists
-        And the wallet 'opsToolsWallet' with identity 'OrderingServiceMSPAdmin' and mspid 'osmsp' exists
-        And the wallet 'opsToolsWallet' with identity 'Org1MSPAdmin' and mspid 'org1msp' exists
-        And the wallet 'opsToolsWallet' with identity 'Org2MSPAdmin' and mspid 'org2msp' exists
+        And the wallet 'opsToolsWallet' with identity 'Org1CAAdmin_2' and mspid 'org1msp' exists
+        And the wallet 'opsToolsWallet' with identity 'Org2CAAdmin_2' and mspid 'org2msp' exists
+        And the wallet 'opsToolsWallet' with identity 'OrderingServiceCAAdmin_2' and mspid 'osmsp' exists
+        And the wallet 'opsToolsWallet' with identity 'OrderingServiceMSPAdmin_2' and mspid 'osmsp' exists
+        And the wallet 'opsToolsWallet' with identity 'OrderingServiceMSPAdmin_2' and mspid 'osmsp' exists
+        And the wallet 'opsToolsWallet' with identity 'Org1MSPAdmin_2' and mspid 'org1msp' exists
+        And the wallet 'opsToolsWallet' with identity 'Org2MSPAdmin_2' and mspid 'org2msp' exists
         And I have edited filters and imported all nodes to environment 'myOpsToolsFabric'
         And the 'software' opstools environment is setup
         And the 'myOpsToolsFabric' environment is connected
         And a <language> smart contract for <assetType> assets with the name <name> and version <version>
         And I have created a gateway 'myOpsGateway' from an 'environment'
         And the 'opsToolsWallet' wallet
-        And the 'Org1MSPAdmin' identity
+        And the 'Org1MSPAdmin_2' identity
         And I'm connected to the 'myOpsGateway' gateway
         When I submit the transaction 'readConga' on the channel 'channel1' with args '["001"]'
         Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'Returned value from readConga: {"value":"newAsset"}'
