@@ -80,13 +80,13 @@ describe('DeleteEnvironmentCommand', () => {
             environments = [];
 
             myEnvironmentA = new FabricEnvironmentRegistryEntry({
-                name: 'myEnvironmentA'
+                name: 'myEnvironmentA',
             });
 
             await FabricEnvironmentRegistry.instance().add(myEnvironmentA);
 
             myEnvironmentB = new FabricEnvironmentRegistryEntry({
-                name: 'myEnvironmentB'
+                name: 'myEnvironmentB',
             });
 
             await FabricEnvironmentRegistry.instance().add(myEnvironmentB);
@@ -163,8 +163,9 @@ describe('DeleteEnvironmentCommand', () => {
             const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
+            const groupChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren(allChildren[1]);
 
-            const environmentToDelete: BlockchainTreeItem = allChildren[1];
+            const environmentToDelete: BlockchainTreeItem = groupChildren[0];
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT_SHORT, environmentToDelete);
 
             showFabricEnvironmentQuickPickBoxStub.should.not.have.been.called;
@@ -380,8 +381,9 @@ describe('DeleteEnvironmentCommand', () => {
             const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
+            const groupChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren(allChildren[0]);
 
-            const environmentToDelete: BlockchainTreeItem = allChildren[0];
+            const environmentToDelete: BlockchainTreeItem = groupChildren[0];
 
             environmentToDelete.should.be.an.instanceOf(RuntimeTreeItem);
 
@@ -450,8 +452,8 @@ describe('DeleteEnvironmentCommand', () => {
             const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
-
-            const environmentToDelete: BlockchainTreeItem = allChildren[1];
+            const groupChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren(allChildren[0]);
+            const environmentToDelete: BlockchainTreeItem = groupChildren[1];
 
             environmentToDelete.should.be.an.instanceOf(RuntimeTreeItem);
 
@@ -614,8 +616,8 @@ describe('DeleteEnvironmentCommand', () => {
             const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
-
-            const environmentToDelete: BlockchainTreeItem = allChildren[3];
+            const groupChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren(allChildren[1]);
+            const environmentToDelete: BlockchainTreeItem = groupChildren[2];
 
             environmentToDelete.should.be.an.instanceOf(RuntimeTreeItem);
 

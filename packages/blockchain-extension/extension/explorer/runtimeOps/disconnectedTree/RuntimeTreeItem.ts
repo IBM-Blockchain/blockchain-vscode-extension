@@ -15,6 +15,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
 import { VSCodeBlockchainOutputAdapter } from '../../../logging/VSCodeBlockchainOutputAdapter';
 import { FabricEnvironmentTreeItem } from './FabricEnvironmentTreeItem';
@@ -36,6 +37,10 @@ export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
     }
 
     contextValue: string = 'blockchain-runtime-item';
+    iconPath: { light: string, dark: string } = {
+        light: path.join(__filename, '..', '..', '..', '..', '..', '..', 'resources', 'light', 'network--3.svg'),
+        dark: path.join(__filename, '..', '..', '..', '..', '..', '..', 'resources', 'dark', 'network--3.svg')
+    };
     private name: string;
     private runtime: LocalEnvironment | ManagedAnsibleEnvironment;
     private busyTicker: NodeJS.Timer;
