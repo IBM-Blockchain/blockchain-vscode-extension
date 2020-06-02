@@ -26,7 +26,7 @@ chai.use(sinonChai);
 
 class TestView extends View {
 
-    protected async getHTMLString(): Promise<string> {
+    protected async getHTMLString(_webview: vscode.Webview): Promise<string> {
         return '';
     }
 

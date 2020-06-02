@@ -66,7 +66,7 @@ export class SampleView extends View {
                 await this.cloneRepository(message.recloning);
 
                 // Set the webview's html
-                panel.webview.html = await this.getHTMLString();
+                panel.webview.html = await this.getHTMLString(panel.webview);
                 Reporter.instance().sendTelemetryEvent('Sample Cloned', {sample: this.sampleName});
 
             } else if (message.command === 'open') {
@@ -79,7 +79,7 @@ export class SampleView extends View {
                 await this.openFile(fileType, fileName, language);
 
                 // Refresh the webviews html
-                panel.webview.html = await this.getHTMLString();
+                panel.webview.html = await this.getHTMLString(panel.webview);
                 Reporter.instance().sendTelemetryEvent('Sample Opened', {sample: this.sampleName, name: fileName, type: fileType, language: language});
 
             } else if (message.command === 'getLanguageVersion') {
@@ -97,15 +97,15 @@ export class SampleView extends View {
         }, undefined, this.context.subscriptions);
     }
 
-    async getHTMLString(): Promise<string> {
+    async getHTMLString(webview: vscode.Webview): Promise<string> {
         const extensionPath: string = ExtensionUtil.getExtensionPath();
 
         // Images
-        const marketplaceIcon: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'blockchain_marketplace.png')).with({ scheme: 'vscode-resource' });
-        const contractsIconWhite: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'contracts_icon_white.svg')).with({ scheme: 'vscode-resource' });
-        const contractsIconBlack: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'contracts_icon_black.svg')).with({ scheme: 'vscode-resource' });
-        const applicationsIconWhite: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'applications_icon_white.svg')).with({ scheme: 'vscode-resource' });
-        const applicationsIconBlack: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'applications_icon_black.svg')).with({ scheme: 'vscode-resource' });
+        const marketplaceIcon: vscode.Uri = webview.asWebviewUri(vscode.Uri.file(path.join(extensionPath, 'resources', 'blockchain_marketplace.png')));
+        const contractsIconWhite: vscode.Uri = webview.asWebviewUri(vscode.Uri.file(path.join(extensionPath, 'resources', 'contracts_icon_white.svg')));
+        const contractsIconBlack: vscode.Uri = webview.asWebviewUri(vscode.Uri.file(path.join(extensionPath, 'resources', 'contracts_icon_black.svg')));
+        const applicationsIconWhite: vscode.Uri = webview.asWebviewUri(vscode.Uri.file(path.join(extensionPath, 'resources', 'applications_icon_white.svg')));
+        const applicationsIconBlack: vscode.Uri = webview.asWebviewUri(vscode.Uri.file(path.join(extensionPath, 'resources', 'applications_icon_black.svg')));
 
         const repository: any = await this.getRepository(this.repoName);
         const sample: any = this.getSample(repository, this.sampleName);

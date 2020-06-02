@@ -61,7 +61,8 @@ describe('PreReqView', () => {
         createWebviewPanelStub.returns({
             title: 'Prerequisites',
             webview: {
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: mySandBox.stub(),
             dispose: mySandBox.stub(),
@@ -117,7 +118,9 @@ describe('PreReqView', () => {
 
             const preReqView: PreReqView = new PreReqView(context);
 
-            const html: string = await preReqView.getHTMLString();
+            const webView: any = { asWebviewUri: mySandBox.stub() };
+
+            const html: string = await preReqView.getHTMLString(webView);
 
             getPreReqVersionsStub.should.have.been.calledOnce;
             hasPreReqsInstalledStub.should.have.been.calledOnceWith(dependencies);
@@ -161,7 +164,9 @@ describe('PreReqView', () => {
 
             const preReqView: PreReqView = new PreReqView(context);
 
-            const html: string = await preReqView.getHTMLString();
+            const webView: any = { asWebviewUri: mySandBox.stub() };
+
+            const html: string = await preReqView.getHTMLString(webView);
 
             getPreReqVersionsStub.should.have.been.calledOnce;
             hasPreReqsInstalledStub.should.have.been.calledOnceWith(dependencies);
@@ -205,7 +210,9 @@ describe('PreReqView', () => {
                 systemRequirements: {name: 'System Requirements', id: 'systemRequirements', complete: true, version: undefined, checkbox: true, required: true, text: 'In order to support the local runtime, please confirm your system has at least 4GB of RAM' }
             };
 
-            const html: string = await preReqView.getHTMLString(dependencies, true);
+            const webView: any = { asWebviewUri: mySandBox.stub() };
+
+            const html: string = await preReqView.getHTMLString(webView, dependencies, true); // change here
 
             getPreReqVersionsSpy.should.not.have.been.called;
 
@@ -256,7 +263,9 @@ describe('PreReqView', () => {
                 systemRequirements: {name: 'System Requirements', id: 'systemRequirements', complete: true, version: undefined, checkbox: true, required: true, text: 'In order to support the local runtime, please confirm your system has at least 4GB of RAM' }
             };
 
-            const html: string = await preReqView.getHTMLString(dependencies, true, false);
+            const webView: any = { asWebviewUri: mySandBox.stub() };
+
+            const html: string = await preReqView.getHTMLString(webView, dependencies, true, false);
 
             getPreReqVersionsSpy.should.not.have.been.called;
             getSettingsStub.should.not.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
@@ -301,7 +310,9 @@ describe('PreReqView', () => {
 
             const preReqView: PreReqView = new PreReqView(context);
 
-            await preReqView.getHTMLString().should.be.rejectedWith(error);
+            const webView: any = { asWebviewUri: mySandBox.stub() };
+
+            await preReqView.getHTMLString(webView).should.be.rejectedWith(error);
 
             getPreReqVersionsStub.should.have.been.calledOnce;
 
@@ -340,7 +351,8 @@ describe('PreReqView', () => {
             createWebviewPanelStub.returns({
                 title: 'Prerequisites',
                 webview: {
-                    onDidReceiveMessage: mySandBox.stub()
+                    onDidReceiveMessage: mySandBox.stub(),
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: (): void => {
                     return;
@@ -393,7 +405,8 @@ describe('PreReqView', () => {
             createWebviewPanelStub.returns({
                 title: 'Prerequisites',
                 webview: {
-                    onDidReceiveMessage: mySandBox.stub()
+                    onDidReceiveMessage: mySandBox.stub(),
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: (): void => {
                     return;
@@ -454,7 +467,8 @@ describe('PreReqView', () => {
             createWebviewPanelStub.returns({
                 title: 'Prerequisites',
                 webview: {
-                    onDidReceiveMessage: mySandBox.stub()
+                    onDidReceiveMessage: mySandBox.stub(),
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: (): void => {
                     return;
@@ -514,7 +528,8 @@ describe('PreReqView', () => {
             createWebviewPanelStub.returns({
                 title: 'Prerequisites',
                 webview: {
-                    onDidReceiveMessage: mySandBox.stub()
+                    onDidReceiveMessage: mySandBox.stub(),
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: (): void => {
                     return;
@@ -567,7 +582,8 @@ describe('PreReqView', () => {
                                 localFabricFunctionality: true
                             });
                             resolve();
-                        }
+                        },
+                        asWebviewUri: mySandBox.stub()
                     },
                     reveal: (): void => {
                         return;
@@ -645,7 +661,8 @@ describe('PreReqView', () => {
                                 toggle: undefined
                             });
                             resolve();
-                        }
+                        },
+                        asWebviewUri: mySandBox.stub()
                     },
                     reveal: (): void => {
                         return;
@@ -682,7 +699,7 @@ describe('PreReqView', () => {
 
             hasPreReqsInstalledStub.should.have.been.calledWith(expectedMockDependencies);
 
-            getHTMLStringStub.should.have.been.calledWith(expectedMockDependencies, true, true);
+            getHTMLStringStub.should.have.been.calledWith(sinon.match({ asWebviewUri: sinon.match.any }), expectedMockDependencies, true, true);
 
             logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Finished checking installed dependencies');
             logSpy.should.not.have.been.calledWith(LogType.INFO, `Local Fabric functionality set to 'true'.`);
@@ -771,7 +788,7 @@ describe('PreReqView', () => {
 
             hasPreReqsInstalledStub.should.have.been.calledWith(expectedMockDependencies);
 
-            getHTMLStringStub.should.have.been.calledWith(expectedMockDependencies, true, false);
+            getHTMLStringStub.should.have.been.calledWith(sinon.match({ asWebviewUri: sinon.match.any }), expectedMockDependencies, true, false);
 
             logSpy.should.have.been.calledWith(LogType.INFO, `Local Fabric functionality set to 'false'.`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Finished checking installed dependencies');

@@ -75,13 +75,13 @@ export abstract class View {
             }, null, this.context.subscriptions);
 
             // Set the webview's html
-            panel.webview.html = await this.getHTMLString();
+            panel.webview.html = await this.getHTMLString(panel.webview);
             this.loadComponent(panel);
 
             if (!keepContext) {
                 panel.onDidChangeViewState(async () => {
                     // Whenever the View becomes active, rebuild the UI
-                    panel.webview.html = await this.getHTMLString();
+                    panel.webview.html = await this.getHTMLString(panel.webview);
                     this.loadComponent(panel);
                 });
             }
@@ -139,7 +139,7 @@ export abstract class View {
 
     protected async abstract openPanelInner(panel: vscode.WebviewPanel): Promise<void>;
 
-    protected async abstract getHTMLString(): Promise<string>;
+    protected async abstract getHTMLString(webview: vscode.Webview): Promise<string>;
 
     protected abstract loadComponent(panel: vscode.WebviewPanel): void;
 }

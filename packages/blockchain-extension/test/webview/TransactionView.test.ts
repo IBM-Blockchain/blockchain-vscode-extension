@@ -111,7 +111,8 @@ describe('TransactionView', () => {
             title: 'Transaction Page',
             webview: {
                 postMessage: postMessageStub,
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: mySandBox.stub(),
             dispose: mySandBox.stub(),
@@ -141,7 +142,8 @@ describe('TransactionView', () => {
                             data: transactionObject
                         });
                         resolve();
-                    }
+                    },
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: (): void => {
                     return;
@@ -171,7 +173,8 @@ describe('TransactionView', () => {
                             data: transactionObject
                         });
                         resolve();
-                    }
+                    },
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: (): void => {
                     return;
@@ -201,7 +204,8 @@ describe('TransactionView', () => {
                             data: transactionObject
                         });
                         resolve();
-                    }
+                    },
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: (): void => {
                     return;
