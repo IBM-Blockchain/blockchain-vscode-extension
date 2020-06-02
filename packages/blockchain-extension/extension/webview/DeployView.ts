@@ -14,6 +14,7 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs-extra';
 import {ReactView} from './ReactView';
 import {ExtensionUtil} from '../util/ExtensionUtil';
 import {Reporter} from '../util/Reporter';
@@ -24,7 +25,8 @@ import {
     FabricEnvironmentRegistry,
     IFabricEnvironmentConnection,
     FabricSmartContractDefinition,
-    LogType
+    LogType,
+    FabricCollectionDefinition
 } from 'ibm-blockchain-platform-common';
 import {FabricEnvironmentManager} from '../fabric/environments/FabricEnvironmentManager';
 import {VSCodeBlockchainOutputAdapter} from '../logging/VSCodeBlockchainOutputAdapter';
@@ -71,7 +73,8 @@ export class DeployView extends ReactView {
                 const definitionName: string = message.data.definitionName;
                 const definitionVersion: string = message.data.definitionVersion;
                 const commitSmartContract: boolean = message.data.commitSmartContract;
-                await this.deploy(channelName, environmentName, selectedPackage, definitionName, definitionVersion, commitSmartContract);
+                const collectionConfigPath: string = message.data.collectionConfigPath;
+                await this.deploy(channelName, environmentName, selectedPackage, definitionName, definitionVersion, commitSmartContract, collectionConfigPath);
             } else if (message.command === 'package') {
                 const workspaceName: string = message.data.workspaceName;
                 const entry: PackageRegistryEntry = await this.package(workspaceName);
@@ -94,7 +97,7 @@ export class DeployView extends ReactView {
         });
     }
 
-    async deploy(channelName: string, environmentName: string, selectedPackage: PackageRegistryEntry, definitionName: string, definitionVersion: string, commitSmartContract: boolean): Promise<void> {
+    async deploy(channelName: string, environmentName: string, selectedPackage: PackageRegistryEntry, definitionName: string, definitionVersion: string, commitSmartContract: boolean, collectionConfigPath: string): Promise<void> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         try {
@@ -172,11 +175,19 @@ export class DeployView extends ReactView {
                 }
             }
 
+            let collectionFile: FabricCollectionDefinition[];
+            if (collectionConfigPath) {
+                collectionFile = await fs.readJSON(collectionConfigPath) as FabricCollectionDefinition[];
+
+                // Increment regardless of whatever the sequence was calculated as
+                sequenceNumber = committedContract ? committedContract.sequence + 1 : 1;
+            }
+
             if (commitSmartContract === undefined) {
                 commitSmartContract = true; // Commit by default
             }
 
-            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, commitSmartContract, environmentEntry, ordererNames[0], channelName, orgMap, selectedPackage, new FabricSmartContractDefinition(definitionName, definitionVersion, sequenceNumber));
+            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, commitSmartContract, environmentEntry, ordererNames[0], channelName, orgMap, selectedPackage, new FabricSmartContractDefinition(definitionName, definitionVersion, sequenceNumber, undefined, undefined, collectionFile));
         } catch (error) {
             outputAdapter.log(LogType.ERROR, error.message, error.toString());
         }

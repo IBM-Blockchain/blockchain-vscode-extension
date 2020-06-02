@@ -1,18 +1,21 @@
 import React, { Component } from 'react';
-import { TextInput, FileUploader, Accordion, AccordionItem, Link } from 'carbon-components-react';
+import { TextInput, FileUploader, Accordion, AccordionItem, Link, FileUploaderItem } from 'carbon-components-react';
 import IPackageRegistryEntry from '../../../../interfaces/IPackageRegistryEntry';
 
 interface IProps {
     selectedPackage: IPackageRegistryEntry;
     onDefinitionNameChange: (name: string, nameInvalid: boolean) => void;
     onDefinitionVersionChange: (name: string, versionInvalid: boolean) => void;
+    onCollectionChange: (file: File) => void;
     currentDefinitionName: string;
     currentDefinitionVersion: string;
+    currentCollectionFile: File | undefined;
 }
 
 interface DeployStepTwoState {
     definitionNameValue: string;
     definitionVersionValue: string;
+    collectionFile: File | undefined;
 }
 
 class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
@@ -24,7 +27,8 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
 
         this.state = {
             definitionNameValue: this.props.currentDefinitionName ? this.props.currentDefinitionName : this.props.selectedPackage.name,
-            definitionVersionValue: this.props.currentDefinitionVersion ? this.props.currentDefinitionVersion : this.props.selectedPackage.version as string
+            definitionVersionValue: this.props.currentDefinitionVersion ? this.props.currentDefinitionVersion : this.props.selectedPackage.version as string,
+            collectionFile: this.props.currentCollectionFile ? this.props.currentCollectionFile : undefined
         };
 
         this.handleDefinitionNameChange = this.handleDefinitionNameChange.bind(this);
@@ -34,6 +38,8 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
 
         this.nameInvalid = this.isNameInvalid(this.state.definitionNameValue);
         this.versionInvalid = this.isVersionInvalid(this.state.definitionVersionValue);
+        this.collectionChange = this.collectionChange.bind(this);
+
     }
 
     handleDefinitionNameChange(data: any): void {
@@ -70,7 +76,25 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
         }
     }
 
+    collectionChange(event: any): void {
+        const files: FileList = event.target.files;
+        if (files.length > 0) {
+            const file: File = files[0];
+            this.props.onCollectionChange(file);
+        }
+
+    }
+
     render(): JSX.Element {
+        const defaultCollectionValue: string[] = this.state.collectionFile ? [this.state.collectionFile.name] : [];
+
+        let uploadedItem: JSX.Element = <></>;
+        if (defaultCollectionValue.length > 0) {
+            uploadedItem = (
+                <FileUploaderItem name={defaultCollectionValue[0]} status='edit'></FileUploaderItem>
+            );
+        }
+
         return (
             <>
                 <div className='bx--row margin-bottom-06'>
@@ -99,35 +123,44 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
                 </div>
 
                 <div className='bx--row margin-bottom-06'>
-                    <div className='bx--col-lg-5 margin-right-06'>
-                        <div className='bx--file__container'>
-                            <FileUploader
-                                accept={[
-                                '.json'
-                                ]}
-                                buttonKind='tertiary'
-                                buttonLabel='Add file'
-                                labelDescription='Default (1 endorser, any org) will be used unless you add your own.'
-                                labelTitle='Endorsement policy'
-                                size='default'
-                            />
-                        </div>
-                    </div>
-                    <div className='bx--col-lg-5'>
-                        <div className='bx--file__container'>
-                            <FileUploader
-                                accept={[
-                                '.json'
-                                ]}
-                                buttonKind='tertiary'
-                                buttonLabel='Add file'
-                                labelDescription='Default (implicit private data collections only) will be used unless you add your own.'
-                                labelTitle='Collections configuration'
-                                size='default'
-                            />
-                        </div>
-                    </div>
+                    <div className='bx--col-lg-10'>
 
+                        <div className='bx--row'>
+                            <div className='bx--col-lg-7 bx--col-md-3 bx--col-sm-4'>
+                                <div className='bx--file__container'>
+                                    <FileUploader
+                                        accept={[
+                                        '.json'
+                                        ]}
+                                        buttonKind='tertiary'
+                                        buttonLabel='Add file'
+                                        labelDescription='Default (1 endorser, any org) will be used unless you add your own.'
+                                        labelTitle='Endorsement policy'
+                                        size='default'
+                                    />
+                                </div>
+                            </div>
+                            <div className='bx--col-lg-2 bx--col-md-1 bx--col-sm-0'></div>
+                            <div className='bx--col-lg-7 bx--col-md-3 bx--col-sm-4'>
+                                <div className='bx--file__container'>
+                                    <FileUploader
+                                        defaultValue={defaultCollectionValue}
+                                        accept={[
+                                        '.json'
+                                        ]}
+                                        buttonKind='tertiary'
+                                        buttonLabel='Add file'
+                                        labelDescription='Default (implicit private data collections only) will be used unless you add your own.'
+                                        labelTitle='Collections configuration'
+                                        size='default'
+                                        filenameStatus='edit'
+                                        onChange={this.collectionChange}
+                                    />
+                                    {uploadedItem}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div className='bx--row'>
                     <div className='bx--col-lg-10'>

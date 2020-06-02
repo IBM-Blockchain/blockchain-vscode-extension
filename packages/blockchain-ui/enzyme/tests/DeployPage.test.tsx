@@ -250,7 +250,8 @@ describe('DeployPage component', () => {
                 selectedPackage: packageTwo,
                 definitionName: packageTwo.name,
                 definitionVersion: packageTwo.version as string,
-                commitSmartContract: undefined
+                commitSmartContract: undefined,
+                currentCollectionFile: undefined
             });
 
             instance.handleDeploy();
@@ -263,7 +264,43 @@ describe('DeployPage component', () => {
                     selectedPackage: packageTwo,
                     definitionName: packageTwo.name,
                     definitionVersion: packageTwo.version,
-                    commitSmartContract: undefined
+                    commitSmartContract: undefined,
+                    collectionConfigPath: undefined
+                }
+            });
+        });
+
+        it('should send deploy message with collection path if set', () => {
+            postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
+
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+
+            const file: File = new File([], 'someFile');
+            file['path'] = '/some/path';
+
+            instance.setState({
+                environmentName: 'myEnvironment',
+                channelName: 'myChannel',
+                selectedPackage: packageTwo,
+                definitionName: packageTwo.name,
+                definitionVersion: packageTwo.version as string,
+                commitSmartContract: undefined,
+                currentCollectionFile: file
+            });
+
+            instance.handleDeploy();
+
+            postToVscodeStub.should.have.been.calledOnceWithExactly({
+                command: 'deploy',
+                data: {
+                    environmentName: 'myEnvironment',
+                    channelName: 'myChannel',
+                    selectedPackage: packageTwo,
+                    definitionName: packageTwo.name,
+                    definitionVersion: packageTwo.version,
+                    commitSmartContract: undefined,
+                    collectionConfigPath: '/some/path'
                 }
             });
         });
@@ -303,6 +340,20 @@ describe('DeployPage component', () => {
 
             setStateStub.should.have.been.calledWithExactly({commitSmartContract: true});
 
+        });
+    });
+
+    describe('handleCollectionChange', () => {
+        it('should handle collection change', () => {
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
+
+            const file: File = new File([], 'someFile');
+            instance.handleCollectionChange(file);
+
+            setStateStub.should.have.been.calledWithExactly({currentCollectionFile: file});
         });
     });
 

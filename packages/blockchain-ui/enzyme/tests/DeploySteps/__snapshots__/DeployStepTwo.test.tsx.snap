@@ -93,116 +93,129 @@ Array [
     className="bx--row margin-bottom-06"
   >
     <div
-      className="bx--col-lg-5 margin-right-06"
+      className="bx--col-lg-10"
     >
       <div
-        className="bx--file__container"
+        className="bx--row"
       >
         <div
-          className="bx--form-item"
-          onClick={[Function]}
-          size="default"
+          className="bx--col-lg-7 bx--col-md-3 bx--col-sm-4"
         >
-          <strong
-            className="bx--file--label"
-          >
-            Endorsement policy
-          </strong>
-          <p
-            className="bx--label-description"
-          >
-            Default (1 endorser, any org) will be used unless you add your own.
-          </p>
-          <label
-            aria-disabled={false}
-            className="bx--btn bx--btn--tertiary"
-            htmlFor="id2"
-            onChange={[Function]}
-            onClick={[Function]}
-            onKeyDown={[Function]}
-            tabIndex={0}
-          >
-            <span
-              role="button"
-            >
-              Add file
-            </span>
-          </label>
-          <input
-            accept={
-              Array [
-                ".json",
-              ]
-            }
-            className="bx--visually-hidden"
-            disabled={false}
-            id="id2"
-            multiple={false}
-            onChange={[Function]}
-            onClick={[Function]}
-            tabIndex="-1"
-            type="file"
-          />
           <div
-            className="bx--file-container"
-          />
+            className="bx--file__container"
+          >
+            <div
+              className="bx--form-item"
+              onClick={[Function]}
+              size="default"
+            >
+              <strong
+                className="bx--file--label"
+              >
+                Endorsement policy
+              </strong>
+              <p
+                className="bx--label-description"
+              >
+                Default (1 endorser, any org) will be used unless you add your own.
+              </p>
+              <label
+                aria-disabled={false}
+                className="bx--btn bx--btn--tertiary"
+                htmlFor="id2"
+                onChange={[Function]}
+                onClick={[Function]}
+                onKeyDown={[Function]}
+                tabIndex={0}
+              >
+                <span
+                  role="button"
+                >
+                  Add file
+                </span>
+              </label>
+              <input
+                accept={
+                  Array [
+                    ".json",
+                  ]
+                }
+                className="bx--visually-hidden"
+                disabled={false}
+                id="id2"
+                multiple={false}
+                onChange={[Function]}
+                onClick={[Function]}
+                tabIndex="-1"
+                type="file"
+              />
+              <div
+                className="bx--file-container"
+              />
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-    <div
-      className="bx--col-lg-5"
-    >
-      <div
-        className="bx--file__container"
-      >
         <div
-          className="bx--form-item"
-          onClick={[Function]}
-          size="default"
+          className="bx--col-lg-2 bx--col-md-1 bx--col-sm-0"
+        />
+        <div
+          className="bx--col-lg-7 bx--col-md-3 bx--col-sm-4"
         >
-          <strong
-            className="bx--file--label"
-          >
-            Collections configuration
-          </strong>
-          <p
-            className="bx--label-description"
-          >
-            Default (implicit private data collections only) will be used unless you add your own.
-          </p>
-          <label
-            aria-disabled={false}
-            className="bx--btn bx--btn--tertiary"
-            htmlFor="id3"
-            onChange={[Function]}
-            onClick={[Function]}
-            onKeyDown={[Function]}
-            tabIndex={0}
-          >
-            <span
-              role="button"
-            >
-              Add file
-            </span>
-          </label>
-          <input
-            accept={
-              Array [
-                ".json",
-              ]
-            }
-            className="bx--visually-hidden"
-            disabled={false}
-            id="id3"
-            multiple={false}
-            onChange={[Function]}
-            onClick={[Function]}
-            tabIndex="-1"
-            type="file"
-          />
           <div
-            className="bx--file-container"
-          />
+            className="bx--file__container"
+          >
+            <div
+              className="bx--form-item"
+              defaultValue={Array []}
+              onChange={[Function]}
+              onClick={[Function]}
+              size="default"
+            >
+              <strong
+                className="bx--file--label"
+              >
+                Collections configuration
+              </strong>
+              <p
+                className="bx--label-description"
+              >
+                Default (implicit private data collections only) will be used unless you add your own.
+              </p>
+              <label
+                aria-disabled={false}
+                className="bx--btn bx--btn--tertiary"
+                htmlFor="id3"
+                onChange={[Function]}
+                onClick={[Function]}
+                onKeyDown={[Function]}
+                tabIndex={0}
+              >
+                <span
+                  role="button"
+                >
+                  Add file
+                </span>
+              </label>
+              <input
+                accept={
+                  Array [
+                    ".json",
+                  ]
+                }
+                className="bx--visually-hidden"
+                disabled={false}
+                id="id3"
+                multiple={false}
+                onChange={[Function]}
+                onClick={[Function]}
+                tabIndex="-1"
+                type="file"
+              />
+              <div
+                className="bx--file-container"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
