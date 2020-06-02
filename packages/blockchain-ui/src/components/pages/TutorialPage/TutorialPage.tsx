@@ -23,7 +23,9 @@ class TutorialPage extends Component<IProps> {
                     </div>
                 </div>
                 <div className='bx--row' id='tutorial-tabs-container'>
-                    <TutorialTabs tutorialData={this.props.tutorialData}/>
+                    <div className='bx--col-lg-13 bx--col-md-8 bx--col-sm-4'>
+                        <TutorialTabs tutorialData={this.props.tutorialData}/>
+                    </div>
                 </div>
             </div>
         );
