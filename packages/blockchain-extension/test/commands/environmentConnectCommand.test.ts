@@ -32,6 +32,7 @@ import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
+import { ManagedAnsibleEnvironment } from '../../extension/fabric/environments/ManagedAnsibleEnvironment';
 
 chai.use(sinonChai);
 // tslint:disable-next-line no-var-requires
@@ -192,8 +193,9 @@ describe('EnvironmentConnectCommand', () => {
             it('should test that a fabric environment can be connected to from the tree', async () => {
                 const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
+                const groupChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren(allChildren[1]);
 
-                const myConnectionItem: FabricEnvironmentTreeItem = allChildren[1] as FabricEnvironmentTreeItem;
+                const myConnectionItem: FabricEnvironmentTreeItem = groupChildren[0] as FabricEnvironmentTreeItem;
 
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
@@ -356,10 +358,13 @@ describe('EnvironmentConnectCommand', () => {
                     data: localFabricRegistryEntry
                 });
 
-                localEnvironment = EnvironmentFactory.getEnvironment(localFabricRegistryEntry) as LocalEnvironment;
+                localEnvironment = new LocalEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, {
+                    startPort: 17050,
+                    endPort: 17070
+                }, 1);
 
-                isRunningStub = mySandBox.stub(localEnvironment, 'isRunning').resolves(true);
-                mySandBox.stub(localEnvironment, 'startLogs').resolves();
+                isRunningStub = mySandBox.stub(ManagedAnsibleEnvironment.prototype, 'isRunning').resolves(true);
+                mySandBox.stub(LocalEnvironment.prototype, 'startLogs').resolves();
 
                 getEnvironmentStub = mySandBox.stub(EnvironmentFactory, 'getEnvironment');
                 getEnvironmentStub.callThrough();
@@ -369,7 +374,7 @@ describe('EnvironmentConnectCommand', () => {
                 getNodesStub.resolves([ordererNode, caNode]);
             });
 
-            it('should connect to a managed runtime using a quick pick', async () => {
+            it('should connect to a managed runtime environment using a quick pick', async () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
 
                 connectExplorerStub.should.have.been.calledOnce;
@@ -380,10 +385,11 @@ describe('EnvironmentConnectCommand', () => {
                 logSpy.calledWith(LogType.SUCCESS, `Connected to ${FabricRuntimeUtil.LOCAL_FABRIC}`);
             });
 
-            it('should connect to a managed runtime from the tree', async () => {
+            it('should connect to a managed runtime environment from the tree', async () => {
                 const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
-                const myConnectionItem: RuntimeTreeItem = allChildren[0] as RuntimeTreeItem;
+                const groupChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren(allChildren[0]);
+                const myConnectionItem: RuntimeTreeItem = groupChildren[0] as RuntimeTreeItem;
 
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
@@ -396,8 +402,9 @@ describe('EnvironmentConnectCommand', () => {
             it('should carry on connecting even if setup required', async () => {
                 const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
+                const groupChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren(allChildren[0]);
 
-                const myConnectionItem: FabricEnvironmentTreeItem = allChildren[0] as FabricEnvironmentTreeItem;
+                const myConnectionItem: FabricEnvironmentTreeItem = groupChildren[0] as FabricEnvironmentTreeItem;
 
                 requireSetupStub.resolves(true);
 
