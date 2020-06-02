@@ -58,6 +58,7 @@ import { ManagedAnsibleEnvironmentManager } from '../../extension/fabric/environ
 import { ManagedAnsibleEnvironment } from '../../extension/fabric/environments/ManagedAnsibleEnvironment';
 import Axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
+import { FeatureFlagManager } from '../../extension/util/FeatureFlags';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -304,6 +305,7 @@ describe('ExtensionUtil Tests', () => {
                 ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY,
                 ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY,
                 ExtensionCommands.SUBSCRIBE_TO_EVENT,
+                ExtensionCommands.EXPORT_APP_DATA,
                 ExtensionCommands.OPEN_HOME_PAGE,
                 ExtensionCommands.OPEN_PRE_REQ_PAGE,
                 ExtensionCommands.OPEN_RELEASE_NOTES
@@ -373,6 +375,7 @@ describe('ExtensionUtil Tests', () => {
                 `onCommand:${ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY}`,
                 `onCommand:${ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY}`,
                 `onCommand:${ExtensionCommands.SUBSCRIBE_TO_EVENT}`,
+                `onCommand:${ExtensionCommands.EXPORT_APP_DATA}`,
                 `onCommand:${ExtensionCommands.OPEN_HOME_PAGE}`,
                 `onCommand:${ExtensionCommands.OPEN_PRE_REQ_PAGE}`,
                 `onCommand:${ExtensionCommands.OPEN_RELEASE_NOTES}`,
@@ -1530,6 +1533,68 @@ describe('ExtensionUtil Tests', () => {
             });
 
             executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', false);
+        });
+
+        it(`should set context of exportAppData feature to true if enabled by user`, async () => {
+            await FeatureFlagManager.enable(FeatureFlagManager.EXPORTAPPDATA);
+            mySandBox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting').returns(true);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
+            dependencies['generator-fabric'] = '0.0.2';
+            globalStateGetStub.returns({
+                generatorVersion: '0.0.1'
+            });
+
+            executeCommandStub.resolves();
+            mockRuntime.isGenerated.resolves(true);
+            showConfirmationWarningMessageStub.resolves(true);
+            mockRuntime.isRunning.resolves(false);
+
+            mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
+
+            await ExtensionUtil.completeActivation(false);
+
+            logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+            showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
+            globalStateUpdateStub.should.have.been.calledWith({
+                generatorVersion: dependencies['generator-fabric']
+            });
+
+            executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', true);
+            executeCommandStub.should.have.been.calledWith('setContext', 'exportAppData', true);
+        });
+
+        it(`should set context of exportAppData feature to false if not enabled by user`, async () => {
+            await FeatureFlagManager.disable(FeatureFlagManager.EXPORTAPPDATA);
+            mySandBox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting').returns(true);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
+            dependencies['generator-fabric'] = '0.0.2';
+            globalStateGetStub.returns({
+                generatorVersion: '0.0.1'
+            });
+
+            executeCommandStub.resolves();
+            mockRuntime.isGenerated.resolves(true);
+            showConfirmationWarningMessageStub.resolves(true);
+            mockRuntime.isRunning.resolves(false);
+
+            mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
+
+            await ExtensionUtil.completeActivation(false);
+
+            logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+            showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
+            globalStateUpdateStub.should.have.been.calledWith({
+                generatorVersion: dependencies['generator-fabric']
+            });
+
+            executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', true);
+            executeCommandStub.should.have.been.calledWith('setContext', 'exportAppData', false);
         });
 
         it('should discover environments', async () => {

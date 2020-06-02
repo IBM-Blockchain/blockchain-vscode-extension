@@ -52,6 +52,41 @@ export class FabricWallet implements IFabricWallet {
         return  this.wallet.list();
     }
 
+    public async getIDs(identities: string[]): Promise<FabricIdentity[]> {
+        const allIDs: FabricIdentity[] = [];
+        const walletPath: string = this.getWalletPath();
+        let privKey: string;
+        let identityJSON: any;
+        for (const item of identities) {
+            const identity: FabricIdentity = {
+                cert: '',
+                msp_id: '',
+                name: '',
+                private_key: ''
+            };
+            identityJSON = undefined;
+            let privKeyName: string;
+            const identityPath: string = path.join(walletPath, item);
+            const readPath: string[] = await fs.readdir(identityPath);
+            for (const file of readPath) {
+                if (file.endsWith('-priv')) {
+                    privKeyName = file;
+                }
+            }
+
+            identityJSON = await fs.readJson(path.join(identityPath, item));
+            const privKeyBuff: Buffer = await fs.readFile(path.join(identityPath, privKeyName));
+            privKey = privKeyBuff.toString();
+            const cert: string = identityJSON.enrollment.identity.certificate;
+            identity.name = identityJSON.name;
+            identity.msp_id = identityJSON.mspid;
+            identity.cert = Buffer.from(cert).toString('base64');
+            identity.private_key = Buffer.from(privKey).toString('base64');
+            allIDs.push(identity);
+        }
+        return allIDs;
+    }
+
     public async getIdentities(): Promise<FabricIdentity[]> {
         const identityNames: string[] = await this.getIdentityNames();
         const identities: FabricIdentity[] = [];
