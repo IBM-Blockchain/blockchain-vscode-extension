@@ -14,14 +14,19 @@
 
 'use strict';
 
+import * as vscode from 'vscode';
+import * as path from 'path';
 import { BlockchainTreeItem } from '../../model/BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
-import * as vscode from 'vscode';
 import { FabricEnvironmentRegistryEntry } from 'ibm-blockchain-platform-common';
 
 export class FabricEnvironmentTreeItem extends BlockchainTreeItem {
 
     contextValue: string = 'blockchain-environment-item';
+    iconPath: { light: string, dark: string } = {
+        light: path.join(__filename, '..', '..', '..', '..', '..', '..', 'resources', 'light', 'network--3.svg'),
+        dark: path.join(__filename, '..', '..', '..', '..', '..', '..', 'resources', 'dark', 'network--3.svg')
+    };
 
     constructor(provider: BlockchainExplorerProvider, label: string, public readonly environmentRegistryEntry: FabricEnvironmentRegistryEntry, public readonly command: vscode.Command) {
         super(provider, label, vscode.TreeItemCollapsibleState.None);

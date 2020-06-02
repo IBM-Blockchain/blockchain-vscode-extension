@@ -1,13 +1,14 @@
 Feature: Fabric Environments
   Tests all the features of the fabric ops panel
 
-  Scenario Outline: There should be a tree item (disconnected)
-    Given the 1 Org Local Fabric environment is running
-    Then there should be a tree item with a label '<label>' in the 'Fabric Environments' panel
-    And the tree item should have a tooltip equal to '<tooltip>'
-    Examples:
-      | label                 | tooltip                                  |
-      | 1 Org Local Fabric  ● | The local development runtime is running |
+    Scenario Outline: There should be a tree item (disconnected)
+        Given the 1 Org Local Fabric environment is running
+        Then there should be a tree item with a label 'Simple local networks' in the 'Fabric Environments' panel
+        And the 'Fabric Environments' tree item should have a child '<label>'
+        And the tree item should have a tooltip equal to '<tooltip>'
+        Examples:
+        | label                     | tooltip                                  |
+        | 1 Org Local Fabric  ●     | The local development runtime is running |
 
   # Scenario Outline: There should be a tree item (connected)
   #   Given the 1 Org Local Fabric environment is running
@@ -33,7 +34,8 @@ Feature: Fabric Environments
     And the contract has been packaged
     And the contract has been deployed on channel 'mychannel'
     When I stop the 1 Org Local Fabric
-    Then there should be a tree item with a label '<label>' in the 'Fabric Environments' panel
+    Then there should be a tree item with a label 'Simple local networks' in the 'Fabric Environments' panel
+    And the 'Fabric Environments' tree item should have a child '<label>'
     Then the tree item should have a tooltip equal to '<tooltip>'
     When I start the 1 Org Local Fabric
     And the '1 Org Local Fabric' environment is connected
@@ -45,21 +47,23 @@ Feature: Fabric Environments
   @otherFabric
   Scenario: It should create an environment
     When I create an environment 'myFabric'
-    Then there should be a tree item with a label 'myFabric' in the 'Fabric Environments' panel
+    Then there should be a tree item with a label 'Other networks' in the 'Fabric Environments' panel
+    And the 'Fabric Environments' tree item should have a child 'myFabric'
     And the tree item should have a tooltip equal to 'myFabric'
 
-    @opsToolsFabric
-    Scenario Outline: It should create an environment without nodes
-      When I create an environment '<environmentName>' of type '<environmentType>'
-      And the wallet '<walletName>' with identity '<identtity>' and mspid '<mspid>' exists
-      Then there should be a tree item with a label '<environmentName>' in the 'Fabric Environments' panel
-      And the tree item should have a tooltip equal to '<environmentName>'
-      And there should be a tree item with a label 'Other wallets' in the 'Fabric Wallets' panel
-      And the 'Fabric Wallets' tree item should have a child '<walletName>'
-      Examples:
-        | environmentName      | environmentType    | walletName            | identtity         | mspid     |
-        | myOpsToolsFabric     | software           | opsToolsWallet        | Org1CAAdmin       | org1msp   |
-        | mySaaSOpsToolsFabric | SaaS               | SaaSOpsToolsWallet    | SaaSOrg1CAAdmin   | org1msp   |
+  @opsToolsFabric
+  Scenario Outline: It should create an environment without nodes
+    When I create an environment '<environmentName>' of type '<environmentType>'
+    And the wallet '<walletName>' with identity '<identtity>' and mspid '<mspid>' exists
+    Then there should be a tree item with a label 'IBM Cloud' in the 'Fabric Environments' panel
+    And the 'Fabric Environments' tree item should have a child '<environmentName>'
+    And the tree item should have a tooltip equal to '<environmentName>'
+    And there should be a tree item with a label 'Other wallets' in the 'Fabric Wallets' panel
+    And the 'Fabric Wallets' tree item should have a child '<walletName>'
+    Examples:
+      | environmentName      | environmentType    | walletName            | identtity         | mspid     |
+      | myOpsToolsFabric     | software           | opsToolsWallet        | Org1CAAdmin       | org1msp   |
+      | mySaaSOpsToolsFabric | SaaS               | SaaSOpsToolsWallet    | SaaSOrg1CAAdmin   | org1msp   |
 
   @opsToolsFabric
   Scenario Outline: It should edit filters, add all nodes and connect automatically
@@ -268,7 +272,8 @@ Feature: Fabric Environments
   @ansibleFabric
   Scenario: It should create an environment
     When I create an environment 'myAnsibleFabric'
-    Then there should be a tree item with a label 'myAnsibleFabric' in the 'Fabric Environments' panel
+    Then there should be a tree item with a label 'Other networks' in the 'Fabric Environments' panel
+    And the 'Fabric Environments' tree item should have a child 'myAnsibleFabric'
     And the tree item should have a tooltip equal to 'myAnsibleFabric'
 
   @ansibleFabric
