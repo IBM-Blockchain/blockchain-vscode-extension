@@ -25,6 +25,7 @@ import { LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
 import { DeployView } from '../../extension/webview/DeployView';
+import { CommandUtil } from '../../extension/util/CommandUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -46,7 +47,7 @@ describe('packageSmartContract', () => {
 
     let folders: Array<any> = [];
 
-    async function createTestFiles(packageName: string, version: string, language: string, createValid: boolean, createMetadata: boolean, createWrongPlace: boolean = false): Promise<void> {
+    async function createTestFiles(packageName: string, version: string, language: string, createValid: boolean, createMetadata: boolean, createWrongPlace: boolean = false, goModule: boolean = false): Promise<void> {
         let projectDir: string;
         if (language === 'golang') {
             if (createWrongPlace) {
@@ -98,6 +99,10 @@ describe('packageSmartContract', () => {
             } else if (language === 'golang') {
                 const goChaincode: string = path.join(projectDir, 'chaincode.go');
                 await fs.writeFile(goChaincode, emptyContent);
+                if (goModule) {
+                    const goMod: string = path.join(projectDir, 'go.mod');
+                    await fs.writeFile(goMod, emptyContent);
+                }
             } else if (language === 'java-gradle' || language === 'java-maven') {
                 if (language === 'java-gradle') {
                     const gradleFile: string = path.join(projectDir, 'build.gradle');
@@ -528,6 +533,38 @@ describe('packageSmartContract', () => {
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
+        });
+
+        it('should package the Go project module', async () => {
+            await createTestFiles('goProject', '0.0.1', 'golang', true, false, true, true);
+
+            const testIndex: number = 2;
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            const runVendorStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
+
+            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onSecondCall().resolves('0.0.3');
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.tar.gz');
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.go`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/go.mod`);
+            runVendorStub.should.have.been.called;
+            executeTaskStub.should.have.not.been.called;            // executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]); // FIXME need to check this
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 

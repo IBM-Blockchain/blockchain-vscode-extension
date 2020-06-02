@@ -11,7 +11,7 @@ Feature: Created Smart Contracts
         | JavaScript | Conga     | JavaScriptContract | 0.0.1   |
         | TypeScript | Conga     | TypeScriptContract | 0.0.1   |
         | Java       | Conga     | JavaContract       | 0.0.1   |
-        | Go         | null      | GoContract         | 0.0.1   |
+        | Go         | Conga     | GoContract         | 0.0.1   |
 
     @ansibleFabric
     Scenario Outline: Create a private data smart contract

@@ -88,18 +88,23 @@ export class SmartContractPackage {
             throw new Error('option smartContractType must be set to one of: golang, node, or java');
         }
 
+        let goPath: string;
         if (options.smartContractType === SmartContractType.GO) {
             const isModule: boolean = await fs.pathExists(path.join(options.smartContractPath, 'go.mod'));
 
             if (!isModule && !options.golangPath && !process.env.GOPATH) {
                 throw new Error('option goLangPath was not set so tried to use environment variable GOPATH but this was not set either, one of these must be set');
+            } else if (!isModule) {
+                goPath = options.smartContractPath;
+            } else {
+                goPath = options.golangPath;
             }
         }
 
         try {
             const smartContractPackage: Buffer = await this.packageContract(options.smartContractPath, options.smartContractType, options.metaDataPath, options.golangPath);
 
-            const finalSmartContract: Buffer = await this.finalPackage(options.label, options.smartContractType, smartContractPackage, options.golangPath);
+            const finalSmartContract: Buffer = await this.finalPackage(options.label, options.smartContractType, smartContractPackage, goPath);
 
             return new SmartContractPackage(finalSmartContract);
         } catch (error) {

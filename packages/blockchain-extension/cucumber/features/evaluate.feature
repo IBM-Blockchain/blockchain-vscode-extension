@@ -19,7 +19,7 @@ Feature: Evaluate transaction
       | JavaScript | Conga     | JavaScriptContract | 0.0.1   |
       | TypeScript | Conga     | TypeScriptContract | 0.0.1   |
       | Java       | Conga     | JavaContract       | 0.0.1   |
-#      | Go         | null      | GoContract         | 0.0.1   |
+      | Go         | Conga     | GoContract         | 0.0.1   |
 
   Scenario Outline: Evaluate a transaction for a smart contract using generated transaction data
     Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
