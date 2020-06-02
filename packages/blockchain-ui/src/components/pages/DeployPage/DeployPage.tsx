@@ -25,6 +25,7 @@ interface DeployState {
     versionInvalid: boolean;
     commitSmartContract: boolean | undefined;
     deletedSelectedPackage: boolean;
+    currentCollectionFile: File | undefined;
 }
 
 class DeployPage extends Component<IProps, DeployState> {
@@ -37,6 +38,7 @@ class DeployPage extends Component<IProps, DeployState> {
             channelName: this.props.deployData.channelName,
             selectedPackage: this.props.deployData.selectedPackage ? this.props.deployData.selectedPackage : undefined,
             selectedWorkspace: undefined,
+            currentCollectionFile: undefined,
             definitionName: '',
             definitionVersion: '',
             disableNext: true,
@@ -53,6 +55,7 @@ class DeployPage extends Component<IProps, DeployState> {
         this.handleCommitChange = this.handleCommitChange.bind(this);
         this.handleDeploy = this.handleDeploy.bind(this);
         this.handlePackageWorkspace = this.handlePackageWorkspace.bind(this);
+        this.handleCollectionChange = this.handleCollectionChange.bind(this);
     }
 
     handleProgressChange(indexValue: number): void {
@@ -124,10 +127,14 @@ class DeployPage extends Component<IProps, DeployState> {
                 selectedPackage: this.state.selectedPackage,
                 definitionName: this.state.definitionName,
                 definitionVersion: this.state.definitionVersion,
-                commitSmartContract: this.state.commitSmartContract
+                commitSmartContract: this.state.commitSmartContract,
+                collectionConfigPath: this.state.currentCollectionFile ? this.state.currentCollectionFile.path : undefined
             }
         });
+    }
 
+    handleCollectionChange(file: File): void {
+        this.setState({currentCollectionFile: file});
     }
 
     componentWillReceiveProps(props: any): void {
@@ -160,7 +167,7 @@ class DeployPage extends Component<IProps, DeployState> {
         if (currentIndex === 0) {
             currentStepComponent = <DeployStepOne packageEntries={this.props.deployData.packageEntries} selectedPackage={this.state.selectedPackage} workspaceNames={this.props.deployData.workspaceNames} selectedWorkspace={this.state.selectedWorkspace} deletedSelectedPackage={this.state.deletedSelectedPackage} onPackageChange={this.handlePackageChange} onPackageWorkspace={this.handlePackageWorkspace} />;
         } else if (currentIndex === 1) {
-            currentStepComponent = <DeployStepTwo selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} currentDefinitionName={this.state.definitionName} currentDefinitionVersion={this.state.definitionVersion} onDefinitionNameChange={this.handleDefinitionNameChange} onDefinitionVersionChange={this.handleDefinitionVersionChange}/>;
+            currentStepComponent = <DeployStepTwo currentCollectionFile={this.state.currentCollectionFile} onCollectionChange={this.handleCollectionChange} selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} currentDefinitionName={this.state.definitionName} currentDefinitionVersion={this.state.definitionVersion} onDefinitionNameChange={this.handleDefinitionNameChange} onDefinitionVersionChange={this.handleDefinitionVersionChange}/>;
         } else {
             currentStepComponent = <DeployStepThree selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} channelName={this.state.channelName} commitSmartContract={this.state.commitSmartContract} onCommitChange={this.handleCommitChange}/>;
         }
