@@ -20,7 +20,7 @@ export class DiscoverHelper {
     public static async getDiscoveredPeers(lifecycle: Lifecycle, peerNames: string[], wallet: Wallet, identity: string): Promise<string[]> {
         const channel: LifecycleChannel = lifecycle.getChannel('mychannel', wallet, identity);
 
-        const result: string[] = await channel.getDiscoveredPeerNames(peerNames, true);
+        const result: string[] = await channel.getDiscoveredPeerNames(peerNames);
 
         return result;
     }

@@ -159,6 +159,43 @@ describe('Lifecycle', () => {
         });
     });
 
+    describe('peerExists', () => {
+
+        let lifecycle: Lifecycle;
+
+        before(async () => {
+            lifecycle = new Lifecycle();
+
+            lifecycle.addPeer({
+                name: 'myPeer',
+                url: 'grpcs://localhost:7051',
+                mspid: 'myMSPID',
+                pem: '-----BEGIN CERTIFICATE-----\\nMIICJjCCAc2gAwIBAgIURY9F2Rt0JqOtiHbNJ6rRgfiDy2EwCgYIKoZIzj0EAwIw\\ncDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMQ8wDQYDVQQH\\nEwZEdXJoYW0xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHDAaBgNVBAMTE2Nh\\nLm9yZzEuZXhhbXBsZS5jb20wHhcNMjAwMzE2MTQ1MDAwWhcNMzUwMzEzMTQ1MDAw\\nWjBwMQswCQYDVQQGEwJVUzEXMBUGA1UECBMOTm9ydGggQ2Fyb2xpbmExDzANBgNV\\nBAcTBkR1cmhhbTEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMT\\nY2Eub3JnMS5leGFtcGxlLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABHic\\nzHXBRqfe7elvQ8zuxIwigOFCuk/49bjChQxf19fL/qHBLYLOXgd3Ox5jTVyyLuO/\\nf9x19piTv7gVgv8h7BijRTBDMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAG\\nAQH/AgEBMB0GA1UdDgQWBBRGw4tXsbZSI45NZNTsDT7rssJpzjAKBggqhkjOPQQD\\nAgNHADBEAiBWNIFkaageeAiEMmhauY3bTHoG45Wgjk99CjHZ6KJoTgIgMfKc9mBL\\na5JHbGNB/gsBhxIm8/akE6g+SikIz/JGty4=\\n-----END CERTIFICATE-----\\n"\n'
+            });
+        });
+
+        it('should return true if the peer exists', () => {
+
+            const exists: boolean = lifecycle.peerExists('myPeer');
+
+            exists.should.equal(true);
+        });
+
+        it('should return false if the peer does not exist', () => {
+
+            const exists: boolean = lifecycle.peerExists('myPeer2');
+
+            exists.should.equal(false);
+        });
+
+        it('should handle no name set', async () => {
+            (() => {
+                // @ts-ignore
+                lifecycle.peerExists();
+            }).should.throw('Missing parameter name');
+        });
+    });
+
     describe('getAllPeerNames', () => {
 
         let lifecycle: Lifecycle;

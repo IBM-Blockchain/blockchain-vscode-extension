@@ -30,7 +30,7 @@ chai.use(chaiAsPromised);
 
 setDefaultTimeout(60 * 1000);
 
-Given(/^a '(.*)' smart contract of type '(.*)' using '(.*)'$/, function(language: string, type: string, contract: string): void {
+Given(/^a '(.*)' smart contract of type '(.*)' using '(.*)'( with name )?(.*?)$/, function(language: string, type: string, contract: string, _withName: string, name: string): void {
 
     if (contract === 'marbles') {
         this.projectPath = path.join(Helper.TMP_DIR, 'fabric-samples', 'chaincode', 'marbles02_private', language);
@@ -40,7 +40,11 @@ Given(/^a '(.*)' smart contract of type '(.*)' using '(.*)'$/, function(language
 
     this.language = language;
     this.type = type;
-    this.label = `${contract}-${language}`;
+    if (!name) {
+        this.label = `${contract}-${language}`;
+    } else {
+        this.label = name;
+    }
 });
 
 Given(/the package exists$/, {timeout: 120000 * 1000}, async function(): Promise<void> {
