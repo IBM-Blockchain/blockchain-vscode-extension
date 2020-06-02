@@ -47,6 +47,7 @@ import { InstalledChainCodeOpsTreeItem } from '../../extension/explorer/runtimeO
 import { InstallCommandTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/InstallCommandTreeItem';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { ManagedAnsibleEnvironmentManager } from '../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
+import { EnvironmentGroupTreeItem } from '../../extension/explorer/runtimeOps/EnvironmentGroupTreeItem';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -81,9 +82,116 @@ describe('environmentExplorer', () => {
                 mySandBox.restore();
             });
 
-            it('should display all environments', async () => {
+            it('should correctly group local environments', async () => {
+                await FabricEnvironmentRegistry.instance().clear();
+
+                await TestUtil.setupLocalFabric();
+
+                const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
+                mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(mockRuntime);
+                mockRuntime.isRunning.resolves(false);
+                mockRuntime.startLogs.resolves();
+                mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
+
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+                allChildren.length.should.equal(1);
+                allChildren[0].label.should.equal('Simple local networks');
+                allChildren[0].tooltip.should.equal('Simple local networks');
+                allChildren[0].contextValue.should.equal('blockchain-environment-group-item');
+
+                const localEnvItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
+                localEnvItems.length.should.equal(1);
+                localEnvItems[0].label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○ (click to start)`);
+                localEnvItems[0].tooltip.should.equal('Creates a local development runtime using Hyperledger Fabric Docker images');
+                localEnvItems[0].contextValue.should.equal('blockchain-runtime-item');
+
+                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
+            });
+
+            it ('should correctly group ibm cloud environments', async () => {
+
+                const opsToolsEnv: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                opsToolsEnv.name = 'opsToolsEnv';
+                opsToolsEnv.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
+
+                const saasEnv: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                saasEnv.name = 'saasEnv';
+                saasEnv.environmentType = EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT;
+
+                await FabricEnvironmentRegistry.instance().clear();
+                await FabricEnvironmentRegistry.instance().add(opsToolsEnv);
+                await FabricEnvironmentRegistry.instance().add(saasEnv);
+
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+                allChildren.length.should.equal(1);
+                allChildren[0].label.should.equal('IBM Cloud');
+                allChildren[0].tooltip.should.equal('IBM Cloud');
+                allChildren[0].contextValue.should.equal('blockchain-environment-group-item');
+
+                const ibmCloudItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
+                ibmCloudItems.length.should.equal(2);
+                ibmCloudItems[0].label.should.equal(opsToolsEnv.name);
+                ibmCloudItems[0].tooltip.should.equal(opsToolsEnv.name);
+                ibmCloudItems[0].contextValue.should.equal('blockchain-environment-item');
+                ibmCloudItems[1].label.should.equal(saasEnv.name);
+                ibmCloudItems[1].tooltip.should.equal(saasEnv.name);
+                ibmCloudItems[1].contextValue.should.equal('blockchain-environment-item');
+            });
+
+            it(`should correctly group 'other' environments`, async () => {
+                const otherEnvOne: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                otherEnvOne.name = 'myFabric';
+                otherEnvOne.managedRuntime = false;
+
+                const otherEnvTwo: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                otherEnvTwo.name = 'myFabric2';
+                otherEnvTwo.environmentType = EnvironmentType.ENVIRONMENT;
+                otherEnvTwo.managedRuntime = false;
+
+                const managedAnsible: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                managedAnsible.name = 'managedAnsible';
+                managedAnsible.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+                managedAnsible.managedRuntime = true;
+                managedAnsible.environmentDirectory = path.join(__dirname, '..', '..', 'data', 'managedAnsible');
+
+                await FabricEnvironmentRegistry.instance().clear();
+                await FabricEnvironmentRegistry.instance().add(otherEnvOne);
+                await FabricEnvironmentRegistry.instance().add(otherEnvTwo);
+                await FabricEnvironmentRegistry.instance().add(managedAnsible);
+
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+                allChildren.length.should.equal(1);
+                allChildren[0].label.should.equal('Other networks');
+                allChildren[0].tooltip.should.equal('Other networks');
+                allChildren[0].contextValue.should.equal('blockchain-environment-group-item');
+
+                const otherItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
+                otherItems.length.should.equal(3);
+                otherItems[0].label.should.equal(`${managedAnsible.name}  ○ (click to start)`);
+                otherItems[0].tooltip.should.equal(`Creates a local development runtime using Hyperledger Fabric Docker images`);
+                otherItems[0].contextValue.should.equal('blockchain-runtime-item');
+                otherItems[1].label.should.equal(otherEnvOne.name);
+                otherItems[1].tooltip.should.equal(otherEnvOne.name);
+                otherItems[1].contextValue.should.equal('blockchain-environment-item');
+                otherItems[2].label.should.equal(otherEnvTwo.name);
+                otherItems[2].tooltip.should.equal(otherEnvTwo.name);
+                otherItems[2].contextValue.should.equal('blockchain-environment-item');
+            });
+
+            it('should correctly display all types of groups', async () => {
                 const ensureRuntimeLocalSpy: sinon.SinonSpy = mySandBox.spy(LocalEnvironmentManager.instance(), 'ensureRuntime');
                 const ensureRuntimeManagedSpy: sinon.SinonSpy = mySandBox.spy(ManagedAnsibleEnvironmentManager.instance(), 'ensureRuntime');
+
+                const localFabricEnv: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                localFabricEnv.name = 'localFabricEnv';
+                localFabricEnv.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
+
                 const registryEntryOne: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
                 registryEntryOne.name = 'myFabric';
                 registryEntryOne.managedRuntime = false;
@@ -98,10 +206,21 @@ describe('environmentExplorer', () => {
                 managedAnsible.managedRuntime = true;
                 managedAnsible.environmentDirectory = path.join(__dirname, '..', '..', 'data', 'managedAnsible');
 
+                const opsToolsEnv: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                opsToolsEnv.name = 'opsToolsEnv';
+                opsToolsEnv.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
+
+                const saasEnv: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                saasEnv.name = 'saasEnv';
+                saasEnv.environmentType = EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT;
+
                 await FabricEnvironmentRegistry.instance().clear();
+                await FabricEnvironmentRegistry.instance().add(localFabricEnv);
                 await FabricEnvironmentRegistry.instance().add(registryEntryOne);
                 await FabricEnvironmentRegistry.instance().add(registryEntryTwo);
                 await FabricEnvironmentRegistry.instance().add(managedAnsible);
+                await FabricEnvironmentRegistry.instance().add(opsToolsEnv);
+                await FabricEnvironmentRegistry.instance().add(saasEnv);
 
                 await TestUtil.setupLocalFabric();
 
@@ -114,19 +233,46 @@ describe('environmentExplorer', () => {
                 const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
 
-                allChildren.length.should.equal(4);
-                allChildren[0].label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○ (click to start)`);
-                allChildren[0].tooltip.should.equal('Creates a local development runtime using Hyperledger Fabric Docker images');
-                allChildren[0].contextValue.should.equal('blockchain-runtime-item');
-                allChildren[1].label.should.equal(`managedAnsible  ○ (click to start)`);
-                allChildren[1].tooltip.should.equal(`Creates a local development runtime using Hyperledger Fabric Docker images`);
-                allChildren[1].contextValue.should.equal('blockchain-runtime-item');
-                allChildren[2].label.should.equal('myFabric');
-                allChildren[2].tooltip.should.equal('myFabric');
-                allChildren[2].contextValue.should.equal('blockchain-environment-item');
-                allChildren[3].label.should.equal('myFabric2');
-                allChildren[3].tooltip.should.equal('myFabric2');
-                allChildren[3].contextValue.should.equal('blockchain-environment-item');
+                allChildren.length.should.equal(3);
+                allChildren[0].label.should.equal('Simple local networks');
+                allChildren[0].tooltip.should.equal('Simple local networks');
+                allChildren[0].contextValue.should.equal('blockchain-environment-group-item');
+                allChildren[1].label.should.equal('IBM Cloud');
+                allChildren[1].tooltip.should.equal('IBM Cloud');
+                allChildren[1].contextValue.should.equal('blockchain-environment-group-item');
+                allChildren[2].label.should.equal('Other networks');
+                allChildren[2].tooltip.should.equal('Other networks');
+                allChildren[2].contextValue.should.equal('blockchain-environment-group-item');
+
+                const localEnvItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
+                localEnvItems.length.should.equal(2);
+                localEnvItems[0].label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○ (click to start)`);
+                localEnvItems[0].tooltip.should.equal('Creates a local development runtime using Hyperledger Fabric Docker images');
+                localEnvItems[0].contextValue.should.equal('blockchain-runtime-item');
+                localEnvItems[1].label.should.equal(localFabricEnv.name);
+                localEnvItems[1].tooltip.should.equal(localFabricEnv.name);
+                localEnvItems[1].contextValue.should.equal('blockchain-environment-item');
+
+                const opsToolsItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
+                opsToolsItems.length.should.equal(2);
+                opsToolsItems[0].label.should.equal(opsToolsEnv.name);
+                opsToolsItems[0].tooltip.should.equal(opsToolsEnv.name);
+                opsToolsItems[0].contextValue.should.equal('blockchain-environment-item');
+                opsToolsItems[1].label.should.equal(saasEnv.name);
+                opsToolsItems[1].tooltip.should.equal(saasEnv.name);
+                opsToolsItems[1].contextValue.should.equal('blockchain-environment-item');
+
+                const otherItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[2]);
+                otherItems.length.should.equal(3);
+                otherItems[0].label.should.equal(`${managedAnsible.name}  ○ (click to start)`);
+                otherItems[0].tooltip.should.equal(`Creates a local development runtime using Hyperledger Fabric Docker images`);
+                otherItems[0].contextValue.should.equal('blockchain-runtime-item');
+                otherItems[1].label.should.equal(registryEntryOne.name);
+                otherItems[1].tooltip.should.equal(registryEntryOne.name);
+                otherItems[1].contextValue.should.equal('blockchain-environment-item');
+                otherItems[2].label.should.equal(registryEntryTwo.name);
+                otherItems[2].tooltip.should.equal(registryEntryTwo.name);
+                otherItems[2].contextValue.should.equal('blockchain-environment-item');
 
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-environment-connected', false);
@@ -152,11 +298,12 @@ describe('environmentExplorer', () => {
 
                 const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+                const simpleLocalNetworkItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
 
-                allChildren.length.should.equal(1);
-                allChildren[0].label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ●`);
-                allChildren[0].tooltip.should.equal('The local development runtime is running');
-                allChildren[0].contextValue.should.equal('blockchain-runtime-item-running');
+                simpleLocalNetworkItems.length.should.equal(1);
+                simpleLocalNetworkItems[0].label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ●`);
+                simpleLocalNetworkItems[0].tooltip.should.equal('The local development runtime is running');
+                simpleLocalNetworkItems[0].contextValue.should.equal('blockchain-runtime-item-running');
 
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-environment-connected', false);
@@ -191,7 +338,8 @@ describe('environmentExplorer', () => {
                 mySandBox.stub(RuntimeTreeItem, 'newRuntimeTreeItem').rejects(error);
 
                 const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
-                await blockchainRuntimeExplorerProvider.getChildren();
+                const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+                await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
 
                 logSpy.should.have.been.calledWith(LogType.ERROR, `Error populating Fabric Environment Panel: ${error.message}`, `Error populating Fabric Environment Panel: ${error.toString()}`);
             });
@@ -1249,9 +1397,9 @@ describe('environmentExplorer', () => {
             const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren();
 
-            const result: RuntimeTreeItem = blockchainRuntimeExplorerProvider.getTreeItem(allChildren[0]) as RuntimeTreeItem;
+            const result: EnvironmentGroupTreeItem = blockchainRuntimeExplorerProvider.getTreeItem(allChildren[0]) as EnvironmentGroupTreeItem;
 
-            result.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○ (click to start)`);
+            result.label.should.equal('Simple local networks');
         });
     });
 });

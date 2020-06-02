@@ -127,7 +127,7 @@ export class ManagedAnsibleEnvironment extends AnsibleEnvironment {
 
     public isRunning(args?: string[]): Promise<boolean> {
         if (this.isRunningPromise) {
-            return this.isRunningPromise;
+        return this.isRunningPromise;
         }
         this.isRunningPromise = this.isRunningInner(args).then((result: boolean) => {
             this.isRunningPromise = undefined;

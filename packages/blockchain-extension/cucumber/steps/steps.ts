@@ -120,6 +120,15 @@ module.exports = function(): any {
             });
 
             children = await blockchainGatewayExplorerProvider.getChildren(parent);
+
+        } else if (panel === 'Fabric Environments') {
+            const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+            const allTreeItems: any[] = await blockchainEnvironmentExplorerProvider.getChildren();
+            const parent: any = allTreeItems.find((item: any) => {
+                return item.label === this.treeItem.label;
+            });
+
+            children = await blockchainEnvironmentExplorerProvider.getChildren(parent);
         }
 
         // Expand on this 'if' statement when required!

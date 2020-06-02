@@ -30,6 +30,7 @@ import { EnvironmentFactory } from '../../extension/fabric/environments/Environm
 import { ModuleUtilHelper } from './moduleUtilHelper';
 import { FabricEnvironmentTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { ExtensionsInteractionUtilHelper } from './extensionsInteractionUtilHelper';
+import { EnvironmentGroupTreeItem } from '../../extension/explorer/runtimeOps/EnvironmentGroupTreeItem';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -53,8 +54,13 @@ export class EnvironmentHelper {
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         // need to make sure its not showing the setup tree
 
-        const treeItems: Array<FabricEnvironmentTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren() as FabricEnvironmentTreeItem[];
-        treeItem = treeItems.find((item: FabricEnvironmentTreeItem) => {
+        const treeItems: Array<EnvironmentGroupTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren() as EnvironmentGroupTreeItem[];
+        const allChildren: FabricEnvironmentTreeItem[] = [];
+        for (const item of treeItems) {
+            const children: FabricEnvironmentTreeItem[] = await blockchainEnvironmentExplorerProvider.getChildren(item) as FabricEnvironmentTreeItem[];
+            allChildren.push(...children);
+        }
+        treeItem = allChildren.find((item: FabricEnvironmentTreeItem) => {
             return item.label === name;
         });
 
@@ -117,7 +123,6 @@ export class EnvironmentHelper {
                         items.add({ label: node.name, data: node });
                     }
                 }
-
                 return Array.from(items);
             }
         }

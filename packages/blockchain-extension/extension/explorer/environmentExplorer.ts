@@ -15,6 +15,7 @@
 // tslint:disable max-classes-per-file
 'use strict';
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { PeerTreeItem } from './runtimeOps/connectedTree/PeerTreeItem';
 import { ChannelTreeItem } from './model/ChannelTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
@@ -48,6 +49,7 @@ import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { ManagedAnsibleEnvironmentManager } from '../fabric/environments/ManagedAnsibleEnvironmentManager';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
+import { EnvironmentGroupTreeItem } from './runtimeOps/EnvironmentGroupTreeItem';
 
 export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorerProvider {
 
@@ -90,6 +92,9 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
     async getChildren(element?: BlockchainTreeItem): Promise<BlockchainTreeItem[]> {
         if (element) {
+            if (element instanceof EnvironmentGroupTreeItem) {
+                this.tree = await this.populateEnvironments(element.environments);
+            }
             if (element instanceof SmartContractsTreeItem) {
                 this.tree = await this.createSmartContractsTree();
             }
@@ -209,71 +214,139 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
     }
 
     private async createConnectionTree(): Promise<BlockchainTreeItem[]> {
-        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-
         const tree: BlockchainTreeItem[] = [];
 
-        try {
-            const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
+        const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
 
-            if (environmentEntries.length === 0) {
-                const command: vscode.Command = {
-                    command: ExtensionCommands.ADD_ENVIRONMENT,
-                    title: '',
-                    arguments: []
-                };
-                tree.push(new TextTreeItem(this, 'Click + to add environments', command));
-            } else {
-                for (const environmentEntry of environmentEntries) {
-                    if (environmentEntry.managedRuntime) {
-
-                        let runtime: LocalEnvironment | ManagedAnsibleEnvironment;
-                        if (environmentEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
-                            runtime = await LocalEnvironmentManager.instance().ensureRuntime(environmentEntry.name, undefined, environmentEntry.numberOfOrgs);
-                        } else {
-                            // Managed ansible
-                            runtime = ManagedAnsibleEnvironmentManager.instance().ensureRuntime(environmentEntry.name, environmentEntry.environmentDirectory);
-                        }
-
-                        const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
-                            runtime.getName(),
-                            environmentEntry,
-                            {
-                                command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
-                                title: '',
-                                arguments: [environmentEntry]
-                            },
-                            runtime
-                        );
-
-                        const isRunning: boolean = await runtime.isRunning();
-                        if (isRunning) {
-                            treeItem.contextValue = 'blockchain-runtime-item-running';
-                        }
-
-                        tree.push(treeItem);
-
-                    } else {
-                        const environmentTreeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(this,
-                            environmentEntry.name,
-                            environmentEntry,
-                            {
-                                command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
-                                title: '',
-                                arguments: [environmentEntry]
-                            }
-                        );
-
-                        tree.push(environmentTreeItem);
-                    }
+        const environmentGroups: Array<FabricEnvironmentRegistryEntry[]> = [];
+        const ibmCloudEnvironments: Array<FabricEnvironmentRegistryEntry> = [];
+        const otherEnvironments: Array<FabricEnvironmentRegistryEntry> = [];
+        for (const environment of environmentEntries) {
+            if (environmentGroups.length === 0) {
+                if (environment.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                    environmentGroups.push([environment]);
+                } else if (environment.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || environment.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
+                    ibmCloudEnvironments.push(environment);
+                } else {
+                    otherEnvironments.push(environment);
                 }
+                continue;
             }
 
-        } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Error populating Fabric Environment Panel: ${error.message}`, `Error populating Fabric Environment Panel: ${error.toString()}`);
+            // Used to check if group exists already
+            const groupIndex: number = environmentGroups.findIndex((group: FabricEnvironmentRegistryEntry[]) => {
+                return group[0].environmentType === environment.environmentType;
+            });
+
+            if (groupIndex !== -1) {
+                // If a group with the same environmentType exists, then push gateway to the group
+                environmentGroups[groupIndex].push(environment);
+            } else { // if there's a local env that group will have been created first, so check for other env types
+                if (environment.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || environment.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
+                    ibmCloudEnvironments.push(environment);
+                } else {
+                    // group environments that aren't local or opstools
+                    otherEnvironments.push(environment);
+                }
+            }
+        }
+
+        if (ibmCloudEnvironments.length > 0) {
+            environmentGroups.push(ibmCloudEnvironments);
+        }
+
+        if (otherEnvironments.length > 0) {
+            environmentGroups.push(otherEnvironments);
+        }
+
+        if (environmentGroups.length === 0) {
+            const command: vscode.Command = {
+                command: ExtensionCommands.ADD_ENVIRONMENT,
+                title: '',
+                arguments: []
+            };
+            tree.push(new TextTreeItem(this, 'Click + to add environments', command));
+        } else {
+            for (const group of environmentGroups) {
+                let groupName: string = '';
+                if (group[0].environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                    groupName = 'Simple local networks';
+                } else if (group[0].environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || group[0].environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
+                    groupName = 'IBM Cloud';
+                } else {
+                    groupName = 'Other networks';
+                }
+                tree.push(new EnvironmentGroupTreeItem(this, groupName, group, vscode.TreeItemCollapsibleState.Expanded));
+            }
         }
 
         return tree;
+    }
+
+    private async populateEnvironments(environments: FabricEnvironmentRegistryEntry[]): Promise<Array<FabricEnvironmentTreeItem>> {
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+
+        try {
+            const tree: Array<FabricEnvironmentTreeItem> = [];
+            for (const environment of environments) {
+                if (environment.managedRuntime) {
+                    let runtime: LocalEnvironment | ManagedAnsibleEnvironment;
+                    if (environment.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                        runtime = await LocalEnvironmentManager.instance().ensureRuntime(environment.name, undefined, environment.numberOfOrgs);
+                    } else {
+                        // Managed ansible
+                        runtime = ManagedAnsibleEnvironmentManager.instance().ensureRuntime(environment.name, environment.environmentDirectory);
+                    }
+                    const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
+                        runtime.getName(),
+                        environment,
+                        {
+                            command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                            title: '',
+                            arguments: [environment]
+                        },
+                        runtime
+                    );
+
+                    const isRunning: boolean = await runtime.isRunning();
+                    if (isRunning) {
+                        treeItem.contextValue = 'blockchain-runtime-item-running';
+                    }
+
+                    if (environment.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                        treeItem.iconPath = {
+                            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'laptop.svg'),
+                            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'laptop.svg')
+                        };
+                    }
+                    tree.push(treeItem);
+
+                } else {
+                    const environmentTreeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(this,
+                        environment.name,
+                        environment,
+                        {
+                            command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                            title: '',
+                            arguments: [environment]
+                        }
+                    );
+
+                    if (environment.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || environment.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
+                        environmentTreeItem.iconPath = {
+                            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'ibm-cloud.svg'),
+                            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'ibm-cloud.svg')
+                        };
+                    }
+
+                    tree.push(environmentTreeItem);
+                }
+            }
+
+            return tree;
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Error populating Fabric Environment Panel: ${error.message}`, `Error populating Fabric Environment Panel: ${error.toString()}`);
+        }
     }
 
     private async createConnectedTree(environmentRegistryEntry: FabricEnvironmentRegistryEntry): Promise<Array<BlockchainTreeItem>> {
