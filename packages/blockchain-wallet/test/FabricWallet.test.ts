@@ -87,6 +87,77 @@ describe('FabricWallet', () => {
         });
     });
 
+    describe('#getIDs', () => {
+
+        it('should return all identities in wallet as an array of Fabric Identities', async () => {
+            const wallet: IFabricWallet = new FabricWallet('/some/path');
+            mySandBox.stub(FabricWallet.prototype, 'getWalletPath').returns('/some/path');
+            const readdirStub: sinon.SinonStub = mySandBox.stub(fs, 'readdir');
+            const readJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'readJson');
+            const readFileStub: sinon.SinonStub = mySandBox.stub(fs, 'readFile');
+            mySandBox.stub(fs, 'lstatSync').returns({
+                isDirectory: sinon.stub().returns(true)
+            });
+
+            readdirStub.onCall(0).resolves(['/somePath/abc-priv', '/somePath/xyz-pub', 'identity_a', '/dir/identity_abc']);
+            readdirStub.onCall(1).resolves(['/someOtherPath/abc-priv', '/someOtherPath/xyz-pub', 'identity_b', '/dir/identity_xyz']);
+
+            const identityOne: FabricIdentity = {
+                affiliation: '',
+                enrollment: {
+                    identity: {
+                        certificate: 'someCertificate'
+                    }
+                },
+                enrollmentSecret: '',
+                mspid: 'Org1MSP',
+                name: 'identity_a',
+                roles: null
+            } as unknown as FabricIdentity;
+
+            const identityTwo: FabricIdentity = {
+                affiliation: '',
+                enrollment: {
+                    identity: {
+                        certificate: 'someOtherCertificate'
+                    }
+                },
+                enrollmentSecret: '',
+                mspid: 'Org2MSP',
+                name: 'identity_b',
+                roles: null
+            } as unknown as FabricIdentity;
+
+            const privkey: Buffer = Buffer.from('someKey');
+            const anotherPrivKrey: Buffer = Buffer.from('someOtherKey');
+
+            const allIDs: FabricIdentity[] = [
+                {
+                    name: 'identity_a',
+                    cert: Buffer.from('someCertificate').toString('base64'),
+                    private_key: privkey.toString('base64'),
+                    msp_id: 'Org1MSP'
+                },
+                {
+                    name: 'identity_b',
+                    cert: Buffer.from('someOtherCertificate').toString('base64'),
+                    private_key: anotherPrivKrey.toString('base64'),
+                    msp_id: 'Org2MSP'
+                }
+            ];
+
+            readJsonStub.onCall(0).resolves(identityOne);
+            readJsonStub.onCall(1).resolves(identityTwo);
+
+            readFileStub.onCall(0).resolves(privkey);
+            readFileStub.onCall(1).resolves(anotherPrivKrey);
+
+            const identities: FabricIdentity[] = await wallet.getIDs(['identity_a', 'identity_b']);
+
+            identities.should.deep.equal(allIDs);
+        });
+    });
+
     describe('#getIdentities', () => {
 
         it('should return any identities', async () => {

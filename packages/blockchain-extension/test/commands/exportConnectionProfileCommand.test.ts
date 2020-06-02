@@ -118,7 +118,6 @@ describe('exportConnectionProfileCommand', () => {
 
     it('should handle yaml file', async () => {
         getConnectionProfilePathStub.resolves(path.join('myPath', 'connection.yml'));
-        // TODO: Jake FIX
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, gatewayTreeItem);
         delete connectionProfile.wallet;
         showGatewayQuickPickStub.should.not.have.been.calledOnceWithExactly('Choose a gateway to export a connection profile from', false, true);

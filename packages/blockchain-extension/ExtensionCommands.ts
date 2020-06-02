@@ -67,6 +67,7 @@ export class ExtensionCommands {
     static readonly ASSOCIATE_TRANSACTION_DATA_DIRECTORY: string = 'gatewaysExplorer.associateTransactionDataDirectoryEntry';
     static readonly DISSOCIATE_TRANSACTION_DATA_DIRECTORY: string = 'gatewaysExplorer.dissociateTransactionDataDirectoryEntry';
     static readonly SUBSCRIBE_TO_EVENT: string = 'gatewaysExplorer.subscribeToEventEntry';
+    static readonly EXPORT_APP_DATA: string = 'gatewaysExplorer.exportAppData';
 
     // WALLET VIEW
     static readonly REFRESH_WALLETS: string = 'walletExplorer.refreshEntry';
