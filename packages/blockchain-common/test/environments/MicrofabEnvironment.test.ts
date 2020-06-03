@@ -65,6 +65,10 @@ class TestFabricWallet implements IFabricWallet {
         return [];
     }
 
+    async getIDs(): Promise<FabricIdentity[]> {
+        return [];
+    }
+
     async getIdentities(): Promise<FabricIdentity[]> {
         return [];
     }

@@ -91,6 +91,10 @@ export class UserInputUtil {
     static readonly GENERATE_DEFAULT_CONTRACT_DESCRIPTION: string = 'CRUD operations to a ledger shared by all network members';
     static readonly GENERATE_PD_CONTRACT: string = 'Private Data Contract';
     static readonly GENERATE_PD_CONTRACT_DESCRIPTION: string = 'CRUD and verify operations to a collection, private to a single network member';
+    static readonly GENERATE_ENVIRONMENT_PROFILE: string = 'Environment profile';
+    static readonly GENERATE_ENVIRONMENT_PROFILE_DESCRIPTION: string = '(describes connection profile, ID, channel and smart contract)';
+    static readonly GENEARTE_SMART_CONTRACT_METADATA: string = 'Smart contract metadata';
+    static readonly GENERATE_SMART_CONTRACT_METADATA_DESCRIPTION: string = '(describes transactions available to client applications)';
 
     static readonly ONE_ORG_TEMPLATE: string = `1 Org template (1 CA, 1 peer, 1 channel)`;
     static readonly TWO_ORG_TEMPLATE: string = `2 Org template (2 CAs, 2 peers, 1 channel)`;

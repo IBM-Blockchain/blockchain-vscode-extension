@@ -100,6 +100,51 @@ describe('FabricWallet', () => {
         });
     });
 
+    describe('#getIDs', () => {
+
+        it('should return all requested identities in wallet as an array of Fabric Identities', async () => {
+            const wallet: FabricWallet = await FabricWallet.newFabricWallet('tmp/myPath');
+            const getStub: sinon.SinonStub = mySandBox.stub(Wallet.prototype, 'get');
+
+            getStub.onFirstCall().resolves({
+                credentials: {
+                    certificate: 'myCert',
+                    privateKey: 'myKey',
+                },
+                mspId: 'myMSP',
+                type: 'X.509',
+            });
+
+            getStub.onSecondCall().resolves({
+                credentials: {
+                    certificate: 'myCert2',
+                    privateKey: 'myKey2',
+                },
+                mspId: 'myMSP2',
+                type: 'X.509',
+            });
+
+            const allIDs: FabricIdentity[] = [
+                {
+                    name: 'identity_a',
+                    cert: Buffer.from('myCert').toString('base64'),
+                    private_key: Buffer.from('myKey').toString('base64'),
+                    msp_id: 'myMSP'
+                },
+                {
+                    name: 'identity_b',
+                    cert: Buffer.from('myCert2').toString('base64'),
+                    private_key: Buffer.from('myKey2').toString('base64'),
+                    msp_id: 'myMSP2'
+                }
+            ];
+
+            const identities: FabricIdentity[] = await wallet.getIDs(['identity_a', 'identity_b']);
+
+            identities.should.deep.equal(allIDs);
+        });
+    });
+
     describe('#getIdentities', () => {
 
         it('should return any identities', async () => {
