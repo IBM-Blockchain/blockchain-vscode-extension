@@ -97,6 +97,14 @@ export class Lifecycle {
         return peer;
     }
 
+    public peerExists(name: string): boolean {
+        if (!name) {
+            throw new Error('Missing parameter name');
+        }
+
+        return this.peers.has(name);
+    }
+
     /**
      * Get all the names of the peers
      * @returns string[], all the names or the peers
