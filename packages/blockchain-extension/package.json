@@ -100,6 +100,7 @@
             "gatewaysExplorer.associateTransactionDataDirectoryEntry",
             "gatewaysExplorer.dissociateTransactionDataDirectoryEntry",
             "gatewaysExplorer.subscribeToEventEntry",
+            "gatewaysExplorer.exportAppData",
             "extensionHome.open",
             "preReq.open",
             "releaseNotes.open",
@@ -593,6 +594,11 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "gatewaysExplorer.exportAppData",
+                "title": "Export Application Data...",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "manageFeatureFlags",
                 "title": "Enable or disable experimental features",
                 "category": "IBM Blockchain Platform"
@@ -630,6 +636,10 @@
                 {
                     "command": "debug.commandList",
                     "when": "false"
+                },
+                {
+                    "command": "gatewaysExplorer.exportAppData",
+                    "when": "exportAppData"
                 },
                 {
                     "command": "gatewaysExplorer.exportConnectionProfileConnectedEntry",
@@ -875,6 +885,10 @@
                 {
                     "command": "gatewaysExplorer.subscribeToEventEntry",
                     "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-multi-contract-item || viewItem == blockchain-instantiated-contract-item || viewItem == blockchain-contract-item || viewItem == blockchain-instantiated-unknown-item || viewItem == blockchain-instantiated-associated-item || viewItem == blockchain-instantiated-associated-contract-item || viewItem == blockchain-instantiated-associated-multi-contract-item || viewItem == blockchain-instantiated-associated-chaincode-item"
+                },
+                {
+                    "command": "gatewaysExplorer.exportAppData",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-multi-contract-item && exportAppData || viewItem == blockchain-instantiated-contract-item && exportAppData || viewItem == blockchain-contract-item && exportAppData || viewItem == blockchain-instantiated-unknown-item && exportAppData || viewItem == blockchain-instantiated-associated-item && exportAppData || viewItem == blockchain-instantiated-associated-contract-item && exportAppData || viewItem == blockchain-instantiated-associated-multi-contract-item && exportAppData || viewItem == blockchain-instantiated-associated-chaincode-item && exportAppData"
                 },
                 {
                     "command": "transactionPage.open",

@@ -105,10 +105,12 @@ import { approveSmartContract } from '../commands/approveCommand';
 import { commitSmartContract } from '../commands/commitCommand';
 import { deploySmartContract } from '../commands/deployCommand';
 import { openDeployView } from '../commands/openDeployView';
+import { exportAppData } from '../commands/exportAppData';
 import { saveTutorial } from '../commands/saveTutorialCommand';
 import { manageFeatureFlags } from '../commands/manageFeatureFlags';
 import Axios from 'axios';
 import { URL } from 'url';
+import { FeatureFlagManager } from './FeatureFlags';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -256,6 +258,7 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.SUBSCRIBE_TO_EVENT, (treeItem: ContractTreeItem | InstantiatedTreeItem) => subscribeToEvent(treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_DEPLOY_PAGE, (fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry, channelName: string) => openDeployView(fabricEnvironmentRegistryEntry, channelName)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.SAVE_TUTORIAL_AS_PDF, (tutorialObject: any, saveAll?: boolean, tutorialFolder?: string) => saveTutorial(tutorialObject, saveAll, tutorialFolder)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_APP_DATA, (treeItem: ContractTreeItem | InstantiatedTreeItem) => exportAppData(treeItem)));
 
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_HOME_PAGE, async () => {
             const homeView: HomeView = new HomeView(context);
@@ -673,6 +676,19 @@ export class ExtensionUtil {
             await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', true);
         } else {
             await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', false);
+        }
+
+        const features: Map<string, boolean> = await FeatureFlagManager.get();
+        for (const feature of FeatureFlagManager.ALL) {
+            const hasContext: boolean = feature.getContext();
+            if (hasContext) {
+                if (!!features[feature.getName()]) {
+                    // feature enabled
+                    await vscode.commands.executeCommand('setContext', feature.getName(), true);
+                } else {
+                    await vscode.commands.executeCommand('setContext', feature.getName(), false);
+                }
+            }
         }
 
         if (!extensionData.generatorVersion) {
