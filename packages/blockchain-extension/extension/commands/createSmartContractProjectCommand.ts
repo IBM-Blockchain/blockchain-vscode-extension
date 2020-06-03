@@ -151,7 +151,11 @@ export async function createSmartContractProject(): Promise<void> {
 
         // Open the returned folder in explorer, in a new window
         await UserInputUtil.openNewProject(openMethod, folderUri);
-        await vscode.commands.executeCommand('workbench.files.action.focusFilesExplorer');
+        try {
+            await vscode.commands.executeCommand('workbench.files.action.focusFilesExplorer');
+        } catch (error) {
+            // This command is not supported on Eclipse Che, so just ignore the error.
+        }
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Issue creating${privateOrDefault}Smart Contract Project: ${error.message}`, `Issue creating${privateOrDefault}Smart Contract Project: ${error.toString()}`);
         return;

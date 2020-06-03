@@ -303,6 +303,20 @@ describe('CreateSmartContractProjectCommand', () => {
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: 'typescript', contractType: 'private' });
     });
 
+    it('should not report an error when focusFilesExplorer throws an error', async () => {
+        executeCommandStub.withArgs('workbench.files.action.focusFilesExplorer').rejects(new Error('unsupported'));
+        showQuickPickItemStub.resolves({label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private'});
+        showInputBoxStub.onFirstCall().resolves('Org1MSP');
+        showLanguagesQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
+        showInputBoxStub.onSecondCall().resolves('MyPrivateAsset');
+        showFolderOptionsStub.resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
+        browseStub.resolves(uri);
+
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Private Data Smart Contract Project');
+        logSpy.should.not.have.been.calledWithExactly(LogType.ERROR, sinon.match.string, sinon.match.string);
+    });
+
     it('should not do anything if the user cancels when asked for the mspID', async () => {
         showQuickPickItemStub.resolves({label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private'});
         showInputBoxStub.onFirstCall().resolves(undefined);
