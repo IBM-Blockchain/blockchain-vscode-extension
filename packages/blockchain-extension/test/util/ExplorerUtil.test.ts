@@ -41,7 +41,7 @@ describe('gatewayExplorer', () => {
     const myWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
         name: 'myWallet',
         walletPath: 'some/file/path',
-        fromEnvironment: myEnvironment.name
+        environmentGroups: [myEnvironment.name]
     });
 
     const localEnvIcons: { light: string | vscode.Uri; dark: string | vscode.Uri } = {
@@ -71,48 +71,48 @@ describe('gatewayExplorer', () => {
     it('should get the correct icon for a gateway from a local environment', async () => {
         myEnvironment.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
         fabricEnvironmentRegistryGetStub.resolves(myEnvironment);
-        await ExplorerUtil.getGroupIcon(myGateway).should.eventually.deep.equal(localEnvIcons);
+        await ExplorerUtil.getGroupIcon(myGateway.fromEnvironment).should.eventually.deep.equal(localEnvIcons);
     });
 
     it('should get the correct icon for a wallet from a local environment', async () => {
         myEnvironment.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
         fabricEnvironmentRegistryGetStub.resolves(myEnvironment);
-        await ExplorerUtil.getGroupIcon(myWallet).should.eventually.deep.equal(localEnvIcons);
+        await ExplorerUtil.getGroupIcon(myWallet.environmentGroups[0]).should.eventually.deep.equal(localEnvIcons);
     });
 
     it('should get the correct icon for a gateway from an ops tools environment', async () => {
         myEnvironment.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
         fabricEnvironmentRegistryGetStub.resolves(myEnvironment);
-        await ExplorerUtil.getGroupIcon(myGateway).should.eventually.deep.equal(ibmCloudEnvIcons);
+        await ExplorerUtil.getGroupIcon(myGateway.fromEnvironment).should.eventually.deep.equal(ibmCloudEnvIcons);
     });
 
     it('should get the correct icon for a wallet from an ops tools environment', async () => {
         myEnvironment.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
         fabricEnvironmentRegistryGetStub.resolves(myEnvironment);
-        await ExplorerUtil.getGroupIcon(myWallet).should.eventually.deep.equal(ibmCloudEnvIcons);
+        await ExplorerUtil.getGroupIcon(myWallet.environmentGroups[0]).should.eventually.deep.equal(ibmCloudEnvIcons);
     });
 
     it('should get the correct icon for a gateway from a saas environment', async () => {
         myEnvironment.environmentType = EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT;
         fabricEnvironmentRegistryGetStub.resolves(myEnvironment);
-        await ExplorerUtil.getGroupIcon(myGateway).should.eventually.deep.equal(ibmCloudEnvIcons);
+        await ExplorerUtil.getGroupIcon(myGateway.fromEnvironment).should.eventually.deep.equal(ibmCloudEnvIcons);
     });
 
     it('should get the correct icon for a wallet from a saas environment', async () => {
         myEnvironment.environmentType = EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT;
         fabricEnvironmentRegistryGetStub.resolves(myEnvironment);
-        await ExplorerUtil.getGroupIcon(myWallet).should.eventually.deep.equal(ibmCloudEnvIcons);
+        await ExplorerUtil.getGroupIcon(myWallet.environmentGroups[0]).should.eventually.deep.equal(ibmCloudEnvIcons);
     });
 
     it(`should get the correct icon for a gateway from an 'other' environment`, async () => {
         myEnvironment.environmentType = EnvironmentType.ENVIRONMENT;
         fabricEnvironmentRegistryGetStub.resolves(myEnvironment);
-        await ExplorerUtil.getGroupIcon(myGateway).should.eventually.deep.equal(otherEnvIcons);
+        await ExplorerUtil.getGroupIcon(myGateway.fromEnvironment).should.eventually.deep.equal(otherEnvIcons);
     });
 
     it(`should get the correct icon for a wallet from an 'other' environment`, async () => {
         myEnvironment.environmentType = EnvironmentType.ENVIRONMENT;
         fabricEnvironmentRegistryGetStub.resolves(myEnvironment);
-        await ExplorerUtil.getGroupIcon(myWallet).should.eventually.deep.equal(otherEnvIcons);
+        await ExplorerUtil.getGroupIcon(myWallet.environmentGroups[0]).should.eventually.deep.equal(otherEnvIcons);
     });
 });

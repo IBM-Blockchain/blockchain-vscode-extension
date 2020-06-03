@@ -21,7 +21,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWallet, IFabricWalletGenerator, LogType, FabricWalletGeneratorFactory } from 'ibm-blockchain-platform-common';
 import { FabricWalletHelper} from '../fabric/FabricWalletHelper';
 
-export async function addWallet(createIdentity: boolean = true, fromEnvironment?: string): Promise<FabricWalletRegistryEntry> {
+export async function addWallet(createIdentity: boolean = true, environmentGroup?: string): Promise<FabricWalletRegistryEntry> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'addWallet');
 
@@ -66,8 +66,8 @@ export async function addWallet(createIdentity: boolean = true, fromEnvironment?
             // Add the wallet to the registry
             fabricWalletRegistryEntry.name = walletName;
             fabricWalletRegistryEntry.walletPath = walletPath;
-            if (fromEnvironment) {
-                fabricWalletRegistryEntry.fromEnvironment = fromEnvironment;
+            if (environmentGroup) {
+                fabricWalletRegistryEntry.environmentGroups = [environmentGroup];
             }
             await fabricWalletRegistry.add(fabricWalletRegistryEntry);
 
@@ -98,8 +98,8 @@ export async function addWallet(createIdentity: boolean = true, fromEnvironment?
             // Add the wallet to the registry
             fabricWalletRegistryEntry.name = walletName;
             fabricWalletRegistryEntry.walletPath = FabricWalletHelper.getWalletPath(walletName);
-            if (fromEnvironment) {
-                fabricWalletRegistryEntry.fromEnvironment = fromEnvironment;
+            if (environmentGroup) {
+                fabricWalletRegistryEntry.environmentGroups = [environmentGroup];
             }
             await fabricWalletRegistry.add(fabricWalletRegistryEntry);
 

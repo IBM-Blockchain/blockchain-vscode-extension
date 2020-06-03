@@ -150,10 +150,12 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
 
         await environment.updateNode(node);
 
-        if (!walletRegistryEntry.fromEnvironment && (environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || environmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT)) {
-            walletRegistryEntry.fromEnvironment = environmentRegistryEntry.name;
-            await FabricWalletRegistry.instance().update(walletRegistryEntry);
+        if (!walletRegistryEntry.environmentGroups) {
+            walletRegistryEntry.environmentGroups = [environmentRegistryEntry.name];
+        } else if (!walletRegistryEntry.environmentGroups.includes(environmentRegistryEntry.name)) {
+            walletRegistryEntry.environmentGroups.push(environmentRegistryEntry.name);
         }
+        await FabricWalletRegistry.instance().update(walletRegistryEntry);
 
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
         outputAdapter.log(LogType.SUCCESS, `Successfully associated identity ${node.identity} from wallet ${node.wallet} with node ${node.name}`);

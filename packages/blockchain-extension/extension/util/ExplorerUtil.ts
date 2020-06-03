@@ -14,12 +14,12 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { FabricGatewayRegistryEntry, FabricWalletRegistryEntry, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
 
 export class ExplorerUtil {
-    public static async getGroupIcon(entry: FabricGatewayRegistryEntry | FabricWalletRegistryEntry): Promise<{ light: string | vscode.Uri; dark: string | vscode.Uri }> {
+    public static async getGroupIcon(environmentName: string): Promise<{ light: string | vscode.Uri; dark: string | vscode.Uri }> {
         let iconName: string;
-        const environmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(entry.fromEnvironment);
+        const environmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
         if (environmentEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
             iconName = 'laptop.svg';
         } else if (environmentEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || environmentEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {

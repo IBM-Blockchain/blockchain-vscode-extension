@@ -59,7 +59,7 @@ Feature: Fabric Gateways
         And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
         And the environment is setup
         When I create a gateway 'gatewayFromEnv' from an 'environment'
-        Then there should be a tree item with a label 'Other gateways' in the 'Fabric Gateways' panel
+        Then there should be a tree item with a label 'myFabric' in the 'Fabric Gateways' panel
         And the 'Fabric Gateways' tree item should have a child 'gatewayFromEnv ⧉'
         And the tree item should have a tooltip equal to 'ⓘ Associated wallet:\n    myWallet'
         When connecting to the 'gatewayFromEnv' gateway

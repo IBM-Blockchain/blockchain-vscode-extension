@@ -313,6 +313,7 @@ describe('MicrofabEnvironment', () => {
             walletRegistryEntries.should.have.lengthOf(2);
             walletRegistryEntries[0].should.deep.equal({
                 displayName: 'microfabEnvironment - Orderer',
+                environmentGroups: ['microfabEnvironment'],
                 fromEnvironment: 'microfabEnvironment',
                 managedWallet: false,
                 name: 'Orderer',
@@ -320,6 +321,7 @@ describe('MicrofabEnvironment', () => {
             });
             walletRegistryEntries[1].should.deep.equal({
                 displayName: 'microfabEnvironment - Org1',
+                environmentGroups: ['microfabEnvironment'],
                 fromEnvironment: 'microfabEnvironment',
                 managedWallet: false,
                 name: 'Org1',
@@ -398,6 +400,7 @@ describe('MicrofabEnvironment', () => {
                 associatedWallet: 'Org1',
                 connectionProfilePath: path.join(directory, FileConfigurations.FABRIC_GATEWAYS, 'Org1 Gateway.json'),
                 displayName: 'Org1 Gateway',
+                environmentGroup: 'microfabEnvironment',
                 fromEnvironment: 'microfabEnvironment',
                 name: 'microfabEnvironment - Org1 Gateway'
             });

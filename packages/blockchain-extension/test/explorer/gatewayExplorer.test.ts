@@ -271,7 +271,7 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
 
                 await FabricEnvironmentRegistry.instance().add(opsToolsEnv);
 
-                const opsToolsGateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'someGateway', fromEnvironment: 'opsToolsEnv', associatedWallet: 'Org1 Wallet', displayName: `Org1` });
+                const opsToolsGateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'someGateway', environmentGroup: 'opsToolsEnv', associatedWallet: 'Org1 Wallet', displayName: `Org1` });
 
                 await FabricGatewayRegistry.instance().add(opsToolsGateway);
 
@@ -306,11 +306,11 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
 
                 const saasEnv: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
                 saasEnv.name = 'saasEnv';
-                saasEnv.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
+                saasEnv.environmentType = EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT;
 
                 await FabricEnvironmentRegistry.instance().add(saasEnv);
 
-                const saasGateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'someGateway', fromEnvironment: 'saasEnv', associatedWallet: 'Org1 Wallet', displayName: `Org1` });
+                const saasGateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'someGateway', environmentGroup: 'saasEnv', associatedWallet: 'Org1 Wallet', displayName: `Org1` });
 
                 await FabricGatewayRegistry.instance().add(saasGateway);
 
@@ -336,6 +336,78 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
                 groupGateways[0].gateway.should.deep.equal(saasGateway);
                 groupGateways[0].command.should.deep.equal(myCommand);
                 groupGateways[0].tooltip.should.deep.equal(`ⓘ Associated wallet:\n    Org1 Wallet`);
+            });
+
+            it('should still display gateway if its environment has been deleted', async () => {
+                await FabricGatewayRegistry.instance().clear();
+                await FabricEnvironmentRegistry.instance().clear();
+                await FabricWalletRegistry.instance().clear();
+
+                const opsToolsGateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'someGateway', environmentGroup: 'opsToolsEnv', associatedWallet: 'Org1 Wallet', displayName: `Org1` });
+
+                await FabricGatewayRegistry.instance().add(opsToolsGateway);
+
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
+
+                const myCommand: vscode.Command = {
+                    command: ExtensionCommands.CONNECT_TO_GATEWAY,
+                    title: '',
+                    arguments: [{ name: 'someGateway', associatedWallet: 'Org1 Wallet', displayName: `Org1` }]
+                };
+
+                allChildren.length.should.equal(1);
+                allChildren[0].should.be.an.instanceOf(GatewayGroupTreeItem);
+                const group: GatewayGroupTreeItem = allChildren[0] as GatewayGroupTreeItem;
+                group.label.should.equal('Other gateways');
+                group.gateways.should.deep.equal([{ name: 'someGateway', associatedWallet: 'Org1 Wallet', displayName: `Org1` }]);
+
+                const groupGateways: LocalGatewayTreeItem[] = await blockchainGatewayExplorerProvider.getChildren(group) as LocalGatewayTreeItem[];
+
+                groupGateways[0].label.should.equal(`Org1 ⧉`);
+                groupGateways[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                groupGateways[0].gateway.should.deep.equal({ name: 'someGateway', associatedWallet: 'Org1 Wallet', displayName: `Org1` });
+                groupGateways[0].command.should.deep.equal(myCommand);
+                groupGateways[0].tooltip.should.deep.equal(`ⓘ Associated wallet:\n    Org1 Wallet`);
+            });
+
+            it('should display multiple gateway groups', async () => {
+                await FabricGatewayRegistry.instance().clear();
+                await FabricEnvironmentRegistry.instance().clear();
+                await FabricWalletRegistry.instance().clear();
+
+                const gateway1: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'gateway1', environmentGroup: 'someEnvironment', associatedWallet: 'Org1 Wallet', displayName: 'Org1'});
+                const gateway2: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'gateway2', environmentGroup: 'someOtherEnvironment', associatedWallet: 'Org1 Wallet', displayName: 'Org1'});
+                const gateway3: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'gateway3', associatedWallet: 'Org1 Wallet', displayName: 'Org1'});
+
+                await FabricGatewayRegistry.instance().add(gateway1);
+                await FabricGatewayRegistry.instance().add(gateway2);
+                await FabricGatewayRegistry.instance().add(gateway3);
+
+                mySandBox.stub(FabricEnvironmentRegistry.instance(), 'exists').resolves(true);
+                const getEnvironmentStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get');
+                getEnvironmentStub.withArgs('someEnvironment').resolves({name: 'someEnvironment'});
+                getEnvironmentStub.withArgs('someOtherEnvironment').resolves({name: 'someOtherEnvironment'});
+
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
+
+                allChildren.length.should.equal(3);
+
+                allChildren[0].should.be.an.instanceOf(GatewayGroupTreeItem);
+                const group1: GatewayGroupTreeItem = allChildren[0] as GatewayGroupTreeItem;
+                group1.label.should.equal('someEnvironment');
+                group1.gateways.should.deep.equal([gateway1]);
+
+                allChildren[1].should.be.an.instanceOf(GatewayGroupTreeItem);
+                const group2: GatewayGroupTreeItem = allChildren[1] as GatewayGroupTreeItem;
+                group2.label.should.equal('someOtherEnvironment');
+                group2.gateways.should.deep.equal([gateway2]);
+
+                allChildren[2].should.be.an.instanceOf(GatewayGroupTreeItem);
+                const group3: GatewayGroupTreeItem = allChildren[2] as GatewayGroupTreeItem;
+                group3.label.should.equal('Other gateways');
+                group3.gateways.should.deep.equal([gateway3]);
             });
 
             it('should handle errors thrown when connection fails', async () => {

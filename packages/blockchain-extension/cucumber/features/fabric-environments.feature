@@ -61,7 +61,7 @@ Feature: Fabric Environments
         Then there should be a tree item with a label 'IBM Cloud' in the 'Fabric Environments' panel
         And the 'Fabric Environments' tree item should have a child '<environmentName>'
         And the tree item should have a tooltip equal to '<environmentName>'
-        And there should be a tree item with a label 'Other wallets' in the 'Fabric Wallets' panel
+        And there should be a tree item with a label 'Other/shared wallets' in the 'Fabric Wallets' panel
         And the 'Fabric Wallets' tree item should have a child '<walletName>'
         Examples:
         | environmentName      | environmentType    | walletName            | identity          | mspid     |
@@ -301,7 +301,7 @@ Feature: Fabric Environments
     @otherFabric
     Scenario: It should delete a node
         Given an environment 'myFabric2' exists
-        And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
+        And the wallet 'myWallet2' with identity 'conga' and mspid 'Org1MSP' exists
         And the environment is setup
         And the 'myFabric2' environment is connected
         When I delete node 'ca.example.com'

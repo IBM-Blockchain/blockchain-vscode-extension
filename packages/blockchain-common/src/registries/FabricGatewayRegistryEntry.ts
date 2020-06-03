@@ -21,6 +21,7 @@ export class FabricGatewayRegistryEntry extends RegistryEntry {
     public displayName?: string;
     public connectionProfilePath?: string;
     public fromEnvironment?: string;
+    public environmentGroup?: string;
     public transactionDataDirectories?: Array<{chaincodeName: string, channelName: string, transactionDataPath: string}>;
 
     constructor(fields?: FabricGatewayRegistryEntry) {
