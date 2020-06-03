@@ -1,6 +1,30 @@
 # IBM Blockchain Platform Extension Change Log
 
+<<<<<<< HEAD
 ## 2.0.0-beta.0: May 27th 2020
+=======
+## 1.0.32: June 4th 2020
+
+Announcements
+---
+* We’re still waiting for the gRPC v1.25.0 binaries to be published so you may be affected by [this issue](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621), where gRPC fails to rebuild when using VS Code >1.40.x.
+ > Please see [this comment](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621#issuecomment-552926559) for a workaround. 
+
+Features & Enhancements
+---
+* Updated environment grouping and icons [#2023](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2023).
+
+* Export application data (experimental feature) [#2220](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2220).
+
+Fixes
+---
+* Fixed tutorial panels on smaller screen sizes [#2273](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2273).
+
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-74.jpg)
+
+## 1.0.31: May 26th 2020
+>>>>>>> 5bd4ca13... Changelog (#2431)
 
 Announcements
 ---
