@@ -17,9 +17,22 @@ import {CommitHelper} from '../../helpers/CommitHelper';
 import {Helper} from '../../helpers/Helper';
 import {Collection, DefinedSmartContract} from '../../../src';
 
-When(/^I commit the contract$/, async function(): Promise<void> {
+When(/^I commit the contract( orgOneOnly)?$/, async function(orgOneOnly: string): Promise<void> {
+    let onlyOneOrg: boolean = false;
+    if (orgOneOnly) {
+        onlyOneOrg = true;
+    }
     this.sequence = 1;
-    await CommitHelper.commitSmartContract(this.lifecycle, [Helper.org1Peer, Helper.org2Peer], this.label, '0.0.1', this.wallet, this.org1Identity);
+
+    const peerNames: string[] = [Helper.org1Peer];
+
+    if (onlyOneOrg) {
+        peerNames.push('peer0.org2.example.com:9051');
+    } else {
+        peerNames.push(Helper.org2Peer);
+    }
+
+    await CommitHelper.commitSmartContract(this.lifecycle, peerNames, this.label, '0.0.1', this.wallet, this.org1Identity);
 });
 
 When(/^I commit the contract with sequence '(.*)' and policy '(.*)'$/, async function(sequence: number, policy: string): Promise<void> {

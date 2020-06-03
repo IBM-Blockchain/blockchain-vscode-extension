@@ -133,7 +133,7 @@ describe('LifecycleChannel', () => {
                 mysandbox = sinon.createSandbox();
 
                 mysandbox.stub(Endorser.prototype, 'connect').resolves();
-
+                mysandbox.stub(Discoverer.prototype, 'connect').resolves();
                 mysandbox.stub(Committer.prototype, 'connect').resolves();
 
                 arg = new protos.lifecycle.ApproveChaincodeDefinitionForMyOrgArgs();
@@ -151,7 +151,14 @@ describe('LifecycleChannel', () => {
                 addEndorserStub = mysandbox.stub(Channel.prototype, 'addEndorser');
                 addCommitterStub = mysandbox.stub(Channel.prototype, 'addCommitter');
 
+                // @ts-ignore
+                mysandbox.stub(Channel.prototype, 'getEndorsers').returns([{name: 'myPeer'}, {name: 'myPeer2'}, {name: 'myPeer:7051'}, {name: 'peer0.org2.example.com:9051'}]);
+
                 gatewayConnectSpy = mysandbox.spy(Gateway.prototype, 'connect');
+
+                mysandbox.stub(DiscoveryService.prototype, 'build');
+                mysandbox.stub(DiscoveryService.prototype, 'sign');
+                mysandbox.stub(DiscoveryService.prototype, 'send').resolves();
 
                 transactionSetEndorsingPeersSpy = mysandbox.spy(Transaction.prototype, 'setEndorsingPeers');
                 transactionSubmitStub = mysandbox.stub(Transaction.prototype, 'submit');
@@ -172,12 +179,12 @@ describe('LifecycleChannel', () => {
                 addEndorserStub.should.have.been.calledWith(sinon.match.instanceOf(Endorser));
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
-                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser)]);
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{name: 'myPeer'}]);
                 transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
             });
 
             it('should approve a smart contract definition with timeout set', async () => {
-                await channel.approveSmartContractDefinition(['myPeer'], 'myOrderer', {
+                await channel.approveSmartContractDefinition(['myPeer2'], 'myOrderer', {
                     packageId: 'myPackageId',
                     sequence: 1,
                     smartContractName: 'myContract',
@@ -193,7 +200,7 @@ describe('LifecycleChannel', () => {
                     endorseTimeout: 1234
                 });
 
-                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser)]);
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{name: 'myPeer2'}]);
                 transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
             });
 
@@ -212,7 +219,7 @@ describe('LifecycleChannel', () => {
                 addEndorserStub.should.have.been.calledWith(sinon.match.instanceOf(Endorser));
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
-                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser)]);
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{name: 'myPeer'}]);
                 transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
             });
 
@@ -234,7 +241,7 @@ describe('LifecycleChannel', () => {
                 addEndorserStub.should.have.been.calledWith(sinon.match.instanceOf(Endorser));
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
-                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser)]);
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{name: 'myPeer'}]);
                 transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
             });
 
@@ -252,7 +259,7 @@ describe('LifecycleChannel', () => {
                 addEndorserStub.should.have.been.calledWith(sinon.match.instanceOf(Endorser));
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
-                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser)]);
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{name: 'myPeer'}]);
                 transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
             });
 
@@ -270,7 +277,7 @@ describe('LifecycleChannel', () => {
                 addEndorserStub.should.have.been.calledWith(sinon.match.instanceOf(Endorser));
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
-                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser)]);
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{name: 'myPeer'}]);
                 transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
             });
 
@@ -300,7 +307,7 @@ describe('LifecycleChannel', () => {
                 addEndorserStub.should.have.been.calledWith(sinon.match.instanceOf(Endorser));
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
-                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser)]);
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{name: 'myPeer'}]);
                 transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
             });
 
@@ -329,7 +336,7 @@ describe('LifecycleChannel', () => {
                 addEndorserStub.should.have.been.calledWith(sinon.match.instanceOf(Endorser));
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
-                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser)]);
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{name: 'myPeer'}]);
                 transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
             });
 
@@ -397,7 +404,7 @@ describe('LifecycleChannel', () => {
                 addEndorserStub.should.have.been.calledWith(sinon.match.instanceOf(Endorser));
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
-                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser)]);
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{name: 'myPeer'}]);
                 transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
             });
         });
@@ -420,7 +427,7 @@ describe('LifecycleChannel', () => {
                 mysandbox = sinon.createSandbox();
 
                 mysandbox.stub(Endorser.prototype, 'connect').resolves();
-
+                mysandbox.stub(Discoverer.prototype, 'connect').resolves();
                 mysandbox.stub(Committer.prototype, 'connect').resolves();
 
                 arg = new protos.lifecycle.ApproveChaincodeDefinitionForMyOrgArgs();
@@ -431,7 +438,14 @@ describe('LifecycleChannel', () => {
                 addEndorserStub = mysandbox.stub(Channel.prototype, 'addEndorser');
                 addCommitterStub = mysandbox.stub(Channel.prototype, 'addCommitter');
 
+                // @ts-ignore
+                mysandbox.stub(Channel.prototype, 'getEndorsers').returns([{name: 'myPeer'}, {name: 'myPeer:7051'}, {name: 'peer0.org2.example.com:9051'}]);
+
                 gatewayConnectSpy = mysandbox.spy(Gateway.prototype, 'connect');
+
+                mysandbox.stub(DiscoveryService.prototype, 'build');
+                mysandbox.stub(DiscoveryService.prototype, 'sign');
+                mysandbox.stub(DiscoveryService.prototype, 'send').resolves();
 
                 transactionSetEndorsingPeersSpy = mysandbox.spy(Transaction.prototype, 'setEndorsingPeers');
                 transactionSubmitStub = mysandbox.stub(Transaction.prototype, 'submit');
@@ -442,27 +456,27 @@ describe('LifecycleChannel', () => {
             });
 
             it('should commit a smart contract definition', async () => {
-                await channel.commitSmartContractDefinition(['myPeer', 'myPeer2'], 'myOrderer', {
+                await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     sequence: 1,
                     smartContractName: 'myContract',
                     smartContractVersion: '0.0.1'
                 });
 
-                addEndorserStub.should.have.been.calledTwice;
+                addEndorserStub.should.have.been.calledOnce;
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
-                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser), sinon.match.instanceOf(Endorser)]);
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{name: 'myPeer'}, {name: 'peer0.org2.example.com:9051'}]);
                 transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
             });
 
             it('should commit a smart contract definition with timeout set', async () => {
-                await channel.commitSmartContractDefinition(['myPeer', 'myPeer2'], 'myOrderer', {
+                await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     sequence: 1,
                     smartContractName: 'myContract',
                     smartContractVersion: '0.0.1'
                 }, 1234);
 
-                addEndorserStub.should.have.been.calledTwice;
+                addEndorserStub.should.have.been.calledOnce;
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
                 const call: sinon.SinonSpyCall = gatewayConnectSpy.getCall(0);
@@ -471,7 +485,7 @@ describe('LifecycleChannel', () => {
                     endorseTimeout: 1234
                 });
 
-                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser), sinon.match.instanceOf(Endorser)]);
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{name: 'myPeer'}, {name: 'peer0.org2.example.com:9051'}]);
                 transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
             });
 
@@ -479,51 +493,51 @@ describe('LifecycleChannel', () => {
 
                 arg.setInitRequired(true);
 
-                await channel.commitSmartContractDefinition(['myPeer', 'myPeer2'], 'myOrderer', {
+                await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     sequence: 1,
                     smartContractName: 'myContract',
                     smartContractVersion: '0.0.1',
                     initRequired: true
                 });
 
-                addEndorserStub.should.have.been.calledTwice;
+                addEndorserStub.should.have.been.calledOnce;
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
-                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser), sinon.match.instanceOf(Endorser)]);
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{name: 'myPeer'}, {name: 'peer0.org2.example.com:9051'}]);
                 transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
             });
 
             it('should commit a smart contract definition with endorsement plugin', async () => {
                 arg.setEndorsementPlugin('myPlugin');
 
-                await channel.commitSmartContractDefinition(['myPeer', 'myPeer2'], 'myOrderer', {
+                await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     sequence: 1,
                     smartContractName: 'myContract',
                     smartContractVersion: '0.0.1',
                     endorsementPlugin: 'myPlugin'
                 });
 
-                addEndorserStub.should.have.been.calledTwice;
+                addEndorserStub.should.have.been.calledOnce;
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
-                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser), sinon.match.instanceOf(Endorser)]);
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{name: 'myPeer'}, {name: 'peer0.org2.example.com:9051'}]);
                 transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
             });
 
             it('should commit a smart contract definition with validation plugin', async () => {
                 arg.setValidationPlugin('myPlugin');
 
-                await channel.commitSmartContractDefinition(['myPeer', 'myPeer2'], 'myOrderer', {
+                await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     sequence: 1,
                     smartContractName: 'myContract',
                     smartContractVersion: '0.0.1',
                     validationPlugin: 'myPlugin'
                 });
 
-                addEndorserStub.should.have.been.calledTwice;
+                addEndorserStub.should.have.been.calledOnce;
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
-                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser), sinon.match.instanceOf(Endorser)]);
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{name: 'myPeer'}, {name: 'peer0.org2.example.com:9051'}]);
                 transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
             });
 
@@ -542,17 +556,17 @@ describe('LifecycleChannel', () => {
 
                 arg.setValidationParameter(policyBuffer);
 
-                await channel.commitSmartContractDefinition(['myPeer', 'myPeer2'], 'myOrderer', {
+                await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     sequence: 1,
                     smartContractName: 'myContract',
                     smartContractVersion: '0.0.1',
                     endorsementPolicy: policyString
                 });
 
-                addEndorserStub.should.have.been.calledTwice;
+                addEndorserStub.should.have.been.calledOnce;
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
-                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser), sinon.match.instanceOf(Endorser)]);
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{name: 'myPeer'}, {name: 'peer0.org2.example.com:9051'}]);
                 transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
             });
 
@@ -567,17 +581,17 @@ describe('LifecycleChannel', () => {
 
                 arg.setValidationParameter(policyBuffer);
 
-                await channel.commitSmartContractDefinition(['myPeer', 'myPeer2'], 'myOrderer', {
+                await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     sequence: 1,
                     smartContractName: 'myContract',
                     smartContractVersion: '0.0.1',
                     endorsementPolicy: policyString
                 });
 
-                addEndorserStub.should.have.been.calledTwice;
+                addEndorserStub.should.have.been.calledOnce;
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
-                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser), sinon.match.instanceOf(Endorser)]);
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{name: 'myPeer'}, {name: 'peer0.org2.example.com:9051'}]);
                 transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
             });
 
@@ -595,17 +609,17 @@ describe('LifecycleChannel', () => {
 
                 arg.setCollections(CollectionConfig.buildCollectionConfigPackage(collectionConfig));
 
-                await channel.commitSmartContractDefinition(['myPeer', 'myPeer2'], 'myOrderer', {
+                await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     sequence: 1,
                     smartContractName: 'myContract',
                     smartContractVersion: '0.0.1',
                     collectionConfig: collectionConfig
                 });
 
-                addEndorserStub.should.have.been.calledTwice;
+                addEndorserStub.should.have.been.calledOnce;
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
-                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser), sinon.match.instanceOf(Endorser)]);
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{name: 'myPeer'}, {name: 'peer0.org2.example.com:9051'}]);
                 transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
             });
 
@@ -619,7 +633,7 @@ describe('LifecycleChannel', () => {
 
             it('should handle no orderer set', async () => {
                 // @ts-ignore
-                await channel.commitSmartContractDefinition(['myPeer', 'myPeer2'], undefined, {
+                await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], undefined, {
                     sequence: 1,
                     smartContractName: 'myContract',
                     smartContractVersion: '0.0.1',
@@ -628,12 +642,12 @@ describe('LifecycleChannel', () => {
 
             it('should handle no options set', async () => {
                 // @ts-ignore
-                await channel.commitSmartContractDefinition(['myPeer', 'myPeer2'], 'myOrderer', undefined).should.eventually.be.rejectedWith('parameter options is missing');
+                await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', undefined).should.eventually.be.rejectedWith('parameter options is missing');
             });
 
             it('should handle no sequence set', async () => {
                 // @ts-ignore
-                await channel.commitSmartContractDefinition(['myPeer', 'myPeer2'], 'myOrderer', {
+                await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     smartContractName: 'myContract',
                     smartContractVersion: '0.0.1',
                 }).should.eventually.be.rejectedWith('missing option sequence');
@@ -641,7 +655,7 @@ describe('LifecycleChannel', () => {
 
             it('should handle no smartContractName set', async () => {
                 // @ts-ignore
-                await channel.commitSmartContractDefinition(['myPeer', 'myPeer2'], 'myOrderer', {
+                await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     sequence: 1,
                     smartContractVersion: '0.0.1',
                 }).should.eventually.be.rejectedWith('missing option smartContractName');
@@ -649,7 +663,7 @@ describe('LifecycleChannel', () => {
 
             it('should handle no smartContractVersion set', async () => {
                 // @ts-ignore
-                await channel.commitSmartContractDefinition(['myPeer', 'myPeer2'], 'myOrderer', {
+                await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     sequence: 1,
                     smartContractName: 'myContract',
                 }).should.eventually.be.rejectedWith('missing option smartContractVersion');
@@ -658,17 +672,25 @@ describe('LifecycleChannel', () => {
             it('should handle error from submit', async () => {
                 transactionSubmitStub.rejects({message: 'some error'});
 
-                await channel.commitSmartContractDefinition(['myPeer', 'myPeer2'], 'myOrderer', {
+                await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     sequence: 1,
                     smartContractName: 'myContract',
                     smartContractVersion: '0.0.1'
                 }).should.eventually.be.rejectedWith('Could not commit smart contract definition, received error: some error');
 
-                addEndorserStub.should.have.been.calledTwice;
+                addEndorserStub.should.have.been.calledOnce;
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
-                transactionSetEndorsingPeersSpy.should.have.been.calledWith([sinon.match.instanceOf(Endorser), sinon.match.instanceOf(Endorser)]);
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{name: 'myPeer'}, {name: 'peer0.org2.example.com:9051'}]);
                 transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+            });
+
+            it('should handle error from not finding peer', async () => {
+                await channel.commitSmartContractDefinition(['myPeer', 'peer.does.not.exist:5060'], 'myOrderer', {
+                    sequence: 1,
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1'
+                }).should.eventually.be.rejectedWith('Could not commit smart contract definition, received error: Could not find peer peer.does.not.exist:5060 in discovered peers');
             });
         });
 
@@ -1517,7 +1539,7 @@ describe('LifecycleChannel', () => {
             });
 
             it('should get the discovered peer names', async () => {
-                const result: string[] = await channel.getDiscoveredPeerNames(['myPeer'], true);
+                const result: string[] = await channel.getDiscoveredPeerNames(['myPeer']);
 
                 result.should.deep.equal(['myPeer', 'peer0.org2.example.com:9051']);
 
@@ -1531,7 +1553,7 @@ describe('LifecycleChannel', () => {
             });
 
             it('should get the discovered peer names with timeout', async () => {
-                const result: string[] = await channel.getDiscoveredPeerNames(['myPeer'], true, 1234);
+                const result: string[] = await channel.getDiscoveredPeerNames(['myPeer'], 1234);
 
                 result.should.deep.equal(['myPeer', 'peer0.org2.example.com:9051']);
 
@@ -1551,18 +1573,14 @@ describe('LifecycleChannel', () => {
             });
 
             it('should handle no peerNames set', async () => {
-                await channel.getDiscoveredPeerNames(undefined, true).should.eventually.be.rejectedWith('parameter peers was missing or empty array');
-            });
-
-            it('should handle asLocalHost not set set', async () => {
                 // @ts-ignore
-                await channel.getDiscoveredPeerNames(['myPeer']).should.eventually.be.rejectedWith('parameter asLocalHost was missing');
+                await channel.getDiscoveredPeerNames().should.eventually.be.rejectedWith('parameter peers was missing or empty array');
             });
 
             it('should handle error', async () => {
 
                 discoverServiceSendStub.rejects({message: 'some error'});
-                await channel.getDiscoveredPeerNames(['myPeer'], true).should.eventually.be.rejectedWith('Could discover peers, received error some error');
+                await channel.getDiscoveredPeerNames(['myPeer']).should.eventually.be.rejectedWith('Could discover peers, received error some error');
 
                 discoverServiceSignStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 discoverServiceBuildStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));

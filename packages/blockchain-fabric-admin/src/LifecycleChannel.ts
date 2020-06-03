@@ -44,6 +44,7 @@ import {Lifecycle} from './Lifecycle';
 import {LifecyclePeer} from './LifecyclePeer';
 import {EndorsementPolicy} from './Policy';
 import {Collection, CollectionConfig} from './CollectionConfig';
+import {URL} from 'url';
 
 const logger: any = Utils.getLogger('LifecycleChannel');
 
@@ -326,18 +327,45 @@ export class LifecycleChannel {
             throw new Error(`Could not get smart contract definition, received error: ${error.message}`);
         }
     }
+    public static getEndorsementPolicyBytes(endorsementPolicy: string): Buffer {
+        const method: string = 'getEndorsementPolicyBytes';
+        logger.debug('%s - start', method);
 
-    public async getDiscoveredPeerNames(peerNames: string[], asLocalHost: boolean, requestTimeout?: number): Promise<string[]> {
+        if (!endorsementPolicy || endorsementPolicy === '') {
+            throw new Error('Missing parameter endorsementPolicy');
+        }
+
+        const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
+
+        if (endorsementPolicy.startsWith(EndorsementPolicy.AND) || endorsementPolicy.startsWith(EndorsementPolicy.OR) || endorsementPolicy.startsWith(EndorsementPolicy.OUT_OF)) {
+            logger.debug('%s - have an  actual policy :: %s', method, endorsementPolicy);
+            const policy: EndorsementPolicy = new EndorsementPolicy();
+            const signaturePolicy: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(endorsementPolicy);
+            applicationPolicy.setSignaturePolicy(signaturePolicy);
+        } else {
+            logger.debug('%s - have a policy reference :: %s', method, endorsementPolicy);
+            applicationPolicy.setChannelConfigPolicyReference(endorsementPolicy);
+        }
+
+        return applicationPolicy.toBuffer();
+    }
+
+    public static getCollectionConfig(collectionConfig: Collection[], asBuffer: boolean = false): Buffer | protos.common {
+        const collection: protos.common.CollectionConfigPackage = CollectionConfig.buildCollectionConfigPackage(collectionConfig);
+
+        if (asBuffer) {
+            return collection.toBuffer();
+        } else {
+            return collection;
+        }
+    }
+
+    public async getDiscoveredPeerNames(peerNames: string[], requestTimeout?: number): Promise<string[]> {
 
         if (!peerNames || peerNames.length === 0) {
             throw new Error('parameter peers was missing or empty array');
         }
 
-        if (!asLocalHost) {
-            throw new Error('parameter asLocalHost was missing');
-        }
-
-        const endorsers: Endorser[] = [];
         const gateway: Gateway = new Gateway();
 
         const gatewayOptions: GatewayOptions = {
@@ -364,35 +392,7 @@ export class LifecycleChannel {
             logger.debug('%s - add the endorsers to the channel');
             const channel: Channel = network.getChannel();
 
-            for (const peerName of peerNames) {
-                const endorser: Endorser = await this.createEndorser(peerName, fabricClient);
-
-                channel.addEndorser(endorser, true);
-                endorsers.push(endorser);
-            }
-
-            const discoverers: Discoverer[] = [];
-            for (const peer of endorsers) {
-                const discoverer: Discoverer = channel.client.newDiscoverer(peer.name, peer.mspid);
-                await discoverer.connect(peer.endpoint);
-                discoverers.push(discoverer);
-            }
-
-            const discoveryService: DiscoveryService = channel.newDiscoveryService(this.channelName);
-            const identity: Identity = gateway.getIdentity();
-            const provider: IdentityProvider = this.wallet.getProviderRegistry().getProvider(identity.type);
-            const user: User = await provider.getUserContext(identity, this.identity);
-            const identityContext: IdentityContext = fabricClient.newIdentityContext(user);
-
-            // do the three steps
-            discoveryService.build(identityContext);
-            discoveryService.sign(identityContext);
-            await discoveryService.send({
-                asLocalhost: asLocalHost,
-                targets: discoverers
-            });
-
-            const allEndorsers: Endorser[] = channel.getEndorsers();
+            const allEndorsers: Endorser[] = await this.discoverPeers(peerNames, fabricClient, channel, gateway);
 
             // This list contains all the known about peers and discovered ones
             // filter out duplicate peer names
@@ -416,6 +416,42 @@ export class LifecycleChannel {
         } finally {
             gateway.disconnect();
         }
+    }
+
+    private async discoverPeers(peerNames: string[], fabricClient: Client, channel: Channel, gateway: Gateway): Promise<Endorser[]> {
+        const endorsers: Endorser[] = [];
+        const asLocalHost: boolean = this.hasLocalhostURLs(peerNames);
+
+        for (const peerName of peerNames) {
+            const endorser: Endorser = await this.createEndorser(peerName, fabricClient);
+
+            channel.addEndorser(endorser, true);
+            endorsers.push(endorser);
+        }
+
+        const discoverers: Discoverer[] = [];
+        for (const peer of endorsers) {
+            const discoverer: Discoverer = channel.client.newDiscoverer(peer.name, peer.mspid);
+            await discoverer.connect(peer.endpoint);
+            discoverers.push(discoverer);
+        }
+
+        const discoveryService: DiscoveryService = channel.newDiscoveryService(this.channelName);
+        const identity: Identity = gateway.getIdentity();
+        const provider: IdentityProvider = this.wallet.getProviderRegistry().getProvider(identity.type);
+        const user: User = await provider.getUserContext(identity, this.identity);
+        const identityContext: IdentityContext = fabricClient.newIdentityContext(user);
+
+        // do the three steps
+        discoveryService.build(identityContext);
+        discoveryService.sign(identityContext);
+        await discoveryService.send({
+            asLocalhost: asLocalHost,
+            targets: discoverers
+        });
+
+        const allEndorsers: Endorser[] = channel.getEndorsers();
+        return allEndorsers;
     }
 
     private async submitTransaction(peerNames: string[], ordererName: string, options: SmartContractDefinitionOptions, functionName: string, requestTimeout ?: number): Promise<void> {
@@ -473,13 +509,22 @@ export class LifecycleChannel {
             logger.debug('%s - add the endorsers to the channel');
             const channel: Channel = network.getChannel();
 
+            const alreadyKnownPeers: string[] = peerNames.filter((peerName: string) => {
+                return this.lifecycle.peerExists(peerName);
+            });
+
+            const allEndorsers: Endorser[] = await this.discoverPeers(alreadyKnownPeers, fabricClient, channel, gateway);
             for (const peerName of peerNames) {
-                const endorser: Endorser = await this.createEndorser(peerName, fabricClient);
+                const endorser: Endorser = allEndorsers.find((_endorser: Endorser) => {
+                    return _endorser.name === peerName;
+                });
 
-                channel.addEndorser(endorser, true);
-                endorsers.push(endorser);
+                if (!endorser) {
+                    throw new Error(`Could not find peer ${peerName} in discovered peers`);
+                } else {
+                    endorsers.push(endorser);
+                }
             }
-
             const ordererConnectOptions: ConnectOptions = this.lifecycle.getOrderer(ordererName);
 
             committer = fabricClient.getCommitter(ordererName);
@@ -561,39 +606,6 @@ export class LifecycleChannel {
         }
     }
 
-    public static getEndorsementPolicyBytes(endorsementPolicy: string): Buffer {
-        const method: string = 'getEndorsementPolicyBytes';
-        logger.debug('%s - start', method);
-
-        if (!endorsementPolicy || endorsementPolicy === '') {
-            throw new Error('Missing parameter endorsementPolicy');
-        }
-
-        const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
-
-        if (endorsementPolicy.startsWith(EndorsementPolicy.AND) || endorsementPolicy.startsWith(EndorsementPolicy.OR) || endorsementPolicy.startsWith(EndorsementPolicy.OUT_OF)) {
-            logger.debug('%s - have an  actual policy :: %s', method, endorsementPolicy);
-            const policy: EndorsementPolicy = new EndorsementPolicy();
-            const signaturePolicy: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(endorsementPolicy);
-            applicationPolicy.setSignaturePolicy(signaturePolicy);
-        } else {
-            logger.debug('%s - have a policy reference :: %s', method, endorsementPolicy);
-            applicationPolicy.setChannelConfigPolicyReference(endorsementPolicy);
-        }
-
-        return applicationPolicy.toBuffer();
-    }
-
-    public static getCollectionConfig(collectionConfig: Collection[], asBuffer: boolean = false): Buffer | protos.common {
-        const collection: protos.common.CollectionConfigPackage = CollectionConfig.buildCollectionConfigPackage(collectionConfig);
-
-        if (asBuffer) {
-            return collection.toBuffer();
-        } else {
-            return collection;
-        }
-    }
-
     private async createEndorser(peerName: string, fabricClient: Client): Promise<Endorser> {
         const peer: LifecyclePeer = this.lifecycle.getPeer(peerName, this.wallet, this.identity);
 
@@ -665,5 +677,23 @@ export class LifecycleChannel {
             gateway.disconnect();
             endorser.disconnect();
         }
+    }
+
+    private isLocalhostURL(url: string): boolean {
+        const parsedURL: URL = new URL(url);
+        const localhosts: string[] = [
+            'localhost',
+            '127.0.0.1'
+        ];
+        return localhosts.indexOf(parsedURL.hostname) !== -1;
+    }
+
+    private hasLocalhostURLs(peerNames: string[]): boolean {
+        const urls: string[] = [];
+        for (const peerName of peerNames) {
+            const peer: LifecyclePeer = this.lifecycle.getPeer(peerName, this.wallet, this.identity);
+            urls.push(peer.url);
+        }
+        return urls.some((url: string) => this.isLocalhostURL(url));
     }
 }
