@@ -15,14 +15,14 @@ Array [
     className="bx--row margin-bottom-06"
   >
     <div
-      className="bx--col-lg-10"
+      className="bx--col-lg-11"
     >
       <h5>
         Smart contract definition
       </h5>
     </div>
     <div
-      className="bx--col-lg-10"
+      className="bx--col-lg-11"
     >
       <div
         className="bx--row"
@@ -93,7 +93,7 @@ Array [
     className="bx--row margin-bottom-06"
   >
     <div
-      className="bx--col-lg-10"
+      className="bx--col-lg-11"
     >
       <div
         className="bx--row"
@@ -102,62 +102,49 @@ Array [
           className="bx--col-lg-7 bx--col-md-3 bx--col-sm-4"
         >
           <div
-            className="bx--file__container"
+            className="bx--form-item bx--text-input-wrapper"
           >
-            <div
-              className="bx--form-item"
-              onClick={[Function]}
-              size="default"
+            <label
+              className="bx--label"
+              htmlFor="endorsementInput"
             >
-              <strong
-                className="bx--file--label"
-              >
-                Endorsement policy
-              </strong>
-              <p
-                className="bx--label-description"
-              >
-                Default (1 endorser, any org) will be used unless you add your own.
-              </p>
-              <label
-                aria-disabled={false}
-                className="bx--btn bx--btn--tertiary"
-                htmlFor="id2"
-                onChange={[Function]}
-                onClick={[Function]}
-                onKeyDown={[Function]}
-                tabIndex={0}
-              >
-                <span
-                  role="button"
-                >
-                  Add file
-                </span>
-              </label>
+              Endorsement policy
+            </label>
+            <div
+              className="bx--form__helper-text"
+            >
+              Default (Channel/Application/Endorsement) policy will be used unless you specify your own.
+            </div>
+            <div
+              className="bx--text-input__field-wrapper"
+              data-invalid={null}
+            >
               <input
-                accept={
-                  Array [
-                    ".json",
-                  ]
-                }
-                className="bx--visually-hidden"
+                className="bx--text-input bx--text__input"
+                defaultValue=""
                 disabled={false}
-                id="id2"
-                multiple={false}
+                id="endorsementInput"
                 onChange={[Function]}
                 onClick={[Function]}
-                tabIndex="-1"
-                type="file"
-              />
-              <div
-                className="bx--file-container"
+                placeholder="e.g. OR(\\"Org1MSP.member\\",\\"Org2MSP.member\\")"
+                title="e.g. OR(\\"Org1MSP.member\\",\\"Org2MSP.member\\")"
+                type="text"
               />
             </div>
           </div>
         </div>
-        <div
-          className="bx--col-lg-2 bx--col-md-1 bx--col-sm-0"
-        />
+      </div>
+    </div>
+  </div>,
+  <div
+    className="bx--row margin-bottom-06"
+  >
+    <div
+      className="bx--col-lg-11"
+    >
+      <div
+        className="bx--row"
+      >
         <div
           className="bx--col-lg-7 bx--col-md-3 bx--col-sm-4"
         >
@@ -184,7 +171,7 @@ Array [
               <label
                 aria-disabled={false}
                 className="bx--btn bx--btn--tertiary"
-                htmlFor="id3"
+                htmlFor="id2"
                 onChange={[Function]}
                 onClick={[Function]}
                 onKeyDown={[Function]}
@@ -204,7 +191,7 @@ Array [
                 }
                 className="bx--visually-hidden"
                 disabled={false}
-                id="id3"
+                id="id2"
                 multiple={false}
                 onChange={[Function]}
                 onClick={[Function]}
@@ -265,15 +252,25 @@ Array [
           <div
             className="bx--accordion__content"
           >
+            <p>
+              These developer tools automatically handle other parameters for simplified deployment. Learn what values are used in our 
+              <a
+                className="bx--link"
+                href="https://github.com/IBM-Blockchain/blockchain-vscode-extension"
+              >
+                documentation
+              </a>
+              .
+            </p>
             <p
               className="margin-bottom-05"
             >
-              These developer tools automatically handle some parameters for simplied development. For a full explainabtion of definition parameters and Fabric v2.X smart contract lifecycle, see the 
+              Find out more information about the endorsement policy syntax 
               <a
                 className="bx--link"
-                href="#"
+                href="https://hyperledger-fabric.readthedocs.io/en/master/endorsement-policies.html#endorsement-policy-syntax"
               >
-                Fabric documentation
+                here
               </a>
               .
             </p>
@@ -283,28 +280,16 @@ Array [
               To deploy with full control of all parameters, please use the 
               <a
                 className="bx--link"
-                href="#"
+                href="https://cloud.ibm.com/catalog/services/blockchain-platform"
               >
                 IBM Blockchain Platform Console
               </a>
                or 
               <a
                 className="bx--link"
-                href="#"
+                href="https://hyperledger-fabric.readthedocs.io/en/release-2.0/chaincode_lifecycle.html"
               >
                 Hyperledger Fabric CLIs
-              </a>
-              .
-            </p>
-            <p
-              className="margin-bottom-05"
-            >
-              Read about how our simplified deployment handles the other parameters in the 
-              <a
-                className="bx--link"
-                href="#"
-              >
-                IBM Blockchain Platform documentation
               </a>
               .
             </p>
