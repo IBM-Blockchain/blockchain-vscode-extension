@@ -9,7 +9,7 @@ import DeployStepTwo from '../../elements/DeploySteps/DeployStepTwo/DeployStepTw
 import DeployStepThree from '../../elements/DeploySteps/DeployStepThree/DeployStepThree';
 import Utils from '../../../Utils';
 interface IProps {
-    deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined};
+    deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, definitionNames: string[]};
 }
 
 interface DeployState {
@@ -151,7 +151,7 @@ class DeployPage extends Component<IProps, DeployState> {
 
         if (props.deployData.selectedPackage) {
             // If a new selected package is passed
-            this.setState({selectedPackage: props.deployData.selectedPackage, disableNext: false});
+            this.setState({selectedPackage: props.deployData.selectedPackage, definitionName: props.deployData.selectedPackage.name, definitionVersion: props.deployData.selectedPackage.version ? props.deployData.selectedPackage.version : '0.0.1',  disableNext: false});
         }
 
     }
@@ -167,7 +167,7 @@ class DeployPage extends Component<IProps, DeployState> {
         if (currentIndex === 0) {
             currentStepComponent = <DeployStepOne packageEntries={this.props.deployData.packageEntries} selectedPackage={this.state.selectedPackage} workspaceNames={this.props.deployData.workspaceNames} selectedWorkspace={this.state.selectedWorkspace} deletedSelectedPackage={this.state.deletedSelectedPackage} onPackageChange={this.handlePackageChange} onPackageWorkspace={this.handlePackageWorkspace} />;
         } else if (currentIndex === 1) {
-            currentStepComponent = <DeployStepTwo currentCollectionFile={this.state.currentCollectionFile} onCollectionChange={this.handleCollectionChange} selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} currentDefinitionName={this.state.definitionName} currentDefinitionVersion={this.state.definitionVersion} onDefinitionNameChange={this.handleDefinitionNameChange} onDefinitionVersionChange={this.handleDefinitionVersionChange}/>;
+            currentStepComponent = <DeployStepTwo definitionNames={this.props.deployData.definitionNames} currentCollectionFile={this.state.currentCollectionFile} onCollectionChange={this.handleCollectionChange} selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} currentDefinitionName={this.state.definitionName} currentDefinitionVersion={this.state.definitionVersion} onDefinitionNameChange={this.handleDefinitionNameChange} onDefinitionVersionChange={this.handleDefinitionVersionChange}/>;
         } else {
             currentStepComponent = <DeployStepThree selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} channelName={this.state.channelName} commitSmartContract={this.state.commitSmartContract} onCommitChange={this.handleCommitChange}/>;
         }

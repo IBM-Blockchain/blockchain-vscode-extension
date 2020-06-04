@@ -3,7 +3,7 @@
     "author": "IBMBlockchain",
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
-    "version": "2.0.0-beta.1",
+    "version": "2.0.0-beta.2",
     "publisher": "IBMBlockchain",
     "repository": {
         "type": "git",
@@ -69,7 +69,6 @@
             "scripts",
             "node_modules",
             "cucumber/tmp",
-            "src/old-code",
             "src/pegjs",
             ".idea",
             ".git",
@@ -132,10 +131,8 @@
             "cucumber",
             "test",
             "build",
-            "old-code",
             "coverage",
             "*.js",
-            "src/old-code",
             "src/pegjs"
         ],
         "reporter": [

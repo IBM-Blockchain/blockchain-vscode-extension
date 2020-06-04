@@ -3,7 +3,7 @@
 	"author": "IBMBlockchain",
 	"homepage": "https://www.ibm.com/blockchain",
 	"license": "Apache-2.0",
-	"version": "2.0.0-beta.1",
+	"version": "2.0.0-beta.2",
 	"publisher": "IBMBlockchain",
 	"repository": {
 		"type": "git",
@@ -52,9 +52,9 @@
 	},
 	"dependencies": {
 		"fs-extra": "^7.0.1",
-		"ibm-blockchain-platform-common": "^2.0.0-beta.1",
-		"ibm-blockchain-platform-fabric-admin": "^2.0.0-beta.1",
-		"ibm-blockchain-platform-wallet": "^2.0.0-beta.1",
+		"ibm-blockchain-platform-common": "^2.0.0-beta.2",
+		"ibm-blockchain-platform-fabric-admin": "^2.0.0-beta.2",
+		"ibm-blockchain-platform-wallet": "^2.0.0-beta.2",
 		"url": "0.11.0"
 	},
 	"optionalDependencies": {

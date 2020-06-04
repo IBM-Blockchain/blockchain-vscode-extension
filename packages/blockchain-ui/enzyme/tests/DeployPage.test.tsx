@@ -26,11 +26,11 @@ describe('DeployPage component', () => {
     const packageOne: IPackageRegistryEntry = {name: 'mycontract', version: '0.0.1', path: '/package/one', sizeKB: 9000};
     const packageTwo: IPackageRegistryEntry = {name: 'othercontract', version: '0.0.2', path: '/package/two', sizeKB: 12000};
     const packageThree: IPackageRegistryEntry = {name: 'importedContract', path: '/package/three', sizeKB: 16000};
-    let deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined};
+    let deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, definitionNames: string[]};
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
-        deployData = {channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo, packageThree], workspaceNames: ['workspaceOne'], selectedPackage: undefined};
+        deployData = {channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo, packageThree], workspaceNames: ['workspaceOne'], selectedPackage: undefined, definitionNames: []};
     });
 
     afterEach(async () => {
@@ -434,7 +434,7 @@ describe('DeployPage component', () => {
 
         });
 
-        it('should update selected package if passed into app', () => {
+        it('should update selected package if passed into app and use package version', () => {
             const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
             const instance: DeployPage = component.instance() as DeployPage;
 
@@ -453,7 +453,28 @@ describe('DeployPage component', () => {
                 }
             });
 
-            setStateStub.should.have.been.calledWith({selectedPackage: workspacePackage, disableNext: false});
+            setStateStub.should.have.been.calledWith({selectedPackage: workspacePackage, definitionName: workspacePackage.name, definitionVersion: workspacePackage.version,  disableNext: false});
+        });
+
+        it('should update selected package if passed into app and use default version', () => {
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
+
+            const workspacePackage: IPackageRegistryEntry = {
+                name: 'createdFromWorkspace',
+                sizeKB: 30000,
+                path: '/somet/path'
+            };
+
+            instance.componentWillReceiveProps({
+                deployData: {
+                    selectedPackage: workspacePackage
+                }
+            });
+
+            setStateStub.should.have.been.calledWith({selectedPackage: workspacePackage, definitionName: workspacePackage.name, definitionVersion: '0.0.1',  disableNext: false});
         });
     });
 

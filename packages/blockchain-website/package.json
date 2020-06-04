@@ -2,7 +2,7 @@
   "homepage": ".",
   "name": "ibm-blockchain-platform-website",
   "description": "End to end extension for Hyperledger Fabric developers. Develop and test your blockchain smart contracts and client applications on your local machine, and package your projects for deployment into IBM Blockchain Platform runtimes.",
-  "version": "2.0.0-beta.1",
+  "version": "2.0.0-beta.2",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
