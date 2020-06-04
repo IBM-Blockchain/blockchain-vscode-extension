@@ -8,8 +8,7 @@
 	"exclude": [
 		"node_modules",
 		"build",
-		"test/data",
-		"src/old-code"
+		"test/data"
 	],
 	"include": [
 		"src",

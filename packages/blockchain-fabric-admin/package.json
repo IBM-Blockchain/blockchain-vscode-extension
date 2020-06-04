@@ -69,7 +69,6 @@
             "scripts",
             "node_modules",
             "cucumber/tmp",
-            "src/old-code",
             "src/pegjs",
             ".idea",
             ".git",
@@ -132,10 +131,8 @@
             "cucumber",
             "test",
             "build",
-            "old-code",
             "coverage",
             "*.js",
-            "src/old-code",
             "src/pegjs"
         ],
         "reporter": [
