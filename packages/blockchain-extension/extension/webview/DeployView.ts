@@ -73,8 +73,9 @@ export class DeployView extends ReactView {
                 const definitionName: string = message.data.definitionName;
                 const definitionVersion: string = message.data.definitionVersion;
                 const commitSmartContract: boolean = message.data.commitSmartContract;
+                const endorsementPolicy: string = message.data.endorsementPolicy;
                 const collectionConfigPath: string = message.data.collectionConfigPath;
-                await this.deploy(channelName, environmentName, selectedPackage, definitionName, definitionVersion, commitSmartContract, collectionConfigPath);
+                await this.deploy(channelName, environmentName, selectedPackage, definitionName, definitionVersion, commitSmartContract, endorsementPolicy, collectionConfigPath);
             } else if (message.command === 'package') {
                 const workspaceName: string = message.data.workspaceName;
                 const entry: PackageRegistryEntry = await this.package(workspaceName);
@@ -97,7 +98,7 @@ export class DeployView extends ReactView {
         });
     }
 
-    async deploy(channelName: string, environmentName: string, selectedPackage: PackageRegistryEntry, definitionName: string, definitionVersion: string, commitSmartContract: boolean, collectionConfigPath: string): Promise<void> {
+    async deploy(channelName: string, environmentName: string, selectedPackage: PackageRegistryEntry, definitionName: string, definitionVersion: string, commitSmartContract: boolean, endorsementPolicy: string, collectionConfigPath: string): Promise<void> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         try {
@@ -156,9 +157,6 @@ export class DeployView extends ReactView {
 
             let sequenceNumber: number;
 
-            // TODO: Increment sequence number if endorsement policy or collection is passed.
-            // https://hyperledger-fabric.readthedocs.io/en/release-2.0/chaincode_lifecycle.html for more info.
-
             if (!committedContract) {
                 // New contract
                 sequenceNumber = 1;
@@ -175,19 +173,26 @@ export class DeployView extends ReactView {
                 }
             }
 
+            if (collectionConfigPath || endorsementPolicy) {
+                // Always increment sequence
+                sequenceNumber = committedContract ? committedContract.sequence + 1 : 1;
+            }
+
             let collectionFile: FabricCollectionDefinition[];
             if (collectionConfigPath) {
                 collectionFile = await fs.readJSON(collectionConfigPath) as FabricCollectionDefinition[];
+            }
 
-                // Increment regardless of whatever the sequence was calculated as
-                sequenceNumber = committedContract ? committedContract.sequence + 1 : 1;
+            if (endorsementPolicy) {
+                // Replace double quotes with single quotes
+                endorsementPolicy = endorsementPolicy.replace(/"/g, "\'");
             }
 
             if (commitSmartContract === undefined) {
                 commitSmartContract = true; // Commit by default
             }
 
-            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, commitSmartContract, environmentEntry, ordererNames[0], channelName, orgMap, selectedPackage, new FabricSmartContractDefinition(definitionName, definitionVersion, sequenceNumber, undefined, undefined, collectionFile));
+            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, commitSmartContract, environmentEntry, ordererNames[0], channelName, orgMap, selectedPackage, new FabricSmartContractDefinition(definitionName, definitionVersion, sequenceNumber, undefined, endorsementPolicy, collectionFile));
         } catch (error) {
             outputAdapter.log(LogType.ERROR, error.message, error.toString());
         }

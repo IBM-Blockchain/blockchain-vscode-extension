@@ -20,6 +20,7 @@ describe('DeployStepTwo component', () => {
     let onDefinitionNameChangeStub: sinon.SinonStub;
     let onDefinitionVersionChangeStub: sinon.SinonStub;
     let onCollectionChangeStub: sinon.SinonStub;
+    let onEndorsementPolicyChangeStub: sinon.SinonStub;
 
     const packageOne: IPackageRegistryEntry = {name: 'mycontract', version: '0.0.1', path: '/package/one', sizeKB: 9000};
 
@@ -29,6 +30,7 @@ describe('DeployStepTwo component', () => {
         onDefinitionNameChangeStub = mySandBox.stub();
         onDefinitionVersionChangeStub = mySandBox.stub();
         onCollectionChangeStub = mySandBox.stub();
+        onEndorsementPolicyChangeStub = mySandBox.stub();
     });
 
     afterEach(async () => {
@@ -38,14 +40,14 @@ describe('DeployStepTwo component', () => {
     describe('render', () => {
         it('should render the expected snapshot', () => {
             const component: any = renderer
-                .create(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} />)
+                .create(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} endorsementPolicy={undefined} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} onEndorsementPolicyChange={onEndorsementPolicyChangeStub} />)
                 .toJSON();
             expect(component).toMatchSnapshot();
         });
 
         it('should show the current definition name if available', () => {
 
-            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='definitionName' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} />);
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='definitionName' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} endorsementPolicy={undefined} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} onEndorsementPolicyChange={onEndorsementPolicyChangeStub} />);
 
             const definitionInput: ReactWrapper<any> = component.find(TextInput).at(0);
             const nameInputProps: any = definitionInput.props();
@@ -54,7 +56,7 @@ describe('DeployStepTwo component', () => {
 
         it('should show the current definition version if available', () => {
 
-            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='0.0.3' currentCollectionFile={undefined} definitionNames={[]} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} />);
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='0.0.3' currentCollectionFile={undefined} definitionNames={[]} endorsementPolicy={undefined} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} onEndorsementPolicyChange={onEndorsementPolicyChangeStub} />);
 
             const definitionInput: ReactWrapper<any> = component.find(TextInput).at(1);
             const nameInputProps: any = definitionInput.props();
@@ -63,29 +65,35 @@ describe('DeployStepTwo component', () => {
 
         it('should show uploaded collection', () => {
             const file: File = new File([], 'someFile');
-            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='0.0.3' currentCollectionFile={file} definitionNames={[]} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} />);
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='0.0.3' currentCollectionFile={file} definitionNames={[]} endorsementPolicy={undefined} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} onEndorsementPolicyChange={onEndorsementPolicyChangeStub} />);
             const uploadItem: ReactWrapper<any> = component.find(FileUploaderItem).at(0);
             const html: string = uploadItem.html();
             html.includes(`<p class="bx--file-filename">${file.name}</p>`).should.equal(true);
         });
 
         it('should let user know if a contract with the same definition already exists', () => {
-            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='0.0.3' currentCollectionFile={undefined} definitionNames={[packageOne.name]} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} />);
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='0.0.3' currentCollectionFile={undefined} definitionNames={[packageOne.name]} endorsementPolicy={undefined} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} onEndorsementPolicyChange={onEndorsementPolicyChangeStub} />);
             const html: string = component.html();
             html.includes('Name matches an existing smart contract').should.equal(true);
         });
 
         it('should not tell the user that a definition with the name exists', () => {
-            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='0.0.3' currentCollectionFile={undefined} definitionNames={['othercontract']} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} />);
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='0.0.3' currentCollectionFile={undefined} definitionNames={['othercontract']} endorsementPolicy={undefined} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} onEndorsementPolicyChange={onEndorsementPolicyChangeStub} />);
             const html: string = component.html();
             html.includes('Name matches an existing smart contract').should.equal(false);
+        });
+
+        it('should set endorsement policy if passed', () => {
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='0.0.3' currentCollectionFile={undefined} definitionNames={[]} endorsementPolicy={'OR("Org1MSP.member","Org2MSP.member")'} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} onEndorsementPolicyChange={onEndorsementPolicyChangeStub} />);
+            const html: string = component.html();
+            html.includes('value="OR(&quot;Org1MSP.member&quot;,&quot;Org2MSP.member&quot;)"').should.equal(true);
         });
 
     });
 
     describe('handleDefinitionNameChange', () => {
         it('should handle definition name change', () => {
-            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} />);
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} endorsementPolicy={undefined} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} onEndorsementPolicyChange={onEndorsementPolicyChangeStub} />);
             const instance: DeployStepTwo = component.instance() as DeployStepTwo;
             const textInputData: any = {
                 target: {
@@ -104,7 +112,7 @@ describe('DeployStepTwo component', () => {
 
     describe('handleDefinitionVersionChange', () => {
         it('should handle definition version change', () => {
-            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} />);
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} endorsementPolicy={undefined} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} onEndorsementPolicyChange={onEndorsementPolicyChangeStub} />);
             const instance: DeployStepTwo = component.instance() as DeployStepTwo;
             const textInputData: any = {
                 target: {
@@ -123,7 +131,7 @@ describe('DeployStepTwo component', () => {
 
     describe('isNameInvalid', () => {
         it('should handle empty name', async () => {
-            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} />);
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} endorsementPolicy={undefined} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} onEndorsementPolicyChange={onEndorsementPolicyChangeStub} />);
             const instance: DeployStepTwo = component.instance() as DeployStepTwo;
 
             const result: boolean = instance.isNameInvalid('');
@@ -131,7 +139,7 @@ describe('DeployStepTwo component', () => {
         });
 
         it('should handle invalid name', async () => {
-            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} />);
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} endorsementPolicy={undefined} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} onEndorsementPolicyChange={onEndorsementPolicyChangeStub} />);
             const instance: DeployStepTwo = component.instance() as DeployStepTwo;
 
             const result: boolean = instance.isNameInvalid('invalid#name');
@@ -139,7 +147,7 @@ describe('DeployStepTwo component', () => {
         });
 
         it('should handle valid name', async () => {
-            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} />);
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} endorsementPolicy={undefined} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} onEndorsementPolicyChange={onEndorsementPolicyChangeStub} />);
             const instance: DeployStepTwo = component.instance() as DeployStepTwo;
 
             const result: boolean = instance.isNameInvalid('valid_contract-name-123');
@@ -149,7 +157,7 @@ describe('DeployStepTwo component', () => {
 
     describe('isVersionInvalid', () => {
         it('should handle empty version', async () => {
-            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} />);
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} endorsementPolicy={undefined} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} onEndorsementPolicyChange={onEndorsementPolicyChangeStub} />);
             const instance: DeployStepTwo = component.instance() as DeployStepTwo;
 
             const result: boolean = instance.isVersionInvalid('');
@@ -157,7 +165,7 @@ describe('DeployStepTwo component', () => {
         });
 
         it('should handle valid version', async () => {
-            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} />);
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} endorsementPolicy={undefined} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} onEndorsementPolicyChange={onEndorsementPolicyChangeStub} />);
             const instance: DeployStepTwo = component.instance() as DeployStepTwo;
 
             const result: boolean = instance.isVersionInvalid('0.0.1');
@@ -165,9 +173,9 @@ describe('DeployStepTwo component', () => {
         });
     });
 
-    describe('collectionChange', () => {
+    describe('handleCollectionChange', () => {
         it('should pass a file to parent if selected', () => {
-            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} />);
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} endorsementPolicy={undefined} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} onEndorsementPolicyChange={onEndorsementPolicyChangeStub} />);
             const instance: DeployStepTwo = component.instance() as DeployStepTwo;
 
             const file: File = new File([], 'someFile');
@@ -179,13 +187,13 @@ describe('DeployStepTwo component', () => {
                 }
             };
 
-            instance.collectionChange(event);
+            instance.handleCollectionChange(event);
 
             onCollectionChangeStub.should.have.been.calledOnceWithExactly(file);
         });
 
         it('should not pass a file to parent if not selected', () => {
-            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} />);
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} endorsementPolicy={undefined} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} onEndorsementPolicyChange={onEndorsementPolicyChangeStub} />);
             const instance: DeployStepTwo = component.instance() as DeployStepTwo;
 
             const event: any = {
@@ -194,15 +202,32 @@ describe('DeployStepTwo component', () => {
                 }
             };
 
-            instance.collectionChange(event);
+            instance.handleCollectionChange(event);
 
             onCollectionChangeStub.should.not.have.been.called;
         });
     });
 
+    describe('handleEndorsementPolicyChange', () => {
+        it('should handle endorsement policy change', () => {
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='' currentDefinitionVersion='' currentCollectionFile={undefined} definitionNames={[]} endorsementPolicy={undefined} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} onEndorsementPolicyChange={onEndorsementPolicyChangeStub} />);
+            const instance: DeployStepTwo = component.instance() as DeployStepTwo;
+
+            const event: any = {
+                target: {
+                    value: ' OR("Org1MSP.member","Org2MSP.member")'
+                }
+            };
+
+            instance.handleEndorsementPolicyChange(event);
+
+            onEndorsementPolicyChangeStub.should.have.been.called;
+        });
+    });
+
     describe('componentWillReceiveProps', () => {
         it('should update current definition name', () => {
-            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='someName' currentDefinitionVersion='0.0.1' currentCollectionFile={undefined} definitionNames={[]} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} />);
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='someName' currentDefinitionVersion='0.0.1' currentCollectionFile={undefined} definitionNames={[]} endorsementPolicy={undefined} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} onEndorsementPolicyChange={onEndorsementPolicyChangeStub} />);
             const instance: DeployStepTwo = component.instance() as DeployStepTwo;
 
             const setStateStub: sinon.SinonStub = mySandBox.stub(instance, 'setState');
@@ -213,7 +238,7 @@ describe('DeployStepTwo component', () => {
         });
 
         it(`shouldn't update definition name if it hasn't changed`, () => {
-            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='someName' currentDefinitionVersion='0.0.1' currentCollectionFile={undefined} definitionNames={[]} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} />);
+            const component: ReactWrapper<DeployStepTwo> = mount(<DeployStepTwo selectedPackage={packageOne} currentDefinitionName='someName' currentDefinitionVersion='0.0.1' currentCollectionFile={undefined} definitionNames={[]} endorsementPolicy={undefined} onDefinitionNameChange={onDefinitionNameChangeStub} onDefinitionVersionChange={onDefinitionVersionChangeStub} onCollectionChange={onCollectionChangeStub} onEndorsementPolicyChange={onEndorsementPolicyChangeStub} />);
             const instance: DeployStepTwo = component.instance() as DeployStepTwo;
 
             const setStateStub: sinon.SinonStub = mySandBox.stub(instance, 'setState');

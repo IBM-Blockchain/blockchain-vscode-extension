@@ -7,16 +7,19 @@ interface IProps {
     onDefinitionNameChange: (name: string, nameInvalid: boolean) => void;
     onDefinitionVersionChange: (name: string, versionInvalid: boolean) => void;
     onCollectionChange: (file: File) => void;
+    onEndorsementPolicyChange: (policy: string) => void;
     currentDefinitionName: string;
     currentDefinitionVersion: string;
     currentCollectionFile: File | undefined;
     definitionNames: string[];
+    endorsementPolicy: string | undefined;
 }
 
 interface DeployStepTwoState {
     definitionNameValue: string;
     definitionVersionValue: string;
     collectionFile: File | undefined;
+    endorsementPolicy: string | undefined;
 }
 
 class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
@@ -29,7 +32,8 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
         this.state = {
             definitionNameValue: this.props.currentDefinitionName ? this.props.currentDefinitionName : this.props.selectedPackage.name,
             definitionVersionValue: this.props.currentDefinitionVersion ? this.props.currentDefinitionVersion : this.props.selectedPackage.version as string,
-            collectionFile: this.props.currentCollectionFile ? this.props.currentCollectionFile : undefined
+            collectionFile: this.props.currentCollectionFile ? this.props.currentCollectionFile : undefined,
+            endorsementPolicy: this.props.endorsementPolicy ? this.props.endorsementPolicy : ''
         };
 
         this.handleDefinitionNameChange = this.handleDefinitionNameChange.bind(this);
@@ -39,7 +43,8 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
 
         this.nameInvalid = this.isNameInvalid(this.state.definitionNameValue);
         this.versionInvalid = this.isVersionInvalid(this.state.definitionVersionValue);
-        this.collectionChange = this.collectionChange.bind(this);
+        this.handleCollectionChange = this.handleCollectionChange.bind(this);
+        this.handleEndorsementPolicyChange = this.handleEndorsementPolicyChange.bind(this);
 
     }
 
@@ -65,6 +70,11 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
         this.props.onDefinitionVersionChange(version, this.versionInvalid);
     }
 
+    handleEndorsementPolicyChange(data: any): void {
+        const policy: string = data.target.value.trim();
+        this.props.onEndorsementPolicyChange(policy);
+    }
+
     isNameInvalid(name: string): boolean {
         const regex: RegExp = /^[a-zA-Z0-9-_]+$/;
         const validName: boolean = regex.test(name);
@@ -83,7 +93,7 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
         }
     }
 
-    collectionChange(event: any): void {
+    handleCollectionChange(event: any): void {
         const files: FileList = event.target.files;
         if (files.length > 0) {
             const file: File = files[0];
@@ -98,7 +108,7 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
         let uploadedItem: JSX.Element = <></>;
         if (defaultCollectionValue.length > 0) {
             uploadedItem = (
-                <FileUploaderItem name={defaultCollectionValue[0]} status='edit'></FileUploaderItem>
+                <FileUploaderItem iconDescription='Remove file' name={defaultCollectionValue[0]} status='edit'></FileUploaderItem>
             );
         }
 
@@ -134,10 +144,10 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
                     </div>
                 </div>
                 <div className={'bx--row' + (contractExists ? ' margin-bottom-03' : ' margin-bottom-06')}>
-                    <div className='bx--col-lg-10'>
+                    <div className='bx--col-lg-11'>
                         <h5>Smart contract definition</h5>
                     </div>
-                    <div className='bx--col-lg-10'>
+                    <div className='bx--col-lg-11'>
                         <div className='bx--row'>
 
                             <div className='bx--col-lg-7 bx--col-md-3 bx--col-sm-4'>
@@ -154,24 +164,19 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
                 {contractExists}
 
                 <div className='bx--row margin-bottom-06'>
-                    <div className='bx--col-lg-10'>
-
+                    <div className='bx--col-lg-11'>
                         <div className='bx--row'>
                             <div className='bx--col-lg-7 bx--col-md-3 bx--col-sm-4'>
-                                <div className='bx--file__container'>
-                                    <FileUploader
-                                        accept={[
-                                        '.json'
-                                        ]}
-                                        buttonKind='tertiary'
-                                        buttonLabel='Add file'
-                                        labelDescription='Default (1 endorser, any org) will be used unless you add your own.'
-                                        labelTitle='Endorsement policy'
-                                        size='default'
-                                    />
-                                </div>
+                                <TextInput id='endorsementInput' labelText='Endorsement policy' helperText='Default (Channel/Application/Endorsement) policy will be used unless you specify your own.' placeholder='e.g. OR("Org1MSP.member","Org2MSP.member")' defaultValue={this.state.endorsementPolicy} onChange={this.handleEndorsementPolicyChange}></TextInput>
                             </div>
-                            <div className='bx--col-lg-2 bx--col-md-1 bx--col-sm-0'></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className='bx--row margin-bottom-06'>
+                    <div className='bx--col-lg-11'>
+
+                        <div className='bx--row'>
                             <div className='bx--col-lg-7 bx--col-md-3 bx--col-sm-4'>
                                 <div className='bx--file__container'>
                                     <FileUploader
@@ -181,11 +186,12 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
                                         ]}
                                         buttonKind='tertiary'
                                         buttonLabel='Add file'
+                                        iconDescription='Remove file'
                                         labelDescription='Default (implicit private data collections only) will be used unless you add your own.'
                                         labelTitle='Collections configuration'
                                         size='default'
                                         filenameStatus='edit'
-                                        onChange={this.collectionChange}
+                                        onChange={this.handleCollectionChange}
                                     />
                                     {uploadedItem}
                                 </div>
@@ -197,14 +203,15 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
                     <div className='bx--col-lg-10'>
                         <Accordion>
                             <AccordionItem title={'Learn about other smart contract definition parameters (advanced)'}>
-                                <p className='margin-bottom-05'>These developer tools automatically handle some parameters for simplied development.
-                                    For a full explainabtion of definition parameters and Fabric v2.X smart contract lifecycle, see the <Link href='#'>Fabric documentation</Link>.
+                                <p>
+                                    These developer tools automatically handle other parameters for simplified deployment. Learn what values are used in our <Link href='https://github.com/IBM-Blockchain/blockchain-vscode-extension'>documentation</Link>.
                                 </p>
                                 <p className='margin-bottom-05'>
-                                    To deploy with full control of all parameters, please use the <Link href='#'>IBM Blockchain Platform Console</Link> or <Link href='#'>Hyperledger Fabric CLIs</Link>.
+                                    Find out more information about the endorsement policy syntax <Link href='https://hyperledger-fabric.readthedocs.io/en/master/endorsement-policies.html#endorsement-policy-syntax'>here</Link>.
                                 </p>
+
                                 <p className='margin-bottom-05'>
-                                    Read about how our simplified deployment handles the other parameters in the <Link href='#'>IBM Blockchain Platform documentation</Link>.
+                                    To deploy with full control of all parameters, please use the <Link href='https://cloud.ibm.com/catalog/services/blockchain-platform'>IBM Blockchain Platform Console</Link> or <Link href='https://hyperledger-fabric.readthedocs.io/en/release-2.0/chaincode_lifecycle.html'>Hyperledger Fabric CLIs</Link>.
                                 </p>
                             </AccordionItem>
                         </Accordion>

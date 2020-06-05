@@ -265,7 +265,8 @@ describe('DeployPage component', () => {
                     definitionName: packageTwo.name,
                     definitionVersion: packageTwo.version,
                     commitSmartContract: undefined,
-                    collectionConfigPath: undefined
+                    collectionConfigPath: undefined,
+                    endorsementPolicy: undefined
                 }
             });
         });
@@ -286,7 +287,8 @@ describe('DeployPage component', () => {
                 definitionName: packageTwo.name,
                 definitionVersion: packageTwo.version as string,
                 commitSmartContract: undefined,
-                currentCollectionFile: file
+                currentCollectionFile: file,
+                endorsementPolicy: undefined
             });
 
             instance.handleDeploy();
@@ -300,7 +302,42 @@ describe('DeployPage component', () => {
                     definitionName: packageTwo.name,
                     definitionVersion: packageTwo.version,
                     commitSmartContract: undefined,
-                    collectionConfigPath: '/some/path'
+                    collectionConfigPath: '/some/path',
+                    endorsementPolicy: undefined
+                }
+            });
+        });
+
+        it('should send deploy message with endorsement policy if set', () => {
+            postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
+
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+
+            instance.setState({
+                environmentName: 'myEnvironment',
+                channelName: 'myChannel',
+                selectedPackage: packageTwo,
+                definitionName: packageTwo.name,
+                definitionVersion: packageTwo.version as string,
+                commitSmartContract: undefined,
+                currentCollectionFile: undefined,
+                endorsementPolicy: 'OR("Org1MSP.member")'
+            });
+
+            instance.handleDeploy();
+
+            postToVscodeStub.should.have.been.calledOnceWithExactly({
+                command: 'deploy',
+                data: {
+                    environmentName: 'myEnvironment',
+                    channelName: 'myChannel',
+                    selectedPackage: packageTwo,
+                    definitionName: packageTwo.name,
+                    definitionVersion: packageTwo.version,
+                    commitSmartContract: undefined,
+                    collectionConfigPath: undefined,
+                    endorsementPolicy: 'OR("Org1MSP.member")'
                 }
             });
         });
@@ -354,6 +391,19 @@ describe('DeployPage component', () => {
             instance.handleCollectionChange(file);
 
             setStateStub.should.have.been.calledWithExactly({currentCollectionFile: file});
+        });
+    });
+
+    describe('handleEndorsementPolicyChange', () => {
+        it('should handle endorsement policy change', () => {
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
+
+            instance.handleEndorsementPolicyChange('OR("Org1MSP.member")');
+
+            setStateStub.should.have.been.calledWithExactly({endorsementPolicy: 'OR("Org1MSP.member")'});
         });
     });
 
