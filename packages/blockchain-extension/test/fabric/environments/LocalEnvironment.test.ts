@@ -860,35 +860,24 @@ describe('LocalEnvironment', () => {
             fakeStream.emit('data', { name: 'jake', line: 'simon dodges his unit tests' });
             outputAdapter.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `jake|simon dodges his unit tests`);
 
+            let formattedName: string = environment.getName().replace(/\s+/g, '');
+            formattedName += '_network';
+
             const opts: any = logHoseStub.args[0][0];
-            opts.attachFilter('someid', {
-                Name: '/something',
-                Config: {
-                    Labels: {
 
-                    }
-                }
-            }).should.be.false;
-            opts.attachFilter('someid', {
-                Name: '/something',
-                Config: {
-                    Labels: {
-                        'fabric-environment-name': 'jake'
-                    }
-                }
-            }).should.be.false;
-            opts.attachFilter('someid', {
-                Name: '/something',
-                Config: {
-                    Labels: {
-                        'fabric-environment-name': FabricRuntimeUtil.LOCAL_FABRIC
-                    }
-                }
-            }).should.be.true;
+            let networkObject: any = {NetworkSettings: {Networks: {}}};
+            networkObject.NetworkSettings.Networks[formattedName] = {
+                some: 'stuff'
+            };
 
-            opts.attachFilter('someid', {
-                Name: '/fabricvscodelocalfabric'
-            }).should.be.true;
+            opts.attachFilter('someid', networkObject).should.be.true;
+
+            networkObject = {NetworkSettings: {Networks: {}}};
+            networkObject.NetworkSettings.Networks['someothername'] = {
+                some: 'stuff'
+            };
+            opts.attachFilter('someid', networkObject).should.be.false;
+
         });
     });
 

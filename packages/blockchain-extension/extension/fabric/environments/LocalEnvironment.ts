@@ -154,13 +154,20 @@ export class LocalEnvironment extends ManagedAnsibleEnvironment {
     public startLogs(outputAdapter: OutputAdapter): void {
         const opts: any = {
             attachFilter: (_id: any, dockerInspectInfo: any): boolean => {
-                if (dockerInspectInfo.Name.startsWith('/fabricvscodelocalfabric')) {
+
+                const networks: object = dockerInspectInfo.NetworkSettings.Networks;
+
+                // Strip spaces
+                let formattedName: string = this.name.replace(/\s+/g, '');
+                // E.g 1OrgLocalFabric_network
+                formattedName += '_network';
+
+                if (networks[formattedName]) {
                     return true;
                 } else {
-                    const labels: object = dockerInspectInfo.Config.Labels;
-                    const environmentName: string = labels['fabric-environment-name'];
-                    return environmentName === this.name;
+                    return false;
                 }
+
             },
             newline: true
         };
