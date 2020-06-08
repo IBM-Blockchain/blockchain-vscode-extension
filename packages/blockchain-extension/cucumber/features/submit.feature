@@ -19,7 +19,7 @@ Feature: Submit transaction
       | JavaScript | Conga     | JavaScriptContract | 0.0.1   |
       | TypeScript | Conga     | TypeScriptContract | 0.0.1   |
       | Java       | Conga     | JavaContract       | 0.0.1   |
-  #      | Go         | null      | GoContract         | 0.0.1   |
+      | Go         | Conga     | GoContract         | 0.0.1   |
 
 
   Scenario Outline: Submit a transaction for a smart contract using generated transaction data
@@ -58,9 +58,9 @@ Feature: Submit transaction
     Examples:
       | language   | assetType    | name                      | mspid   | version |
       | JavaScript | PrivateConga | PrivateJavaScriptContract | Org1MSP | 0.0.1   |
-       | TypeScript | PrivateConga | PrivateTypeScriptContract | Org1MSP | 0.0.1   |
-       | Java       | PrivateConga | PrivateJavaContract       | Org1MSP | 0.0.1   |
-      # | Go         | PrivateConga | PrivateGoContract         | Org1MSP | 0.0.1   |
+      | TypeScript | PrivateConga | PrivateTypeScriptContract | Org1MSP | 0.0.1   |
+      | Java       | PrivateConga | PrivateJavaContract       | Org1MSP | 0.0.1   |
+      | Go         | PrivateConga | PrivateGoContract         | Org1MSP | 0.0.1   |
 
 
   @otherFabric

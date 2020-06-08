@@ -17,7 +17,7 @@ Feature: Deploy Smart Contracts
       | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1 | 0.0.1   |
       | TypeScript | Conga     | TypeScriptContract | TypeScriptContract@0.0.1 | 0.0.1   |
       | Java       | Conga     | JavaContract       | JavaContract@0.0.1       | 0.0.1   |
-  #      | Go         | null      | GoContract         | GoContract@0.0.1         | 0.0.1   |
+      | Go         | Conga     | GoContract         | GoContract@0.0.1         | 0.0.1   |
 
   @otherFabric
   Scenario Outline: It should deploy a smart contract

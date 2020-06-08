@@ -129,6 +129,19 @@ describe('SmartContractPackage', () => {
             should.exist(packagedContract.smartContractPackage);
         });
 
+        it('should package go with a mod file', async () => {
+            const contractPath: string = path.join(__dirname, 'data', 'golang');
+            mysandbox.stub(fs, 'pathExists').resolves(true);
+            const packagedContract: SmartContractPackage = await SmartContractPackage.createSmartContractPackage({
+                label: 'test-go',
+                smartContractPath: contractPath,
+                smartContractType: SmartContractType.GO,
+                golangPath: undefined
+            });
+
+            should.exist(packagedContract.smartContractPackage);
+        });
+
         it('should handle error from packaging', async () => {
             mysandbox.stub(NodePackager.prototype, 'package').rejects(new Error('some error'));
 

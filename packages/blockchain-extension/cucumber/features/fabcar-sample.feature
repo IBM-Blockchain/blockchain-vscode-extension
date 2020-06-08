@@ -18,4 +18,4 @@ Feature: FabCar Sample
       | JavaScript | FabCarjs   | fabcar-contract-javascript | FabCar    |
       | TypeScript | FabCarts   | fabcar-contract-typescript | FabCar    |
       | Java       | FabCarJava | fabcar-contract-java       | FabCar    |
-#      | Go         | FabCarGo   | fabcar-contract-go         | FabCar    |
+      | Go         | FabCarGo   | fabcar-contract-go         | FabCar    |
