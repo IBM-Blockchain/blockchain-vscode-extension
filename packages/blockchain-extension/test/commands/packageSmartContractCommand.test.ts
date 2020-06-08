@@ -271,6 +271,30 @@ describe('packageSmartContract', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
+        it('should package the project on VSCode version 1.44.2 successfully without throwing error mentioned in #2243', async () => {
+            const workspaceFolderMock: vscode.WorkspaceFolder = { name: 'javascriptProject'} as vscode.WorkspaceFolder;
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+            const testIndex: number = 0;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolderMock);
+
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            executeTaskStub.should.have.not.been.called;
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
+        });
+
         it('should package the project with an npm package name', async () => {
             await createTestFiles('@removeThis/javascriptProject', '0.0.1', 'javascript', true, false);
             const testIndex: number = 0;
