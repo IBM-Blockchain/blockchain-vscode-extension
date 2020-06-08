@@ -26,6 +26,7 @@ interface DeployState {
     commitSmartContract: boolean | undefined;
     deletedSelectedPackage: boolean;
     currentCollectionFile: File | undefined;
+    endorsementPolicy: string | undefined;
 }
 
 class DeployPage extends Component<IProps, DeployState> {
@@ -44,6 +45,7 @@ class DeployPage extends Component<IProps, DeployState> {
             disableNext: true,
             nameInvalid: false,
             versionInvalid: false,
+            endorsementPolicy: undefined,
             commitSmartContract: undefined, // If undefined, we'll assume the user wants to commit (but they haven't specified)
             deletedSelectedPackage: false // Has the user deleted the package they've selected whilst on step two or three?
         };
@@ -56,6 +58,7 @@ class DeployPage extends Component<IProps, DeployState> {
         this.handleDeploy = this.handleDeploy.bind(this);
         this.handlePackageWorkspace = this.handlePackageWorkspace.bind(this);
         this.handleCollectionChange = this.handleCollectionChange.bind(this);
+        this.handleEndorsementPolicyChange = this.handleEndorsementPolicyChange.bind(this);
     }
 
     handleProgressChange(indexValue: number): void {
@@ -128,13 +131,18 @@ class DeployPage extends Component<IProps, DeployState> {
                 definitionName: this.state.definitionName,
                 definitionVersion: this.state.definitionVersion,
                 commitSmartContract: this.state.commitSmartContract,
-                collectionConfigPath: this.state.currentCollectionFile ? this.state.currentCollectionFile.path : undefined
+                collectionConfigPath: this.state.currentCollectionFile ? this.state.currentCollectionFile.path : undefined,
+                endorsementPolicy: this.state.endorsementPolicy ? this.state.endorsementPolicy : undefined
             }
         });
     }
 
     handleCollectionChange(file: File): void {
         this.setState({currentCollectionFile: file});
+    }
+
+    handleEndorsementPolicyChange(policy: string): void {
+        this.setState({endorsementPolicy: policy});
     }
 
     componentWillReceiveProps(props: any): void {
@@ -167,7 +175,7 @@ class DeployPage extends Component<IProps, DeployState> {
         if (currentIndex === 0) {
             currentStepComponent = <DeployStepOne packageEntries={this.props.deployData.packageEntries} selectedPackage={this.state.selectedPackage} workspaceNames={this.props.deployData.workspaceNames} selectedWorkspace={this.state.selectedWorkspace} deletedSelectedPackage={this.state.deletedSelectedPackage} onPackageChange={this.handlePackageChange} onPackageWorkspace={this.handlePackageWorkspace} />;
         } else if (currentIndex === 1) {
-            currentStepComponent = <DeployStepTwo definitionNames={this.props.deployData.definitionNames} currentCollectionFile={this.state.currentCollectionFile} onCollectionChange={this.handleCollectionChange} selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} currentDefinitionName={this.state.definitionName} currentDefinitionVersion={this.state.definitionVersion} onDefinitionNameChange={this.handleDefinitionNameChange} onDefinitionVersionChange={this.handleDefinitionVersionChange}/>;
+            currentStepComponent = <DeployStepTwo definitionNames={this.props.deployData.definitionNames} currentCollectionFile={this.state.currentCollectionFile} endorsementPolicy={this.state.endorsementPolicy} onCollectionChange={this.handleCollectionChange} onEndorsementPolicyChange={this.handleEndorsementPolicyChange} selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} currentDefinitionName={this.state.definitionName} currentDefinitionVersion={this.state.definitionVersion} onDefinitionNameChange={this.handleDefinitionNameChange} onDefinitionVersionChange={this.handleDefinitionVersionChange}/>;
         } else {
             currentStepComponent = <DeployStepThree selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} channelName={this.state.channelName} commitSmartContract={this.state.commitSmartContract} onCommitChange={this.handleCommitChange}/>;
         }

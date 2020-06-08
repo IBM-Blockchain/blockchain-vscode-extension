@@ -262,4 +262,31 @@ describe('Deploy page', () => {
 
     });
 
+    it(`should keep the changed endorsement policy in step two when going back`, () => {
+        const _package: string = `${packageOne.name}@${packageOne.version} (packaged)`;
+
+        cy.get('#package-select').click(); // Expand dropdown
+        cy.get('#package-select').contains(_package).click(); // Click on option
+
+        let nextButton: Cypress.Chainable<JQuery<HTMLButtonElement>> = cy.get('button').contains('Next');
+        nextButton.should('not.be.disabled');
+        nextButton.click();
+
+        let endorsementInput: Cypress.Chainable<JQuery<HTMLInputElement>> = cy.get('#endorsementInput');
+        endorsementInput.should('contain.value', '');
+
+        endorsementInput.click();
+        endorsementInput.type('OR("Org1MSP.member","Org2MSP.member")');
+
+        const backButton: Cypress.Chainable<JQuery<HTMLButtonElement>> = cy.get('button').contains('Back');
+        backButton.should('not.be.disabled');
+        backButton.click();
+
+        nextButton = cy.get('button').contains('Next');
+        nextButton.should('not.be.disabled');
+        nextButton.click();
+
+        endorsementInput = cy.get('#endorsementInput');
+        endorsementInput.should('contain.value', 'OR("Org1MSP.member","Org2MSP.member")');
+    });
 });
