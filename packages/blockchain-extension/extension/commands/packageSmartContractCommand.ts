@@ -44,7 +44,8 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
         await fs.ensureDir(resolvedPkgDir);
 
         // Choose the workspace directory.
-        if (!workspace) {
+        if (!workspace || !workspace.uri) {
+            // The second check above is to ensure we dont hit the `cannot read property "fsPath" of undefined` on VSCode v1.44.2
             workspace = await UserInputUtil.chooseWorkspace(true);
             if (!workspace) {
                 // User cancelled.
