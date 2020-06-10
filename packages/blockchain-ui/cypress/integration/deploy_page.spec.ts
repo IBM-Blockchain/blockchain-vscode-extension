@@ -6,7 +6,7 @@ chai.should();
 describe('Deploy page', () => {
     const packageOne: IPackageRegistryEntry = {name: 'mycontract', version: '0.0.1', path: '/package/one', sizeKB: 9000};
     const packageTwo: IPackageRegistryEntry = {name: 'othercontract', version: '0.0.2', path: '/package/two', sizeKB: 12000};
-    const deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, definitionNames: string[]} = {channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo], workspaceNames: ['workspaceOne'], selectedPackage: undefined, definitionNames: []};
+    const deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, definitionNames: string[], discoveredPeers: string[]} = {channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo], workspaceNames: ['workspaceOne'], selectedPackage: undefined, definitionNames: [], discoveredPeers: ['Org1Peer1', 'Org2Peer1']};
 
     const mockMessage: {path: string, deployData: any} = {
         path: 'deploy',
@@ -288,5 +288,44 @@ describe('Deploy page', () => {
 
         endorsementInput = cy.get('#endorsementInput');
         endorsementInput.should('contain.value', 'OR("Org1MSP.member","Org2MSP.member")');
+    });
+
+    it('should be able to select peers', () => {
+        const _package: string = `${packageOne.name}@${packageOne.version} (packaged)`;
+
+        cy.get('#package-select').click(); // Expand dropdown
+        cy.get('#package-select').contains(_package).click(); // Click on option
+
+        let nextButton: Cypress.Chainable<JQuery<HTMLButtonElement>> = cy.get('button').contains('Next');
+        nextButton.should('not.be.disabled');
+        nextButton.click();
+        nextButton.click();
+
+        let customizeCommitSection: Cypress.Chainable<JQuery<HTMLElement>> = cy.get('#advancedAccordion');
+        customizeCommitSection.click();
+
+        let selectPeersButton: Cypress.Chainable<JQuery<HTMLElement>> = cy.get('#peer-select');
+        selectPeersButton.click();
+        let peerTwo: Cypress.Chainable<JQuery<HTMLElement>> = cy.get('span').contains('Org2Peer1');
+        peerTwo.click();
+
+        const backButton: Cypress.Chainable<JQuery<HTMLButtonElement>> = cy.get('button').contains('Back');
+        backButton.should('not.be.disabled');
+        backButton.click();
+
+        nextButton = cy.get('button').contains('Next');
+        nextButton.click();
+
+        customizeCommitSection = cy.get('#advancedAccordion');
+        customizeCommitSection.click();
+
+        selectPeersButton = cy.get('#peer-select');
+        selectPeersButton.click();
+        const peerOne: Cypress.Chainable<JQuery<HTMLElement>> = cy.get('span').contains('Org1Peer1');
+        peerOne.should('have.attr', 'data-contained-checkbox-state', 'true');
+
+        peerTwo = cy.get('span').contains('Org2Peer1');
+        peerTwo.should('have.attr', 'data-contained-checkbox-state', 'false');
+
     });
 });

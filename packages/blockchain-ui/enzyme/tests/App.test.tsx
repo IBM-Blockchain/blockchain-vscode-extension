@@ -89,7 +89,7 @@ describe('App', () => {
 
     it('should redirect to the deploy page', async () => {
         const component: any = mount(<App/>);
-        const deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, definitionNames: string[]} = {channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [], workspaceNames: [], selectedPackage: undefined, definitionNames: []};
+        const deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, definitionNames: string[], discoveredPeers: string[]} = {channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [], workspaceNames: [], selectedPackage: undefined, definitionNames: [], discoveredPeers: ['Org1Peer1']};
         const msg: MessageEvent = new MessageEvent('message', {
             data: {
                 path: '/deploy',

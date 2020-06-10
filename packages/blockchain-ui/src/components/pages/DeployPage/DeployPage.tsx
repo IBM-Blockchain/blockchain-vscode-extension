@@ -9,7 +9,7 @@ import DeployStepTwo from '../../elements/DeploySteps/DeployStepTwo/DeployStepTw
 import DeployStepThree from '../../elements/DeploySteps/DeployStepThree/DeployStepThree';
 import Utils from '../../../Utils';
 interface IProps {
-    deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, definitionNames: string[]};
+    deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, definitionNames: string[], discoveredPeers: string[]};
 }
 
 interface DeployState {
@@ -18,6 +18,7 @@ interface DeployState {
     channelName: string;
     selectedPackage: IPackageRegistryEntry | undefined;
     selectedWorkspace: string | undefined;
+    selectedPeers: string[];
     definitionName: string;
     definitionVersion: string;
     disableNext: boolean;
@@ -38,6 +39,7 @@ class DeployPage extends Component<IProps, DeployState> {
             environmentName: this.props.deployData.environmentName,
             channelName: this.props.deployData.channelName,
             selectedPackage: this.props.deployData.selectedPackage ? this.props.deployData.selectedPackage : undefined,
+            selectedPeers: this.props.deployData.discoveredPeers,
             selectedWorkspace: undefined,
             currentCollectionFile: undefined,
             definitionName: '',
@@ -59,6 +61,7 @@ class DeployPage extends Component<IProps, DeployState> {
         this.handlePackageWorkspace = this.handlePackageWorkspace.bind(this);
         this.handleCollectionChange = this.handleCollectionChange.bind(this);
         this.handleEndorsementPolicyChange = this.handleEndorsementPolicyChange.bind(this);
+        this.handlePeerChange = this.handlePeerChange.bind(this);
     }
 
     handleProgressChange(indexValue: number): void {
@@ -132,7 +135,8 @@ class DeployPage extends Component<IProps, DeployState> {
                 definitionVersion: this.state.definitionVersion,
                 commitSmartContract: this.state.commitSmartContract,
                 collectionConfigPath: this.state.currentCollectionFile ? this.state.currentCollectionFile.path : undefined,
-                endorsementPolicy: this.state.endorsementPolicy ? this.state.endorsementPolicy : undefined
+                endorsementPolicy: this.state.endorsementPolicy ? this.state.endorsementPolicy : undefined,
+                selectedPeers: this.state.selectedPeers
             }
         });
     }
@@ -143,6 +147,10 @@ class DeployPage extends Component<IProps, DeployState> {
 
     handleEndorsementPolicyChange(policy: string): void {
         this.setState({endorsementPolicy: policy});
+    }
+
+    handlePeerChange(peers: string[]): void {
+        this.setState({selectedPeers: peers});
     }
 
     componentWillReceiveProps(props: any): void {
@@ -177,7 +185,7 @@ class DeployPage extends Component<IProps, DeployState> {
         } else if (currentIndex === 1) {
             currentStepComponent = <DeployStepTwo definitionNames={this.props.deployData.definitionNames} currentCollectionFile={this.state.currentCollectionFile} endorsementPolicy={this.state.endorsementPolicy} onCollectionChange={this.handleCollectionChange} onEndorsementPolicyChange={this.handleEndorsementPolicyChange} selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} currentDefinitionName={this.state.definitionName} currentDefinitionVersion={this.state.definitionVersion} onDefinitionNameChange={this.handleDefinitionNameChange} onDefinitionVersionChange={this.handleDefinitionVersionChange}/>;
         } else {
-            currentStepComponent = <DeployStepThree selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} channelName={this.state.channelName} commitSmartContract={this.state.commitSmartContract} onCommitChange={this.handleCommitChange}/>;
+            currentStepComponent = <DeployStepThree selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} channelName={this.state.channelName} commitSmartContract={this.state.commitSmartContract} selectedPeers={this.state.selectedPeers} discoveredPeers={this.props.deployData.discoveredPeers} onPeerChange={this.handlePeerChange} onCommitChange={this.handleCommitChange}/>;
         }
 
         return (

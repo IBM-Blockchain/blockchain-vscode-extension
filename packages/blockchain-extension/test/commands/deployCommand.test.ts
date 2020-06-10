@@ -143,5 +143,21 @@ describe('deployCommand', () => {
 
             logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to deploy smart contract, ${error.message}`, `Failed to deploy smart contract, ${error.toString()}`);
         });
+
+        it('should be able to pass a different maps for installing & improving and committing', async () => {
+            const installApproveMap: Map<string, string[]> = new Map<string, string[]>();
+            const commitMap: Map<string, string[]> = new Map<string, string[]>();
+            installApproveMap.set('Org1MSP', ['peerOne']);
+            commitMap.set('Org1MSP', ['peerOne']);
+            commitMap.set('Org2MSP', ['peerTwo', 'peerThree']);
+            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'mychannel', installApproveMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1), commitMap);
+
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.INSTALL_SMART_CONTRACT, installApproveMap, packageRegistryEntry);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'mychannel', installApproveMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'mychannel', commitMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
+            logSpy.should.have.been.calledWith(LogType.INFO, 'Deploy Smart Contract');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully deployed smart contract');
+        });
     });
 });

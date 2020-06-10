@@ -132,14 +132,14 @@ Array [
                 className="bx--col"
               >
                 <p>
-                  Peers to endorse commit transactions
+                  Additional peers to endorse commit transactions
                 </p>
                 <div
                   className="bx--multi-select__wrapper bx--list-box__wrapper"
                 >
                   <div
                     className="bx--multi-select bx--multi-select--selected bx--list-box"
-                    id="carbon-multiselect-example"
+                    id="peer-select"
                     onClick={[Function]}
                     onKeyDown={[Function]}
                   >
@@ -187,7 +187,7 @@ Array [
                         className="bx--list-box__label"
                         id="multiselect-field-label-1"
                       >
-                        MultiSelect Label
+                        Select peers
                       </span>
                       <div
                         className="bx--list-box__menu-icon"

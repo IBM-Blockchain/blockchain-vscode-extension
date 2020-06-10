@@ -65,7 +65,7 @@ describe('OpenDeployView', () => {
             showChannelQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox');
 
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
-            map.set('mychannel', ['Org1Peer1', 'Org2Peer1']);
+            map.set('mychannel', ['Org1Peer1']);
             map.set('otherchannel', ['Org1Peer1']);
 
             const contractDefinitions: FabricSmartContractDefinition[] = [
@@ -80,7 +80,7 @@ describe('OpenDeployView', () => {
             localEnvironmentConnectionMock.environmentName = FabricRuntimeUtil.LOCAL_FABRIC;
             localEnvironmentConnectionMock.createChannelMap.resolves(map);
             localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.resolves(contractDefinitions);
-
+            localEnvironmentConnectionMock.getAllDiscoveredPeerNames.resolves(['Org1Peer1', 'Org2Peer1']);
             otherEnvironmentConnectionMock = mySandBox.createStubInstance(FabricEnvironmentConnection);
             otherEnvironmentConnectionMock.environmentName = 'otherEnvironment';
             otherEnvironmentConnectionMock.createChannelMap.resolves(map);
@@ -119,25 +119,27 @@ describe('OpenDeployView', () => {
             localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.not.have.been.called;
             showChannelQuickPickBoxStub.should.not.have.been.called;
             openViewStub.should.not.have.been.called;
+            localEnvironmentConnectionMock.getAllDiscoveredPeerNames.should.not.have.been.called;
             logStub.should.not.have.been.called;
             getWorkspaceFoldersStub.should.not.have.been.called;
         });
 
         it('should connect to an environment and open the deploy view', async () => {
             const localEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
-            showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironmentRegistryEntry});
+            showFabricEnvironmentQuickPickBoxStub.resolves({ label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironmentRegistryEntry });
             getConnectionStub.onCall(0).returns(undefined);
             getConnectionStub.onCall(1).returns(localEnvironmentConnectionMock);
-            showChannelQuickPickBoxStub.resolves({label: 'mychannel', data: ['Org1Peer1', 'Org2Peer1']});
+            showChannelQuickPickBoxStub.resolves({ label: 'mychannel', data: ['Org1Peer1'] });
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_DEPLOY_PAGE);
 
             showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment', false, false);
             getConnectionStub.should.have.been.calledTwice;
             localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledOnceWithExactly(['Org1Peer1', 'Org2Peer1'], 'mychannel');
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledOnceWithExactly(['Org1Peer1'], 'mychannel');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEnvironmentRegistryEntry);
             showChannelQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select a channel');
             openViewStub.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getAllDiscoveredPeerNames.should.have.been.calledOnceWithExactly('mychannel');
             logStub.should.not.have.been.called;
             getWorkspaceFoldersStub.should.have.been.calledOnce;
         });
@@ -151,55 +153,58 @@ describe('OpenDeployView', () => {
             showFabricEnvironmentQuickPickBoxStub.should.not.have.been.called;
             getConnectionStub.should.have.been.calledTwice;
             localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledOnceWithExactly(['Org1Peer1', 'Org2Peer1'], 'mychannel');
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledOnceWithExactly(['Org1Peer1'], 'mychannel');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEnvironmentRegistryEntry);
             showChannelQuickPickBoxStub.should.not.have.been.called;
             openViewStub.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getAllDiscoveredPeerNames.should.have.been.calledOnceWithExactly('mychannel');
             logStub.should.not.have.been.called;
             getWorkspaceFoldersStub.should.have.been.calledOnce;
         });
 
         it('should open the deploy view if already connected to the chosen environment', async () => {
             const localEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
-            showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironmentRegistryEntry});
+            showFabricEnvironmentQuickPickBoxStub.resolves({ label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironmentRegistryEntry });
             getConnectionStub.returns(localEnvironmentConnectionMock);
-            showChannelQuickPickBoxStub.resolves({label: 'mychannel', data: ['Org1Peer1', 'Org2Peer1']});
+            showChannelQuickPickBoxStub.resolves({ label: 'mychannel', data: ['Org1Peer1'] });
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_DEPLOY_PAGE);
 
             showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment', false, false);
             getConnectionStub.should.have.been.calledOnce;
             localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledOnceWithExactly(['Org1Peer1', 'Org2Peer1'], 'mychannel');
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledOnceWithExactly(['Org1Peer1'], 'mychannel');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEnvironmentRegistryEntry);
             showChannelQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select a channel');
             openViewStub.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getAllDiscoveredPeerNames.should.have.been.calledOnceWithExactly('mychannel');
             logStub.should.not.have.been.called;
             getWorkspaceFoldersStub.should.have.been.calledOnce;
         });
 
         it('should disconnect and connect to the selected environment, then open the deploy view', async () => {
             const localEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
-            showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironmentRegistryEntry});
+            showFabricEnvironmentQuickPickBoxStub.resolves({ label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironmentRegistryEntry });
             getConnectionStub.onCall(0).returns(otherEnvironmentConnectionMock);
             getConnectionStub.onCall(1).returns(localEnvironmentConnectionMock);
-            showChannelQuickPickBoxStub.resolves({label: 'mychannel', data: ['Org1Peer1', 'Org2Peer1']});
+            showChannelQuickPickBoxStub.resolves({ label: 'mychannel', data: ['Org1Peer1'] });
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_DEPLOY_PAGE);
 
             showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment', false, false);
             getConnectionStub.should.have.been.calledTwice;
             localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledOnceWithExactly(['Org1Peer1', 'Org2Peer1'], 'mychannel');
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledOnceWithExactly(['Org1Peer1'], 'mychannel');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEnvironmentRegistryEntry);
             showChannelQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select a channel');
             openViewStub.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getAllDiscoveredPeerNames.should.have.been.calledOnceWithExactly('mychannel');
             logStub.should.not.have.been.called;
             getWorkspaceFoldersStub.should.have.been.calledOnce;
         });
 
         it('should return if no channel is selected', async () => {
             const localEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
-            showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironmentRegistryEntry});
+            showFabricEnvironmentQuickPickBoxStub.resolves({ label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironmentRegistryEntry });
             getConnectionStub.returns(localEnvironmentConnectionMock);
             showChannelQuickPickBoxStub.resolves();
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_DEPLOY_PAGE);
@@ -211,13 +216,14 @@ describe('OpenDeployView', () => {
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEnvironmentRegistryEntry);
             showChannelQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select a channel');
             openViewStub.should.not.have.been.called;
+            localEnvironmentConnectionMock.getAllDiscoveredPeerNames.should.not.have.been.called;
             logStub.should.not.have.been.called;
             getWorkspaceFoldersStub.should.not.have.been.called;
         });
 
         it('should throw an error if unable to connect to the selected environment', async () => {
             const localEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
-            showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironmentRegistryEntry});
+            showFabricEnvironmentQuickPickBoxStub.resolves({ label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironmentRegistryEntry });
             getConnectionStub.onCall(0).returns(otherEnvironmentConnectionMock);
             getConnectionStub.onCall(1).returns(undefined);
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_DEPLOY_PAGE);
@@ -229,6 +235,7 @@ describe('OpenDeployView', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEnvironmentRegistryEntry);
             openViewStub.should.not.have.been.calledOnce;
+            localEnvironmentConnectionMock.getAllDiscoveredPeerNames.should.not.have.been.called;
             showChannelQuickPickBoxStub.should.not.have.been.called;
             getWorkspaceFoldersStub.should.not.have.been.called;
             const error: Error = new Error(`Unable to connect to environment: ${FabricRuntimeUtil.LOCAL_FABRIC}`);

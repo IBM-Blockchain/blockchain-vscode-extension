@@ -33,7 +33,7 @@ import {
 } from 'ibm-blockchain-platform-common';
 import {FabricWallet, FabricWalletGenerator} from 'ibm-blockchain-platform-wallet';
 import {LifecyclePeer, LifecycleChannel} from 'ibm-blockchain-platform-fabric-admin';
-import {ConnectOptions} from 'fabric-common';
+import {ConnectOptions, Endorser} from 'fabric-common';
 import {FabricInstalledSmartContract} from 'ibm-blockchain-platform-common/build/src/fabricModel/FabricInstalledSmartContract';
 import {FabricCollectionDefinition} from 'ibm-blockchain-platform-common/build/src/fabricModel/FabricCollectionDefinition';
 
@@ -438,6 +438,54 @@ describe('FabricEnvironmentConnection', () => {
             connection['nodes'].size.should.equal(0);
             should.equal(connection['lifecycle'], null);
             connection['certificateAuthorities'].size.should.equal(0);
+        });
+    });
+
+    describe('getDiscoveredOrgs', () => {
+
+        it('should get discovered orgs and peers', async () => {
+            const endorser1: sinon.SinonStubbedInstance<Endorser> = mySandBox.createStubInstance(Endorser);
+            const endorser2: sinon.SinonStubbedInstance<Endorser> = mySandBox.createStubInstance(Endorser);
+            const endorser3: sinon.SinonStubbedInstance<Endorser> = mySandBox.createStubInstance(Endorser);
+            const endorser4: sinon.SinonStubbedInstance<Endorser> = mySandBox.createStubInstance(Endorser);
+            (endorser1 as any)['name'] = 'peer0.org1.example.com';
+            (endorser2 as any)['name'] = 'peer1.org1.example.com';
+            (endorser3 as any)['name'] = 'peer0.org2.example.com';
+            (endorser4 as any)['name'] = 'peer1.org2.example.com';
+
+            (endorser1 as any)['mspid'] = 'Org1MSP';
+            (endorser2 as any)['mspid'] = 'Org1MSP';
+            (endorser3 as any)['mspid'] = 'Org2MSP';
+            (endorser4 as any)['mspid'] = 'Org2MSP';
+
+            const orgMap: Map<string, string[]> = new Map();
+            orgMap.set('Org1MSP', ['peer0.org1.example.com', 'peer1.org1.example.com']);
+            orgMap.set('Org2MSP', ['peer0.org2.example.com', 'peer1.org2.example.com']);
+
+            const getDiscoveredPeersStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'getDiscoveredPeers').resolves([endorser1, endorser2, endorser3, endorser4]);
+            const result: Map<string, string[]> = await connection.getDiscoveredOrgs('mychannel');
+            result.should.deep.equal(orgMap);
+            getDiscoveredPeersStub.should.have.been.calledOnceWithExactly(['peer0.org1.example.com', 'peer0.org2.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com']);
+        });
+
+        it('should throw an error if no peers are found for discovery', async () => {
+            connection['lifecycle']['peers'].clear();
+            await connection.getDiscoveredOrgs('mychannel').should.be.rejectedWith(/No lifecycle peers available./);
+        });
+    });
+
+    describe('getAllDiscoveredPeerNames', () => {
+        it('should get the names of all discovered peers', async () => {
+            const getDiscoveredPeerNamesStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'getDiscoveredPeerNames').resolves(['peer0.org1.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com', 'peer0.org2.example.com']);
+            const result: string[] = await connection.getAllDiscoveredPeerNames('mychannel');
+            result.should.deep.equal(['peer0.org1.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com', 'peer0.org2.example.com']);
+            getDiscoveredPeerNamesStub.should.have.been.calledOnceWithExactly(['peer0.org1.example.com', 'peer0.org2.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com']);
+        });
+
+        it('should throw an error if no peers are found for discovery', async () => {
+            connection['lifecycle']['peers'].clear();
+            await connection.getAllDiscoveredPeerNames('mychannel').should.be.rejectedWith(/No lifecycle peers available./);
+
         });
     });
 

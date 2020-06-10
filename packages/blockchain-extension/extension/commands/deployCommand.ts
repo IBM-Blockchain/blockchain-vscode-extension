@@ -13,13 +13,13 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import {PackageRegistryEntry} from '../registries/PackageRegistryEntry';
-import {FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, FabricSmartContractDefinition} from 'ibm-blockchain-platform-common';
-import {ExtensionCommands} from '../../ExtensionCommands';
-import {FabricEnvironmentManager} from '../fabric/environments/FabricEnvironmentManager';
-import {VSCodeBlockchainOutputAdapter} from '../logging/VSCodeBlockchainOutputAdapter';
+import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
+import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, FabricSmartContractDefinition } from 'ibm-blockchain-platform-common';
+import { ExtensionCommands } from '../../ExtensionCommands';
+import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 
-export async function deploySmartContract(requireCommit: boolean, fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry, ordererName: string, channelName: string, orgMap: Map<string, string[]>, chosenPackage: PackageRegistryEntry,  smartContractDefinition: FabricSmartContractDefinition): Promise<void> {
+export async function deploySmartContract(requireCommit: boolean, fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry, ordererName: string, channelName: string, installApproveMap: Map<string, string[]>, chosenPackage: PackageRegistryEntry, smartContractDefinition: FabricSmartContractDefinition, commitMap?: Map<string, string[]>): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, 'Deploy Smart Contract');
     try {
@@ -38,20 +38,23 @@ export async function deploySmartContract(requireCommit: boolean, fabricEnvironm
                 return;
             }
 
-            progress.report({message: `Installing Smart Contract on peer(s)`});
-            packageId = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, orgMap, chosenPackage);
+            progress.report({ message: `Installing Smart Contract on peer(s)` });
+            packageId = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, installApproveMap, chosenPackage);
             if (!packageId) {
                 throw new Error('Package was not installed. No packageId was returned');
             }
 
             smartContractDefinition.packageId = packageId;
 
-            progress.report({message: `Approving Smart Contract`});
-            await vscode.commands.executeCommand(ExtensionCommands.APPROVE_SMART_CONTRACT, ordererName, channelName, orgMap, smartContractDefinition);
+            progress.report({ message: `Approving Smart Contract` });
+            await vscode.commands.executeCommand(ExtensionCommands.APPROVE_SMART_CONTRACT, ordererName, channelName, installApproveMap, smartContractDefinition);
 
             if (requireCommit) {
-                progress.report({message: `Committing Smart Contract`});
-                await vscode.commands.executeCommand(ExtensionCommands.COMMIT_SMART_CONTRACT, ordererName, channelName, orgMap, smartContractDefinition);
+                progress.report({ message: `Committing Smart Contract` });
+                if (!commitMap) {
+                    commitMap = installApproveMap;
+                }
+                await vscode.commands.executeCommand(ExtensionCommands.COMMIT_SMART_CONTRACT, ordererName, channelName, commitMap, smartContractDefinition);
                 outputAdapter.log(LogType.SUCCESS, 'Successfully deployed smart contract');
             } else {
                 outputAdapter.log(LogType.SUCCESS, 'Partially deployed smart contract - commit not performed');

@@ -142,7 +142,7 @@ export class ExtensionUtil {
         return this.getExtension().extensionPath;
     }
 
-    public static async getContractNameAndVersion(folder: vscode.WorkspaceFolder): Promise<{name: string, version: string}> {
+    public static async getContractNameAndVersion(folder: vscode.WorkspaceFolder): Promise<{ name: string, version: string }> {
         try {
             const packageJson: any = await this.loadJSON(folder, 'package.json');
             return { name: packageJson.name, version: packageJson.version };
@@ -238,7 +238,7 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, (channelName?: string, peerNames?: Array<string>) => instantiateSmartContract(channelName, peerNames)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.APPROVE_SMART_CONTRACT, (ordererName: string, channelName: string, orgMap: Map<string, string[]>, smartContractDefinition: FabricSmartContractDefinition) => approveSmartContract(ordererName, channelName, orgMap, smartContractDefinition)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.COMMIT_SMART_CONTRACT, (ordererName: string, channelName: string, orgMap: Map<string, string[]>, smartContractDefinition: FabricSmartContractDefinition) => commitSmartContract(ordererName, channelName, orgMap, smartContractDefinition)));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, (requireCommit: boolean, fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry, ordererName: string, channelName: string, orgMap: Map<string, string[]>, chosenPackage: PackageRegistryEntry, smartContractDefinition: FabricSmartContractDefinition) => deploySmartContract(requireCommit, fabricEnvironmentRegistryEntry, ordererName, channelName, orgMap, chosenPackage, smartContractDefinition)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, (requireCommit: boolean, fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry, ordererName: string, channelName: string, installApproveMap: Map<string, string[]>, chosenPackage: PackageRegistryEntry, smartContractDefinition: FabricSmartContractDefinition, commitMap?: Map<string, string[]>) => deploySmartContract(requireCommit, fabricEnvironmentRegistryEntry, ordererName, channelName, installApproveMap, chosenPackage, smartContractDefinition, commitMap)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEST_ALL_SMART_CONTRACT, (chaincode: InstantiatedContractTreeItem) => testSmartContract(true, chaincode)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEST_SMART_CONTRACT, (treeItem: ContractTreeItem | InstantiatedTreeItem) => testSmartContract(false, treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.SUBMIT_TRANSACTION, (transactionTreeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string, transactionObject?: any) => submitTransaction(false, transactionTreeItem, channelName, smartContract, transactionObject)));

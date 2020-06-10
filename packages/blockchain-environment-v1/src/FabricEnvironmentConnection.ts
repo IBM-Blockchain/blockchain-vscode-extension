@@ -37,7 +37,7 @@ import {
     InstalledSmartContract
 } from 'ibm-blockchain-platform-fabric-admin';
 import {Identity, IdentityProvider} from 'fabric-network';
-import {User} from 'fabric-common';
+import {User, Endorser} from 'fabric-common';
 
 export class FabricEnvironmentConnection implements IFabricEnvironmentConnection {
     public environmentName: string;
@@ -157,6 +157,49 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         this.nodes.clear();
         this.lifecycle = null;
         this.certificateAuthorities.clear();
+    }
+
+    public async getDiscoveredOrgs(channelName: string): Promise<Map<string, Array<string>>> {
+        const environmentPeers: string[] = this.getAllPeerNames();
+        if (environmentPeers.length === 0) {
+            throw new Error('No lifecycle peers available.');
+        } else {
+            const wallet: FabricWallet = await this.getWallet(environmentPeers[0]) as FabricWallet;
+            const peerNode: FabricNode = this.getNode(environmentPeers[0]);
+            const channel: LifecycleChannel = this.lifecycle.getChannel(channelName, wallet.getWallet(), peerNode.identity);
+
+            // Use known environment peers to discover other peers on the network
+            const orgMap: Map<string, Array<string>> = new Map<string, Array<string>>();
+
+            const discoveredPeers: Endorser[] = await channel.getDiscoveredPeers(environmentPeers);
+
+            for (const peer of discoveredPeers) {
+                if (!orgMap.has(peer.mspid)) {
+                    orgMap.set(peer.mspid, [peer.name]);
+                } else {
+                    orgMap.get(peer.mspid).push(peer.name);
+                }
+            }
+
+            return orgMap;
+        }
+    }
+
+    public async getAllDiscoveredPeerNames(channelName: string): Promise<Array<string>> {
+        const environmentPeers: string[] = this.getAllPeerNames();
+        if (environmentPeers.length === 0) {
+            throw new Error('No lifecycle peers available.');
+        } else {
+            const wallet: FabricWallet = await this.getWallet(environmentPeers[0]) as FabricWallet;
+            const peerNode: FabricNode = this.getNode(environmentPeers[0]);
+            const channel: LifecycleChannel = this.lifecycle.getChannel(channelName, wallet.getWallet(), peerNode.identity);
+
+            // Use known environment peers to discover other peers on the network
+            const discoveredPeersNames: string[] = await channel.getDiscoveredPeerNames(environmentPeers);
+
+            return discoveredPeersNames;
+
+        }
     }
 
     public getAllPeerNames(): Array<string> {

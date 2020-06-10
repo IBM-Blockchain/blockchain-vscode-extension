@@ -32,5 +32,5 @@ When(/^I discover peers$/, async function(): Promise<void> {
 Then(/^the list of discovered peers should be '(.*)'$/, function(expectedPeerNamesString: string): void {
     const expectedPeerNames: string[] = expectedPeerNamesString.split(' ');
 
-    this.discoveredPeerNames.should.deep.equal(expectedPeerNames);
+    this.discoveredPeerNames.should.have.deep.members(expectedPeerNames);
 });

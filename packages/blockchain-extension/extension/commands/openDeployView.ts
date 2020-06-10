@@ -81,12 +81,21 @@ export async function openDeployView(fabricRegistryEntry?: FabricEnvironmentRegi
         const allCommittedContracts: FabricSmartContractDefinition[] = await connection.getCommittedSmartContractDefinitions(channelPeers, channelName);
         const definitionNames: string[] = allCommittedContracts.map((definition: FabricSmartContractDefinition) => definition.name);
 
-        const appState: { channelName: string, environmentName: string, packageEntries: PackageRegistryEntry[], workspaceNames: string[], definitionNames: string[] } = {
+        // All discovered peers (including connecting orgs peers)
+        const allDiscoveredPeers: string[] = await connection.getAllDiscoveredPeerNames(channelName);
+
+        // Filter all discovered peers, so we only have those not part of the org
+        const discoveredPeers: string[] = allDiscoveredPeers.filter((peer: string) => {
+            return !channelPeers.includes(peer);
+        });
+
+        const appState: { channelName: string, environmentName: string, packageEntries: PackageRegistryEntry[], workspaceNames: string[], definitionNames: string[], discoveredPeers: string[] } = {
             channelName,
             environmentName: selectedEnvironmentName,
             packageEntries,
             workspaceNames,
-            definitionNames
+            definitionNames,
+            discoveredPeers
         };
 
         const context: vscode.ExtensionContext = GlobalState.getExtensionContext();

@@ -394,28 +394,92 @@ export class LifecycleChannel {
 
             const allEndorsers: Endorser[] = await this.discoverPeers(peerNames, fabricClient, channel, gateway);
 
-            // This list contains all the known about peers and discovered ones
-            // filter out duplicate peer names
-            return allEndorsers.map((endorser: Endorser) => {
-                return endorser.name;
-            }).filter((endorser: string) => {
-                if (peerNames.includes(endorser)) {
-                    return true;
-                } else {
-                    for (const peerName of peerNames) {
-                        if (endorser.startsWith(peerName)) {
-                            return false;
-                        }
-                    }
+            const filteredEndorsers: Endorser[] = this.filterDuplicateEndorsers(allEndorsers);
 
-                    return true;
-                }
+            // Endorsers should be unique as they've been filtered out by endpoint urls.
+            return filteredEndorsers.map((endorser: Endorser) => {
+                return endorser.name;
             });
         } catch (error) {
             throw new Error(`Could discover peers, received error ${error.message}`);
         } finally {
             gateway.disconnect();
         }
+    }
+
+    public async getDiscoveredPeers(peerNames: string[], requestTimeout?: number): Promise<Endorser[]> {
+
+        if (!peerNames || peerNames.length === 0) {
+            throw new Error('parameter peers was missing or empty array');
+        }
+
+        const gateway: Gateway = new Gateway();
+
+        const gatewayOptions: GatewayOptions = {
+            wallet: this.wallet,
+            identity: this.identity,
+            discovery: {enabled: false}
+        };
+
+        if (requestTimeout) {
+            gatewayOptions.eventHandlerOptions = {
+                commitTimeout: requestTimeout,
+                endorseTimeout: requestTimeout
+            };
+        }
+
+        try {
+
+            const fabricClient: Client = new Client('lifecycle');
+
+            logger.debug('%s - connect to the network');
+            await gateway.connect(fabricClient, gatewayOptions);
+            const network: Network = await gateway.getNetwork(this.channelName);
+
+            logger.debug('%s - add the endorsers to the channel');
+            const channel: Channel = network.getChannel();
+
+            const allEndorsers: Endorser[] = await this.discoverPeers(peerNames, fabricClient, channel, gateway);
+
+
+            const filteredEndorsers: Endorser[] = this.filterDuplicateEndorsers(allEndorsers);
+
+            // Endorsers should be unique as they've been filtered out by endpoint urls.
+            return filteredEndorsers;
+
+        } catch (error) {
+            throw new Error(`Could discover peers, received error ${error.message}`);
+        } finally {
+            gateway.disconnect();
+        }
+    }
+
+    private filterDuplicateEndorsers(endorsers: Endorser[]): Endorser[] {
+        for (let currentIndex: number = endorsers.length - 1; currentIndex >= 0; currentIndex--) {
+            const endorser: Endorser = endorsers[currentIndex];
+            const duplicateIndex: number = endorsers.findIndex((_endorser: Endorser) => { return _endorser.endpoint['url'] === endorser.endpoint['url'] && endorser.name !== _endorser.name});
+            if (duplicateIndex === -1){
+                continue;
+            } else{
+                const duplicateEndorser: Endorser = endorsers[duplicateIndex];
+                const duplicateEndorserIsUrl: boolean = duplicateEndorser.name.includes('.') || duplicateEndorser.name.includes(':');
+                const endorserIsUrl: boolean = endorser.name.includes('.') || endorser.name.includes(':');
+
+                let indexToRemove: number;
+                if (duplicateEndorserIsUrl && !endorserIsUrl){
+                    indexToRemove = duplicateIndex;
+                } else if (!duplicateEndorserIsUrl && endorserIsUrl){
+                    indexToRemove = currentIndex;
+                } else {
+                    // Keep either one
+                    indexToRemove = duplicateIndex;
+                }
+
+
+                endorsers.splice(indexToRemove, 1);
+            }
+        }
+        return endorsers;
     }
 
     private async discoverPeers(peerNames: string[], fabricClient: Client, channel: Channel, gateway: Gateway): Promise<Endorser[]> {

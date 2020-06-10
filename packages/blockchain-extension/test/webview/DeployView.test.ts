@@ -18,10 +18,10 @@ import * as sinon from 'sinon';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as fs from 'fs-extra';
-import {View} from '../../extension/webview/View';
-import {TestUtil} from '../TestUtil';
-import {GlobalState} from '../../extension/util/GlobalState';
-import {DeployView} from '../../extension/webview/DeployView';
+import { View } from '../../extension/webview/View';
+import { TestUtil } from '../TestUtil';
+import { GlobalState } from '../../extension/util/GlobalState';
+import { DeployView } from '../../extension/webview/DeployView';
 import {
     FabricRuntimeUtil,
     FabricEnvironmentRegistryEntry,
@@ -29,11 +29,11 @@ import {
     LogType,
     FabricSmartContractDefinition
 } from 'ibm-blockchain-platform-common';
-import {PackageRegistryEntry} from '../../extension/registries/PackageRegistryEntry';
-import {FabricEnvironmentManager} from '../../extension/fabric/environments/FabricEnvironmentManager';
-import {FabricEnvironmentConnection} from 'ibm-blockchain-platform-environment-v1';
-import {ExtensionCommands} from '../../ExtensionCommands';
-import {VSCodeBlockchainOutputAdapter} from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
+import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
+import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
+import { ExtensionCommands } from '../../ExtensionCommands';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 
@@ -80,6 +80,8 @@ describe('DeployView', () => {
 
     let localEntry: FabricEnvironmentRegistryEntry;
 
+    const installApproveMap: Map<string, string[]> = new Map();
+    const commitMap: Map<string, string[]> = new Map();
     before(async () => {
         await TestUtil.setupTests(mySandBox);
     });
@@ -104,15 +106,19 @@ describe('DeployView', () => {
 
         localEnvironmentConnectionMock = mySandBox.createStubInstance(FabricEnvironmentConnection);
         localEnvironmentConnectionMock.environmentName = FabricRuntimeUtil.LOCAL_FABRIC;
-        const channelMap: Map<string, string[]> = new Map<string, string[]>();
-        channelMap.set('mychannel', ['peer0.org1.example.com', 'peer0.org2.example.com']);
-        localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
-        localEnvironmentConnectionMock.getAllOrganizationNames.returns(['Org1', 'Org2', 'Orderer']);
-        localEnvironmentConnectionMock.getAllPeerNamesForOrg.withArgs('Org1').returns(['peer0.org1.example.com', 'random.peer']);
-        localEnvironmentConnectionMock.getAllPeerNamesForOrg.withArgs('Org2').returns(['peer0.org2.example.com']);
-        localEnvironmentConnectionMock.getAllPeerNamesForOrg.withArgs('Orderer').returns([]);
+
         localEnvironmentConnectionMock.getAllOrdererNames.returns(['orderer.example.com']);
         localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.resolves([]);
+
+        installApproveMap.set('Org1MSP', ['Org1Peer1', 'Org1Peer2']);
+        commitMap.set('Org1MSP', ['Org1Peer1', 'Org1Peer2']);
+        commitMap.set('Org2MSP', ['Org2Peer1', 'Org2Peer2']);
+        commitMap.set('Org3MSP', ['Org3Peer1']);
+        localEnvironmentConnectionMock.getDiscoveredOrgs.resolves(commitMap);
+
+        const channelMap: Map<string, string[]> = new Map();
+        channelMap.set('mychannel', ['Org1Peer1', 'Org1Peer2']);
+        localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
 
         otherEnvironmentConnectionMock = mySandBox.createStubInstance(FabricEnvironmentConnection);
         otherEnvironmentConnectionMock.environmentName = 'otherEnvironment';
@@ -228,7 +234,8 @@ describe('DeployView', () => {
                                     definitionVersion: 'packageOneVersion',
                                     commitSmartContract: undefined,
                                     endorsmentPolicy: undefined,
-                                    collectionConfigPath: undefined
+                                    collectionConfigPath: undefined,
+                                    selectedPeers: ['Org2Peer1', 'Org2Peer2']
                                 }
                             });
                             resolve();
@@ -250,7 +257,7 @@ describe('DeployView', () => {
             await deployView.openView(false);
             await Promise.all(onDidDisposePromises);
 
-            deployStub.should.have.been.calledOnceWithExactly('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'packageOneName', 'packageOneVersion', undefined, undefined, undefined);
+            deployStub.should.have.been.calledOnceWithExactly('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'packageOneName', 'packageOneVersion', undefined, undefined, undefined, ['Org2Peer1', 'Org2Peer2']);
         });
 
     });
@@ -268,21 +275,17 @@ describe('DeployView', () => {
 
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
-            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined, undefined, undefined);
+            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined, undefined, undefined, ['Org2Peer1', 'Org2Peer2']);
             disposeStub.should.have.been.calledOnce;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
 
-            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getAllPeerNamesForOrg.should.have.been.calledThrice;
             localEnvironmentConnectionMock.getAllOrdererNames.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getAllOrganizationNames.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel');
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org1Peer2'], 'mychannel');
+            localEnvironmentConnectionMock.getDiscoveredOrgs.should.have.been.calledOnceWithExactly('mychannel');
 
-            const orgMap: Map<string, string[]> = new Map<string, string[]>();
-            orgMap.set('Org1', ['peer0.org1.example.com']);
-            orgMap.set('Org2', ['peer0.org2.example.com']);
-            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', orgMap, packageEntryOne, new FabricSmartContractDefinition('defName', '0.0.1', 1));
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', installApproveMap, packageEntryOne, new FabricSmartContractDefinition('defName', '0.0.1', 1), commitMap);
         });
 
         it('should disconnect, connect to correct environment and commit new contract', async () => {
@@ -296,22 +299,17 @@ describe('DeployView', () => {
 
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
-            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined, undefined, undefined);
+            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined, undefined, undefined, ['Org2Peer1', 'Org2Peer2']);
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
 
-            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllOrdererNames.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getAllPeerNamesForOrg.should.have.been.calledThrice;
-            localEnvironmentConnectionMock.getAllOrganizationNames.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel');
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org1Peer2'], 'mychannel');
+            localEnvironmentConnectionMock.getDiscoveredOrgs.should.have.been.calledOnceWithExactly('mychannel');
 
-            const orgMap: Map<string, string[]> = new Map<string, string[]>();
-            orgMap.set('Org1', ['peer0.org1.example.com']);
-            orgMap.set('Org2', ['peer0.org2.example.com']);
-
-            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', orgMap, packageEntryOne, new FabricSmartContractDefinition('defName', '0.0.1', 1));
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', installApproveMap, packageEntryOne, new FabricSmartContractDefinition('defName', '0.0.1', 1), commitMap);
         });
 
         it('should connect to environment if disconnected and commit new contract', async () => {
@@ -325,22 +323,17 @@ describe('DeployView', () => {
 
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
-            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined, undefined, undefined);
+            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined, undefined, undefined, ['Org2Peer1', 'Org2Peer2']);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
 
-            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllOrdererNames.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getAllPeerNamesForOrg.should.have.been.calledThrice;
-            localEnvironmentConnectionMock.getAllOrganizationNames.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel');
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org1Peer2'], 'mychannel');
+            localEnvironmentConnectionMock.getDiscoveredOrgs.should.have.been.calledOnceWithExactly('mychannel');
 
-            const orgMap: Map<string, string[]> = new Map<string, string[]>();
-            orgMap.set('Org1', ['peer0.org1.example.com']);
-            orgMap.set('Org2', ['peer0.org2.example.com']);
-
-            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', orgMap, packageEntryOne, new FabricSmartContractDefinition('defName', '0.0.1', 1));
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', installApproveMap, packageEntryOne, new FabricSmartContractDefinition('defName', '0.0.1', 1), commitMap);
         });
 
         it('should error if unable to connect to environment', async () => {
@@ -353,14 +346,14 @@ describe('DeployView', () => {
 
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
-            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined, undefined, undefined);
+            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined, undefined, undefined, ['Org2Peer1', 'Org2Peer2']);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
-
             localEnvironmentConnectionMock.createChannelMap.should.not.have.been.called;
             localEnvironmentConnectionMock.getAllOrdererNames.should.not.have.been.called;
             localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.not.have.been.called;
+            localEnvironmentConnectionMock.getDiscoveredOrgs.should.not.have.been.called;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DEPLOY_SMART_CONTRACT);
 
@@ -384,21 +377,17 @@ describe('DeployView', () => {
 
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
-            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryTwo, 'defName', '0.0.1', undefined, undefined, undefined);
+            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryTwo, 'defName', '0.0.1', undefined, undefined, undefined, ['Org2Peer1', 'Org2Peer2']);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
 
-            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllOrdererNames.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getAllPeerNamesForOrg.should.have.been.calledThrice;
-            localEnvironmentConnectionMock.getAllOrganizationNames.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel');
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org1Peer2'], 'mychannel');
+            localEnvironmentConnectionMock.getDiscoveredOrgs.should.have.been.calledOnceWithExactly('mychannel');
 
-            const orgMap: Map<string, string[]> = new Map<string, string[]>();
-            orgMap.set('Org1', ['peer0.org1.example.com']);
-            orgMap.set('Org2', ['peer0.org2.example.com']);
-            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, false, localEntry, 'orderer.example.com', 'mychannel', orgMap, packageEntryTwo, new FabricSmartContractDefinition('defName', '0.0.1', 1));
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, false, localEntry, 'orderer.example.com', 'mychannel', installApproveMap, packageEntryTwo, new FabricSmartContractDefinition('defName', '0.0.1', 1), commitMap);
         });
 
         it('should be able to change the package for a committed definition and commit', async () => {
@@ -416,21 +405,17 @@ describe('DeployView', () => {
 
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
-            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryTwo, 'defName', '0.0.1', true, undefined, undefined);
+            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryTwo, 'defName', '0.0.1', true, undefined, undefined, ['Org2Peer1', 'Org2Peer2']);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
 
-            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllOrdererNames.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getAllPeerNamesForOrg.should.have.been.calledThrice;
-            localEnvironmentConnectionMock.getAllOrganizationNames.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel');
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org1Peer2'], 'mychannel');
+            localEnvironmentConnectionMock.getDiscoveredOrgs.should.have.been.calledOnceWithExactly('mychannel');
 
-            const orgMap: Map<string, string[]> = new Map<string, string[]>();
-            orgMap.set('Org1', ['peer0.org1.example.com']);
-            orgMap.set('Org2', ['peer0.org2.example.com']);
-            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', orgMap, packageEntryTwo, new FabricSmartContractDefinition('defName', '0.0.1', 1));
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', installApproveMap, packageEntryTwo, new FabricSmartContractDefinition('defName', '0.0.1', 1), commitMap);
         });
 
         it('should update sequence number if definition version has changed', async () => {
@@ -448,21 +433,17 @@ describe('DeployView', () => {
 
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
-            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.2', undefined, undefined, undefined);
+            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.2', undefined, undefined, undefined, ['Org2Peer1', 'Org2Peer2']);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
 
-            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllOrdererNames.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getAllPeerNamesForOrg.should.have.been.calledThrice;
-            localEnvironmentConnectionMock.getAllOrganizationNames.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel');
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org1Peer2'], 'mychannel');
+            localEnvironmentConnectionMock.getDiscoveredOrgs.should.have.been.calledOnceWithExactly('mychannel');
 
-            const orgMap: Map<string, string[]> = new Map<string, string[]>();
-            orgMap.set('Org1', ['peer0.org1.example.com']);
-            orgMap.set('Org2', ['peer0.org2.example.com']);
-            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', orgMap, packageEntryOne, new FabricSmartContractDefinition('defName', '0.0.2', 2));
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', installApproveMap, packageEntryOne, new FabricSmartContractDefinition('defName', '0.0.2', 2), commitMap);
         });
 
         it('should be able to pass endorsement policy and bump sequence number', async () => {
@@ -481,21 +462,17 @@ describe('DeployView', () => {
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
 
-            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.2', undefined, `OR('Org1.member','Org2.member')`, undefined);
+            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.2', undefined, `OR('Org1.member','Org2.member')`, undefined, ['Org2Peer1', 'Org2Peer2']);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
 
-            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllOrdererNames.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getAllPeerNamesForOrg.should.have.been.calledThrice;
-            localEnvironmentConnectionMock.getAllOrganizationNames.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel');
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org1Peer2'], 'mychannel');
+            localEnvironmentConnectionMock.getDiscoveredOrgs.should.have.been.calledOnceWithExactly('mychannel');
 
-            const orgMap: Map<string, string[]> = new Map<string, string[]>();
-            orgMap.set('Org1', ['peer0.org1.example.com']);
-            orgMap.set('Org2', ['peer0.org2.example.com']);
-            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', orgMap, packageEntryOne, new FabricSmartContractDefinition('defName', '0.0.2', 2, undefined, `OR('Org1.member','Org2.member')`, undefined));
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', installApproveMap, packageEntryOne, new FabricSmartContractDefinition('defName', '0.0.2', 2, undefined, `OR('Org1.member','Org2.member')`, undefined), commitMap);
         });
 
         it('should be able to pass endorsement policy and replace double quotes', async () => {
@@ -514,21 +491,17 @@ describe('DeployView', () => {
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
 
-            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.2', undefined, `OR("Org1.member","Org2.member")`, undefined);
+            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.2', undefined, `OR("Org1.member","Org2.member")`, undefined, ['Org2Peer1', 'Org2Peer2']);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
 
-            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllOrdererNames.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getAllPeerNamesForOrg.should.have.been.calledThrice;
-            localEnvironmentConnectionMock.getAllOrganizationNames.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel');
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org1Peer2'], 'mychannel');
+            localEnvironmentConnectionMock.getDiscoveredOrgs.should.have.been.calledOnceWithExactly('mychannel');
 
-            const orgMap: Map<string, string[]> = new Map<string, string[]>();
-            orgMap.set('Org1', ['peer0.org1.example.com']);
-            orgMap.set('Org2', ['peer0.org2.example.com']);
-            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', orgMap, packageEntryOne, new FabricSmartContractDefinition('defName', '0.0.2', 2, undefined, `OR('Org1.member','Org2.member')`, undefined));
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', installApproveMap, packageEntryOne, new FabricSmartContractDefinition('defName', '0.0.2', 2, undefined, `OR('Org1.member','Org2.member')`, undefined), commitMap);
         });
 
         it('should be able to include collection file and bump sequence number', async () => {
@@ -549,34 +522,30 @@ describe('DeployView', () => {
 
             const collection: any = [
                 {
-                     "name": "CollectionOne",
-                     "policy": "OR('Org1MSP.member')",
-                     "requiredPeerCount": 1,
-                     "maxPeerCount": 1,
-                     "blockToLive": 0,
-                     "memberOnlyRead": true
+                    "name": "CollectionOne",
+                    "policy": "OR('Org1MSP.member')",
+                    "requiredPeerCount": 1,
+                    "maxPeerCount": 1,
+                    "blockToLive": 0,
+                    "memberOnlyRead": true
                 }
             ];
 
             const readJSONStub: sinon.SinonStub = mySandBox.stub(fs, 'readJSON').resolves(collection);
 
-            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.2', undefined, undefined, '/some/path');
+            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.2', undefined, undefined, '/some/path', ['Org2Peer1', 'Org2Peer2']);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
 
-            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllOrdererNames.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getAllPeerNamesForOrg.should.have.been.calledThrice;
-            localEnvironmentConnectionMock.getAllOrganizationNames.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel');
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org1Peer2'], 'mychannel');
+            localEnvironmentConnectionMock.getDiscoveredOrgs.should.have.been.calledOnceWithExactly('mychannel');
 
             readJSONStub.should.have.been.calledOnceWithExactly('/some/path');
 
-            const orgMap: Map<string, string[]> = new Map<string, string[]>();
-            orgMap.set('Org1', ['peer0.org1.example.com']);
-            orgMap.set('Org2', ['peer0.org2.example.com']);
-            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', orgMap, packageEntryOne, new FabricSmartContractDefinition('defName', '0.0.2', 2, undefined, undefined, collection));
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', installApproveMap, packageEntryOne, new FabricSmartContractDefinition('defName', '0.0.2', 2, undefined, undefined, collection), commitMap);
         });
 
         it('should include collection file and set sequence number if not previously committed', async () => {
@@ -593,35 +562,32 @@ describe('DeployView', () => {
 
             const collection: any = [
                 {
-                     "name": "CollectionOne",
-                     "policy": "OR('Org1MSP.member')",
-                     "requiredPeerCount": 1,
-                     "maxPeerCount": 1,
-                     "blockToLive": 0,
-                     "memberOnlyRead": true
+                    "name": "CollectionOne",
+                    "policy": "OR('Org1MSP.member')",
+                    "requiredPeerCount": 1,
+                    "maxPeerCount": 1,
+                    "blockToLive": 0,
+                    "memberOnlyRead": true
                 }
             ];
 
             const readJSONStub: sinon.SinonStub = mySandBox.stub(fs, 'readJSON').resolves(collection);
 
-            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined, undefined, '/some/path');
+            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined, undefined, '/some/path', ['Org2Peer1', 'Org2Peer2']);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
 
-            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllOrdererNames.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getAllPeerNamesForOrg.should.have.been.calledThrice;
-            localEnvironmentConnectionMock.getAllOrganizationNames.should.have.been.calledOnce;
-            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel');
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org1Peer2'], 'mychannel');
+            localEnvironmentConnectionMock.getDiscoveredOrgs.should.have.been.calledOnceWithExactly('mychannel');
 
             readJSONStub.should.have.been.calledOnceWithExactly('/some/path');
 
-            const orgMap: Map<string, string[]> = new Map<string, string[]>();
-            orgMap.set('Org1', ['peer0.org1.example.com']);
-            orgMap.set('Org2', ['peer0.org2.example.com']);
-            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', orgMap, packageEntryOne, new FabricSmartContractDefinition('defName', '0.0.1', 1, undefined, undefined, collection));
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', installApproveMap, packageEntryOne, new FabricSmartContractDefinition('defName', '0.0.1', 1, undefined, undefined, collection), commitMap);
         });
+
     });
 
     describe('updatePackages', () => {
