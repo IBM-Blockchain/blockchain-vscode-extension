@@ -276,15 +276,15 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         return this.lifecycle.getAllOrdererNames();
     }
 
-    public async installSmartContract(pathToPackage: string, peerName: string): Promise<string> {
+    public async installSmartContract(pathToPackage: string, peerName: string, requestTimeout?: number): Promise<string> {
         const peer: LifecyclePeer = await this.getPeer(peerName);
 
         const pkgBuffer: Buffer = await fs.readFile(pathToPackage);
 
-        return peer.installSmartContractPackage(pkgBuffer, 90000);
+        return peer.installSmartContractPackage(pkgBuffer, requestTimeout);
     }
 
-    public async approveSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[], smartContractDefinition: FabricSmartContractDefinition): Promise<void> {
+    public async approveSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[], smartContractDefinition: FabricSmartContractDefinition, requestTimeout?: number): Promise<void> {
         const wallet: FabricWallet = await this.getWallet(peerNames[0]) as FabricWallet;
         const peerNode: FabricNode = this.getNode(peerNames[0]);
         const channel: LifecycleChannel = this.lifecycle.getChannel(channelName, wallet.getWallet(), peerNode.identity);
@@ -296,10 +296,10 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
             sequence: smartContractDefinition.sequence,
             endorsementPolicy: smartContractDefinition.endorsementPolicy as string,
             collectionConfig: smartContractDefinition.collectionConfig as FabricCollectionDefinition[]
-        });
+        }, requestTimeout);
     }
 
-    public async commitSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[], smartContractDefinition: FabricSmartContractDefinition): Promise<void> {
+    public async commitSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[], smartContractDefinition: FabricSmartContractDefinition, requestTimeout?: number): Promise<void> {
         const wallet: FabricWallet = await this.getWallet(peerNames[0]) as FabricWallet;
         const peerNode: FabricNode = this.getNode(peerNames[0]);
         const channel: LifecycleChannel = this.lifecycle.getChannel(channelName, wallet.getWallet(), peerNode.identity);
@@ -310,7 +310,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
             sequence: smartContractDefinition.sequence,
             endorsementPolicy: smartContractDefinition.endorsementPolicy as string,
             collectionConfig: smartContractDefinition.collectionConfig as FabricCollectionDefinition[]
-        });
+        }, requestTimeout);
     }
 
     public async getCommitReadiness(channelName: string, peerName: string, smartContractDefinition: FabricSmartContractDefinition): Promise<boolean> {

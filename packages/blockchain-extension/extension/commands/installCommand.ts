@@ -20,6 +20,7 @@ import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchain
 import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { Reporter } from '../util/Reporter';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
+import { SettingConfigurations } from '../configurations';
 
 export async function installSmartContract(orgMap: Map<string, string[]>, chosenPackage: PackageRegistryEntry): Promise<string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -56,7 +57,12 @@ export async function installSmartContract(orgMap: Map<string, string[]>, chosen
                 peerCount++;
                 progress.report({ message: `Installing Smart Contract on peer ${peer}` });
                 try {
-                    packageId = await connection.installSmartContract(chosenPackage.path, peer);
+                    let timeout: number = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_CLIENT_TIMEOUT);
+                    // convert from seconds to milliseconds
+                    if (timeout) {
+                        timeout = timeout * 1000;
+                    }
+                    packageId = await connection.installSmartContract(chosenPackage.path, peer, timeout);
                     outputAdapter.log(LogType.SUCCESS, `Successfully installed on peer ${peer}`);
                 } catch (error) {
                     outputAdapter.log(LogType.ERROR, `Failed to install on peer ${peer} with reason: ${error.message}`, `Failed to install on peer ${peer} with reason: ${error.toString()}`);

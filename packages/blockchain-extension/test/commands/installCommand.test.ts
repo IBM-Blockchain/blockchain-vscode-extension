@@ -54,6 +54,8 @@ describe('InstallCommand', () => {
         let logOutputSpy: sinon.SinonSpy;
         let dockerLogsOutputSpy: sinon.SinonSpy;
         let environmentRegistryStub: sinon.SinonStub;
+        let getSettingsStub: sinon.SinonStub;
+        let getConfigurationStub: sinon.SinonStub;
 
         beforeEach(async () => {
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
@@ -64,6 +66,15 @@ describe('InstallCommand', () => {
             fabricRuntimeMock = mySandBox.createStubInstance(FabricEnvironmentConnection);
             fabricRuntimeMock.connect.resolves();
             fabricRuntimeMock.installSmartContract.resolves('myPackageId');
+
+            getSettingsStub = mySandBox.stub();
+            getSettingsStub.withArgs(SettingConfigurations.FABRIC_CLIENT_TIMEOUT).returns(9000);
+
+            getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
+            getConfigurationStub.returns({
+                get: getSettingsStub,
+                update: mySandBox.stub().callThrough()
+            });
 
             getRuntimeConnectionStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns((fabricRuntimeMock as any));
             mySandBox.stub(FabricEnvironmentManager.instance(), 'getState').returns(ConnectedState.CONNECTED);
@@ -100,9 +111,35 @@ describe('InstallCommand', () => {
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, orgMap, packageRegistryEntry);
             result.should.equal('myPackageId');
 
-            fabricRuntimeMock.installSmartContract.should.have.been.calledWith(packageRegistryEntry.path, 'peerThree');
-            fabricRuntimeMock.installSmartContract.should.have.been.calledWith(packageRegistryEntry.path, 'peerOne');
-            fabricRuntimeMock.installSmartContract.should.have.been.calledWith(packageRegistryEntry.path, 'peerTwo');
+            fabricRuntimeMock.installSmartContract.should.have.been.calledWithExactly(packageRegistryEntry.path, 'peerThree', 9000000);
+            fabricRuntimeMock.installSmartContract.should.have.been.calledWithExactly(packageRegistryEntry.path, 'peerOne', 9000000);
+            fabricRuntimeMock.installSmartContract.should.have.been.calledWithExactly(packageRegistryEntry.path, 'peerTwo', 9000000);
+
+            dockerLogsOutputSpy.should.have.been.called;
+            logOutputSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'installSmartContract');
+            logOutputSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully installed on peer peerThree');
+            logOutputSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully installed on peer peerOne');
+            logOutputSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully installed on peer peerTwo');
+        });
+
+        it('should install the smart contract through the command when timeout is not provided in user settings', async () => {
+            const orgMap: Map<string, string[]> = new Map<string, string[]>();
+            orgMap.set('Org1MSP', ['peerOne']);
+            orgMap.set('Org2MSP', ['peerTwo', 'peerThree']);
+
+            getSettingsStub.withArgs(SettingConfigurations.FABRIC_CLIENT_TIMEOUT).returns(undefined);
+
+            getConfigurationStub.returns({
+                get: getSettingsStub,
+                update: mySandBox.stub().callThrough()
+            });
+
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, orgMap, packageRegistryEntry);
+            result.should.equal('myPackageId');
+
+            fabricRuntimeMock.installSmartContract.should.have.been.calledWithExactly(packageRegistryEntry.path, 'peerThree', undefined);
+            fabricRuntimeMock.installSmartContract.should.have.been.calledWithExactly(packageRegistryEntry.path, 'peerOne', undefined);
+            fabricRuntimeMock.installSmartContract.should.have.been.calledWithExactly(packageRegistryEntry.path, 'peerTwo', undefined);
 
             dockerLogsOutputSpy.should.have.been.called;
             logOutputSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'installSmartContract');
@@ -118,7 +155,7 @@ describe('InstallCommand', () => {
             getRuntimeConnectionStub.onFirstCall().returns(undefined);
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, orgMap, packageRegistryEntry);
             result.should.equal('myPackageId');
-            fabricRuntimeMock.installSmartContract.should.have.been.calledWith(packageRegistryEntry.path, 'peerOne');
+            fabricRuntimeMock.installSmartContract.should.have.been.calledWithExactly(packageRegistryEntry.path, 'peerOne', 9000000);
 
             dockerLogsOutputSpy.should.have.been.called;
             logOutputSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'installSmartContract');
@@ -134,7 +171,7 @@ describe('InstallCommand', () => {
             environmentRegistryStub.returns(registryEntry);
             const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, orgMap, packageRegistryEntry);
             result.should.equal('myPackageId');
-            fabricRuntimeMock.installSmartContract.should.have.been.calledWith(packageRegistryEntry.path, 'peerOne');
+            fabricRuntimeMock.installSmartContract.should.have.been.calledWithExactly(packageRegistryEntry.path, 'peerOne', 9000000);
 
             dockerLogsOutputSpy.should.not.have.been.called;
             logOutputSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'installSmartContract');
@@ -176,8 +213,8 @@ describe('InstallCommand', () => {
             const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, orgMap, packageRegistryEntry);
             should.not.exist(result);
 
-            fabricRuntimeMock.installSmartContract.should.have.been.calledWith(packageRegistryEntry.path, 'peerOne');
-            fabricRuntimeMock.installSmartContract.should.have.been.calledWith(packageRegistryEntry.path, 'peerTwo');
+            fabricRuntimeMock.installSmartContract.should.have.been.calledWithExactly(packageRegistryEntry.path, 'peerOne', 9000000);
+            fabricRuntimeMock.installSmartContract.should.have.been.calledWithExactly(packageRegistryEntry.path, 'peerTwo', 9000000);
 
             dockerLogsOutputSpy.should.have.been.called;
             logOutputSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'installSmartContract');

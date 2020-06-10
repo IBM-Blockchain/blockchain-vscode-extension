@@ -46,7 +46,7 @@ export interface IFabricEnvironmentConnection {
 
     getAllOrdererNames(): Array<string>;
 
-    installSmartContract(pathToPackage: string, peerName: string): Promise<string>;
+    installSmartContract(pathToPackage: string, peerName: string, defaultTimeout?: number): Promise<string>;
 
     instantiateChaincode(chaincodeName: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionPath: string, contractEP: any): Promise<Buffer>;
 
@@ -60,9 +60,9 @@ export interface IFabricEnvironmentConnection {
 
     getWallet(nodeName: string): Promise<IFabricWallet>;
 
-    approveSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[], smartContractDefinition: FabricSmartContractDefinition): Promise<void>;
+    approveSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[], smartContractDefinition: FabricSmartContractDefinition, defaultTimeout?: number): Promise<void>;
 
-    commitSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[], smartContractDefinition: FabricSmartContractDefinition): Promise<void>;
+    commitSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[], smartContractDefinition: FabricSmartContractDefinition, defaultTimeout?: number): Promise<void>;
 
     getCommitReadiness(channelName: string, peerName: string, smartContractDefinition: FabricSmartContractDefinition): Promise<boolean>;
 
