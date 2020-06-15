@@ -19,6 +19,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, EnvironmentType, FabricSmartContractDefinition } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
+import { SettingConfigurations } from '../configurations';
 
 export async function approveSmartContract(ordererName: string, channelName: string, orgMap: Map<string, string[]>, smartContractDefinition: FabricSmartContractDefinition): Promise<void> {
 
@@ -52,7 +53,12 @@ export async function approveSmartContract(ordererName: string, channelName: str
             for (const org of orgMap.keys()) {
                 progress.report({ message: `Approving Smart Contract for org ${org}` });
                 const peers: string[] = orgMap.get(org);
-                await connection.approveSmartContractDefinition(ordererName, channelName, peers, smartContractDefinition);
+                let timeout: number = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_CLIENT_TIMEOUT);
+                // convert from seconds to milliseconds
+                if (timeout) {
+                    timeout = timeout * 1000;
+                }
+                await connection.approveSmartContractDefinition(ordererName, channelName, peers, smartContractDefinition, timeout);
             }
 
             Reporter.instance().sendTelemetryEvent('approveCommand');
