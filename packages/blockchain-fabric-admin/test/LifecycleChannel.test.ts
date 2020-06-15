@@ -12,7 +12,7 @@
  * limitations under the License.
 */
 
-import {Channel, Committer, Discoverer, DiscoveryService, Endorsement, Endorser, IdentityContext} from 'fabric-common';
+import {Channel, Committer, Discoverer, DiscoveryService, Endorsement, Endorser, IdentityContext, Endpoint} from 'fabric-common';
 import * as protos from 'fabric-protos';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
@@ -1516,6 +1516,7 @@ describe('LifecycleChannel', () => {
             let discoverServiceSignStub: sinon.SinonStub;
             let discoverServiceBuildStub: sinon.SinonStub;
             let discoverServiceSendStub: sinon.SinonStub;
+            let getEndorsersStub: sinon.SinonStub;
 
             beforeEach(() => {
                 mysandbox = sinon.createSandbox();
@@ -1525,7 +1526,8 @@ describe('LifecycleChannel', () => {
 
                 mysandbox.stub(Channel.prototype, 'addEndorser');
                 // @ts-ignore
-                mysandbox.stub(Channel.prototype, 'getEndorsers').returns([{name: 'myPeer'}, {name: 'myPeer:7051'}, {name: 'peer0.org2.example.com:9051'}]);
+                getEndorsersStub = mysandbox.stub(Channel.prototype, 'getEndorsers')
+                getEndorsersStub.returns([{name: 'myPeer', endpoint: {url: 'url.one:7051'}}, {name: 'myPeer:7051', endpoint: {url: 'url.one:7051'}}, {name: 'peer0.org2.example.com:9051', endpoint: {url: 'url.three:7051'}}]);
 
                 gatewayConnectSpy = mysandbox.spy(Gateway.prototype, 'connect');
 
@@ -1538,7 +1540,7 @@ describe('LifecycleChannel', () => {
                 mysandbox.restore();
             });
 
-            it('should get the discovered peer names', async () => {
+            it('should get the discovered peers', async () => {
                 const result: string[] = await channel.getDiscoveredPeerNames(['myPeer']);
 
                 result.should.deep.equal(['myPeer', 'peer0.org2.example.com:9051']);
@@ -1552,7 +1554,23 @@ describe('LifecycleChannel', () => {
                 });
             });
 
-            it('should get the discovered peer names with timeout', async () => {
+            it('should filter out peers with the same endpoint and return discovered peers', async () => {
+                getEndorsersStub.returns([{name: 'myPeer', endpoint: {url: 'localhost:9051'}}, {name: 'peer1.org1.example.com:9051', endpoint: {url: 'localhost:9051'}}, {name: 'peer1.org2.example.com:8051', endpoint: {url: 'localhost:8051'}}, {name: 'Org2Peer1', endpoint: {url: 'localhost:8051'}}, {name: 'Org3Peer1:6051', endpoint: {url: 'localhost:6051'}}, {name: 'peer1.org3.example.com:6051', endpoint: {url: 'localhost:6051'}}]);
+
+                const result: string[] = await channel.getDiscoveredPeerNames(['myPeer']);
+
+                result.should.deep.equal(['myPeer', 'Org2Peer1', 'peer1.org3.example.com:6051']);
+
+                discoverServiceSignStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                discoverServiceBuildStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+
+                discoverServiceSendStub.should.have.been.calledWith({
+                    asLocalhost: true,
+                    targets: [sinon.match.instanceOf(Discoverer)]
+                });
+            });
+
+            it('should get the discovered peer with timeout', async () => {
                 const result: string[] = await channel.getDiscoveredPeerNames(['myPeer'], 1234);
 
                 result.should.deep.equal(['myPeer', 'peer0.org2.example.com:9051']);
@@ -1581,6 +1599,109 @@ describe('LifecycleChannel', () => {
 
                 discoverServiceSendStub.rejects({message: 'some error'});
                 await channel.getDiscoveredPeerNames(['myPeer']).should.eventually.be.rejectedWith('Could discover peers, received error some error');
+
+                discoverServiceSignStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                discoverServiceBuildStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+
+                discoverServiceSendStub.should.have.been.calledWith({
+                    asLocalhost: true,
+                    targets: [sinon.match.instanceOf(Discoverer)]
+                });
+            });
+        });
+
+        describe('getDiscoveredPeers', () => {
+
+            let mysandbox: sinon.SinonSandbox;
+
+            let gatewayConnectSpy: sinon.SinonSpy;
+
+            let discoverServiceSignStub: sinon.SinonStub;
+            let discoverServiceBuildStub: sinon.SinonStub;
+            let discoverServiceSendStub: sinon.SinonStub;
+            let getEndorsersStub: sinon.SinonStub;
+
+            beforeEach(() => {
+                mysandbox = sinon.createSandbox();
+
+                mysandbox.stub(Endorser.prototype, 'connect').resolves();
+                mysandbox.stub(Discoverer.prototype, 'connect').resolves();
+
+                mysandbox.stub(Channel.prototype, 'addEndorser');
+                // @ts-ignore
+                getEndorsersStub = mysandbox.stub(Channel.prototype, 'getEndorsers')
+                getEndorsersStub.returns([{name: 'myPeer', endpoint: {url: 'url.one:7051'}}, {name: 'myPeer:7051', endpoint: {url: 'urltwo:7051'}}, {name: 'peer0.org2.example.com:9051', endpoint: {url: 'url.three:7051'}}]);
+
+                gatewayConnectSpy = mysandbox.spy(Gateway.prototype, 'connect');
+
+                discoverServiceBuildStub = mysandbox.stub(DiscoveryService.prototype, 'build');
+                discoverServiceSignStub = mysandbox.stub(DiscoveryService.prototype, 'sign');
+                discoverServiceSendStub = mysandbox.stub(DiscoveryService.prototype, 'send').resolves();
+            });
+
+            afterEach(() => {
+                mysandbox.restore();
+            });
+
+            it('should get the discovered peer names', async () => {
+                const result: Endpoint[] = await channel.getDiscoveredPeers(['myPeer']);
+
+                result.should.deep.equal([{name: 'myPeer', endpoint: {url: 'url.one:7051'}}, {name: 'myPeer:7051', endpoint: {url: 'urltwo:7051'}}, {name: 'peer0.org2.example.com:9051', endpoint: {url: 'url.three:7051'}}]);
+
+                discoverServiceSignStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                discoverServiceBuildStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+
+                discoverServiceSendStub.should.have.been.calledWith({
+                    asLocalhost: true,
+                    targets: [sinon.match.instanceOf(Discoverer)]
+                });
+            });
+
+            it('should filter out peers with the same endpoint and return discovered peer names', async () => {
+                getEndorsersStub.returns([{name: 'myPeer', endpoint: {url: 'localhost:9051'}}, {name: 'peer1.org1.example.com:9051', endpoint: {url: 'localhost:9051'}}, {name: 'peer1.org2.example.com:8051', endpoint: {url: 'localhost:8051'}}, {name: 'Org2Peer1', endpoint: {url: 'localhost:8051'}}, {name: 'Org3Peer1:6051', endpoint: {url: 'localhost:6051'}}, {name: 'peer1.org3.example.com:6051', endpoint: {url: 'localhost:6051'}}]);
+
+                const result: Endorser[] = await channel.getDiscoveredPeers(['myPeer']);
+
+                result.should.deep.equal([{name: 'myPeer', endpoint: {url: 'localhost:9051'}}, {name: 'Org2Peer1', endpoint: {url: 'localhost:8051'}}, {name: 'peer1.org3.example.com:6051', endpoint: {url: 'localhost:6051'}}]);
+
+                discoverServiceSignStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                discoverServiceBuildStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+
+                discoverServiceSendStub.should.have.been.calledWith({
+                    asLocalhost: true,
+                    targets: [sinon.match.instanceOf(Discoverer)]
+                });
+            });
+
+            it('should get the discovered peer names with timeout', async () => {
+                const result: Endorser[] = await channel.getDiscoveredPeers(['myPeer'], 1234);
+
+                result.should.deep.equal([{name: 'myPeer', endpoint: {url: 'url.one:7051'}}, {name: 'myPeer:7051', endpoint: {url: 'urltwo:7051'}}, {name: 'peer0.org2.example.com:9051', endpoint: {url: 'url.three:7051'}}]);
+
+                discoverServiceSignStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                discoverServiceBuildStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+
+                discoverServiceSendStub.should.have.been.calledWith({
+                    asLocalhost: true,
+                    targets: [sinon.match.instanceOf(Discoverer)]
+                });
+
+                const call: sinon.SinonSpyCall = gatewayConnectSpy.getCall(0);
+                call.args[1].eventHandlerOptions.should.deep.equal({
+                    commitTimeout: 1234,
+                    endorseTimeout: 1234
+                });
+            });
+
+            it('should handle no peerNames set', async () => {
+                // @ts-ignore
+                await channel.getDiscoveredPeers().should.eventually.be.rejectedWith('parameter peers was missing or empty array');
+            });
+
+            it('should handle error', async () => {
+
+                discoverServiceSendStub.rejects({message: 'some error'});
+                await channel.getDiscoveredPeers(['myPeer']).should.eventually.be.rejectedWith('Could discover peers, received error some error');
 
                 discoverServiceSignStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 discoverServiceBuildStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));

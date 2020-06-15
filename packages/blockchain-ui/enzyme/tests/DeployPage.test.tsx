@@ -26,11 +26,11 @@ describe('DeployPage component', () => {
     const packageOne: IPackageRegistryEntry = {name: 'mycontract', version: '0.0.1', path: '/package/one', sizeKB: 9000};
     const packageTwo: IPackageRegistryEntry = {name: 'othercontract', version: '0.0.2', path: '/package/two', sizeKB: 12000};
     const packageThree: IPackageRegistryEntry = {name: 'importedContract', path: '/package/three', sizeKB: 16000};
-    let deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, definitionNames: string[]};
+    let deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, definitionNames: string[], discoveredPeers: string[]};
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
-        deployData = {channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo, packageThree], workspaceNames: ['workspaceOne'], selectedPackage: undefined, definitionNames: []};
+        deployData = {channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo, packageThree], workspaceNames: ['workspaceOne'], selectedPackage: undefined, definitionNames: [], discoveredPeers: ['Org1Peer1', 'Org2Peer1']};
     });
 
     afterEach(async () => {
@@ -95,6 +95,7 @@ describe('DeployPage component', () => {
 
             component.html().includes(`${packageTwo.name}@${packageTwo.version} (packaged)`).should.equal(true);
         });
+
     });
 
     describe('handleProgressChange', () => {
@@ -251,7 +252,8 @@ describe('DeployPage component', () => {
                 definitionName: packageTwo.name,
                 definitionVersion: packageTwo.version as string,
                 commitSmartContract: undefined,
-                currentCollectionFile: undefined
+                currentCollectionFile: undefined,
+                selectedPeers: ['Org1Peer1', 'Org2Peer1']
             });
 
             instance.handleDeploy();
@@ -266,7 +268,8 @@ describe('DeployPage component', () => {
                     definitionVersion: packageTwo.version,
                     commitSmartContract: undefined,
                     collectionConfigPath: undefined,
-                    endorsementPolicy: undefined
+                    endorsementPolicy: undefined,
+                    selectedPeers: ['Org1Peer1', 'Org2Peer1']
                 }
             });
         });
@@ -288,7 +291,8 @@ describe('DeployPage component', () => {
                 definitionVersion: packageTwo.version as string,
                 commitSmartContract: undefined,
                 currentCollectionFile: file,
-                endorsementPolicy: undefined
+                endorsementPolicy: undefined,
+                selectedPeers: ['Org1Peer1', 'Org2Peer1']
             });
 
             instance.handleDeploy();
@@ -303,7 +307,8 @@ describe('DeployPage component', () => {
                     definitionVersion: packageTwo.version,
                     commitSmartContract: undefined,
                     collectionConfigPath: '/some/path',
-                    endorsementPolicy: undefined
+                    endorsementPolicy: undefined,
+                    selectedPeers: ['Org1Peer1', 'Org2Peer1']
                 }
             });
         });
@@ -322,7 +327,8 @@ describe('DeployPage component', () => {
                 definitionVersion: packageTwo.version as string,
                 commitSmartContract: undefined,
                 currentCollectionFile: undefined,
-                endorsementPolicy: 'OR("Org1MSP.member")'
+                endorsementPolicy: 'OR("Org1MSP.member")',
+                selectedPeers: ['Org1Peer1', 'Org2Peer1']
             });
 
             instance.handleDeploy();
@@ -337,7 +343,8 @@ describe('DeployPage component', () => {
                     definitionVersion: packageTwo.version,
                     commitSmartContract: undefined,
                     collectionConfigPath: undefined,
-                    endorsementPolicy: 'OR("Org1MSP.member")'
+                    endorsementPolicy: 'OR("Org1MSP.member")',
+                    selectedPeers: ['Org1Peer1', 'Org2Peer1']
                 }
             });
         });
@@ -404,6 +411,20 @@ describe('DeployPage component', () => {
             instance.handleEndorsementPolicyChange('OR("Org1MSP.member")');
 
             setStateStub.should.have.been.calledWithExactly({endorsementPolicy: 'OR("Org1MSP.member")'});
+        });
+    });
+
+    describe('handlePeerChange', () => {
+        it('should handle peer selection changes', () => {
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
+
+            instance.handlePeerChange(['Org1Peer1']);
+
+            setStateStub.should.have.been.calledWithExactly({selectedPeers: ['Org1Peer1']});
+
         });
     });
 

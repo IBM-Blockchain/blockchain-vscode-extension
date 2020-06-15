@@ -15,11 +15,11 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import {ReactView} from './ReactView';
-import {ExtensionUtil} from '../util/ExtensionUtil';
-import {Reporter} from '../util/Reporter';
-import {PackageRegistryEntry} from '../registries/PackageRegistryEntry';
-import {ExtensionCommands} from '../../ExtensionCommands';
+import { ReactView } from './ReactView';
+import { ExtensionUtil } from '../util/ExtensionUtil';
+import { Reporter } from '../util/Reporter';
+import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
+import { ExtensionCommands } from '../../ExtensionCommands';
 import {
     FabricEnvironmentRegistryEntry,
     FabricEnvironmentRegistry,
@@ -28,10 +28,10 @@ import {
     LogType,
     FabricCollectionDefinition
 } from 'ibm-blockchain-platform-common';
-import {FabricEnvironmentManager} from '../fabric/environments/FabricEnvironmentManager';
-import {VSCodeBlockchainOutputAdapter} from '../logging/VSCodeBlockchainOutputAdapter';
-import {PackageRegistry} from '../registries/PackageRegistry';
-import {UserInputUtil} from '../commands/UserInputUtil';
+import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
+import { PackageRegistry } from '../registries/PackageRegistry';
+import { UserInputUtil } from '../commands/UserInputUtil';
 
 export class DeployView extends ReactView {
     public static panel: vscode.WebviewPanel;
@@ -52,7 +52,7 @@ export class DeployView extends ReactView {
     }
 
     async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
-        Reporter.instance().sendTelemetryEvent('openedView', {openedView: panel.title}); // Report that a user has opened a new panel
+        Reporter.instance().sendTelemetryEvent('openedView', { openedView: panel.title }); // Report that a user has opened a new panel
 
         DeployView.panel = panel;
 
@@ -75,7 +75,9 @@ export class DeployView extends ReactView {
                 const commitSmartContract: boolean = message.data.commitSmartContract;
                 const endorsementPolicy: string = message.data.endorsementPolicy;
                 const collectionConfigPath: string = message.data.collectionConfigPath;
-                await this.deploy(channelName, environmentName, selectedPackage, definitionName, definitionVersion, commitSmartContract, endorsementPolicy, collectionConfigPath);
+                const selectedPeers: string[] = message.data.selectedPeers;
+
+                await this.deploy(channelName, environmentName, selectedPackage, definitionName, definitionVersion, commitSmartContract, endorsementPolicy, collectionConfigPath, selectedPeers);
             } else if (message.command === 'package') {
                 const workspaceName: string = message.data.workspaceName;
                 const entry: PackageRegistryEntry = await this.package(workspaceName);
@@ -98,7 +100,7 @@ export class DeployView extends ReactView {
         });
     }
 
-    async deploy(channelName: string, environmentName: string, selectedPackage: PackageRegistryEntry, definitionName: string, definitionVersion: string, commitSmartContract: boolean, endorsementPolicy: string, collectionConfigPath: string): Promise<void> {
+    async deploy(channelName: string, environmentName: string, selectedPackage: PackageRegistryEntry, definitionName: string, definitionVersion: string, commitSmartContract: boolean, endorsementPolicy: string, collectionConfigPath: string, selectedPeers: string[]): Promise<void> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         try {
@@ -126,27 +128,43 @@ export class DeployView extends ReactView {
                 throw new Error(`Unable to deploy, cannot connect to environment: ${environmentEntry.name}`);
             }
 
+            // All discovered orgs and peers.
+            const orgMap: Map<string, string[]> = await connection.getDiscoveredOrgs(channelName);
+
             const channelMap: Map<string, string[]> = await connection.createChannelMap();
 
+            // Environment's peers
             const channelPeers: string[] = channelMap.get(channelName);
 
-            const orgMap: Map<string, string[]> = new Map<string, string[]>();
-            const orgNames: string[] = connection.getAllOrganizationNames();
+            const installApproveMap: Map<string, string[]> = new Map();
+            const commitMap: Map<string, string[]> = new Map();
 
-            for (const orgName of orgNames) {
-                let peerNames: string[] = connection.getAllPeerNamesForOrg(orgName);
-                // ignore any orderer orgs
-                if (peerNames.length > 0) {
-                    // filter out any peers that are not part of the channel
-                    peerNames = peerNames.filter((peerName: string) => {
-                        return channelPeers.includes(peerName);
-                    });
+            // For all discovered org & peers
+            for (const [org, peers] of orgMap.entries()) {
+                for (const peer of peers) {
+                    // If the peer is in the environment
+                    if (channelPeers.includes(peer)) {
+                        if (!installApproveMap.has(org)) {
+                            installApproveMap.set(org, [peer]);
+                            commitMap.set(org, [peer]);
+                        } else {
+                            installApproveMap.get(org).push(peer);
+                            commitMap.get(org).push(peer);
+                        }
+                    } else {
+                        // If the peer isn't in the environment but it has been selected for committing, add it to the commit map only
+                        if (selectedPeers.includes(peer)) {
+                            if (!commitMap.has(org)) {
+                                commitMap.set(org, [peer]);
+                            } else {
+                                commitMap.get(org).push(peer);
+                            }
+                        }
 
-                    orgMap.set(orgName, peerNames);
+                    }
                 }
             }
 
-            // Does this get the orderer on the channel?
             const ordererNames: string[] = connection.getAllOrdererNames();
 
             const allCommittedContracts: FabricSmartContractDefinition[] = await connection.getCommittedSmartContractDefinitions(channelPeers, channelName);
@@ -192,7 +210,7 @@ export class DeployView extends ReactView {
                 commitSmartContract = true; // Commit by default
             }
 
-            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, commitSmartContract, environmentEntry, ordererNames[0], channelName, orgMap, selectedPackage, new FabricSmartContractDefinition(definitionName, definitionVersion, sequenceNumber, undefined, endorsementPolicy, collectionFile));
+            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, commitSmartContract, environmentEntry, ordererNames[0], channelName, installApproveMap, selectedPackage, new FabricSmartContractDefinition(definitionName, definitionVersion, sequenceNumber, undefined, endorsementPolicy, collectionFile), commitMap);
         } catch (error) {
             outputAdapter.log(LogType.ERROR, error.message, error.toString());
         }

@@ -28,6 +28,10 @@ export interface IFabricEnvironmentConnection {
 
     disconnect(): void;
 
+    getDiscoveredOrgs(channelName: string): Promise<Map<string, string[]>>;
+
+    getAllDiscoveredPeerNames(channelName: string): Promise<Array<string>>;
+
     getAllPeerNames(): Array<string>;
 
     getAllPeerNamesForOrg(orgName: string): Array<string>;
