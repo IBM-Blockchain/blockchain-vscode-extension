@@ -717,7 +717,7 @@ describe('FabricEnvironmentConnection', () => {
             }]];
             installSmartContractStub.resolves(responseStub);
 
-            await connection.installSmartContract(packagePath, 'peer0.org1.example.com');
+            await connection.installSmartContract(packagePath, 'peer0.org1.example.com', 90000);
             installSmartContractStub.should.have.been.calledWith(
                 sinon.match((buffer: Buffer) => {
                     buffer.should.be.an.instanceOf(Buffer);
@@ -739,7 +739,7 @@ describe('FabricEnvironmentConnection', () => {
                     buffer.length.should.equal(413);
                     return true;
                 }),
-                90000
+                undefined
             );
         });
 
@@ -794,6 +794,23 @@ describe('FabricEnvironmentConnection', () => {
                 collectionConfig: [collectionconfig]
             });
         });
+
+        it('should approve a smart contract within a given timeout', async () => {
+            const collectionconfig: FabricCollectionDefinition = new FabricCollectionDefinition('myCollection', `OR('Org1MSP.member')`, 5, 4);
+            const approveSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'approveSmartContractDefinition');
+
+            await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId', `OR('Org1.member', 'Org2.member')`, [collectionconfig]), 5000);
+
+            approveSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', {
+                smartContractName: 'myContract',
+                smartContractVersion: '0.0.1',
+                packageId: 'myPackageId',
+                sequence: 1,
+                endorsementPolicy: `OR('Org1.member', 'Org2.member')`,
+                collectionConfig: [collectionconfig]
+            },
+            5000);
+        });
     });
 
     describe('commitSmartContractDefinition', () => {
@@ -839,6 +856,20 @@ describe('FabricEnvironmentConnection', () => {
                 endorsementPolicy: undefined,
                 collectionConfig: [collectionconfig]
             });
+        });
+
+        it('should commit a smart contract within a given timeout', async () => {
+            const commitSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'commitSmartContractDefinition');
+
+            await connection.commitSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1), 9000000);
+
+            commitSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', {
+                smartContractName: 'myContract',
+                smartContractVersion: '0.0.1',
+                sequence: 1,
+                endorsementPolicy: undefined,
+                collectionConfig: undefined
+            }, 9000000);
         });
     });
 
