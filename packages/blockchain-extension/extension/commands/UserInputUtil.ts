@@ -15,6 +15,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import * as homeDir from 'home-dir';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { PackageRegistry } from '../registries/PackageRegistry';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
@@ -50,6 +51,9 @@ export class UserInputUtil {
     static readonly NO: string = 'No';
     static readonly DEFAULT: string = 'Default';
     static readonly CUSTOM: string = 'Custom';
+    static readonly REPLACE: string = 'Replace';
+    static readonly OPEN_SETTINGS: string = 'Open Settings';
+    static readonly CANCEL: string = 'Cancel';
 
     static readonly DEFAULT_SC_EP: string = `${UserInputUtil.DEFAULT} (single endorser, any org)`;
 
@@ -1220,6 +1224,30 @@ export class UserInputUtil {
         const hiddenNodes: IBlockchainQuickPickItem<FabricNode>[] = items.filter((item: IBlockchainQuickPickItem<FabricNode>) => !item.picked && (!item.description || item.description !== '(new)')).sort(alphabeticalSortFn);
 
         return newNodes.concat(hiddenNodes, pickedNodes);
+    }
+
+    public static async openUserSettings(): Promise<void> {
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+        let settingsPath: string;
+        try {
+            // Get the 'user settings' file path
+            if (process.platform === 'win32') {
+                // Windows
+                settingsPath = path.join(process.env.APPDATA, 'Code', 'User', 'settings.json');
+            } else if (process.platform === 'darwin') {
+                // Mac
+                settingsPath = path.join(homeDir(), 'Library', 'Application Support', 'Code', 'User', 'settings.json');
+            } else {
+                // Linux
+                settingsPath = path.join(homeDir(), '.config', 'Code', 'User', 'settings.json');
+            }
+            // Open the user settings (but don't display yet)
+            const document: vscode.TextDocument = await vscode.workspace.openTextDocument(vscode.Uri.file(settingsPath));
+            // Show the user settings
+            await vscode.window.showTextDocument(document);
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Unable to open user settings: ${error.message}`, `Unable to open user settings: ${error.toString()}`);
+        }
     }
 
     private static async checkForUnsavedFiles(): Promise<void> {

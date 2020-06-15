@@ -28,6 +28,7 @@ export class SettingConfigurations {
     static readonly EXTENSION_BYPASS_PREREQS: string = 'ibm-blockchain-platform.ext.bypassPreReqs';
     static readonly EXTENSION_LOCAL_FABRIC: string = 'ibm-blockchain-platform.ext.enableLocalFabric';
     static readonly EXTENSION_SAAS_CONFIG_UPDATES: string = 'ibm-blockchain-platform.ext.PollForConfigUpdatesWhenConnectedToIBM BlockchainPlatformOnIBM CloudEnvironments';
+    static readonly EXTENSION_PACKAGE_OVERWRITE_WARNING: string = 'ibm-blockchain-platform.ext.showWarningOnPackageOverwrite';
 
     // HOME CONFIGURATIONS
     static readonly HOME_SHOW_ON_STARTUP: string = 'ibm-blockchain-platform.home.showOnStartup';

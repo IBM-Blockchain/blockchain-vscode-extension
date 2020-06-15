@@ -47,6 +47,7 @@ describe('importSmartContractPackageCommand', () => {
     let commandSpy: sinon.SinonSpy;
     let sendTelemetryEventStub: sinon.SinonStub;
     let readdirStub: sinon.SinonStub;
+    let warnOverwriteStub: sinon.SinonStub;
 
     let srcPackage: string = path.join('myPath', 'test.tar.gz');
 
@@ -62,6 +63,7 @@ describe('importSmartContractPackageCommand', () => {
         commandSpy = sandbox.spy(vscode.commands, 'executeCommand');
         sendTelemetryEventStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
         readdirStub = sandbox.stub(fs, 'readdir').resolves(packagesList);
+        warnOverwriteStub = sandbox.stub(vscode.window, 'showWarningMessage');
     });
 
     afterEach(async () => {
@@ -99,17 +101,67 @@ describe('importSmartContractPackageCommand', () => {
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('importSmartContractPackageCommand');
     });
 
-    it('should handle duplicate packages', async () => {
-        packagesList.push('test.tgz');
+    it('should allow user to overwrite duplicate packages', async () => {
+        srcPackage = path.join('myPath', 'test.tar.gz');
+        warnOverwriteStub.resolves({ title: UserInputUtil.REPLACE });
+        packagesList.push('test.tar.gz');
         readdirStub.resolves(packagesList);
 
-        const error: Error = new Error(`Package with name test already exists`);
+        await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
+
+        const endPackage: string = path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages', 'test.tar.gz');
+        readdirStub.should.have.been.calledWith(path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages'));
+        warnOverwriteStub.should.have.been.calledOnce;
+        copyStub.should.have.been.calledWith(srcPackage, endPackage);
+        logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
+        logSpy.secondCall.should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported smart contract package', 'Successfully imported smart contract package test.tar.gz');
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('importSmartContractPackageCommand');
+    });
+
+    it('should allow user to open settings when asked if they want to overwrite duplicate package', async () => {
+        srcPackage = path.join('myPath', 'test.tar.gz');
+        warnOverwriteStub.resolves({ title: UserInputUtil.OPEN_SETTINGS});
+        packagesList.push('test.tar.gz');
+        readdirStub.resolves(packagesList);
+
+        const settingsOpenedSpy: sinon.SinonSpy = sandbox.spy(vscode.window, 'showTextDocument');
         await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
 
         readdirStub.should.have.been.calledWith(path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages'));
+        warnOverwriteStub.should.have.been.calledOnce;
         copyStub.should.not.have.been.called;
         logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
-        logSpy.secondCall.should.have.been.calledWith(LogType.ERROR, `Failed to import smart contract package: ${error.message}`, `Failed to import smart contract package: ${error.toString()}`);
+        settingsOpenedSpy.should.have.been.calledOnce;
+        sendTelemetryEventStub.should.not.have.been.called;
+    });
+
+    it('should handle user not wanting to overwrite duplicate package', async () => {
+        srcPackage = path.join('myPath', 'test.tar.gz');
+        warnOverwriteStub.resolves({ title: UserInputUtil.CANCEL });
+        packagesList.push('test.tar.gz');
+        readdirStub.resolves(packagesList);
+
+        await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
+
+        readdirStub.should.have.been.calledWith(path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages'));
+        warnOverwriteStub.should.have.been.calledOnce;
+        copyStub.should.not.have.been.called;
+        logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
+        sendTelemetryEventStub.should.not.have.been.called;
+    });
+
+    it('should handle cancel overwriting duplicate package', async () => {
+        srcPackage = path.join('myPath', 'test.tar.gz');
+        warnOverwriteStub.resolves(undefined);
+        packagesList.push('test.tar.gz');
+        readdirStub.resolves(packagesList);
+
+        await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
+
+        readdirStub.should.have.been.calledWith(path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages'));
+        warnOverwriteStub.should.have.been.calledOnce;
+        copyStub.should.not.have.been.called;
+        logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
         sendTelemetryEventStub.should.not.have.been.called;
     });
 

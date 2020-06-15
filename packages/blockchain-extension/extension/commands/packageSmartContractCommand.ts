@@ -104,13 +104,19 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
             // Determine the filename of the new package.
             const pkgFile: string = path.join(resolvedPkgDir, `${properties.workspacePackageName}@${properties.workspacePackageVersion}.tar.gz`);
             const pkgFileExists: boolean = await fs.pathExists(pkgFile);
-            if (pkgFileExists) {
-                if (language === 'golang') {
-                    throw new Error('Package with name and version already exists. Please input a different name or version for your Go project.');
-                } else if (language === 'java') {
-                    throw new Error('Package with name and version already exists. Please input a different name or version for your Java project.');
+
+            const bypassOverwriteWarning: boolean = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_PACKAGE_OVERWRITE_WARNING);
+            if (pkgFileExists && bypassOverwriteWarning) {
+                const warnOverwrite: vscode.MessageItem = await vscode.window.showWarningMessage(`${properties.workspacePackageName}@${properties.workspacePackageVersion}.tar.gz already exists. Would you like to replace the existing package? (You can set 'ibm-blockchain-platform.ext.showWarningOnPackageOverwrite: false' to make this the default).`, { title: UserInputUtil.OPEN_SETTINGS }, { title: UserInputUtil.CANCEL }, { title: UserInputUtil.REPLACE });
+                if (warnOverwrite) {
+                    if (warnOverwrite.title === UserInputUtil.OPEN_SETTINGS) {
+                        await UserInputUtil.openUserSettings();
+                        return;
+                    } else if (warnOverwrite.title === UserInputUtil.CANCEL) {
+                        return;
+                    }
                 } else {
-                    throw new Error('Package with name and version already exists. Please change the name and/or the version of the project in your package.json file.');
+                    return;
                 }
             }
 
@@ -162,7 +168,12 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
             Reporter.instance().sendTelemetryEvent('packageCommand');
 
             await vscode.commands.executeCommand(ExtensionCommands.REFRESH_PACKAGES);
-            outputAdapter.log(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+
+            if (pkgFileExists) {
+                outputAdapter.log(LogType.SUCCESS, `${pkgFile} over-written successfully`);
+            } else {
+                outputAdapter.log(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            }
 
             outputAdapter.log(LogType.INFO, undefined, `${fileNames.length} file(s) packaged:`);
             for (const file of fileNames) {

@@ -64,6 +64,14 @@ describe('UserInputUtil', () => {
 
     const env: NodeJS.ProcessEnv = Object.assign({}, process.env);
 
+    const mockDocument: any = {
+        getText: (): any => {
+            return `{
+                someSettingsHere
+            }`;
+        }
+    };
+
     before(async () => {
         await TestUtil.setupTests(mySandBox) ;
         mySandBox.restore();
@@ -3129,6 +3137,63 @@ describe('UserInputUtil', () => {
         it('should sort nodes with 1: new, 2: hidden, 3: picked', async () => {
             const result: IBlockchainQuickPickItem<FabricNode>[] = UserInputUtil.sortNodesForQuickpick(nodes);
             result.should.deep.equal(expectedSortedNodes);
+        });
+    });
+
+    describe('openUserSettings', () => {
+        let osStub: sinon.SinonStub;
+        let showTextDocStub: sinon.SinonStub;
+
+        beforeEach(() => {
+            osStub = mySandBox.stub(process, 'platform');
+            showTextDocStub = mySandBox.stub(vscode.window, 'showTextDocument');
+        });
+
+        it('should open user settings on a windows machine when called', async () => {
+            osStub.value('win32');
+            mySandBox.stub(path, 'join').returns('\\c\\users\\test\\appdata\\Code\\User\\settings.json');
+            const openTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocument);
+            showTextDocStub.resolves();
+
+            await UserInputUtil.openUserSettings();
+
+            openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('\\c\\users\\test\\appdata\\Code\\User\\settings.json'));
+            showTextDocStub.should.have.been.calledOnceWithExactly(mockDocument);
+        });
+
+        it('should open user settings on a mac machine when called', async () => {
+            osStub.value('darwin');
+            mySandBox.stub(path, 'join').returns('/users/test/Library/Application Support/Code/User/settings.json');
+            const openTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocument);
+            showTextDocStub.resolves();
+
+            await UserInputUtil.openUserSettings();
+
+            openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/Library/Application Support/Code/User/settings.json'));
+            showTextDocStub.should.have.been.calledOnceWithExactly(mockDocument);
+        });
+
+        it('should open user settings on a linux machine when called', async () => {
+            osStub.value('linux');
+            mySandBox.stub(path, 'join').returns('/users/test/.config/Code/User/settings.json');
+            const openTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocument);
+            showTextDocStub.resolves();
+
+            await UserInputUtil.openUserSettings();
+
+            openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/.config/Code/User/settings.json'));
+            showTextDocStub.should.have.been.calledOnceWithExactly(mockDocument);
+        });
+
+        it('should handle if error thrown when opening settings page', async () => {
+            osStub.value('randomOS');
+            mySandBox.stub(path, 'join').returns('/users/test/Library/Application Support/Code/User/settings.json');
+            const error: Error = new Error('someError');
+            mySandBox.stub(vscode.workspace, 'openTextDocument').rejects(error);
+
+            await UserInputUtil.openUserSettings();
+
+            logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Unable to open user settings: ${error.message}`, `Unable to open user settings: ${error.toString()}`);
         });
     });
 });

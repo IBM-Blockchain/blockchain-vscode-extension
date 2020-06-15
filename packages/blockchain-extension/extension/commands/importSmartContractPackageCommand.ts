@@ -74,8 +74,20 @@ export async function importSmartContractPackageCommand(): Promise<void> {
             return newName === existingName[1];
         });
 
-        if (existingPackages.length > 0) {
-            throw new Error(`Package with name ${newName} already exists`);
+        const bypassOverwriteWarning: boolean = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_PACKAGE_OVERWRITE_WARNING);
+        if (existingPackages.length > 0 && bypassOverwriteWarning) {
+
+            const warnOverwrite: vscode.MessageItem = await vscode.window.showWarningMessage(`${newName} already exists. Would you like to replace the existing package? (You can set 'ibm-blockchain-platform.ext.showWarningOnPackageOverwrite: false' to make this the default).`, { title: UserInputUtil.OPEN_SETTINGS }, { title: UserInputUtil.CANCEL }, { title: UserInputUtil.REPLACE });
+            if (warnOverwrite) {
+                if (warnOverwrite.title === UserInputUtil.OPEN_SETTINGS) {
+                    await UserInputUtil.openUserSettings();
+                    return;
+                } else if (warnOverwrite.title === UserInputUtil.CANCEL) {
+                    return;
+                }
+            } else {
+                return;
+            }
         }
 
         await fs.copy(packagePath, resolvedPkgPath);

@@ -150,6 +150,7 @@ describe('packageSmartContract', () => {
     let buildTasks: vscode.Task[];
     let executeTaskStub: sinon.SinonStub;
     let sendTelemetryEventStub: sinon.SinonStub;
+    let warnOverwriteStub: sinon.SinonStub;
 
     beforeEach(async () => {
         DeployView.panel = undefined;
@@ -169,6 +170,7 @@ describe('packageSmartContract', () => {
         showWorkspaceQuickPickStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
         workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders');
         sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+        warnOverwriteStub = mySandBox.stub(vscode.window, 'showWarningMessage');
 
         findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([]);
 
@@ -809,7 +811,9 @@ describe('packageSmartContract', () => {
             logSpy.should.have.been.calledTwice;
         });
 
-        it('should throw an error if the JavaScript project already exists', async () => {
+        it('should allow the user to replace the existing smart contract package', async () => {
+            warnOverwriteStub.resolves({ title: UserInputUtil.REPLACE });
+
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
 
             const testIndex: number = 0;
@@ -822,8 +826,6 @@ describe('packageSmartContract', () => {
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.{js,ts,go,java,kt}'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.js')]);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-
-            const error: Error = new Error('Package with name and version already exists. Please change the name and/or the version of the project in your package.json file.');
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
@@ -833,71 +835,105 @@ describe('packageSmartContract', () => {
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
             logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
             logSpy.getCall(6).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(7).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
-            logSpy.callCount.should.equal(8);
+            logSpy.getCall(7).should.have.been.calledWith(LogType.SUCCESS, `${path.join(extDir, 'v2', 'packages', 'javascriptProject@0.0.1.tar.gz')} over-written successfully`);
+            logSpy.getCall(8).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(9).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(10).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(11).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.callCount.should.equal(12);
+
+            executeTaskStub.should.have.not.been.called;
+            warnOverwriteStub.should.have.been.calledOnce;
         });
 
-        it('should throw an error as the Go project already exists', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+        it('should allow user to open settings.json when given option to replace the existing smart contract', async () => {
+            warnOverwriteStub.resolves({ title: UserInputUtil.OPEN_SETTINGS });
 
-            const testIndex: number = 2;
+            const settingsOpenedSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showTextDocument');
+
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+
+            const testIndex: number = 0;
             workspaceFoldersStub.returns(folders);
             showWorkspaceQuickPickStub.resolves({
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
 
-            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
-
-            showInputStub.onFirstCall().resolves('myProject');
-            showInputStub.onSecondCall().resolves('0.0.3');
-            showInputStub.onThirdCall().resolves('myProject');
-            showInputStub.onCall(3).resolves('0.0.3');
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.{js,ts,go,java,kt}'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.js')]);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-
-            const error: Error = new Error('Package with name and version already exists. Please input a different name or version for your Go project.');
-
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'v2', 'packages', 'myProject@0.0.3.tar.gz')}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
-            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(6).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
-            logSpy.callCount.should.equal(7);
-        });
-
-        it('should throw an error as the Java project already exists', async () => {
-            await createTestFiles('javaProject', '0.0.1', 'java-gradle', true, false);
-
-            const testIndex: number = 3;
-            workspaceFoldersStub.returns(folders);
-            showWorkspaceQuickPickStub.resolves({
-                label: folders[testIndex].name,
-                data: folders[testIndex]
-            });
-
-            showInputStub.onFirstCall().resolves('myProject');
-            showInputStub.onSecondCall().resolves('0.0.3');
-            showInputStub.onThirdCall().resolves('myProject');
-            showInputStub.onCall(3).resolves('0.0.3');
-
-            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-
-            const error: Error = new Error('Package with name and version already exists. Please input a different name or version for your Java project.');
-
-            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'v2', 'packages', 'myProject@0.0.3.tar.gz')}`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'v2', 'packages', 'javascriptProject@0.0.1.tar.gz')}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
-            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
             logSpy.getCall(6).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(7).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
-            logSpy.callCount.should.equal(8);
+            logSpy.callCount.should.equal(7);
+
+            warnOverwriteStub.should.have.been.calledOnce;
+            settingsOpenedSpy.should.have.been.calledOnce;
+        });
+
+        it('should allow the user to disallow replacing the existing smart contract package', async () => {
+            warnOverwriteStub.resolves({ title: UserInputUtil.CANCEL });
+
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+
+            const testIndex: number = 0;
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.{js,ts,go,java,kt}'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.js')]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'v2', 'packages', 'javascriptProject@0.0.1.tar.gz')}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.getCall(6).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.callCount.should.equal(7);
+
+            warnOverwriteStub.should.have.been.calledOnce;
+        });
+
+        it('should handle user cancelling warning message when the package already exists', async () => {
+            warnOverwriteStub.resolves(undefined);
+
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+
+            const testIndex: number = 0;
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.{js,ts,go,java,kt}'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.js')]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'v2', 'packages', 'javascriptProject@0.0.1.tar.gz')}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.getCall(6).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.callCount.should.equal(7);
+
+            warnOverwriteStub.should.have.been.calledOnce;
         });
 
         it('should throw an error if project not child of src dir', async () => {
