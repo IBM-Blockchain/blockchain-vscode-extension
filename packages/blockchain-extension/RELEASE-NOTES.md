@@ -1,7 +1,5 @@
-# IBM Blockchain Platform Extension updated to v2.0.0-beta.0
-_Release date: June 4th 2020_
-
-## 2.0.0-beta.1: June 4th 2020
+# IBM Blockchain Platform Extension updated to v2.0.0-beta.2
+_Release date: June 18th 2020_
 
 Announcements
 ---
@@ -13,16 +11,28 @@ Announcements
 * We’re still waiting for the gRPC v1.25.0 binaries to be published so you may be affected by [this issue](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621), where gRPC fails to rebuild when using VS Code >1.40.x.
  > Please see [this comment](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621#issuecomment-552926559) for a workaround. 
 
-Features
+Features & Enhancements
 ---
-* Package an open workspace from the deploy view [#1918](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1918).
+* Deploy with endorsement policy [#1920](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1920).
 
-* Deploy with a private data collection [#1921](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1921).
+* Can now target peers to use for commit, during deploy [#2229](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2229).
+
+* Can now clone and open v2 code samples [#1256](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1256).
+
+* Can now create, package and deploy Go contracts (using new contract API) [#2361](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2361), [#1653](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1653).
+
+* Change deploy timeout value using `ibm-blockchain-platform.fabric.client.timeout` user setting [#2258](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2258).
+
+Fixes
+---
+* Fixed chaincode logs not appearing in logs [#2447](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pulls/2447).
+
+* Fixed packaging contracts on VS Code 1.44.2 [#2243](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2243).
+
+* Replaced Java 'org.json.JSONObject' non-deterministic package [#2287](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2287).
 
 Notes
 ---
-* It is not yet possible to deploy with an endorsement policy.
 * Connecting to IBM Blockchain Platform environments will not work yet as they are still using Fabric 1.4.
-* Selecting which peers to endorse a commit with is not yet implemented, currently it will use all the peers that are listed in the environment you are deploying from.
-* Go smart contracts may not deploy correctly
 * If you already have v1.4 local environment's running, you'll need to tear them down and start them again to use them as v2 local environments.
+* Debug doesn't work at moment
