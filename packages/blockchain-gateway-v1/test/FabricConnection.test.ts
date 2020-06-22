@@ -22,7 +22,7 @@ import { Gateway, Wallet } from 'fabric-network';
 import { OutputAdapter, LogType } from 'ibm-blockchain-platform-common';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import * as path from 'path';
-import { Client, Channel } from 'fabric-network/node_modules/fabric-common';
+import { Client, Channel } from 'fabric-common';
 import { LifecyclePeer, LifecycleChannel } from 'ibm-blockchain-platform-fabric-admin';
 
 chai.should();
@@ -61,7 +61,7 @@ describe('FabricConnection', () => {
         }
 
         async connect(wallet: FabricWallet, identityName: string, requestTimeout: number): Promise<void> {
-            this['gateway'] = fabricGatewayStub;
+            this['gateway'] = fabricGatewayStub as unknown as Gateway;
 
             await this.connectInner(this.connectionProfile, wallet.getWallet(), identityName, requestTimeout);
         }
@@ -145,7 +145,7 @@ describe('FabricConnection', () => {
         fabricCAStub.register.resolves('its a secret');
         fabricGatewayStub['client'] = fabricClientStub;
         fabricGatewayStub.connect.resolves();
-        fabricGatewayStub.getOptions.returns({wallet: mockWallet, identity: mockIdentityName});
+        fabricGatewayStub.getOptions.returns({ wallet: mockWallet, identity: mockIdentityName });
 
         fabricChannelStub = mySandBox.createStubInstance(Channel);
 
@@ -156,7 +156,7 @@ describe('FabricConnection', () => {
         fabricGatewayStub.getNetwork.returns(fabricNetworkStub);
         fabricGatewayStub.disconnect.returns(null);
 
-        fabricConnection['gateway'] = fabricGatewayStub;
+        fabricConnection['gateway'] = fabricGatewayStub as unknown as Gateway;
         fabricConnection['outputAdapter'] = TestOutputAdapter.instance();
 
         await fabricConnection.connect(fabricWallet, mockIdentityName, 120);
@@ -448,7 +448,7 @@ describe('FabricConnection', () => {
             getAllChannelsForPeerStub.withArgs('peerOne').returns(['channel1']);
             getAllChannelsForPeerStub.withArgs('peerTwo').returns(['channel2']);
 
-            mySandBox.stub(LifecycleChannel.prototype, 'getAllCommittedSmartContracts').resolves([{smartContractName: 'biscuit-network', smartContractVersion: '0.7', sequence: 2}, {smartContractName: 'cake-network', smartContractVersion: '0.8', sequence: 3}]);
+            mySandBox.stub(LifecycleChannel.prototype, 'getAllCommittedSmartContracts').resolves([{ smartContractName: 'biscuit-network', smartContractVersion: '0.7', sequence: 2 }, { smartContractName: 'cake-network', smartContractVersion: '0.8', sequence: 3 }]);
 
             await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
             const instantiatedChaincodes: Array<any> = await fabricConnection.getInstantiatedChaincode('channel1');
