@@ -168,7 +168,7 @@ Array [
                         tabIndex={0}
                         title="Clear all selected items"
                       >
-                        2
+                        1
                         <svg
                           aria-hidden={true}
                           focusable="false"
@@ -253,20 +253,24 @@ Array [
                     <tbody
                       aria-live="polite"
                     >
-                      <tr>
+                      <tr
+                        id="Org1MSP-row"
+                      >
                         <td>
-                          Hardcoded
+                          Org1MSP
                         </td>
                         <td>
-                          Value
+                          Approved
                         </td>
                       </tr>
-                      <tr>
+                      <tr
+                        id="Org2MSP-row"
+                      >
                         <td>
-                          Needs to be
+                          Org2MSP
                         </td>
                         <td>
-                          Changed
+                          Not approved
                         </td>
                       </tr>
                     </tbody>

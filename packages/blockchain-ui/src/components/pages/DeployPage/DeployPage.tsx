@@ -9,7 +9,7 @@ import DeployStepTwo from '../../elements/DeploySteps/DeployStepTwo/DeployStepTw
 import DeployStepThree from '../../elements/DeploySteps/DeployStepThree/DeployStepThree';
 import Utils from '../../../Utils';
 interface IProps {
-    deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, definitionNames: string[], discoveredPeers: string[]};
+    deployData: { channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, committedDefinitions: string[], environmentPeers: string[], discoveredPeers: string[], orgMap: any, orgApprovals: any };
 }
 
 interface DeployState {
@@ -28,12 +28,17 @@ interface DeployState {
     deletedSelectedPackage: boolean;
     currentCollectionFile: File | undefined;
     endorsementPolicy: string | undefined;
+    orgApprovals: any;
+    environmentPeers: string[];
+    discoveredPeers: string[];
+    orgMap: any;
 }
 
 class DeployPage extends Component<IProps, DeployState> {
 
     constructor(props: Readonly<IProps>) {
         super(props);
+
         this.state = {
             progressIndex: 0,
             environmentName: this.props.deployData.environmentName,
@@ -48,6 +53,10 @@ class DeployPage extends Component<IProps, DeployState> {
             nameInvalid: false,
             versionInvalid: false,
             endorsementPolicy: undefined,
+            orgApprovals: {},
+            orgMap: this.props.deployData.orgMap,
+            environmentPeers: this.props.deployData.environmentPeers,
+            discoveredPeers: this.props.deployData.discoveredPeers,
             commitSmartContract: undefined, // If undefined, we'll assume the user wants to commit (but they haven't specified)
             deletedSelectedPackage: false // Has the user deleted the package they've selected whilst on step two or three?
         };
@@ -62,10 +71,11 @@ class DeployPage extends Component<IProps, DeployState> {
         this.handleCollectionChange = this.handleCollectionChange.bind(this);
         this.handleEndorsementPolicyChange = this.handleEndorsementPolicyChange.bind(this);
         this.handlePeerChange = this.handlePeerChange.bind(this);
+        this.handleGetOrgApprovals = this.handleGetOrgApprovals.bind(this);
     }
 
     handleProgressChange(indexValue: number): void {
-        const newState: any = {progressIndex: indexValue};
+        const newState: any = { progressIndex: indexValue };
 
         if (newState.progressIndex === 0 && this.state.selectedPackage) {
             newState.disableNext = false;
@@ -76,18 +86,18 @@ class DeployPage extends Component<IProps, DeployState> {
 
     handlePackageChange(selectedPackage: IPackageRegistryEntry | undefined, workspaceName?: string): void {
         if (!selectedPackage && workspaceName) {
-             // Selected a workspace name
-             this.setState({selectedPackage: undefined, disableNext: true, selectedWorkspace: workspaceName, deletedSelectedPackage: false});
+            // Selected a workspace name
+            this.setState({ selectedPackage: undefined, disableNext: true, selectedWorkspace: workspaceName, deletedSelectedPackage: false });
         } else if (selectedPackage && !workspaceName) {
             // Selected a package
 
             // If the user selects a package without a version, default to using '0.0.1'
             const newVersion: string = selectedPackage.version ? selectedPackage.version : '0.0.1';
 
-            this.setState({selectedPackage, selectedWorkspace: undefined, definitionName: selectedPackage.name, definitionVersion: newVersion, disableNext: false, deletedSelectedPackage: false }); // Reset definition name and version back to default.
+            this.setState({ selectedPackage, selectedWorkspace: undefined, definitionName: selectedPackage.name, definitionVersion: newVersion, disableNext: false, deletedSelectedPackage: false }); // Reset definition name and version back to default.
         } else {
             // User probably deleted the selected package or workspace.
-            this.setState({selectedPackage: undefined, selectedWorkspace: undefined, disableNext: true});
+            this.setState({ selectedPackage: undefined, selectedWorkspace: undefined, disableNext: true });
 
         }
     }
@@ -99,7 +109,7 @@ class DeployPage extends Component<IProps, DeployState> {
         }
 
         // Disable Next button if name is undefined
-        this.setState({definitionName, disableNext, nameInvalid});
+        this.setState({ definitionName, disableNext, nameInvalid });
     }
     handleDefinitionVersionChange(definitionVersion: string, versionInvalid: boolean): void {
         let disableNext: boolean = false;
@@ -108,18 +118,33 @@ class DeployPage extends Component<IProps, DeployState> {
         }
 
         // Disable Next button if version is undefined
-        this.setState({definitionVersion, disableNext, versionInvalid});
+        this.setState({ definitionVersion, disableNext, versionInvalid });
     }
 
     handleCommitChange(value: boolean): void {
-        this.setState({commitSmartContract: value});
+        this.setState({ commitSmartContract: value });
     }
 
     handlePackageWorkspace(workspaceName: string): void {
+
         Utils.postToVSCode({
             command: 'package',
             data: {
                 workspaceName
+            }
+        });
+    }
+
+    handleGetOrgApprovals(): void {
+        Utils.postToVSCode({
+            command: 'getOrgApprovals',
+            data: {
+                environmentName: this.state.environmentName,
+                channelName: this.state.channelName,
+                definitionName: this.state.definitionName,
+                definitionVersion: this.state.definitionVersion,
+                collectionConfigPath: this.state.currentCollectionFile ? this.state.currentCollectionFile.path : undefined,
+                endorsementPolicy: this.state.endorsementPolicy
             }
         });
     }
@@ -142,15 +167,15 @@ class DeployPage extends Component<IProps, DeployState> {
     }
 
     handleCollectionChange(file: File): void {
-        this.setState({currentCollectionFile: file});
+        this.setState({ currentCollectionFile: file });
     }
 
     handleEndorsementPolicyChange(policy: string): void {
-        this.setState({endorsementPolicy: policy});
+        this.setState({ endorsementPolicy: policy });
     }
 
     handlePeerChange(peers: string[]): void {
-        this.setState({selectedPeers: peers});
+        this.setState({ selectedPeers: peers });
     }
 
     componentWillReceiveProps(props: any): void {
@@ -161,13 +186,17 @@ class DeployPage extends Component<IProps, DeployState> {
 
             if (!entry && this.state.progressIndex > 0) {
                 // If the user has deleted the package in Step Two or Three - go back to Step One and show warning.
-                this.setState({progressIndex: 0, selectedPackage: undefined, disableNext: true, deletedSelectedPackage: true});
+                this.setState({ progressIndex: 0, selectedPackage: undefined, disableNext: true, deletedSelectedPackage: true });
             }
         }
 
         if (props.deployData.selectedPackage) {
             // If a new selected package is passed
-            this.setState({selectedPackage: props.deployData.selectedPackage, definitionName: props.deployData.selectedPackage.name, definitionVersion: props.deployData.selectedPackage.version ? props.deployData.selectedPackage.version : '0.0.1',  disableNext: false});
+            this.setState({ selectedPackage: props.deployData.selectedPackage, definitionName: props.deployData.selectedPackage.name, definitionVersion: props.deployData.selectedPackage.version ? props.deployData.selectedPackage.version : '0.0.1', disableNext: false });
+        }
+
+        if (props.deployData.orgApprovals) {
+            this.setState({ orgApprovals: props.deployData.orgApprovals });
         }
 
     }
@@ -183,9 +212,9 @@ class DeployPage extends Component<IProps, DeployState> {
         if (currentIndex === 0) {
             currentStepComponent = <DeployStepOne packageEntries={this.props.deployData.packageEntries} selectedPackage={this.state.selectedPackage} workspaceNames={this.props.deployData.workspaceNames} selectedWorkspace={this.state.selectedWorkspace} deletedSelectedPackage={this.state.deletedSelectedPackage} onPackageChange={this.handlePackageChange} onPackageWorkspace={this.handlePackageWorkspace} />;
         } else if (currentIndex === 1) {
-            currentStepComponent = <DeployStepTwo definitionNames={this.props.deployData.definitionNames} currentCollectionFile={this.state.currentCollectionFile} endorsementPolicy={this.state.endorsementPolicy} onCollectionChange={this.handleCollectionChange} onEndorsementPolicyChange={this.handleEndorsementPolicyChange} selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} currentDefinitionName={this.state.definitionName} currentDefinitionVersion={this.state.definitionVersion} onDefinitionNameChange={this.handleDefinitionNameChange} onDefinitionVersionChange={this.handleDefinitionVersionChange}/>;
+            currentStepComponent = <DeployStepTwo committedDefinitions={this.props.deployData.committedDefinitions} currentCollectionFile={this.state.currentCollectionFile} endorsementPolicy={this.state.endorsementPolicy} onCollectionChange={this.handleCollectionChange} onEndorsementPolicyChange={this.handleEndorsementPolicyChange} selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} currentDefinitionName={this.state.definitionName} currentDefinitionVersion={this.state.definitionVersion} onDefinitionNameChange={this.handleDefinitionNameChange} onDefinitionVersionChange={this.handleDefinitionVersionChange} />;
         } else {
-            currentStepComponent = <DeployStepThree selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} channelName={this.state.channelName} commitSmartContract={this.state.commitSmartContract} selectedPeers={this.state.selectedPeers} discoveredPeers={this.props.deployData.discoveredPeers} onPeerChange={this.handlePeerChange} onCommitChange={this.handleCommitChange}/>;
+            currentStepComponent = <DeployStepThree environmentPeers={this.state.environmentPeers} discoveredPeers={this.state.discoveredPeers} orgMap={this.state.orgMap} orgApprovals={this.state.orgApprovals} selectedPackage={this.state.selectedPackage as IPackageRegistryEntry} channelName={this.state.channelName} commitSmartContract={this.state.commitSmartContract} selectedPeers={this.state.selectedPeers} onGetOrgApproval={this.handleGetOrgApprovals} onPeerChange={this.handlePeerChange} onCommitChange={this.handleCommitChange} />;
         }
 
         return (
@@ -198,12 +227,12 @@ class DeployPage extends Component<IProps, DeployState> {
                         />
                     </div>
                     <div className='bx--col-lg-4'>
-                        <ButtonList onDeployClicked={this.handleDeploy} onProgressChange={this.handleProgressChange} currentIndex={this.state.progressIndex} disableNext={this.state.disableNext}/>
+                        <ButtonList onDeployClicked={this.handleDeploy} onProgressChange={this.handleProgressChange} currentIndex={this.state.progressIndex} disableNext={this.state.disableNext} />
                     </div>
                     <div className='bx--col-lg-2'></div>
                 </div>
                 <div className='bx--row progress-row'>
-                    <DeployProgressBar currentIndex={this.state.progressIndex}/>
+                    <DeployProgressBar currentIndex={this.state.progressIndex} />
                 </div>
 
                 {currentStepComponent}

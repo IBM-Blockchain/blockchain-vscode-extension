@@ -86,6 +86,15 @@ export class DeployView extends ReactView {
                     await DeployView.updatePackages();
                 }
                 // Else workspace failed to package
+            } else if (message.command === 'getOrgApprovals') {
+                const environmentName: string = message.data.environmentName;
+                const channelName: string = message.data.channelName;
+                const definitionName: string = message.data.definitionName;
+                const definitionVersion: string = message.data.definitionVersion;
+                const endorsementPolicy: string = message.data.endorsementPolicy;
+                const collectionConfigPath: string = message.data.collectionConfigPath;
+
+                await this.getOrgApprovals(environmentName, channelName, definitionName, definitionVersion, endorsementPolicy, collectionConfigPath);
             }
         });
 
@@ -223,5 +232,88 @@ export class DeployView extends ReactView {
 
         const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspace);
         return packageEntry;
+    }
+
+    async getOrgApprovals(environmentName: string, channelName: string, definitionName: string, definitionVersion: string, endorsementPolicy: string, collectionConfigPath: string): Promise<void> {
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+
+        try {
+
+            const environmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
+
+            let connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
+            if (connection) {
+                // Check we're connected to the selected environment
+                const connectedName: string = connection.environmentName;
+                if (connectedName !== environmentEntry.name) {
+                    // If we're not connected to the selected environment we should disconnect, then connect to the correct environment.
+                    await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+                    await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentEntry);
+                    connection = FabricEnvironmentManager.instance().getConnection();
+                }
+            } else {
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentEntry);
+                connection = FabricEnvironmentManager.instance().getConnection();
+            }
+
+            if (!connection) {
+                // This can occur if the runtime isn't running, then gets started by the connect, but it fails.
+                throw new Error(`Unable to deploy, cannot connect to environment: ${environmentEntry.name}`);
+            }
+
+            const channelMap: Map<string, string[]> = await connection.createChannelMap();
+            const channelPeers: string[] = channelMap.get(channelName);
+
+            const allCommittedContracts: FabricSmartContractDefinition[] = await connection.getCommittedSmartContractDefinitions(channelPeers, channelName);
+
+            const committedContract: FabricSmartContractDefinition = allCommittedContracts.find((_contract: FabricSmartContractDefinition) => {
+                return _contract.name === definitionName;
+            });
+
+            let sequenceNumber: number;
+
+            if (!committedContract) {
+                // New contract
+                sequenceNumber = 1;
+            } else if (committedContract && committedContract.version !== definitionVersion) {
+                sequenceNumber = committedContract.sequence + 1;
+            } else {
+                sequenceNumber = committedContract.sequence; // This should throw an error in the view
+            }
+
+            const definition: FabricSmartContractDefinition = new FabricSmartContractDefinition(definitionName, definitionVersion, sequenceNumber);
+
+            if (collectionConfigPath) {
+                const collectionFile: FabricCollectionDefinition[] = await fs.readJSON(collectionConfigPath) as FabricCollectionDefinition[];
+                definition.collectionConfig = collectionFile;
+            }
+
+            if (endorsementPolicy) {
+                // Replace double quotes with single quotes
+                definition.endorsementPolicy = endorsementPolicy.replace(/"/g, "\'");
+            }
+
+            let orgApprovals: Map<string, boolean> = new Map();
+            try {
+                orgApprovals = await connection.getOrgApprovals(channelName, channelPeers[0], definition);
+            } catch (error) {
+                // Likely errored as the contract has been committed already.
+                // orgApprovals will remain an empty map and the view will handle the error message.
+            }
+
+            // Covert map to object, as React doesn't understand.
+            const orgObject: any = {};
+            orgApprovals.forEach((approval: boolean, org: string) => {
+                orgObject[org] = approval;
+            });
+
+            DeployView.appState.orgApprovals = orgObject;
+            DeployView.panel.webview.postMessage({
+                path: '/deploy',
+                deployData: DeployView.appState
+            });
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, error.message, error.toString());
+        }
     }
 }

@@ -10,8 +10,8 @@ import IPackageRegistryEntry from './interfaces/IPackageRegistryEntry';
 interface AppState {
     redirectPath: string;
     extensionVersion: string;
-    deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, definitionNames: string[], discoveredPeers: string[]};
-    tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string}>;
+    deployData: { channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, committedDefinitions: string[], environmentPeers: string[], discoveredPeers: string[], orgMap: any, orgApprovals: any };
+    tutorialData: Array<{ name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string }>;
 }
 
 class App extends Component<{}, AppState> {
@@ -21,7 +21,7 @@ class App extends Component<{}, AppState> {
             redirectPath: '',
             extensionVersion: '',
             tutorialData: [],
-            deployData: {channelName: '', environmentName: '', packageEntries: [], workspaceNames: [], selectedPackage: undefined, definitionNames: [], discoveredPeers: []}
+            deployData: { channelName: '', environmentName: '', packageEntries: [], workspaceNames: [], selectedPackage: undefined, committedDefinitions: [], environmentPeers: [], discoveredPeers: [], orgMap: {}, orgApprovals: {} }
         };
     }
 
@@ -59,15 +59,15 @@ class App extends Component<{}, AppState> {
                 <Router>
                     <div id='app-container'>
                         <div className={appClass}>
-                            <Route render={(): JSX.Element => <Redirect push to={this.state.redirectPath}/>}></Route>
+                            <Route render={(): JSX.Element => <Redirect push to={this.state.redirectPath} />}></Route>
                             <Route exact path='/home' render={(): JSX.Element =>
-                                <HomePage extensionVersion={this.state.extensionVersion}/>}>
+                                <HomePage extensionVersion={this.state.extensionVersion} />}>
                             </Route>
                             <Route exact path='/tutorials' render={(): JSX.Element =>
-                                <TutorialPage tutorialData={this.state.tutorialData}/>}>
+                                <TutorialPage tutorialData={this.state.tutorialData} />}>
                             </Route>
                             <Route exact path='/deploy' render={(): JSX.Element =>
-                                <DeployPage deployData={this.state.deployData}/>}>
+                                <DeployPage deployData={this.state.deployData} />}>
                             </Route>
                         </div>
                     </div>

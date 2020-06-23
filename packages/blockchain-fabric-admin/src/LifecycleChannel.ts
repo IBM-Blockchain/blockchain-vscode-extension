@@ -39,12 +39,12 @@ import {
     Wallet
 } from 'fabric-network';
 import * as Long from 'long';
-import {LifecycleCommon} from './LifecycleCommon';
-import {Lifecycle} from './Lifecycle';
-import {LifecyclePeer} from './LifecyclePeer';
-import {EndorsementPolicy} from './Policy';
-import {Collection, CollectionConfig} from './CollectionConfig';
-import {URL} from 'url';
+import { LifecycleCommon } from './LifecycleCommon';
+import { Lifecycle } from './Lifecycle';
+import { LifecyclePeer } from './LifecyclePeer';
+import { EndorsementPolicy } from './Policy';
+import { Collection, CollectionConfig } from './CollectionConfig';
+import { URL } from 'url';
 
 const logger: any = Utils.getLogger('LifecycleChannel');
 
@@ -371,7 +371,7 @@ export class LifecycleChannel {
         const gatewayOptions: GatewayOptions = {
             wallet: this.wallet,
             identity: this.identity,
-            discovery: {enabled: false}
+            discovery: { enabled: false }
         };
 
         if (requestTimeout) {
@@ -418,7 +418,7 @@ export class LifecycleChannel {
         const gatewayOptions: GatewayOptions = {
             wallet: this.wallet,
             identity: this.identity,
-            discovery: {enabled: false}
+            discovery: { enabled: false }
         };
 
         if (requestTimeout) {
@@ -455,20 +455,22 @@ export class LifecycleChannel {
     }
 
     private filterDuplicateEndorsers(endorsers: Endorser[]): Endorser[] {
+        // TODO JAKE: THIS MIGHT NOT BE REQUIRED ANYMORE WHEN WE UPGRADE TO USE LATEST SDK, AS THERE WAS A PR TO FIX DUPLICATE ENDORSERS.
+
         for (let currentIndex: number = endorsers.length - 1; currentIndex >= 0; currentIndex--) {
             const endorser: Endorser = endorsers[currentIndex];
-            const duplicateIndex: number = endorsers.findIndex((_endorser: Endorser) => { return _endorser.endpoint['url'] === endorser.endpoint['url'] && endorser.name !== _endorser.name});
-            if (duplicateIndex === -1){
+            const duplicateIndex: number = endorsers.findIndex((_endorser: Endorser) => { return _endorser.endpoint['url'] === endorser.endpoint['url'] && endorser.name !== _endorser.name });
+            if (duplicateIndex === -1) {
                 continue;
-            } else{
+            } else {
                 const duplicateEndorser: Endorser = endorsers[duplicateIndex];
                 const duplicateEndorserIsUrl: boolean = duplicateEndorser.name.includes('.') || duplicateEndorser.name.includes(':');
                 const endorserIsUrl: boolean = endorser.name.includes('.') || endorser.name.includes(':');
 
                 let indexToRemove: number;
-                if (duplicateEndorserIsUrl && !endorserIsUrl){
+                if (duplicateEndorserIsUrl && !endorserIsUrl) {
                     indexToRemove = duplicateIndex;
-                } else if (!duplicateEndorserIsUrl && endorserIsUrl){
+                } else if (!duplicateEndorserIsUrl && endorserIsUrl) {
                     indexToRemove = currentIndex;
                 } else {
                     // Keep either one
@@ -518,7 +520,7 @@ export class LifecycleChannel {
         return allEndorsers;
     }
 
-    private async submitTransaction(peerNames: string[], ordererName: string, options: SmartContractDefinitionOptions, functionName: string, requestTimeout ?: number): Promise<void> {
+    private async submitTransaction(peerNames: string[], ordererName: string, options: SmartContractDefinitionOptions, functionName: string, requestTimeout?: number): Promise<void> {
         if (!peerNames || peerNames.length === 0
         ) {
             throw new Error('parameter peers was missing or empty array');
@@ -554,7 +556,7 @@ export class LifecycleChannel {
             const gatewayOptions: GatewayOptions = {
                 wallet: this.wallet,
                 identity: this.identity,
-                discovery: {enabled: false}
+                discovery: { enabled: false }
             };
 
             if (requestTimeout) {
@@ -713,7 +715,7 @@ export class LifecycleChannel {
             const gatewayOptions: GatewayOptions = {
                 wallet: this.wallet,
                 identity: this.identity,
-                discovery: {enabled: false}
+                discovery: { enabled: false }
             };
 
             logger.debug('%s - connect to the network');

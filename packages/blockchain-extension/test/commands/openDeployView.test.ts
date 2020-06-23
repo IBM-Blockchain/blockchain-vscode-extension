@@ -81,6 +81,10 @@ describe('OpenDeployView', () => {
             localEnvironmentConnectionMock.createChannelMap.resolves(map);
             localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.resolves(contractDefinitions);
             localEnvironmentConnectionMock.getAllDiscoveredPeerNames.resolves(['Org1Peer1', 'Org2Peer1']);
+            const orgMap: Map<string, string[]> = new Map();
+            orgMap.set('Org1MSP', ['Org1Peer1']);
+            orgMap.set('Org2MSP', ['Org2Peer1']);
+            localEnvironmentConnectionMock.getDiscoveredOrgs.resolves(orgMap);
             otherEnvironmentConnectionMock = mySandBox.createStubInstance(FabricEnvironmentConnection);
             otherEnvironmentConnectionMock.environmentName = 'otherEnvironment';
             otherEnvironmentConnectionMock.createChannelMap.resolves(map);
@@ -120,6 +124,7 @@ describe('OpenDeployView', () => {
             showChannelQuickPickBoxStub.should.not.have.been.called;
             openViewStub.should.not.have.been.called;
             localEnvironmentConnectionMock.getAllDiscoveredPeerNames.should.not.have.been.called;
+            localEnvironmentConnectionMock.getDiscoveredOrgs.should.not.have.been.called;
             logStub.should.not.have.been.called;
             getWorkspaceFoldersStub.should.not.have.been.called;
         });
@@ -140,6 +145,7 @@ describe('OpenDeployView', () => {
             showChannelQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select a channel');
             openViewStub.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllDiscoveredPeerNames.should.have.been.calledOnceWithExactly('mychannel');
+            localEnvironmentConnectionMock.getDiscoveredOrgs.should.have.been.calledOnceWithExactly('mychannel');
             logStub.should.not.have.been.called;
             getWorkspaceFoldersStub.should.have.been.calledOnce;
         });
@@ -158,6 +164,7 @@ describe('OpenDeployView', () => {
             showChannelQuickPickBoxStub.should.not.have.been.called;
             openViewStub.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllDiscoveredPeerNames.should.have.been.calledOnceWithExactly('mychannel');
+            localEnvironmentConnectionMock.getDiscoveredOrgs.should.have.been.calledOnceWithExactly('mychannel');
             logStub.should.not.have.been.called;
             getWorkspaceFoldersStub.should.have.been.calledOnce;
         });
@@ -177,6 +184,7 @@ describe('OpenDeployView', () => {
             showChannelQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select a channel');
             openViewStub.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllDiscoveredPeerNames.should.have.been.calledOnceWithExactly('mychannel');
+            localEnvironmentConnectionMock.getDiscoveredOrgs.should.have.been.calledOnceWithExactly('mychannel');
             logStub.should.not.have.been.called;
             getWorkspaceFoldersStub.should.have.been.calledOnce;
         });
@@ -198,6 +206,7 @@ describe('OpenDeployView', () => {
             showChannelQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select a channel');
             openViewStub.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllDiscoveredPeerNames.should.have.been.calledOnceWithExactly('mychannel');
+            localEnvironmentConnectionMock.getDiscoveredOrgs.should.have.been.calledOnceWithExactly('mychannel');
             logStub.should.not.have.been.called;
             getWorkspaceFoldersStub.should.have.been.calledOnce;
         });
@@ -217,6 +226,7 @@ describe('OpenDeployView', () => {
             showChannelQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select a channel');
             openViewStub.should.not.have.been.called;
             localEnvironmentConnectionMock.getAllDiscoveredPeerNames.should.not.have.been.called;
+            localEnvironmentConnectionMock.getDiscoveredOrgs.should.not.have.been.called;
             logStub.should.not.have.been.called;
             getWorkspaceFoldersStub.should.not.have.been.called;
         });
@@ -236,6 +246,7 @@ describe('OpenDeployView', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEnvironmentRegistryEntry);
             openViewStub.should.not.have.been.calledOnce;
             localEnvironmentConnectionMock.getAllDiscoveredPeerNames.should.not.have.been.called;
+            localEnvironmentConnectionMock.getDiscoveredOrgs.should.not.have.been.called;
             showChannelQuickPickBoxStub.should.not.have.been.called;
             getWorkspaceFoldersStub.should.not.have.been.called;
             const error: Error = new Error(`Unable to connect to environment: ${FabricRuntimeUtil.LOCAL_FABRIC}`);

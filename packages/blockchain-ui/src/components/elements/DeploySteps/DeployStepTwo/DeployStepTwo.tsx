@@ -11,7 +11,7 @@ interface IProps {
     currentDefinitionName: string;
     currentDefinitionVersion: string;
     currentCollectionFile: File | undefined;
-    definitionNames: string[];
+    committedDefinitions: string[];
     endorsementPolicy: string | undefined;
 }
 
@@ -49,8 +49,8 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
     }
 
     componentWillReceiveProps(props: any): void {
-        if (props.currentDefinitionName !== this.state.definitionNameValue) {
-            this.setState({definitionNameValue: props.currentDefinitionName});
+        if (props.currentDefinitionName !== this.state.definitionNameValue || props.currentDefinitionVersion !== this.state.definitionVersionValue) {
+            this.setState({ definitionNameValue: props.currentDefinitionName, definitionVersionValue: props.currentDefinitionVersion });
         }
     }
 
@@ -114,23 +114,40 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
 
         let contractExists: JSX.Element | undefined;
 
-        if (this.props.definitionNames.indexOf(this.state.definitionNameValue) > -1 ) {
+        if (this.props.committedDefinitions.indexOf(`${this.state.definitionNameValue}@${this.state.definitionVersionValue}`) > -1) {
             contractExists = (
                 <div className='bx--row margin-bottom-05'>
                     <div className='bx--col-lg-10'>
                         <InlineNotification
-                                hideCloseButton={true}
-                                kind='info'
-                                lowContrast={true}
-                                notificationType='inline'
-                                role='alert'
-                                statusIconDescription='describes the status icon'
-                                subtitle={<p>We recommend changing the definition version to update the existing smart contract, or provide a new name to deploy as a new definition.</p>}
-                                title='Name matches an existing smart contract'
-                            />
+                            hideCloseButton={true}
+                            kind='info'
+                            lowContrast={true}
+                            notificationType='inline'
+                            role='alert'
+                            statusIconDescription='describes the status icon'
+                            subtitle={<p>We recommend changing the definition version to update the existing smart contract. Alternatively, provide a new name to deploy as a new definition.</p>}
+                            title='Name matches an existing smart contract'
+                        />
                     </div>
                 </div>
-
+            );
+        } else if (this.props.committedDefinitions.find((entry: string) => entry.includes(`${this.state.definitionNameValue}@`))) {
+            // If there exists an entry with a different version
+            contractExists = (
+                <div className='bx--row margin-bottom-05'>
+                    <div className='bx--col-lg-10'>
+                        <InlineNotification
+                            hideCloseButton={true}
+                            kind='info'
+                            lowContrast={true}
+                            notificationType='inline'
+                            role='alert'
+                            statusIconDescription='describes the status icon'
+                            subtitle={<p>This deployment will update the existing smart contract. Alternatively, provide a new name to deploy as a new definition.</p>}
+                            title='Name matches an existing smart contract'
+                        />
+                    </div>
+                </div>
             );
         }
 
@@ -182,7 +199,7 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
                                     <FileUploader
                                         defaultValue={defaultCollectionValue}
                                         accept={[
-                                        '.json'
+                                            '.json'
                                         ]}
                                         buttonKind='tertiary'
                                         buttonLabel='Add file'

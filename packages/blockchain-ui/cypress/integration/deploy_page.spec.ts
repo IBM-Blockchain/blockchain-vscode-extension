@@ -1,24 +1,27 @@
 /// <reference types="Cypress" />
 import IPackageRegistryEntry from '../../src/interfaces/IPackageRegistryEntry';
-
+import Utils from '../../src/Utils';
 chai.should();
 
 describe('Deploy page', () => {
-    const packageOne: IPackageRegistryEntry = {name: 'mycontract', version: '0.0.1', path: '/package/one', sizeKB: 9000};
-    const packageTwo: IPackageRegistryEntry = {name: 'othercontract', version: '0.0.2', path: '/package/two', sizeKB: 12000};
-    const deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, definitionNames: string[], discoveredPeers: string[]} = {channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo], workspaceNames: ['workspaceOne'], selectedPackage: undefined, definitionNames: [], discoveredPeers: ['Org1Peer1', 'Org2Peer1']};
+    const packageOne: IPackageRegistryEntry = { name: 'mycontract', version: '0.0.1', path: '/package/one', sizeKB: 9000 };
+    const packageTwo: IPackageRegistryEntry = { name: 'othercontract', version: '0.0.2', path: '/package/two', sizeKB: 12000 };
+    const deployData: { channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, committedDefinitions: string[], environmentPeers: string[], discoveredPeers: string[], orgMap: any, orgApprovals: any } = { channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo], workspaceNames: ['workspaceOne'], selectedPackage: undefined, committedDefinitions: [], environmentPeers: ['Org1Peer1'], discoveredPeers: ['Org2Peer1'], orgMap: { Org1MSP: ['Org1Peer1'], Org2MSP: ['Org2Peer1'] }, orgApprovals: { Org1MSP: false, Org2MSP: false } };
 
-    const mockMessage: {path: string, deployData: any} = {
+    const mockMessage: { path: string, deployData: any } = {
         path: 'deploy',
         deployData
     };
 
     beforeEach(() => {
+        Utils.postToVSCode = () => { return; };
+
         cy.visit('build/index.html').then((window: Window) => {
             window.postMessage(mockMessage, '*');
 
             cy.get('.vscode-dark').invoke('attr', 'class', 'vscode-light'); // Use the light theme as components render properly.
         });
+
     });
 
     it('should open the deploy page and show the correct channel name and environment name', () => {
@@ -59,6 +62,7 @@ describe('Deploy page', () => {
     });
 
     it(`should be able to go from step two to step three`, () => {
+
         const _package: string = `${packageOne.name}@${packageOne.version} (packaged)`;
 
         cy.get('#package-select').click(); // Expand dropdown
@@ -210,10 +214,10 @@ describe('Deploy page', () => {
         const commitToggle: Cypress.Chainable<JQuery<HTMLButtonElement>> = cy.get('#commitToggle');
         commitToggle.should('be.checked');
 
-        commitToggle.uncheck({force: true});
+        commitToggle.uncheck({ force: true });
         commitToggle.should('not.be.checked');
 
-        commitToggle.check({force: true});
+        commitToggle.check({ force: true });
         commitToggle.should('be.checked');
     });
 
@@ -239,8 +243,8 @@ describe('Deploy page', () => {
             path: '/some/path'
         };
 
-        const newData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined} = {channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo, packageThree], workspaceNames: ['workspaceOne'], selectedPackage: packageThree};
-        const newMessage: {path: string, deployData: any} = {
+        const newData: { channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined } = { channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo, packageThree], workspaceNames: ['workspaceOne'], selectedPackage: packageThree };
+        const newMessage: { path: string, deployData: any } = {
             path: 'deploy',
             deployData: newData
         };
@@ -321,11 +325,20 @@ describe('Deploy page', () => {
 
         selectPeersButton = cy.get('#peer-select');
         selectPeersButton.click();
-        const peerOne: Cypress.Chainable<JQuery<HTMLElement>> = cy.get('span').contains('Org1Peer1');
-        peerOne.should('have.attr', 'data-contained-checkbox-state', 'true');
 
         peerTwo = cy.get('span').contains('Org2Peer1');
         peerTwo.should('have.attr', 'data-contained-checkbox-state', 'false');
 
+        cy.get('tr[id="Org1MSP-row"]').should((row: JQuery<HTMLElement>) => {
+            const cells: JQuery<HTMLElement> = row.find('td');
+            expect(cells.eq(0)).to.contain('Org1MSP');
+            expect(cells.eq(1)).to.contain('Pending');
+        });
+
+        cy.get('tr[id="Org2MSP-row"]').should((row: JQuery<HTMLElement>) => {
+            const cells: JQuery<HTMLElement> = row.find('td');
+            expect(cells.eq(0)).to.contain('Org2MSP');
+            expect(cells.eq(1)).to.contain('Not approved');
+        });
     });
 });

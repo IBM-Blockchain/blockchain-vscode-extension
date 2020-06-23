@@ -11,7 +11,7 @@ interface IProps {
     options: { actionType: 'app' | 'vscode', command?: string, path?: string };
 }
 
-class CommandTile extends Component <IProps> {
+class CommandTile extends Component<IProps> {
     constructor(props: Readonly<IProps>) {
         super(props);
 
@@ -20,10 +20,10 @@ class CommandTile extends Component <IProps> {
 
     tileClickHandler(): void {
         if (this.props.options.actionType === 'app') {
-            Utils.changeRoute(this.props.options.path);
+            Utils.changeRoute(this.props.options.path as string);
         } else {
             Utils.postToVSCode({
-                command: this.props.options.command
+                command: this.props.options.command as string
             });
         }
     }
@@ -35,7 +35,7 @@ class CommandTile extends Component <IProps> {
                     headingText={this.props.title}
                     subheadingText={this.props.body}
                 />
-                <img src={newTabImg} alt='' className='new-tab-img'/>
+                <img src={newTabImg} alt='' className='new-tab-img' />
             </Tile>
         );
     }
