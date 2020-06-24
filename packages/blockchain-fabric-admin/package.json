@@ -23,14 +23,15 @@
         "generatePolcyParser": "pegjs --plugin ./node_modules/ts-pegjs --extra-options-file ./src/pegjs/config.json -o ./src/pegjs/policyParser.ts --cache ./src/pegjs/endorsementPolicy.pegjs"
     },
     "dependencies": {
-        "fabric-ca-client": "2.1.0",
-        "fabric-common": "2.1.0",
-        "fabric-network": "2.1.0",
+        "fabric-ca-client": "2.1.2-snapshot.2",
+        "fabric-common": "2.1.2-snapshot.2",
+        "fabric-network": "2.1.2-snapshot.2",
         "fabric-protos": "2.1.0",
         "fs-extra": "^8.1.0",
         "ignore-walk": "^3.0.0",
         "klaw": "^2.0.0",
         "long": "^4.0.0",
+        "protobufjs": "^6.9.0",
         "tar-stream": "1.6.1"
     },
     "devDependencies": {

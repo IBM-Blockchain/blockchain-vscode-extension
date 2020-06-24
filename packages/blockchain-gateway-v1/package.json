@@ -58,9 +58,9 @@
 		"url": "0.11.0"
 	},
 	"optionalDependencies": {
-		"fabric-ca-client": "2.1.0",
-		"fabric-common": "2.1.0",
-		"fabric-network": "2.1.0"
+		"fabric-ca-client": "2.1.2-snapshot.2",
+		"fabric-common": "2.1.2-snapshot.2",
+		"fabric-network": "2.1.2-snapshot.2"
 	},
 	"license-check-and-add-config": {
 		"folder": ".",
