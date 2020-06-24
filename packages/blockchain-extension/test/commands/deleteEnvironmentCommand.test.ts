@@ -34,6 +34,7 @@ import { GlobalState, ExtensionData } from '../../extension/util/GlobalState';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { ManagedAnsibleEnvironmentManager } from '../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
+import { ExtensionsInteractionUtil } from '../../extension/util/ExtensionsInteractionUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -161,6 +162,8 @@ describe('DeleteEnvironmentCommand', () => {
         });
 
         it('should test an environment can be deleted from tree', async () => {
+            mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
+
             const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
@@ -379,6 +382,7 @@ describe('DeleteEnvironmentCommand', () => {
             const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
             executeCommandStub.callThrough();
             executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC).resolves();
+            mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
             const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
@@ -450,6 +454,7 @@ describe('DeleteEnvironmentCommand', () => {
             const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
             executeCommandStub.callThrough();
             executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, 'otherLocal').resolves();
+            mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
             const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
@@ -613,6 +618,7 @@ describe('DeleteEnvironmentCommand', () => {
 
             const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
             executeCommandStub.callThrough();
+            mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
             const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();

@@ -55,6 +55,14 @@ Feature: Fabric Environments
         And the tree item should have a tooltip equal to 'myFabric'
 
     @opsToolsFabric
+    Scenario: It should automatically add a discovered SaaS environment
+        Given there are no IBM Cloud environments
+        When I log in to IBM Cloud
+        Then there should be a tree item with a label 'IBM Cloud' in the 'Fabric Environments' panel
+        And the 'Fabric Environments' tree item should have a child 'vscode'
+        And the tree item should have a tooltip equal to 'vscode'
+
+    @opsToolsFabric
     Scenario Outline: It should create an environment without nodes
         When I create an environment '<environmentName>' of type '<environmentType>'
         And the wallet '<walletName>' with identity '<identity>' and mspid '<mspid>' exists

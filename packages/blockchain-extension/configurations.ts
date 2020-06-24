@@ -40,4 +40,7 @@ export class SettingConfigurations {
 
     // Feature flags
     static readonly FEATURE_FLAGS: string = 'ibm-blockchain-platform.ext.featureFlags';
+
+    // auto adding SaaS environments
+    static readonly DISCOVER_SAAS_ENVS: string = 'ibm-blockchain-platform.ext.discoverSaasEnvs';
 }
