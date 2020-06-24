@@ -11,6 +11,7 @@
     },
     "main": "./build/src/index.js",
     "scripts": {
+        "postinstall": "patch-package",
         "tslint": "tslint --project tsconfig.json -e 'src/old-code/*.ts'",
         "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts' 'cucumber/**/*.ts'",
         "pretest": "npm run compile && npm run lint && npm run licchk",
@@ -23,14 +24,15 @@
         "generatePolcyParser": "pegjs --plugin ./node_modules/ts-pegjs --extra-options-file ./src/pegjs/config.json -o ./src/pegjs/policyParser.ts --cache ./src/pegjs/endorsementPolicy.pegjs"
     },
     "dependencies": {
-        "fabric-ca-client": "2.1.0",
-        "fabric-common": "2.1.0",
-        "fabric-network": "2.1.0",
-        "fabric-protos": "2.1.0",
+        "fabric-ca-client": "2.1.1-snapshot.417",
+        "fabric-common": "2.1.1-snapshot.410",
+        "fabric-network": "2.1.1-snapshot.374",
+        "fabric-protos": "2.1.1-snapshot.268",
         "fs-extra": "^8.1.0",
         "ignore-walk": "^3.0.0",
         "klaw": "^2.0.0",
         "long": "^4.0.0",
+        "patch-package": "^6.2.2",
         "tar-stream": "1.6.1"
     },
     "devDependencies": {
@@ -85,6 +87,7 @@
         ],
         "file_type_method": "EXCLUDE",
         "file_types": [
+            ".patch",
             ".txt",
             ".vsix",
             ".yml",
