@@ -1407,8 +1407,9 @@
         ]
     },
     "scripts": {
+        "patch": "patch-package",
         "vscode:prepublish": "npm run compile && npm run localize",
-        "package": "node ./node_modules/vsce/out/vsce package",
+        "package": "npm run patch && node ./node_modules/vsce/out/vsce package",
         "compile": "rimraf build && npm run build && npm run lint && npm run licchk",
         "watch": "rimraf build && tsc -watch",
         "pretest": "npm run updatePackageJSON",
@@ -1458,6 +1459,7 @@
         "mocha-junit-reporter": "^1.23.1",
         "mocha-multi-reporters": "^1.1.7",
         "multiple-cucumber-html-reporter": "1.15.1",
+        "patch-package": "^6.2.2",
         "raf": "^3.4.1",
         "react-scripts": "^3.3.1",
         "remap-istanbul": "0.11.1",
@@ -1565,6 +1567,7 @@
         ],
         "file_type_method": "EXCLUDE",
         "file_types": [
+            ".patch",
             ".txt",
             ".vsix",
             ".yml",

@@ -316,7 +316,7 @@ export class LifecyclePeer {
             const provider: IdentityProvider = this.wallet.getProviderRegistry().getProvider(identity.type);
             const user: User = await provider.getUserContext(identity, this.identity);
             const identityContext: IdentityContext = fabricClient.newIdentityContext(user);
-            endorsement.build(identityContext, buildRequest);
+            endorsement.build(identityContext, buildRequest as any);
 
             logger.debug('%s - sign the get all install smart contract request');
             endorsement.sign(identityContext);

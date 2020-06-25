@@ -56,7 +56,7 @@
 		"url": "0.11.0"
 	},
 	"optionalDependencies": {
-		"fabric-network": "2.1.0"
+		"fabric-network": "2.1.1-snapshot.374"
 	},
 	"license-check-and-add-config": {
 		"folder": ".",

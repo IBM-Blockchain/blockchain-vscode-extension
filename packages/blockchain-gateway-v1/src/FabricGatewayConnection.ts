@@ -16,7 +16,7 @@ import { FabricConnection } from './FabricConnection';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { IFabricGatewayConnection, OutputAdapter, LogType, ConnectionProfileUtil } from 'ibm-blockchain-platform-common';
 import { Network, Contract, Transaction, ContractListener } from 'fabric-network';
-import { Endorser } from 'fabric-network/node_modules/fabric-common';
+import { Endorser } from 'fabric-common';
 
 export class FabricGatewayConnection extends FabricConnection implements IFabricGatewayConnection {
 

@@ -22,7 +22,7 @@ import { Gateway, Wallet } from 'fabric-network';
 import { OutputAdapter, LogType } from 'ibm-blockchain-platform-common';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import * as path from 'path';
-import { Client, Channel } from 'fabric-network/node_modules/fabric-common';
+import { Client, Channel } from 'fabric-common';
 import { LifecyclePeer, LifecycleChannel } from 'ibm-blockchain-platform-fabric-admin';
 
 chai.should();
@@ -61,7 +61,7 @@ describe('FabricConnection', () => {
         }
 
         async connect(wallet: FabricWallet, identityName: string, requestTimeout: number): Promise<void> {
-            this['gateway'] = fabricGatewayStub;
+            this['gateway'] = fabricGatewayStub as any;
 
             await this.connectInner(this.connectionProfile, wallet.getWallet(), identityName, requestTimeout);
         }
@@ -156,7 +156,7 @@ describe('FabricConnection', () => {
         fabricGatewayStub.getNetwork.returns(fabricNetworkStub);
         fabricGatewayStub.disconnect.returns(null);
 
-        fabricConnection['gateway'] = fabricGatewayStub;
+        fabricConnection['gateway'] = fabricGatewayStub as any;
         fabricConnection['outputAdapter'] = TestOutputAdapter.instance();
 
         await fabricConnection.connect(fabricWallet, mockIdentityName, 120);

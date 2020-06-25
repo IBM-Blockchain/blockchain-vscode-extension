@@ -1,8 +1,10 @@
-# IBM Blockchain Platform Extension updated to v2.0.0-beta.2
-_Release date: June 18th 2020_
+# IBM Blockchain Platform Extension updated to v2.0.0-beta.3
+_Release date: June 25th 2020_
 
 Announcements
 ---
+* This is a duplicate of v2.0.0-beta.2 with a dependency fix.
+
 * We welcome all feedback on this beta version so far. Please see the notes section for known issues.
 
 * To install the extension, download the vsix file named `ibm-blockchain-platform-<VERSION>.vsix` from the [GitHub releases](https://github.com/IBM-Blockchain/blockchain-vscode-extension/releases) page.
