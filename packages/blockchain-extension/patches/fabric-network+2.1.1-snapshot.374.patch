@@ -1,0 +1,50 @@
+diff --git a/node_modules/fabric-network/lib/gateway.js b/node_modules/fabric-network/lib/gateway.js
+index a632e06..5b91718 100644
+--- a/node_modules/fabric-network/lib/gateway.js
++++ b/node_modules/fabric-network/lib/gateway.js
+@@ -14,21 +14,6 @@ const QueryStrategies = require("./impl/query/defaultqueryhandlerstrategies");
+ const IdentityProviderRegistry = require("./impl/wallet/identityproviderregistry");
+ const Logger = require("./logger");
+ const logger = Logger.getLogger('Gateway');
+-const defaultOptions = Object.freeze({
+-    queryHandlerOptions: {
+-        timeout: 30,
+-        strategy: QueryStrategies.MSPID_SCOPE_SINGLE
+-    },
+-    eventHandlerOptions: {
+-        endorseTimeout: 30,
+-        commitTimeout: 300,
+-        strategy: EventStrategies.MSPID_SCOPE_ALLFORTX
+-    },
+-    discovery: {
+-        enabled: true,
+-        asLocalhost: true
+-    }
+-});
+ function mergeOptions(currentOptions, additionalOptions) {
+     const result = currentOptions;
+     for (const prop in additionalOptions) {
+@@ -214,7 +199,22 @@ class Gateway {
+     async connect(config, options) {
+         const method = 'connect';
+         logger.debug('%s - start', method);
+-        this.options = mergeOptions(mergeOptions({}, defaultOptions), options);
++        const defaultOptions = {
++            queryHandlerOptions: {
++                timeout: 30,
++                strategy: QueryStrategies.MSPID_SCOPE_SINGLE
++            },
++            eventHandlerOptions: {
++                endorseTimeout: 30,
++                commitTimeout: 300,
++                strategy: EventStrategies.MSPID_SCOPE_ALLFORTX
++            },
++            discovery: {
++                enabled: true,
++                asLocalhost: true
++            }
++        };
++        this.options = mergeOptions(defaultOptions, options);
+         logger.debug('connection options: %j', options);
+         let loadCcp = false;
+         if (config instanceof fabric_common_1.Client) {

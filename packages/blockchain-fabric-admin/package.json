@@ -11,7 +11,7 @@
     },
     "main": "./build/src/index.js",
     "scripts": {
-        "postinstall": "patch-package",
+        "patch": "patch-package",
         "tslint": "tslint --project tsconfig.json -e 'src/old-code/*.ts'",
         "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts' 'cucumber/**/*.ts'",
         "pretest": "npm run compile && npm run lint && npm run licchk",
