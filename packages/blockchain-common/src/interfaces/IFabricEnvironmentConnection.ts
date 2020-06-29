@@ -68,6 +68,8 @@ export interface IFabricEnvironmentConnection {
 
     commitSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[], smartContractDefinition: FabricSmartContractDefinition, defaultTimeout?: number): Promise<void>;
 
+    getOrgApprovals(channelName: string, peerName: string, smartContractDefinition: FabricSmartContractDefinition): Promise<Map<string, boolean>>;
+
     getCommitReadiness(channelName: string, peerName: string, smartContractDefinition: FabricSmartContractDefinition): Promise<boolean>;
 
     getEndorsementPolicyBuffer(policy: string): Buffer;

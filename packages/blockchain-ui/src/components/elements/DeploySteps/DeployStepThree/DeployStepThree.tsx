@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Link, UnorderedList, ListItem, Accordion, AccordionItem, Toggle, MultiSelect, DataTable, TableContainer, Table, TableHead, TableRow, TableHeader, TableBody, TableCell } from 'carbon-components-react';
+import { Link, UnorderedList, ListItem, Accordion, AccordionItem, Toggle, MultiSelect, DataTable, TableContainer, Table, TableHead, TableRow, TableHeader, TableBody, TableCell, InlineNotification } from 'carbon-components-react';
 import IPackageRegistryEntry from '../../../../interfaces/IPackageRegistryEntry';
 
 interface IProps {
@@ -7,9 +7,13 @@ interface IProps {
     channelName: string;
     commitSmartContract: undefined | boolean;
     selectedPeers: string[];
+    orgApprovals: any;
+    orgMap: any;
+    environmentPeers: string[];
     discoveredPeers: string[];
     onCommitChange: (value: boolean) => void;
     onPeerChange: (peers: string[]) => void;
+    onGetOrgApproval: () => void;
 }
 
 interface StepThreeState {
@@ -29,6 +33,10 @@ class DeployStepThree extends Component<IProps, StepThreeState> {
         this.changePeers = this.changePeers.bind(this);
         this.formatDiscoveredPeers = this.formatDiscoveredPeers.bind(this);
 
+    }
+
+    componentWillMount(): void {
+        this.props.onGetOrgApproval();
     }
 
     toggleCommit(checked: boolean, _id: string, _event: any): void {
@@ -60,18 +68,74 @@ class DeployStepThree extends Component<IProps, StepThreeState> {
                 key: 'status',
             }
         ];
-        const rowData: { id: string, organization: string, status: string }[] = [
-            {
-                id: 'a',
-                organization: 'Hardcoded',
-                status: 'Value'
-            },
-            {
-                id: 'b',
-                organization: 'Needs to be',
-                status: 'Changed'
+
+        const rowData: { id: string, organization: string, status: string }[] = [];
+
+        const approvalEntries: any[] = Object.entries(this.props.orgApprovals);
+
+        let tableElement: JSX.Element = <></>;
+
+        if (approvalEntries.length > 0) {
+            for (const [org, approved] of approvalEntries) {
+
+                let environmentPeer: string | undefined;
+                if (!approved) {
+                    // Org should be marked as pending if we're about to deploy on an organisations peers.
+                    environmentPeer = this.props.orgMap[org].find((_peer: string) => this.props.environmentPeers.includes(_peer));
+                }
+
+                const entry: { id: string, organization: string, status: string } = {
+                    id: org,
+                    organization: org,
+                    status: approved ? 'Approved' : environmentPeer ? 'Pending' : 'Not approved'
+                };
+
+                rowData.push(entry);
+
+                tableElement = (
+                    <DataTable
+                        rows={rowData}
+                        headers={headerData}
+                        render={({ rows, headers, getHeaderProps }) => (
+                            <TableContainer>
+                                <Table size='short'>
+                                    <TableHead>
+                                        <TableRow>
+                                            {headers.map((header) => (
+                                                <TableHeader {...getHeaderProps({ header })}>
+                                                    {header.header}
+                                                </TableHeader>
+                                            ))}
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {rows.map((row) => (
+                                            <TableRow id={row.id + '-row'} key={row.id}>
+                                                {row.cells.map((cell) => (
+                                                    <TableCell key={cell.id}>{cell.value}</TableCell>
+                                                ))}
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>)}
+                    />
+                );
             }
-        ];
+        } else {
+            tableElement = (
+                <InlineNotification
+                    hideCloseButton={true}
+                    kind='info'
+                    lowContrast={true}
+                    notificationType='inline'
+                    role='alert'
+                    statusIconDescription='describes the status icon'
+                    subtitle={<p>Commit has already been performed for this definition name and version.</p>}
+                    title='Unable to get organisation approvals'
+                />
+            );
+        }
 
         let commitListItem: JSX.Element = <></>;
 
@@ -86,7 +150,7 @@ class DeployStepThree extends Component<IProps, StepThreeState> {
             packageName = `${this.props.selectedPackage.name}`;
         }
 
-        const discoveredPeers: { id: string, label: string }[] = this.formatDiscoveredPeers(this.props.discoveredPeers);
+        const discoveredPeerObjects: { id: string, label: string }[] = this.formatDiscoveredPeers(this.props.discoveredPeers);
         const selectedPeers: { id: string, label: string }[] = this.formatDiscoveredPeers(this.state.selectedPeers);
 
         return (
@@ -128,7 +192,7 @@ class DeployStepThree extends Component<IProps, StepThreeState> {
                                         <MultiSelect
                                             id='peer-select'
                                             initialSelectedItems={selectedPeers}
-                                            items={discoveredPeers}
+                                            items={discoveredPeerObjects}
                                             label='Select peers'
                                             onChange={this.changePeers}
                                         />
@@ -137,33 +201,7 @@ class DeployStepThree extends Component<IProps, StepThreeState> {
                                 </div>
                                 <div className='bx--row margin-top-07'>
                                     <div className='bx--col'>
-                                        <DataTable
-                                            rows={rowData}
-                                            headers={headerData}
-                                            render={({ rows, headers, getHeaderProps }) => (
-                                                <TableContainer>
-                                                    <Table size='short'>
-                                                        <TableHead>
-                                                            <TableRow>
-                                                                {headers.map((header) => (
-                                                                    <TableHeader {...getHeaderProps({ header })}>
-                                                                        {header.header}
-                                                                    </TableHeader>
-                                                                ))}
-                                                            </TableRow>
-                                                        </TableHead>
-                                                        <TableBody>
-                                                            {rows.map((row) => (
-                                                                <TableRow key={row.id}>
-                                                                    {row.cells.map((cell) => (
-                                                                        <TableCell key={cell.id}>{cell.value}</TableCell>
-                                                                    ))}
-                                                                </TableRow>
-                                                            ))}
-                                                        </TableBody>
-                                                    </Table>
-                                                </TableContainer>)}
-                                        />
+                                        {tableElement}
                                     </div>
                                 </div>
                                 <div className='bx--row margin-top-07'>

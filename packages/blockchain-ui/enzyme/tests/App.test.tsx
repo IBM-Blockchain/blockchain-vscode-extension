@@ -25,7 +25,7 @@ describe('App', () => {
     });
 
     it('should redirect to the home page', async () => {
-        const component: any = mount(<App/>);
+        const component: any = mount(<App />);
 
         const msg: MessageEvent = new MessageEvent('message', {
             data: {
@@ -39,7 +39,7 @@ describe('App', () => {
     });
 
     it('should redirect to the tutorial page', async () => {
-        const tutorialData: Array<{name: string, tutorials: ITutorialObject[]}> = [
+        const tutorialData: Array<{ name: string, tutorials: ITutorialObject[] }> = [
             {
                 name: 'Basic tutorials',
                 tutorials: [
@@ -74,7 +74,7 @@ describe('App', () => {
             }
         ];
 
-        const component: any = mount(<App/>);
+        const component: any = mount(<App />);
 
         const msg: MessageEvent = new MessageEvent('message', {
             data: {
@@ -88,8 +88,8 @@ describe('App', () => {
     });
 
     it('should redirect to the deploy page', async () => {
-        const component: any = mount(<App/>);
-        const deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, definitionNames: string[], discoveredPeers: string[]} = {channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [], workspaceNames: [], selectedPackage: undefined, definitionNames: [], discoveredPeers: ['Org1Peer1']};
+        const component: any = mount(<App />);
+        const deployData: { channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, committedDefinitions: string[], environmentPeers: string[], discoveredPeers: string[], orgMap: any, orgApprovals: any } = { channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [], workspaceNames: [], selectedPackage: undefined, committedDefinitions: [], environmentPeers: ['Org1Peer1'], discoveredPeers: ['Org2Peer1'], orgMap: { Org1MSP: ['Org1Peer1'], Org2MSP: ['Org2Peer1'] }, orgApprovals: { Org1MSP: true, Org2MSP: false } };
         const msg: MessageEvent = new MessageEvent('message', {
             data: {
                 path: '/deploy',

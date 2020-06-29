@@ -120,6 +120,11 @@ describe('DeployView', () => {
         channelMap.set('mychannel', ['Org1Peer1', 'Org1Peer2']);
         localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
 
+        const orgApproval: Map<string, boolean> = new Map();
+        orgApproval.set('Org1MSP', true);
+        orgApproval.set('Org2MSP', false);
+        localEnvironmentConnectionMock.getOrgApprovals.resolves(orgApproval);
+
         otherEnvironmentConnectionMock = mySandBox.createStubInstance(FabricEnvironmentConnection);
         otherEnvironmentConnectionMock.environmentName = 'otherEnvironment';
 
@@ -707,5 +712,373 @@ describe('DeployView', () => {
             getWorkspaceFoldersStub.should.have.been.calledOnce;
             executeCommandStub.should.have.been.calledOnceWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceTwo);
         });
+    });
+
+    describe('getOrgApprovals message', () => {
+
+        const onDidDisposePromises: any[] = [];
+        beforeEach(async () => {
+
+            onDidDisposePromises.push(new Promise((resolve: any): void => {
+                createWebviewPanelStub.returns({
+                    title: 'Deploy Smart Contract',
+                    webview: {
+                        postMessage: postMessageStub,
+                        onDidReceiveMessage: async (callback: any): Promise<void> => {
+                            await callback({
+                                command: 'getOrgApprovals',
+                                data: {
+                                    channelName: 'mychannel',
+                                    environmentName: FabricRuntimeUtil.LOCAL_FABRIC,
+                                    definitionName: 'packageOneName',
+                                    definitionVersion: 'packageOneVersion',
+                                    endorsmentPolicy: undefined,
+                                    collectionConfigPath: undefined
+                                }
+                            });
+                            resolve();
+                        }
+                    },
+                    reveal: (): void => {
+                        return;
+                    },
+                    onDidDispose: mySandBox.stub(),
+                    onDidChangeViewState: mySandBox.stub(),
+                    _isDisposed: false
+                });
+            }));
+        });
+
+        it('should get commit approval', async () => {
+
+            const deployView: DeployView = new DeployView(context, deployData);
+
+            const getOrgApprovalsStub: sinon.SinonStub = mySandBox.stub(deployView, 'getOrgApprovals').resolves();
+
+            await deployView.openView(false);
+            await Promise.all(onDidDisposePromises);
+
+            getOrgApprovalsStub.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'packageOneName', 'packageOneVersion', undefined, undefined);
+        });
+
+    });
+
+    describe('getOrgApprovals', () => {
+
+        beforeEach(() => {
+            try {
+                // Reset
+                DeployView.appState.orgApprovals = {};
+            } catch (err) {
+                // Ignore
+            }
+        });
+
+        it('should get org approvals if already connected', async () => {
+
+            getConnectionStub.returns(localEnvironmentConnectionMock);
+
+            const webviewPanel: vscode.WebviewPanel = {
+                webview: {
+                    postMessage: postMessageStub
+                }
+            } as unknown as vscode.WebviewPanel;
+
+            const deployView: DeployView = new DeployView(context, deployData);
+            DeployView.panel = webviewPanel;
+
+            const channelMap: Map<string, string[]> = new Map();
+            channelMap.set('mychannel', ['Org1Peer1', 'Org2Peer1']);
+            localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
+
+            await deployView.getOrgApprovals(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'defName', '0.0.1', undefined, undefined);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
+
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org2Peer1'], 'mychannel');
+
+            const definition: FabricSmartContractDefinition = new FabricSmartContractDefinition('defName', '0.0.1', 1);
+            localEnvironmentConnectionMock.getOrgApprovals.should.have.been.calledOnceWithExactly('mychannel', 'Org1Peer1', definition);
+            DeployView.appState.orgApprovals.should.deep.equal({
+                'Org1MSP': true,
+                'Org2MSP': false
+            });
+            postMessageStub.should.have.been.calledOnceWithExactly({
+                path: '/deploy',
+                deployData: DeployView.appState
+            });
+
+        });
+
+        it('should disconnect, connect to correct environment and get org approvals', async () => {
+            getConnectionStub.onCall(0).returns(otherEnvironmentConnectionMock);
+            getConnectionStub.onCall(1).returns(localEnvironmentConnectionMock);
+
+            const webviewPanel: vscode.WebviewPanel = {
+                webview: {
+                    postMessage: postMessageStub
+                }
+            } as unknown as vscode.WebviewPanel;
+
+            const deployView: DeployView = new DeployView(context, deployData);
+            DeployView.panel = webviewPanel;
+
+            const channelMap: Map<string, string[]> = new Map();
+            channelMap.set('mychannel', ['Org1Peer1', 'Org2Peer1']);
+            localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
+
+            await deployView.getOrgApprovals(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'defName', '0.0.1', undefined, undefined);
+
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
+
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org2Peer1'], 'mychannel');
+
+            const definition: FabricSmartContractDefinition = new FabricSmartContractDefinition('defName', '0.0.1', 1);
+            localEnvironmentConnectionMock.getOrgApprovals.should.have.been.calledOnceWithExactly('mychannel', 'Org1Peer1', definition);
+            DeployView.appState.orgApprovals.should.deep.equal({
+                'Org1MSP': true,
+                'Org2MSP': false
+            });
+            postMessageStub.should.have.been.calledOnceWithExactly({
+                path: '/deploy',
+                deployData: DeployView.appState
+            });
+        });
+
+        it('should connect to environment if disconnected and get org approvals', async () => {
+            getConnectionStub.onCall(0).returns(undefined);
+            getConnectionStub.onCall(1).returns(localEnvironmentConnectionMock);
+
+            const webviewPanel: vscode.WebviewPanel = {
+                webview: {
+                    postMessage: postMessageStub
+                }
+            } as unknown as vscode.WebviewPanel;
+
+            const deployView: DeployView = new DeployView(context, deployData);
+            DeployView.panel = webviewPanel;
+
+            const channelMap: Map<string, string[]> = new Map();
+            channelMap.set('mychannel', ['Org1Peer1', 'Org2Peer1']);
+            localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
+
+            await deployView.getOrgApprovals(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'defName', '0.0.1', undefined, undefined);
+
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
+
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org2Peer1'], 'mychannel');
+
+            const definition: FabricSmartContractDefinition = new FabricSmartContractDefinition('defName', '0.0.1', 1);
+            localEnvironmentConnectionMock.getOrgApprovals.should.have.been.calledOnceWithExactly('mychannel', 'Org1Peer1', definition);
+            DeployView.appState.orgApprovals.should.deep.equal({
+                'Org1MSP': true,
+                'Org2MSP': false
+            });
+            postMessageStub.should.have.been.calledOnceWithExactly({
+                path: '/deploy',
+                deployData: DeployView.appState
+            });
+        });
+
+        it('should error if unable to connect to environment', async () => {
+            getConnectionStub.returns(undefined);
+
+            const webviewPanel: vscode.WebviewPanel = {
+                webview: {
+                    postMessage: postMessageStub
+                }
+            } as unknown as vscode.WebviewPanel;
+
+            const deployView: DeployView = new DeployView(context, deployData);
+            DeployView.panel = webviewPanel;
+
+            const channelMap: Map<string, string[]> = new Map();
+            channelMap.set('mychannel', ['Org1Peer1', 'Org2Peer1']);
+            localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
+
+            await deployView.getOrgApprovals(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'defName', '0.0.1', undefined, undefined);
+
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
+            localEnvironmentConnectionMock.createChannelMap.should.not.have.been.called;
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.not.have.been.called;
+
+            localEnvironmentConnectionMock.getOrgApprovals.should.not.have.been.called;
+            DeployView.appState.orgApprovals.should.not.deep.equal({
+                'Org1MSP': true,
+                'Org2MSP': false
+            });
+            postMessageStub.should.not.have.been.called;
+            const error: Error = new Error(`Unable to deploy, cannot connect to environment: ${FabricRuntimeUtil.LOCAL_FABRIC}`);
+            logStub.should.have.been.calledOnceWithExactly(LogType.ERROR, error.message, error.toString());
+        });
+
+        it('should get org approvals if contract with same name already exists', async () => {
+
+            getConnectionStub.returns(localEnvironmentConnectionMock);
+
+            const webviewPanel: vscode.WebviewPanel = {
+                webview: {
+                    postMessage: postMessageStub
+                }
+            } as unknown as vscode.WebviewPanel;
+
+            const deployView: DeployView = new DeployView(context, deployData);
+            DeployView.panel = webviewPanel;
+
+            const channelMap: Map<string, string[]> = new Map();
+            channelMap.set('mychannel', ['Org1Peer1', 'Org2Peer1']);
+            localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.resolves([{ name: 'defName', version: '0.0.1', sequence: 1 }]);
+
+            await deployView.getOrgApprovals(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'defName', '0.0.2', undefined, undefined);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
+
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org2Peer1'], 'mychannel');
+
+            const definition: FabricSmartContractDefinition = new FabricSmartContractDefinition('defName', '0.0.2', 2);
+            localEnvironmentConnectionMock.getOrgApprovals.should.have.been.calledOnceWithExactly('mychannel', 'Org1Peer1', definition);
+            DeployView.appState.orgApprovals.should.deep.equal({
+                'Org1MSP': true,
+                'Org2MSP': false
+            });
+            postMessageStub.should.have.been.calledOnceWithExactly({
+                path: '/deploy',
+                deployData: DeployView.appState
+            });
+
+        });
+
+        it(`shouldn't get org approvals if contract with same name and version already exists`, async () => {
+
+            getConnectionStub.returns(localEnvironmentConnectionMock);
+
+            const webviewPanel: vscode.WebviewPanel = {
+                webview: {
+                    postMessage: postMessageStub
+                }
+            } as unknown as vscode.WebviewPanel;
+
+            const deployView: DeployView = new DeployView(context, deployData);
+            DeployView.panel = webviewPanel;
+
+            const channelMap: Map<string, string[]> = new Map();
+            channelMap.set('mychannel', ['Org1Peer1', 'Org2Peer1']);
+            localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.resolves([{ name: 'defName', version: '0.0.2', sequence: 1 }]);
+            localEnvironmentConnectionMock.getOrgApprovals.rejects('sequenece needs incrementing'); // Not the exact error that would be shown
+
+            await deployView.getOrgApprovals(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'defName', '0.0.2', undefined, undefined);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
+
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org2Peer1'], 'mychannel');
+
+            const definition: FabricSmartContractDefinition = new FabricSmartContractDefinition('defName', '0.0.2', 1);
+            localEnvironmentConnectionMock.getOrgApprovals.should.have.been.calledOnceWithExactly('mychannel', 'Org1Peer1', definition);
+            DeployView.appState.orgApprovals.should.deep.equal({});
+            postMessageStub.should.have.been.calledOnceWithExactly({
+                path: '/deploy',
+                deployData: DeployView.appState
+            });
+
+        });
+
+        it('should get org approvals if passing an endorsement policy', async () => {
+
+            getConnectionStub.returns(localEnvironmentConnectionMock);
+
+            const webviewPanel: vscode.WebviewPanel = {
+                webview: {
+                    postMessage: postMessageStub
+                }
+            } as unknown as vscode.WebviewPanel;
+
+            const deployView: DeployView = new DeployView(context, deployData);
+            DeployView.panel = webviewPanel;
+
+            const channelMap: Map<string, string[]> = new Map();
+            channelMap.set('mychannel', ['Org1Peer1', 'Org2Peer1']);
+            localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
+
+            await deployView.getOrgApprovals(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'defName', '0.0.1', 'OR("Org1MSP.member","Org2MSP.member")', undefined);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
+
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org2Peer1'], 'mychannel');
+
+            const definition: FabricSmartContractDefinition = new FabricSmartContractDefinition('defName', '0.0.1', 1, undefined, `OR('Org1MSP.member','Org2MSP.member')`);
+            localEnvironmentConnectionMock.getOrgApprovals.should.have.been.calledOnceWithExactly('mychannel', 'Org1Peer1', definition);
+            DeployView.appState.orgApprovals.should.deep.equal({
+                'Org1MSP': true,
+                'Org2MSP': false
+            });
+            postMessageStub.should.have.been.calledOnceWithExactly({
+                path: '/deploy',
+                deployData: DeployView.appState
+            });
+
+        });
+
+        it('should get org approvals if passing a collections file', async () => {
+
+            getConnectionStub.returns(localEnvironmentConnectionMock);
+
+            const webviewPanel: vscode.WebviewPanel = {
+                webview: {
+                    postMessage: postMessageStub
+                }
+            } as unknown as vscode.WebviewPanel;
+
+            const deployView: DeployView = new DeployView(context, deployData);
+            DeployView.panel = webviewPanel;
+
+            const channelMap: Map<string, string[]> = new Map();
+            channelMap.set('mychannel', ['Org1Peer1', 'Org2Peer1']);
+            localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
+
+            const collection: any = [
+                {
+                    "name": "CollectionOne",
+                    "policy": "OR('Org1MSP.member')",
+                    "requiredPeerCount": 1,
+                    "maxPeerCount": 1,
+                    "blockToLive": 0,
+                    "memberOnlyRead": true
+                }
+            ];
+            const readJSONStub: sinon.SinonStub = mySandBox.stub(fs, 'readJSON').resolves(collection);
+
+            await deployView.getOrgApprovals(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'defName', '0.0.1', undefined, '/some/path');
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
+
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org2Peer1'], 'mychannel');
+
+            readJSONStub.should.have.been.calledOnceWithExactly('/some/path');
+
+            const definition: FabricSmartContractDefinition = new FabricSmartContractDefinition('defName', '0.0.1', 1, undefined, undefined, collection);
+            localEnvironmentConnectionMock.getOrgApprovals.should.have.been.calledOnceWithExactly('mychannel', 'Org1Peer1', definition);
+            DeployView.appState.orgApprovals.should.deep.equal({
+                'Org1MSP': true,
+                'Org2MSP': false
+            });
+            postMessageStub.should.have.been.calledOnceWithExactly({
+                path: '/deploy',
+                deployData: DeployView.appState
+            });
+
+        });
+
     });
 });

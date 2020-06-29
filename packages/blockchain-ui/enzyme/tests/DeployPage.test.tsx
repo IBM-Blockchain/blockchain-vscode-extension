@@ -23,14 +23,14 @@ describe('DeployPage component', () => {
     let setStateStub: sinon.SinonStub;
     let postToVscodeStub: sinon.SinonStub;
 
-    const packageOne: IPackageRegistryEntry = {name: 'mycontract', version: '0.0.1', path: '/package/one', sizeKB: 9000};
-    const packageTwo: IPackageRegistryEntry = {name: 'othercontract', version: '0.0.2', path: '/package/two', sizeKB: 12000};
-    const packageThree: IPackageRegistryEntry = {name: 'importedContract', path: '/package/three', sizeKB: 16000};
-    let deployData: {channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, definitionNames: string[], discoveredPeers: string[]};
+    const packageOne: IPackageRegistryEntry = { name: 'mycontract', version: '0.0.1', path: '/package/one', sizeKB: 9000 };
+    const packageTwo: IPackageRegistryEntry = { name: 'othercontract', version: '0.0.2', path: '/package/two', sizeKB: 12000 };
+    const packageThree: IPackageRegistryEntry = { name: 'importedContract', path: '/package/three', sizeKB: 16000 };
+    let deployData: { channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, committedDefinitions: string[], environmentPeers: string[], discoveredPeers: string[], orgMap: any, orgApprovals: any };
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
-        deployData = {channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo, packageThree], workspaceNames: ['workspaceOne'], selectedPackage: undefined, definitionNames: [], discoveredPeers: ['Org1Peer1', 'Org2Peer1']};
+        deployData = { channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo, packageThree], workspaceNames: ['workspaceOne'], selectedPackage: undefined, committedDefinitions: [], environmentPeers: ['Org1Peer1'], discoveredPeers: ['Org2Peer1'], orgMap: { Org1MSP: ['Org1Peer1'], Org2MSP: ['Org2Peer1'] }, orgApprovals: { Org1MSP: true, Org2MSP: false } };
     });
 
     afterEach(async () => {
@@ -61,7 +61,7 @@ describe('DeployPage component', () => {
         it('should load step two component', () => {
             const component: ShallowWrapper<DeployPage> = shallow(<DeployPage deployData={deployData} />);
 
-            component.setState({progressIndex: 1});
+            component.setState({ progressIndex: 1 });
 
             const doesStepOneExist: boolean = component.exists(DeployStepOne);
             doesStepOneExist.should.equal(false);
@@ -76,7 +76,7 @@ describe('DeployPage component', () => {
         it('should load step three component', () => {
             const component: ShallowWrapper<DeployPage> = shallow(<DeployPage deployData={deployData} />);
 
-            component.setState({progressIndex: 2});
+            component.setState({ progressIndex: 2 });
 
             const doesStepOneExist: boolean = component.exists(DeployStepOne);
             doesStepOneExist.should.equal(false);
@@ -108,20 +108,20 @@ describe('DeployPage component', () => {
 
             instance.handleProgressChange(1);
 
-            setStateStub.should.have.been.calledOnceWithExactly({progressIndex: 1});
+            setStateStub.should.have.been.calledOnceWithExactly({ progressIndex: 1 });
 
         });
 
         it('should reset Next button when going back from Step 2 to Step 1 with errors', () => {
             const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
-            component.setState({selectedPackage: packageOne});
+            component.setState({ selectedPackage: packageOne });
             const instance: DeployPage = component.instance() as DeployPage;
 
             setStateStub = mySandBox.stub(instance, 'setState').resolves();
 
             instance.handleProgressChange(0);
 
-            setStateStub.should.have.been.calledOnceWithExactly({progressIndex: 0, disableNext: false});
+            setStateStub.should.have.been.calledOnceWithExactly({ progressIndex: 0, disableNext: false });
         });
     });
 
@@ -135,7 +135,7 @@ describe('DeployPage component', () => {
 
             instance.handlePackageChange(packageTwo);
 
-            setStateStub.should.have.been.calledOnceWithExactly({selectedPackage: packageTwo, definitionName: packageTwo.name, definitionVersion: packageTwo.version, disableNext: false, deletedSelectedPackage: false, selectedWorkspace: undefined});
+            setStateStub.should.have.been.calledOnceWithExactly({ selectedPackage: packageTwo, definitionName: packageTwo.name, definitionVersion: packageTwo.version, disableNext: false, deletedSelectedPackage: false, selectedWorkspace: undefined });
 
         });
 
@@ -148,7 +148,7 @@ describe('DeployPage component', () => {
 
             instance.handlePackageChange(packageThree);
 
-            setStateStub.should.have.been.calledOnceWithExactly({selectedPackage: packageThree, definitionName: packageThree.name, definitionVersion: '0.0.1', disableNext: false, deletedSelectedPackage: false, selectedWorkspace: undefined});
+            setStateStub.should.have.been.calledOnceWithExactly({ selectedPackage: packageThree, definitionName: packageThree.name, definitionVersion: '0.0.1', disableNext: false, deletedSelectedPackage: false, selectedWorkspace: undefined });
 
         });
 
@@ -160,7 +160,7 @@ describe('DeployPage component', () => {
 
             instance.handlePackageChange(undefined);
 
-            setStateStub.should.have.been.calledOnceWithExactly({selectedPackage: undefined, selectedWorkspace: undefined, disableNext: true});
+            setStateStub.should.have.been.calledOnceWithExactly({ selectedPackage: undefined, selectedWorkspace: undefined, disableNext: true });
 
         });
 
@@ -172,7 +172,7 @@ describe('DeployPage component', () => {
 
             instance.handlePackageChange(undefined, 'workspaceOne');
 
-            setStateStub.should.have.been.calledOnceWithExactly({selectedPackage: undefined, disableNext: true, selectedWorkspace: 'workspaceOne', deletedSelectedPackage: false});
+            setStateStub.should.have.been.calledOnceWithExactly({ selectedPackage: undefined, disableNext: true, selectedWorkspace: 'workspaceOne', deletedSelectedPackage: false });
         });
     });
 
@@ -180,28 +180,28 @@ describe('DeployPage component', () => {
         it('should update definition name and disable Next button if name or version invalid', () => {
 
             const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
-            component.setState({versionInvalid: true});
+            component.setState({ versionInvalid: true });
             const instance: DeployPage = component.instance() as DeployPage;
 
             setStateStub = mySandBox.stub(instance, 'setState').resolves();
 
             instance.handleDefinitionNameChange('newName', true);
 
-            setStateStub.should.have.been.calledOnceWithExactly({definitionName: 'newName', nameInvalid: true, disableNext: true});
+            setStateStub.should.have.been.calledOnceWithExactly({ definitionName: 'newName', nameInvalid: true, disableNext: true });
 
         });
 
         it('should update definition name and enable Next button if name and version is valid', () => {
 
             const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
-            component.setState({versionInvalid: false});
+            component.setState({ versionInvalid: false });
             const instance: DeployPage = component.instance() as DeployPage;
 
             setStateStub = mySandBox.stub(instance, 'setState').resolves();
 
             instance.handleDefinitionNameChange('newName', false);
 
-            setStateStub.should.have.been.calledOnceWithExactly({definitionName: 'newName', nameInvalid: false, disableNext: false});
+            setStateStub.should.have.been.calledOnceWithExactly({ definitionName: 'newName', nameInvalid: false, disableNext: false });
 
         });
     });
@@ -210,7 +210,7 @@ describe('DeployPage component', () => {
         it('should update definition version and disable Next button if name or version is invalid', () => {
 
             const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
-            component.setState({nameInvalid: true});
+            component.setState({ nameInvalid: true });
 
             const instance: DeployPage = component.instance() as DeployPage;
 
@@ -218,14 +218,14 @@ describe('DeployPage component', () => {
 
             instance.handleDefinitionVersionChange('0.0.3', true);
 
-            setStateStub.should.have.been.calledOnceWithExactly({definitionVersion: '0.0.3', versionInvalid: true, disableNext: true});
+            setStateStub.should.have.been.calledOnceWithExactly({ definitionVersion: '0.0.3', versionInvalid: true, disableNext: true });
 
         });
 
         it('should update definition version and enable Next button if name and version are valid', () => {
 
             const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
-            component.setState({nameInvalid: false});
+            component.setState({ nameInvalid: false });
 
             const instance: DeployPage = component.instance() as DeployPage;
 
@@ -233,7 +233,7 @@ describe('DeployPage component', () => {
 
             instance.handleDefinitionVersionChange('0.0.3', false);
 
-            setStateStub.should.have.been.calledOnceWithExactly({definitionVersion: '0.0.3', versionInvalid: false, disableNext: false});
+            setStateStub.should.have.been.calledOnceWithExactly({ definitionVersion: '0.0.3', versionInvalid: false, disableNext: false });
 
         });
     });
@@ -350,6 +350,72 @@ describe('DeployPage component', () => {
         });
     });
 
+    describe('handleGetOrgApprovals', () => {
+
+        it('should send getOrgApprovals message', () => {
+            postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
+
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+
+            instance.setState({
+                environmentName: 'myEnvironment',
+                channelName: 'myChannel',
+                definitionName: packageTwo.name,
+                definitionVersion: packageTwo.version as string,
+                currentCollectionFile: undefined,
+                endorsementPolicy: 'OR("Org1MSP.member","Org2MSP.member")'
+            });
+
+            instance.handleGetOrgApprovals();
+
+            postToVscodeStub.should.have.been.calledOnceWithExactly({
+                command: 'getOrgApprovals',
+                data: {
+                    environmentName: 'myEnvironment',
+                    channelName: 'myChannel',
+                    definitionName: packageTwo.name,
+                    definitionVersion: packageTwo.version,
+                    collectionConfigPath: undefined,
+                    endorsementPolicy: 'OR("Org1MSP.member","Org2MSP.member")',
+                }
+            });
+        });
+
+        it('should send getOrgApprovals message and use file path', () => {
+            postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
+
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+
+            const file: File = new File([], 'someFile');
+            file['path'] = '/some/path';
+
+            instance.setState({
+                environmentName: 'myEnvironment',
+                channelName: 'myChannel',
+                definitionName: packageTwo.name,
+                definitionVersion: packageTwo.version as string,
+                currentCollectionFile: file,
+                endorsementPolicy: 'OR("Org1MSP.member","Org2MSP.member")'
+            });
+
+            instance.handleGetOrgApprovals();
+
+            postToVscodeStub.should.have.been.calledOnceWithExactly({
+                command: 'getOrgApprovals',
+                data: {
+                    environmentName: 'myEnvironment',
+                    channelName: 'myChannel',
+                    definitionName: packageTwo.name,
+                    definitionVersion: packageTwo.version,
+                    collectionConfigPath: '/some/path',
+                    endorsementPolicy: 'OR("Org1MSP.member","Org2MSP.member")',
+                }
+            });
+        });
+    });
+
     describe('handlePackageWorkspace', () => {
         it('should handle a workspace being packaged', () => {
             postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
@@ -378,11 +444,11 @@ describe('DeployPage component', () => {
 
             instance.handleCommitChange(false);
 
-            setStateStub.should.have.been.calledWithExactly({commitSmartContract: false});
+            setStateStub.should.have.been.calledWithExactly({ commitSmartContract: false });
 
             instance.handleCommitChange(true);
 
-            setStateStub.should.have.been.calledWithExactly({commitSmartContract: true});
+            setStateStub.should.have.been.calledWithExactly({ commitSmartContract: true });
 
         });
     });
@@ -397,7 +463,7 @@ describe('DeployPage component', () => {
             const file: File = new File([], 'someFile');
             instance.handleCollectionChange(file);
 
-            setStateStub.should.have.been.calledWithExactly({currentCollectionFile: file});
+            setStateStub.should.have.been.calledWithExactly({ currentCollectionFile: file });
         });
     });
 
@@ -410,7 +476,7 @@ describe('DeployPage component', () => {
 
             instance.handleEndorsementPolicyChange('OR("Org1MSP.member")');
 
-            setStateStub.should.have.been.calledWithExactly({endorsementPolicy: 'OR("Org1MSP.member")'});
+            setStateStub.should.have.been.calledWithExactly({ endorsementPolicy: 'OR("Org1MSP.member")' });
         });
     });
 
@@ -423,7 +489,7 @@ describe('DeployPage component', () => {
 
             instance.handlePeerChange(['Org1Peer1']);
 
-            setStateStub.should.have.been.calledWithExactly({selectedPeers: ['Org1Peer1']});
+            setStateStub.should.have.been.calledWithExactly({ selectedPeers: ['Org1Peer1'] });
 
         });
     });
@@ -447,7 +513,7 @@ describe('DeployPage component', () => {
         it('should do nothing if the selected package (with version) still exists', () => {
             const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
             const instance: DeployPage = component.instance() as DeployPage;
-            instance.setState({selectedPackage: packageOne});
+            instance.setState({ selectedPackage: packageOne });
             setStateStub = mySandBox.stub(instance, 'setState').resolves();
 
             instance.componentWillReceiveProps({
@@ -462,7 +528,7 @@ describe('DeployPage component', () => {
         it('should do nothing if the selected package (without version) still exists', () => {
             const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
             const instance: DeployPage = component.instance() as DeployPage;
-            instance.setState({selectedPackage: packageThree});
+            instance.setState({ selectedPackage: packageThree });
             setStateStub = mySandBox.stub(instance, 'setState').resolves();
 
             instance.componentWillReceiveProps({
@@ -477,7 +543,7 @@ describe('DeployPage component', () => {
         it(`should do nothing if the selected package doesnt exist in Step One`, () => {
             const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
             const instance: DeployPage = component.instance() as DeployPage;
-            instance.setState({selectedPackage: packageOne, progressIndex: 0});
+            instance.setState({ selectedPackage: packageOne, progressIndex: 0 });
             setStateStub = mySandBox.stub(instance, 'setState').resolves();
 
             instance.componentWillReceiveProps({
@@ -492,7 +558,7 @@ describe('DeployPage component', () => {
         it(`should set state if the selected package doesnt exist in Step Two (or Three)`, () => {
             const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
             const instance: DeployPage = component.instance() as DeployPage;
-            instance.setState({selectedPackage: packageOne, progressIndex: 1});
+            instance.setState({ selectedPackage: packageOne, progressIndex: 1 });
             setStateStub = mySandBox.stub(instance, 'setState').resolves();
 
             instance.componentWillReceiveProps({
@@ -501,7 +567,7 @@ describe('DeployPage component', () => {
                 }
             });
 
-            setStateStub.should.have.been.calledWith({progressIndex: 0, selectedPackage: undefined, disableNext: true, deletedSelectedPackage: true});
+            setStateStub.should.have.been.calledWith({ progressIndex: 0, selectedPackage: undefined, disableNext: true, deletedSelectedPackage: true });
 
         });
 
@@ -524,7 +590,7 @@ describe('DeployPage component', () => {
                 }
             });
 
-            setStateStub.should.have.been.calledWith({selectedPackage: workspacePackage, definitionName: workspacePackage.name, definitionVersion: workspacePackage.version,  disableNext: false});
+            setStateStub.should.have.been.calledWith({ selectedPackage: workspacePackage, definitionName: workspacePackage.name, definitionVersion: workspacePackage.version, disableNext: false });
         });
 
         it('should update selected package if passed into app and use default version', () => {
@@ -545,7 +611,30 @@ describe('DeployPage component', () => {
                 }
             });
 
-            setStateStub.should.have.been.calledWith({selectedPackage: workspacePackage, definitionName: workspacePackage.name, definitionVersion: '0.0.1',  disableNext: false});
+            setStateStub.should.have.been.calledWith({ selectedPackage: workspacePackage, definitionName: workspacePackage.name, definitionVersion: '0.0.1', disableNext: false });
+        });
+
+        it('should update org approvals if passed into app', () => {
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+
+            setStateStub = mySandBox.stub(instance, 'setState').resolves();
+
+            instance.componentWillReceiveProps({
+                deployData: {
+                    orgApprovals: {
+                        Org1MSP: true,
+                        Org2MSP: true
+                    }
+                }
+            });
+
+            setStateStub.should.have.been.calledWith({
+                orgApprovals: {
+                    Org1MSP: true,
+                    Org2MSP: true
+                }
+            });
         });
     });
 

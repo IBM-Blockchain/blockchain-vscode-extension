@@ -357,6 +357,12 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
     }
 
     public async getCommitReadiness(channelName: string, peerName: string, smartContractDefinition: FabricSmartContractDefinition): Promise<boolean> {
+        const result: Map<string, boolean> = await this.getOrgApprovals(channelName, peerName, smartContractDefinition);
+
+        return Array.from(result.values()).every((value) => value);
+    }
+
+    public async getOrgApprovals(channelName: string, peerName: string, smartContractDefinition: FabricSmartContractDefinition): Promise<Map<string, boolean>> {
         const wallet: FabricWallet = await this.getWallet(peerName) as FabricWallet;
         const peerNode: FabricNode = this.getNode(peerName);
         const channel: LifecycleChannel = this.lifecycle.getChannel(channelName, wallet.getWallet(), peerNode.identity);
@@ -369,7 +375,8 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
             collectionConfig: smartContractDefinition.collectionConfig as FabricCollectionDefinition[]
         });
 
-        return Array.from(result.values()).every((value) => value);
+        return result;
+
     }
 
     public getEndorsementPolicyBuffer(policy: string): Buffer {

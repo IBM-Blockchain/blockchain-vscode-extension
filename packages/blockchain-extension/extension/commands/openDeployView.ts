@@ -79,23 +79,39 @@ export async function openDeployView(fabricRegistryEntry?: FabricEnvironmentRegi
         const channelMap: Map<string, string[]> = await connection.createChannelMap();
         const channelPeers: string[] = channelMap.get(channelName);
         const allCommittedContracts: FabricSmartContractDefinition[] = await connection.getCommittedSmartContractDefinitions(channelPeers, channelName);
-        const definitionNames: string[] = allCommittedContracts.map((definition: FabricSmartContractDefinition) => definition.name);
+        const committedDefinitions: string[] = allCommittedContracts.map((definition: FabricSmartContractDefinition) => `${definition.name}@${definition.version}`);
 
         // All discovered peers (including connecting orgs peers)
         const allDiscoveredPeers: string[] = await connection.getAllDiscoveredPeerNames(channelName);
 
         // Filter all discovered peers, so we only have those not part of the org
-        const discoveredPeers: string[] = allDiscoveredPeers.filter((peer: string) => {
-            return !channelPeers.includes(peer);
+        const environmentPeers: string[] = [];
+        const discoveredPeers: string[] = [];
+        for (const peer of allDiscoveredPeers) {
+            if (channelPeers.includes(peer)) {
+                environmentPeers.push(peer);
+            } else {
+                discoveredPeers.push(peer);
+            }
+        }
+
+        const _orgMap: Map<string, string[]> = await connection.getDiscoveredOrgs(channelName);
+
+        // Covert map to object, as React doesn't understand.
+        const orgMap: any = {};
+        _orgMap.forEach((peers: string[], org: string) => {
+            orgMap[org] = peers;
         });
 
-        const appState: { channelName: string, environmentName: string, packageEntries: PackageRegistryEntry[], workspaceNames: string[], definitionNames: string[], discoveredPeers: string[] } = {
+        const appState: { channelName: string, environmentName: string, packageEntries: PackageRegistryEntry[], workspaceNames: string[], committedDefinitions: string[], environmentPeers: string[], discoveredPeers: string[], orgMap: any } = {
             channelName,
             environmentName: selectedEnvironmentName,
             packageEntries,
             workspaceNames,
-            definitionNames,
-            discoveredPeers
+            committedDefinitions,
+            environmentPeers,
+            discoveredPeers,
+            orgMap
         };
 
         const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
