@@ -1,17 +1,19 @@
-import { FileSystemWallet, Gateway } from 'fabric-network';
+import { Gateway, Wallets, ContractListener } from 'fabric-network';
 import * as path from 'path';
+import * as fs from 'fs';
 
 async function main() {
     try {
 
         // Create a new file system based wallet for managing identities.
         const walletPath = path.join(process.cwd(), 'Org1Wallet');
-        const wallet = new FileSystemWallet(walletPath);
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
         console.log(`Wallet path: ${walletPath}`);
 
         // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        const connectionProfile = path.resolve(__dirname, '..', 'connection.json');
+        const connectionProfilePath = path.resolve(__dirname, '..', 'connection.json');
+        const connectionProfile = JSON.parse(fs.readFileSync(connectionProfilePath, 'utf8'));
         let connectionOptions = { wallet, identity: 'org1Admin', discovery: { enabled: true, asLocalhost: true }};
         await gateway.connect(connectionProfile, connectionOptions);
 
@@ -22,14 +24,13 @@ async function main() {
         const contract = network.getContract('demo-contract');
 
         // Listen for myEvent publications
-        const listener = await contract.addContractListener('listener-app', 'myEvent', (error: Error, event: any) => {
-            if (error) {
-                console.log(`Error from event: ${error.toString()}`);
-                return;
-            }
-            const eventString: string = `chaincode_id: ${event.chaincode_id}, tx_id: ${event.tx_id}, event_name: "${event.event_name}", payload: ${event.payload.toString()}`;
+        const listener: ContractListener = async (event) => {
+            if (event.eventName === 'myEvent') {
+                const eventString: string = `chaincodeId: ${event.chaincodeId}, eventName: "${event.eventName}", payload: ${event.payload.toString()}`;
             console.log(`Event caught: ${eventString}`);
-        });
+            }
+        };
+        contract.addContractListener(listener);
 
         console.log(`Listening for myEvent events...`);
         while (true) {

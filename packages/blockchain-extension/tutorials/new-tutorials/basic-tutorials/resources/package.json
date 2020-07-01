@@ -25,7 +25,7 @@
     "author": "Hyperledger",
     "license": "Apache-2.0",
     "dependencies": {
-      "fabric-network": "~1.4.0"
+      "fabric-network": "~2.1.0"
     },
     "devDependencies": {
       "@types/chai": "^4.2.0",

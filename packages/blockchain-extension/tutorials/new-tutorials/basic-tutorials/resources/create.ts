@@ -1,17 +1,19 @@
-import { FileSystemWallet, Gateway } from 'fabric-network';
+import { Gateway, Wallets } from 'fabric-network';
 import * as path from 'path';
+import * as fs from 'fs';
 
 async function main() {
     try {
 
         // Create a new file system based wallet for managing identities.
         const walletPath = path.join(process.cwd(), 'Org1Wallet');
-        const wallet = new FileSystemWallet(walletPath);
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
         console.log(`Wallet path: ${walletPath}`);
 
         // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        const connectionProfile = path.resolve(__dirname, '..', 'connection.json');
+        const connectionProfilePath = path.resolve(__dirname, '..', 'connection.json');
+        const connectionProfile = JSON.parse(fs.readFileSync(connectionProfilePath, 'utf8'));
         let connectionOptions = { wallet, identity: 'org1Admin', discovery: { enabled: true, asLocalhost: true }};
         await gateway.connect(connectionProfile, connectionOptions);
 
