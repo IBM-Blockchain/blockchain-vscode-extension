@@ -786,6 +786,11 @@ describe('AddWalletIdentityCommand', () => {
                 getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
                 enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
                 importIdentityStub.resolves();
+
+                const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
+                mockRuntime.getNodes.resolves([{wallet: 'Orderer'}, {wallet: 'Org1'}]);
+                mySandBox.stub(EnvironmentFactory, 'getEnvironment').returns(mockRuntime);
+
                 const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
 
                 const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
@@ -821,11 +826,17 @@ describe('AddWalletIdentityCommand', () => {
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
 
-                mySandBox.stub(LocalEnvironment.prototype, 'isRunning').resolves(true);
-
                 getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
                 enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
                 importIdentityStub.resolves();
+
+                const isRunning: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isRunning').resolves(true);
+                const getNodes: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getNodes').resolves([{wallet: 'Orderer'}, {wallet: 'Org1'}]);
+                mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns({
+                    isRunning,
+                    getNodes
+                });
+
                 const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
 
                 const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
@@ -946,10 +957,12 @@ describe('AddWalletIdentityCommand', () => {
                 const isRunning: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isRunning').resolves(false);
                 const getWalletNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getWalletNames').resolves(['Org1']);
                 const getAllOrganizationNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getAllOrganizationNames').resolves(['myMSPID']);
+                const getNodes: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getNodes').resolves([{wallet: 'Orderer'}, {wallet: 'Org1'}]);
                 mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns({
                     isRunning,
                     getWalletNames,
-                    getAllOrganizationNames
+                    getAllOrganizationNames,
+                    getNodes
                 });
 
                 const localEnvironmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC}`);
@@ -978,6 +991,10 @@ describe('AddWalletIdentityCommand', () => {
                 const showOrgQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showOrgQuickPick').resolves();
 
                 const localEnvironmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC}`);
+
+                const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
+                mockRuntime.getNodes.resolves([{wallet: 'Orderer'}, {wallet: 'Org1'}]);
+                mySandBox.stub(EnvironmentFactory, 'getEnvironment').returns(mockRuntime);
 
                 const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
                 const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();

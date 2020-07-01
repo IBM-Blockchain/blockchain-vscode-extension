@@ -177,13 +177,14 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
 
         const tree: BlockchainTreeItem[] = [];
 
-        const allGateways: FabricGatewayRegistryEntry[] = await this.fabricGatewayRegistry.getAll();
+        let allGateways: FabricGatewayRegistryEntry[] = await this.fabricGatewayRegistry.getAll();
+        allGateways = await this.updateGatewayEnvironmentGroup(allGateways);
 
         const gatewayGroups: Array<FabricGatewayRegistryEntry[]> = [];
         const otherGateways: Array<FabricGatewayRegistryEntry> = [];
         for (const gateway of allGateways) {
             if (gatewayGroups.length === 0) {
-                if (gateway.fromEnvironment) {
+                if (gateway.fromEnvironment || gateway.environmentGroup) {
                     gatewayGroups.push([gateway]);
                 } else {
                     otherGateways.push(gateway);
@@ -193,14 +194,18 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
 
             // Used to check if group exists already
             const groupIndex: number = gatewayGroups.findIndex((group: FabricGatewayRegistryEntry[]) => {
-                return group[0].fromEnvironment && group[0].fromEnvironment === gateway.fromEnvironment;
+                if (gateway.fromEnvironment) {
+                    return gateway.fromEnvironment === group[0].fromEnvironment || gateway.fromEnvironment === group[0].environmentGroup;
+                } else if (gateway.environmentGroup) {
+                    return gateway.environmentGroup === group[0].fromEnvironment || gateway.environmentGroup === group[0].environmentGroup;
+                }
             });
 
             if (groupIndex !== -1) {
                 // If a group with the same fromEnvironment exists, then push gateway to the group
                 gatewayGroups[groupIndex].push(gateway);
             } else {
-                if (gateway.fromEnvironment) {
+                if (gateway.fromEnvironment || gateway.environmentGroup) {
                     // Create new group
                     gatewayGroups.push([gateway]);
                 } else {
@@ -218,10 +223,15 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         } else {
 
             for (const group of gatewayGroups) {
-                const groupName: string = group[0].fromEnvironment ? group[0].fromEnvironment : 'Other gateways';
-                const groupTreeItem: GatewayGroupTreeItem = new GatewayGroupTreeItem(this, groupName, group, vscode.TreeItemCollapsibleState.Expanded);
+                let groupName: string = 'Other gateways';
                 if (group[0].fromEnvironment) {
-                    groupTreeItem.iconPath = await ExplorerUtil.getGroupIcon(group[0]);
+                    groupName = group[0].fromEnvironment;
+                } else if (group[0].environmentGroup) {
+                    groupName = group[0].environmentGroup;
+                }
+                const groupTreeItem: GatewayGroupTreeItem = new GatewayGroupTreeItem(this, groupName, group, vscode.TreeItemCollapsibleState.Expanded);
+                if (groupName !== 'Other gateways') {
+                    groupTreeItem.iconPath = await ExplorerUtil.getGroupIcon(groupName);
                 }
                 tree.push(groupTreeItem);
             }
@@ -434,5 +444,18 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
                 }
             });
         }
+    }
+
+    private async updateGatewayEnvironmentGroup(gatewayRegistryEntries: FabricGatewayRegistryEntry[]): Promise<FabricGatewayRegistryEntry[]> {
+        for (const gateway of gatewayRegistryEntries) {
+            if (gateway.environmentGroup) {
+                const envExists: boolean = await FabricEnvironmentRegistry.instance().exists(gateway.environmentGroup);
+                if (!envExists) {
+                    delete gateway.environmentGroup;
+                    await FabricGatewayRegistry.instance().update(gateway);
+                }
+            }
+        }
+        return gatewayRegistryEntries;
     }
 }

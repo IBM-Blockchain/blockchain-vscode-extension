@@ -12,6 +12,8 @@
  * limitations under the License.
 */
 'use strict';
+import * as path from 'path';
+import * as fs from 'fs-extra';
 import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
 import { FileConfigurations } from './FileConfigurations';
 import { FileRegistry } from './FileRegistry';
@@ -42,14 +44,8 @@ export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry
             const envName: string = entry.fromEnvironment;
             let environmentType: EnvironmentType;
             if (envName) {
-                const envExists: boolean = await FabricEnvironmentRegistry.instance().exists(envName);
-                if (envExists) {
-                    const environment: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(envName);
-                    environmentType = environment.environmentType;
-                } else {
-                    delete entry.fromEnvironment;
-                    await this.update(entry);
-                }
+                const environment: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(envName);
+                environmentType = environment.environmentType;
             }
             if (environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
                 localWallets.push(entry);
@@ -68,12 +64,21 @@ export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry
 
     public async get(name: string, fromEnvironment?: string): Promise<FabricWalletRegistryEntry> {
         const entries: FabricWalletRegistryEntry[] = await this.getAll();
-
         const entry: FabricWalletRegistryEntry = entries.find((item: FabricWalletRegistryEntry) => {
-            if (fromEnvironment && item.fromEnvironment) {
+            if (item.fromEnvironment && item.fromEnvironment === fromEnvironment) {
                 return item.name === name && item.fromEnvironment === fromEnvironment;
             } else {
-                return item.name === name;
+                if (item.name === name) {
+                    if (item.environmentGroups) {
+                        if (item.environmentGroups.length && fromEnvironment) {
+                            return item.environmentGroups.includes(fromEnvironment);
+                        } else {
+                            return item;
+                        }
+                    } else {
+                        return item;
+                    }
+                }
             }
         });
 
@@ -118,6 +123,17 @@ export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry
             const bName: string = b.displayName ? b.displayName : b.name;
             return aName.localeCompare(bName);
         });
+    }
+
+    public async update(entry: FabricWalletRegistryEntry): Promise<void> {
+        if (entry.fromEnvironment) {
+            await fs.ensureDir(entry.walletPath);
+            const entryPath: string = path.join(entry.walletPath, this.FILE_NAME);
+            await fs.writeJSON(entryPath, entry);
+            this.emit(FileRegistry.EVENT_NAME, 'wallets');
+        } else {
+            await super.update(entry);
+        }
     }
 
     public newMicrofabEnvironment(name: string, directory: string, url: string): MicrofabEnvironment {
