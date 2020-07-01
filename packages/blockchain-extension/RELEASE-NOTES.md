@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 # IBM Blockchain Platform Extension updated to v2.0.0-beta.3
 _Release date: June 25th 2020_
+=======
+# IBM Blockchain Platform Extension updated to v1.0.34
+_Release date: July 2nd 2020_
+>>>>>>> 6bfa7efc... Changelog (#2488)
 
 Announcements
 ---
@@ -27,14 +32,16 @@ Features & Enhancements
 
 Fixes
 ---
-* Fixed chaincode logs not appearing in logs [#2447](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pulls/2447).
-
-* Fixed packaging contracts on VS Code 1.44.2 [#2243](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2243).
-
-* Replaced Java 'org.json.JSONObject' non-deterministic package [#2287](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2287).
+* Fix associating a wallet with multiple environments [#2354](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2354).
 
 Notes
 ---
+<<<<<<< HEAD
 * Connecting to IBM Blockchain Platform environments will not work yet as they are still using Fabric 1.4.
 * If you already have v1.4 local environment's running, you'll need to tear them down and start them again to use them as v2 local environments.
 * Debug doesn't work at moment
+=======
+<img src="https://congacomic.github.io/assets/img/blockheight-76.jpg" width="800">
+
+For the full history of all releases, see the [change log](https://marketplace.visualstudio.com/items/IBMBlockchain.ibm-blockchain-platform/changelog).
+>>>>>>> 6bfa7efc... Changelog (#2488)
