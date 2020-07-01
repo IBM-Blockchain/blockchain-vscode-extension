@@ -100,7 +100,8 @@ export class MicrofabEnvironment extends AnsibleEnvironment {
                 displayName: `${this.name} - ${walletName}`,
                 walletPath,
                 managedWallet: false,
-                fromEnvironment: this.name
+                fromEnvironment: this.name,
+                environmentGroups: [this.name]
             });
             walletRegistryEntries.push(walletRegistryEntry);
             const wallet: IFabricWallet = await walletGenerator.getWallet(walletRegistryEntry);
@@ -142,7 +143,8 @@ export class MicrofabEnvironment extends AnsibleEnvironment {
                 associatedWallet: (gateway.connectionProfile as any).wallet,
                 displayName: gateway.name,
                 connectionProfilePath: gateway.path,
-                fromEnvironment: this.name
+                fromEnvironment: this.name,
+                environmentGroup: this.name
             });
         });
     }

@@ -26,9 +26,11 @@ import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { IdentityTreeItem } from '../../extension/explorer/model/IdentityTreeItem';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { AdminIdentityTreeItem } from '../../extension/explorer/model/AdminIdentityTreeItem';
-import { FabricCertificate, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWallet, LogType, FabricWalletGeneratorFactory, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricCertificate, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWallet, LogType, FabricWalletGeneratorFactory, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType, FabricEnvironment } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { WalletGroupTreeItem } from '../../extension/explorer/model/WalletGroupTreeItem';
+import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
+import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
 
 chai.use(sinonChai);
 chai.should();
@@ -122,12 +124,16 @@ describe('walletExplorer', () => {
         getAttributesStub.onCall(4).returns({ attr1: 'hello', attr2: 'world' });
         getAttributesStub.onCall(5).returns({ attr3: 'good', attr4: 'day!' });
 
+        const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
+        mockRuntime.getNodes.resolves([{wallet: 'Orderer'}, {wallet: 'Org1'}]);
+        mySandBox.stub(EnvironmentFactory, 'getEnvironment').returns(mockRuntime);
+
         const allChildren: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
         allChildren.length.should.equal(2);
         allChildren[0].should.be.an.instanceof(WalletGroupTreeItem);
         allChildren[0].label.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
         allChildren[1].should.be.an.instanceOf(WalletGroupTreeItem);
-        allChildren[1].label.should.equal('Other wallets');
+        allChildren[1].label.should.equal('Other/shared wallets');
 
         const groupOne: WalletGroupTreeItem = allChildren[0] as WalletGroupTreeItem;
         groupOne.wallets.length.should.equal(2);
@@ -197,16 +203,18 @@ describe('walletExplorer', () => {
     });
 
     it('should get a tree item in the BlockchainWalletExplorer view', async () => {
+        await FabricEnvironmentRegistry.instance().clear();
+        await FabricWalletRegistry.instance().clear();
+
         getGreenWalletIdentityNamesStub.resolves([]);
         getBlueWalletIdentityNamesStub.resolves([]);
 
         await FabricWalletRegistry.instance().clear();
-        await TestUtil.setupLocalFabric();
         await FabricWalletRegistry.instance().add(blueWalletEntry);
         await FabricWalletRegistry.instance().add(greenWalletEntry);
 
         const walletGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
-        const walletGroupChildren: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletGroups[1]) as Array<WalletTreeItem>;
+        const walletGroupChildren: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletGroups[0]) as Array<WalletTreeItem>;
         const blueWallet: WalletTreeItem = blockchainWalletExplorerProvider.getTreeItem(walletGroupChildren[0]) as WalletTreeItem;
         blueWallet.label.should.equal('blueWallet');
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
@@ -224,7 +232,7 @@ describe('walletExplorer', () => {
         const opsToolsWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
             name: 'myOpsToolsWallet',
             walletPath: '/some/path',
-            fromEnvironment: opsToolsEnv.name
+            environmentGroups: [opsToolsEnv.name]
         });
         await FabricWalletRegistry.instance().add(opsToolsWallet);
 
@@ -246,7 +254,7 @@ describe('walletExplorer', () => {
         const saasWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
             name: 'myOpsToolsWallet',
             walletPath: '/some/path',
-            fromEnvironment: saasEnv.name
+            environmentGroups: [saasEnv.name]
         });
         await FabricWalletRegistry.instance().add(saasWallet);
 
@@ -269,7 +277,7 @@ describe('walletExplorer', () => {
         const managedAnsibleWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
             name: 'myManagedAnsibleWallet',
             walletPath: '/some/path',
-            fromEnvironment: managedAnsible.name
+            environmentGroups: [managedAnsible.name]
         });
         await FabricWalletRegistry.instance().add(managedAnsibleWallet);
 
@@ -284,7 +292,7 @@ describe('walletExplorer', () => {
         await FabricWalletRegistry.instance().clear();
 
         const otherWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
-            name: 'myManagedAnsibleWallet',
+            name: 'randomWallet',
             walletPath: '/some/path',
         });
         await FabricWalletRegistry.instance().add(otherWallet);
@@ -295,8 +303,21 @@ describe('walletExplorer', () => {
         otherWalletItem.label.should.deep.equal(otherWallet.name);
     });
 
-    it(`should display multiple wallet groups at once`, async () => {
-        await FabricWalletRegistry.instance().clear();
+    it(`should display wallet groups in the 'Other/shared wallets' section`, async () => {
+        await FabricEnvironmentRegistry.instance().clear();
+        await FabricWalletRegistry.instance().clear();
+
+        const managedAnsible: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+        managedAnsible.name = 'managedAnsible';
+        managedAnsible.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+
+        const managedAnsibleWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'myManagedAnsibleWallet',
+            walletPath: '/some/path',
+            environmentGroups: [managedAnsible.name, 'someOtherEnvironment'],
+            fromEnvironment: managedAnsible.name
+        });
+        await FabricWalletRegistry.instance().add(managedAnsibleWallet);
 
         const opsToolsEnv: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         opsToolsEnv.name = 'opsToolsEnv';
@@ -306,40 +327,470 @@ describe('walletExplorer', () => {
         const opsToolsWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
             name: 'myOpsToolsWallet',
             walletPath: '/some/path',
-            fromEnvironment: opsToolsEnv.name
-        });
-        const otherWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
-            name: 'myManagedAnsibleWallet',
-            walletPath: '/some/path',
+            environmentGroups: [opsToolsEnv.name, 'randomEnv']
         });
         await FabricWalletRegistry.instance().add(opsToolsWallet);
-        await FabricWalletRegistry.instance().add(otherWallet);
 
-        const walletGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
-        walletGroups.should.have.length(3);
+        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'exists').resolves(true);
 
-        walletGroups[0].label.should.deep.equal('1 Org Local Fabric');
-        const localWalletGroupChildren: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletGroups[0]) as Array<WalletTreeItem>;
-        localWalletGroupChildren[0].label.should.deep.equal('Orderer');
-        localWalletGroupChildren[1].label.should.deep.equal('Org1');
+        const getEnvironmentStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get');
+        getEnvironmentStub.withArgs(managedAnsible.name).resolves(managedAnsible);
+        getEnvironmentStub.withArgs('someOtherEnvironment').resolves(managedAnsible);
+        getEnvironmentStub.withArgs(opsToolsEnv.name).resolves(opsToolsEnv);
+        getEnvironmentStub.withArgs('randomEnv').resolves(opsToolsEnv);
+        const getNodesStub: sinon.SinonStub = mySandBox.stub(FabricEnvironment.prototype, 'getNodes');
+        getNodesStub.resolves([{wallet: managedAnsibleWallet.name}]);
+        getNodesStub.onCall(2).resolves([{wallet: opsToolsWallet.name}]);
+        getNodesStub.onCall(3).resolves([{wallet: opsToolsWallet.name}]);
 
-        walletGroups[1].label.should.deep.equal(opsToolsEnv.name);
-        const opsToolsWalletGroupChildren: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletGroups[1]) as Array<WalletTreeItem>;
-        const opsWalletItem: WalletTreeItem  = opsToolsWalletGroupChildren[0];
-        opsWalletItem.label.should.deep.equal(opsToolsWallet.name);
+        const walletGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
+        walletGroups[0].label.should.deep.equal('Other/shared wallets');
+        const walletSubGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletGroups[0]) as Array<WalletTreeItem>;
+        walletSubGroups[0].label.should.deep.equal(managedAnsible.name);
+        const walletGroupChildren: Array<WalletTreeItem>  = await blockchainWalletExplorerProvider.getChildren(walletSubGroups[0]) as Array<WalletTreeItem>;
+        walletGroupChildren[0].label.should.deep.equal(managedAnsibleWallet.name);
+    });
 
-        walletGroups[2].label.should.deep.equal('Other wallets');
-        const otherWalletGroupChildren: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletGroups[2]) as Array<WalletTreeItem>;
-        const otherWalletItem: WalletTreeItem  = otherWalletGroupChildren[0];
-        otherWalletItem.label.should.deep.equal(otherWallet.name);
+    it(`should display a wallet group with multiple entries in the 'Other/shared wallets' section`, async () => {
+        await FabricEnvironmentRegistry.instance().clear();
+        await FabricWalletRegistry.instance().clear();
+
+        const managedAnsible: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+        managedAnsible.name = 'managedAnsible';
+        managedAnsible.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+
+        const walletOne: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet1',
+            walletPath: '/some/path',
+            environmentGroups: [managedAnsible.name],
+            fromEnvironment: managedAnsible.name
+        });
+        const walletTwo: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet2',
+            walletPath: '/some/path',
+            environmentGroups: [managedAnsible.name, 'someOtherEnvironment'],
+            fromEnvironment: managedAnsible.name
+        });
+        const walletThree: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet3',
+            walletPath: '/some/path',
+            environmentGroups: [managedAnsible.name],
+            fromEnvironment: managedAnsible.name
+        });
+
+        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'exists').resolves(true);
+        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get').resolves(managedAnsible);
+
+        const getNodesStub: sinon.SinonStub = mySandBox.stub(FabricEnvironment.prototype, 'getNodes');
+        getNodesStub.resolves([{wallet: walletOne.name}, {wallet: walletTwo.name}, {wallet: walletThree.name}]);
+        getNodesStub.onThirdCall().resolves([{wallet: walletTwo.name}]);
+
+        await FabricWalletRegistry.instance().add(walletOne);
+        await FabricWalletRegistry.instance().add(walletTwo);
+        await FabricWalletRegistry.instance().add(walletThree);
+
+        const walletGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
+        walletGroups[0].label.should.deep.equal('Other/shared wallets');
+        const walletSubGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletGroups[0]) as Array<WalletTreeItem>;
+        walletSubGroups[0].label.should.deep.equal(managedAnsible.name);
+        const walletGroupChildren: Array<WalletTreeItem>  = await blockchainWalletExplorerProvider.getChildren(walletSubGroups[0]) as Array<WalletTreeItem>;
+        walletGroupChildren[0].label.should.deep.equal(walletOne.name);
+        walletGroupChildren[1].label.should.deep.equal(walletTwo.name);
+        walletGroupChildren[2].label.should.deep.equal(walletThree.name);
+    });
+
+    it(`should display wallets with and without environmentGroups in a group in 'Other/shared wallets'`, async () => {
+        await FabricEnvironmentRegistry.instance().clear();
+        await FabricWalletRegistry.instance().clear();
+
+        const managedAnsible: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+        managedAnsible.name = 'managedAnsible';
+        managedAnsible.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+
+        const walletOne: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet1',
+            walletPath: '/some/path',
+            fromEnvironment: managedAnsible.name
+        });
+        const walletTwo: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet2',
+            walletPath: '/some/path',
+            environmentGroups: [managedAnsible.name, 'someOtherEnvironment'],
+            fromEnvironment: managedAnsible.name
+        });
+        const walletThree: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet3',
+            walletPath: '/some/path',
+            environmentGroups: [managedAnsible.name],
+            fromEnvironment: managedAnsible.name
+        });
+
+        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'exists').resolves(true);
+        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get').resolves(managedAnsible);
+
+        const getNodesStub: sinon.SinonStub = mySandBox.stub(FabricEnvironment.prototype, 'getNodes');
+        getNodesStub.resolves([{wallet: walletOne.name}, {wallet: walletTwo.name}, {wallet: walletThree.name}]);
+        getNodesStub.onSecondCall().resolves([{wallet: walletTwo.name}]);
+
+        await FabricWalletRegistry.instance().add(walletOne);
+        await FabricWalletRegistry.instance().add(walletTwo);
+        await FabricWalletRegistry.instance().add(walletThree);
+
+        const walletGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
+        walletGroups[0].label.should.deep.equal('Other/shared wallets');
+        const walletSubGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletGroups[0]) as Array<WalletTreeItem>;
+        walletSubGroups[0].label.should.deep.equal(managedAnsible.name);
+        const walletGroupChildren: Array<WalletTreeItem>  = await blockchainWalletExplorerProvider.getChildren(walletSubGroups[0]) as Array<WalletTreeItem>;
+        walletGroupChildren[0].label.should.deep.equal(walletOne.name);
+        walletGroupChildren[1].label.should.deep.equal(walletTwo.name);
+        walletGroupChildren[2].label.should.deep.equal(walletThree.name);
+    });
+
+    it(`should display a wallet group in 'Other/shared wallets if fromEnvironment and environmentGroups are different`, async () => {
+        await FabricEnvironmentRegistry.instance().clear();
+        await FabricWalletRegistry.instance().clear();
+
+        const managedAnsible: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+        managedAnsible.name = 'managedAnsible';
+        managedAnsible.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+
+        const walletOne: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet1',
+            walletPath: '/some/path',
+            fromEnvironment: managedAnsible.name
+        });
+        const walletTwo: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet2',
+            walletPath: '/some/path',
+            environmentGroups: ['someOtherEnvironment'],
+            fromEnvironment: managedAnsible.name
+        });
+
+        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'exists').resolves(true);
+        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get').resolves(managedAnsible);
+
+        const getNodesStub: sinon.SinonStub = mySandBox.stub(FabricEnvironment.prototype, 'getNodes');
+        getNodesStub.resolves([{wallet: walletTwo.name}]);
+
+        await FabricWalletRegistry.instance().add(walletOne);
+        await FabricWalletRegistry.instance().add(walletTwo);
+
+        const walletGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
+        walletGroups[0].label.should.deep.equal('Other/shared wallets');
+        const walletSubGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletGroups[0]) as Array<WalletTreeItem>;
+        walletSubGroups[0].label.should.deep.equal(managedAnsible.name);
+        const walletGroupChildren: Array<WalletTreeItem>  = await blockchainWalletExplorerProvider.getChildren(walletSubGroups[0]) as Array<WalletTreeItem>;
+        walletGroupChildren[0].label.should.deep.equal(walletOne.name);
+        walletGroupChildren[1].label.should.deep.equal(walletTwo.name);
+    });
+
+    it('should display multiple different wallet groups', async () => {
+        await FabricEnvironmentRegistry.instance().clear();
+        await FabricWalletRegistry.instance().clear();
+
+        const managedAnsible: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+        managedAnsible.name = 'managedAnsible';
+        managedAnsible.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+
+        const anotherAnsible: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+        anotherAnsible.name = 'anotherAnsible';
+        anotherAnsible.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+
+        const walletOne: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet1',
+            walletPath: '/some/path',
+            environmentGroups: [managedAnsible.name],
+            fromEnvironment: managedAnsible.name
+        });
+        const walletTwo: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet2',
+            walletPath: '/some/path',
+            environmentGroups: [managedAnsible.name],
+            fromEnvironment: managedAnsible.name
+        });
+        const walletThree: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet3',
+            walletPath: '/some/path',
+            environmentGroups: [anotherAnsible.name],
+            fromEnvironment: anotherAnsible.name
+        });
+        const walletFour: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet4',
+            walletPath: '/some/path',
+            environmentGroups: [anotherAnsible.name],
+            fromEnvironment: anotherAnsible.name
+        });
+
+        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'exists').resolves(true);
+        const getEnvironmentRegistryEntryStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get');
+        getEnvironmentRegistryEntryStub.withArgs(managedAnsible.name).resolves(managedAnsible);
+        getEnvironmentRegistryEntryStub.withArgs(anotherAnsible.name).resolves(anotherAnsible);
+
+        const getNodesStub: sinon.SinonStub = mySandBox.stub(FabricEnvironment.prototype, 'getNodes');
+        getNodesStub.resolves([{wallet: walletOne.name}, {wallet: walletTwo.name}]);
+        getNodesStub.onCall(2).resolves([{wallet: walletThree.name}, {wallet: walletFour.name}]);
+        getNodesStub.onCall(3).resolves([{wallet: walletThree.name}, {wallet: walletFour.name}]);
+
+        await FabricWalletRegistry.instance().add(walletOne);
+        await FabricWalletRegistry.instance().add(walletTwo);
+        await FabricWalletRegistry.instance().add(walletThree);
+        await FabricWalletRegistry.instance().add(walletFour);
+
+        const walletGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
+        walletGroups.length.should.equal(2);
+
+        const managedAnsibleGroup: WalletTreeItem = walletGroups[0];
+        managedAnsibleGroup.label.should.deep.equal(managedAnsible.name);
+        const managedAnsibleGroupChildren: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(managedAnsibleGroup) as Array<WalletTreeItem>;
+        managedAnsibleGroupChildren[0].label.should.deep.equal(walletOne.name);
+        managedAnsibleGroupChildren[1].label.should.deep.equal(walletTwo.name);
+
+        const anotherAnsibleGroup: WalletTreeItem = walletGroups[1];
+        anotherAnsibleGroup.label.should.deep.equal(anotherAnsible.name);
+        const anotherAnsibleGroupChildren: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(anotherAnsibleGroup) as Array<WalletTreeItem>;
+        anotherAnsibleGroupChildren[0].label.should.deep.equal(walletThree.name);
+        anotherAnsibleGroupChildren[1].label.should.deep.equal(walletFour.name);
+    });
+
+    it(`should display multiple groups of wallets without environmentGroups`, async () => {
+        await FabricEnvironmentRegistry.instance().clear();
+        await FabricWalletRegistry.instance().clear();
+
+        const managedAnsible: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+        managedAnsible.name = 'managedAnsible';
+        managedAnsible.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+
+        const anotherAnsible: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+        anotherAnsible.name = 'anotherAnsible';
+        anotherAnsible.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+
+        const walletOne: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet1',
+            walletPath: '/some/path',
+            fromEnvironment: managedAnsible.name
+        });
+        const walletTwo: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet2',
+            walletPath: '/some/path',
+            environmentGroups: [managedAnsible.name],
+            fromEnvironment: managedAnsible.name
+        });
+        const walletThree: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet3',
+            walletPath: '/some/path',
+            fromEnvironment: anotherAnsible.name
+        });
+        const walletFour: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet4',
+            walletPath: '/some/path',
+            environmentGroups: [anotherAnsible.name],
+            fromEnvironment: anotherAnsible.name
+        });
+
+        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'exists').resolves(true);
+        const getEnvironmentRegistryEntryStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get');
+        getEnvironmentRegistryEntryStub.withArgs(managedAnsible.name).resolves(managedAnsible);
+        getEnvironmentRegistryEntryStub.withArgs(anotherAnsible.name).resolves(anotherAnsible);
+
+        const getNodesStub: sinon.SinonStub = mySandBox.stub(FabricEnvironment.prototype, 'getNodes');
+        getNodesStub.resolves([{wallet: walletOne.name}, {wallet: walletTwo.name}]);
+        getNodesStub.onSecondCall().resolves([{wallet: walletThree.name}, {wallet: walletFour.name}]);
+
+        await FabricWalletRegistry.instance().add(walletOne);
+        await FabricWalletRegistry.instance().add(walletTwo);
+        await FabricWalletRegistry.instance().add(walletThree);
+        await FabricWalletRegistry.instance().add(walletFour);
+
+        const walletGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
+        walletGroups.length.should.equal(2);
+
+        const managedAnsibleGroup: WalletTreeItem = walletGroups[0];
+        managedAnsibleGroup.label.should.deep.equal(managedAnsible.name);
+        const managedAnsibleGroupChildren: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(managedAnsibleGroup) as Array<WalletTreeItem>;
+        managedAnsibleGroupChildren[0].label.should.deep.equal(walletOne.name);
+        managedAnsibleGroupChildren[1].label.should.deep.equal(walletTwo.name);
+
+        const anotherAnsibleGroup: WalletTreeItem = walletGroups[1];
+        anotherAnsibleGroup.label.should.deep.equal(anotherAnsible.name);
+        const anotherAnsibleGroupChildren: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(anotherAnsibleGroup) as Array<WalletTreeItem>;
+        anotherAnsibleGroupChildren[0].label.should.deep.equal(walletThree.name);
+        anotherAnsibleGroupChildren[1].label.should.deep.equal(walletFour.name);
+    });
+
+    it(`should correctly group wallets that don't have environmentGroups`, async () => {
+        await FabricEnvironmentRegistry.instance().clear();
+        await FabricWalletRegistry.instance().clear();
+
+        const managedAnsible: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+        managedAnsible.name = 'managedAnsible';
+        managedAnsible.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+
+        const walletOne: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet1',
+            walletPath: '/some/path',
+            fromEnvironment: managedAnsible.name
+        });
+        const walletTwo: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet2',
+            walletPath: '/some/path',
+            fromEnvironment: managedAnsible.name
+        });
+        const walletThree: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet3',
+            walletPath: '/some/path',
+            fromEnvironment: managedAnsible.name
+        });
+
+        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'exists').resolves(true);
+        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get').resolves(managedAnsible);
+
+        const getNodesStub: sinon.SinonStub = mySandBox.stub(FabricEnvironment.prototype, 'getNodes');
+        getNodesStub.resolves([{wallet: walletOne.name}, {wallet: walletTwo.name}, {wallet: walletThree.name}]);
+
+        await FabricWalletRegistry.instance().add(walletOne);
+        await FabricWalletRegistry.instance().add(walletTwo);
+        await FabricWalletRegistry.instance().add(walletThree);
+
+        const walletGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
+        walletGroups[0].label.should.deep.equal('managedAnsible');
+        const walletGroupChildren: Array<WalletTreeItem>  = await blockchainWalletExplorerProvider.getChildren(walletGroups[0]) as Array<WalletTreeItem>;
+        walletGroupChildren[0].label.should.deep.equal(walletOne.name);
+        walletGroupChildren[1].label.should.deep.equal(walletTwo.name);
+        walletGroupChildren[2].label.should.deep.equal(walletThree.name);
+    });
+
+    it(`should group a wallet that doesn't have environmentGroups with one that does`, async () => {
+        await FabricEnvironmentRegistry.instance().clear();
+        await FabricWalletRegistry.instance().clear();
+
+        const managedAnsible: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+        managedAnsible.name = 'managedAnsible';
+        managedAnsible.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+
+        const walletOne: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet1',
+            walletPath: '/some/path',
+            fromEnvironment: managedAnsible.name
+        });
+        const walletTwo: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet2',
+            walletPath: '/some/path',
+            environmentGroups: [managedAnsible.name]
+        });
+
+        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'exists').resolves(true);
+        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get').resolves(managedAnsible);
+
+        const getNodesStub: sinon.SinonStub = mySandBox.stub(FabricEnvironment.prototype, 'getNodes');
+        getNodesStub.resolves([{wallet: walletOne.name}, {wallet: walletTwo.name}]);
+
+        await FabricWalletRegistry.instance().add(walletOne);
+        await FabricWalletRegistry.instance().add(walletTwo);
+
+        const walletGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
+        walletGroups[0].label.should.deep.equal('managedAnsible');
+        const walletGroupChildren: Array<WalletTreeItem>  = await blockchainWalletExplorerProvider.getChildren(walletGroups[0]) as Array<WalletTreeItem>;
+        walletGroupChildren[0].label.should.deep.equal(walletOne.name);
+        walletGroupChildren[1].label.should.deep.equal(walletTwo.name);
+    });
+
+    it(`should group a wallet that has environmentGroups with one that doesn't`, async () => {
+        await FabricEnvironmentRegistry.instance().clear();
+        await FabricWalletRegistry.instance().clear();
+
+        const managedAnsible: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+        managedAnsible.name = 'managedAnsible';
+        managedAnsible.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+
+        const walletOne: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet1',
+            walletPath: '/some/path',
+            environmentGroups: [managedAnsible.name]
+        });
+        const walletTwo: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'wallet2',
+            walletPath: '/some/path',
+            fromEnvironment: managedAnsible.name
+        });
+
+        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'exists').resolves(true);
+        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get').resolves(managedAnsible);
+
+        const getNodesStub: sinon.SinonStub = mySandBox.stub(FabricEnvironment.prototype, 'getNodes');
+        getNodesStub.resolves([{wallet: walletOne.name}, {wallet: walletTwo.name}]);
+
+        await FabricWalletRegistry.instance().add(walletOne);
+        await FabricWalletRegistry.instance().add(walletTwo);
+
+        const walletGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
+        walletGroups[0].label.should.deep.equal('managedAnsible');
+        const walletGroupChildren: Array<WalletTreeItem>  = await blockchainWalletExplorerProvider.getChildren(walletGroups[0]) as Array<WalletTreeItem>;
+        walletGroupChildren[0].label.should.deep.equal(walletOne.name);
+        walletGroupChildren[1].label.should.deep.equal(walletTwo.name);
+    });
+
+    it(`should not attempt to show a wallet in a group if the environment doesn't exist`, async () => {
+        await FabricEnvironmentRegistry.instance().clear();
+        await FabricWalletRegistry.instance().clear();
+
+        const myWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'myWallet',
+            walletPath: '/some/path',
+            environmentGroups: ['whatever'],
+        });
+        await FabricWalletRegistry.instance().add(myWallet);
+
+        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'exists').resolves(false);
+        mySandBox.stub(FabricEnvironment.prototype, 'getNodes').resolves([{wallet: myWallet.name}]);
+
+        const walletGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
+        walletGroups[0].label.should.deep.equal('Other/shared wallets');
+        const walletGroupChildren: Array<WalletTreeItem>  = await blockchainWalletExplorerProvider.getChildren(walletGroups[0]) as Array<WalletTreeItem>;
+        walletGroupChildren[0].label.should.deep.equal(myWallet.name);
+    });
+
+    it(`should handle error when updating walletRegistryEntries`, async () => {
+        await FabricEnvironmentRegistry.instance().clear();
+        await FabricWalletRegistry.instance().clear();
+
+        const managedAnsible: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+        managedAnsible.name = 'managedAnsible';
+        managedAnsible.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+
+        const managedAnsibleWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            name: 'myManagedAnsibleWallet',
+            walletPath: '/some/path',
+            environmentGroups: [managedAnsible.name],
+            fromEnvironment: managedAnsible.name
+        });
+        await FabricWalletRegistry.instance().add(managedAnsibleWallet);
+
+        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'exists').resolves(true);
+        mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get').resolves(managedAnsible);
+        mySandBox.stub(FabricEnvironment.prototype, 'getNodes').rejects({ message: 'something bad has happened' });
+
+        const updateWalletStub: sinon.SinonStub = mySandBox.stub(FabricWalletRegistry.instance(), 'update').resolves();
+
+        await blockchainWalletExplorerProvider.getChildren();
+
+        logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Error displaying Fabric Wallets: something bad has happened', 'Error displaying Fabric Wallets: something bad has happened');
+        updateWalletStub.should.have.been.calledOnceWithExactly({
+            name: managedAnsibleWallet.name,
+            walletPath: managedAnsibleWallet.walletPath,
+            environmentGroups: [],
+            fromEnvironment: managedAnsibleWallet.fromEnvironment
+        });
     });
 
     it('should handle errors when populating the BlockchainWalletExplorer view', async () => {
+        await FabricEnvironmentRegistry.instance().clear();
+
         getGreenWalletIdentityNamesStub.rejects({ message: 'something bad has happened' });
         getBlueWalletIdentityNamesStub.resolves([]);
 
-        const walletItems: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
-        await blockchainWalletExplorerProvider.getChildren(walletItems[1]);
+        const walletGroups: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
+        const walletGroupChildren: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(walletGroups[0]) as Array<WalletTreeItem>;
+        await blockchainWalletExplorerProvider.getChildren(walletGroupChildren[1]);
         logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Error displaying Fabric Wallets: something bad has happened', 'Error displaying Fabric Wallets: something bad has happened');
     });
 
@@ -358,12 +809,16 @@ describe('walletExplorer', () => {
         await FabricWalletRegistry.instance().add(greenWalletEntry);
         await FabricWalletRegistry.instance().add(purpleWallet);
 
+        const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
+        mockRuntime.getNodes.resolves([{wallet: 'Orderer'}, {wallet: 'Org1'}]);
+        mySandBox.stub(EnvironmentFactory, 'getEnvironment').returns(mockRuntime);
+
         const allChildren: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
         allChildren.length.should.equal(2);
         allChildren[0].should.be.an.instanceof(WalletGroupTreeItem);
         allChildren[0].label.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
         allChildren[1].should.be.an.instanceOf(WalletGroupTreeItem);
-        allChildren[1].label.should.equal('Other wallets');
+        allChildren[1].label.should.equal('Other/shared wallets');
         const groupOne: WalletGroupTreeItem = allChildren[0] as WalletGroupTreeItem;
         groupOne.wallets.length.should.equal(2);
 

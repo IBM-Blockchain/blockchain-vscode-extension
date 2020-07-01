@@ -128,7 +128,7 @@ describe('AddWalletCommand', () => {
             logSpy.should.have.been.calledWith(LogType.ERROR, `A wallet with this name already exists.`);
         });
 
-        it('should add wallet with fromEnvironment property', async () => {
+        it('should add wallet with environmentGroup property', async () => {
             choseWalletAddMethod.resolves(UserInputUtil.IMPORT_WALLET);
             browseStub.resolves(uri);
             getIdentitiesStub.resolves(['someName', 'anotherName']);
@@ -136,9 +136,9 @@ describe('AddWalletCommand', () => {
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistryEntry.name = 'myEnvironment';
             await FabricEnvironmentRegistry.instance().add(environmentRegistryEntry);
-            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get').resolves({name: 'myEnvironment'});
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get').resolves({name: environmentRegistryEntry.name});
 
-            const result: FabricWalletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET, false, 'myEnvironment');
+            const result: FabricWalletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET, false, environmentRegistryEntry.name);
 
             result.name.should.equal(path.basename(uri.fsPath));
 
@@ -150,7 +150,7 @@ describe('AddWalletCommand', () => {
             wallets[0].should.deep.equal({
                 name: path.basename(uri.fsPath),
                 walletPath: uri.fsPath,
-                fromEnvironment: 'myEnvironment'
+                environmentGroups: [environmentRegistryEntry.name]
             });
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new wallet');
         });
@@ -260,7 +260,7 @@ describe('AddWalletCommand', () => {
             logSpy.should.have.been.calledWith(LogType.ERROR, `A wallet with this name already exists.`);
         });
 
-        it('should add wallet with fromEnvironment property', async () => {
+        it('should add wallet with environmentGroup property', async () => {
             choseWalletAddMethod.resolves(UserInputUtil.WALLET_NEW_ID);
             showInputBoxStub.resolves('someWalletName');
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
@@ -271,9 +271,9 @@ describe('AddWalletCommand', () => {
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistryEntry.name = 'myEnvironment';
             await FabricEnvironmentRegistry.instance().add(environmentRegistryEntry);
-            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get').resolves({name: 'myEnvironment'});
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'get').resolves({name: environmentRegistryEntry.name});
 
-            const result: FabricWalletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET, false, 'myEnvironment');
+            const result: FabricWalletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET, false, environmentRegistryEntry.name);
             result.name.should.equal('someWalletName');
 
             browseStub.should.not.have.been.called;
@@ -283,7 +283,7 @@ describe('AddWalletCommand', () => {
             wallets[0].should.deep.equal({
                 name: 'someWalletName',
                 walletPath: path.join(TestUtil.EXTENSION_TEST_DIR, FileConfigurations.FABRIC_WALLETS, 'someWalletName'),
-                fromEnvironment: 'myEnvironment'
+                environmentGroups: [environmentRegistryEntry.name]
             });
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new wallet');
         });

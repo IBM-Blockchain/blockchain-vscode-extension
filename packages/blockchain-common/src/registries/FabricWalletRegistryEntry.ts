@@ -22,6 +22,7 @@ export class FabricWalletRegistryEntry extends RegistryEntry {
     public managedWallet?: boolean;
     public displayName?: string;
     public fromEnvironment?: string;
+    public environmentGroups?: string[];
 
     constructor(fields?: FabricWalletRegistryEntry) {
         super();

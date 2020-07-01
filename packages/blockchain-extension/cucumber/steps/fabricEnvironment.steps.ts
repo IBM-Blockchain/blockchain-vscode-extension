@@ -79,7 +79,7 @@ module.exports = function(): any {
 
     this.Given('the environment is setup', this.timeout, async () => {
         const nodes: string[] = ['ca.example.com', 'orderer.example.com', 'peer0.org1.example.com'];
-        const wallet: string = 'myWallet';
+        const wallet: string = this.environmentName === 'myFabric2' ? 'myWallet2' : 'myWallet';
         let identity: string;
         for (const node of nodes) {
             if (node === 'ca.example.com') {
