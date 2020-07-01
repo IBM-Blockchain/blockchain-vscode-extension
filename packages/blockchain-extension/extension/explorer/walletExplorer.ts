@@ -18,7 +18,7 @@ import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { WalletTreeItem } from './wallets/WalletTreeItem';
 import { LocalWalletTreeItem } from './wallets/LocalWalletTreeItem';
-import { FabricCertificate, Attribute, FabricWalletRegistry, FabricWalletRegistryEntry, FabricRuntimeUtil, IFabricWalletGenerator, IFabricWallet, LogType, FabricWalletGeneratorFactory, FabricNode, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, FabricEnvironment, FabricIdentity } from 'ibm-blockchain-platform-common';
+import { FabricCertificate, Attribute, FabricWalletRegistry, FabricWalletRegistryEntry, FabricRuntimeUtil, IFabricWalletGenerator, IFabricWallet, LogType, FabricWalletGeneratorFactory, FabricNode, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, FabricEnvironment, FabricIdentity, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { IdentityTreeItem } from './model/IdentityTreeItem';
 import { AdminIdentityTreeItem } from './model/AdminIdentityTreeItem';
@@ -26,6 +26,7 @@ import { TextTreeItem } from './model/TextTreeItem';
 import { WalletGroupTreeItem } from './model/WalletGroupTreeItem';
 import { ExplorerUtil } from '../util/ExplorerUtil';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
+import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 
 export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvider {
 
@@ -253,6 +254,9 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
                     if (await FabricEnvironmentRegistry.instance().exists(env)) {
                         try {
                             const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(env);
+                            if (fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                                await LocalEnvironmentManager.instance().ensureRuntime(fabricEnvironmentRegistryEntry.name, undefined, fabricEnvironmentRegistryEntry.numberOfOrgs);
+                            }
                             const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentRegistryEntry);
                             const nodes: FabricNode[] = await environment.getNodes();
                             const associatedNodes: boolean = nodes.some((node: FabricNode) => {

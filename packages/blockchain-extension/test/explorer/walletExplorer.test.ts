@@ -32,6 +32,7 @@ import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { WalletGroupTreeItem } from '../../extension/explorer/model/WalletGroupTreeItem';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 
 chai.use(sinonChai);
 chai.should();
@@ -49,6 +50,7 @@ describe('walletExplorer', () => {
     let getGreenWalletIdentitiesStub: sinon.SinonStub;
     let getBlueWalletIdentitiesStub: sinon.SinonStub;
     let getNewWalletStub: sinon.SinonStub;
+    let ensureRuntimeStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
@@ -88,6 +90,10 @@ describe('walletExplorer', () => {
         getBlueWalletIdentityNamesStub = mySandBox.stub(blueWallet, 'getIdentityNames');
         getGreenWalletIdentitiesStub = mySandBox.stub(greenWallet, 'getIdentities');
         getBlueWalletIdentitiesStub = mySandBox.stub(blueWallet, 'getIdentities');
+
+        ensureRuntimeStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'ensureRuntime');
+        ensureRuntimeStub.callThrough();
+
     });
 
     afterEach(async () => {
@@ -133,6 +139,8 @@ describe('walletExplorer', () => {
         allChildren.length.should.equal(2);
         allChildren[0].should.be.an.instanceof(WalletGroupTreeItem);
         allChildren[0].label.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
+        ensureRuntimeStub.should.have.been.calledTwice;
+
         allChildren[1].should.be.an.instanceOf(WalletGroupTreeItem);
         allChildren[1].label.should.equal('Other/shared wallets');
 
@@ -895,6 +903,8 @@ describe('walletExplorer', () => {
         allChildren.length.should.equal(2);
         allChildren[0].should.be.an.instanceof(WalletGroupTreeItem);
         allChildren[0].label.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
+        ensureRuntimeStub.should.have.been.calledTwice;
+
         allChildren[1].should.be.an.instanceOf(WalletGroupTreeItem);
         allChildren[1].label.should.equal('Other/shared wallets');
         const groupOne: WalletGroupTreeItem = allChildren[0] as WalletGroupTreeItem;
