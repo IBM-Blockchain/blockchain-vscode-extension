@@ -32,6 +32,7 @@ import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { WalletGroupTreeItem } from '../../extension/explorer/model/WalletGroupTreeItem';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 
 chai.use(sinonChai);
 chai.should();
@@ -48,7 +49,11 @@ describe('walletExplorer', () => {
     let getBlueWalletIdentityNamesStub: sinon.SinonStub;
     let getGreenWalletIdentitiesStub: sinon.SinonStub;
     let getBlueWalletIdentitiesStub: sinon.SinonStub;
+<<<<<<< HEAD
     let getNewWalletStub: sinon.SinonStub;
+=======
+    let ensureRuntimeStub: sinon.SinonStub;
+>>>>>>> fe0b4e5e... fix getNodes of undefined error when showing local wallets (#2491)
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
@@ -88,6 +93,15 @@ describe('walletExplorer', () => {
         getBlueWalletIdentityNamesStub = mySandBox.stub(blueWallet, 'getIdentityNames');
         getGreenWalletIdentitiesStub = mySandBox.stub(greenWallet, 'getIdentities');
         getBlueWalletIdentitiesStub = mySandBox.stub(blueWallet, 'getIdentities');
+<<<<<<< HEAD
+=======
+        mySandBox.stub(greenWallet, 'importIdentity').resolves();
+        mySandBox.stub(blueWallet, 'importIdentity').resolves();
+
+        ensureRuntimeStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'ensureRuntime');
+        ensureRuntimeStub.callThrough();
+
+>>>>>>> fe0b4e5e... fix getNodes of undefined error when showing local wallets (#2491)
     });
 
     afterEach(async () => {
@@ -133,6 +147,8 @@ describe('walletExplorer', () => {
         allChildren.length.should.equal(2);
         allChildren[0].should.be.an.instanceof(WalletGroupTreeItem);
         allChildren[0].label.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
+        ensureRuntimeStub.should.have.been.calledTwice;
+
         allChildren[1].should.be.an.instanceOf(WalletGroupTreeItem);
         allChildren[1].label.should.equal('Other/shared wallets');
 
@@ -895,6 +911,8 @@ describe('walletExplorer', () => {
         allChildren.length.should.equal(2);
         allChildren[0].should.be.an.instanceof(WalletGroupTreeItem);
         allChildren[0].label.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
+        ensureRuntimeStub.should.have.been.calledTwice;
+
         allChildren[1].should.be.an.instanceOf(WalletGroupTreeItem);
         allChildren[1].label.should.equal('Other/shared wallets');
         const groupOne: WalletGroupTreeItem = allChildren[0] as WalletGroupTreeItem;
