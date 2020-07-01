@@ -1,5 +1,5 @@
-# IBM Blockchain Platform Extension updated to v1.0.33
-_Release date: June 18th 2020_
+# IBM Blockchain Platform Extension updated to v1.0.34
+_Release date: July 2nd 2020_
 
 Announcements
 ---
@@ -8,14 +8,10 @@ Announcements
 
 Fixes
 ---
-* Fixed chaincode logs not appearing in logs [#2447](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pulls/2447).
-
-* Fixed packaging contracts on VS Code 1.44.2 [#2243](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2243).
-
-* Replaced Java 'org.json.JSONObject' non-deterministic package [#2287](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2287).
+* Fix associating a wallet with multiple environments [#2354](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2354).
 
 This release's Conga Comic:
 ---
-<img src="https://congacomic.github.io/assets/img/blockheight-75.jpg" width="800">
+<img src="https://congacomic.github.io/assets/img/blockheight-76.jpg" width="800">
 
 For the full history of all releases, see the [change log](https://marketplace.visualstudio.com/items/IBMBlockchain.ibm-blockchain-platform/changelog).
