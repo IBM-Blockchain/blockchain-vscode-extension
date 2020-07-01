@@ -37,13 +37,22 @@ export class AnsibleEnvironment extends FabricEnvironment {
 
         const entries: FabricWalletRegistryEntry[] = [];
         for (const walletName of walletNames) {
+            let walletRegistryEntry: FabricWalletRegistryEntry;
 
-            const walletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
-            walletRegistryEntry.name = walletName;
-            walletRegistryEntry.walletPath = path.join(this.path, FileConfigurations.FABRIC_WALLETS, walletName);
-            walletRegistryEntry.managedWallet = false;
-            walletRegistryEntry.displayName = `${this.name} - ${walletName}`;
-            walletRegistryEntry.fromEnvironment = this.name;
+            const walletPath: string = path.join(this.path, FileConfigurations.FABRIC_WALLETS, walletName);
+            const walletConfigPath: string = path.join(walletPath, '.config.json');
+            const hasConfigFile: boolean = await fs.pathExists(walletConfigPath);
+            if (hasConfigFile) {
+                walletRegistryEntry = await fs.readJSON(walletConfigPath);
+            } else {
+                walletRegistryEntry = new FabricWalletRegistryEntry();
+                walletRegistryEntry.name = walletName;
+                walletRegistryEntry.walletPath = path.join(this.path, FileConfigurations.FABRIC_WALLETS, walletName);
+                walletRegistryEntry.managedWallet = false;
+                walletRegistryEntry.displayName = `${this.name} - ${walletName}`;
+                walletRegistryEntry.fromEnvironment = this.name;
+                walletRegistryEntry.environmentGroups = [this.name];
+            }
 
             entries.push(walletRegistryEntry);
 
@@ -92,6 +101,7 @@ export class AnsibleEnvironment extends FabricEnvironment {
             gatewayRegistryEntry.displayName = `${gateway.name}`;
             gatewayRegistryEntry.connectionProfilePath = gateway.path;
             gatewayRegistryEntry.fromEnvironment = this.name;
+            gatewayRegistryEntry.environmentGroup = this.name;
             entries.push(gatewayRegistryEntry);
         }
 

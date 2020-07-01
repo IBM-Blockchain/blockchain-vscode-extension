@@ -16,6 +16,7 @@ import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { TestUtil } from '../TestUtil';
@@ -601,9 +602,8 @@ describe('DeleteEnvironmentCommand', () => {
                 name: 'otherLocal',
                 managedRuntime: true,
                 environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
-                environmentDirectory: path.join(__dirname, '..', 'data', 'managedAnsible')
+                environmentDirectory: path.join(path.dirname(__dirname), '..', '..', 'test', 'data', 'managedAnsible')
             });
-
             await FabricEnvironmentRegistry.instance().add(otherLocalEnvEntry);
 
             showFabricEnvironmentQuickPickBoxStub.resolves([{
@@ -650,7 +650,7 @@ describe('DeleteEnvironmentCommand', () => {
                 name: 'otherLocal',
                 managedRuntime: true,
                 environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
-                environmentDirectory: path.join(__dirname, '..', 'data', 'managedAnsible')
+                environmentDirectory: path.join(path.dirname(__dirname), '..', '..', 'test', 'data', 'managedAnsible')
             });
 
             await FabricEnvironmentRegistry.instance().add(otherLocalEnvEntry);
@@ -682,6 +682,48 @@ describe('DeleteEnvironmentCommand', () => {
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted otherLocal environment`);
+        });
+
+        it('should remove any wallet config files when deleting an ansible environment', async () => {
+
+            const ansibleEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
+                name: 'ansible',
+                environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
+                environmentDirectory: path.join(path.dirname(__dirname), '..', '..', 'test', 'data', 'managedAnsible')
+            });
+
+            await FabricEnvironmentRegistry.instance().add(ansibleEntry);
+            commandSpy.restore();
+
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+
+            showFabricEnvironmentQuickPickBoxStub.resolves([{
+                label: 'ansible',
+                data: ansibleEntry
+            }]);
+
+            mySandBox.stub(fs, 'pathExists').resolves(true);
+            mySandBox.stub(fs, 'remove').resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
+
+            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false);
+
+            environments =  await FabricEnvironmentRegistry.instance().getAll();
+            environments.length.should.equal(3);
+            environments[0].name.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
+            environments[1].should.deep.equal(myEnvironmentA);
+            environments[2].should.deep.equal(myEnvironmentB);
+
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, 'ansible');
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+
+            removeLocalRuntimeSpy.should.not.have.been.called;
+            removeManagedRuntimeSpy.should.not.have.been.called;
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ansible environment`);
         });
 
         it('should warn user if error occurs whilst tearing down local environment during deletion', async () => {

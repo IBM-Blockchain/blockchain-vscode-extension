@@ -255,13 +255,13 @@ Feature: Fabric Environments
 
   @otherFabric
   Scenario: It should delete a node
-    Given an environment 'myFabric2' exists
-    And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
-    And the environment is setup
-    And the 'myFabric2' environment is connected
-    When I delete node 'ca.example.com'
-    Then there shouldn't be a Node tree item with a label 'ca.example.com' in the 'Fabric Environments' panel
-    And there should be a Node tree item with a label 'peer0.org1.example.com' in the 'Fabric Environments' panel
+      Given an environment 'myFabric2' exists
+      And the wallet 'myWallet2' with identity 'conga' and mspid 'Org1MSP' exists
+      And the environment is setup
+      And the 'myFabric2' environment is connected
+      When I delete node 'ca.example.com'
+      Then there shouldn't be a Node tree item with a label 'ca.example.com' in the 'Fabric Environments' panel
+      And there should be a Node tree item with a label 'peer0.org1.example.com' in the 'Fabric Environments' panel
 
   @otherFabric
   Scenario: It should delete an environment

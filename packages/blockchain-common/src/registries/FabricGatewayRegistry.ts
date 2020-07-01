@@ -44,14 +44,8 @@ export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEnt
             const envName: string = entry.fromEnvironment;
             let environmentType: EnvironmentType;
             if (envName) {
-                const envExists: boolean = await FabricEnvironmentRegistry.instance().exists(envName);
-                if (envExists) {
-                    const environment: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(envName);
-                    environmentType = environment.environmentType;
-                } else {
-                    delete entry.fromEnvironment;
-                    await this.update(entry);
-                }
+                const environment: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(envName);
+                environmentType = environment.environmentType;
             }
             if (environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
                 localGateways.push(entry);
@@ -98,7 +92,7 @@ export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEnt
             const connectionProfilePath: string = newEntry.connectionProfilePath;
             const gatewayFolderPath: string = connectionProfilePath.substr(0, connectionProfilePath.lastIndexOf('/'));
             await fs.writeJson(path.join(gatewayFolderPath, '.config.json'), newEntry);
-            this.emit(FileRegistry.EVENT_NAME, FileConfigurations.FABRIC_GATEWAYS); //
+            this.emit(FileRegistry.EVENT_NAME, FileConfigurations.FABRIC_GATEWAYS);
         } else {
             await super.update(newEntry);
         }

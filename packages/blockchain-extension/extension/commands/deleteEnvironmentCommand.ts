@@ -13,6 +13,8 @@
 */
 'use strict';
 import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs-extra';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, FabricGatewayRegistryEntry, EnvironmentType, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
@@ -102,8 +104,19 @@ export async function deleteEnvironment(environment: FabricEnvironmentTreeItem |
             await FabricEnvironmentRegistry.instance().delete(_environment.name);
             if (_environment.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
                 LocalEnvironmentManager.instance().removeRuntime(_environment.name);
-            } else if (_environment.environmentType === EnvironmentType.ANSIBLE_ENVIRONMENT && _environment.managedRuntime === true) {
-                ManagedAnsibleEnvironmentManager.instance().removeRuntime(_environment.name);
+            } else if (_environment.environmentType === EnvironmentType.ANSIBLE_ENVIRONMENT) {
+                if (_environment.managedRuntime === true) {
+                    ManagedAnsibleEnvironmentManager.instance().removeRuntime(_environment.name);
+                }
+
+                const walletsDirPath: string = path.join(_environment.environmentDirectory, 'wallets');
+                const walletPaths: string[] = (await fs.readdir(walletsDirPath)).filter((walletPath: string) => !walletPath.startsWith('.'));
+                for (const wallet of walletPaths) {
+                    const configPath: string = path.join(walletsDirPath, wallet, '.config.json');
+                    if (await fs.pathExists(configPath)) {
+                        await fs.remove(configPath);
+                    }
+                }
             }
         }
 
