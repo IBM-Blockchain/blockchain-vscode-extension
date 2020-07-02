@@ -332,7 +332,7 @@ describe('Deploy page', () => {
         cy.get('tr[id="Org1MSP-row"]').should((row: JQuery<HTMLElement>) => {
             const cells: JQuery<HTMLElement> = row.find('td');
             expect(cells.eq(0)).to.contain('Org1MSP');
-            expect(cells.eq(1)).to.contain('Pending');
+            expect(cells.eq(1)).to.contain('Pending (part of this deploy)');
         });
 
         cy.get('tr[id="Org2MSP-row"]').should((row: JQuery<HTMLElement>) => {
