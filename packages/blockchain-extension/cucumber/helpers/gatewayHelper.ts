@@ -206,7 +206,7 @@ export class GatewayHelper {
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
     }
 
-    public async associateTransactionDataDirectory(name: string, version: string, language: string, gatewayName: string): Promise<void> {
+    public async associateTransactionDataDirectory(name: string, version: string, gatewayName: string): Promise<void> {
         let gatewayEntry: FabricGatewayRegistryEntry;
 
         try {
@@ -222,13 +222,8 @@ export class GatewayHelper {
             data: { name: name, channel: 'mychannel', version: version }
         });
 
-        let contractDirectory: string;
-        if (language === 'Go') {
-            process.env.GOPATH = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'contracts');
-            contractDirectory = path.join(process.env.GOPATH, 'src', name);
-        } else {
-            contractDirectory = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'contracts', name);
-        }
+        const contractDirectory: string  = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'contracts', name);
+
         const workspaceFolder: vscode.WorkspaceFolder = { index: 0, name: name, uri: vscode.Uri.file(contractDirectory) };
         this.userInputUtilHelper.getWorkspaceFoldersStub.returns([workspaceFolder]);
 
