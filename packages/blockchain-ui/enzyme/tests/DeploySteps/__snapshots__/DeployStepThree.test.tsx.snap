@@ -288,7 +288,7 @@ Array [
                   For an explanation of advanced scenarios, see the 
                   <a
                     className="bx--link"
-                    href="#"
+                    href="https://hyperledger-fabric.readthedocs.io/en/release-2.0/chaincode_lifecycle.html"
                   >
                     documentation
                   </a>

@@ -87,7 +87,7 @@ class DeployStepThree extends Component<IProps, StepThreeState> {
                 const entry: { id: string, organization: string, status: string } = {
                     id: org,
                     organization: org,
-                    status: approved ? 'Approved' : environmentPeer ? 'Pending' : 'Not approved'
+                    status: approved ? 'Approved' : environmentPeer ? 'Pending (part of this deploy)' : 'Not approved'
                 };
 
                 rowData.push(entry);
@@ -206,7 +206,7 @@ class DeployStepThree extends Component<IProps, StepThreeState> {
                                 </div>
                                 <div className='bx--row margin-top-07'>
                                     <div className='bx--col'>
-                                        <p>For an explanation of advanced scenarios, see the <Link href='#'>documentation</Link>.</p>
+                                        <p>For an explanation of advanced scenarios, see the <Link href='https://hyperledger-fabric.readthedocs.io/en/release-2.0/chaincode_lifecycle.html'>documentation</Link>.</p>
                                     </div>
                                 </div>
                             </AccordionItem>

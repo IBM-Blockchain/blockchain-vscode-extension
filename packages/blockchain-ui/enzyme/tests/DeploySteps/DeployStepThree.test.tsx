@@ -75,7 +75,7 @@ describe('DeployStepThree component', () => {
 
         it('should show which orgs will approve the definition when deployed', async () => {
             const component: ShallowWrapper<DeployStepThree> = shallow(<DeployStepThree environmentPeers={['Org1Peer1']} discoveredPeers={['Org2Peer1']} orgMap={{ Org1MSP: ['Org1Peer1'], Org2MSP: ['Org2Peer1'] }} orgApprovals={{ Org1MSP: false, Org2MSP: false }} selectedPeers={['Org2Peer1']} selectedPackage={packageOne} channelName='mychannel' commitSmartContract={undefined} onPeerChange={changePeersStub} onCommitChange={commitChangeStub} onGetOrgApproval={getOrgApprovalStub} />);
-            component.html().includes(`<tr id="Org1MSP-row"><td>Org1MSP</td><td>Pending</td></tr><tr id="Org2MSP-row"><td>Org2MSP</td><td>Not approved</td></tr>`).should.equal(true);
+            component.html().includes(`<tr id="Org1MSP-row"><td>Org1MSP</td><td>Pending (part of this deploy)</td></tr><tr id="Org2MSP-row"><td>Org2MSP</td><td>Not approved</td></tr>`).should.equal(true);
             component.html().includes(`<p>Commit has already been performed for this definition name and version.</p>`).should.equal(false);
         });
 
