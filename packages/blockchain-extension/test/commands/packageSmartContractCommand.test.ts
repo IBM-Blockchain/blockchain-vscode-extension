@@ -44,10 +44,21 @@ describe('packageSmartContract', () => {
     const wrongGolangPath: string = path.join(testWorkspace, 'goProject');
     const javaPath: string = path.join(testWorkspace, 'javaProject');
     const emptyContent: string = '{}';
+    const goModContent: string = 'github.com/hyperledger/fabric-contract-api-go v1.1.0';
+    const gradleContentv1: string = `dependencies {
+        compile group: 'org.hyperledger.fabric-chaincode-java', name: 'fabric-chaincode-shim', version: '1.4.4'
+        compile group: 'org.json', name: 'json', version: '20180813'
+        testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
+        testImplementation 'org.assertj:assertj-core:3.11.1'
+        testImplementation 'org.mockito:mockito-core:2.+'
+    }`;
+    const gradleContentv2: string = 'fabric-chaincode-shim:2.0.0';
+    const mavenContentv1: string = '<fabric-chaincode-java.version>1.4.4</fabric-chaincode-java.version>';
+    const mavenContentv2: string = '<fabric-chaincode-java.version>2.0.0</fabric-chaincode-java.version>';
 
     let folders: Array<any> = [];
 
-    async function createTestFiles(packageName: string, version: string, language: string, createValid: boolean, createMetadata: boolean, createWrongPlace: boolean = false, goModule: boolean = false): Promise<void> {
+    async function createTestFiles(packageName: string, version: string, language: string, createValid: boolean, createMetadata: boolean, createWrongPlace: boolean = false, goModule: boolean = false, contractVersionv2: boolean = true): Promise<void> {
         let projectDir: string;
         if (language === 'golang') {
             if (createWrongPlace) {
@@ -88,8 +99,15 @@ describe('packageSmartContract', () => {
                     version: version,
                     description: 'My Smart Contract',
                     author: 'John Doe',
-                    license: 'Apache-2.0'
+                    license: 'Apache-2.0',
+                    dependencies: {
+                        'fabric-contract-api': '^2.1.1'
+                    }
                 };
+
+                if (!contractVersionv2) {
+                    jsonContent.dependencies['fabric-contract-api'] = '^1.4.6';
+                }
                 if (language === 'typescript') {
                     const textFile: string = path.join(projectDir, 'chaincode.ts');
                     await fs.writeFile(textFile, emptyContent);
@@ -101,15 +119,27 @@ describe('packageSmartContract', () => {
                 await fs.writeFile(goChaincode, emptyContent);
                 if (goModule) {
                     const goMod: string = path.join(projectDir, 'go.mod');
-                    await fs.writeFile(goMod, emptyContent);
+                    if (contractVersionv2) {
+                        await fs.writeFile(goMod, goModContent);
+                    } else {
+                        await fs.writeFile(goMod, emptyContent);
+                    }
                 }
             } else if (language === 'java-gradle' || language === 'java-maven') {
                 if (language === 'java-gradle') {
                     const gradleFile: string = path.join(projectDir, 'build.gradle');
-                    await fs.writeFile(gradleFile, emptyContent);
+                    if (contractVersionv2) {
+                        await fs.writeFile(gradleFile, gradleContentv2);
+                    } else {
+                        await fs.writeFile(gradleFile, gradleContentv1);
+                    }
                 } else if (language === 'java-maven') {
                     const gradleFile: string = path.join(projectDir, 'pom.xml');
-                    await fs.writeFile(gradleFile, emptyContent);
+                    if (contractVersionv2) {
+                        await fs.writeFile(gradleFile, mavenContentv2);
+                    } else {
+                        await fs.writeFile(gradleFile, mavenContentv1);
+                    }
                 }
                 const javaChaincode: string = path.join(projectDir, 'chaincode.java');
                 await fs.writeFile(javaChaincode, emptyContent);
@@ -150,6 +180,7 @@ describe('packageSmartContract', () => {
     let buildTasks: vscode.Task[];
     let executeTaskStub: sinon.SinonStub;
     let sendTelemetryEventStub: sinon.SinonStub;
+    let warningStub: sinon.SinonStub;
 
     beforeEach(async () => {
         DeployView.panel = undefined;
@@ -169,6 +200,7 @@ describe('packageSmartContract', () => {
         showWorkspaceQuickPickStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
         workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders');
         sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+        warningStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
 
         findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([]);
 
@@ -461,6 +493,8 @@ describe('packageSmartContract', () => {
                 data: folders[testIndex]
             });
 
+            warningStub.resolves(true);
+
             showInputStub.onFirstCall().resolves('myProject');
             showInputStub.onSecondCall().resolves('0.0.3');
 
@@ -479,6 +513,56 @@ describe('packageSmartContract', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
+        it('should handle if user cancels packaging the Go project when contract version cannot be found', async () => {
+            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+
+            const testIndex: number = 2;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onSecondCall().resolves('0.0.3');
+
+            warningStub.resolves(undefined);
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'packageSmartContract');
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
+        it('should handle if user selects no when warning is shown if go contract version cannot be found', async () => {
+            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+
+            const testIndex: number = 2;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onSecondCall().resolves('0.0.3');
+
+            warningStub.resolves(false);
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'packageSmartContract');
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
         it('should package the Go project with specified name', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true, false);
 
@@ -489,6 +573,8 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+
+            warningStub.resolves(true);
 
             showInputStub.onFirstCall().resolves('0.0.3');
 
@@ -518,6 +604,8 @@ describe('packageSmartContract', () => {
                 data: folders[testIndex]
             });
 
+            warningStub.resolves(true);
+
             showInputStub.onFirstCall().resolves('myProject');
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
@@ -545,6 +633,8 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+
+            warningStub.resolves(true);
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
 
@@ -593,6 +683,87 @@ describe('packageSmartContract', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
+        it('should throw an error if the Go project module uses v1 contract', async () => {
+            await createTestFiles('goProject', '0.0.1', 'golang', true, false, true, true, false);
+
+            const testIndex: number = 2;
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
+
+            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onSecondCall().resolves('0.0.3');
+
+            const error: Error = new Error('Unable to package contract. Contract API dependency must support Fabric 2.');
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
+            executeTaskStub.should.have.not.been.called;
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
+        it('should allow a low level go module chaincode to be packaged if its v2', async () => {
+            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+
+            const projectDir: string = path.join(testWorkspace, 'src', 'goProject');
+            const gradleFile: string = path.join(projectDir, 'go.mod');
+
+            const v2LowLevelContent: string = `module example.org/chaincode
+
+            go 1.13
+
+            require (
+                github.com/fsouza/go-dockerclient v1.6.0 // indirect
+                github.com/grpc-ecosystem/go-grpc-middleware v1.1.0 // indirect
+                github.com/hyperledger/fabric-chaincode-go v0.0.0-20200128192331-2d899240a7ed
+                github.com/hyperledger/fabric-amcl v0.0.0-20190902191507-f66264322317 // indirect
+                github.com/op/go-logging v0.0.0-20160315200505-970db520ece7 // indirect
+                github.com/spf13/viper v1.5.0 // indirect
+                github.com/sykesm/zap-logfmt v0.0.3 // indirect
+                go.uber.org/zap v1.13.0 // indirect
+                golang.org/x/crypto v0.0.0-20191117063200-497ca9f6d64f // indirect
+                golang.org/x/net v0.0.0-20191116160921-f9c825593386 // indirect
+                google.golang.org/grpc v1.25.1 // indirect
+                gopkg.in/yaml.v2 v2.2.5 // indirect
+            )`;
+
+            await fs.writeFile(gradleFile, v2LowLevelContent);
+
+            const runVendorStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
+
+            const testIndex: number = 2;
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
+
+            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onSecondCall().resolves('0.0.3');
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.tar.gz');
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.go`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/go.mod`);
+            runVendorStub.should.have.been.called;
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
+        });
+
         it('should use the GOPATH if set', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true, false);
 
@@ -603,6 +774,8 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+
+            warningStub.resolves(true);
 
             showInputStub.onFirstCall().resolves('myProject');
             showInputStub.onSecondCall().resolves('0.0.3');
@@ -734,8 +907,161 @@ describe('packageSmartContract', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
+        it('should handle if we dont find the contract api version of the Java project and user selects to decides to not package', async () => {
+            await createTestFiles('javaProject', '0.0.1', 'java-gradle', true, false);
+
+            const projectDir: string = path.join(testWorkspace, 'javaProject');
+            const gradleFile: string = path.join(projectDir, 'build.gradle');
+            await fs.writeFile(gradleFile, emptyContent);
+
+            warningStub.resolves(false);
+
+            const testIndex: number = 3;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onSecondCall().resolves('0.0.3');
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'packageSmartContract');
+            warningStub.should.have.been.calledWithExactly('Could not find the fabric-chaincode-shim version. Would you like to package it anyway?');
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
+        it('should handle if we dont find the contract api version of the maven Java project and user cancels warning message', async () => {
+            await createTestFiles('javaProject', '0.0.1', 'java-maven', true, false);
+
+            const projectDir: string = path.join(testWorkspace, 'javaProject');
+            const pomFile: string = path.join(projectDir, 'pom.xml');
+            await fs.writeFile(pomFile, emptyContent);
+
+            warningStub.resolves(undefined);
+
+            const fsExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
+            fsExistsStub.callThrough();
+            fsExistsStub.onCall(3).resolves(false);
+
+            const testIndex: number = 3;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onSecondCall().resolves('0.0.3');
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'packageSmartContract');
+            warningStub.should.have.been.calledWithExactly('Could not find the fabric-chaincode-java version. Would you like to package it anyway?');
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
+        it('should error out if we dont find the pom.xml or build.gradle file', async () => {
+            await createTestFiles('javaProject', '0.0.1', 'java-maven', true, false);
+
+            const fsExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
+            fsExistsStub.callThrough();
+            fsExistsStub.onCall(3).resolves(false);
+            fsExistsStub.onCall(4).resolves(false);
+
+            const testIndex: number = 3;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            const error: Error = new Error('Unable to determine contract API version - no build.gradle or pom.xml found');
+
+            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onSecondCall().resolves('0.0.3');
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, error.message, error.toString());
+
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
+        it('should handle if we dont find the contract api version of the Java project and user decides to continue anyway', async () => {
+            await createTestFiles('javaProject', '0.0.1', 'java-gradle', true, false);
+
+            const projectDir: string = path.join(testWorkspace, 'javaProject');
+            const gradleFile: string = path.join(projectDir, 'build.gradle');
+            await fs.writeFile(gradleFile, emptyContent);
+
+            warningStub.resolves(true);
+
+            const testIndex: number = 3;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onSecondCall().resolves('0.0.3');
+
+            const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.tar.gz');
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
+            warningStub.should.have.been.calledWithExactly('Could not find the fabric-chaincode-shim version. Would you like to package it anyway?');
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
+        });
+
+        it('should handle if the Java (Gradle) project to package uses v1 contract api', async () => {
+            await createTestFiles('javaProject', '0.0.1', 'java-gradle', true, false, false, false, false);
+
+            const testIndex: number = 3;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onSecondCall().resolves('0.0.3');
+
+            const error: Error = new Error('Unable to package contract. Contract API dependency must support Fabric 2. Your version: 1.4.4');
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
         it('should package the Java (Maven) project', async () => {
             await createTestFiles('javaProject', '0.0.1', 'java-maven', true, false);
+
+            const fsExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
+            fsExistsStub.callThrough();
+            fsExistsStub.onCall(3).resolves(false);
 
             const testIndex: number = 3;
 
@@ -760,6 +1086,34 @@ describe('packageSmartContract', () => {
             logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/pom.xml`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
+        });
+
+        it('should throw error if the Java (Maven) project uses contract api v1', async () => {
+            await createTestFiles('javaProject', '0.0.1', 'java-maven', true, false, false, false, false);
+
+            const fsExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
+            fsExistsStub.callThrough();
+            fsExistsStub.onCall(3).resolves(false);
+
+            const testIndex: number = 3;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onSecondCall().resolves('0.0.3');
+
+            const error: Error = new Error('Unable to package contract. Contract API dependency must support Fabric 2. Your version: 1.4.4');
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.not.have.been.called;
         });
 
         it('should throw an error as the package json does not contain a name or version', async () => {
@@ -847,6 +1201,8 @@ describe('packageSmartContract', () => {
                 data: folders[testIndex]
             });
 
+            warningStub.resolves(true);
+
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
 
             showInputStub.onFirstCall().resolves('myProject');
@@ -902,6 +1258,9 @@ describe('packageSmartContract', () => {
 
         it('should throw an error if project not child of src dir', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', false, false, true);
+
+            warningStub.resolves(true);
+
             const error: Error = new Error('The environment variable GOPATH has not been set, and the extension was not able to automatically detect the correct value. You cannot package a Go smart contract without setting the environment variable GOPATH.');
 
             const testIndex: number = 2;
@@ -926,6 +1285,9 @@ describe('packageSmartContract', () => {
 
         it('should throw an error if the GOPATH environment variable is set to the project directory', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+
+            warningStub.resolves(true);
+
             const error: Error = new Error('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
 
             const testIndex: number = 2;
@@ -951,6 +1313,9 @@ describe('packageSmartContract', () => {
 
         it('should throw an error if the project directory is not inside the directory specified by the GOPATH environment variable ', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+
+            warningStub.resolves(true);
+
             const error: Error = new Error('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
 
             const testIndex: number = 2;
@@ -976,6 +1341,9 @@ describe('packageSmartContract', () => {
 
         it('should throw an error if the GOPATH environment variable is set to the root directory', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+
+            warningStub.resolves(true);
+
             const error: Error = new Error('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
 
             const testIndex: number = 2;
@@ -1088,6 +1456,8 @@ describe('packageSmartContract', () => {
             });
             const packageDir: string = path.join(fileDest, 'myProject' + '@0.0.1');
 
+            warningStub.resolves(true);
+
             showInputStub.onFirstCall().resolves();
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
@@ -1111,6 +1481,8 @@ describe('packageSmartContract', () => {
                 data: folders[testIndex]
             });
             const packageDir: string = path.join(fileDest, 'myProject' + '@0.0.1');
+
+            warningStub.resolves(true);
 
             showInputStub.onFirstCall().resolves('myProject');
             showInputStub.onSecondCall().resolves();
@@ -1318,6 +1690,100 @@ describe('packageSmartContract', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
 
             updatePackagesStub.should.have.been.calledOnce;
+        });
+
+        it('should throw an error if user tries to package a Node contract which uses contract api version below v2', async () => {
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false, false, false, false);
+            const testIndex: number = 0;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            const error: Error = new Error ('Unable to package contract. Contract API dependency must support Fabric 2. Your version: ^1.4.6');
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
+        });
+
+        it('should handle scenario where user tries to package a low level Node chaincode', async () => {
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+
+            const projectDir: string = path.join(testWorkspace, 'javascriptProject');
+            const packageJsonFile: string = path.join(projectDir, 'package.json');
+
+            const jsonContent: any = {
+                name: `javascriptProject`,
+                version: '0.0.1',
+                description: 'My Smart Contract',
+                author: 'John Doe',
+                license: 'Apache-2.0',
+                dependencies: {
+                    'fabric-shim': '^2.1.1'
+                }
+            };
+
+            await fs.writeFile(packageJsonFile, JSON.stringify(jsonContent));
+
+            const testIndex: number = 0;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            executeTaskStub.should.have.not.been.called;
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
+        });
+
+        it('should throw an error if user tries to package a Node contract and we cannot read the contract api version', async () => {
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+
+            const projectDir: string = path.join(testWorkspace, 'javascriptProject');
+            const packageJsonFile: string = path.join(projectDir, 'package.json');
+
+            const jsonContent: any = {
+                name: `javascriptProject`,
+                version: '0.0.1',
+                description: 'My Smart Contract',
+                author: 'John Doe',
+                license: 'Apache-2.0',
+                dependencies: {
+                    'random-Dependency': '^someVersion'
+                }
+            };
+
+            await fs.writeFile(packageJsonFile, JSON.stringify(jsonContent));
+
+            const testIndex: number = 0;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            const error: Error = new Error ('Unable to determine contract API version.');
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
         });
     });
 });
