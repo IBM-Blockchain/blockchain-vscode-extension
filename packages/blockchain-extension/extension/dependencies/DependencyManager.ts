@@ -598,6 +598,11 @@ export class DependencyManager {
                 const response: any = await Axios.get('https://raw.githubusercontent.com/electron/releases/master/lite.json');
                 let info: any[] = response.data;
 
+                if (!info || info.length === 0) {
+                    const fallbackPath: string = path.join(__dirname, '..', '..', 'fallback-build-info.json');
+                    info = await fs.readJSON(fallbackPath);
+                }
+
                 info = info.filter((_info: any) => {
                     return _info && _info.deps && _info.deps.modules === modules;
                 });

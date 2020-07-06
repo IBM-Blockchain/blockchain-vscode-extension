@@ -430,10 +430,10 @@ describe('DependencyManager Tests', () => {
             utimesFileStub.should.have.been.called;
         });
 
-        it('should throw error if finds no versions', async () => {
+        it('should throw error if no versions found and fallback fails', async () => {
             mySandBox.stub(process, 'platform').value('win32');
             mySandBox.stub(process, 'arch').value('x64');
-
+            mySandBox.stub(fs, 'readJSON').resolves([]); // imitate this failing
             axiosStub.withArgs('https://raw.githubusercontent.com/electron/releases/master/lite.json').resolves({ data: [] });
 
             const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
@@ -465,10 +465,10 @@ describe('DependencyManager Tests', () => {
 
         });
 
-        const platforms: {name: string, platform: string, arch: string}[] = [
-            {name: 'Windows', platform: 'win32', arch: 'x64'},
-            {name: 'macOS', platform: 'darwin', arch: 'x64'},
-            {name: 'Linux', platform: 'linux', arch: 'x64'}
+        const platforms: { name: string, platform: string, arch: string }[] = [
+            { name: 'Windows', platform: 'win32', arch: 'x64' },
+            { name: 'macOS', platform: 'darwin', arch: 'x64' },
+            { name: 'Linux', platform: 'linux', arch: 'x64' }
         ];
 
         function testEclipseChe(name: string, platform: string, arch: string): void {
@@ -499,7 +499,7 @@ describe('DependencyManager Tests', () => {
             });
         }
 
-        for (const {name, platform, arch} of platforms) {
+        for (const { name, platform, arch } of platforms) {
             testEclipseChe(name, platform, arch);
         }
     });
