@@ -98,12 +98,15 @@ export class LifecyclePeer {
 
         try {
             logger.debug('%s - build the install smart contract request', method);
-            const arg: protos.lifecycle.InstallChaincodeArgs = new protos.lifecycle.InstallChaincodeArgs();
-            arg.setChaincodeInstallPackage(buffer);
+            const protoArgs: protos.lifecycle.IInstallChaincodeArgs = {};
+
+            protoArgs.chaincode_install_package = new Uint8Array(buffer);
+
+            const arg: Uint8Array = protos.lifecycle.InstallChaincodeArgs.encode(protoArgs).finish();
 
             const buildRequest: { fcn: string; args: Buffer[] } = {
                 fcn: 'InstallChaincode',
-                args: [await arg.toBuffer()]
+                args: [Buffer.from(arg)]
             };
 
             const responses: ProposalResponse = await this.sendRequest(buildRequest, '_lifecycle', requestTimeout);
@@ -112,7 +115,7 @@ export class LifecyclePeer {
 
             const installChaincodeResult: protos.lifecycle.InstallChaincodeResult = protos.lifecycle.InstallChaincodeResult.decode(payloads[0]);
 
-            packageId = installChaincodeResult.getPackageId();
+            packageId = installChaincodeResult.package_id;
 
             logger.debug('%s - return %s', method, packageId);
 
@@ -137,11 +140,11 @@ export class LifecyclePeer {
 
         try {
             logger.debug('%s - build the get all installed smart contracts request', method);
-            const arg: protos.lifecycle.QueryInstalledChaincodesArgs = new protos.lifecycle.QueryInstalledChaincodesArgs();
+            const arg: Uint8Array = protos.lifecycle.QueryInstalledChaincodesArgs.encode({}).finish();
 
             const buildRequest: { fcn: string; args: Buffer[] } = {
                 fcn: 'QueryInstalledChaincodes',
-                args: [await arg.toBuffer()]
+                args: [Buffer.from(arg)]
             };
 
             const responses: ProposalResponse = await this.sendRequest(buildRequest, '_lifecycle', requestTimeout);
@@ -150,9 +153,9 @@ export class LifecyclePeer {
 
             // only sent to one peer so should only be one payload
             const queryAllResults: protos.lifecycle.QueryInstalledChaincodesResult = protos.lifecycle.QueryInstalledChaincodesResult.decode(payloads[0]);
-            for (const queryResults of queryAllResults.getInstalledChaincodes()) {
-                const packageId: string = queryResults.getPackageId();
-                const label: string = queryResults.getLabel();
+            for (const queryResults of queryAllResults.installed_chaincodes) {
+                const packageId: string = queryResults.package_id;
+                const label: string = queryResults.label;
 
                 const result: InstalledSmartContract = {
                     packageId: packageId,
@@ -189,12 +192,13 @@ export class LifecyclePeer {
 
         try {
             logger.debug('%s - build the get package chaincode request', method);
-            const arg: protos.lifecycle.GetInstalledChaincodePackageArgs = new protos.lifecycle.GetInstalledChaincodePackageArgs();
-            arg.setPackageId(packageId);
+            const protoArgs: protos.lifecycle.IGetInstalledChaincodePackageArgs = {};
+            protoArgs.package_id = packageId;
 
+            const arg: Uint8Array = protos.lifecycle.GetInstalledChaincodePackageArgs.encode(protoArgs).finish();
             const buildRequest: { fcn: string; args: Buffer[] } = {
                 fcn: 'GetInstalledChaincodePackage',
-                args: [await arg.toBuffer()]
+                args: [Buffer.from(arg)]
             };
 
             const responses: ProposalResponse = await this.sendRequest(buildRequest, '_lifecycle', requestTimeout);
@@ -203,8 +207,8 @@ export class LifecyclePeer {
 
             // only sent to one peer so can only be one payload
             const results: protos.lifecycle.GetInstalledChaincodePackageResult = protos.lifecycle.GetInstalledChaincodePackageResult.decode(payloads[0]);
-            const packageBytes: any = results.getChaincodeInstallPackage(); // the package bytes
-            result = packageBytes.toBuffer();
+            const packageBytes: Uint8Array = results.chaincode_install_package; // the package bytes
+            result = Buffer.from(packageBytes);
 
             logger.debug('%s - end', method);
             return result;
@@ -229,6 +233,7 @@ export class LifecyclePeer {
         try {
             logger.debug('%s - build the get all installed smart contracts request', method);
 
+            // let thing: Buffer = new Buffer();
             const buildRequest: { fcn: string; args: Buffer[] } = {
                 fcn: 'GetChannels',
                 args: []
@@ -283,7 +288,7 @@ export class LifecyclePeer {
 
         // this will add the peer to the list of endorsers
         const endorser: Endorser = fabricClient.getEndorser(this.name, this.mspid);
-        endorser['setEndpoint'](endpoint);
+        endorser.setEndpoint(endpoint);
 
         return fabricClient;
     }
@@ -300,6 +305,7 @@ export class LifecyclePeer {
         try {
             // @ts-ignore
             await endorser.connect();
+
             const channel: Channel = fabricClient.newChannel('noname');
             // this will tell the peer it is a system wide request
             // not for a specific channel
@@ -331,7 +337,8 @@ export class LifecyclePeer {
             }
 
             logger.debug('%s - send the query request');
-            return endorsement.send(endorseRequest);
+            const response: ProposalResponse = await endorsement.send(endorseRequest);
+            return response;
         } finally {
             endorser.disconnect();
         }

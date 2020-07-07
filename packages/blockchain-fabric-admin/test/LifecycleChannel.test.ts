@@ -22,7 +22,7 @@ import { Gateway, Wallet, Wallets, X509Identity } from 'fabric-network';
 import * as sinon from 'sinon';
 import { DefinedSmartContract, LifecycleChannel } from '../src/LifecycleChannel';
 import { Lifecycle } from '../src/Lifecycle';
-import * as Long from 'long';
+// import * as Long from 'long';
 import { EndorsementPolicy } from '../src/Policy';
 import { Collection } from '../src';
 import { CollectionConfig } from '../src/CollectionConfig';
@@ -127,7 +127,7 @@ describe('LifecycleChannel', () => {
             let addEndorserStub: sinon.SinonStub;
             let addCommitterStub: sinon.SinonStub;
 
-            let arg: any;
+            let protoArgs: protos.lifecycle.IApproveChaincodeDefinitionForMyOrgArgs = {};
 
             beforeEach(() => {
                 mysandbox = sinon.createSandbox();
@@ -136,17 +136,16 @@ describe('LifecycleChannel', () => {
                 mysandbox.stub(Discoverer.prototype, 'connect').resolves();
                 mysandbox.stub(Committer.prototype, 'connect').resolves();
 
-                arg = new protos.lifecycle.ApproveChaincodeDefinitionForMyOrgArgs();
-                arg.setName('myContract');
-                arg.setVersion('0.0.1');
-                arg.setSequence(Long.fromValue(1));
+                protoArgs.name = 'myContract';
+                protoArgs.version = '0.0.1';
+                protoArgs.sequence = 1;
 
                 const local: protos.lifecycle.ChaincodeSource.Local = new protos.lifecycle.ChaincodeSource.Local();
-                local.setPackageId('myPackageId');
+                local.package_id = 'myPackageId';
 
                 const source: protos.lifecycle.ChaincodeSource = new protos.lifecycle.ChaincodeSource();
-                source.setLocalPackage(local);
-                arg.setSource(source);
+                source.local_package = local;
+                protoArgs.source = source;
 
                 addEndorserStub = mysandbox.stub(Channel.prototype, 'addEndorser');
                 addCommitterStub = mysandbox.stub(Channel.prototype, 'addCommitter');
@@ -166,9 +165,11 @@ describe('LifecycleChannel', () => {
 
             afterEach(() => {
                 mysandbox.restore();
+                protoArgs = {};
             });
 
             it('should approve a smart contract definition', async () => {
+                const arg: Uint8Array = protos.lifecycle.ApproveChaincodeDefinitionForMyOrgArgs.encode(protoArgs).finish();
                 await channel.approveSmartContractDefinition(['myPeer'], 'myOrderer', {
                     packageId: 'myPackageId',
                     sequence: 1,
@@ -180,10 +181,12 @@ describe('LifecycleChannel', () => {
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
                 transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }]);
-                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
             });
 
             it('should approve a smart contract definition with timeout set', async () => {
+                const arg: Uint8Array = protos.lifecycle.ApproveChaincodeDefinitionForMyOrgArgs.encode(protoArgs).finish();
+
                 await channel.approveSmartContractDefinition(['myPeer2'], 'myOrderer', {
                     packageId: 'myPackageId',
                     sequence: 1,
@@ -201,12 +204,14 @@ describe('LifecycleChannel', () => {
                 });
 
                 transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer2' }]);
-                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
             });
 
             it('should approve a smart contract definition and set initRequired if set', async () => {
 
-                arg.setInitRequired(true);
+                protoArgs.init_required = true;
+
+                const arg: Uint8Array = protos.lifecycle.ApproveChaincodeDefinitionForMyOrgArgs.encode(protoArgs).finish();
 
                 await channel.approveSmartContractDefinition(['myPeer'], 'myOrderer', {
                     packageId: 'myPackageId',
@@ -220,7 +225,7 @@ describe('LifecycleChannel', () => {
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
                 transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }]);
-                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
             });
 
             it('should approve a smart contract definition handle no packageId', async () => {
@@ -228,9 +233,11 @@ describe('LifecycleChannel', () => {
                 const unavailable: protos.lifecycle.ChaincodeSource.Unavailable = new protos.lifecycle.ChaincodeSource.Unavailable();
 
                 const source: protos.lifecycle.ChaincodeSource = new protos.lifecycle.ChaincodeSource();
-                source.setUnavailable(unavailable);
+                source.unavailable = unavailable;
 
-                arg.setSource(source);
+                protoArgs.source = source;
+
+                const arg: Uint8Array = protos.lifecycle.ApproveChaincodeDefinitionForMyOrgArgs.encode(protoArgs).finish();
 
                 await channel.approveSmartContractDefinition(['myPeer'], 'myOrderer', {
                     sequence: 1,
@@ -242,11 +249,13 @@ describe('LifecycleChannel', () => {
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
                 transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }]);
-                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
             });
 
             it('should approve a smart contract definition with endorsement plugin', async () => {
-                arg.setEndorsementPlugin('myPlugin');
+                protoArgs.endorsement_plugin = 'myPlugin';
+
+                const arg: Uint8Array = protos.lifecycle.ApproveChaincodeDefinitionForMyOrgArgs.encode(protoArgs).finish();
 
                 await channel.approveSmartContractDefinition(['myPeer'], 'myOrderer', {
                     packageId: 'myPackageId',
@@ -260,11 +269,13 @@ describe('LifecycleChannel', () => {
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
                 transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }]);
-                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
             });
 
             it('should approve a smart contract definition with validation plugin', async () => {
-                arg.setValidationPlugin('myPlugin');
+                protoArgs.validation_plugin = 'myPlugin';
+
+                const arg: Uint8Array = protos.lifecycle.ApproveChaincodeDefinitionForMyOrgArgs.encode(protoArgs).finish();
 
                 await channel.approveSmartContractDefinition(['myPeer'], 'myOrderer', {
                     packageId: 'myPackageId',
@@ -278,7 +289,7 @@ describe('LifecycleChannel', () => {
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
                 transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }]);
-                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
             });
 
             it('should approve a smart contract definition with endorsement policy', async () => {
@@ -288,13 +299,13 @@ describe('LifecycleChannel', () => {
 
                 const policyResult: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(policyString);
 
-                const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
+                const applicationPolicy: protos.common.IApplicationPolicy = {};
+                applicationPolicy.signature_policy = policyResult;
+                const policyBuffer: Buffer = Buffer.from(protos.common.ApplicationPolicy.encode(applicationPolicy).finish());
 
-                applicationPolicy.setSignaturePolicy(policyResult);
+                protoArgs.validation_parameter = policyBuffer;
 
-                const policyBuffer: Buffer = applicationPolicy.toBuffer();
-
-                arg.setValidationParameter(policyBuffer);
+                const arg: Uint8Array = protos.lifecycle.ApproveChaincodeDefinitionForMyOrgArgs.encode(protoArgs).finish();
 
                 await channel.approveSmartContractDefinition(['myPeer'], 'myOrderer', {
                     packageId: 'myPackageId',
@@ -308,7 +319,7 @@ describe('LifecycleChannel', () => {
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
                 transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }]);
-                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
             });
 
             it('should approve a smart contract definition with collection config', async () => {
@@ -323,7 +334,9 @@ describe('LifecycleChannel', () => {
                     }
                 ];
 
-                arg.setCollections(CollectionConfig.buildCollectionConfigPackage(collectionConfig));
+                protoArgs.collections = CollectionConfig.buildCollectionConfigPackage(collectionConfig);
+
+                const arg: Uint8Array = protos.lifecycle.ApproveChaincodeDefinitionForMyOrgArgs.encode(protoArgs).finish();
 
                 await channel.approveSmartContractDefinition(['myPeer'], 'myOrderer', {
                     packageId: 'myPackageId',
@@ -337,7 +350,7 @@ describe('LifecycleChannel', () => {
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
                 transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }]);
-                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
             });
 
             it('should handle no peerNames set', async () => {
@@ -394,6 +407,8 @@ describe('LifecycleChannel', () => {
             it('should handle error from submit', async () => {
                 transactionSubmitStub.rejects({ message: 'some error' });
 
+                const arg: Uint8Array = protos.lifecycle.ApproveChaincodeDefinitionForMyOrgArgs.encode(protoArgs).finish();
+
                 await channel.approveSmartContractDefinition(['myPeer'], 'myOrderer', {
                     packageId: 'myPackageId',
                     sequence: 1,
@@ -405,7 +420,7 @@ describe('LifecycleChannel', () => {
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
                 transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }]);
-                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
             });
         });
 
@@ -421,7 +436,7 @@ describe('LifecycleChannel', () => {
             let addEndorserStub: sinon.SinonStub;
             let addCommitterStub: sinon.SinonStub;
 
-            let arg: any;
+            let protoArgs: protos.lifecycle.ICommitChaincodeDefinitionArgs = {};
 
             beforeEach(() => {
                 mysandbox = sinon.createSandbox();
@@ -430,10 +445,10 @@ describe('LifecycleChannel', () => {
                 mysandbox.stub(Discoverer.prototype, 'connect').resolves();
                 mysandbox.stub(Committer.prototype, 'connect').resolves();
 
-                arg = new protos.lifecycle.ApproveChaincodeDefinitionForMyOrgArgs();
-                arg.setName('myContract');
-                arg.setVersion('0.0.1');
-                arg.setSequence(Long.fromValue(1));
+
+                protoArgs.name = 'myContract';
+                protoArgs.version = '0.0.1';
+                protoArgs.sequence = 1;
 
                 addEndorserStub = mysandbox.stub(Channel.prototype, 'addEndorser');
                 addCommitterStub = mysandbox.stub(Channel.prototype, 'addCommitter');
@@ -453,9 +468,11 @@ describe('LifecycleChannel', () => {
 
             afterEach(() => {
                 mysandbox.restore();
+                protoArgs = {};
             });
 
             it('should commit a smart contract definition', async () => {
+                const arg: Uint8Array = protos.lifecycle.CommitChaincodeDefinitionArgs.encode(protoArgs).finish();
                 await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     sequence: 1,
                     smartContractName: 'myContract',
@@ -466,10 +483,11 @@ describe('LifecycleChannel', () => {
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
                 transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }, { name: 'peer0.org2.example.com:9051' }]);
-                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
             });
 
             it('should commit a smart contract definition with timeout set', async () => {
+                const arg: Uint8Array = protos.lifecycle.CommitChaincodeDefinitionArgs.encode(protoArgs).finish();
                 await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     sequence: 1,
                     smartContractName: 'myContract',
@@ -486,13 +504,13 @@ describe('LifecycleChannel', () => {
                 });
 
                 transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }, { name: 'peer0.org2.example.com:9051' }]);
-                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
             });
 
             it('should commit a smart contract definition and set initRequired if set', async () => {
 
-                arg.setInitRequired(true);
-
+                protoArgs.init_required = true;
+                const arg: Uint8Array = protos.lifecycle.CommitChaincodeDefinitionArgs.encode(protoArgs).finish();
                 await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     sequence: 1,
                     smartContractName: 'myContract',
@@ -504,12 +522,12 @@ describe('LifecycleChannel', () => {
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
                 transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }, { name: 'peer0.org2.example.com:9051' }]);
-                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
             });
 
             it('should commit a smart contract definition with endorsement plugin', async () => {
-                arg.setEndorsementPlugin('myPlugin');
-
+                protoArgs.endorsement_plugin = 'myPlugin';
+                const arg: Uint8Array = protos.lifecycle.CommitChaincodeDefinitionArgs.encode(protoArgs).finish();
                 await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     sequence: 1,
                     smartContractName: 'myContract',
@@ -521,12 +539,12 @@ describe('LifecycleChannel', () => {
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
                 transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }, { name: 'peer0.org2.example.com:9051' }]);
-                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
             });
 
             it('should commit a smart contract definition with validation plugin', async () => {
-                arg.setValidationPlugin('myPlugin');
-
+                protoArgs.validation_plugin = 'myPlugin';
+                const arg: Uint8Array = protos.lifecycle.CommitChaincodeDefinitionArgs.encode(protoArgs).finish();
                 await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     sequence: 1,
                     smartContractName: 'myContract',
@@ -538,7 +556,7 @@ describe('LifecycleChannel', () => {
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
                 transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }, { name: 'peer0.org2.example.com:9051' }]);
-                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
             });
 
             it('should commit a smart contract definition with endorsement policy', async () => {
@@ -548,14 +566,13 @@ describe('LifecycleChannel', () => {
 
                 const policyResult: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(policyString);
 
-                const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
+                const applicationPolicy: protos.common.IApplicationPolicy = {};
+                applicationPolicy.signature_policy = policyResult;
 
-                applicationPolicy.setSignaturePolicy(policyResult);
+                const policyBuffer: Buffer = Buffer.from(protos.common.ApplicationPolicy.encode(applicationPolicy).finish());
 
-                const policyBuffer: Buffer = applicationPolicy.toBuffer();
-
-                arg.setValidationParameter(policyBuffer);
-
+                protoArgs.validation_parameter = policyBuffer;
+                const arg: Uint8Array = protos.lifecycle.CommitChaincodeDefinitionArgs.encode(protoArgs).finish();
                 await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     sequence: 1,
                     smartContractName: 'myContract',
@@ -567,20 +584,19 @@ describe('LifecycleChannel', () => {
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
                 transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }, { name: 'peer0.org2.example.com:9051' }]);
-                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
             });
 
             it('should commit a smart contract definition with endorsement policy channel reference', async () => {
                 const policyString: string = `myPolicyReference`;
 
-                const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
+                const applicationPolicy: protos.common.IApplicationPolicy = {};
+                applicationPolicy.channel_config_policy_reference = policyString;
 
-                applicationPolicy.setChannelConfigPolicyReference(policyString);
+                const policyBuffer: Buffer = Buffer.from(protos.common.ApplicationPolicy.encode(applicationPolicy).finish());
 
-                const policyBuffer: Buffer = applicationPolicy.toBuffer();
-
-                arg.setValidationParameter(policyBuffer);
-
+                protoArgs.validation_parameter = policyBuffer;
+                const arg: Uint8Array = protos.lifecycle.CommitChaincodeDefinitionArgs.encode(protoArgs).finish();
                 await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     sequence: 1,
                     smartContractName: 'myContract',
@@ -592,7 +608,7 @@ describe('LifecycleChannel', () => {
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
                 transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }, { name: 'peer0.org2.example.com:9051' }]);
-                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
             });
 
             it('should commit a smart contract definition with collection config', async () => {
@@ -607,8 +623,8 @@ describe('LifecycleChannel', () => {
                     }
                 ];
 
-                arg.setCollections(CollectionConfig.buildCollectionConfigPackage(collectionConfig));
-
+                protoArgs.collections = CollectionConfig.buildCollectionConfigPackage(collectionConfig);
+                const arg: Uint8Array = protos.lifecycle.CommitChaincodeDefinitionArgs.encode(protoArgs).finish();
                 await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     sequence: 1,
                     smartContractName: 'myContract',
@@ -620,7 +636,7 @@ describe('LifecycleChannel', () => {
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
                 transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }, { name: 'peer0.org2.example.com:9051' }]);
-                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
             });
 
             it('should handle no peerNames set', async () => {
@@ -671,7 +687,7 @@ describe('LifecycleChannel', () => {
 
             it('should handle error from submit', async () => {
                 transactionSubmitStub.rejects({ message: 'some error' });
-
+                const arg: Uint8Array = protos.lifecycle.CommitChaincodeDefinitionArgs.encode(protoArgs).finish();
                 await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
                     sequence: 1,
                     smartContractName: 'myContract',
@@ -682,7 +698,7 @@ describe('LifecycleChannel', () => {
                 addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
 
                 transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }, { name: 'peer0.org2.example.com:9051' }]);
-                transactionSubmitStub.should.have.been.calledWith(arg.toBuffer());
+                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
             });
 
             it('should handle error from not finding peer', async () => {
@@ -703,20 +719,20 @@ describe('LifecycleChannel', () => {
             let endorsementSignSpy: sinon.SinonSpy;
             let endorsementSendStub: sinon.SinonStub;
 
-            let arg: any;
+            let protoArgs: protos.lifecycle.ICheckCommitReadinessArgs = {};
             let buildRequest: any;
 
             beforeEach(() => {
                 mysandbox = sinon.createSandbox();
 
-                arg = new protos.lifecycle.CheckCommitReadinessArgs();
-                arg.setName('myContract');
-                arg.setVersion('0.0.1');
-                arg.setSequence(Long.fromValue(1));
 
+                protoArgs.name = 'myContract';
+                protoArgs.version = '0.0.1';
+                protoArgs.sequence = 1;
+                const arg: Uint8Array = protos.lifecycle.CheckCommitReadinessArgs.encode(protoArgs).finish();
                 buildRequest = {
                     fcn: 'CheckCommitReadiness',
-                    args: [arg.toBuffer()]
+                    args: [Buffer.from(arg)]
                 };
 
                 endorserConnectStub = mysandbox.stub(Endorser.prototype, 'connect').resolves();
@@ -729,15 +745,17 @@ describe('LifecycleChannel', () => {
 
             afterEach(() => {
                 mysandbox.restore();
+                protoArgs = {}
+                buildRequest = {}
             });
 
             it('should get the commit readiness of a smart contract definition', async () => {
 
-                const encodedResult: protos.lifecycle.CheckCommitReadinessResult = protos.lifecycle.CheckCommitReadinessResult.encode({
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.CheckCommitReadinessResult.encode({
                     approvals: {
                         org1: true, org2: false
                     }
-                });
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
@@ -770,11 +788,11 @@ describe('LifecycleChannel', () => {
 
             it('should get the commit readiness of a smart contract definition with a timeout', async () => {
 
-                const encodedResult: protos.lifecycle.CheckCommitReadinessResult = protos.lifecycle.CheckCommitReadinessResult.encode({
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.CheckCommitReadinessResult.encode({
                     approvals: {
                         org1: true, org2: false
                     }
-                });
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
@@ -808,18 +826,19 @@ describe('LifecycleChannel', () => {
 
             it('should get the commit readiness of a smart contract definition with init required', async () => {
 
-                arg.setInitRequired(true);
+                protoArgs.init_required = true;
 
+                const arg: Uint8Array = protos.lifecycle.CheckCommitReadinessArgs.encode(protoArgs).finish();
                 buildRequest = {
                     fcn: 'CheckCommitReadiness',
-                    args: [arg.toBuffer()]
+                    args: [Buffer.from(arg)]
                 };
 
-                const encodedResult: protos.lifecycle.CheckCommitReadinessResult = protos.lifecycle.CheckCommitReadinessResult.encode({
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.CheckCommitReadinessResult.encode({
                     approvals: {
                         org1: true, org2: false
                     }
-                });
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
@@ -853,18 +872,20 @@ describe('LifecycleChannel', () => {
 
             it('should get the commit readiness of a smart contract definition with endorsement plugin', async () => {
 
-                arg.setEndorsementPlugin('myPlugin');
+                protoArgs.endorsement_plugin = 'myPlugin';
+
+                const arg: Uint8Array = protos.lifecycle.CheckCommitReadinessArgs.encode(protoArgs).finish();
 
                 buildRequest = {
                     fcn: 'CheckCommitReadiness',
-                    args: [arg.toBuffer()]
+                    args: [Buffer.from(arg)]
                 };
 
-                const encodedResult: protos.lifecycle.CheckCommitReadinessResult = protos.lifecycle.CheckCommitReadinessResult.encode({
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.CheckCommitReadinessResult.encode({
                     approvals: {
                         org1: true, org2: false
                     }
-                });
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
@@ -898,18 +919,20 @@ describe('LifecycleChannel', () => {
 
             it('should get the commit readiness of a smart contract definition with validation plugin', async () => {
 
-                arg.setValidationPlugin('myPlugin');
+                protoArgs.validation_plugin = 'myPlugin';
+
+                const arg: Uint8Array = protos.lifecycle.CheckCommitReadinessArgs.encode(protoArgs).finish();
 
                 buildRequest = {
                     fcn: 'CheckCommitReadiness',
-                    args: [arg.toBuffer()]
+                    args: [Buffer.from(arg)]
                 };
 
-                const encodedResult: protos.lifecycle.CheckCommitReadinessResult = protos.lifecycle.CheckCommitReadinessResult.encode({
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.CheckCommitReadinessResult.encode({
                     approvals: {
                         org1: true, org2: false
                     }
-                });
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
@@ -949,24 +972,26 @@ describe('LifecycleChannel', () => {
 
                 const policyResult: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(policyString);
 
-                const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
 
-                applicationPolicy.setSignaturePolicy(policyResult);
+                const applicationPolicy: protos.common.IApplicationPolicy = {};
+                applicationPolicy.signature_policy = policyResult;
 
-                const policyBuffer: Buffer = applicationPolicy.toBuffer();
+                const policyBuffer: Buffer = Buffer.from(protos.common.ApplicationPolicy.encode(applicationPolicy).finish());
 
-                arg.setValidationParameter(policyBuffer);
+                protoArgs.validation_parameter = policyBuffer;
+
+                const arg: Uint8Array = protos.lifecycle.CheckCommitReadinessArgs.encode(protoArgs).finish();
 
                 buildRequest = {
                     fcn: 'CheckCommitReadiness',
-                    args: [arg.toBuffer()]
+                    args: [Buffer.from(arg)]
                 };
 
-                const encodedResult: protos.lifecycle.CheckCommitReadinessResult = protos.lifecycle.CheckCommitReadinessResult.encode({
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.CheckCommitReadinessResult.encode({
                     approvals: {
                         org1: true, org2: false
                     }
-                });
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
@@ -1011,18 +1036,20 @@ describe('LifecycleChannel', () => {
                     }
                 ];
 
-                arg.setCollections(CollectionConfig.buildCollectionConfigPackage(collectionConfig));
+                protoArgs.collections = CollectionConfig.buildCollectionConfigPackage(collectionConfig);
+
+                const arg: Uint8Array = protos.lifecycle.CheckCommitReadinessArgs.encode(protoArgs).finish();
 
                 buildRequest = {
                     fcn: 'CheckCommitReadiness',
-                    args: [arg.toBuffer()]
+                    args: [Buffer.from(arg)]
                 };
 
-                const encodedResult: protos.lifecycle.CheckCommitReadinessResult = protos.lifecycle.CheckCommitReadinessResult.encode({
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.CheckCommitReadinessResult.encode({
                     approvals: {
                         org1: true, org2: false
                     }
-                });
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
@@ -1112,17 +1139,18 @@ describe('LifecycleChannel', () => {
             let endorsementSignSpy: sinon.SinonSpy;
             let endorsementSendStub: sinon.SinonStub;
 
-            let arg: any;
+            let arg: Uint8Array;
+            let protoArgs: protos.lifecycle.IQueryChaincodeDefinitionsArgs = {};
             let buildRequest: any;
 
             beforeEach(() => {
                 mysandbox = sinon.createSandbox();
 
-                arg = new protos.lifecycle.QueryChaincodeDefinitionsArgs();
+                arg = protos.lifecycle.QueryChaincodeDefinitionsArgs.encode(protoArgs).finish();
 
                 buildRequest = {
                     fcn: 'QueryChaincodeDefinitions',
-                    args: [arg.toBuffer()]
+                    args: [Buffer.from(arg)]
                 };
 
                 endorserConnectStub = mysandbox.stub(Endorser.prototype, 'connect').resolves();
@@ -1135,11 +1163,12 @@ describe('LifecycleChannel', () => {
 
             afterEach(() => {
                 mysandbox.restore();
+                protoArgs = {};
             });
 
             it('should get all the committed smart contracts', async () => {
 
-                const encodedResult: protos.lifecycle.QueryChaincodeDefinitionsResult = protos.lifecycle.QueryChaincodeDefinitionsResult.encode({
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.QueryChaincodeDefinitionsResult.encode({
                     chaincode_definitions: [{
                         name: 'myContract',
                         sequence: 1,
@@ -1159,7 +1188,7 @@ describe('LifecycleChannel', () => {
                         validation_parameter: Buffer.from(JSON.stringify({})),
                         collections: {}
                     }]
-                });
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
@@ -1196,7 +1225,7 @@ describe('LifecycleChannel', () => {
 
             it('should get all the committed smart contracts with timeout', async () => {
 
-                const encodedResult: protos.lifecycle.QueryChaincodeDefinitionsResult = protos.lifecycle.QueryChaincodeDefinitionsResult.encode({
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.QueryChaincodeDefinitionsResult.encode({
                     chaincode_definitions: [{
                         name: 'myContract',
                         sequence: 1,
@@ -1216,7 +1245,7 @@ describe('LifecycleChannel', () => {
                         validation_parameter: Buffer.from(JSON.stringify({})),
                         collections: {}
                     }]
-                });
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
@@ -1274,18 +1303,19 @@ describe('LifecycleChannel', () => {
             let endorsementSendStub: sinon.SinonStub;
 
             let arg: any;
+            let protoArgs: protos.lifecycle.IQueryChaincodeDefinitionArgs = {};
             let buildRequest: any;
 
             beforeEach(() => {
                 mysandbox = sinon.createSandbox();
 
-                arg = new protos.lifecycle.QueryChaincodeDefinitionArgs();
+                protoArgs.name = 'myContract';
 
-                arg.setName('myContract');
+                arg = protos.lifecycle.QueryChaincodeDefinitionArgs.encode(protoArgs).finish();
 
                 buildRequest = {
                     fcn: 'QueryChaincodeDefinition',
-                    args: [arg.toBuffer()]
+                    args: [Buffer.from(arg)]
                 };
 
                 endorserConnectStub = mysandbox.stub(Endorser.prototype, 'connect').resolves();
@@ -1298,10 +1328,11 @@ describe('LifecycleChannel', () => {
 
             afterEach(() => {
                 mysandbox.restore();
+                protoArgs = {};
             });
 
             it('should get the committed smart contract', async () => {
-                const encodedResult: protos.lifecycle.QueryChaincodeDefinitionsResult = protos.lifecycle.QueryChaincodeDefinitionResult.encode({
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.QueryChaincodeDefinitionResult.encode({
                     sequence: 1,
                     version: '0.0.1',
                     init_required: false,
@@ -1310,7 +1341,7 @@ describe('LifecycleChannel', () => {
                     validation_parameter: Buffer.from(JSON.stringify({})),
                     collections: {},
                     approvals: { 'Org1MSP': true, 'Org2MSP': true }
-                });
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
@@ -1343,7 +1374,7 @@ describe('LifecycleChannel', () => {
 
             it('should get all the committed smart contracts with timeout', async () => {
 
-                const encodedResult: protos.lifecycle.QueryChaincodeDefinitionsResult = protos.lifecycle.QueryChaincodeDefinitionResult.encode({
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.QueryChaincodeDefinitionResult.encode({
                     sequence: 1,
                     version: '0.0.1',
                     init_required: false,
@@ -1352,7 +1383,7 @@ describe('LifecycleChannel', () => {
                     validation_parameter: Buffer.from(JSON.stringify({})),
                     collections: {},
                     approvals: { 'Org1MSP': true, 'Org2MSP': true }
-                });
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
@@ -1409,11 +1440,11 @@ describe('LifecycleChannel', () => {
 
                 const policyResult: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(policyString);
 
-                const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
+                const applicationPolicy: protos.common.IApplicationPolicy = {};
 
-                applicationPolicy.setSignaturePolicy(policyResult);
+                applicationPolicy.signature_policy = policyResult;
 
-                const policyBuffer: Buffer = applicationPolicy.toBuffer();
+                const policyBuffer: Buffer = Buffer.from(protos.common.ApplicationPolicy.encode(applicationPolicy).finish());
 
                 const result: Buffer = LifecycleChannel.getEndorsementPolicyBytes(policyString);
 
@@ -1427,11 +1458,11 @@ describe('LifecycleChannel', () => {
 
                 const policyResult: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(policyString);
 
-                const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
+                const applicationPolicy: protos.common.IApplicationPolicy = {};
 
-                applicationPolicy.setSignaturePolicy(policyResult);
+                applicationPolicy.signature_policy = policyResult;
 
-                const policyBuffer: Buffer = applicationPolicy.toBuffer();
+                const policyBuffer: Buffer = Buffer.from(protos.common.ApplicationPolicy.encode(applicationPolicy).finish());
 
                 const result: Buffer = LifecycleChannel.getEndorsementPolicyBytes(policyString);
 
@@ -1445,11 +1476,11 @@ describe('LifecycleChannel', () => {
 
                 const policyResult: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(policyString);
 
-                const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
+                const applicationPolicy: protos.common.IApplicationPolicy = {};
 
-                applicationPolicy.setSignaturePolicy(policyResult);
+                applicationPolicy.signature_policy = policyResult;
 
-                const policyBuffer: Buffer = applicationPolicy.toBuffer();
+                const policyBuffer: Buffer = Buffer.from(protos.common.ApplicationPolicy.encode(applicationPolicy).finish());
 
                 const result: Buffer = LifecycleChannel.getEndorsementPolicyBytes(policyString);
 
@@ -1459,11 +1490,11 @@ describe('LifecycleChannel', () => {
             it('should get the buffer of the endorsment policy when using channel reference', () => {
                 const policyString: string = `myPolicyReference`;
 
-                const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
+                const applicationPolicy: protos.common.IApplicationPolicy = {};
 
-                applicationPolicy.setChannelConfigPolicyReference(policyString);
+                applicationPolicy.channel_config_policy_reference = policyString;
 
-                const policyBuffer: Buffer = applicationPolicy.toBuffer();
+                const policyBuffer: Buffer = Buffer.from(protos.common.ApplicationPolicy.encode(applicationPolicy).finish());
 
                 const result: Buffer = LifecycleChannel.getEndorsementPolicyBytes(policyString);
 
@@ -1487,7 +1518,7 @@ describe('LifecycleChannel', () => {
                 };
 
                 const expectedResult: protos.common.CollectionConfigPackage = CollectionConfig.buildCollectionConfigPackage([collection]);
-                const actualResult: protos.common.CollectionConfigPackage = LifecycleChannel.getCollectionConfig([collection]);
+                const actualResult: protos.common.CollectionConfigPackage = LifecycleChannel.getCollectionConfig([collection]) as protos.common.CollectionConfigPackage;
 
                 actualResult.should.deep.equal(expectedResult);
             });
@@ -1500,10 +1531,20 @@ describe('LifecycleChannel', () => {
                     maxPeerCount: 3
                 };
 
+                // tslint:disable-next-line: no-console
+                console.log('starting expected result');
                 const expectedResult: protos.common.CollectionConfigPackage = CollectionConfig.buildCollectionConfigPackage([collection]);
-                const actualResult: protos.common.CollectionConfigPackage = LifecycleChannel.getCollectionConfig([collection], true);
+                // tslint:disable-next-line: no-console
+                console.log('end of expected result', expectedResult);
 
-                actualResult.should.deep.equal(expectedResult.toBuffer());
+
+                // tslint:disable-next-line: no-console
+                console.log('starting actual result');
+                const actualResult: Buffer = LifecycleChannel.getCollectionConfig([collection], true) as Buffer;
+                // tslint:disable-next-line: no-console
+                console.log('ending actual result', actualResult);
+                const arg: Uint8Array = protos.common.CollectionConfigPackage.encode({ config: expectedResult.config }).finish();
+                actualResult.should.deep.equal(Buffer.from(arg));
             });
         });
 

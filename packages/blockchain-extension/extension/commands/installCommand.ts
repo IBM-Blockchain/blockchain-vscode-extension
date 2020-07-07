@@ -62,7 +62,65 @@ export async function installSmartContract(orgMap: Map<string, string[]>, chosen
                     if (timeout) {
                         timeout = timeout * 1000;
                     }
+
+                    // try {
                     packageId = await connection.installSmartContract(chosenPackage.path, peer, timeout);
+
+                    // } catch (err) {
+                    // if (err.message.includes('already successfully installed')) {
+
+                    // const packages: FabricInstalledSmartContract[] = await connection.getInstalledSmartContracts(peer);
+                    // let existingPackage: FabricInstalledSmartContract;
+                    // const lastSlash: number = chosenPackage.path.lastIndexOf('/');
+                    // const packageLabel: string = chosenPackage.path.substring(lastSlash + 1);
+                    // if (packageLabel.includes('@')) {
+                    //     const packageParts: string[] = packageLabel.split('@');
+                    //     const packageName: string = packageParts[0];
+                    //     const packageVersion: string = packageParts[1].split('.tar.gz')[0];
+                    //     const possiblePackages: FabricInstalledSmartContract[] = packages.filter((_package: FabricInstalledSmartContract) => {
+                    //         return _package.label.includes(`${packageName}_${packageVersion}`);
+                    //     });
+
+                    //     if (possiblePackages.length > 1) {
+                    //         for (const _package of possiblePackages) {
+                    //             if (!existingPackage) {
+                    //                 existingPackage = _package;
+                    //             } else {
+                    //                 const _label: string = _package.label;
+                    //                 const _labelParts: string[] = _label.split('_');
+
+                    //                 const _currentLabel: string = existingPackage.label;
+                    //                 const _currentLabelParts: string[] = _currentLabel.split('_');
+
+                    //                 if (Number(_labelParts[2]) > Number(_currentLabelParts[2])) {
+                    //                     existingPackage = _package;
+                    //                 }
+                    //             }
+                    //         }
+
+                    //     } else if (possiblePackages.length === 1) {
+
+                    //         existingPackage = possiblePackages[0];
+                    //     } else {
+                    //         // Unable to determine packageId
+                    //         return;
+                    //     }
+                    //     // split it up
+                    //     // get name and ver
+                    //     // name_ver
+                    //     // find package with label === name_ver
+                    // } else {
+                    //     // handle somehow - will need to in packaging code as well
+                    //     return;
+                    // }
+
+                    // // We have the latest installed package
+                    // outputAdapter.log(LogType.SUCCESS, `Package already installed on ${peer}`);
+                    // packageId = existingPackage.packageId;
+
+                    // }
+                    // }
+
                     outputAdapter.log(LogType.SUCCESS, `Successfully installed on peer ${peer}`);
                 } catch (error) {
                     outputAdapter.log(LogType.ERROR, `Failed to install on peer ${peer} with reason: ${error.message}`, `Failed to install on peer ${peer} with reason: ${error.toString()}`);

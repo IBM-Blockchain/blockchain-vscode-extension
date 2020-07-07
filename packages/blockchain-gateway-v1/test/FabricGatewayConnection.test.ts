@@ -118,7 +118,7 @@ describe('FabricGatewayConnection', () => {
         fabricGatewayStub.disconnect.returns(null);
 
         fabricClientConnection = new FabricGatewayConnection('connectionpath');
-        fabricClientConnection['gateway'] = fabricGatewayStub as any;
+        fabricClientConnection['gateway'] = fabricGatewayStub as unknown as Gateway;
     });
 
     afterEach(() => {
@@ -131,7 +131,7 @@ describe('FabricGatewayConnection', () => {
             const connectionProfilePath: string = path.join(rootPath, 'test/data/connectionProfiles/connection.json');
 
             fabricClientConnection = new FabricGatewayConnection(connectionProfilePath);
-            fabricClientConnection['gateway'] = fabricGatewayStub as any;
+            fabricClientConnection['gateway'] = fabricGatewayStub as unknown as Gateway;
 
             wallet = await FabricWallet.newFabricWallet(path.join(rootPath, 'test/data/walletDir/wallet'));
         });
@@ -148,7 +148,7 @@ describe('FabricGatewayConnection', () => {
 
             wallet = await FabricWallet.newFabricWallet(path.join(rootPath, 'test/data/wallet'));
             fabricClientConnectionYaml = new FabricGatewayConnection(connectionProfilePath);
-            fabricClientConnectionYaml['gateway'] = fabricGatewayStub as any;
+            fabricClientConnectionYaml['gateway'] = fabricGatewayStub as unknown as Gateway;
 
             await fabricClientConnectionYaml.connect(wallet, FabricRuntimeUtil.ADMIN_USER, timeout);
             fabricGatewayStub.connect.should.have.been.called;
@@ -161,7 +161,7 @@ describe('FabricGatewayConnection', () => {
 
             wallet = await FabricWallet.newFabricWallet(path.join(rootPath, 'test/data/wallet'));
             otherFabricClientConnectionYml = new FabricGatewayConnection(connectionProfilePath);
-            otherFabricClientConnectionYml['gateway'] = fabricGatewayStub as any;
+            otherFabricClientConnectionYml['gateway'] = fabricGatewayStub as unknown as Gateway;
 
             await otherFabricClientConnectionYml.connect(wallet, FabricRuntimeUtil.ADMIN_USER, timeout);
             fabricGatewayStub.connect.should.have.been.called;
@@ -174,7 +174,7 @@ describe('FabricGatewayConnection', () => {
             wallet = await FabricWallet.newFabricWallet(path.join(rootPath, 'test/data/wallet'));
 
             fabricClientConnection = new FabricGatewayConnection(connectionProfilePath);
-            fabricClientConnection['gateway'] = fabricGatewayStub as any;
+            fabricClientConnection['gateway'] = fabricGatewayStub as unknown as Gateway;
 
             await fabricClientConnection.connect(wallet, FabricRuntimeUtil.ADMIN_USER, timeout);
 
@@ -190,7 +190,7 @@ describe('FabricGatewayConnection', () => {
             };
             wallet = await FabricWallet.newFabricWallet(connectionData.walletPath);
             fabricClientConnection = new FabricGatewayConnection(connectionData.connectionProfilePath);
-            fabricClientConnection['gateway'] = fabricGatewayStub as any;
+            fabricClientConnection['gateway'] = fabricGatewayStub as unknown as Gateway;
 
             await fabricClientConnection.connect(wallet, FabricRuntimeUtil.ADMIN_USER, timeout);
 
@@ -204,7 +204,7 @@ describe('FabricGatewayConnection', () => {
 
             wallet = await FabricWallet.newFabricWallet(path.join(rootPath, 'test/data/wallet'));
             fabricClientConnectionWrong = new FabricGatewayConnection(connectionProfilePath);
-            fabricClientConnectionWrong['gateway'] = fabricGatewayStub as any;
+            fabricClientConnectionWrong['gateway'] = fabricGatewayStub as unknown as Gateway;
 
             await fabricClientConnectionWrong.connect(wallet, FabricRuntimeUtil.ADMIN_USER, timeout).should.have.been.rejectedWith('Connection profile must be in JSON or yaml format');
             fabricGatewayStub.connect.should.not.have.been.called;

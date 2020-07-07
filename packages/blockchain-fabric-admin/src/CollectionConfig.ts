@@ -14,7 +14,7 @@
 
 import * as protos from 'fabric-protos';
 import * as Long from 'long';
-import {EndorsementPolicy} from './Policy';
+import { EndorsementPolicy } from './Policy';
 
 export interface Collection {
     name: string,
@@ -33,6 +33,7 @@ export class CollectionConfig {
         if (collectionsConfigs.length === 0) {
             throw new Error('CollectionConfig invalid: collection config is empty');
         }
+        const collectionConfigPackage: protos.common.ICollectionConfigPackage = {};
         const collectionConfigs: protos.common.CollectionConfig[] = [];
         collectionsConfigs.forEach(config => {
             const staticCollectionConfig: protos.common.StaticCollectionConfig = this.buildCollectionConfig(config);
@@ -40,7 +41,10 @@ export class CollectionConfig {
             collectionConfig.static_collection_config = staticCollectionConfig;
             collectionConfigs.push(collectionConfig);
         });
-        return new protos.common.CollectionConfigPackage(collectionConfigs);
+        collectionConfigPackage.config = collectionConfigs;
+        // tslint:disable-next-line: no-console
+        console.log('collectionConfigPackage', collectionConfigPackage);
+        return new protos.common.CollectionConfigPackage(collectionConfigPackage);
     }
 
     /**
@@ -97,7 +101,7 @@ export class CollectionConfig {
     static buildCollectionConfig(collectionConfig: Collection): protos.common.StaticCollectionConfig {
         collectionConfig = this.checkCollectionConfig(collectionConfig);
 
-        const staticCollectionConfig: protos.StaticCollectionConfig = new protos.common.StaticCollectionConfig();
+        const staticCollectionConfig: protos.common.StaticCollectionConfig = new protos.common.StaticCollectionConfig();
         staticCollectionConfig.name = collectionConfig.name;
         staticCollectionConfig.required_peer_count = collectionConfig.requiredPeerCount;
         staticCollectionConfig.maximum_peer_count = collectionConfig.maxPeerCount;
@@ -117,9 +121,9 @@ export class CollectionConfig {
             if (collectionConfig.endorsementPolicy.startsWith(EndorsementPolicy.AND) || collectionConfig.endorsementPolicy.startsWith(EndorsementPolicy.OR) || collectionConfig.endorsementPolicy.startsWith(EndorsementPolicy.OUT_OF)) {
                 const policy: EndorsementPolicy = new EndorsementPolicy();
                 const signaturePolicy: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(collectionConfig.endorsementPolicy);
-                applicationPolicy.setSignaturePolicy(signaturePolicy);
+                applicationPolicy.signature_policy = signaturePolicy;
             } else {
-                applicationPolicy.setChannelConfigPolicyReference(collectionConfig.endorsementPolicy);
+                applicationPolicy.channel_config_policy_reference = collectionConfig.endorsementPolicy;
             }
 
             staticCollectionConfig.endorsement_policy = applicationPolicy;

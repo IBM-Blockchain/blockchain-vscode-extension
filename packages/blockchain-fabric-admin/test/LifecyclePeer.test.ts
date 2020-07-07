@@ -12,14 +12,14 @@
  * limitations under the License.
 */
 
-import {InstalledSmartContract, LifecyclePeer} from '../src';
-import {Endorsement, Endorser, IdentityContext} from 'fabric-common';
+import { InstalledSmartContract, LifecyclePeer } from '../src';
+import { Endorsement, Endorser, IdentityContext } from 'fabric-common';
 import * as protos from 'fabric-protos';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as path from 'path';
-import {Wallet, Wallets, X509Identity} from 'fabric-network';
+import { Wallet, Wallets, X509Identity } from 'fabric-network';
 import * as sinon from 'sinon';
 
 const should: Chai.Should = chai.should();
@@ -155,7 +155,7 @@ describe('LifecyclePeer', () => {
                 mspid: 'myMSPID',
                 name: 'myPeer2',
                 sslTargetNameOverride: 'localhost'
-          });
+            });
 
             wallet = await Wallets.newFileSystemWallet(path.join(__dirname, 'tmp', 'wallet'));
 
@@ -218,12 +218,13 @@ describe('LifecyclePeer', () => {
                 endorsementSendStub = mysandbox.stub(Endorsement.prototype, 'send');
                 endorsementSendStub.resolves();
 
-                const arg: protos.lifecycle.InstallChaincodeArgs = new protos.lifecycle.InstallChaincodeArgs();
-                arg.setChaincodeInstallPackage(packageBuffer);
+                const protoArgs: protos.lifecycle.IInstallChaincodeArgs = {};
+                protoArgs.chaincode_install_package = packageBuffer;
 
+                const arg: Uint8Array = protos.lifecycle.InstallChaincodeArgs.encode(protoArgs).finish();
                 buildRequest = {
                     fcn: 'InstallChaincode',
-                    args: [arg.toBuffer()]
+                    args: [Buffer.from(arg)]
                 };
             });
 
@@ -232,9 +233,10 @@ describe('LifecyclePeer', () => {
             });
 
             it('should install the smart contract package', async () => {
-                const encodedResult: protos.lifecycle.InstallChaincodeResult = protos.lifecycle.InstallChaincodeResult.encode({
+
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.InstallChaincodeResult.encode({
                     package_id: 'myPackageId'
-                });
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
@@ -258,9 +260,9 @@ describe('LifecyclePeer', () => {
 
             it('should install the smart contract package using the timeout passed in', async () => {
                 peer2['requestTimeout'] = 1234;
-                const encodedResult: protos.lifecycle.InstallChaincodeResult = protos.lifecycle.InstallChaincodeResult.encode({
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.InstallChaincodeResult.encode({
                     package_id: 'myPackageId'
-                });
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
@@ -285,9 +287,9 @@ describe('LifecyclePeer', () => {
 
             it('should install the smart contract package using the timeout', async () => {
                 peer['requestTimeout'] = 1234;
-                const encodedResult: protos.lifecycle.InstallChaincodeResult = protos.lifecycle.InstallChaincodeResult.encode({
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.InstallChaincodeResult.encode({
                     package_id: 'myPackageId'
-                });
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
@@ -415,11 +417,11 @@ describe('LifecyclePeer', () => {
                 endorsementSendStub = mysandbox.stub(Endorsement.prototype, 'send');
                 endorsementSendStub.resolves();
 
-                const arg: protos.lifecycle.QueryInstalledChaincodesArgs = new protos.lifecycle.QueryInstalledChaincodesArgs();
+                const arg: Uint8Array = protos.lifecycle.QueryInstalledChaincodesArgs.encode({}).finish();
 
                 buildRequest = {
                     fcn: 'QueryInstalledChaincodes',
-                    args: [arg.toBuffer()]
+                    args: [Buffer.from(arg)]
                 };
             });
 
@@ -428,25 +430,28 @@ describe('LifecyclePeer', () => {
             });
 
             it('should get all the installed smart contracts', async () => {
-                const queryInstalledChaincodeEncodedResult: protos.lifecycle.QueryInstalledChaincodesResult = protos.lifecycle.QueryInstalledChaincodesResult.encode([{
-                    package_id: 'myPackageId',
-                    label: 'myLabel'
-                }, {
-                    package_id: 'anotherPackageId',
-                    label: 'anotherLabel'
-                }]);
+
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.QueryInstalledChaincodesResult.encode({
+                    installed_chaincodes: [{
+                        package_id: 'myPackageId',
+                        label: 'myLabel'
+                    }, {
+                        package_id: 'anotherPackageId',
+                        label: 'anotherLabel'
+                    }]
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
                         response: {
                             status: 200,
-                            payload: queryInstalledChaincodeEncodedResult
+                            payload: encodedResult
                         }
                     }]
                 });
 
                 const result: InstalledSmartContract[] = await peer.getAllInstalledSmartContracts();
-                result.should.deep.equal([{packageId: 'myPackageId', label: 'myLabel'}, {
+                result.should.deep.equal([{ packageId: 'myPackageId', label: 'myLabel' }, {
                     packageId: 'anotherPackageId',
                     label: 'anotherLabel'
                 }]);
@@ -461,25 +466,28 @@ describe('LifecyclePeer', () => {
 
             it('should get installed the smart contract using the timeout passed in', async () => {
                 peer['requestTimeout'] = 1234;
-                const queryInstalledChaincodeEncodedResult: protos.lifecycle.QueryInstalledChaincodesResult = protos.lifecycle.QueryInstalledChaincodesResult.encode([{
-                    package_id: 'myPackageId',
-                    label: 'myLabel'
-                }, {
-                    package_id: 'anotherPackageId',
-                    label: 'anotherLabel'
-                }]);
+
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.QueryInstalledChaincodesResult.encode({
+                    installed_chaincodes: [{
+                        package_id: 'myPackageId',
+                        label: 'myLabel'
+                    }, {
+                        package_id: 'anotherPackageId',
+                        label: 'anotherLabel'
+                    }]
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
                         response: {
                             status: 200,
-                            payload: queryInstalledChaincodeEncodedResult
+                            payload: encodedResult
                         }
                     }]
                 });
 
                 const result: InstalledSmartContract[] = await peer.getAllInstalledSmartContracts(4321);
-                result.should.deep.equal([{packageId: 'myPackageId', label: 'myLabel'}, {
+                result.should.deep.equal([{ packageId: 'myPackageId', label: 'myLabel' }, {
                     packageId: 'anotherPackageId',
                     label: 'anotherLabel'
                 }]);
@@ -495,25 +503,28 @@ describe('LifecyclePeer', () => {
 
             it('should get the installed smart contracts using the timeout', async () => {
                 peer['requestTimeout'] = 1234;
-                const queryInstalledChaincodeEncodedResult: protos.lifecycle.QueryInstalledChaincodesResult = protos.lifecycle.QueryInstalledChaincodesResult.encode([{
-                    package_id: 'myPackageId',
-                    label: 'myLabel'
-                }, {
-                    package_id: 'anotherPackageId',
-                    label: 'anotherLabel'
-                }]);
+
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.QueryInstalledChaincodesResult.encode({
+                    installed_chaincodes: [{
+                        package_id: 'myPackageId',
+                        label: 'myLabel'
+                    }, {
+                        package_id: 'anotherPackageId',
+                        label: 'anotherLabel'
+                    }]
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
                         response: {
                             status: 200,
-                            payload: queryInstalledChaincodeEncodedResult
+                            payload: encodedResult
                         }
                     }]
                 });
 
                 const result: InstalledSmartContract[] = await peer.getAllInstalledSmartContracts();
-                result.should.deep.equal([{packageId: 'myPackageId', label: 'myLabel'}, {
+                result.should.deep.equal([{ packageId: 'myPackageId', label: 'myLabel' }, {
                     packageId: 'anotherPackageId',
                     label: 'anotherLabel'
                 }]);
@@ -627,12 +638,15 @@ describe('LifecyclePeer', () => {
                 endorsementSendStub = mysandbox.stub(Endorsement.prototype, 'send');
                 endorsementSendStub.resolves();
 
-                const arg: protos.lifecycle.GetInstalledChaincodePackageArgs = new protos.lifecycle.GetInstalledChaincodePackageArgs();
-                arg.setPackageId('myPackageId');
+
+                const protoArgs: protos.lifecycle.IGetInstalledChaincodePackageArgs = {};
+                protoArgs.package_id = 'myPackageId';
+
+                const arg: Uint8Array = protos.lifecycle.GetInstalledChaincodePackageArgs.encode(protoArgs).finish();
 
                 buildRequest = {
                     fcn: 'GetInstalledChaincodePackage',
-                    args: [arg.toBuffer()]
+                    args: [Buffer.from(arg)]
                 };
             });
 
@@ -642,15 +656,16 @@ describe('LifecyclePeer', () => {
 
             it('should get the installed smart contract package', async () => {
                 const pkgData: Buffer = Buffer.from('myPackage');
-                const getInstallPackageEncodedResult: protos.lifecycle.GetInstalledChaincodePackageResult = protos.lifecycle.GetInstalledChaincodePackageResult.encode({
+
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.GetInstalledChaincodePackageResult.encode({
                     chaincode_install_package: pkgData
-                });
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
                         response: {
                             status: 200,
-                            payload: getInstallPackageEncodedResult
+                            payload: encodedResult
                         }
                     }]
                 });
@@ -669,15 +684,15 @@ describe('LifecyclePeer', () => {
             it('should get installed the smart contract using the timeout passed in', async () => {
                 peer['requestTimeout'] = 1234;
                 const pkgData: Buffer = Buffer.from('myPackage');
-                const getInstallPackageEncodedResult: protos.lifecycle.GetInstalledChaincodePackageResult = protos.lifecycle.GetInstalledChaincodePackageResult.encode({
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.GetInstalledChaincodePackageResult.encode({
                     chaincode_install_package: pkgData
-                });
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
                         response: {
                             status: 200,
-                            payload: getInstallPackageEncodedResult
+                            payload: encodedResult
                         }
                     }]
                 });
@@ -697,15 +712,15 @@ describe('LifecyclePeer', () => {
             it('should get the installed smart contracts using the timeout', async () => {
                 peer['requestTimeout'] = 1234;
                 const pkgData: Buffer = Buffer.from('myPackage');
-                const getInstallPackageEncodedResult: protos.lifecycle.GetInstalledChaincodePackageResult = protos.lifecycle.GetInstalledChaincodePackageResult.encode({
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.GetInstalledChaincodePackageResult.encode({
                     chaincode_install_package: pkgData
-                });
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
                         response: {
                             status: 200,
-                            payload: getInstallPackageEncodedResult
+                            payload: encodedResult
                         }
                     }]
                 });
@@ -838,19 +853,21 @@ describe('LifecyclePeer', () => {
             });
 
             it('should get all the channel names', async () => {
-                const queryChannelResult: protos.protos.ChannelQueryResponse = protos.protos.ChannelQueryResponse.encode({
+
+
+                const encodedResult: Buffer = Buffer.from(protos.protos.ChannelQueryResponse.encode({
                     channels: [{
                         channel_id: 'mychannel'
                     }, {
                         channel_id: 'anotherchannel'
                     }]
-                });
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
                         response: {
                             status: 200,
-                            payload: queryChannelResult
+                            payload: encodedResult
                         }
                     }]
                 });
@@ -868,19 +885,20 @@ describe('LifecyclePeer', () => {
 
             it('should all the channel names using the timeout passed in', async () => {
                 peer['requestTimeout'] = 1234;
-                const queryChannelResult: protos.protos.ChannelQueryResponse = protos.protos.ChannelQueryResponse.encode({
+
+                const encodedResult: Buffer = Buffer.from(protos.protos.ChannelQueryResponse.encode({
                     channels: [{
                         channel_id: 'mychannel'
                     }, {
                         channel_id: 'anotherchannel'
                     }]
-                });
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
                         response: {
                             status: 200,
-                            payload: queryChannelResult
+                            payload: encodedResult
                         }
                     }]
                 });
@@ -899,19 +917,19 @@ describe('LifecyclePeer', () => {
 
             it('should get all the channel using the timeout', async () => {
                 peer['requestTimeout'] = 1234;
-                const queryChannelResult: protos.protos.ChannelQueryResponse = protos.protos.ChannelQueryResponse.encode({
+                const encodedResult: Buffer = Buffer.from(protos.protos.ChannelQueryResponse.encode({
                     channels: [{
                         channel_id: 'mychannel'
                     }, {
                         channel_id: 'anotherchannel'
                     }]
-                });
+                }).finish());
 
                 endorsementSendStub.resolves({
                     responses: [{
                         response: {
                             status: 200,
-                            payload: queryChannelResult
+                            payload: encodedResult
                         }
                     }]
                 });

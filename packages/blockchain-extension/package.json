@@ -1451,7 +1451,6 @@
         "cucumber": "2.2.0",
         "decache": "4.4.0",
         "glob": "7.1.2",
-        "grpc": "1.24.2",
         "istanbul": "0.4.5",
         "js-yaml": "3.13.1",
         "license-check-and-add": "2.3.6",
@@ -1506,9 +1505,6 @@
         "vscode-nls": "^4.0.0",
         "yeoman-environment": "^2.3.3"
     },
-    "nativeDependencies": [
-        "grpc"
-    ],
     "extensionPack": [
         "oshri6688.javascript-test-runner",
         "IBM.ibmcloud-account"
