@@ -12,12 +12,12 @@
  * limitations under the License.
 */
 
-import {Lifecycle, LifecyclePeer, LifecycleChannel} from '../src';
+import { Lifecycle, LifecyclePeer, LifecycleChannel } from '../src';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
-import {Wallet, Wallets} from 'fabric-network';
+import { Wallet, Wallets } from 'fabric-network';
 import * as path from 'path';
-import {ConnectOptions} from 'fabric-common';
+import { ConnectOptions } from 'fabric-common';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);

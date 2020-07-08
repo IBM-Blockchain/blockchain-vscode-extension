@@ -58,7 +58,7 @@ export abstract class FabricConnection {
     }
 
     public async getAllChannelsForPeer(peerName: string): Promise<Array<string>> {
-        const peer: LifecyclePeer = this.lifecycle.getPeer(peerName, this.gateway.getOptions().wallet, this.gateway.getOptions().identity as any);
+        const peer: LifecyclePeer = this.lifecycle.getPeer(peerName, this.gateway.getOptions().wallet, this.gateway.getOptions().identity as string);
         try {
             const channelNames: string[] = await peer.getAllChannelNames();
             return channelNames.sort();
@@ -85,7 +85,7 @@ export abstract class FabricConnection {
 
     // TODO: this needs to be changed to getAllCommitttedSmartContracts
     public async getInstantiatedChaincode(channelName: string): Promise<Array<FabricSmartContractDefinition>> {
-        const lifecycleChannel: LifecycleChannel = this.lifecycle.getChannel(channelName, this.gateway.getOptions().wallet, this.gateway.getOptions().identity as any);
+        const lifecycleChannel: LifecycleChannel = this.lifecycle.getChannel(channelName, this.gateway.getOptions().wallet, this.gateway.getOptions().identity as string);
 
         const channelMap: Map<string, string[]> = await this.createChannelMap();
 

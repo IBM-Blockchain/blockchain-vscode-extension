@@ -28,7 +28,7 @@ import {
     FabricInstalledSmartContract,
     FabricCollectionDefinition
 } from 'ibm-blockchain-platform-common';
-import {FabricWalletGenerator, FabricWallet} from 'ibm-blockchain-platform-wallet';
+import { FabricWalletGenerator, FabricWallet } from 'ibm-blockchain-platform-wallet';
 import {
     Lifecycle,
     LifecyclePeer,
@@ -36,8 +36,8 @@ import {
     DefinedSmartContract,
     InstalledSmartContract
 } from 'ibm-blockchain-platform-fabric-admin';
-import {Identity, IdentityProvider} from 'fabric-network';
-import {User, Endorser} from 'fabric-common';
+import { Identity, IdentityProvider } from 'fabric-network';
+import { User, Endorser } from 'fabric-common';
 
 export class FabricEnvironmentConnection implements IFabricEnvironmentConnection {
     public environmentName: string;
@@ -311,7 +311,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
 
         // Need to do this so we don't need to import fabric admin everywhere
         return installedSmartContracts.map((installedSmartContract: InstalledSmartContract) => {
-            return {label: installedSmartContract.label, packageId: installedSmartContract.packageId};
+            return { label: installedSmartContract.label, packageId: installedSmartContract.packageId };
         });
     }
 
@@ -384,7 +384,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
     }
 
     public getCollectionConfigBuffer(collectionConfig: FabricCollectionDefinition[]): Buffer {
-        return LifecycleChannel.getCollectionConfig(collectionConfig, true);
+        return LifecycleChannel.getCollectionConfig(collectionConfig, true) as Buffer;
     }
 
     public async instantiateChaincode(_name: string, _version: string, _peerNames: Array<string>, _channelName: string, _fcn: string, _args: Array<string>, _collectionPath: string, _contractEP: any): Promise<Buffer> {
@@ -403,7 +403,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
             enrollmentID,
             enrollmentSecret
         });
-        return {certificate: enrollment.certificate, privateKey: enrollment.key.toBytes()};
+        return { certificate: enrollment.certificate, privateKey: enrollment.key.toBytes() };
     }
 
     public async register(certificateAuthorityName: string, enrollmentID: string, affiliation: string, attributes: Attribute[] = []): Promise<string> {
@@ -418,7 +418,8 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         const node: FabricNode = this.getNode(certificateAuthorityName);
         const fabricWallet: FabricWallet = await this.getWallet(certificateAuthorityName) as FabricWallet;
         const identity: Identity = await fabricWallet.getWallet().get(node.identity);
-        const provider: IdentityProvider = fabricWallet.getWallet().getProviderRegistry().getProvider(identity.type);
+        const providerRegistry: any = fabricWallet.getWallet().getProviderRegistry();
+        const provider: IdentityProvider = providerRegistry.getProvider(identity.type);
         const user: User = await provider.getUserContext(identity, node.identity);
         const secret: string = await certificateAuthority.register(request, user);
         return secret;

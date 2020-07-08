@@ -308,10 +308,14 @@ export class DeployView extends ReactView {
             });
 
             DeployView.appState.orgApprovals = orgObject;
-            DeployView.panel.webview.postMessage({
-                path: '/deploy',
-                deployData: DeployView.appState
-            });
+
+            if (DeployView.panel) {
+                // If the panel is still open
+                DeployView.panel.webview.postMessage({
+                    path: '/deploy',
+                    deployData: DeployView.appState
+                });
+            }
         } catch (error) {
             outputAdapter.log(LogType.ERROR, error.message, error.toString());
         }

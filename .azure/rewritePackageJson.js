@@ -30,8 +30,8 @@ if (process.argv.includes('publish')) {
     throw new Error('Activation events should be * when checked in');
   }
 
-  if (packageJson.engines.vscode !== '^1.38.0') {
-    throw new Error('Engine vscode should be ^1.38.0 when checked in');
+  if (packageJson.engines.vscode !== '^1.40.0') {
+    throw new Error('Engine vscode should be ^1.40.0 when checked in');
   }
 
   packageJson.activationEvents = [];
@@ -49,7 +49,7 @@ if (process.argv.includes('publish')) {
   });
 
   packageJson.engines = {
-    vscode: '^1.35.1'
+    vscode: '^1.40.0'
   };
 }
 

@@ -29,13 +29,13 @@ stages:
           matrix:
             linux:
               imageName: 'ubuntu-16.04'
-              VERSION: '1.35.1'
+              VERSION: '1.40.0'
               MODULES: 64
               ELECTRON: '3.0'
               TARGET: '3.0.0'
             mac:
               imageName: 'macos-10.14'
-              VERSION: '1.35.1'
+              VERSION: '1.40.0'
               MODULES: 64
               ELECTRON: '3.0'
               TARGET: '3.0.0'
@@ -45,7 +45,6 @@ stages:
         steps:
           - template: azure-templates/setup-steps.yml
           - template: azure-templates/unit-test-steps.yml
-          - template: azure-templates/rebuild-steps.yml
           - template: azure-templates/extension-unit-test-steps.yml
 
   - stage: cucumberTest
@@ -57,7 +56,7 @@ stages:
         parameters:
           name: cucumber
           ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
-            version: '1.39.2'
+            version: '1.40.0'
           ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags') }}:
             version: 'stable'
 
@@ -76,13 +75,13 @@ stages:
           matrix:
             linux:
               imageName: 'ubuntu-16.04'
-              VERSION: '1.35.1'
+              VERSION: '1.40.0'
               MODULES: 64
               ELECTRON: '3.0'
               TARGET: '3.0.0'
             mac:
               imageName: 'macos-10.14'
-              VERSION: '1.35.1'
+              VERSION: '1.40.0'
               MODULES: 64
               ELECTRON: '3.0'
               TARGET: '3.0.0'
@@ -91,7 +90,6 @@ stages:
 
         steps:
           - template: azure-templates/setup-steps.yml
-          - template: azure-templates/rebuild-steps.yml
           - template: azure-templates/cypress-steps.yml
 
   - stage: buildPackage
@@ -167,7 +165,6 @@ stages:
         steps:
           - template: azure-templates/setup-steps.yml
           - template: azure-templates/unit-test-steps.yml
-          - template: azure-templates/rebuild-steps.yml
           - template: azure-templates/extension-unit-test-steps.yml
 
   - stage: otherVersionsCucumberTest
@@ -182,7 +179,7 @@ stages:
       - template: azure-templates/cucumber-job.yml
         parameters:
           name: old
-          version: '1.38.1'
+          version: '1.40.0'
 
       - template: azure-templates/cucumber-job.yml
         parameters:

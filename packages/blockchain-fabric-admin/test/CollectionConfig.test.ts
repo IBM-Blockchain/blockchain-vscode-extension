@@ -16,8 +16,8 @@ import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as protos from 'fabric-protos';
-import {CollectionConfig, Collection} from '../src/CollectionConfig';
-import {EndorsementPolicy} from '../src/Policy';
+import { CollectionConfig, Collection } from '../src/CollectionConfig';
+import { EndorsementPolicy } from '../src/Policy';
 
 chai.should();
 chai.use(sinonChai);
@@ -34,7 +34,7 @@ describe('CollectionConfig', () => {
             maxPeerCount: 3
         };
 
-        const staticCollectionConfig: protos.StaticCollectionConfig = new protos.common.StaticCollectionConfig();
+        const staticCollectionConfig: protos.common.StaticCollectionConfig = new protos.common.StaticCollectionConfig();
         staticCollectionConfig.name = collection.name;
         staticCollectionConfig.required_peer_count = collection.requiredPeerCount;
         staticCollectionConfig.maximum_peer_count = collection.maxPeerCount;
@@ -52,7 +52,9 @@ describe('CollectionConfig', () => {
         const collectionConfig: protos.common.CollectionConfig = new protos.common.CollectionConfig();
         collectionConfig.static_collection_config = staticCollectionConfig;
 
-        const expectedResult: protos.common.CollectionConfigPackage = new protos.common.CollectionConfigPackage([collectionConfig]);
+        const collectionConfigPackage: protos.common.ICollectionConfigPackage = { config: [collectionConfig] };
+
+        const expectedResult: protos.common.CollectionConfigPackage = new protos.common.CollectionConfigPackage(collectionConfigPackage);
 
         const result: protos.common.CollectionConfigPackage = CollectionConfig.buildCollectionConfigPackage([collection]);
 
@@ -70,7 +72,7 @@ describe('CollectionConfig', () => {
             blockToLive: 10
         };
 
-        const staticCollectionConfig: protos.StaticCollectionConfig = new protos.common.StaticCollectionConfig();
+        const staticCollectionConfig: protos.common.StaticCollectionConfig = new protos.common.StaticCollectionConfig();
         staticCollectionConfig.name = collection.name;
         staticCollectionConfig.required_peer_count = collection.requiredPeerCount;
         staticCollectionConfig.maximum_peer_count = collection.maxPeerCount;
@@ -88,7 +90,9 @@ describe('CollectionConfig', () => {
         const collectionConfig: protos.common.CollectionConfig = new protos.common.CollectionConfig();
         collectionConfig.static_collection_config = staticCollectionConfig;
 
-        const expectedResult: protos.common.CollectionConfigPackage = new protos.common.CollectionConfigPackage([collectionConfig]);
+        const collectionConfigPackage: protos.common.ICollectionConfigPackage = { config: [collectionConfig] };
+
+        const expectedResult: protos.common.CollectionConfigPackage = new protos.common.CollectionConfigPackage(collectionConfigPackage);
 
         const result: protos.common.CollectionConfigPackage = CollectionConfig.buildCollectionConfigPackage([collection]);
 
@@ -104,7 +108,7 @@ describe('CollectionConfig', () => {
             endorsementPolicy: `AND('Org1MSP.member', 'Org2MSP.member')`
         };
 
-        const staticCollectionConfig: protos.StaticCollectionConfig = new protos.common.StaticCollectionConfig();
+        const staticCollectionConfig: protos.common.StaticCollectionConfig = new protos.common.StaticCollectionConfig();
         staticCollectionConfig.name = collection.name;
         staticCollectionConfig.required_peer_count = collection.requiredPeerCount;
         staticCollectionConfig.maximum_peer_count = collection.maxPeerCount;
@@ -125,11 +129,12 @@ describe('CollectionConfig', () => {
         const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
         const policy: EndorsementPolicy = new EndorsementPolicy();
         const signaturePolicy: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(collection.endorsementPolicy);
-        applicationPolicy.setSignaturePolicy(signaturePolicy);
+        applicationPolicy.signature_policy = signaturePolicy;
 
         staticCollectionConfig.endorsement_policy = applicationPolicy;
 
-        const expectedResult: protos.common.CollectionConfigPackage = new protos.common.CollectionConfigPackage([collectionConfig]);
+        const collectionConfigPackage: protos.common.ICollectionConfigPackage = { config: [collectionConfig] };
+        const expectedResult: protos.common.CollectionConfigPackage = new protos.common.CollectionConfigPackage(collectionConfigPackage);
 
         const result: protos.common.CollectionConfigPackage = CollectionConfig.buildCollectionConfigPackage([collection]);
 
@@ -145,7 +150,7 @@ describe('CollectionConfig', () => {
             endorsementPolicy: `myPolicy`
         };
 
-        const staticCollectionConfig: protos.StaticCollectionConfig = new protos.common.StaticCollectionConfig();
+        const staticCollectionConfig: protos.common.StaticCollectionConfig = new protos.common.StaticCollectionConfig();
         staticCollectionConfig.name = collection.name;
         staticCollectionConfig.required_peer_count = collection.requiredPeerCount;
         staticCollectionConfig.maximum_peer_count = collection.maxPeerCount;
@@ -165,11 +170,13 @@ describe('CollectionConfig', () => {
 
         const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
 
-        applicationPolicy.setChannelConfigPolicyReference(collection.endorsementPolicy);
+        applicationPolicy.channel_config_policy_reference = collection.endorsementPolicy;
 
         staticCollectionConfig.endorsement_policy = applicationPolicy;
 
-        const expectedResult: protos.common.CollectionConfigPackage = new protos.common.CollectionConfigPackage([collectionConfig]);
+        const collectionConfigPackage: protos.common.ICollectionConfigPackage = { config: [collectionConfig] };
+
+        const expectedResult: protos.common.CollectionConfigPackage = new protos.common.CollectionConfigPackage(collectionConfigPackage);
 
         const result: protos.common.CollectionConfigPackage = CollectionConfig.buildCollectionConfigPackage([collection]);
 
@@ -183,10 +190,10 @@ describe('CollectionConfig', () => {
     it('should error if no name given', () => {
         // @ts-ignore
         (() => CollectionConfig.buildCollectionConfigPackage([{
-                policy: `OR('Org1MSP.member', 'Org2MSP.member')`,
-                requiredPeerCount: 1,
-                maxPeerCount: 3
-            }])
+            policy: `OR('Org1MSP.member', 'Org2MSP.member')`,
+            requiredPeerCount: 1,
+            maxPeerCount: 3
+        }])
         ).should.throw('CollectionConfig invalid: missing property name, name should be a string');
     });
 

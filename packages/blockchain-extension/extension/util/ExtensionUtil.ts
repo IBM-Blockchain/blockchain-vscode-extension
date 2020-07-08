@@ -520,20 +520,20 @@ export class ExtensionUtil {
     }
 
     public static async setupCommands(): Promise<void> {
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         const dependencyManager: DependencyManager = DependencyManager.instance();
-        const hasNativeDependenciesInstalled: boolean = await dependencyManager.hasNativeDependenciesInstalled();
+
         const packageJSON: any = await ExtensionUtil.getPackageJSON();
-        if (hasNativeDependenciesInstalled && packageJSON.activationEvents.length === 1) {
+        if (packageJSON.activationEvents.length === 1) {
+            outputAdapter.log(LogType.INFO, undefined, 'Rewriting activation events');
             await dependencyManager.rewritePackageJson();
-        }
-        if (!hasNativeDependenciesInstalled) {
-            await dependencyManager.installNativeDependencies();
+
+            outputAdapter.log(LogType.INFO, undefined, 'Clearing extension cache');
+            await dependencyManager.clearExtensionCache();
         }
 
         const extensionData: ExtensionData = GlobalState.get();
         const localFabricEnabled: boolean = this.getExtensionLocalFabricSetting();
-
-        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         const tempCommandRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
         outputAdapter.log(LogType.INFO, undefined, 'Restoring command registry');
