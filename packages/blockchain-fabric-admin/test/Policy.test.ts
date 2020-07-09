@@ -16,7 +16,7 @@ import * as protos from 'fabric-protos';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import {EndorsementPolicy} from '../src/Policy';
+import { EndorsementPolicy } from '../src/Policy';
 
 chai.should();
 chai.use(sinonChai);
@@ -49,93 +49,95 @@ describe('Policy', () => {
         policy = new EndorsementPolicy();
 
         principalMemberA = new protos.common.MSPPrincipal();
-        principalMemberA.setPrincipalClassification(protos.common.MSPPrincipal.Classification.ROLE);
-        const newRoleMemberA: protos.common.MSPRole = new protos.common.MSPRole();
-        newRoleMemberA.setRole(protos.common.MSPRole.MSPRoleType.MEMBER);
-        newRoleMemberA.setMspIdentifier('A');
-        principalMemberA.setPrincipal(newRoleMemberA.toBuffer());
+        principalMemberA.principal_classification = protos.common.MSPPrincipal.Classification.ROLE;
+
+        const newRoleMemberA: protos.common.IMSPRole = {};
+        newRoleMemberA.role = protos.common.MSPRole.MSPRoleType.MEMBER;
+        newRoleMemberA.msp_identifier = 'A';
+
+        principalMemberA.principal = protos.common.MSPRole.encode(newRoleMemberA).finish();
 
         principalMemberB = new protos.common.MSPPrincipal();
-        principalMemberB.setPrincipalClassification(protos.common.MSPPrincipal.Classification.ROLE);
-        const newRoleMemberB: protos.common.MSPRole = new protos.common.MSPRole();
-        newRoleMemberB.setRole(protos.common.MSPRole.MSPRoleType.MEMBER);
-        newRoleMemberB.setMspIdentifier('B');
-        principalMemberB.setPrincipal(newRoleMemberB.toBuffer());
+        principalMemberB.principal_classification = protos.common.MSPPrincipal.Classification.ROLE;
+        const newRoleMemberB: protos.common.IMSPRole = {};
+        newRoleMemberB.role = protos.common.MSPRole.MSPRoleType.MEMBER;
+        newRoleMemberB.msp_identifier = 'B';
+        principalMemberB.principal = protos.common.MSPRole.encode(newRoleMemberB).finish();
 
         principalMemberC = new protos.common.MSPPrincipal();
-        principalMemberC.setPrincipalClassification(protos.common.MSPPrincipal.Classification.ROLE);
-        const newRoleMemberC: protos.common.MSPRole = new protos.common.MSPRole();
-        newRoleMemberC.setRole(protos.common.MSPRole.MSPRoleType.MEMBER);
-        newRoleMemberC.setMspIdentifier('C');
-        principalMemberC.setPrincipal(newRoleMemberC.toBuffer());
+        principalMemberC.principal_classification = protos.common.MSPPrincipal.Classification.ROLE;
+        const newRoleMemberC: protos.common.IMSPRole = {};
+        newRoleMemberC.role = protos.common.MSPRole.MSPRoleType.MEMBER;
+        newRoleMemberC.msp_identifier = 'C';
+        principalMemberC.principal = protos.common.MSPRole.encode(newRoleMemberC).finish();
 
         principalMemberD = new protos.common.MSPPrincipal();
-        principalMemberD.setPrincipalClassification(protos.common.MSPPrincipal.Classification.ROLE);
-        const newRoleMemberD: protos.common.MSPRole = new protos.common.MSPRole();
-        newRoleMemberD.setRole(protos.common.MSPRole.MSPRoleType.MEMBER);
-        newRoleMemberD.setMspIdentifier('D');
-        principalMemberD.setPrincipal(newRoleMemberD.toBuffer());
+        principalMemberD.principal_classification = protos.common.MSPPrincipal.Classification.ROLE;
+        const newRoleMemberD: protos.common.IMSPRole = {};
+        newRoleMemberD.role = protos.common.MSPRole.MSPRoleType.MEMBER;
+        newRoleMemberD.msp_identifier = 'D';
+        principalMemberD.principal = protos.common.MSPRole.encode(newRoleMemberD).finish();
 
         principalClientA = new protos.common.MSPPrincipal();
-        principalClientA.setPrincipalClassification(protos.common.MSPPrincipal.Classification.ROLE);
-        const newRoleClientA: protos.common.MSPRole = new protos.common.MSPRole();
-        newRoleClientA.setRole(protos.common.MSPRole.MSPRoleType.CLIENT);
-        newRoleClientA.setMspIdentifier('A');
-        principalClientA.setPrincipal(newRoleClientA.toBuffer());
+        principalClientA.principal_classification = protos.common.MSPPrincipal.Classification.ROLE;
+        const newRoleClientA: protos.common.IMSPRole = {};
+        newRoleClientA.role = protos.common.MSPRole.MSPRoleType.CLIENT;
+        newRoleClientA.msp_identifier = 'A';
+        principalClientA.principal = protos.common.MSPRole.encode(newRoleClientA).finish();
 
         principalPeerA = new protos.common.MSPPrincipal();
-        principalPeerA.setPrincipalClassification(protos.common.MSPPrincipal.Classification.ROLE);
-        const newRolePeerA: protos.common.MSPRole = new protos.common.MSPRole();
-        newRolePeerA.setRole(protos.common.MSPRole.MSPRoleType.PEER);
-        newRolePeerA.setMspIdentifier('A');
-        principalPeerA.setPrincipal(newRolePeerA.toBuffer());
+        principalPeerA.principal_classification = protos.common.MSPPrincipal.Classification.ROLE;
+        const newRolePeerA: protos.common.IMSPRole = {};
+        newRolePeerA.role = protos.common.MSPRole.MSPRoleType.PEER;
+        newRolePeerA.msp_identifier = 'A';
+        principalPeerA.principal = protos.common.MSPRole.encode(newRolePeerA).finish();
 
         principalPeerB = new protos.common.MSPPrincipal();
-        principalPeerB.setPrincipalClassification(protos.common.MSPPrincipal.Classification.ROLE);
-        const newRolePeerB: protos.common.MSPRole = new protos.common.MSPRole();
-        newRolePeerB.setRole(protos.common.MSPRole.MSPRoleType.PEER);
-        newRolePeerB.setMspIdentifier('B');
-        principalPeerB.setPrincipal(newRolePeerB.toBuffer());
+        principalPeerB.principal_classification = protos.common.MSPPrincipal.Classification.ROLE;
+        const newRolePeerB: protos.common.IMSPRole = {};
+        newRolePeerB.role = protos.common.MSPRole.MSPRoleType.PEER;
+        newRolePeerB.msp_identifier = 'B';
+        principalPeerB.principal = protos.common.MSPRole.encode(newRolePeerB).finish();
 
         principalAdminB = new protos.common.MSPPrincipal();
-        principalAdminB.setPrincipalClassification(protos.common.MSPPrincipal.Classification.ROLE);
-        const newRoleAdminB: protos.common.MSPRole = new protos.common.MSPRole();
-        newRoleAdminB.setRole(protos.common.MSPRole.MSPRoleType.ADMIN);
-        newRoleAdminB.setMspIdentifier('B');
-        principalAdminB.setPrincipal(newRoleAdminB.toBuffer());
+        principalAdminB.principal_classification = protos.common.MSPPrincipal.Classification.ROLE;
+        const newRoleAdminB: protos.common.IMSPRole = {};
+        newRoleAdminB.role = protos.common.MSPRole.MSPRoleType.ADMIN;
+        newRoleAdminB.msp_identifier = 'B';
+        principalAdminB.principal = protos.common.MSPRole.encode(newRoleAdminB).finish();
 
         principalAdminC = new protos.common.MSPPrincipal();
-        principalAdminC.setPrincipalClassification(protos.common.MSPPrincipal.Classification.ROLE);
-        const newRoleAdminC: protos.common.MSPRole = new protos.common.MSPRole();
-        newRoleAdminC.setRole(protos.common.MSPRole.MSPRoleType.ADMIN);
-        newRoleAdminC.setMspIdentifier('C');
-        principalAdminC.setPrincipal(newRoleAdminC.toBuffer());
+        principalAdminC.principal_classification = protos.common.MSPPrincipal.Classification.ROLE;
+        const newRoleAdminC: protos.common.IMSPRole = {};
+        newRoleAdminC.role = protos.common.MSPRole.MSPRoleType.ADMIN;
+        newRoleAdminC.msp_identifier = 'C';
+        principalAdminC.principal = protos.common.MSPRole.encode(newRoleAdminC).finish();
 
         principalOrdererC = new protos.common.MSPPrincipal();
-        principalOrdererC.setPrincipalClassification(protos.common.MSPPrincipal.Classification.ROLE);
-        const newRoleOrdererC: protos.common.MSPRole = new protos.common.MSPRole();
-        newRoleOrdererC.setRole(protos.common.MSPRole.MSPRoleType.ORDERER);
-        newRoleOrdererC.setMspIdentifier('C');
-        principalOrdererC.setPrincipal(newRoleOrdererC.toBuffer());
+        principalOrdererC.principal_classification = protos.common.MSPPrincipal.Classification.ROLE;
+        const newRoleOrdererC: protos.common.IMSPRole = {};
+        newRoleOrdererC.role = protos.common.MSPRole.MSPRoleType.ORDERER;
+        newRoleOrdererC.msp_identifier = 'C';
+        principalOrdererC.principal = protos.common.MSPRole.encode(newRoleOrdererC).finish();
 
         principalClientD = new protos.common.MSPPrincipal();
-        principalClientD.setPrincipalClassification(protos.common.MSPPrincipal.Classification.ROLE);
-        const newRoleClientD: protos.common.MSPRole = new protos.common.MSPRole();
-        newRoleClientD.setRole(protos.common.MSPRole.MSPRoleType.CLIENT);
-        newRoleClientD.setMspIdentifier('D');
-        principalClientD.setPrincipal(newRoleClientD.toBuffer());
+        principalClientD.principal_classification = protos.common.MSPPrincipal.Classification.ROLE;
+        const newRoleClientD: protos.common.IMSPRole = {};
+        newRoleClientD.role = protos.common.MSPRole.MSPRoleType.CLIENT;
+        newRoleClientD.msp_identifier = 'D';
+        principalClientD.principal = protos.common.MSPRole.encode(newRoleClientD).finish();
 
         signedByA = new protos.common.SignaturePolicy();
-        signedByA.set('signed_by', 0);
+        signedByA.signed_by = 0;
 
         signedByB = new protos.common.SignaturePolicy();
-        signedByB.set('signed_by', 1);
+        signedByB.signed_by = 1;
 
         signedByC = new protos.common.SignaturePolicy();
-        signedByC.set('signed_by', 2);
+        signedByC.signed_by = 2;
 
         signedByD = new protos.common.SignaturePolicy();
-        signedByD.set('signed_by', 3);
+        signedByD.signed_by = 3;
     });
 
     it(`should parse "OutOf(1, 'A.member', 'B.member')" correctly`, () => {
@@ -146,22 +148,22 @@ describe('Policy', () => {
         principals.push(principalMemberB);
 
         const nOutOf: protos.common.SignaturePolicy.NOutOf = new protos.common.SignaturePolicy.NOutOf();
-        nOutOf.setN(1);
+        nOutOf.n = 1;
 
         const signaturePolicies: protos.common.SignaturePolicy[] = [];
 
         signaturePolicies.push(signedByA);
         signaturePolicies.push(signedByB);
 
-        nOutOf.setRules(signaturePolicies);
+        nOutOf.rules = signaturePolicies;
 
         const nOf: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        nOf.set('n_out_of', nOutOf);
+        nOf.n_out_of = nOutOf;
 
         const envelope: protos.common.SignaturePolicyEnvelope = new protos.common.SignaturePolicyEnvelope();
-        envelope.setVersion(0);
-        envelope.setRule(nOf);
-        envelope.setIdentities(principals);
+        envelope.version = 0;
+        envelope.rule = nOf;
+        envelope.identities = principals;
 
         result.should.deep.equal(envelope);
     });
@@ -175,21 +177,21 @@ describe('Policy', () => {
         principals.push(principalMemberB);
 
         const nOutOf: protos.common.SignaturePolicy.NOutOf = new protos.common.SignaturePolicy.NOutOf();
-        nOutOf.setN(2);
+        nOutOf.n = 2;
 
         const signaturePolicies: protos.common.SignaturePolicy[] = [];
         signaturePolicies.push(signedByA);
         signaturePolicies.push(signedByB);
 
-        nOutOf.setRules(signaturePolicies);
+        nOutOf.rules = signaturePolicies;
 
         const nOf: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        nOf.set('n_out_of', nOutOf);
+        nOf.n_out_of = nOutOf;
 
         const envelope: protos.common.SignaturePolicyEnvelope = new protos.common.SignaturePolicyEnvelope();
-        envelope.setVersion(0);
-        envelope.setRule(nOf);
-        envelope.setIdentities(principals);
+        envelope.version = 0;
+        envelope.rule = nOf;
+        envelope.identities = principals;
 
         result.should.deep.equal(envelope);
     });
@@ -203,21 +205,21 @@ describe('Policy', () => {
         principals.push(principalMemberB);
 
         const nOutOf: protos.common.SignaturePolicy.NOutOf = new protos.common.SignaturePolicy.NOutOf();
-        nOutOf.setN(2);
+        nOutOf.n = 2;
 
         const signaturePolicies: protos.common.SignaturePolicy[] = [];
         signaturePolicies.push(signedByA);
         signaturePolicies.push(signedByB);
 
-        nOutOf.setRules(signaturePolicies);
+        nOutOf.rules = signaturePolicies;
 
         const nOf: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        nOf.set('n_out_of', nOutOf);
+        nOf.n_out_of = nOutOf;
 
         const envelope: protos.common.SignaturePolicyEnvelope = new protos.common.SignaturePolicyEnvelope();
-        envelope.setVersion(0);
-        envelope.setRule(nOf);
-        envelope.setIdentities(principals);
+        envelope.version = 0;
+        envelope.rule = nOf;
+        envelope.identities = principals;
 
         result.should.deep.equal(envelope);
     });
@@ -230,21 +232,21 @@ describe('Policy', () => {
         principals.push(principalPeerB);
 
         const nOutOf: protos.common.SignaturePolicy.NOutOf = new protos.common.SignaturePolicy.NOutOf();
-        nOutOf.setN(2);
+        nOutOf.n = 2;
 
         const signaturePolicies: protos.common.SignaturePolicy[] = [];
         signaturePolicies.push(signedByA);
         signaturePolicies.push(signedByB);
 
-        nOutOf.setRules(signaturePolicies);
+        nOutOf.rules = signaturePolicies;
 
         const nOf: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        nOf.set('n_out_of', nOutOf);
+        nOf.n_out_of = nOutOf;
 
         const envelope: protos.common.SignaturePolicyEnvelope = new protos.common.SignaturePolicyEnvelope();
-        envelope.setVersion(0);
-        envelope.setRule(nOf);
-        envelope.setIdentities(principals);
+        envelope.version = 0;
+        envelope.rule = nOf;
+        envelope.identities = principals;
 
         result.should.deep.equal(envelope);
     });
@@ -257,21 +259,21 @@ describe('Policy', () => {
         principals.push(principalMemberB);
 
         const nOutOf: protos.common.SignaturePolicy.NOutOf = new protos.common.SignaturePolicy.NOutOf();
-        nOutOf.setN(1);
+        nOutOf.n = 1;
 
         const signaturePolicies: protos.common.SignaturePolicy[] = [];
         signaturePolicies.push(signedByA);
         signaturePolicies.push(signedByB);
 
-        nOutOf.setRules(signaturePolicies);
+        nOutOf.rules = signaturePolicies;
 
         const nOf: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        nOf.set('n_out_of', nOutOf);
+        nOf.n_out_of = nOutOf;
 
         const envelope: protos.common.SignaturePolicyEnvelope = new protos.common.SignaturePolicyEnvelope();
-        envelope.setVersion(0);
-        envelope.setRule(nOf);
-        envelope.setIdentities(principals);
+        envelope.version = 0;
+        envelope.rule = nOf;
+        envelope.identities = principals;
 
         result.should.deep.equal(envelope);
     });
@@ -285,33 +287,33 @@ describe('Policy', () => {
         principals.push(principalMemberC);
 
         const nOutOfAnd: protos.common.SignaturePolicy.NOutOf = new protos.common.SignaturePolicy.NOutOf();
-        nOutOfAnd.setN(2);
+        nOutOfAnd.n = 2;
 
         const signaturePoliciesAnd: protos.common.SignaturePolicy[] = [];
         signaturePoliciesAnd.push(signedByB);
         signaturePoliciesAnd.push(signedByC);
 
-        nOutOfAnd.setRules(signaturePoliciesAnd);
+        nOutOfAnd.rules = signaturePoliciesAnd;
 
         const nOfAnd: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        nOfAnd.set('n_out_of', nOutOfAnd);
+        nOfAnd.n_out_of = nOutOfAnd;
 
         const nOutOfOr: protos.common.SignaturePolicy.NOutOf = new protos.common.SignaturePolicy.NOutOf();
-        nOutOfOr.setN(1);
+        nOutOfOr.n = 1;
 
         const signaturePoliciesOr: protos.common.SignaturePolicy[] = [];
         signaturePoliciesOr.push(signedByA);
         signaturePoliciesOr.push(nOfAnd);
 
-        nOutOfOr.setRules(signaturePoliciesOr);
+        nOutOfOr.rules = signaturePoliciesOr;
 
         const nOfOr: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        nOfOr.set('n_out_of', nOutOfOr);
+        nOfOr.n_out_of = nOutOfOr;
 
         const envelope: protos.common.SignaturePolicyEnvelope = new protos.common.SignaturePolicyEnvelope();
-        envelope.setVersion(0);
-        envelope.setRule(nOfOr);
-        envelope.setIdentities(principals);
+        envelope.version = 0;
+        envelope.rule = nOfOr;
+        envelope.identities = principals;
 
         result.should.deep.equal(envelope);
     });
@@ -325,45 +327,45 @@ describe('Policy', () => {
         principals.push(principalMemberC);
 
         const nOutOfFirstOr: protos.common.SignaturePolicy.NOutOf = new protos.common.SignaturePolicy.NOutOf();
-        nOutOfFirstOr.setN(1);
+        nOutOfFirstOr.n = 1;
 
         const signaturePoliciesFirstOr: protos.common.SignaturePolicy[] = [];
         signaturePoliciesFirstOr.push(signedByA);
         signaturePoliciesFirstOr.push(signedByB);
 
-        nOutOfFirstOr.setRules(signaturePoliciesFirstOr);
+        nOutOfFirstOr.rules = signaturePoliciesFirstOr;
 
         const nOfFirstOr: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        nOfFirstOr.set('n_out_of', nOutOfFirstOr);
+        nOfFirstOr.n_out_of = nOutOfFirstOr;
 
         const nOutOfSecondOr: protos.common.SignaturePolicy.NOutOf = new protos.common.SignaturePolicy.NOutOf();
-        nOutOfSecondOr.setN(1);
+        nOutOfSecondOr.n = 1;
 
         const signaturePoliciesSecondOr: protos.common.SignaturePolicy[] = [];
         signaturePoliciesSecondOr.push(signedByB);
         signaturePoliciesSecondOr.push(signedByC);
 
-        nOutOfSecondOr.setRules(signaturePoliciesSecondOr);
+        nOutOfSecondOr.rules = signaturePoliciesSecondOr;
 
         const nOfSecondOr: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        nOfSecondOr.set('n_out_of', nOutOfSecondOr);
+        nOfSecondOr.n_out_of = nOutOfSecondOr;
 
         const nOutOfAnd: protos.common.SignaturePolicy.NOutOf = new protos.common.SignaturePolicy.NOutOf();
-        nOutOfAnd.setN(2);
+        nOutOfAnd.n = 2;
 
         const signaturePoliciesAnd: protos.common.SignaturePolicy[] = [];
         signaturePoliciesAnd.push(nOfFirstOr);
         signaturePoliciesAnd.push(nOfSecondOr);
 
-        nOutOfAnd.setRules(signaturePoliciesAnd);
+        nOutOfAnd.rules = signaturePoliciesAnd;
 
         const nOfAnd: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        nOfAnd.set('n_out_of', nOutOfAnd);
+        nOfAnd.n_out_of = nOutOfAnd;
 
         const envelope: protos.common.SignaturePolicyEnvelope = new protos.common.SignaturePolicyEnvelope();
-        envelope.setVersion(0);
-        envelope.setRule(nOfAnd);
-        envelope.setIdentities(principals);
+        envelope.version = 0;
+        envelope.rule = nOfAnd;
+        envelope.identities = principals;
 
         result.should.deep.equal(envelope);
     });
@@ -378,46 +380,46 @@ describe('Policy', () => {
         principals.push(principalMemberD);
 
         const nOutOfAnd: protos.common.SignaturePolicy.NOutOf = new protos.common.SignaturePolicy.NOutOf();
-        nOutOfAnd.setN(2);
+        nOutOfAnd.n = 2;
 
         const signaturePoliciesAnd: protos.common.SignaturePolicy[] = [];
         signaturePoliciesAnd.push(signedByA);
         signaturePoliciesAnd.push(signedByB);
 
-        nOutOfAnd.setRules(signaturePoliciesAnd);
+        nOutOfAnd.rules = signaturePoliciesAnd;
 
         const nOfAnd: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        nOfAnd.set('n_out_of', nOutOfAnd);
+        nOfAnd.n_out_of = nOutOfAnd;
 
         const nOutOfOr: protos.common.SignaturePolicy.NOutOf = new protos.common.SignaturePolicy.NOutOf();
-        nOutOfOr.setN(1);
+        nOutOfOr.n = 1;
 
         const signaturePoliciesOr: protos.common.SignaturePolicy[] = [];
         signaturePoliciesOr.push(signedByC);
         signaturePoliciesOr.push(signedByD);
 
-        nOutOfOr.setRules(signaturePoliciesOr);
+        nOutOfOr.rules = signaturePoliciesOr;
 
         const nOfOr: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        nOfOr.set('n_out_of', nOutOfOr);
+        nOfOr.n_out_of = nOutOfOr;
 
         const nOutOfOuterOr: protos.common.SignaturePolicy.NOutOf = new protos.common.SignaturePolicy.NOutOf();
-        nOutOfOuterOr.setN(1);
+        nOutOfOuterOr.n = 1;
 
         const signaturePoliciesOuterOr: protos.common.SignaturePolicy[] = [];
 
         signaturePoliciesOuterOr.push(nOfAnd);
         signaturePoliciesOuterOr.push(nOfOr);
 
-        nOutOfOuterOr.setRules(signaturePoliciesOuterOr);
+        nOutOfOuterOr.rules = signaturePoliciesOuterOr;
 
         const nOfOuterOr: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        nOfOuterOr.set('n_out_of', nOutOfOuterOr);
+        nOfOuterOr.n_out_of = nOutOfOuterOr;
 
         const envelope: protos.common.SignaturePolicyEnvelope = new protos.common.SignaturePolicyEnvelope();
-        envelope.setVersion(0);
-        envelope.setRule(nOfOuterOr);
-        envelope.setIdentities(principals);
+        envelope.version = 0;
+        envelope.rule = nOfOuterOr;
+        envelope.identities = principals;
 
         result.should.deep.equal(envelope);
     });
@@ -428,59 +430,60 @@ describe('Policy', () => {
         const principals: protos.common.MSPPrincipal[] = [];
 
         const principalMemberMSP: protos.common.MSPPrincipal = new protos.common.MSPPrincipal();
-        principalMemberMSP.setPrincipalClassification(protos.common.MSPPrincipal.Classification.ROLE);
-        const newRoleMemberMSP: protos.common.MSPRole = new protos.common.MSPRole();
-        newRoleMemberMSP.setRole(protos.common.MSPRole.MSPRoleType.MEMBER);
-        newRoleMemberMSP.setMspIdentifier('MSP');
-        principalMemberMSP.setPrincipal(newRoleMemberMSP.toBuffer());
+        principalMemberMSP.principal_classification = protos.common.MSPPrincipal.Classification.ROLE;
+
+        const newRoleMemberMSP: protos.common.IMSPRole = {};
+        newRoleMemberMSP.role = protos.common.MSPRole.MSPRoleType.MEMBER;
+        newRoleMemberMSP.msp_identifier = 'MSP';
+        principalMemberMSP.principal = protos.common.MSPRole.encode(newRoleMemberMSP).finish();
 
         principals.push(principalMemberMSP);
 
         const principalMemberMSPWithDots: protos.common.MSPPrincipal = new protos.common.MSPPrincipal();
-        principalMemberMSPWithDots.setPrincipalClassification(protos.common.MSPPrincipal.Classification.ROLE);
-        const newRoleMemberMSPWithDots: protos.common.MSPRole = new protos.common.MSPRole();
-        newRoleMemberMSPWithDots.setRole(protos.common.MSPRole.MSPRoleType.MEMBER);
-        newRoleMemberMSPWithDots.setMspIdentifier('MSP.WITH.DOTS');
-        principalMemberMSPWithDots.setPrincipal(newRoleMemberMSPWithDots.toBuffer());
+        principalMemberMSPWithDots.principal_classification = protos.common.MSPPrincipal.Classification.ROLE;
 
+        const newRoleMemberMSPWithDots: protos.common.IMSPRole = {};
+        newRoleMemberMSPWithDots.role = protos.common.MSPRole.MSPRoleType.MEMBER;
+        newRoleMemberMSPWithDots.msp_identifier = 'MSP.WITH.DOTS';
+
+        principalMemberMSPWithDots.principal = protos.common.MSPRole.encode(newRoleMemberMSPWithDots).finish();
         principals.push(principalMemberMSPWithDots);
 
         const principalMemberMSPWithDashes: protos.common.MSPPrincipal = new protos.common.MSPPrincipal();
-        principalMemberMSPWithDashes.setPrincipalClassification(protos.common.MSPPrincipal.Classification.ROLE);
-        const newRoleMemberMSPWithDashes: protos.common.MSPRole = new protos.common.MSPRole();
-        newRoleMemberMSPWithDashes.setRole(protos.common.MSPRole.MSPRoleType.MEMBER);
-        newRoleMemberMSPWithDashes.setMspIdentifier('MSP-WITH-DASHES');
-        principalMemberMSPWithDashes.setPrincipal(newRoleMemberMSPWithDashes.toBuffer());
-
+        principalMemberMSPWithDashes.principal_classification = protos.common.MSPPrincipal.Classification.ROLE;
+        const newRoleMemberMSPWithDashes: protos.common.IMSPRole = {};
+        newRoleMemberMSPWithDashes.role = protos.common.MSPRole.MSPRoleType.MEMBER;
+        newRoleMemberMSPWithDashes.msp_identifier = 'MSP-WITH-DASHES';
+        principalMemberMSPWithDashes.principal = protos.common.MSPRole.encode(newRoleMemberMSPWithDashes).finish();
         principals.push(principalMemberMSPWithDashes);
 
         const nOutOf: protos.common.SignaturePolicy.NOutOf = new protos.common.SignaturePolicy.NOutOf();
-        nOutOf.setN(1);
+        nOutOf.n = 1;
 
         const signaturePolicies: protos.common.SignaturePolicy[] = [];
 
         const signedByMSP: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        signedByMSP.set('signed_by', 0);
+        signedByMSP.signed_by = 0;
 
         const signedByMSPWithDots: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        signedByMSPWithDots.set('signed_by', 1);
+        signedByMSPWithDots.signed_by = 1;
 
         const signedByMSPWithDashes: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        signedByMSPWithDashes.set('signed_by', 2);
+        signedByMSPWithDashes.signed_by = 2;
 
         signaturePolicies.push(signedByMSP);
         signaturePolicies.push(signedByMSPWithDots);
         signaturePolicies.push(signedByMSPWithDashes);
 
-        nOutOf.setRules(signaturePolicies);
+        nOutOf.rules = signaturePolicies;
 
         const nOf: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        nOf.set('n_out_of', nOutOf);
+        nOf.n_out_of = nOutOf;
 
         const envelope: protos.common.SignaturePolicyEnvelope = new protos.common.SignaturePolicyEnvelope();
-        envelope.setVersion(0);
-        envelope.setRule(nOf);
-        envelope.setIdentities(principals);
+        envelope.version = 0;
+        envelope.rule = nOf;
+        envelope.identities = principals;
 
         result.should.deep.equal(envelope);
     });
@@ -495,7 +498,7 @@ describe('Policy', () => {
         principals.push(principalClientD);
 
         const nOutOf: protos.common.SignaturePolicy.NOutOf = new protos.common.SignaturePolicy.NOutOf();
-        nOutOf.setN(1);
+        nOutOf.n = 1;
 
         const signaturePolicies: protos.common.SignaturePolicy[] = [];
         signaturePolicies.push(signedByA);
@@ -503,15 +506,15 @@ describe('Policy', () => {
         signaturePolicies.push(signedByC);
         signaturePolicies.push(signedByD);
 
-        nOutOf.setRules(signaturePolicies);
+        nOutOf.rules = signaturePolicies;
 
         const nOf: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        nOf.set('n_out_of', nOutOf);
+        nOf.n_out_of = nOutOf;
 
         const envelope: protos.common.SignaturePolicyEnvelope = new protos.common.SignaturePolicyEnvelope();
-        envelope.setVersion(0);
-        envelope.setRule(nOf);
-        envelope.setIdentities(principals);
+        envelope.version = 0;
+        envelope.rule = nOf;
+        envelope.identities = principals;
 
         result.should.deep.equal(envelope);
     });
@@ -524,22 +527,22 @@ describe('Policy', () => {
         principals.push(principalMemberB);
 
         const nOutOf: protos.common.SignaturePolicy.NOutOf = new protos.common.SignaturePolicy.NOutOf();
-        nOutOf.setN(1);
+        nOutOf.n = 1;
 
         const signaturePolicies: protos.common.SignaturePolicy[] = [];
 
         signaturePolicies.push(signedByA);
         signaturePolicies.push(signedByB);
 
-        nOutOf.setRules(signaturePolicies);
+        nOutOf.rules = signaturePolicies;
 
         const nOf: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        nOf.set('n_out_of', nOutOf);
+        nOf.n_out_of = nOutOf;
 
         const envelope: protos.common.SignaturePolicyEnvelope = new protos.common.SignaturePolicyEnvelope();
-        envelope.setVersion(0);
-        envelope.setRule(nOf);
-        envelope.setIdentities(principals);
+        envelope.version = 0;
+        envelope.rule = nOf;
+        envelope.identities = principals;
 
         result.should.deep.equal(envelope);
     });
@@ -576,22 +579,22 @@ describe('Policy', () => {
         principals.push(principalMemberB);
 
         const nOutOf: protos.common.SignaturePolicy.NOutOf = new protos.common.SignaturePolicy.NOutOf();
-        nOutOf.setN(0);
+        nOutOf.n = 0;
 
         const signaturePolicies: protos.common.SignaturePolicy[] = [];
 
         signaturePolicies.push(signedByA);
         signaturePolicies.push(signedByB);
 
-        nOutOf.setRules(signaturePolicies);
+        nOutOf.rules = signaturePolicies;
 
         const nOf: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        nOf.set('n_out_of', nOutOf);
+        nOf.n_out_of = nOutOf;
 
         const envelope: protos.common.SignaturePolicyEnvelope = new protos.common.SignaturePolicyEnvelope();
-        envelope.setVersion(0);
-        envelope.setRule(nOf);
-        envelope.setIdentities(principals);
+        envelope.version = 0;
+        envelope.rule = nOf;
+        envelope.identities = principals;
 
         result.should.deep.equal(envelope);
     });
@@ -604,22 +607,22 @@ describe('Policy', () => {
         principals.push(principalMemberB);
 
         const nOutOf: protos.common.SignaturePolicy.NOutOf = new protos.common.SignaturePolicy.NOutOf();
-        nOutOf.setN(3);
+        nOutOf.n = 3;
 
         const signaturePolicies: protos.common.SignaturePolicy[] = [];
 
         signaturePolicies.push(signedByA);
         signaturePolicies.push(signedByB);
 
-        nOutOf.setRules(signaturePolicies);
+        nOutOf.rules = signaturePolicies;
 
         const nOf: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        nOf.set('n_out_of', nOutOf);
+        nOf.n_out_of = nOutOf;
 
         const envelope: protos.common.SignaturePolicyEnvelope = new protos.common.SignaturePolicyEnvelope();
-        envelope.setVersion(0);
-        envelope.setRule(nOf);
-        envelope.setIdentities(principals);
+        envelope.version = 0;
+        envelope.rule = nOf;
+        envelope.identities = principals;
 
         result.should.deep.equal(envelope);
     });

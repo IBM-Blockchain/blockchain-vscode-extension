@@ -811,6 +811,34 @@ describe('DeployView', () => {
 
         });
 
+        it('should not return org approvals if deploy view is no longer open whilst running', async () => {
+
+            getConnectionStub.returns(localEnvironmentConnectionMock);
+
+            const deployView: DeployView = new DeployView(context, deployData);
+            DeployView.panel = undefined;
+
+            const channelMap: Map<string, string[]> = new Map();
+            channelMap.set('mychannel', ['Org1Peer1', 'Org2Peer1']);
+            localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
+
+            await deployView.getOrgApprovals(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'defName', '0.0.1', undefined, undefined);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
+
+            localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
+            localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org2Peer1'], 'mychannel');
+
+            const definition: FabricSmartContractDefinition = new FabricSmartContractDefinition('defName', '0.0.1', 1);
+            localEnvironmentConnectionMock.getOrgApprovals.should.have.been.calledOnceWithExactly('mychannel', 'Org1Peer1', definition);
+            DeployView.appState.orgApprovals.should.deep.equal({
+                'Org1MSP': true,
+                'Org2MSP': false
+            });
+            postMessageStub.should.not.have.been.called;
+
+        });
+
         it('should disconnect, connect to correct environment and get org approvals', async () => {
             getConnectionStub.onCall(0).returns(otherEnvironmentConnectionMock);
             getConnectionStub.onCall(1).returns(localEnvironmentConnectionMock);

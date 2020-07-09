@@ -12,7 +12,7 @@
  * limitations under the License.
 */
 
-import {Utils} from 'fabric-common';
+import { Utils } from 'fabric-common';
 import * as protos from 'fabric-protos';
 import { parse } from './pegjs/policyParser';
 
@@ -53,11 +53,11 @@ export class EndorsementPolicy {
 
         const envelope: protos.common.SignaturePolicyEnvelope = new protos.common.SignaturePolicyEnvelope();
 
-        envelope.setVersion(0);
+        envelope.version = 0;
 
         const parsedPolicy: any = this.parsePolicyString(policy);
         const actualPolicy: protos.common.SignaturePolicy = this.parsePolicy(parsedPolicy);
-        envelope.setRule(actualPolicy);
+        envelope.rule = actualPolicy;
 
         const principals: protos.common.MSPPrincipal[] = [];
 
@@ -66,7 +66,7 @@ export class EndorsementPolicy {
             principals.push(principal);
         }
 
-        envelope.setIdentities(principals);
+        envelope.identities = principals;
 
         return envelope;
     }
@@ -88,11 +88,11 @@ export class EndorsementPolicy {
         const nOutOf: protos.common.SignaturePolicy.NOutOf = new protos.common.SignaturePolicy.NOutOf();
 
         if (type === EndorsementPolicy.OR) {
-            nOutOf.setN(1);
+            nOutOf.n = 1;
         } else if (type === EndorsementPolicy.AND) {
-            nOutOf.setN(args.length);
+            nOutOf.n = args.length;
         } else {
-            nOutOf.setN(spec.count);
+            nOutOf.n = spec.count;
         }
 
         const signaturePolicies: protos.common.SignaturePolicy[] = [];
@@ -109,42 +109,46 @@ export class EndorsementPolicy {
                 }
 
                 const signedBy: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-                signedBy.set('signed_by', index);
+                signedBy.signed_by = index;
                 signaturePolicies.push(signedBy);
             }
         }
 
-        nOutOf.setRules(signaturePolicies);
+        nOutOf.rules = signaturePolicies;
 
         const nOf: protos.common.SignaturePolicy = new protos.common.SignaturePolicy();
-        nOf.set('n_out_of', nOutOf);
+        nOf.n_out_of = nOutOf;
 
         return nOf;
     }
 
     private buildPrincipal(identity: Identity): protos.common.MSPPrincipal {
+
         const newPrincipal: protos.common.MSPPrincipal = new protos.common.MSPPrincipal();
 
-        newPrincipal.setPrincipalClassification(protos.common.MSPPrincipal.Classification.ROLE);
-        const newRole: protos.common.MSPRole = new protos.common.MSPRole();
+        newPrincipal.principal_classification = protos.common.MSPPrincipal.Classification.ROLE;
+
+        const newRoleArgs: protos.common.IMSPRole = {};
         const roleName: string = identity.role;
         if (roleName === EndorsementPolicy.PEER) {
-            newRole.setRole(protos.common.MSPRole.MSPRoleType.PEER);
+            newRoleArgs.role = protos.common.MSPRole.MSPRoleType.PEER;
         } else if (roleName === EndorsementPolicy.MEMBER) {
-            newRole.setRole(protos.common.MSPRole.MSPRoleType.MEMBER);
+            newRoleArgs.role = protos.common.MSPRole.MSPRoleType.MEMBER;
         } else if (roleName === EndorsementPolicy.ADMIN) {
-            newRole.setRole(protos.common.MSPRole.MSPRoleType.ADMIN);
+            newRoleArgs.role = protos.common.MSPRole.MSPRoleType.ADMIN;
         } else if (roleName === EndorsementPolicy.ORDERER) {
-            newRole.setRole(protos.common.MSPRole.MSPRoleType.ORDERER);
+            newRoleArgs.role = protos.common.MSPRole.MSPRoleType.ORDERER;
         } else {
-            newRole.setRole(protos.common.MSPRole.MSPRoleType.CLIENT);
+            newRoleArgs.role = protos.common.MSPRole.MSPRoleType.CLIENT;
         }
 
         const mspid: string = identity.mspid;
 
-        newRole.setMspIdentifier(mspid);
+        newRoleArgs.msp_identifier = mspid;
 
-        newPrincipal.setPrincipal(newRole.toBuffer());
+        const newRole: Uint8Array = protos.common.MSPRole.encode(newRoleArgs).finish();
+
+        newPrincipal.principal = newRole;
 
         return newPrincipal;
     }

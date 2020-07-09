@@ -17,24 +17,24 @@ import * as path from 'path';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import {ExtensionUtil} from '../../extension/util/ExtensionUtil';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import * as fs from 'fs-extra';
 import * as chaiAsPromised from 'chai-as-promised';
-import {dependencies, version as currentExtensionVersion} from '../../package.json';
-import {SettingConfigurations} from '../../extension/configurations';
-import {ExtensionData, GlobalState} from '../../extension/util/GlobalState';
-import {ExtensionCommands} from '../../ExtensionCommands';
-import {TutorialGalleryView} from '../../extension/webview/TutorialGalleryView';
-import {HomeView} from '../../extension/webview/HomeView';
-import {SampleView} from '../../extension/webview/SampleView';
-import {TutorialView} from '../../extension/webview/TutorialView';
-import {Reporter} from '../../extension/util/Reporter';
-import {PreReqView} from '../../extension/webview/PreReqView';
-import {DependencyManager} from '../../extension/dependencies/DependencyManager';
-import {VSCodeBlockchainOutputAdapter} from '../../extension/logging/VSCodeBlockchainOutputAdapter';
-import {TemporaryCommandRegistry} from '../../extension/dependencies/TemporaryCommandRegistry';
-import {UserInputUtil} from '../../extension/commands/UserInputUtil';
-import {LocalEnvironmentManager} from '../../extension/fabric/environments/LocalEnvironmentManager';
+import { dependencies, version as currentExtensionVersion } from '../../package.json';
+import { SettingConfigurations } from '../../extension/configurations';
+import { ExtensionData, GlobalState } from '../../extension/util/GlobalState';
+import { ExtensionCommands } from '../../ExtensionCommands';
+import { TutorialGalleryView } from '../../extension/webview/TutorialGalleryView';
+import { HomeView } from '../../extension/webview/HomeView';
+import { SampleView } from '../../extension/webview/SampleView';
+import { TutorialView } from '../../extension/webview/TutorialView';
+import { Reporter } from '../../extension/util/Reporter';
+import { PreReqView } from '../../extension/webview/PreReqView';
+import { DependencyManager } from '../../extension/dependencies/DependencyManager';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { TemporaryCommandRegistry } from '../../extension/dependencies/TemporaryCommandRegistry';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import {
     EnvironmentType,
     FabricEnvironmentRegistry,
@@ -47,8 +47,8 @@ import {
     FileSystemUtil,
     FileConfigurations
 } from 'ibm-blockchain-platform-common';
-import {FabricDebugConfigurationProvider} from '../../extension/debug/FabricDebugConfigurationProvider';
-import {TestUtil} from '../TestUtil';
+import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
+import { TestUtil } from '../TestUtil';
 import * as openTransactionViewCommand from '../../extension/commands/openTransactionViewCommand';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
@@ -123,7 +123,7 @@ describe('ExtensionUtil Tests', () => {
 
         it('should handle errors', async () => {
 
-            mySandBox.stub(fs, 'readFile').throws({message: 'Cannot read file'});
+            mySandBox.stub(fs, 'readFile').throws({ message: 'Cannot read file' });
 
             await ExtensionUtil.loadJSON(workspaceFolder, 'package.json').should.be.rejectedWith('error reading package.json from project Cannot read file');
 
@@ -133,7 +133,7 @@ describe('ExtensionUtil Tests', () => {
     describe('getContractNameAndVersion', () => {
         it('should get contract name and version', async () => {
 
-            mySandBox.stub(ExtensionUtil, 'loadJSON').resolves({name: 'projectName', version: '0.0.3'});
+            mySandBox.stub(ExtensionUtil, 'loadJSON').resolves({ name: 'projectName', version: '0.0.3' });
 
             const result: any = await ExtensionUtil.getContractNameAndVersion(workspaceFolder);
             result.should.deep.equal({
@@ -144,7 +144,7 @@ describe('ExtensionUtil Tests', () => {
 
         it('should handle errors', async () => {
 
-            mySandBox.stub(ExtensionUtil, 'loadJSON').throws({message: 'error reading package.json from project Cannot read file'});
+            mySandBox.stub(ExtensionUtil, 'loadJSON').throws({ message: 'error reading package.json from project Cannot read file' });
             should.equal(await ExtensionUtil.getContractNameAndVersion(workspaceFolder), undefined);
         });
     });
@@ -675,7 +675,7 @@ describe('ExtensionUtil Tests', () => {
         it('should push the reporter instance if production flag is true', async () => {
             mySandBox.stub(vscode.commands, 'executeCommand').resolves();
 
-            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
+            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
             const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter, 'instance');
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
@@ -692,7 +692,7 @@ describe('ExtensionUtil Tests', () => {
         it(`shouldn't push the reporter instance if production flag is false`, async () => {
             mySandBox.stub(vscode.commands, 'executeCommand').resolves();
 
-            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: false});
+            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: false });
             const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter, 'instance');
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
@@ -734,7 +734,7 @@ describe('ExtensionUtil Tests', () => {
             const preReqViewStub: sinon.SinonStub = mySandBox.stub(PreReqView.prototype, 'openView');
             preReqViewStub.resolves();
 
-            const ctx: vscode.ExtensionContext = {subscriptions: []} as vscode.ExtensionContext;
+            const ctx: vscode.ExtensionContext = { subscriptions: [] } as vscode.ExtensionContext;
             const registerCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'registerCommand').withArgs(ExtensionCommands.OPEN_PRE_REQ_PAGE).yields({} as vscode.Command);
 
             const context: vscode.ExtensionContext = await ExtensionUtil.registerPreReqAndReleaseNotesCommand(ctx);
@@ -746,9 +746,8 @@ describe('ExtensionUtil Tests', () => {
     });
 
     describe('setupCommands', () => {
-        let hasNativeDependenciesInstalledStub: sinon.SinonStub;
-        let installNativeDependenciesStub: sinon.SinonStub;
         let getPackageJsonStub: sinon.SinonStub;
+        let clearExtensionCacheStub: sinon.SinonStub;
         let rewritePackageJsonStub: sinon.SinonStub;
         let globalStateGetStub: sinon.SinonStub;
         let setupLocalRuntimeStub: sinon.SinonStub;
@@ -762,9 +761,8 @@ describe('ExtensionUtil Tests', () => {
         let globalStateUpdateSpy: sinon.SinonSpy;
 
         beforeEach(() => {
-            hasNativeDependenciesInstalledStub = mySandBox.stub(DependencyManager.instance(), 'hasNativeDependenciesInstalled');
-            installNativeDependenciesStub = mySandBox.stub(DependencyManager.instance(), 'installNativeDependencies');
             getPackageJsonStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON');
+            clearExtensionCacheStub = mySandBox.stub(DependencyManager.instance(), 'clearExtensionCache');
             rewritePackageJsonStub = mySandBox.stub(DependencyManager.instance(), 'rewritePackageJson');
             globalStateGetStub = mySandBox.stub(GlobalState, 'get');
             setupLocalRuntimeStub = mySandBox.stub(ExtensionUtil, 'setupLocalRuntime');
@@ -776,19 +774,25 @@ describe('ExtensionUtil Tests', () => {
             getExtensionLocalFabricSettingStub = mySandBox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting');
             fabricConnectionFactorySpy = mySandBox.spy(FabricConnectionFactory, 'createFabricWallet');
             globalStateUpdateSpy = mySandBox.spy(GlobalState, 'update');
+
+            clearExtensionCacheStub.resolves();
         });
 
-        it('should install native dependencies if not installed', async () => {
-            hasNativeDependenciesInstalledStub.returns(false);
-            installNativeDependenciesStub.resolves();
-            getPackageJsonStub.returns({activationEvents: ['*']});
+        afterEach(() => {
+            mySandBox.restore();
+        });
+
+        it(`should rewrite the package.json file if there are no activation events`, async () => {
+
+            getPackageJsonStub.returns({ activationEvents: ['*'] });
             rewritePackageJsonStub.resolves();
+            clearExtensionCacheStub.resolves();
             globalStateGetStub.returns({
                 version: '1.0.0'
             });
             setupLocalRuntimeStub.resolves();
             restoreCommandsStub.resolves();
-            getExtensionContextStub.returns({hello: 'world'});
+            getExtensionContextStub.returns({ hello: 'world' });
             registerCommandsStub.resolves();
             executeStoredCommandsStub.resolves();
             getExtensionLocalFabricSettingStub.returns(true);
@@ -805,126 +809,35 @@ describe('ExtensionUtil Tests', () => {
             globalStateUpdateSpy.should.have.been.calledOnce;
             const updateCall: any = globalStateUpdateSpy.getCall(0).args[0];
             updateCall.createOneOrgLocalFabric.should.equal(false);
-
-            hasNativeDependenciesInstalledStub.should.have.been.calledOnce;
-            installNativeDependenciesStub.should.have.been.calledOnce;
+            clearExtensionCacheStub.should.have.been.calledOnce;
+            rewritePackageJsonStub.should.have.been.calledOnce;
             globalStateGetStub.should.have.been.calledOnce;
             getExtensionLocalFabricSettingStub.should.have.been.calledOnce;
             setupLocalRuntimeStub.should.have.been.calledOnce;
 
-            logSpy.should.have.been.calledThrice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Restoring command registry');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'Registering commands');
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'Execute stored commands in the registry');
+            logSpy.callCount.should.equal(5);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Rewriting activation events');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Clearing extension cache`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'Restoring command registry');
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'Registering commands');
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, 'Execute stored commands in the registry');
 
             restoreCommandsStub.should.have.been.calledOnce;
             getExtensionContextStub.should.have.been.calledOnce;
-            registerCommandsStub.should.have.been.calledOnceWithExactly({hello: 'world'});
-            executeStoredCommandsStub.should.have.been.calledOnce;
-            fabricConnectionFactorySpy.should.have.been.called;
-        });
-
-        it(`shouldn't install native dependencies if they are already installed`, async () => {
-            hasNativeDependenciesInstalledStub.returns(true);
-            installNativeDependenciesStub.resolves();
-            getPackageJsonStub.returns({activationEvents: ['activationEvent1', 'activationEvent2']});
-            rewritePackageJsonStub.resolves();
-            globalStateGetStub.returns({
-                version: '1.0.0'
-            });
-            setupLocalRuntimeStub.resolves();
-            restoreCommandsStub.resolves();
-            getExtensionContextStub.returns({hello: 'world'});
-            registerCommandsStub.resolves();
-            executeStoredCommandsStub.resolves();
-            getExtensionLocalFabricSettingStub.returns(true);
-
-            const globalState: ExtensionData = GlobalState.get();
-            globalState.createOneOrgLocalFabric = true;
-            await GlobalState.update(globalState);
-
-            globalStateUpdateSpy.resetHistory();
-            globalStateGetStub.resetHistory();
-
-            await ExtensionUtil.setupCommands();
-
-            globalStateUpdateSpy.should.have.been.calledOnce;
-            const updateCall: any = globalStateUpdateSpy.getCall(0).args[0];
-            updateCall.createOneOrgLocalFabric.should.equal(false);
-            hasNativeDependenciesInstalledStub.should.have.been.calledOnce;
-            installNativeDependenciesStub.should.not.have.been.called;
-            globalStateGetStub.should.have.been.calledOnce;
-            getExtensionLocalFabricSettingStub.should.have.been.calledOnce;
-            setupLocalRuntimeStub.should.have.been.calledOnce;
-
-            logSpy.should.have.been.calledThrice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Restoring command registry');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'Registering commands');
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'Execute stored commands in the registry');
-
-            restoreCommandsStub.should.have.been.calledOnce;
-            getExtensionContextStub.should.have.been.calledOnce;
-            registerCommandsStub.should.have.been.calledOnceWithExactly({hello: 'world'});
-            executeStoredCommandsStub.should.have.been.calledOnce;
-            fabricConnectionFactorySpy.should.have.been.called;
-        });
-
-        it(`should rewrite the package.json file if ther native dependencies are installed but there are no activation events`, async () => {
-            hasNativeDependenciesInstalledStub.returns(true);
-            installNativeDependenciesStub.resolves();
-            getPackageJsonStub.returns({activationEvents: ['*']});
-            rewritePackageJsonStub.resolves();
-            globalStateGetStub.returns({
-                version: '1.0.0'
-            });
-            setupLocalRuntimeStub.resolves();
-            restoreCommandsStub.resolves();
-            getExtensionContextStub.returns({hello: 'world'});
-            registerCommandsStub.resolves();
-            executeStoredCommandsStub.resolves();
-            getExtensionLocalFabricSettingStub.returns(true);
-
-            const globalState: ExtensionData = GlobalState.get();
-            globalState.createOneOrgLocalFabric = true;
-            await GlobalState.update(globalState);
-
-            globalStateUpdateSpy.resetHistory();
-            globalStateGetStub.resetHistory();
-
-            await ExtensionUtil.setupCommands();
-
-            globalStateUpdateSpy.should.have.been.calledOnce;
-            const updateCall: any = globalStateUpdateSpy.getCall(0).args[0];
-            updateCall.createOneOrgLocalFabric.should.equal(false);
-            hasNativeDependenciesInstalledStub.should.have.been.calledOnce;
-            installNativeDependenciesStub.should.not.have.been.called;
-            globalStateGetStub.should.have.been.calledOnce;
-            getExtensionLocalFabricSettingStub.should.have.been.calledOnce;
-            setupLocalRuntimeStub.should.have.been.calledOnce;
-
-            logSpy.should.have.been.calledThrice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Restoring command registry');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'Registering commands');
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'Execute stored commands in the registry');
-
-            restoreCommandsStub.should.have.been.calledOnce;
-            getExtensionContextStub.should.have.been.calledOnce;
-            registerCommandsStub.should.have.been.calledOnceWithExactly({hello: 'world'});
+            registerCommandsStub.should.have.been.calledOnceWithExactly({ hello: 'world' });
             executeStoredCommandsStub.should.have.been.calledOnce;
             fabricConnectionFactorySpy.should.have.been.called;
         });
 
         it('should not created one org local fabric if it has already been created', async () => {
-            hasNativeDependenciesInstalledStub.returns(false);
-            installNativeDependenciesStub.resolves();
-            getPackageJsonStub.returns({activationEvents: ['*']});
+            getPackageJsonStub.returns({ activationEvents: ['*'] });
             rewritePackageJsonStub.resolves();
             globalStateGetStub.returns({
                 version: '1.0.0'
             });
             setupLocalRuntimeStub.resolves();
             restoreCommandsStub.resolves();
-            getExtensionContextStub.returns({hello: 'world'});
+            getExtensionContextStub.returns({ hello: 'world' });
             registerCommandsStub.resolves();
             executeStoredCommandsStub.resolves();
             getExtensionLocalFabricSettingStub.returns(true);
@@ -940,22 +853,24 @@ describe('ExtensionUtil Tests', () => {
 
             globalStateUpdateSpy.should.not.have.been.called;
 
-            hasNativeDependenciesInstalledStub.should.have.been.calledOnce;
-            installNativeDependenciesStub.should.have.been.calledOnce;
             globalStateGetStub.should.have.been.calledOnce;
             getExtensionLocalFabricSettingStub.should.have.been.calledOnce;
             setupLocalRuntimeStub.should.not.have.been.called;
 
-            logSpy.should.have.been.calledThrice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Restoring command registry');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'Registering commands');
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'Execute stored commands in the registry');
+            logSpy.callCount.should.equal(5);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Rewriting activation events');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Clearing extension cache`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'Restoring command registry');
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'Registering commands');
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, 'Execute stored commands in the registry');
 
             restoreCommandsStub.should.have.been.calledOnce;
             getExtensionContextStub.should.have.been.calledOnce;
-            registerCommandsStub.should.have.been.calledOnceWithExactly({hello: 'world'});
+            registerCommandsStub.should.have.been.calledOnceWithExactly({ hello: 'world' });
             executeStoredCommandsStub.should.have.been.calledOnce;
             fabricConnectionFactorySpy.should.have.been.called;
+            clearExtensionCacheStub.should.have.been.calledOnce;
+            rewritePackageJsonStub.should.have.been.calledOnce;
         });
 
         it(`should delete local registry entries if not enabled`, async () => {
@@ -968,16 +883,14 @@ describe('ExtensionUtil Tests', () => {
 
             await TestUtil.setupLocalFabric();
 
-            hasNativeDependenciesInstalledStub.returns(true);
-            installNativeDependenciesStub.resolves();
-            getPackageJsonStub.returns({activationEvents: ['activationEvent1', 'activationEvent2']});
+            getPackageJsonStub.returns({ activationEvents: ['activationEvent1', 'activationEvent2'] });
             rewritePackageJsonStub.resolves();
             globalStateGetStub.returns({
                 version: '1.0.0'
             });
             setupLocalRuntimeStub.resolves();
             restoreCommandsStub.resolves();
-            getExtensionContextStub.returns({hello: 'world'});
+            getExtensionContextStub.returns({ hello: 'world' });
             registerCommandsStub.resolves();
             executeStoredCommandsStub.resolves();
             getExtensionLocalFabricSettingStub.returns(false);
@@ -995,8 +908,6 @@ describe('ExtensionUtil Tests', () => {
 
             globalStateUpdateSpy.should.not.have.been.called;
 
-            hasNativeDependenciesInstalledStub.should.have.been.calledOnce;
-            installNativeDependenciesStub.should.not.have.been.called;
             globalStateGetStub.should.have.been.calledOnce;
             getExtensionLocalFabricSettingStub.should.have.been.calledOnce;
             setupLocalRuntimeStub.should.not.have.been.calledOnce;
@@ -1008,12 +919,14 @@ describe('ExtensionUtil Tests', () => {
 
             restoreCommandsStub.should.have.been.calledOnce;
             getExtensionContextStub.should.have.been.calledOnce;
-            registerCommandsStub.should.have.been.calledOnceWithExactly({hello: 'world'});
+            registerCommandsStub.should.have.been.calledOnceWithExactly({ hello: 'world' });
             executeStoredCommandsStub.should.have.been.calledOnce;
             fabricConnectionFactorySpy.should.have.been.called;
 
             deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
             removeRuntimeStub.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC);
+            clearExtensionCacheStub.should.not.have.been.called;
+            rewritePackageJsonStub.should.not.have.been.called;
         });
     });
 
@@ -2245,7 +2158,7 @@ describe('ExtensionUtil Tests', () => {
         it('should get required cloud login setting', async () => {
 
             const result: any = ExtensionUtil.getExtensionSaasConfigUpdatesSetting();
-            result.should.deep.equal( true );
+            result.should.deep.equal(true);
         });
     });
 
