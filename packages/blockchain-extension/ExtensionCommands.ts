@@ -48,6 +48,7 @@ export class ExtensionCommands {
     static readonly TEARDOWN_FABRIC_SHORT: string = 'environmentExplorer.teardownFabricRuntimeShort';
     static readonly UPGRADE_SMART_CONTRACT: string = 'environmentExplorer.upgradeSmartContractEntry';
     static readonly CREATE_NEW_IDENTITY: string = 'environmentExplorer.createNewIdentityEntry';
+    static readonly LOG_IN_AND_DISCOVER: string = 'environmentExplorer.logInAndDiscover';
 
     // GATEWAY VIEW
     static readonly ADD_GATEWAY: string = 'gatewaysExplorer.addGatewayEntry';
@@ -88,4 +89,5 @@ export class ExtensionCommands {
     static readonly DEBUG_COMMAND_LIST: string = 'debug.commandList';
     static readonly SAVE_TUTORIAL_AS_PDF: string = 'tutorial.save';
     static readonly MANAGE_FEATURE_FLAGS: string = 'manageFeatureFlags';
+    static readonly OPEN_NEW_INSTANCE_LINK: string = 'openNewInstanceLink';
 }

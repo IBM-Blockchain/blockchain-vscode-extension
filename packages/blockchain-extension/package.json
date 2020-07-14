@@ -212,6 +212,11 @@
                     "type": "object",
                     "default": {},
                     "description": "Enable or disable experimental features in the IBM Blockchain Platform extension"
+                },
+                "ibm-blockchain-platform.ext.discoverSaasEnvs": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable or disable automatic discovery of IBM Cloud environments in the IBM Blockchain Platform extension"
                 }
             }
         },

@@ -108,6 +108,7 @@ import { subscribeToEvent } from '../commands/subscribeToEventCommand';
 import { exportAppData } from '../commands/exportAppData';
 import { saveTutorial } from '../commands/saveTutorialCommand';
 import { manageFeatureFlags } from '../commands/manageFeatureFlags';
+import { logInAndDiscover } from '../commands/logInAndDiscoverCommand';
 import Axios from 'axios';
 import { URL } from 'url';
 import { FeatureFlagManager } from './FeatureFlags';
@@ -333,6 +334,7 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.SUBSCRIBE_TO_EVENT, (treeItem: ContractTreeItem | InstantiatedTreeItem) => subscribeToEvent(treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.SAVE_TUTORIAL_AS_PDF, (tutorialObject: any, saveAll?: boolean, tutorialFolder?: string) => saveTutorial(tutorialObject, saveAll, tutorialFolder)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_APP_DATA, (treeItem: ContractTreeItem | InstantiatedTreeItem) => exportAppData(treeItem)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.LOG_IN_AND_DISCOVER, () => logInAndDiscover()));
 
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_HOME_PAGE, async () => {
             const homeView: HomeView = new HomeView(context);
@@ -360,6 +362,10 @@ export class ExtensionUtil {
 
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.MANAGE_FEATURE_FLAGS, () => manageFeatureFlags()));
 
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_NEW_INSTANCE_LINK, async () => {
+            await vscode.commands.executeCommand('vscode.open', vscode.Uri.parse('https://cloud.ibm.com/catalog/services/blockchain-platform'));
+            Reporter.instance().sendTelemetryEvent('openNewInstanceLink');
+        }));
         // Teardown old containers and delete environments, wallets, gateways.
         await this.purgeOldRuntimes();
 

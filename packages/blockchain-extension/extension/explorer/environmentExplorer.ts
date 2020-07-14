@@ -50,6 +50,8 @@ import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironment
 import { ManagedAnsibleEnvironmentManager } from '../fabric/environments/ManagedAnsibleEnvironmentManager';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { EnvironmentGroupTreeItem } from './runtimeOps/EnvironmentGroupTreeItem';
+import { ExtensionsInteractionUtil } from '../util/ExtensionsInteractionUtil';
+import { SettingConfigurations } from '../../configurations';
 
 export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorerProvider {
 
@@ -265,7 +267,14 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 title: '',
                 arguments: []
             };
-            tree.push(new TextTreeItem(this, 'Click + to add environments', command));
+
+            tree.push(new TextTreeItem(this, '+ add local or remote environment', command));
+
+            // if there are no environments at all we should still show the option to log in to IBM Cloud
+            const treeItem: TextTreeItem = await this.getIBMCloudInteractionItem(true);
+            if (treeItem) {
+                tree.push(treeItem);
+            }
         } else {
             for (const group of environmentGroups) {
                 let groupName: string = '';
@@ -278,74 +287,122 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 }
                 tree.push(new EnvironmentGroupTreeItem(this, groupName, group, vscode.TreeItemCollapsibleState.Expanded));
             }
+            if (!tree.some((treeItem: BlockchainTreeItem) => treeItem.label === 'IBM Cloud' )) {
+                const treeItem: TextTreeItem = await this.getIBMCloudInteractionItem(true);
+                if (treeItem) {
+                    tree.push(treeItem);
+                }
+            }
         }
 
         return tree;
     }
 
-    private async populateEnvironments(environments: FabricEnvironmentRegistryEntry[]): Promise<Array<FabricEnvironmentTreeItem>> {
+    private async populateEnvironments(environments: FabricEnvironmentRegistryEntry[]): Promise<Array<BlockchainTreeItem>> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         try {
-            const tree: Array<FabricEnvironmentTreeItem> = [];
-            for (const environment of environments) {
-                if (environment.managedRuntime) {
-                    let runtime: LocalEnvironment | ManagedAnsibleEnvironment;
-                    if (environment.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
-                        runtime = await LocalEnvironmentManager.instance().ensureRuntime(environment.name, undefined, environment.numberOfOrgs);
-                    } else {
-                        // Managed ansible
-                        runtime = ManagedAnsibleEnvironmentManager.instance().ensureRuntime(environment.name, environment.environmentDirectory);
-                    }
-                    const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
-                        runtime.getName(),
-                        environment,
-                        {
-                            command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
-                            title: '',
-                            arguments: [environment]
-                        },
-                        runtime
-                    );
+            const tree: Array<BlockchainTreeItem> = [];
 
-                    const isRunning: boolean = await runtime.isRunning();
-                    if (isRunning) {
-                        treeItem.contextValue = 'blockchain-runtime-item-running';
-                    }
-
-                    if (environment.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
-                        treeItem.iconPath = {
-                            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'laptop.svg'),
-                            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'laptop.svg')
-                        };
-                    }
-                    tree.push(treeItem);
-
-                } else {
-                    const environmentTreeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(this,
-                        environment.name,
-                        environment,
-                        {
-                            command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
-                            title: '',
-                            arguments: [environment]
+            if (environments.length === 0) {
+                tree.push(await this.getIBMCloudInteractionItem(false));
+            } else {
+                for (const environment of environments) {
+                    if (environment.managedRuntime) {
+                        let runtime: LocalEnvironment | ManagedAnsibleEnvironment;
+                        if (environment.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                            runtime = await LocalEnvironmentManager.instance().ensureRuntime(environment.name, undefined, environment.numberOfOrgs);
+                        } else {
+                            // Managed ansible
+                            runtime = ManagedAnsibleEnvironmentManager.instance().ensureRuntime(environment.name, environment.environmentDirectory);
                         }
-                    );
+                        const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
+                            runtime.getName(),
+                            environment,
+                            {
+                                command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                                title: '',
+                                arguments: [environment]
+                            },
+                            runtime
+                        );
 
-                    if (environment.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || environment.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
-                        environmentTreeItem.iconPath = {
-                            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'ibm-cloud.svg'),
-                            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'ibm-cloud.svg')
-                        };
+                        const isRunning: boolean = await runtime.isRunning();
+                        if (isRunning) {
+                            treeItem.contextValue = 'blockchain-runtime-item-running';
+                        }
+
+                        if (environment.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                            treeItem.iconPath = {
+                                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'laptop.svg'),
+                                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'laptop.svg')
+                            };
+                        }
+                        tree.push(treeItem);
+
+                    } else {
+                        const environmentTreeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(this,
+                            environment.name,
+                            environment,
+                            {
+                                command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                                title: '',
+                                arguments: [environment]
+                            }
+                        );
+
+                        if (environment.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || environment.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
+                            environmentTreeItem.iconPath = {
+                                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'ibm-cloud.svg'),
+                                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'ibm-cloud.svg')
+                            };
+                        }
+
+                        tree.push(environmentTreeItem);
                     }
-
-                    tree.push(environmentTreeItem);
                 }
             }
 
             return tree;
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error populating Fabric Environment Panel: ${error.message}`, `Error populating Fabric Environment Panel: ${error.toString()}`);
+        }
+    }
+
+    private async getIBMCloudInteractionItem(returnGroupItem: boolean): Promise<TextTreeItem> {
+        const isLoggedIn: boolean = await ExtensionsInteractionUtil.cloudAccountIsLoggedIn();
+        if ( !isLoggedIn ) {
+            if (returnGroupItem) {
+                return new EnvironmentGroupTreeItem(this, 'IBM Cloud', [], vscode.TreeItemCollapsibleState.Expanded);
+            } else {
+                const command: vscode.Command = {
+                    command: ExtensionCommands.LOG_IN_AND_DISCOVER,
+                    title: '',
+                    arguments: []
+                };
+                return new TextTreeItem(this, '+ Log in to IBM Cloud', command);
+            }
+        } else {
+            // if we're logged in we need to figure out if they've got stuff stood up on IBP, and if they dont show the tree item
+            const anyIbpResources: boolean = await ExtensionsInteractionUtil.cloudAccountAnyIbpResources();
+            if (anyIbpResources) {
+                // we should try and automatically add the environments for them
+                const shouldDiscover: boolean = vscode.workspace.getConfiguration().get(SettingConfigurations.DISCOVER_SAAS_ENVS);
+                if (shouldDiscover === true) {
+                    await vscode.commands.executeCommand(ExtensionCommands.LOG_IN_AND_DISCOVER);
+                }
+            } else {
+                if (returnGroupItem) {
+                    return new EnvironmentGroupTreeItem(this, 'IBM Cloud', [], vscode.TreeItemCollapsibleState.Expanded);
+                } else {
+                    const command: vscode.Command = {
+                        command: ExtensionCommands.OPEN_NEW_INSTANCE_LINK,
+                        title: '',
+                        arguments: []
+                    };
+                    return new TextTreeItem(this, '+ create new instance', command);
+                }
+            }
         }
     }
 

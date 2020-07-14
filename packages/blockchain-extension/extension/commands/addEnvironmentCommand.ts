@@ -27,7 +27,6 @@ import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironment
 import { SettingConfigurations } from '../../configurations';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
-import { URL } from 'url';
 import { ExtensionsInteractionUtil } from '../util/ExtensionsInteractionUtil';
 import { FeatureFlagManager } from '../util/FeatureFlags';
 import { SecureStore } from '../util/SecureStore';
@@ -357,55 +356,37 @@ export async function addEnvironment(): Promise<void> {
     }
 
     async function getOpsToolsAccessInfoSaaS(): Promise<string[]> {
-        const ibpResources: IBlockchainQuickPickItem<string>[] = [];
         const accessToken: string = await ExtensionsInteractionUtil.cloudAccountGetAccessToken();
         if (!accessToken) {
             return;
         }
-        const requestOptions: any = { headers: { Authorization: `Bearer ${accessToken}` } };
-        const baseUrl: string = 'https://resource-controller.cloud.ibm.com';
-        let resourcesUrl: string = `${baseUrl}/v2/resource_instances`;
-        while (resourcesUrl) {
-            const response: any = await Axios.get(resourcesUrl, requestOptions);
 
-            for (const resource of response.data.resources) {
-                if ( resource.resource_plan_id === 'blockchain-standard' ) {
-                    ibpResources.push({
-                        label: resource.name,
-                        description: resource.guid,
-                        data: resource
-                    });
-                }
-            }
-            if (response.data.next_url) {
-                resourcesUrl = `${baseUrl}${response.data.next_url}`;
-            } else {
-                break;
-            }
-        }
-
+        const ibpResources: any[] = await ExtensionsInteractionUtil.cloudAccountGetIbpResources();
         let chosenIbp: IBlockchainQuickPickItem<any>;
         if (ibpResources.length === 0) {
             throw new Error('There are no IBM Blockchain Platform service instances associated with the chosen account');
-        } else if (ibpResources.length === 1) {
-            chosenIbp = ibpResources[0];
         } else {
-            chosenIbp = await UserInputUtil.showQuickPickItem('Select an IBM Blockchain Platform service instance', ibpResources) as IBlockchainQuickPickItem<any>;
-            if (!chosenIbp) {
-                return;
+            const ibpResourceItems: IBlockchainQuickPickItem<string>[] = [];
+            for (const resource of ibpResources) {
+                ibpResourceItems.push({
+                    label: resource.name,
+                    description: resource.guid,
+                    data: resource
+                });
+            }
+
+            if (ibpResources.length === 1) {
+                chosenIbp = ibpResourceItems[0];
+            } else {
+                chosenIbp = await UserInputUtil.showQuickPickItem('Select an IBM Blockchain Platform service instance', ibpResources) as IBlockchainQuickPickItem<any>;
+                if (!chosenIbp) {
+                    return;
+                }
             }
         }
 
-        // get API endpoint
-        const dashboardUrl: URL = new URL(chosenIbp.data.dashboard_url);
-        const encodedCrn: string = encodeURIComponent(chosenIbp.data.crn);
-        const consoleStatus: any = await Axios.get(`${dashboardUrl.origin}/api/alternative-auth/resources/${encodedCrn}/optools`, requestOptions);
-
-        if (consoleStatus.status !== 200) {
-            throw new Error(`Got status ${consoleStatus.status}. Please make sure the IBM Blockchain Platform Console deployment has finished before adding environment.`);
-        }
-
-        return [consoleStatus.data.endpoint, chosenIbp.label];
+        const apiEndpoint: string = await ExtensionsInteractionUtil.cloudAccountGetApiEndpoint(chosenIbp.data, accessToken);
+        return [apiEndpoint, chosenIbp.label];
     }
 
 }

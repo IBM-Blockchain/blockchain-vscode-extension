@@ -34,6 +34,7 @@ import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
 import { ManagedAnsibleEnvironment } from '../../extension/fabric/environments/ManagedAnsibleEnvironment';
+import { ExtensionsInteractionUtil } from '../../extension/util/ExtensionsInteractionUtil';
 
 chai.use(sinonChai);
 // tslint:disable-next-line no-var-requires
@@ -215,6 +216,8 @@ describe('EnvironmentConnectCommand', () => {
             });
 
             it('should test that a fabric environment can be connected to from the tree', async () => {
+                mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
+
                 const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
                 const groupChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren(allChildren[1]);
@@ -412,6 +415,8 @@ describe('EnvironmentConnectCommand', () => {
             });
 
             it('should connect to a managed runtime environment from the tree', async () => {
+                mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
+
                 const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
                 const groupChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren(allChildren[0]);
@@ -426,6 +431,8 @@ describe('EnvironmentConnectCommand', () => {
             });
 
             it('should carry on connecting even if setup required', async () => {
+                mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
+
                 const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
                 const groupChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren(allChildren[0]);
