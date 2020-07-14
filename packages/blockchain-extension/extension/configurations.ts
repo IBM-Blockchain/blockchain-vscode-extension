@@ -36,8 +36,13 @@ export class SettingConfigurations {
     // Feature flags
     static readonly FEATURE_FLAGS: string = 'ibm-blockchain-platform.ext.featureFlags';
 
+<<<<<<< HEAD:packages/blockchain-extension/extension/configurations.ts
     static getExtensionDir(): string {
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         return path.join(extDir, 'v2');
     }
+=======
+    // auto adding SaaS environments
+    static readonly DISCOVER_SAAS_ENVS: string = 'ibm-blockchain-platform.ext.discoverSaasEnvs';
+>>>>>>> ea1431f3... add ibm cloud log in tree items (#2503):packages/blockchain-extension/configurations.ts
 }

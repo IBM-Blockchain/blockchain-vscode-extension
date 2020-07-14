@@ -10,6 +10,7 @@ Feature: Fabric Environments
         | label                     | tooltip                                  |
         | 1 Org Local Fabric  ●     | The local development runtime is running |
 
+<<<<<<< HEAD
   # Scenario Outline: There should be a tree item (connected)
   #   Given the 1 Org Local Fabric environment is running
   #   And the '1 Org Local Fabric' environment is connected
@@ -25,6 +26,73 @@ Feature: Fabric Environments
   #     | Node                  | Orderer                                      | Name: Orderer\\nMSPID: OrdererMSP\\nAssociated Identity:\\nordererAdmin |
   #     | Organizations         | OrdererMSP                                   | OrdererMSP                                                              |
   #     | Organizations         | Org1MSP                                      | Org1MSP                                                                 |
+=======
+    Scenario Outline: There should be a tree item (connected)
+        Given the 1 Org Local Fabric environment is running
+        And the '1 Org Local Fabric' environment is connected
+        Then there should be a <treeItem> tree item with a label '<label>' in the 'Fabric Environments' panel
+        And the tree item should have a tooltip equal to '<tooltip>'
+        Examples:
+        | treeItem                    | label                                           | tooltip                                                                   |
+        | environment connected       | Connected to environment: 1 Org Local Fabric    | Connected to environment: 1 Org Local Fabric                              |
+        | installed smart contract    | + Install                                       | + Install                                                                 |
+        | instantiated smart contract | + Instantiate                                   | + Instantiate                                                             |
+        | Channels                    | mychannel                                       | Associated peers: Org1Peer1                                               |
+        | Node                        | Org1Peer1                                       | Name: Org1Peer1\\nMSPID: Org1MSP\\nAssociated Identity:\\norg1Admin       |
+        | Node                        | OrdererCA                                       | Name: OrdererCA\\nAssociated Identity:\\nadmin                            |
+        | Node                        | Org1CA                                          | Name: Org1CA\\nAssociated Identity:\\nadmin                               |
+        | Node                        | Orderer                                         | Name: Orderer\\nMSPID: OrdererMSP\\nAssociated Identity:\\nordererAdmin   |
+        | Organizations               | OrdererMSP                                      | OrdererMSP                                                                |
+        | Organizations               | Org1MSP                                         | Org1MSP                                                                   |
+
+    Scenario Outline: It should persist data after being stopped
+        Given the 1 Org Local Fabric environment is running
+        And the '1 Org Local Fabric' environment is connected
+        And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+        And the contract has been created
+        And the contract has been packaged
+        And the package has been installed
+        And the contract has been instantiated with the transaction '' and args '', not using private data on channel 'mychannel'
+        When I stop the 1 Org Local Fabric
+        Then there should be a tree item with a label 'Simple local networks' in the 'Fabric Environments' panel
+        And the 'Fabric Environments' tree item should have a child '<label>'
+        And the tree item should have a tooltip equal to '<tooltip>'
+        When I start the 1 Org Local Fabric
+        And the '1 Org Local Fabric' environment is connected
+        Then there should be a instantiated smart contract tree item with a label '<instantiatedName>' in the 'Fabric Environments' panel
+        Examples:
+        | language   | assetType | name               | instantiatedName         | version | label                                  | tooltip                                                                    |
+        | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.2 | 0.0.2   | 1 Org Local Fabric  ○ (click to start) | Creates a local development runtime using Hyperledger Fabric Docker images |
+
+    @otherFabric
+    Scenario: It should create an environment
+        When I create an environment 'myFabric'
+        Then there should be a tree item with a label 'Other networks' in the 'Fabric Environments' panel
+        And the 'Fabric Environments' tree item should have a child 'myFabric'
+        And the tree item should have a tooltip equal to 'myFabric'
+
+    @opsToolsFabric
+    Scenario: It should automatically add a discovered SaaS environment
+        Given there are no IBM Cloud environments
+        When I log in to IBM Cloud
+        Then there should be a tree item with a label 'IBM Cloud' in the 'Fabric Environments' panel
+        And the 'Fabric Environments' tree item should have a child 'vscode'
+        And the tree item should have a tooltip equal to 'vscode'
+
+    @opsToolsFabric
+    Scenario Outline: It should create an environment without nodes
+        When I create an environment '<environmentName>' of type '<environmentType>'
+        And the wallet '<walletName>' with identity '<identity>' and mspid '<mspid>' exists
+        Then there should be a tree item with a label 'IBM Cloud' in the 'Fabric Environments' panel
+        And the 'Fabric Environments' tree item should have a child '<environmentName>'
+        And the tree item should have a tooltip equal to '<environmentName>'
+        And there should be a tree item with a label 'Other/shared wallets' in the 'Fabric Wallets' panel
+        And the 'Fabric Wallets' tree item should have a child '<walletName>'
+        Examples:
+        | environmentName      | environmentType    | walletName            | identity          | mspid     |
+        | myOpsToolsFabric     | software           | opsToolsWallet        | Org1CAAdmin_2     | org1msp   |
+        | mySaaSOpsToolsFabric | SaaS               | SaaSOpsToolsWallet    | SaaSOrg1CAAdmin   | org1msp   |
+>>>>>>> ea1431f3... add ibm cloud log in tree items (#2503)
 
   Scenario Outline: It should persist data after being stopped
     Given the 1 Org Local Fabric environment is running
