@@ -14,7 +14,11 @@
 
 'use strict';
 import * as vscode from 'vscode';
+import Axios from 'axios';
 import { CloudAccountApi } from '../interfaces/cloud-account-api';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from 'ibm-blockchain-platform-common';
+import { URL } from 'url';
 
 /*
  * This file will hold functions to allow interaction with other extensions.
@@ -62,6 +66,93 @@ export class ExtensionsInteractionUtil {
         const accessToken: string = await cloudAccount.getAccessToken();
 
         return accessToken;
+    }
+
+    public static async cloudAccountIsLoggedIn(): Promise<boolean> {
+        const  cloudAccountExtension: vscode.Extension<any> = vscode.extensions.getExtension( 'IBM.ibmcloud-account' );
+        if ( !cloudAccountExtension ) {
+            throw new Error('IBM Cloud Account extension must be installed');
+        } else if ( !cloudAccountExtension.isActive ) {
+            await cloudAccountExtension.activate();
+        }
+        const cloudAccount: CloudAccountApi = cloudAccountExtension.exports;
+
+        return await cloudAccount.loggedIn();
+    }
+
+    public static async cloudAccountAnyIbpResources(): Promise<boolean> {
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+        let anyIbpResources: boolean = false;
+        const accessToken: string = await this.cloudAccountGetAccessToken();
+        if (!accessToken) {
+            return;
+        }
+        const requestOptions: any = { headers: { Authorization: `Bearer ${accessToken}` } };
+        const baseUrl: string = 'https://resource-controller.cloud.ibm.com';
+        let resourcesUrl: string = `${baseUrl}/v2/resource_instances`;
+        while (resourcesUrl && !anyIbpResources) {
+            try {
+                const response: any = await Axios.get(resourcesUrl, requestOptions);
+
+                anyIbpResources =  response.data.resources.some((resource: any) => resource.resource_plan_id === 'blockchain-standard');
+
+                if (response.data.next_url) {
+                    resourcesUrl = `${baseUrl}${response.data.next_url}`;
+                } else {
+                    break;
+                }
+            } catch (error) {
+                resourcesUrl = null;
+                outputAdapter.log(LogType.ERROR, `Error fetching IBP resources: ${error.message}`, `Error fetching IBP resources: ${error.toString()}`);
+            }
+        }
+        return anyIbpResources;
+    }
+
+    public static async cloudAccountGetIbpResources(): Promise<any[]> {
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+        const ibpResources: any[] = [];
+        const accessToken: string = await this.cloudAccountGetAccessToken();
+        if (!accessToken) {
+            return;
+        }
+        const requestOptions: any = { headers: { Authorization: `Bearer ${accessToken}` } };
+        const baseUrl: string = 'https://resource-controller.cloud.ibm.com';
+        let resourcesUrl: string = `${baseUrl}/v2/resource_instances`;
+        while (resourcesUrl) {
+            try {
+                const response: any = await Axios.get(resourcesUrl, requestOptions);
+
+                for (const resource of response.data.resources) {
+                    if ( resource.resource_plan_id === 'blockchain-standard' ) {
+                        ibpResources.push(resource);
+                    }
+                }
+                if (response.data.next_url) {
+                    resourcesUrl = `${baseUrl}${response.data.next_url}`;
+                } else {
+                    break;
+                }
+            } catch (error) {
+                resourcesUrl = null;
+                outputAdapter.log(LogType.ERROR, `Error fetching IBP resources: ${error.message}`, `Error fetching IBP resources: ${error.toString()}`);
+            }
+        }
+        return ibpResources;
+    }
+
+    public static async cloudAccountGetApiEndpoint(ibpResource: any, accessToken: string): Promise<string> {
+        const requestOptions: any = { headers: { Authorization: `Bearer ${accessToken}` } };
+
+        const dashboardUrl: URL = new URL(ibpResource.dashboard_url);
+        const encodedCrn: string = encodeURIComponent(ibpResource.crn);
+        const consoleStatus: any = await Axios.get(`${dashboardUrl.origin}/api/alternative-auth/resources/${encodedCrn}/optools`, requestOptions);
+
+        if (consoleStatus.status !== 200) {
+            throw new Error(`Got status ${consoleStatus.status}. Please make sure the IBM Blockchain Platform Console deployment has finished before adding environment.`);
+        }
+
+        return consoleStatus.data.endpoint;
     }
 
 }

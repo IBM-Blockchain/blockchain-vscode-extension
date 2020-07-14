@@ -27,6 +27,7 @@ import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvir
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ManagedAnsibleEnvironment } from '../../extension/fabric/environments/ManagedAnsibleEnvironment';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
+import { ExtensionsInteractionUtil } from '../../extension/util/ExtensionsInteractionUtil';
 
 chai.should();
 
@@ -66,6 +67,7 @@ describe('startFabricRuntime', () => {
 
         blockchainLogsOutputSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'show');
 
+        sandbox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
         const provider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const children: BlockchainTreeItem[] = await provider.getChildren();
         const groupChildren: BlockchainTreeItem[] = await provider.getChildren(children[0]);

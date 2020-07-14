@@ -22,11 +22,17 @@ export class ExtensionsInteractionUtilHelper {
     mySandBox: sinon.SinonSandbox;
     accessToken: string;
     cloudAccountGetAccessTokenStub: sinon.SinonStub;
+    cloudAccountIsLoggedInStub: sinon.SinonStub;
 
     constructor(sandbox: sinon.SinonSandbox) {
         this.mySandBox = sandbox;
         this.accessToken = undefined;
         this.cloudAccountGetAccessTokenStub = this.mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountGetAccessToken').callsFake(this.getTokenDirectly);
+        this.cloudAccountIsLoggedInStub = this.mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').callsFake(this.notLoggedIn);
+    }
+
+    private async notLoggedIn(): Promise<boolean> {
+        return false;
     }
 
     private async getTokenDirectly(): Promise<string> {
