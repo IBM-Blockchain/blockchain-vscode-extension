@@ -515,6 +515,9 @@ describe('FabricEnvironmentConnection', () => {
             connection['lifecycle']['peers'].clear();
             connection['lifecycle']['peers'].set('peer0.org1.example.com', mockPeer1);
             connection['lifecycle']['peers'].set('peer0.org2.example.com', mockPeer2);
+
+            mockPeer1.getChannelCapabilities.resolves(['V2_0']);
+            mockPeer2.getChannelCapabilities.resolves(['V2_0']);
         });
 
         it('should get all of the channel names, with the list of peers', async () => {
@@ -527,12 +530,22 @@ describe('FabricEnvironmentConnection', () => {
                     ]
                 )
             );
+
+            mockPeer1.getChannelCapabilities.should.have.been.calledTwice;
+            mockPeer2.getChannelCapabilities.should.have.been.calledOnce;
         });
 
         it('should throw a specific error if gRPC returns an HTTP 503 status code', async () => {
             mockPeer1.getAllChannelNames.rejects(new Error('Received http2 header with status: 503'));
             await connection.createChannelMap()
                 .should.be.rejectedWith(/Cannot connect to Fabric/);
+        });
+
+        it('should throw error if channel is not using v2 capabilities', async () => {
+            mockPeer1.getChannelCapabilities.resolves(['V1_4_3']);
+            await connection.createChannelMap().should.be.rejectedWith(/Unable to connect to network, channel 'channel1' does not have V2_0 capabilities enabled./);
+            mockPeer1.getChannelCapabilities.should.have.been.calledOnce;
+            mockPeer2.getChannelCapabilities.should.not.have.been.called;
         });
 
         it('should rethrow any other errors', async () => {
@@ -600,6 +613,9 @@ describe('FabricEnvironmentConnection', () => {
             mockPeer1.getAllChannelNames.resolves(['channel1', 'channel2']);
             mockPeer2.getAllChannelNames.resolves(['channel2']);
 
+            mockPeer1.getChannelCapabilities.resolves(['V2_0']);
+            mockPeer2.getChannelCapabilities.resolves(['V2_0']);
+
             connection['lifecycle']['peers'].clear();
             connection['lifecycle']['peers'].set('peer0.org1.example.com', mockPeer1);
             connection['lifecycle']['peers'].set('peer0.org2.example.com', mockPeer2);
@@ -641,6 +657,7 @@ describe('FabricEnvironmentConnection', () => {
         });
 
         it('should return the list of committed smart contracts on all channels', async () => {
+
             const smartContracts: Array<FabricSmartContractDefinition> = await connection.getAllCommittedSmartContractDefinitions();
             smartContracts.should.deep.equal([
                 {

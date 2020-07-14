@@ -1530,18 +1530,10 @@ describe('LifecycleChannel', () => {
                     maxPeerCount: 3
                 };
 
-                // tslint:disable-next-line: no-console
-                console.log('starting expected result');
                 const expectedResult: protos.common.CollectionConfigPackage = CollectionConfig.buildCollectionConfigPackage([collection]);
-                // tslint:disable-next-line: no-console
-                console.log('end of expected result', expectedResult);
 
-
-                // tslint:disable-next-line: no-console
-                console.log('starting actual result');
                 const actualResult: Buffer = LifecycleChannel.getCollectionConfig([collection], true) as Buffer;
-                // tslint:disable-next-line: no-console
-                console.log('ending actual result', actualResult);
+
                 const arg: Uint8Array = protos.common.CollectionConfigPackage.encode({ config: expectedResult.config }).finish();
                 actualResult.should.deep.equal(Buffer.from(arg));
             });

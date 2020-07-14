@@ -23,7 +23,7 @@ import { OutputAdapter, LogType } from 'ibm-blockchain-platform-common';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import * as path from 'path';
 import { Client, Channel } from 'fabric-common';
-import { LifecyclePeer, LifecycleChannel } from 'ibm-blockchain-platform-fabric-admin';
+import { LifecyclePeer, LifecycleChannel, Lifecycle } from 'ibm-blockchain-platform-fabric-admin';
 
 chai.should();
 chai.use(sinonChai);
@@ -74,6 +74,7 @@ describe('FabricConnection', () => {
     let fabricChannelStub: sinon.SinonStubbedInstance<Channel>;
     let fabricCAStub: sinon.SinonStubbedInstance<fabricClientCA>;
     let mockWallet: sinon.SinonStubbedInstance<Wallet>;
+
     const mockIdentityName: string = 'admin';
     let fabricWallet: FabricWallet;
 
@@ -444,6 +445,13 @@ describe('FabricConnection', () => {
     describe('getInstantiatedChaincode', () => {
         it('should get the instantiated chaincode from a channel in the connection profile', async () => {
             mySandBox.stub(fabricConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
+
+            const getChannelCapabilitiesStub: sinon.SinonStub = mySandBox.stub(LifecyclePeer.prototype, 'getChannelCapabilities');
+            getChannelCapabilitiesStub.resolves(['V2_0']);
+            mySandBox.stub(Lifecycle.prototype, 'getPeer').returns({
+                getChannelCapabilities: getChannelCapabilitiesStub
+            });
+
             const getAllChannelsForPeerStub: sinon.SinonStub = mySandBox.stub(fabricConnection, 'getAllChannelsForPeer');
             getAllChannelsForPeerStub.withArgs('peerOne').returns(['channel1']);
             getAllChannelsForPeerStub.withArgs('peerTwo').returns(['channel2']);
@@ -472,6 +480,13 @@ describe('FabricConnection', () => {
 
         it('should create channel map', async () => {
             mySandBox.stub(fabricConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
+
+            const getChannelCapabilitiesStub: sinon.SinonStub = mySandBox.stub(LifecyclePeer.prototype, 'getChannelCapabilities');
+            getChannelCapabilitiesStub.resolves(['V2_0']);
+            mySandBox.stub(Lifecycle.prototype, 'getPeer').returns({
+                getChannelCapabilities: getChannelCapabilitiesStub
+            });
+
             const getAllChannelsForPeerStub: sinon.SinonStub = mySandBox.stub(fabricConnection, 'getAllChannelsForPeer');
             getAllChannelsForPeerStub.withArgs('peerOne').returns(['channel1']);
             getAllChannelsForPeerStub.withArgs('peerTwo').returns(['channel2']);
@@ -481,11 +496,19 @@ describe('FabricConnection', () => {
             _map.set('channel2', ['peerTwo']);
 
             const map: Map<string, Array<string>> = await fabricConnection.createChannelMap();
+            getChannelCapabilitiesStub.should.have.been.calledTwice;
             map.should.deep.equal(_map);
         });
 
         it('should add any peers to channel map if the channel already exists', async () => {
             mySandBox.stub(fabricConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
+
+            const getChannelCapabilitiesStub: sinon.SinonStub = mySandBox.stub(LifecyclePeer.prototype, 'getChannelCapabilities');
+            getChannelCapabilitiesStub.resolves(['V2_0']);
+            mySandBox.stub(Lifecycle.prototype, 'getPeer').returns({
+                getChannelCapabilities: getChannelCapabilitiesStub
+            });
+
             const getAllChannelsForPeerStub: sinon.SinonStub = mySandBox.stub(fabricConnection, 'getAllChannelsForPeer');
             getAllChannelsForPeerStub.withArgs('peerOne').returns(['channel1', 'channel2']);
             getAllChannelsForPeerStub.withArgs('peerTwo').returns(['channel2']);
@@ -511,6 +534,24 @@ describe('FabricConnection', () => {
             mySandBox.stub(fabricConnection, 'getAllPeerNames').returns([]);
 
             await fabricConnection.createChannelMap().should.be.rejectedWith('Error querying channel list: Could not find any peers to query the list of channels from');
+        });
+
+        it('should throw error if channel is not using v2 capabilities ', async () => {
+            mySandBox.stub(fabricConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
+
+            const getChannelCapabilitiesStub: sinon.SinonStub = mySandBox.stub(LifecyclePeer.prototype, 'getChannelCapabilities');
+            getChannelCapabilitiesStub.resolves(['V1_4_3']);
+            mySandBox.stub(Lifecycle.prototype, 'getPeer').returns({
+                getChannelCapabilities: getChannelCapabilitiesStub
+            });
+
+            const getAllChannelsForPeerStub: sinon.SinonStub = mySandBox.stub(fabricConnection, 'getAllChannelsForPeer');
+            getAllChannelsForPeerStub.withArgs('peerOne').returns(['channel1']);
+            getAllChannelsForPeerStub.withArgs('peerTwo').returns(['channel2']);
+
+            await fabricConnection.createChannelMap().should.be.rejectedWith(`Unable to connect to network, channel 'channel1' does not have V2_0 capabilities enabled.`);
+            getChannelCapabilitiesStub.should.have.been.calledOnce;
+
         });
 
         it('should handle any other errors', async () => {
