@@ -219,6 +219,11 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
             for (const peerName of peerNames) {
                 const channelNames: Array<string> = await this.getAllChannelNamesForPeer(peerName);
                 for (const channelName of channelNames) {
+                    const peer: LifecyclePeer = await this.getPeer(peerName);
+                    const capabilities: string[] = await peer.getChannelCapabilities(channelName);
+                    if (!capabilities.includes('V2_0')) {
+                        throw new Error(`channel '${channelName}' does not have V2_0 capabilities enabled.`);
+                    }
                     if (!channelMap.has(channelName)) {
                         channelMap.set(channelName, [peerName]);
                     } else {
@@ -232,6 +237,8 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         } catch (error) {
             if (error.message && error.message.includes('Received http2 header with status: 503')) { // If gRPC can't connect to Fabric
                 throw new Error(`Cannot connect to Fabric: ${error.message}`);
+            } else if (error.message.includes('does not have V2_0 capabilities enabled.')) {
+                throw new Error(`Unable to connect to network, ${error.message}`);
             } else {
                 throw new Error(`Error querying channels: ${error.message}`);
             }

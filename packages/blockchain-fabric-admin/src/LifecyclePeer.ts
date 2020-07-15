@@ -219,6 +219,25 @@ export class LifecyclePeer {
         }
     }
 
+    public async getChannelCapabilities(channelName: string, requestTimeout?: number): Promise<string[]> {
+        const buildRequest: { fcn: string; args: Buffer[] } = {
+            fcn: 'GetConfigBlock',
+            args: [channelName as any]
+        };
+
+        const response: ProposalResponse = await this.sendRequest(buildRequest, 'cscc', requestTimeout);
+        const payload: Buffer[] = await LifecycleCommon.processResponse(response);
+        const block: protos.common.Block = protos.common.Block.decode(payload[0]);
+        const blockData: Uint8Array = block.data.data[0];
+        const envelope: protos.common.Envelope = protos.common.Envelope.decode(blockData);
+        const dataPayload: protos.common.Payload = protos.common.Payload.decode(envelope.payload);
+        const configEnvelope: protos.common.ConfigEnvelope = protos.common.ConfigEnvelope.decode(dataPayload.data);
+        const _capabilities: protos.common.Capabilities = protos.common.Capabilities.decode(configEnvelope.config.channel_group.values.Capabilities.value);
+        const capabilities: any = _capabilities.capabilities;
+        const keys: string[] = Object.keys(capabilities);
+        return keys;
+    }
+
     /**
      * Get a list of all the channel names that the peer has joined
      * @param requestTimeout number, [optional] the timeout used when performing the install operation

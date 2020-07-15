@@ -111,18 +111,23 @@ export abstract class FabricConnection {
 
             const channelMap: Map<string, Array<string>> = new Map<string, Array<string>>();
 
-            for (const peer of allPeerNames) {
-                const channels: Array<string> = await this.getAllChannelsForPeer(peer);
-                channels.forEach((channelName: string) => {
+            for (const peerName of allPeerNames) {
+                const channels: Array<string> = await this.getAllChannelsForPeer(peerName);
+                for (const channelName of channels) {
+                    const peer: LifecyclePeer = this.lifecycle.getPeer(peerName, this.gateway.getOptions().wallet, this.gateway.getOptions().identity as string);
+                    const capabilities: string[] = await peer.getChannelCapabilities(channelName);
+                    if (!capabilities.includes('V2_0')) {
+                        throw new Error(`channel '${channelName}' does not have V2_0 capabilities enabled.`);
+                    }
                     let peers: Array<string> = channelMap.get(channelName);
                     if (peers) {
-                        peers.push(peer);
+                        peers.push(peerName);
                         channelMap.set(channelName, peers);
                     } else {
-                        peers = [peer];
+                        peers = [peerName];
                         channelMap.set(channelName, peers);
                     }
-                });
+                }
             }
 
             return channelMap;
@@ -130,6 +135,8 @@ export abstract class FabricConnection {
         } catch (error) {
             if (error.message && error.message.includes('Received http2 header with status: 503')) { // If gRPC can't connect to Fabric
                 throw new Error(`Cannot connect to Fabric: ${error.message}`);
+            } else if (error.message.includes('does not have V2_0 capabilities enabled.')) {
+                throw new Error(`Unable to connect to network, ${error.message}`);
             } else {
                 throw new Error(`Error querying channel list: ${error.message}`);
             }
