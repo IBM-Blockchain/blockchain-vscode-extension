@@ -290,6 +290,16 @@ Add the following dependencies:
 
 All functional tests will be created in `<yourProject>/src/test/java/org/example`.
 
+#### Go functional tests - BETA
+
+To test Go smart contracts, please install the [Go for Visual Studio Code extension](https://marketplace.visualstudio.com/items?itemName=golang.Go).
+
+This beta release has two current limitations:
+1. The tests can only be ran in a network with TLS enabled. Please note that local environments (e.g 1 Org Local Fabric) do not have TLS enabled.
+2. It imports fabric-sdk-go commit 163bbe66b3291e8b5e8bae7ea27d921e73156dac. When the required functionality is part of a main release, you will need to run `go get github.com/hyperledger/fabric-sdk-go` in your project directory.
+
+
+
 #### Persisting generated tests after upgrading from v1.0.18 or earlier
 Any functional tests generated using version 1.0.18 of the extension or earlier will break after upgrading to a newer version. In v1.0.19 changes were made to the structure of environments stored on the file system, so some of the paths used by the older functional tests will no longer be correct.
 

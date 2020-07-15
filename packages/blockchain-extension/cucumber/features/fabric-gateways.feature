@@ -109,6 +109,7 @@ Feature: Fabric Gateways
       | TypeScriptContract  | Conga     | TypeScript       | JavaScript   | js            | 0.0.1   |
       | TypeScriptContract2 | Conga     | TypeScript       | TypeScript   | ts            | 0.0.1   |
       | JavaContract        | Conga     | Java             | Java         | java          | 0.0.1   |
+      | GoContract          | Conga     | Go               | Golang       | go            | 0.0.1   |
 
   @otherFabric
   Scenario Outline: Generating tests for a contract (other fabric)

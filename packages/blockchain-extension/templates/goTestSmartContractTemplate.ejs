@@ -1,0 +1,196 @@
+/**
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+ /**
+ * Use this file for functional testing of your smart contract.
+ * Fill out the arguments and return values for a function and
+ * use the CodeLens links above the transaction blocks to
+ * invoke/submit transactions.
+ * All transactions defined in your smart contract are used here
+ * to generate tests, including those functions that would
+ * normally only be used on instantiate and upgrade operations.
+ * This basic test file can also be used as the basis for building
+ * further functional tests to run as part of a continuous
+ * integration pipeline, or for debugging locally deployed smart
+ * contracts by invoking/submitting individual transactions.
+ *
+ * Generating this test file will also run 'go mod vendor'.
+ */
+
+<%_ const capsChaincodeLabelForGolang = chaincodeLabel[0].toUpperCase() + chaincodeLabel.slice(1).replace(/\./g, "").replace("@", ""); _%>
+<%_ let capsContractName = ''; _%>
+<%_ if (contractName !== '') { _%>
+<%_ capsContractName = contractName[0].toUpperCase() + contractName.slice(1); _%>
+<%_ }-%>
+package main
+
+import (
+    "encoding/json"
+	"fmt"
+    "os"
+<%_ if (connectionProfileHome || walletHome) {-%>
+    "path/filepath"
+<%_ }-%>
+    "testing"
+
+    "github.com/hyperledger/fabric-sdk-go/pkg/core/config"
+    gw "github.com/hyperledger/fabric-sdk-go/pkg/gateway"
+    "github.com/stretchr/testify/assert"
+)
+
+<%_ if (walletHome) {-%>
+    <%_ const walletPathForGolang = walletPath.replace(/path\.join/, 'filepath.Join').replace(/'/g, '"'); _%>
+var homedir = os.Getenv("HOME")
+var walletPath = <%-walletPathForGolang%>
+<%_ } else { _%>
+Path walletPath = filepath.Clean("<%-walletPath%>")
+<%_ } _%>
+<%_ if (conProfileHome) {-%>
+    <%_ if (!walletHome) {-%>
+var homedir = os.Getenv("HOME")
+    <%_ } _%>
+    <%_ const connectionProfilePathForGolang = connectionProfileHome.replace(/path\.join/, 'filepath.Join').replace(/'/g, '"'); _%>
+var connectionProfilePath = <%-connectionProfilePathForGolang%>
+<%_ } else { _%>
+var connectionProfilePath = filepath.Clean("<%-connectionProfileHome%>")
+<%_ } _%>
+var isLocalhostURL, _ = HasLocalhostURLs(connectionProfilePath)
+
+const identityName = "<%-identityName%>"
+
+func setup(t *testing.T) (*gw.Contract, func(t *testing.T)) {
+	SetDiscoverAsLocalHost(isLocalhostURL)
+
+	fabricWallet, err := gw.NewFileSystemWallet(walletPath)
+	if err != nil {
+		t.Fatalf("Failed to create wallet: %s\n", err)
+	} else if !fabricWallet.Exists(identityName) {
+		t.Fatalf("Identity %s\n not present in wallet", identityName)
+	}
+
+	gateway, err := gw.Connect(
+		gw.WithConfig(config.FromFile(connectionProfilePath)),
+		gw.WithIdentity(fabricWallet, identityName),
+	)
+	if err != nil {
+		t.Fatalf("Failed to connect to gateway: %s\n", err)
+	}
+
+	network, err := gateway.GetNetwork("<%=channelName%>")
+	if err != nil {
+		t.Fatalf("Failed to get network: %s\n", err)
+	}
+
+    <%_ if (capsContractName !== '') { _%>
+	contract := network.GetContractWithName("<%-chaincodeName%>", "<%-capsContractName%>")
+    <%_ } else { _%>
+        contract := network.GetContract("<%-chaincodeName%>", "<%-capsContractName%>")
+    <%_ } _%>
+
+	return contract, func(t *testing.T) {
+		gateway.Close()
+	}
+}
+<%_ const defaults = { int8: '0', byte: '0', int16: '0', uint16: '0', int32: '0', uint32: '0', int64: '0', uint64: '0',float32: '0', float64: '0', string: '"EXAMPLE"', bool: 'true', interface: 'interface{}'}; _%>
+<%_ let getType = function (rootObj) { _%>
+    <%_ let itemType = ''; _%>
+    <%_ if (rootObj.hasOwnProperty('type')) { _%>
+        <%_ if (rootObj.type === 'integer') { _%>
+            <%_ if (rootObj.hasOwnProperty('format')) { _%>
+                <%_ if (rootObj.format === 'int8') { _%>
+                    <%_ itemType = 'int8'; _%>
+                <%_ } else if (rootObj.format === 'int16') { _%>
+                    <%_ itemType = 'int16'; _%>
+                <%_ } else if (rootObj.format === 'int32' && !rootObj.hasOwnProperty('maximum')) { _%>
+                    <%_ itemType = 'int32'; _%>
+                <%_ } else if (rootObj.format === 'int32' && rootObj.hasOwnProperty('maximum') && rootObj.maximum === 255) { _%>
+                        <%_ itemType = 'byte'; _%>
+                <%_ } else if (rootObj.format === 'int64' && !rootObj.hasOwnProperty('maximum')) { _%>
+                    <%_ itemType = 'int64'; _%>
+                <%_ } else if (rootObj.format === 'int64' && rootObj.hasOwnProperty('maximum') && rootObj.maximum === 65535) { _%>
+                    <%_ itemType = 'uint16'; _%>
+                <%_ } else if (rootObj.format === 'int64' && rootObj.hasOwnProperty('maximum') && rootObj.maximum === 4294967295) { _%>
+                    <%_ itemType = 'uint32'; _%>
+                <%_ } _%>
+             <%_ } else {_%>
+                <%_ itemType = 'int'; _%>
+            <%_ } _%>
+        <%_ } else if (rootObj.type === 'number') { _%>
+            <%_ if (rootObj.hasOwnProperty('format')) { _%>
+                <%_ if (rootObj.format === 'float') { _%>
+                    <%_ itemType = 'float32'; _%>
+                <%_ } else if (rootObj.format === 'double' && !rootObj.hasOwnProperty('maximum')) { _%>
+                    <%_ itemType = 'float64'; _%>
+                <%_ } else if (rootObj.format === 'double' && rootObj.hasOwnProperty('maximum')) { _%>
+                    <%_ itemType = 'uint64'; _%>
+                <%_ } _%>
+            <%_ } else {_%>
+                <%_ itemType = 'float64'; _%>
+            <%_ } _%>
+        <%_ } else if (rootObj.type === 'string') {_%>
+            <%_ itemType = 'string';_%>
+        <%_ } else if (rootObj.type === 'boolean') {_%>
+            <%_ itemType = 'bool'; _%>
+        <%_ } _%>
+    <%_ } else if (rootObj.hasOwnProperty('$ref')) { _%>
+        <%_ itemType = rootObj.$ref.split("/").pop(); _%>
+    <%_ } else { _%>
+        <%_ itemType = 'interface'; _%>
+    <%_ } _%>
+    <%_ return itemType; _%>
+<%_ } _%>
+<%_ transactions.forEach((transaction) => { _%>
+    <%_ const capsTransactionName = transaction.name[0].toUpperCase() + transaction.name.slice(1); _%>
+
+func Test<%=capsTransactionName%>_fv(t *testing.T) {
+    t.Run("Submit<%=capsTransactionName%>Test", func(t *testing.T) {
+		contract, teardown := setup(t)
+		defer teardown(t)
+        <%_ let params = ['']; _%>
+        <%_ if (transaction.parameters && transaction.parameters.length > 0) { _%>
+        // TODO: populate transaction parameters
+            <%_ transaction.parameters.forEach((parameter) => { _%>
+                <%_ if (parameter.hasOwnProperty('schema') && (parameter.schema.type || parameter.schema.$ref)) { _%>
+                    <%_ let type = ''; _%>
+                    <%_ if (parameter.schema.type === 'array' && parameter.schema.hasOwnProperty('items')) { _%>
+                        <%_ type = getType(parameter.schema.items); _%>
+                        <%_ params.push(` fmt.Sprintf("%v", ${parameter.name.replace(`"`, '')})`); _%>
+        <%=parameter.name.replace(`"`, '')%> := []<%=type%>{}
+                    <%_ } else { _%>
+                        <%_ type = getType(parameter.schema); _%>
+                        <%_ const hasDefaultValue = typeof defaults[type] !== 'undefined'; _%>
+                        <%_ const value = hasDefaultValue ? defaults[type] : `new(${type})`; _%>
+                        <%_ if (type === 'string') { _%>
+                            <%_ params.push(` ${parameter.name.replace(`"`, '')}`); _%>
+                        <%_ } else if (!hasDefaultValue) { _%>
+                            <%_ params.push(` string(${parameter.name.replace(`"`, '')}json)`); _%>
+                        <%_ } else { _%>
+                            <%_ params.push(` fmt.Sprintf("%v", ${parameter.name.replace(`"`, '')})`); _%>
+                        <%_ } _%>
+                        <%_ if (type === 'interface') { _%>
+        var <%=parameter.name.replace(`"`, '')%> <%-value.replace(/^\'/, '').replace(/\'$/, '')%>
+                        <%_ } else { _%>
+        <%=parameter.name.replace(`"`, '')%> := <%-value.replace(/^\'/, '').replace(/\'$/, '')%>
+                            <%_ if (!hasDefaultValue) { _%>
+        <%=parameter.name.replace(`"`, '').replace(/$/, 'json')%>, _ := json.Marshal(<%=parameter.name.replace(`"`, '')%>)
+                            <%_ } _%>
+                        <%_ } _%>
+                    <%_ } _%>
+                <%_ } _%>
+            <%_ }) _%>
+        <%_ } _%>
+
+        result, err := contract.SubmitTransaction("<%=transaction.name%>"<%-params%>)
+		if err != nil {
+			t.Fatalf("Failed to submit transaction: %s\n", err)
+        }
+
+        // TODO: remove line below, used to prevent 'declared and not used' compiler error
+		_ = result
+
+		// TODO: Update with return value of transaction
+		// assert.EqualValues(t, string(result), "")
+    })
+}
+<%_ }) _%>

@@ -123,43 +123,43 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
     let localSmartContractDirectory: string;
     let testFileSuffix: string;
     let workspaceProjectName: string;
-    if (contractLang === 'golang' ) {
-        outputAdapter.log(LogType.ERROR, `Automated functional tests for a smart contract project written in ${contractLang} are currently not supported.`);
-        return;
+
+    const languagesToSuffixes: object = {
+        JavaScript: 'js',
+        TypeScript: 'ts',
+    };
+    if (contractLang === 'java') {
+        languagesToSuffixes['Java'] = 'java';
+        testLang = 'Java';
+        functionalTestsDirectory = path.join(chosenPackageFolder.uri.fsPath, 'src', 'test', 'java', 'org', 'example');
+    } else if (contractLang === 'golang') {
+        languagesToSuffixes['Golang'] = 'go';
+        testLang = 'Golang';
+        functionalTestsDirectory = chosenPackageFolder.uri.fsPath;
     } else {
-        const languagesToSuffixes: object = {
-            JavaScript: 'js',
-            TypeScript: 'ts',
-        };
-        if (contractLang === 'java') {
-            languagesToSuffixes['Java'] = 'java';
-            testLang = 'Java';
-            functionalTestsDirectory = path.join(chosenPackageFolder.uri.fsPath, 'src', 'test', 'java', 'org', 'example');
-        } else {
-            // Node smart contract: package.json must exist, chaincode and project names must match.
-            const packageJsonFile: string = path.join(chosenPackageFolder.uri.fsPath, 'package.json');
-            const packageJSONBuffer: Buffer = await fs.readFile(packageJsonFile);
-            const packageJSONObj: any = JSON.parse(packageJSONBuffer.toString('utf8'));
-            const replaceRegex: RegExp = /@.*?\//;
-            workspaceProjectName = packageJSONObj.name;
-            workspaceProjectName = workspaceProjectName.replace(replaceRegex, '');
-            if (workspaceProjectName === chaincodeName) {
-                // Smart contract is open in workspace
-                functionalTestsDirectory = path.join(chosenPackageFolder.uri.fsPath, 'functionalTests');
-                localSmartContractDirectory = chosenPackageFolder.uri.fsPath;
-                const testLanguageItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick('Choose preferred test language', [], Object.keys(languagesToSuffixes));
-                if (!testLanguageItem) {
-                    return;
-                }
-                testLang = testLanguageItem.label;
-            } else {
-                // Unable to identify the correct project in workspace.
-                outputAdapter.log(LogType.ERROR, `Smart contract project ${chaincodeName} does not correspond to the selected open project ${workspaceProjectName}.`);
+        // Node smart contract: package.json must exist, chaincode and project names must match.
+        const packageJsonFile: string = path.join(chosenPackageFolder.uri.fsPath, 'package.json');
+        const packageJSONBuffer: Buffer = await fs.readFile(packageJsonFile);
+        const packageJSONObj: any = JSON.parse(packageJSONBuffer.toString('utf8'));
+        const replaceRegex: RegExp = /@.*?\//;
+        workspaceProjectName = packageJSONObj.name;
+        workspaceProjectName = workspaceProjectName.replace(replaceRegex, '');
+        if (workspaceProjectName === chaincodeName) {
+            // Smart contract is open in workspace
+            functionalTestsDirectory = path.join(chosenPackageFolder.uri.fsPath, 'functionalTests');
+            localSmartContractDirectory = chosenPackageFolder.uri.fsPath;
+            const testLanguageItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick('Choose preferred test language', [], Object.keys(languagesToSuffixes));
+            if (!testLanguageItem) {
                 return;
             }
+            testLang = testLanguageItem.label;
+        } else {
+            // Unable to identify the correct project in workspace.
+            outputAdapter.log(LogType.ERROR, `Smart contract project ${chaincodeName} does not correspond to the selected open project ${workspaceProjectName}.`);
+            return;
         }
-        testFileSuffix = languagesToSuffixes[testLang];
     }
+    testFileSuffix = languagesToSuffixes[testLang];
 
     const fabricConnectionManager: FabricGatewayConnectionManager = FabricGatewayConnectionManager.instance();
     const fabricGatewayRegistryEntry: FabricGatewayRegistryEntry = await fabricConnectionManager.getGatewayRegistryEntry();
@@ -254,6 +254,13 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
                 testFile = path.join(functionalTestsDirectory, `Fv${capsChaincodeLabelForJava}Test.${testFileSuffix}`);
             }
             testFunctionFile = path.join(functionalTestsDirectory, `${testLang}SmartContractUtil.${testFileSuffix}`);
+        } else if (testLang === 'Golang') {
+            if (contractName !== '') {
+                testFile = path.join(functionalTestsDirectory, `fv-${contractName}-${chaincodeLabel}_test.${testFileSuffix}`);
+            } else {
+                testFile = path.join(functionalTestsDirectory, `fv-${chaincodeLabel}_test.${testFileSuffix}`);
+            }
+            testFunctionFile = path.join(functionalTestsDirectory, `${testFileSuffix}-smart-contract-util.${testFileSuffix}`);
         } else {
             if (contractName !== '') {
                 testFile = path.join(functionalTestsDirectory, `${contractName}-${chaincodeLabel}.test.${testFileSuffix}`);
@@ -365,14 +372,7 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
     // Run npm install in JS or TS smart contract project, or update build file in Java project
     let javaBuildFile: string = null;
     let state: any;
-    if (testLang !== 'Java') {
-        try {
-            await installNodeModules(localSmartContractDirectory, testLang);
-        } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Error installing node modules in smart contract project: ${error.message}`, `Error installing node modules in smart contract project: ${error.toString()}`);
-            return;
-        }
-    } else {
+    if (testLang === 'Java') {
         state = {
             tryCopy:    false,
             doneCopy:   false,
@@ -400,6 +400,28 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
             }
         }
         if (!state.success) {
+            return;
+        }
+    } else if (testLang === 'Golang') {
+        outputAdapter.log(LogType.INFO, `Running 'go mod vendor' in ${chosenPackageFolder.uri.fsPath}`);
+        try {
+             await CommandUtil.sendCommandWithOutput('go', ['mod', 'vendor'], chosenPackageFolder.uri.fsPath);
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Error running 'go mod vendor' in ${chosenPackageFolder.uri.fsPath}: ${error.message}`, `Error running 'go mod vendor' in ${chosenPackageFolder.uri.fsPath}: ${error.toString()}`);
+            return;
+        }
+        // TODO: remove when go sdk is tagged at 1.0
+        try {
+            await CommandUtil.sendCommandWithOutput('go', ['get', 'github.com/hyperledger/fabric-sdk-go@163bbe66b3291e8b5e8bae7ea27d921e73156dac'], chosenPackageFolder.uri.fsPath);
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Error running 'go get github.com/hyperledger/fabric-sdk-go@163bbe66b3291e8b5e8bae7ea27d921e73156dac' in ${chosenPackageFolder.uri.fsPath}: ${error.message}`, `Error running 'go get github.com/hyperledger/fabric-sdk-go@163bbe66b3291e8b5e8bae7ea27d921e73156dac' in ${chosenPackageFolder.uri.fsPath}: ${error.toString()}`);
+            return;
+        }
+    } else {
+        try {
+            await installNodeModules(localSmartContractDirectory, testLang);
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Error installing node modules in smart contract project: ${error.message}`, `Error installing node modules in smart contract project: ${error.toString()}`);
             return;
         }
     }

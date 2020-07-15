@@ -57,7 +57,7 @@ export class GeneratedTestsHelper {
 
         this.userInputUtilHelper.showLanguagesQuickPickStub.resolves({ label: language, type: LanguageType.CONTRACT });
 
-        const contractDirectory: string = this.smartContractHelper.getContractDirectory(name, language);
+        const contractDirectory: string = this.smartContractHelper.getContractDirectory(name);
         const workspaceFolder: vscode.WorkspaceFolder = this.getWorkspaceFolder(name, contractDirectory);
         this.userInputUtilHelper.getWorkspaceFoldersStub.returns([workspaceFolder]);
         this.userInputUtilHelper.showWorkspaceQuickPickBoxStub.withArgs('Choose a workspace folder to create functional tests for').resolves({ label: `${name}@${version}`, data: workspaceFolder });
@@ -74,7 +74,7 @@ export class GeneratedTestsHelper {
     }
 
     public async runSmartContractTests(name: string, testLanguage: string, contractAssetType: string): Promise<boolean> {
-        const contractDirectory: string = this.smartContractHelper.getContractDirectory(name, testLanguage);
+        const contractDirectory: string = this.smartContractHelper.getContractDirectory(name);
         let fileExtension: string;
         if (testLanguage === 'JavaScript') {
             fileExtension = 'js';
