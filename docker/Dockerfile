@@ -42,7 +42,7 @@ RUN mkdir /usr/local/node && \
     rm node-v10.18.1-linux-x64.tar.xz
 ENV PATH /usr/local/node/bin:${PATH}
 # Install other extensions for Visual Studio Code
-RUN code-server --extensions-dir /usr/local/extensions --install-extension ms-vscode.go && \
+RUN code-server --extensions-dir /usr/local/extensions --install-extension golang.go && \
     code-server --extensions-dir /usr/local/extensions --install-extension redhat.java && \
     code-server --extensions-dir /usr/local/extensions --install-extension vscjava.vscode-java-debug && \
     chmod a+w /usr/local/extensions/redhat.java-*/server/config_linux
