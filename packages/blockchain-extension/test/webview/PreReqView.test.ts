@@ -104,7 +104,7 @@ describe('PreReqView', () => {
                 dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '' },
                 xcode: {name: 'Xcode', required: true, version: '123', url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined},
                 go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: Dependencies.GO_REQUIRED, requiredLabel: '' },
-                goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '' },
+                goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/golang.go', requiredVersion: '', requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: '1.0.0', url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
                 javaTestRunnerExtension: {name: 'Java Test Runner Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-test', requiredVersion: undefined, requiredLabel: '' },
@@ -132,7 +132,7 @@ describe('PreReqView', () => {
             html.should.contain(`"dockerCompose":{"name":"Docker Compose","required":true,"version":"1.15.0","url":"https://docs.docker.com/compose/install/","requiredVersion":"${Dependencies.DOCKER_COMPOSE_REQUIRED}","requiredLabel":""}`);
             html.should.contain(`"xcode":{"name":"Xcode","required":true,"version":"123","url":"https://apps.apple.com/gb/app/xcode/id497799835"}`);
             html.should.contain(`"go":{"name":"Go","required":false,"version":"1.13.0","url":"https://golang.org/dl/","requiredVersion":"${Dependencies.GO_REQUIRED}","requiredLabel":""}`);
-            html.should.contain(`"goExtension":{"name":"Go Extension","required":false,"version":"1.0.0","url":"vscode:extension/ms-vscode.Go","requiredVersion":"","requiredLabel":""}`);
+            html.should.contain(`"goExtension":{"name":"Go Extension","required":false,"version":"1.0.0","url":"vscode:extension/golang.go","requiredVersion":"","requiredLabel":""}`);
             html.should.contain(`"javaLanguageExtension":{"name":"Java Language Support Extension","required":false,"version":"1.0.0","url":"vscode:extension/redhat.java","requiredLabel":""}`);
             html.should.contain(`"javaDebuggerExtension":{"name":"Java Debugger Extension","required":false,"version":"1.0.0","url":"vscode:extension/vscjava.vscode-java-debug","requiredLabel":""}`);
             html.should.contain(`"javaTestRunnerExtension":{"name":"Java Test Runner Extension","required":false,"version":"1.0.0","url":"vscode:extension/vscjava.vscode-java-test","requiredLabel":""}`);
@@ -148,7 +148,7 @@ describe('PreReqView', () => {
                 dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '' },
                 xcode: {name: 'Xcode', required: true, version: '123', url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined},
                 go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: Dependencies.GO_REQUIRED, requiredLabel: '' },
-                goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '' },
+                goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/golang.go', requiredVersion: '', requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: undefined, url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
                 javaTestRunnerExtension: {name: 'Java Test Runner Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-test', requiredVersion: undefined, requiredLabel: '' },
@@ -176,7 +176,7 @@ describe('PreReqView', () => {
             html.should.contain(`"dockerCompose":{"name":"Docker Compose","required":true,"version":"1.15.0","url":"https://docs.docker.com/compose/install/","requiredVersion":"${Dependencies.DOCKER_COMPOSE_REQUIRED}","requiredLabel":""}`);
             html.should.contain(`"xcode":{"name":"Xcode","required":true,"version":"123","url":"https://apps.apple.com/gb/app/xcode/id497799835"}`);
             html.should.contain(`"go":{"name":"Go","required":false,"version":"1.13.0","url":"https://golang.org/dl/","requiredVersion":"${Dependencies.GO_REQUIRED}","requiredLabel":""}`);
-            html.should.contain(`"goExtension":{"name":"Go Extension","required":false,"version":"1.0.0","url":"vscode:extension/ms-vscode.Go","requiredVersion":"","requiredLabel":""}`);
+            html.should.contain(`"goExtension":{"name":"Go Extension","required":false,"version":"1.0.0","url":"vscode:extension/golang.go","requiredVersion":"","requiredLabel":""}`);
             html.should.not.contain(`"javaLanguageExtension":{"name":"Java Language Support Extension","required":false,"version"`);
             html.should.contain(`"javaDebuggerExtension":{"name":"Java Debugger Extension","required":false,"version":"1.0.0","url":"vscode:extension/vscjava.vscode-java-debug","requiredLabel":""}`);
             html.should.contain(`"javaTestRunnerExtension":{"name":"Java Test Runner Extension","required":false,"version":"1.0.0","url":"vscode:extension/vscjava.vscode-java-test","requiredLabel":""}`);
@@ -198,7 +198,7 @@ describe('PreReqView', () => {
                 dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '' },
                 xcode: {name: 'Xcode', required: true, version: '123', url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined},
                 go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: Dependencies.GO_REQUIRED, requiredLabel: '' },
-                goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '' },
+                goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/golang.go', requiredVersion: '', requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: '1.0.0', url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
                 javaTestRunnerExtension: {name: 'Java Test Runner Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-test', requiredVersion: undefined, requiredLabel: '' },
@@ -219,7 +219,7 @@ describe('PreReqView', () => {
             html.should.contain(`"dockerCompose":{"name":"Docker Compose","required":true,"version":"1.15.0","url":"https://docs.docker.com/compose/install/","requiredVersion":"${Dependencies.DOCKER_COMPOSE_REQUIRED}","requiredLabel":""}`);
             html.should.contain(`"xcode":{"name":"Xcode","required":true,"version":"123","url":"https://apps.apple.com/gb/app/xcode/id497799835"}`);
             html.should.contain(`"go":{"name":"Go","required":false,"version":"1.13.0","url":"https://golang.org/dl/","requiredVersion":"${Dependencies.GO_REQUIRED}","requiredLabel":""}`);
-            html.should.contain(`"goExtension":{"name":"Go Extension","required":false,"version":"1.0.0","url":"vscode:extension/ms-vscode.Go","requiredVersion":"","requiredLabel":""}`);
+            html.should.contain(`"goExtension":{"name":"Go Extension","required":false,"version":"1.0.0","url":"vscode:extension/golang.go","requiredVersion":"","requiredLabel":""}`);
             html.should.contain(`"javaLanguageExtension":{"name":"Java Language Support Extension","required":false,"version":"1.0.0","url":"vscode:extension/redhat.java","requiredLabel":""}`);
             html.should.contain(`"javaDebuggerExtension":{"name":"Java Debugger Extension","required":false,"version":"1.0.0","url":"vscode:extension/vscjava.vscode-java-debug","requiredLabel":""}`);
             html.should.contain(`"javaTestRunnerExtension":{"name":"Java Test Runner Extension","required":false,"version":"1.0.0","url":"vscode:extension/vscjava.vscode-java-test","requiredLabel":""}`);
@@ -249,7 +249,7 @@ describe('PreReqView', () => {
                 dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '' },
                 xcode: {name: 'Xcode', required: true, version: '123', url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined},
                 go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: Dependencies.GO_REQUIRED, requiredLabel: '' },
-                goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '' },
+                goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/golang.go', requiredVersion: '', requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: '1.0.0', url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
                 javaTestRunnerExtension: {name: 'Java Test Runner Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-test', requiredVersion: undefined, requiredLabel: '' },
@@ -271,7 +271,7 @@ describe('PreReqView', () => {
             html.should.contain(`"dockerCompose":{"name":"Docker Compose","required":true,"version":"1.15.0","url":"https://docs.docker.com/compose/install/","requiredVersion":"${Dependencies.DOCKER_COMPOSE_REQUIRED}","requiredLabel":""}`);
             html.should.contain(`"xcode":{"name":"Xcode","required":true,"version":"123","url":"https://apps.apple.com/gb/app/xcode/id497799835"}`);
             html.should.contain(`"go":{"name":"Go","required":false,"version":"1.13.0","url":"https://golang.org/dl/","requiredVersion":"${Dependencies.GO_REQUIRED}","requiredLabel":""}`);
-            html.should.contain(`"goExtension":{"name":"Go Extension","required":false,"version":"1.0.0","url":"vscode:extension/ms-vscode.Go","requiredVersion":"","requiredLabel":""}`);
+            html.should.contain(`"goExtension":{"name":"Go Extension","required":false,"version":"1.0.0","url":"vscode:extension/golang.go","requiredVersion":"","requiredLabel":""}`);
             html.should.contain(`"javaLanguageExtension":{"name":"Java Language Support Extension","required":false,"version":"1.0.0","url":"vscode:extension/redhat.java","requiredLabel":""}`);
             html.should.contain(`"javaDebuggerExtension":{"name":"Java Debugger Extension","required":false,"version":"1.0.0","url":"vscode:extension/vscjava.vscode-java-debug","requiredLabel":""}`);
             html.should.contain(`"javaTestRunnerExtension":{"name":"Java Test Runner Extension","required":false,"version":"1.0.0","url":"vscode:extension/vscjava.vscode-java-test","requiredLabel":""}`);
@@ -288,7 +288,7 @@ describe('PreReqView', () => {
                 dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '' },
                 xcode: {name: 'Xcode', required: true, version: '123', url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined},
                 go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: Dependencies.GO_REQUIRED, requiredLabel: '' },
-                goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '' },
+                goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/golang.go', requiredVersion: '', requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: undefined, url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
                 javaTestRunnerExtension: {name: 'Java Test Runner Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-test', requiredVersion: undefined, requiredLabel: '' },
@@ -607,7 +607,7 @@ describe('PreReqView', () => {
                 dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '' },
                 xcode: {name: 'Xcode', required: true, version: '123', url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined},
                 go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: Dependencies.GO_REQUIRED, requiredLabel: '' },
-                goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '' },
+                goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/golang.go', requiredVersion: '', requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: '1.0.0', url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
                 javaTestRunnerExtension: {name: 'Java Test Runner Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-test', requiredVersion: undefined, requiredLabel: '' },
@@ -697,7 +697,7 @@ describe('PreReqView', () => {
                 dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '' },
                 xcode: {name: 'Xcode', required: true, version: '123', url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined},
                 go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: Dependencies.GO_REQUIRED, requiredLabel: '' },
-                goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '' },
+                goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/golang.go', requiredVersion: '', requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: '1.0.0', url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
                 javaTestRunnerExtension: {name: 'Java Test Runner Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-test', requiredVersion: undefined, requiredLabel: '' },
@@ -786,7 +786,7 @@ describe('PreReqView', () => {
                 dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '' },
                 xcode: {name: 'Xcode', required: true, version: '123', url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined},
                 go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: Dependencies.GO_REQUIRED, requiredLabel: '' },
-                goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: undefined, requiredLabel: '' },
+                goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/golang.go', requiredVersion: undefined, requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: '1.0.0', url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
                 javaTestRunnerExtension: {name: 'Java Test Runner Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-test', requiredVersion: undefined, requiredLabel: '' },
@@ -864,7 +864,7 @@ describe('PreReqView', () => {
                 dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '' },
                 xcode: {name: 'Xcode', required: true, version: '123', url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined},
                 go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: Dependencies.GO_REQUIRED, requiredLabel: '' },
-                goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: undefined, requiredLabel: '' },
+                goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/golang.go', requiredVersion: undefined, requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: '1.0.0', url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
                 javaTestRunnerExtension: {name: 'Java Test Runner Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-test', requiredVersion: undefined, requiredLabel: '' },
