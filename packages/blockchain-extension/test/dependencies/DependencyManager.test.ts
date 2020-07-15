@@ -1452,7 +1452,7 @@ describe('DependencyManager Tests', () => {
             mySandBox.stub(process, 'platform').value('some_other_platform');
 
             const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
-            getExtensionStub.withArgs('ms-vscode.Go').returns({
+            getExtensionStub.withArgs('golang.go').returns({
                 packageJSON: {
                     version: '1.0.0'
                 }
@@ -1466,7 +1466,7 @@ describe('DependencyManager Tests', () => {
             mySandBox.stub(process, 'platform').value('some_other_platform');
 
             const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
-            getExtensionStub.withArgs('ms-vscode.Go').returns(undefined);
+            getExtensionStub.withArgs('golang.go').returns(undefined);
 
             const result: any = await dependencyManager.getPreReqVersions();
             should.not.exist(result.goExtension.version);
