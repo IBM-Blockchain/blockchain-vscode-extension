@@ -1,5 +1,5 @@
-# IBM Blockchain Platform Extension updated to v2.0.0-beta.4
-_Release date: July 2nd 2020_
+# IBM Blockchain Platform Extension updated to v2.0.0-beta.5
+_Release date: July 16th 2020_
 
 Announcements
 ---
@@ -8,17 +8,21 @@ Announcements
 
 * To install the extension, download the vsix file named `ibm-blockchain-platform-<VERSION>.vsix` from the [GitHub releases](https://github.com/IBM-Blockchain/blockchain-vscode-extension/releases) page.
   In VS Code, switch to the Extensions view, click the hamburger menu and and select 'Install from VSIX'. Finally, select the downloaded vsix file. The extension should then install successfully.
-
-* We’re still waiting for the gRPC v1.25.0 binaries to be published so you may be affected by [this issue](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621), where gRPC fails to rebuild when using VS Code >1.40.x.
- > Please see [this comment](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621#issuecomment-552926559) for a workaround. 
  
 Features & Enhancements
 ---
-* View organisations that have approved definition [#2436](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2436).
+* Updated tutorials for Fabric 2 [#1252](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1252).
+* Only allow users to package Fabric 2 smart contract [#1783](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1783).
+* Removed gRPC dependency [#2470](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2470).
+   > As gRPC is no longer used, the extension does not have to rebuild the dependency any more.
+* Allow users to only connect to Fabric 2 environments and gateways [#1782](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1782).
+* Added "+ Log in to IBM Cloud" tree item to environment panel [#2430](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2430).
+* Generate Go functional tests [#2362](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2362).
+   > See [here](https://github.com/IBM-Blockchain/blockchain-vscode-extension#go-functional-tests---beta) for more information
 
 Fixes
 ---
-* Fix associating a wallet with multiple environments [#2354](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2354).
+* Updated packaging to use unique labels [#2511](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2511).
 
 
 Notes
