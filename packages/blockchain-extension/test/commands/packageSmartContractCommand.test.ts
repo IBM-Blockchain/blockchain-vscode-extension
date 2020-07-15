@@ -1220,7 +1220,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Invalid package.json name. Name can only include alphanumeric, "_" and "-" characters.`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Invalid smart contract name. Name can only include alphanumeric, "_" and "-" characters.`);
 
             executeTaskStub.should.not.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.not.have.been.calledOnceWithExactly('packageCommand');

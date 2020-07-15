@@ -34,7 +34,6 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
     let resolvedPkgDir: string;
     let properties: { workspacePackageName: string, workspacePackageVersion: string };
     let language: string;
-    let packageError: string;
 
     try {
         // Determine the directory that will contain the packages and ensure it exists.
@@ -64,13 +63,10 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
         // Determine the package name and version.
         if (language === 'golang') {
             properties = await golangPackageAndVersion(overrideName, overrideVersion);
-            packageError = 'Go package name';
         } else if (language === 'java') {
             properties = await javaPackageAndVersion(overrideName, overrideVersion);
-            packageError = 'Java package name';
         } else {
             properties = await packageJsonNameAndVersion(workspace, overrideName, overrideVersion);
-            packageError = 'package.json name';
         }
         if (!properties) {
             // User cancelled.
@@ -82,7 +78,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
         properties.workspacePackageName = properties.workspacePackageName.replace(replaceRegex, '');
         const validPackageName: boolean = regex.test(properties.workspacePackageName); // Check contract meets Fabric naming requirement
         if (!validPackageName) {
-            outputAdapter.log(LogType.ERROR, `Invalid ${packageError}. Name can only include alphanumeric, "_" and "-" characters.`);
+            outputAdapter.log(LogType.ERROR, `Invalid smart contract name. Name can only include alphanumeric, "_" and "-" characters.`);
             return;
         }
 
