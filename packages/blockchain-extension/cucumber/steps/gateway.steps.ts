@@ -69,7 +69,7 @@ module.exports = function(): any {
     });
 
     this.Given('the contract has been associated with a directory of transaction data', this.timeout, async () => {
-        await this.gatewayHelper.associateTransactionDataDirectory(this.contractDefinitionName, this.contractDefinitionVersion, this.contractLanguage, this.gateway);
+        await this.gatewayHelper.associateTransactionDataDirectory(this.contractDefinitionName, this.contractDefinitionVersion, this.gateway);
     });
 
     /**
@@ -148,6 +148,9 @@ module.exports = function(): any {
                     capsContractName = contractName[0].toUpperCase() + contractName.slice(1);
                     fileName = `Fv${capsAssetType}Contract${capsContractName}${versionPlain}Test.java`;
                     functionalDirPath = path.join(this.contractDirectory, 'src', 'test', 'java', 'org', 'example');
+                } else if (testLanguage === 'Golang') {
+                    fileName = `fv-${assetType}Contract-${contractName}@${version}_test.go`;
+                    functionalDirPath = this.contractDirectory;
                 } else {
                     fileName = `${assetType}Contract-${contractName}@${version}.test.${fileExtension}`;
                     functionalDirPath = path.join(this.contractDirectory, 'functionalTests');
@@ -177,12 +180,15 @@ module.exports = function(): any {
                 if (testLanguage === 'Java') {
                     testFileContents.includes(capsContractName).should.be.true;
                     testFileContents.includes('builder.connect').should.be.true;
+                } else if (testLanguage === 'Golang') {
+                    testFileContents.includes(contractName).should.be.true;
+                    testFileContents.includes('gw.Connect').should.be.true;
                 } else {
                     testFileContents.includes(this.contractDefinitionName).should.be.true;
                     testFileContents.includes('gateway.connect').should.be.true;
                 }
                 testFileContents.startsWith('/*').should.be.true;
-                testFileContents.includes('submitTransaction').should.be.true;
+                testFileContents.includes(testLanguage === 'Golang' ? 'SubmitTransaction' : 'submitTransaction').should.be.true;
                 testFileContents.includes(smartContractTransactionsArray[0]).should.be.true;
                 testFileContents.includes(smartContractTransactionsArray[1]).should.be.true;
                 testFileContents.includes(smartContractTransactionsArray[2]).should.be.true;

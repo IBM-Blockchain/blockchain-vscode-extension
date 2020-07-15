@@ -83,7 +83,7 @@ export class SmartContractHelper {
 
         this.userInputUtilHelper.showFolderOptionsStub.withArgs('Choose how to open your new project').resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
-        const contractDirectory: string = this.getContractDirectory(contractName, language);
+        const contractDirectory: string = this.getContractDirectory(contractName);
 
         const uri: vscode.Uri = vscode.Uri.file(contractDirectory);
 
@@ -108,14 +108,8 @@ export class SmartContractHelper {
         return contractDirectory;
     }
 
-    public getContractDirectory(name: string, language: string): string {
-        let contractDirectory: string;
-        if (language === 'Go') {
-            process.env.GOPATH = path.join(this.userInputUtilHelper.cucumberDir, 'tmp', 'contracts');
-            contractDirectory = path.join(process.env.GOPATH, 'src', name);
-        } else {
-            contractDirectory = path.join(this.userInputUtilHelper.cucumberDir, 'tmp', 'contracts', name);
-        }
+    public getContractDirectory(name: string): string {
+        const contractDirectory: string = path.join(this.userInputUtilHelper.cucumberDir, 'tmp', 'contracts', name);
 
         return contractDirectory;
     }

@@ -59,10 +59,13 @@ describe('testSmartContractCommand', () => {
     let fabricConnectionManager: FabricGatewayConnectionManager;
     let instantiatedSmartContract: InstantiatedContractTreeItem;
     let instantiatedJavaSmartContract: InstantiatedContractTreeItem;
+    let instantiatedGoSmartContract: InstantiatedContractTreeItem;
     let smartContractName: string;
     let javaSmartContractName: string;
+    let goSmartContractName: string;
     let smartContractLabel: string;
     let javaSmartContractLabel: string;
+    let goSmartContractLabel: string;
     const rootPath: string = vscode.Uri.file(path.dirname(__dirname)).fsPath;
     let testFileDir: string;
     let mockDocumentStub: any;
@@ -76,6 +79,7 @@ describe('testSmartContractCommand', () => {
     let fsCopyStub: sinon.SinonStub;
     let workspaceFoldersStub: sinon.SinonStub;
     let sendCommandStub: sinon.SinonStub;
+    let sendCommandWithOutputStub: sinon.SinonStub;
     let showLanguageQuickPickStub: sinon.SinonStub;
     let gatewayRegistryEntry: FabricGatewayRegistryEntry;
     let walletRegistryEntry: FabricWalletRegistryEntry;
@@ -89,12 +93,16 @@ describe('testSmartContractCommand', () => {
     let fakeMetadata: any;
     let moreFakeMetadata: any;
     let javaFakeMetadata: any;
+    let goFakeMetadata: any;
     let transactionOne: any;
     let transactionTwo: any;
     let transactionThree: any;
     let javaTransactionOne: any;
     let javaTransactionTwo: any;
     let javaTransactionThree: any;
+    let goTransactionOne: any;
+    let goTransactionTwo: any;
+    let goTransactionThree: any;
     let packageJSONPath: vscode.Uri;
     let gradleFilePath: vscode.Uri;
     let mavenFilePath: vscode.Uri;
@@ -117,6 +125,7 @@ describe('testSmartContractCommand', () => {
     const tsConfigFormat: any = { spaces: '\t' };
     let javaFormatToType: object;
     let javaPrimitiveDefault: object;
+    let goPrimitiveDefault: object;
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
@@ -128,7 +137,7 @@ describe('testSmartContractCommand', () => {
         await TestUtil.deleteTestFiles(testFileDir);
     });
 
-    function getType(rootObj: any): string {
+    function getTypeJava(rootObj: any): string {
         let itemType: string = '';
         if (rootObj.hasOwnProperty('type')) {
             if (rootObj.type === 'integer') {
@@ -152,6 +161,54 @@ describe('testSmartContractCommand', () => {
             itemType = rootObj.$ref.split('/').pop();
         } else {
             itemType = 'Object';
+        }
+        return itemType;
+    }
+
+    function getTypeGo(rootObj: any): string {
+        let itemType: string = '';
+        if (rootObj.hasOwnProperty('type')) {
+            if (rootObj.type === 'integer') {
+                if (rootObj.hasOwnProperty('format')) {
+                    if (rootObj.format === 'int8') {
+                        itemType = 'int8';
+                    } else if (rootObj.format === 'int16') {
+                        itemType = 'int16';
+                    } else if (rootObj.format === 'int32' && !rootObj.hasOwnProperty('maximum')) {
+                        itemType = 'int32';
+                    } else if (rootObj.format === 'int32' && rootObj.hasOwnProperty('maximum') && rootObj.maximum === 255) {
+                            itemType = 'byte';
+                    } else if (rootObj.format === 'int64' && !rootObj.hasOwnProperty('maximum')) {
+                        itemType = 'int64';
+                    } else if (rootObj.format === 'int64' && rootObj.hasOwnProperty('maximum') && rootObj.maximum === 65535) {
+                        itemType = 'uint16';
+                    } else if (rootObj.format === 'int64' && rootObj.hasOwnProperty('maximum') && rootObj.maximum === 4294967295) {
+                        itemType = 'uint32';
+                    }
+                 } else {
+                    itemType = 'int';
+                }
+            } else if (rootObj.type === 'number') {
+                if (rootObj.hasOwnProperty('format')) {
+                    if (rootObj.format === 'float') {
+                        itemType = 'float32';
+                    } else if (rootObj.format === 'double' && !rootObj.hasOwnProperty('maximum')) {
+                        itemType = 'float64';
+                    } else if (rootObj.format === 'double' && rootObj.hasOwnProperty('maximum')) {
+                        itemType = 'uint64';
+                    }
+                } else {
+                    itemType = 'float64';
+                }
+            } else if (rootObj.type === 'string') {
+                itemType = 'string';
+            } else if (rootObj.type === 'boolean') {
+                itemType = 'bool';
+            }
+        } else if (rootObj.hasOwnProperty('$ref')) {
+            itemType = rootObj.$ref.split('/').pop();
+        } else {
+            itemType = 'interface';
         }
         return itemType;
     }
@@ -372,12 +429,139 @@ describe('testSmartContractCommand', () => {
                     }
                 }
             };
+
+            goFakeMetadata = {
+                contracts: {
+                    MyGoContract: {
+                        name: 'MyGoContract',
+                        transactions: [
+                            {
+                                name: 'transaction1',
+                                parameters: [
+                                    {
+                                        name: 'mystring',
+                                        schema: {
+                                            type: 'string'
+                                        }
+                                    },
+                                    {
+                                        name: 'myint32',
+                                        schema: {
+                                            type: 'integer',
+                                            format: 'int32'
+                                        }
+                                    },
+                                    {
+                                        name: 'myuint32',
+                                        schema: {
+                                            type: 'integer',
+                                            format: 'int64',
+                                            maximum: 4294967295
+                                        }
+                                    },
+                                    {
+                                        name: 'mybool',
+                                        schema: {
+                                            type: 'boolean'
+                                        }
+                                    },
+                                    {
+                                        name: 'myint64',
+                                        schema: {
+                                            type: 'integer',
+                                            format: 'int64'
+                                        }
+                                    },
+                                    {
+                                        name: 'myuint64',
+                                        schema: {
+                                            type: 'number',
+                                            format: 'double',
+                                            maximum: '<a really large number that js does not like>'
+                                        }
+                                    },
+                                    {
+                                        name: 'myint16',
+                                        schema: {
+                                            type: 'integer',
+                                            format: 'int16'
+                                        }
+                                    },
+                                    {
+                                        name: 'myuint16',
+                                        schema: {
+                                            type: 'integer',
+                                            format: 'int64',
+                                            maximum: 65535
+                                        }
+                                    },
+                                    {
+                                        name: 'myint8',
+                                        schema: {
+                                            type: 'integer',
+                                            format: 'int8'
+                                        }
+                                    },
+                                    {
+                                        name: 'myuint8',
+                                        schema: {
+                                            type: 'integer',
+                                            format: 'int32',
+                                            maximum: 255
+                                        }
+                                    },
+                                    {
+                                        name: 'myfloat32',
+                                        schema: {
+                                            type: 'number',
+                                            format: 'float'
+                                        }
+                                    },
+                                    {
+                                        name: 'myfloat64',
+                                        schema: {
+                                            type: 'number',
+                                            format: 'double'
+                                        }
+                                    },
+                                    {
+                                        name: 'myStruct',
+                                        schema: {
+                                            $ref: '#/components/schemas/MyStruct'
+                                        }
+                                    },
+                                    {
+                                        name: 'myBoolArray',
+                                        schema: {
+                                            type: 'array',
+                                            items: {
+                                                    type: 'boolean'
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                name: 'transaction2',
+                                parameters: []
+                            },
+                            {
+                                name: 'transaction3'
+                            }
+                        ]
+                    }
+                }
+            };
+
             transactionOne = fakeMetadata.contracts['my-contract'].transactions[0];
             transactionTwo = fakeMetadata.contracts['my-contract'].transactions[1];
             transactionThree = fakeMetadata.contracts['my-contract'].transactions[2];
             javaTransactionOne = javaFakeMetadata.contracts.MyJavaContract.transactions[0];
             javaTransactionTwo = javaFakeMetadata.contracts.MyJavaContract.transactions[1];
             javaTransactionThree = javaFakeMetadata.contracts.MyJavaContract.transactions[2];
+            goTransactionOne = goFakeMetadata.contracts.MyGoContract.transactions[0];
+            goTransactionTwo = goFakeMetadata.contracts.MyGoContract.transactions[1];
+            goTransactionThree = goFakeMetadata.contracts.MyGoContract.transactions[2];
 
             fabricClientConnectionMock.getMetadata.resolves(fakeMetadata);
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
@@ -404,6 +588,10 @@ describe('testSmartContractCommand', () => {
                 {
                     name: 'wagonwheelJava',
                     version: '0.0.1',
+                },
+                {
+                    name: 'wagonwheelGo',
+                    version: '0.0.1',
                 }
             ]);
             // Wallet stubs
@@ -421,11 +609,14 @@ describe('testSmartContractCommand', () => {
             const contracts: Array<InstantiatedTreeItem> =  await blockchainGatewayExplorerProvider.getChildren(channels[0]) as Array<InstantiatedTreeItem>;
             instantiatedSmartContract = contracts[0];
             instantiatedJavaSmartContract = contracts[1];
+            instantiatedGoSmartContract = contracts[2];
 
             smartContractLabel = instantiatedSmartContract.label;
             smartContractName = instantiatedSmartContract.name;
             javaSmartContractLabel = instantiatedJavaSmartContract.label;
             javaSmartContractName = instantiatedJavaSmartContract.name;
+            goSmartContractLabel = instantiatedGoSmartContract.label;
+            goSmartContractName = instantiatedGoSmartContract.name;
 
             // Document editor stubs
             testFileDir = path.join(rootPath, '..', '..', 'data', 'smartContractTests');
@@ -473,6 +664,7 @@ describe('testSmartContractCommand', () => {
             showConfirmationWarningMessageStub.withArgs(`This task might overwrite ${mavenFilePath.fsPath}. Do you wish to continue?`).resolves(true);
             // Other stubs
             sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves('some npm install output');
+            sendCommandWithOutputStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').callThrough();
             showLanguageQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
             workspaceConfigurationUpdateStub = mySandBox.stub();
             workspaceConfigurationGetStub = mySandBox.stub();
@@ -501,6 +693,22 @@ describe('testSmartContractCommand', () => {
                 double:  '0',
                 float:   '0',
                 char:    "''E''"
+            };
+
+            goPrimitiveDefault = {
+                int8: '0',
+                byte: '0',
+                int16: '0',
+                uint16: '0',
+                int32: '0',
+                uint32: '0',
+                int64: '0',
+                uint64: '0',
+                float32: '0',
+                float64: '0',
+                string: '"EXAMPLE"',
+                bool: 'true',
+                interface: 'interface{}'
             };
         });
 
@@ -701,11 +909,11 @@ describe('testSmartContractCommand', () => {
                 if (parameter.hasOwnProperty('schema') && (parameter.schema.type || parameter.schema.$ref)) {
                     let type: string = '';
                     if (parameter.schema.type === 'array' && parameter.schema.hasOwnProperty('items')) {
-                        type = getType(parameter.schema.items);
+                        type = getTypeJava(parameter.schema.items);
                         params.push(` Arrays.toString(${parameter.name.replace(`"`, '')})`);
                         output = `${type}[] ${parameter.name.replace(`"`, '')} = {};`;
                     } else {
-                        type = getType(parameter.schema);
+                        type = getTypeJava(parameter.schema);
                         const isJavaPrim: boolean = typeof javaPrimitiveDefault[type] !== 'undefined';
                         const value: any = isJavaPrim ?  javaPrimitiveDefault[type] : type === 'String' ? '"EXAMPLE"' : `new ${type}()`;
                         if (type === 'String') {
@@ -836,11 +1044,11 @@ describe('testSmartContractCommand', () => {
                 if (parameter.hasOwnProperty('schema') && (parameter.schema.type || parameter.schema.$ref)) {
                     let type: string = '';
                     if (parameter.schema.type === 'array' && parameter.schema.hasOwnProperty('items')) {
-                        type = getType(parameter.schema.items);
+                        type = getTypeJava(parameter.schema.items);
                         params.push(` Arrays.toString(${parameter.name.replace(`"`, '')})`);
                         output = `${type}[] ${parameter.name.replace(`"`, '')} = {};`;
                     } else {
-                        type = getType(parameter.schema);
+                        type = getTypeJava(parameter.schema);
                         const isJavaPrim: boolean = typeof javaPrimitiveDefault[type] !== 'undefined';
                         const value: any = isJavaPrim ?  javaPrimitiveDefault[type] : type === 'String' ? '"EXAMPLE"' : `new ${type}()`;
                         if (type === 'String') {
@@ -876,6 +1084,163 @@ describe('testSmartContractCommand', () => {
             logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'Java'});
         });
+
+        it('should generate a go test file for a selected instantiated go smart contract (golang)', async () => {
+            showLanguageQuickPickStub.resolves({ label: 'Golang', type: LanguageType.CONTRACT });
+            pathExistsStub.onCall(0).resolves(false);
+            sendCommandWithOutputStub.resolves();
+
+            fabricClientConnectionMock.getMetadata.resolves(goFakeMetadata);
+
+            const testFilePath: string = path.join(testFileDir, `fv-MyGoContract-${goSmartContractLabel}_test.go`);
+            const testFunctionFilePath: string = path.join(testFileDir, 'go-smart-contract-util.go');
+            const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
+            const testFunctionUri: vscode.Uri = vscode.Uri.file(testFunctionFilePath);
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedGoSmartContract);
+            openTextDocumentStub.should.have.been.calledWith(testUri.fsPath);
+            openTextDocumentStub.should.have.been.calledWith(testFunctionUri.fsPath);
+            showTextDocumentStub.should.have.been.calledTwice;
+            const templateData: string = mockEditBuilderReplaceSpy.args[1][1];
+            templateData.should.not.equal('');
+            templateData.includes('package main').should.be.true;
+            templateData.includes(goTransactionOne.name).should.be.true;
+            templateData.includes(goTransactionTwo.name).should.be.true;
+            templateData.includes(goTransactionThree.name).should.be.true;
+            templateData.startsWith('/*').should.be.true;
+            templateData.includes('walletPath').should.be.true;
+            templateData.includes('homedir').should.be.false;
+            templateData.includes('gw.Connect').should.be.true;
+            templateData.includes('SubmitTransaction').should.be.true;
+            templateData.includes('Admin').should.be.true;
+            const params: string[] = [''];
+            goTransactionOne.parameters.forEach((parameter: any) => {
+                let output: string = '';
+                if (parameter.hasOwnProperty('schema') && (parameter.schema.type || parameter.schema.$ref)) {
+                    let type: string = '';
+                    if (parameter.schema.type === 'array' && parameter.schema.hasOwnProperty('items')) {
+                        type = getTypeGo(parameter.schema.items);
+                        params.push(` fmt.Sprintf("%v", ${parameter.name.replace(`"`, '')})`);
+                        output = `${parameter.name.replace(/"/, '')} := []${type}{}`;
+                    } else {
+                        type = getTypeGo(parameter.schema);
+                        const hasDefaultValue: boolean = typeof goPrimitiveDefault[type] !== 'undefined';
+                        const value: any = hasDefaultValue ? goPrimitiveDefault[type] : `new(${type})`;
+                        if (type === 'string') {
+                            params.push(` ${parameter.name.replace(`"`, '')}`);
+                        } else if (!hasDefaultValue) {
+                            params.push(` string(${parameter.name.replace(`"`, '')}json)`);
+                        } else {
+                            params.push(` fmt.Sprintf("%v", ${parameter.name.replace(`"`, '')})`);
+                        }
+                        if (type === 'interface') {
+                            output = `var ${parameter.name.replace(/"/, '')} ${value.replace(/^\'/, '').replace(/\'$/, '')}`;
+                        } else {
+                            output = `${parameter.name.replace(`"`, '')} := ${value.replace(/^\'/, '').replace(/\'$/, '')}`;
+                        }
+                    }
+                }
+                templateData.includes(output).should.be.true;
+            });
+            templateData.includes(`result, err := contract.SubmitTransaction("${goTransactionOne.name}"${params})`).should.be.true;
+
+            const functionTemplateData: string = mockEditBuilderReplaceSpy.args[0][1];
+            functionTemplateData.should.not.equal('');
+            functionTemplateData.includes('SubmitTransaction').should.be.false;
+            functionTemplateData.includes('SetDiscoverAsLocalHost').should.be.true;
+            sendCommandStub.should.not.have.been.called;
+            sendCommandWithOutputStub.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Running 'go mod vendor' in ${testFileDir}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'Golang'});
+        });
+
+        it('should show an error if the go mod vendor fails (golang)', async () => {
+            showLanguageQuickPickStub.resolves({ label: 'Golang', type: LanguageType.CONTRACT });
+            pathExistsStub.onCall(0).resolves(false);
+            fabricClientConnectionMock.getMetadata.resolves(goFakeMetadata);
+
+            const testFilePath: string = path.join(testFileDir, `fv-MyGoContract-${goSmartContractLabel}_test.go`);
+
+            const error: Error = new Error('horrible error');
+            sendCommandWithOutputStub.onCall(0).rejects(error);
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedGoSmartContract);
+            sendCommandWithOutputStub.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Running 'go mod vendor' in ${testFileDir}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.ERROR, `Error running 'go mod vendor' in ${testFileDir}: ${error.message}`, `Error running 'go mod vendor' in ${testFileDir}: ${error.toString()}`);
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
+        // TODO: remove when go sdk is tagged at 1.0
+        it('should show an error if the go get sdk@commit fails (golang)', async () => {
+            showLanguageQuickPickStub.resolves({ label: 'Golang', type: LanguageType.CONTRACT });
+            pathExistsStub.onCall(0).resolves(false);
+            fabricClientConnectionMock.getMetadata.resolves(goFakeMetadata);
+
+            const testFilePath: string = path.join(testFileDir, `fv-MyGoContract-${goSmartContractLabel}_test.go`);
+
+            const error: Error = new Error('horrible error');
+            sendCommandWithOutputStub.onCall(0).resolves();
+            sendCommandWithOutputStub.onCall(1).rejects(error);
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedGoSmartContract);
+            sendCommandWithOutputStub.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Running 'go mod vendor' in ${testFileDir}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.ERROR, `Error running 'go get github.com/hyperledger/fabric-sdk-go@163bbe66b3291e8b5e8bae7ea27d921e73156dac' in ${testFileDir}: ${error.message}`, `Error running 'go get github.com/hyperledger/fabric-sdk-go@163bbe66b3291e8b5e8bae7ea27d921e73156dac' in ${testFileDir}: ${error.toString()}`);
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
+        it('should generate test files for go smart contracts with no namespace defined (golang)', async () => {
+            showLanguageQuickPickStub.resolves({ label: 'Golang', type: LanguageType.CONTRACT });
+            pathExistsStub.onCall(0).resolves(false);
+            mySandBox.stub(fs, 'ensureFile').resolves();
+            showInstantiatedSmartContractsQuickPickStub.resolves({
+                label: 'wagonwheelGo@0.0.1',
+                data: { name: goSmartContractName, channel: 'myEnglishChannel', version: '0.0.1' }
+            });
+            fabricClientConnectionMock.getMetadata.resolves(
+                {
+                    contracts: {
+                        '': {
+                            name: '',
+                            transactions: [
+                                {
+                                    name: 'transaction1',
+                                },
+                                {
+                                    name: 'transaction2',
+                                    parameters: []
+                                },
+                                {
+                                    name: 'transaction3'
+                                }
+                            ]
+                        }
+                    }
+                }
+            );
+            const testFilePath: string = path.join(testFileDir, `fv-${goSmartContractLabel}_test.go`);
+            const testFunctionFilePath: string = path.join(testFileDir, 'go-smart-contract-util.go');
+            const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
+            const testFunctionUri: vscode.Uri = vscode.Uri.file(testFunctionFilePath);
+            sendCommandWithOutputStub.resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
+            openTextDocumentStub.should.have.been.calledWith(testUri.fsPath);
+            openTextDocumentStub.should.have.been.calledWith(testFunctionUri.fsPath);
+            showTextDocumentStub.should.have.been.calledTwice;
+            sendCommandWithOutputStub.should.have.been.calledTwice;
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'Golang'});
+        });
+
         it('should provide a path.join if the wallet path contains the home directory', async () => {
             mySandBox.stub(os, 'homedir').returns('homedir');
             walletRegistryEntry.walletPath = 'homedir/walletPath';
@@ -1754,19 +2119,6 @@ describe('testSmartContractCommand', () => {
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.WARNING, 'Unable to create tsconfig.json file as it already exists');
             logSpy.getCall(5).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
-        });
-
-        it('should handle error from unsupported contract language (golang)', async () => {
-            const error: Error = new Error('Automated functional tests for a smart contract project written in golang are currently not supported.');
-            const goFilePath: string = path.join(packageJSONPath.fsPath, '..', '**/*.go');
-            pathExistsStub.withArgs(packageJSONPath.fsPath).resolves(false);
-            pathExistsStub.withArgs(gradleFilePath).resolves(false);
-            pathExistsStub.withArgs(goFilePath).resolves(goFilePath);
-
-            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message);
-            logSpy.should.have.been.calledTwice;
         });
 
         it('should handle chosing package being cancelled', async () => {

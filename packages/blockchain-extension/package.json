@@ -1552,6 +1552,8 @@
             "templates/jsTestSmartContractUtilTemplate.ejs",
             "templates/javaTestSmartContractTemplate.ejs",
             "templates/javaTestSmartContractUtilTemplate.ejs",
+            "templates/goTestSmartContractTemplate.ejs",
+            "templates/goTestSmartContractUtilTemplate.ejs",
             "templates/HomeView.ejs",
             "templates/SampleView.ejs",
             "templates/TutorialGallery.ejs",
