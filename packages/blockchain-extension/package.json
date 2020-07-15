@@ -1488,12 +1488,20 @@
         "generator-fabric": "0.2.6",
         "handlebars": "^4.5.3",
         "home-dir": "1.0.0",
+<<<<<<< HEAD
         "ibm-blockchain-platform-common": "^2.0.0-beta.5",
         "ibm-blockchain-platform-environment-v1": "^2.0.0-beta.5",
         "ibm-blockchain-platform-fabric-admin": "^2.0.0-beta.5",
         "ibm-blockchain-platform-gateway-v1": "^2.0.0-beta.5",
         "ibm-blockchain-platform-ui": "^2.0.0-beta.5",
         "ibm-blockchain-platform-wallet": "^2.0.0-beta.5",
+=======
+        "ibm-blockchain-platform-common": "^1.0.35",
+        "ibm-blockchain-platform-environment-v1": "^1.0.35",
+        "ibm-blockchain-platform-gateway-v1": "^1.0.35",
+        "ibm-blockchain-platform-ui": "^1.0.35",
+        "ibm-blockchain-platform-wallet": "^1.0.35",
+>>>>>>> 02f125db... Fix PDF generation (#2522)
         "request": "^2.88.0",
         "semver": "^6.3.0",
         "shelljs": "^0.8.3",
