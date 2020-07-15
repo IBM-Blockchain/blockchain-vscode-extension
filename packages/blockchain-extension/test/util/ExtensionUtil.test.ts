@@ -306,6 +306,7 @@ describe('ExtensionUtil Tests', () => {
                 ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY,
                 ExtensionCommands.SUBSCRIBE_TO_EVENT,
                 ExtensionCommands.EXPORT_APP_DATA,
+                ExtensionCommands.LOG_IN_AND_DISCOVER,
                 ExtensionCommands.OPEN_HOME_PAGE,
                 ExtensionCommands.OPEN_PRE_REQ_PAGE,
                 ExtensionCommands.OPEN_RELEASE_NOTES
@@ -470,6 +471,23 @@ describe('ExtensionUtil Tests', () => {
 
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
             sampleViewStub.should.have.been.calledOnce;
+        });
+
+        it('should register and open create new instance link', async () => {
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').callThrough();
+            executeCommandStub.withArgs('vscode.open').resolves();
+            const sendTelemetryEventStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+
+            await ExtensionUtil.registerCommands(ctx);
+
+            await vscode.commands.executeCommand(ExtensionCommands.OPEN_NEW_INSTANCE_LINK);
+
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWith('vscode.open', vscode.Uri.parse('https://cloud.ibm.com/catalog/services/blockchain-platform'));
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('openNewInstanceLink');
         });
 
         it('should reload blockchain explorer when debug event emitted', async () => {

@@ -17,7 +17,10 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as vscode from 'vscode';
+import Axios from 'axios';
 import { ExtensionsInteractionUtil } from '../../extension/util/ExtensionsInteractionUtil';
+import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from 'ibm-blockchain-platform-common';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -270,6 +273,320 @@ describe('ExtensionsInteractionUtil Test', () => {
             loginStub.should.have.not.been.called;
         });
 
+    });
+
+    describe('#cloudAccountIsLoggedIn', () => {
+        let isLoggedInStub: sinon.SinonStub;
+        let activateStub: sinon.SinonStub;
+        let cloudExtensionStub: any;
+        let isLoggedIn: boolean;
+
+        beforeEach(() => {
+            isLoggedInStub = mySandBox.stub().resolves(true);
+            activateStub = mySandBox.stub().resolves();
+            cloudExtensionStub = {
+                isActive: true,
+                activate: activateStub,
+                exports: {
+                            loggedIn: isLoggedInStub,
+                         }
+            };
+            getExtensionStub.withArgs('IBM.ibmcloud-account').returns(cloudExtensionStub);
+
+            isLoggedIn = undefined;
+        });
+
+        it('should return login status', async () => {
+            chai.should().equal(undefined, isLoggedIn);
+
+            try {
+                isLoggedIn = await ExtensionsInteractionUtil.cloudAccountIsLoggedIn();
+            } catch (e) {
+                chai.assert.isNull(e, 'there should not have been an error!');
+            }
+            isLoggedIn.should.be.true;
+            getExtensionStub.should.have.been.calledOnce;
+            isLoggedInStub.should.have.been.calledOnce;
+            activateStub.should.not.have.been.called;
+        });
+
+        it('should activate cloud extension if not active', async () => {
+            chai.should().equal(undefined, isLoggedIn);
+            cloudExtensionStub.isActive = false;
+
+            try {
+                isLoggedIn = await ExtensionsInteractionUtil.cloudAccountIsLoggedIn();
+            } catch (e) {
+                chai.assert.isNull(e, 'there should not have been an error!');
+            }
+            isLoggedIn.should.be.true;
+            getExtensionStub.should.have.been.calledOnce;
+            isLoggedInStub.should.have.been.calledOnce;
+            activateStub.should.have.been.called;
+        });
+
+        it('should error if no cloud extension', async () => {
+            chai.should().equal(undefined, isLoggedIn);
+            getExtensionStub.withArgs('IBM.ibmcloud-account').returns(undefined);
+            const expectedError: Error = new Error('IBM Cloud Account extension must be installed');
+
+            try {
+                isLoggedIn = await ExtensionsInteractionUtil.cloudAccountIsLoggedIn();
+            } catch (e) {
+                e.toString().should.deep.equal(expectedError.toString());
+            }
+
+            chai.should().equal(undefined, isLoggedIn);
+            getExtensionStub.should.have.been.calledOnce;
+            isLoggedInStub.should.not.have.been.calledOnce;
+            activateStub.should.not.have.been.called;
+        });
+    });
+
+    describe('#cloudAccountAnyIbpResources', () => {
+        let cloudAccountGetAccessTokenStub: sinon.SinonStub;
+        let axiosGetStub: sinon.SinonStub;
+        let logSpy: sinon.SinonSpy;
+        let anyIbpResources: boolean;
+
+        beforeEach(() => {
+            cloudAccountGetAccessTokenStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountGetAccessToken').resolves('some token');
+            axiosGetStub = mySandBox.stub(Axios, 'get');
+            logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+            anyIbpResources = undefined;
+        });
+
+        it('should return if there are any ibp resources', async () => {
+            const resourceMockOne: any = {
+                data: {
+                    next_url: 'https://who.cares.url/',
+                    resources: [{
+                                    resource_plan_id: 'some-resource',
+                                    name: 'myResource',
+                                    guid: 'someGUID1',
+                                    dashboard_url: 'https://some.dashboard.url1/some/path'
+                                }]
+                }
+            };
+
+            const resourceMockTwo: any = {
+                data: {
+                    next_url: null,
+                    resources: [{
+                                    resource_plan_id: 'blockchain-standard',
+                                    name: 'myBlockchainPlatform',
+                                    guid: 'someGUID1',
+                                    dashboard_url: 'https://some.dashboard.url1/some/path'
+                                }]
+                }
+            };
+
+            axiosGetStub.onFirstCall().resolves(resourceMockOne);
+            axiosGetStub.onSecondCall().resolves(resourceMockTwo);
+
+            chai.should().equal(undefined, anyIbpResources);
+
+            try {
+                anyIbpResources = await ExtensionsInteractionUtil.cloudAccountAnyIbpResources();
+            } catch (e) {
+                chai.assert.isNull(e, 'there should not have been an error!');
+            }
+
+            anyIbpResources.should.be.true;
+            cloudAccountGetAccessTokenStub.should.have.been.calledOnce;
+            axiosGetStub.should.have.been.calledTwice;
+            logSpy.should.not.have.been.called;
+        });
+
+        it('should return out if no access token', async () => {
+            cloudAccountGetAccessTokenStub.resolves(undefined);
+
+            chai.should().equal(undefined, anyIbpResources);
+
+            try {
+                anyIbpResources = await ExtensionsInteractionUtil.cloudAccountAnyIbpResources();
+            } catch (e) {
+                chai.assert.isNull(e, 'there should not have been an error!');
+            }
+
+            chai.should().equal(undefined, anyIbpResources);
+            cloudAccountGetAccessTokenStub.should.have.been.calledOnce;
+            axiosGetStub.should.not.have.been.called;
+            logSpy.should.not.have.been.called;
+        });
+
+        it('should should handle error when fetching resources', async () => {
+            const error: Error = new Error('computer says no');
+            axiosGetStub.rejects(error);
+
+            chai.should().equal(undefined, anyIbpResources);
+
+            try {
+                anyIbpResources = await ExtensionsInteractionUtil.cloudAccountAnyIbpResources();
+            } catch (e) {
+                chai.assert.isNull(e, 'there should not have been an error!');
+            }
+
+            anyIbpResources.should.be.false;
+            cloudAccountGetAccessTokenStub.should.have.been.calledOnce;
+            axiosGetStub.should.have.been.calledOnce;
+            logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Error fetching IBP resources: ${error.message}`, `Error fetching IBP resources: ${error.toString()}`);
+        });
+    });
+
+    describe('#cloudAccountGetIbpResources', () => {
+        let cloudAccountGetAccessTokenStub: sinon.SinonStub;
+        let axiosGetStub: sinon.SinonStub;
+        let logSpy: sinon.SinonSpy;
+        let ibpResources: any;
+
+        beforeEach(() => {
+            cloudAccountGetAccessTokenStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountGetAccessToken').resolves('some token');
+            axiosGetStub = mySandBox.stub(Axios, 'get');
+            logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+            ibpResources = undefined;
+        });
+
+        it('should return ibp resources', async () => {
+            const resourceMockOne: any = {
+                data: {
+                    next_url: 'https://who.cares.url/',
+                    resources: [{
+                                    resource_plan_id: 'some-resource',
+                                    name: 'myResource',
+                                    guid: 'someGUID1',
+                                    dashboard_url: 'https://some.dashboard.url1/some/path'
+                                }]
+                }
+            };
+
+            const resourceMockTwo: any = {
+                data: {
+                    next_url: null,
+                    resources: [{
+                                    resource_plan_id: 'blockchain-standard',
+                                    name: 'myBlockchainPlatform',
+                                    guid: 'someGUID1',
+                                    dashboard_url: 'https://some.dashboard.url1/some/path'
+                                }]
+                }
+            };
+
+            axiosGetStub.onFirstCall().resolves(resourceMockOne);
+            axiosGetStub.onSecondCall().resolves(resourceMockTwo);
+
+            chai.should().equal(undefined, ibpResources);
+
+            try {
+                ibpResources = await ExtensionsInteractionUtil.cloudAccountGetIbpResources();
+            } catch (e) {
+                chai.assert.isNull(e, 'there should not have been an error!');
+            }
+
+            ibpResources.should.deep.equal(resourceMockTwo.data.resources);
+            cloudAccountGetAccessTokenStub.should.have.been.calledOnce;
+            axiosGetStub.should.have.been.calledTwice;
+            logSpy.should.not.have.been.called;
+        });
+
+        it('should return out if no access token', async () => {
+            cloudAccountGetAccessTokenStub.resolves(undefined);
+
+            chai.should().equal(undefined, ibpResources);
+
+            try {
+                ibpResources = await ExtensionsInteractionUtil.cloudAccountGetIbpResources();
+            } catch (e) {
+                chai.assert.isNull(e, 'there should not have been an error!');
+            }
+
+            chai.should().equal(undefined, ibpResources);
+            cloudAccountGetAccessTokenStub.should.have.been.calledOnce;
+            axiosGetStub.should.not.have.been.called;
+            logSpy.should.not.have.been.called;
+        });
+
+        it('should should handle error when fetching resources', async () => {
+            const error: Error = new Error('computer says no');
+            axiosGetStub.rejects(error);
+
+            chai.should().equal(undefined, ibpResources);
+
+            try {
+                ibpResources = await ExtensionsInteractionUtil.cloudAccountGetIbpResources();
+            } catch (e) {
+                chai.assert.isNull(e, 'there should not have been an error!');
+            }
+
+            ibpResources.should.deep.equal([]);
+            cloudAccountGetAccessTokenStub.should.have.been.calledOnce;
+            axiosGetStub.should.have.been.calledOnce;
+            logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Error fetching IBP resources: ${error.message}`, `Error fetching IBP resources: ${error.toString()}`);
+        });
+    });
+
+    describe('#cloudAccountGetApiEndpoint', () => {
+        let axiosGetStub: sinon.SinonStub;
+        let logSpy: sinon.SinonSpy;
+        let apiEndpoint: any;
+        let mockIbpInstance: any;
+        let consoleStatusMock: any;
+        let originalSaaSName: string;
+        let urlSaaS: string;
+
+        beforeEach(() => {
+            axiosGetStub = mySandBox.stub(Axios, 'get');
+            logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+            apiEndpoint = undefined;
+
+            urlSaaS = 'https://my.SaaS.OpsTool.url';
+            originalSaaSName = 'myBlockchainPlatform';
+            mockIbpInstance = {
+                resource_plan_id: 'blockchain-standard',
+                name: originalSaaSName,
+                guid: 'someGUID1',
+                dashboard_url: 'https://some.dashboard.url1/some/path'
+            };
+            consoleStatusMock = {
+                status: 200,
+                data: {
+                    endpoint: urlSaaS
+                }
+            };
+        });
+
+        it('should return an api endpoint', async () => {
+            chai.should().equal(undefined, apiEndpoint);
+            axiosGetStub.resolves(consoleStatusMock);
+
+            try {
+                apiEndpoint = await ExtensionsInteractionUtil.cloudAccountGetApiEndpoint(mockIbpInstance, 'some token');
+            } catch (e) {
+                chai.assert.isNull(e, 'there should not have been an error!');
+            }
+
+            apiEndpoint.should.deep.equal(consoleStatusMock.data.endpoint);
+            logSpy.should.not.have.been.called;
+        });
+
+        it('should throw error if bad status', async () => {
+            const consoleErrorMessage: string = `Got status 500. Please make sure the IBM Blockchain Platform Console deployment has finished before adding environment.`;
+
+            axiosGetStub.onFirstCall().resolves({
+                status: 500
+            });
+
+            chai.should().equal(undefined, apiEndpoint);
+            axiosGetStub.resolves(consoleStatusMock);
+
+            try {
+                apiEndpoint = await ExtensionsInteractionUtil.cloudAccountGetApiEndpoint(mockIbpInstance, 'some token');
+            } catch (e) {
+                e.message.should.equal(consoleErrorMessage);
+            }
+
+            chai.should().equal(undefined, apiEndpoint);
+        });
     });
 
 });

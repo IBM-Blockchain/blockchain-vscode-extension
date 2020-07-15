@@ -19,7 +19,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as vscode from 'vscode';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricRuntimeUtil, FabricNode, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricNode, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { IBlockchainQuickPickItem } from '../../extension/commands/UserInputUtil';
 import { TimerUtil } from '../../extension/util/TimerUtil';
@@ -122,6 +122,15 @@ module.exports = function(): any {
 
     });
 
+    this.Given('there are no IBM Cloud environments', this.timeout, async () => {
+        const environments: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
+        for (const env of environments) {
+            if (env.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || env.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
+                await this.fabricEnvironmentHelper.deleteEnvironment(env.name);
+            }
+        }
+    });
+
     /**
      * When
      */
@@ -178,5 +187,9 @@ module.exports = function(): any {
 
     this.When("I edit filters and import all nodes to environment '{string}'", this.timeout, async (environmentName: string) => {
         await this.fabricEnvironmentHelper.editNodeFilters(opsToolsAllNodesQuickPick, environmentName);
+    });
+
+    this.When('I log in to IBM Cloud', this.timeout, async () => {
+        await vscode.commands.executeCommand(ExtensionCommands.LOG_IN_AND_DISCOVER);
     });
 };
