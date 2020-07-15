@@ -1022,5 +1022,88 @@ describe('LifecyclePeer', () => {
                 });
             });
         });
+
+
+        describe('getChannelCapabilities', () => {
+            let mysandbox: sinon.SinonSandbox;
+
+            let buildRequest: any;
+
+            let endorserConnectStub: sinon.SinonStub;
+            let endorsementBuildSpy: sinon.SinonSpy;
+            let endorsementSignSpy: sinon.SinonSpy;
+            let endorsementSendStub: sinon.SinonStub;
+
+            beforeEach(() => {
+                mysandbox = sinon.createSandbox();
+
+                peer.setCredentials(wallet, 'myIdentity');
+                peer['requestTimeout'] = undefined;
+
+                endorserConnectStub = mysandbox.stub(Endorser.prototype, 'connect').resolves();
+
+                endorsementBuildSpy = mysandbox.spy(Endorsement.prototype, 'build');
+                endorsementSignSpy = mysandbox.spy(Endorsement.prototype, 'sign');
+                endorsementSendStub = mysandbox.stub(Endorsement.prototype, 'send');
+                endorsementSendStub.resolves();
+
+                buildRequest = {
+                    fcn: 'GetConfigBlock',
+                    args: ['mychannel']
+                };
+            });
+
+            afterEach(() => {
+                mysandbox.restore();
+            });
+
+            it('should get channel capabilities', async () => {
+
+                const encodedResult: Buffer = Buffer.from(protos.common.Block.encode({
+                    data: {
+                        data: [
+                            protos.common.Envelope.encode({
+                                payload: protos.common.Payload.encode({
+                                    data: protos.common.ConfigEnvelope.encode({
+                                        config: {
+                                            channel_group: {
+                                                values: {
+                                                    Capabilities: {
+                                                        value: protos.common.Capabilities.encode({
+                                                            capabilities: {
+                                                                'V2_0': {}
+                                                            }
+                                                        }).finish()
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }).finish()
+                                }).finish()
+                            }).finish()
+                        ]
+                    }
+                }).finish());
+
+                endorsementSendStub.resolves({
+                    responses: [{
+                        response: {
+                            status: 200,
+                            payload: encodedResult
+                        }
+                    }]
+                });
+
+                const result: string[] = await peer.getChannelCapabilities('mychannel');
+                result.should.deep.equal(['V2_0']);
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)]
+                });
+            });
+        });
     });
 });
