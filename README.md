@@ -199,7 +199,7 @@ Deploying a smart contract package is a two step process: install the package on
 ### Debugging a smart contract
 Debugging your smart contract allows you to run through the smart contract transactions with breakpoints and output, to ensure your transaction works as intended. ***Note: This is only currently available for the local Fabrics such as the `1 Org Local Fabric` or any other created from a template. Remote debug is not currently available***
 
-To debug Go smart contracts, please install the [Go extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.Go).
+To debug Go smart contracts, please install the [Go extension](https://github.com/microsoft/vscode-go/releases).
 
 To debug Java smart contracts, please install the [Language Support for Java extension](https://marketplace.visualstudio.com/items?itemName=redhat.java) and the [Debugger for Java extension](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-debug)
 
