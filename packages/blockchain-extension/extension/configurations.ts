@@ -36,6 +36,10 @@ export class SettingConfigurations {
     // Feature flags
     static readonly FEATURE_FLAGS: string = 'ibm-blockchain-platform.ext.featureFlags';
 
+    // TODO - comment back in when IBP supports v2
+    // auto adding SaaS environments
+    // static readonly DISCOVER_SAAS_ENVS: string = 'ibm-blockchain-platform.ext.discoverSaasEnvs';
+
     static getExtensionDir(): string {
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         return path.join(extDir, 'v2');
