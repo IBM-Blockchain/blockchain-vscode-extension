@@ -335,7 +335,7 @@ export class DependencyManager {
         }
 
         // Go Extension
-        dependencies.goExtension = { name: 'Go Extension', required: false, version: undefined, url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '', tooltip: 'Provides language support for Go.' };
+        dependencies.goExtension = { name: 'Go Extension', required: false, version: undefined, url: 'https://github.com/microsoft/vscode-go/releases', requiredVersion: '', requiredLabel: '', tooltip: 'Provides language support for Go.' };
         try {
             const goExtensionResult: vscode.Extension<any> = vscode.extensions.getExtension('ms-vscode.Go');
             if (goExtensionResult) {
