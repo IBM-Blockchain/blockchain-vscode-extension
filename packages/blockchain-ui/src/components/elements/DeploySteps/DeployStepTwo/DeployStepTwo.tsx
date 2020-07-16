@@ -184,7 +184,7 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
                     <div className='bx--col-lg-11'>
                         <div className='bx--row'>
                             <div className='bx--col-lg-7 bx--col-md-3 bx--col-sm-4'>
-                                <TextInput id='endorsementInput' labelText='Endorsement policy' helperText='Default (Channel/Application/Endorsement) policy will be used unless you specify your own.' placeholder='e.g. OR("Org1MSP.member","Org2MSP.member")' defaultValue={this.state.endorsementPolicy} onChange={this.handleEndorsementPolicyChange}></TextInput>
+                                <TextInput id='endorsementInput' labelText='Endorsement policy' helperText='Default (/Channel/Application/Endorsement) policy will be used unless you specify your own.' placeholder='e.g. OR("Org1MSP.member","Org2MSP.member")' defaultValue={this.state.endorsementPolicy} onChange={this.handleEndorsementPolicyChange}></TextInput>
                             </div>
                         </div>
                     </div>
