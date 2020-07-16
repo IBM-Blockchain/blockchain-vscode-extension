@@ -76,8 +76,9 @@ export async function restartFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): P
 
         try {
             await runtime.restart(outputAdapter);
+            throw Error("LOL");
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Failed to restart ${runtime.getName()}: ${error.message}`, `Failed to restart ${runtime.getName()}: ${error.toString()}`);
+            UserInputUtil.failedNetworkStart(`Failed to start ${runtime.getName()}: ${error.message}`, outputAdapter);
         }
     });
 }

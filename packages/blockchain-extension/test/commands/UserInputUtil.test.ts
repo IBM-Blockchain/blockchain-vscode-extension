@@ -29,7 +29,7 @@ import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { FabricWalletGenerator } from 'ibm-blockchain-platform-wallet';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
-import { FabricCertificate, FabricEnvironmentRegistry, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricNode, FabricNodeType, FabricEnvironmentRegistryEntry, LogType, EnvironmentType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironment } from 'ibm-blockchain-platform-common';
+import { FabricCertificate, FabricEnvironmentRegistry, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FabricNode, FabricNodeType, FabricEnvironmentRegistryEntry, LogType, EnvironmentType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironment, OutputAdapter } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
@@ -2712,6 +2712,18 @@ describe('UserInputUtil', () => {
             await UserInputUtil.failedActivationWindow('some error');
             showErrorMessageStub.should.have.been.calledOnceWithExactly('Failed to activate extension: some error', 'Check status website', 'Retry activation');
             executeCommandStub.should.have.been.calledOnceWithExactly('vscode.open', uri);
+        });
+    });
+
+    describe('failedNetworkStart', () => {
+
+        it('should display failed to start message', async () => {
+            const showErrorMessageStub: sinon.SinonSpy = mySandBox.stub(vscode.window, 'showErrorMessage').resolves();
+            const outputAdapter:  VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+            const ButtondisplayedStub: sinon.SinonSpy = mySandBox.stub(outputAdapter, 'show').resolves();
+            await UserInputUtil.failedNetworkStart('some error', outputAdapter);
+            showErrorMessageStub.should.have.been.calledOnceWithExactly(`Failed to start Blockchain: some error`, 'More Details');
+            ButtondisplayedStub.should.have.been.calledOnceWithExactly();
         });
     });
 

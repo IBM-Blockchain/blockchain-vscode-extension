@@ -1082,6 +1082,15 @@ export class UserInputUtil {
         }
     }
 
+    public static async failedNetworkStart(error: string, outputAdapter: VSCodeBlockchainOutputAdapter): Promise<void> {
+
+        const moreInfo: string = 'More Details';
+        const response: string = await vscode.window.showErrorMessage(`${error}`, moreInfo);
+        if (response === moreInfo) {
+            outputAdapter.show();
+        }
+    }
+
     /**
      * Method to determine if there are multiple smart contracts within the active workspace.
      * If creating automated functional tests, a quick pick boxt will be provided so the developer can pick which smart contract to use, even if there is only one open.
