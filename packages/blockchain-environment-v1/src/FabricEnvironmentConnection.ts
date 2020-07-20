@@ -326,12 +326,32 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         return this.lifecycle.getAllOrdererNames();
     }
 
-    public async installSmartContract(pathToPackage: string, peerName: string, requestTimeout?: number): Promise<string> {
+    public async installSmartContract(pathToPackage: string, peerName: string, label: string, requestTimeout?: number): Promise<string> {
         const peer: LifecyclePeer = await this.getPeer(peerName);
 
         const pkgBuffer: Buffer = await fs.readFile(pathToPackage);
 
-        return peer.installSmartContractPackage(pkgBuffer, requestTimeout);
+        let packageId: string;
+
+        try {
+            packageId = await peer.installSmartContractPackage(pkgBuffer, requestTimeout);
+        } catch (error) {
+            if (error.message.includes('chaincode already successfully installed')) {
+                const installedContracts: FabricInstalledSmartContract[] = await this.getInstalledSmartContracts(peerName);
+                const installedContract: FabricInstalledSmartContract[] =  installedContracts.filter((contract: FabricInstalledSmartContract) => {
+                    return contract.label === label;
+                });
+
+                if (installedContract.length === 0) {
+                    throw new Error(`Unable to find installed contract for ${label} after receiving: ${error.message}`);
+                } else {
+                    packageId =  installedContract[0].packageId;
+                }
+            } else {
+                throw error;
+            }
+        }
+        return packageId;
     }
 
     public async approveSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[], smartContractDefinition: FabricSmartContractDefinition, requestTimeout?: number): Promise<void> {
