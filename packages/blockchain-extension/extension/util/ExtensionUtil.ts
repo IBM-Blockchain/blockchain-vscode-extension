@@ -88,7 +88,6 @@ import { TemporaryCommandRegistry } from '../dependencies/TemporaryCommandRegist
 import { version as currentExtensionVersion, dependencies } from '../../package.json';
 import { UserInputUtil } from '../commands/UserInputUtil';
 import { FabricSmartContractDefinition, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricNode, FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, FileRegistry, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, EnvironmentType, EnvironmentFlags, FileSystemUtil, FileConfigurations } from 'ibm-blockchain-platform-common';
-import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 import { importNodesToEnvironment } from '../commands/importNodesToEnvironmentCommand';
 import { deleteNode } from '../commands/deleteNodeCommand';
 import { openTransactionView } from '../commands/openTransactionViewCommand';
@@ -464,28 +463,28 @@ export class ExtensionUtil {
             }
         }));
 
-        vscode.debug.onDidChangeActiveDebugSession(async (e: vscode.DebugSession) => {
-            // Listen for any changes to the debug state.
-            if (e && e.configuration && e.configuration.debugEvent === FabricDebugConfigurationProvider.debugEvent) {
-                await vscode.commands.executeCommand('setContext', 'blockchain-debug', true);
-                if (e.configuration.env && e.configuration.env.CORE_CHAINCODE_ID_NAME) {
-                    const smartContractName: string = e.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[0];
-                    const smartContractVersion: string = e.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
-                    const instantiatedSmartContract: FabricSmartContractDefinition = await FabricDebugConfigurationProvider.getInstantiatedChaincode(smartContractName);
+        // vscode.debug.onDidChangeActiveDebugSession(async (e: vscode.DebugSession) => {
+        //     // Listen for any changes to the debug state.
+        //     if (e && e.configuration && e.configuration.debugEvent === FabricDebugConfigurationProvider.debugEvent) {
+        //         await vscode.commands.executeCommand('setContext', 'blockchain-debug', true);
+        //         if (e.configuration.env && e.configuration.env.CORE_CHAINCODE_ID_NAME) {
+        //             const smartContractName: string = e.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[0];
+        //             const smartContractVersion: string = e.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
+        //             const instantiatedSmartContract: FabricSmartContractDefinition = await FabricDebugConfigurationProvider.getInstantiatedChaincode(smartContractName);
 
-                    if (!instantiatedSmartContract) {
-                        await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST, ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
-                    } else if (smartContractVersion !== instantiatedSmartContract.version) {
-                        await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST, ExtensionCommands.UPGRADE_SMART_CONTRACT);
-                    }
-                }
-                // Show any new transactions added to a contract, after 'reload debug' is executed.
-                await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
-            } else {
-                // debug has stopped so set the context to false
-                await vscode.commands.executeCommand('setContext', 'blockchain-debug', false);
-            }
-        });
+        //             if (!instantiatedSmartContract) {
+        //                 await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST, ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+        //             } else if (smartContractVersion !== instantiatedSmartContract.version) {
+        //                 await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST, ExtensionCommands.UPGRADE_SMART_CONTRACT);
+        //             }
+        //         }
+        //         // Show any new transactions added to a contract, after 'reload debug' is executed.
+        //         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+        //     } else {
+        //         // debug has stopped so set the context to false
+        //         await vscode.commands.executeCommand('setContext', 'blockchain-debug', false);
+        //     }
+        // });
 
         let connectedRuntime: LocalEnvironment; // Currently connected environment entry
 
