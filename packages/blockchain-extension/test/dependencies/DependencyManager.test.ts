@@ -430,10 +430,10 @@ describe('DependencyManager Tests', () => {
             utimesFileStub.should.have.been.called;
         });
 
-        it('should throw error if finds no versions', async () => {
+        it('should throw error if no versions found and fallback fails', async () => {
             mySandBox.stub(process, 'platform').value('win32');
             mySandBox.stub(process, 'arch').value('x64');
-
+            mySandBox.stub(fs, 'readJSON').resolves([]); // imitate this failing
             axiosStub.withArgs('https://raw.githubusercontent.com/electron/releases/master/lite.json').resolves({ data: [] });
 
             const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
@@ -447,7 +447,7 @@ describe('DependencyManager Tests', () => {
             sendCommandStub.should.not.have.been.called;
         });
 
-        it('should handle error from getting electron info', async () => {
+        it('should handle getting electron info failing and fallback succeeding', async () => {
             mySandBox.stub(process, 'platform').value('win32');
             mySandBox.stub(process, 'arch').value('x64');
 
@@ -456,19 +456,22 @@ describe('DependencyManager Tests', () => {
             const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
             const dependencyManager: DependencyManager = DependencyManager.instance();
 
-            await dependencyManager.installNativeDependencies().should.be.eventually.rejectedWith(/Could not get electron version, some error/);
+            const readJSONSpy: sinon.SinonSpy = mySandBox.spy(fs, 'readJSON');
+            await dependencyManager.installNativeDependencies().should.not.be.rejectedWith(/Could not get electron version, some error/);
 
             dependencyManager['dependencies'].length.should.equal(1);
             dependencyManager['dependencies'][0].should.equal('grpc');
 
-            sendCommandStub.should.not.have.been.called;
+            sendCommandStub.should.have.been.calledOnce;
 
+            const jsonPath: string = path.join(__dirname, '..', '..', 'fallback-build-info.json');
+            readJSONSpy.should.have.been.calledOnceWithExactly(jsonPath);
         });
 
-        const platforms: {name: string, platform: string, arch: string}[] = [
-            {name: 'Windows', platform: 'win32', arch: 'x64'},
-            {name: 'macOS', platform: 'darwin', arch: 'x64'},
-            {name: 'Linux', platform: 'linux', arch: 'x64'}
+        const platforms: { name: string, platform: string, arch: string }[] = [
+            { name: 'Windows', platform: 'win32', arch: 'x64' },
+            { name: 'macOS', platform: 'darwin', arch: 'x64' },
+            { name: 'Linux', platform: 'linux', arch: 'x64' }
         ];
 
         function testEclipseChe(name: string, platform: string, arch: string): void {
@@ -499,7 +502,7 @@ describe('DependencyManager Tests', () => {
             });
         }
 
-        for (const {name, platform, arch} of platforms) {
+        for (const { name, platform, arch } of platforms) {
             testEclipseChe(name, platform, arch);
         }
     });
