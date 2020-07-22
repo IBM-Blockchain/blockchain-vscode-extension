@@ -71,7 +71,7 @@ export async function startFabricRuntime(registryEntry?: RuntimeTreeItem | Fabri
             }
             await runtime.start(outputAdapter);
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Failed to start ${runtime.getName()}: ${error.message}`, `Failed to start ${runtime.getName()}: ${error.toString()}`);
+            await UserInputUtil.failedNetworkStart(`Failed to start ${runtime.getName()}: ${error.message}`, `Failed to start ${runtime.getName()}: ${error.toString()}`);
         }
 
         await TimerUtil.sleep(1000);
