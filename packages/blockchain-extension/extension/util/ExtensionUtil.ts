@@ -529,14 +529,8 @@ export class ExtensionUtil {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         const dependencyManager: DependencyManager = DependencyManager.instance();
 
-        const packageJSON: any = await ExtensionUtil.getPackageJSON();
-        if (packageJSON.activationEvents.length === 1) {
-            outputAdapter.log(LogType.INFO, undefined, 'Rewriting activation events');
-            await dependencyManager.rewritePackageJson();
-
-            outputAdapter.log(LogType.INFO, undefined, 'Clearing extension cache');
-            await dependencyManager.clearExtensionCache();
-        }
+        outputAdapter.log(LogType.INFO, undefined, 'Clearing extension cache');
+        await dependencyManager.clearExtensionCache();
 
         const extensionData: ExtensionData = GlobalState.get();
         const localFabricEnabled: boolean = this.getExtensionLocalFabricSetting();

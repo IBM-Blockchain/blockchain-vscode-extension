@@ -18,44 +18,17 @@
 const fs = require('fs');
 const process = require('process');
 
-console.log('rewriting package json');
-
-const packageJson = JSON.parse(fs.readFileSync('./package.json'));
+console.log('calling rewriting package json');
 
 if (process.argv.includes('publish')) {
+  const packageJson = JSON.parse(fs.readFileSync('./package.json'));
+
   packageJson.production = true;
-  packageJson.activationEvents = ['*'];
-} else {
-  if (packageJson.activationEvents.length > 1) {
-    throw new Error('Activation events should be * when checked in');
-  }
 
-  if (packageJson.engines.vscode !== '^1.40.0') {
-    throw new Error('Engine vscode should be ^1.40.0 when checked in');
-  }
+  const packageJsonString = JSON.stringify(packageJson, null, 4);
 
-  packageJson.activationEvents = [];
+  fs.writeFileSync('./package.json', packageJsonString, 'utf8');
 
-  packageJson.actualActivationEvents.onView.forEach((event) => {
-    packageJson.activationEvents.push('onView:' + event);
-  });
+  console.log('finished rewriting package json');
 
-  packageJson.actualActivationEvents.onCommand.forEach((event) => {
-    packageJson.activationEvents.push('onCommand:' + event);
-  });
-
-  packageJson.actualActivationEvents.other.forEach((event) => {
-    packageJson.activationEvents.push(event);
-  });
-
-  packageJson.engines = {
-    vscode: '^1.40.0'
-  };
 }
-
-
-const packageJsonString = JSON.stringify(packageJson, null, 4);
-
-fs.writeFileSync('./package.json', packageJsonString, 'utf8');
-
-console.log('finished rewriting package json');
