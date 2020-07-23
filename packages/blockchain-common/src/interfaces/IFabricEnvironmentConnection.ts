@@ -64,7 +64,7 @@ export interface IFabricEnvironmentConnection {
 
     getWallet(nodeName: string): Promise<IFabricWallet>;
 
-    approveSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[], smartContractDefinition: FabricSmartContractDefinition, defaultTimeout?: number): Promise<void>;
+    approveSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[], smartContractDefinition: FabricSmartContractDefinition, defaultTimeout?: number): Promise<boolean>;
 
     commitSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[], smartContractDefinition: FabricSmartContractDefinition, defaultTimeout?: number): Promise<void>;
 
