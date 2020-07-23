@@ -113,7 +113,7 @@ Array [
             <div
               className="bx--form__helper-text"
             >
-              Default (Channel/Application/Endorsement) policy will be used unless you specify your own.
+              Default (/Channel/Application/Endorsement) policy will be used unless you specify your own.
             </div>
             <div
               className="bx--text-input__field-wrapper"
