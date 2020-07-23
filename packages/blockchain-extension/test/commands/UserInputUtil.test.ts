@@ -2726,9 +2726,8 @@ describe('UserInputUtil', () => {
          });
 
          it('should display the Output channel if selected', async () => {
-            const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
             const showErrorMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showErrorMessage').resolves(UserInputUtil.MORE_DETAILS);
-            const showOutputChannelStub: sinon.SinonStub = mySandBox.stub(outputAdapter, 'show').resolves();
+            const showOutputChannelStub: sinon.SinonStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'show').resolves();
             await UserInputUtil.failedNetworkStart('some error', 'some error message');
             showErrorMessageStub.should.have.been.calledOnceWithExactly('some error', UserInputUtil.MORE_DETAILS);
             showOutputChannelStub.should.have.been.calledOnce;

@@ -177,9 +177,9 @@ describe('startFabricRuntime', () => {
         commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
         commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
-        blockchainLogsOutputSpy.should.have.been.called;
         popupStub.should.have.been.calledWithExactly(`Failed to start ${mockLocalRuntime.getName()}: ${error.message}`,
                     `Failed to start ${mockLocalRuntime.getName()}: ${error.toString()}`);
+        blockchainLogsOutputSpy.should.have.been.called;
     });
 
     it('should start a local environment by right-clicking the tree item (emulating)', async () => {

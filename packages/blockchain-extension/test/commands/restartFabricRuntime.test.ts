@@ -237,11 +237,11 @@ describe('restartFabricRuntime', () => {
         await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC_SHORT, treeItem);
 
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+        popupStub.should.have.been.calledWithExactly(`Failed to restart ${environment.getName()}: ${error.message}`,
+                    `Failed to restart ${environment.getName()}: ${error.toString()}`);
 
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
-        popupStub.should.have.been.calledWithExactly(`Failed to restart ${environment.getName()}: ${error.message}`,
-                    `Failed to restart ${environment.getName()}: ${error.toString()}`);
     });
 
     it('should be able to restart the an environment from the command', async () => {
