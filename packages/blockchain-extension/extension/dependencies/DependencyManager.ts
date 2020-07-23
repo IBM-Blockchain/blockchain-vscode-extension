@@ -595,8 +595,18 @@ export class DependencyManager {
 
             if (!electronVersion) {
 
-                const response: any = await Axios.get('https://raw.githubusercontent.com/electron/releases/master/lite.json');
-                let info: any[] = response.data;
+                let info: any[] = [];
+                try {
+                    const response: any = await Axios.get('https://raw.githubusercontent.com/electron/releases/master/lite.json');
+                    info = response.data;
+                } catch (error) {
+                    // Will be handled by reading a local JSON file, on the next few lines.
+                }
+
+                if (!info || info.length === 0) {
+                    const fallbackPath: string = path.join(__dirname, '..', '..', 'fallback-build-info.json');
+                    info = await fs.readJSON(fallbackPath);
+                }
 
                 info = info.filter((_info: any) => {
                     return _info && _info.deps && _info.deps.modules === modules;

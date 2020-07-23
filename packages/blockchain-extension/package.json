@@ -1407,7 +1407,7 @@
     "scripts": {
         "vscode:prepublish": "npm run compile && npm run localize",
         "package": "node ./node_modules/vsce/out/vsce package",
-        "compile": "rimraf build && npm run build && npm run lint && npm run licchk",
+        "compile": "rimraf build && npm run build && node ./scripts/copyFiles.js && npm run lint && npm run licchk",
         "watch": "rimraf build && tsc -watch",
         "pretest": "npm run updatePackageJSON",
         "test": "node ./build/test/runTests.js",
