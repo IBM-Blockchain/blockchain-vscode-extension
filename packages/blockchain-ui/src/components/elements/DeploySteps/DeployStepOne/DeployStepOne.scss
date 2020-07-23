@@ -1,3 +1,37 @@
+@import '@carbon/colors/scss/colors';
+@import '@carbon/layout/scss/_spacing';
+
 #root {
+
+    .step-title {
+        font-size: .875rem;
+    }
     
+    .title-and-tag {
+        display: flex;
+        align-items: center;
+
+        span {
+            margin-right: $spacing-05;
+            font-size: .875rem;
+        }
+
+        .fabric-2-tag {
+            background-color: $blue-60;
+            color: #FFFFFF
+        }
+    }
+
+    @media (max-width: 594px) {
+        .title-and-tag {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+
+            span {
+                margin-bottom: $spacing-05;
+            }
+        }
+    }
+
 }

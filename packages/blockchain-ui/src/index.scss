@@ -73,12 +73,12 @@ html {
                 }
 
                 // home page links
-                #home-link-01, #home-link-02, #home-link-03, #home-link-04, #home-link-05, #home-link-06, #home-link-07, #home-link-08, #home-link-09, #home-link-10, #home-link-11, #acclaim-link, #download-all-link {
+                #home-link-01, #home-link-02, #home-link-03, #home-link-04, #home-link-05, #home-link-06, #home-link-07, #home-link-08, #home-link-09, #home-link-10, #home-link-11, #acclaim-link, #download-all-link, #deploy-step-1-link {
                     color: $blue-40;
                 }
 
-                // home page image
-                #dev-learner-themed-image {
+                // themed images
+                #dev-learner-themed-image, #step-1-deploy-themed-image, #step-2-deploy-themed-image, #step-3-deploy-themed-image, #step-4-deploy-themed-image {
                     @include themed-image-dark;
                 }
 
@@ -171,8 +171,8 @@ html {
                 }
             }
 
-            // home page image
-            #dev-learner-themed-image {
+            // themed images
+            #dev-learner-themed-image, #step-1-deploy-themed-image, #step-2-deploy-themed-image, #step-3-deploy-themed-image, #step-4-deploy-themed-image {
                 @include themed-image-light;
             }
 
