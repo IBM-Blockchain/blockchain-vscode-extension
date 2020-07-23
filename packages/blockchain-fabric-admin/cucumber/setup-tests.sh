@@ -23,7 +23,7 @@ else
 fi
 
 pushd tmp
-curl -sSL http://bit.ly/2ysbOFE | bash -s 2.0.0
+curl -sSL http://bit.ly/2ysbOFE | bash -s 2.1.0
 pushd fabric-samples/test-network
 export FABRIC_DIR="$(pwd)"
 ./network.sh down

@@ -16,6 +16,6 @@ Feature: FabCar Sample
     Examples:
       | language   | sampleName | contractName               | namespace |
       | JavaScript | FabCarjs   | fabcar-contract-javascript | FabCar    |
-      | TypeScript | FabCarts   | fabcar-contract-typescript | FabCar    |
+      # | TypeScript | FabCarts   | fabcar-contract-typescript | FabCar    |
       | Java       | FabCarJava | fabcar-contract-java       | FabCar    |
       | Go         | FabCarGo   | fabcar-contract-go         | FabCar    |
