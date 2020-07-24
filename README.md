@@ -244,6 +244,45 @@ You can also create a gateway from a fabric environment. When you run the `Add G
 ### Connect to a gateway and discover its resources
 Connect by clicking on a gateway in the `Fabric Gateways` panel, and expand the navigation tree to explore its resources. Instantiated Smart Contracts are listed under the channel and from here you can generate functional-level test files on single or multiple smart contracts. Submit or evaluate individual transactions listed under the instantiated smart contracts, with the result displayed in the `Blockchain` output channel.
 
+### Migrating a smart contract for Fabric 2
+
+#### Node contract
+
+`fabric-contract-api` & `fabric-shim` should be changed in the `package.json` to use `2.0.0` or greater.
+
+Example:
+```
+"dependencies": {
+    "fabric-contract-api": "^2.1.1",
+    "fabric-shim": "^2.1.2"
+},
+```
+
+#### Java contract
+
+`fabric-chaincode-shim` or `fabric-chaincode-java` should be changed in the `build.gradle` or `pom.xml` to use `2.0.0` or greater.
+
+Example:
+```
+dependencies {
+    implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.0.0'
+    implementation 'com.owlike:genson:1.6'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
+    testImplementation 'org.assertj:assertj-core:3.11.1'
+    testImplementation 'org.mockito:mockito-core:2.+'
+}
+```
+
+### Go contract
+
+`fabric-contract-api-go` or `fabric-chaincode-go` should be set in the `go.mod` file.
+
+Example:
+```
+github.com/hyperledger/fabric-chaincode-go v0.0.0-20200424173110-d7076418f212
+github.com/hyperledger/fabric-contract-api-go v1.1.0
+```
+
 #### Java functional tests
 
 To test Java smart contracts, please install the [Java Test Runner extension](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-test).
