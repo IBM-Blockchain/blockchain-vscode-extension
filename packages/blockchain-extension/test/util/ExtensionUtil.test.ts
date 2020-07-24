@@ -763,9 +763,7 @@ describe('ExtensionUtil Tests', () => {
     });
 
     describe('setupCommands', () => {
-        let getPackageJsonStub: sinon.SinonStub;
         let clearExtensionCacheStub: sinon.SinonStub;
-        let rewritePackageJsonStub: sinon.SinonStub;
         let globalStateGetStub: sinon.SinonStub;
         let setupLocalRuntimeStub: sinon.SinonStub;
         let restoreCommandsStub: sinon.SinonStub;
@@ -778,9 +776,7 @@ describe('ExtensionUtil Tests', () => {
         let globalStateUpdateSpy: sinon.SinonSpy;
 
         beforeEach(() => {
-            getPackageJsonStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON');
             clearExtensionCacheStub = mySandBox.stub(DependencyManager.instance(), 'clearExtensionCache');
-            rewritePackageJsonStub = mySandBox.stub(DependencyManager.instance(), 'rewritePackageJson');
             globalStateGetStub = mySandBox.stub(GlobalState, 'get');
             setupLocalRuntimeStub = mySandBox.stub(ExtensionUtil, 'setupLocalRuntime');
             restoreCommandsStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'restoreCommands');
@@ -799,56 +795,7 @@ describe('ExtensionUtil Tests', () => {
             mySandBox.restore();
         });
 
-        it(`should rewrite the package.json file if there are no activation events`, async () => {
-
-            getPackageJsonStub.returns({ activationEvents: ['*'] });
-            rewritePackageJsonStub.resolves();
-            clearExtensionCacheStub.resolves();
-            globalStateGetStub.returns({
-                version: '1.0.0'
-            });
-            setupLocalRuntimeStub.resolves();
-            restoreCommandsStub.resolves();
-            getExtensionContextStub.returns({ hello: 'world' });
-            registerCommandsStub.resolves();
-            executeStoredCommandsStub.resolves();
-            getExtensionLocalFabricSettingStub.returns(true);
-
-            const globalState: ExtensionData = GlobalState.get();
-            globalState.createOneOrgLocalFabric = true;
-            await GlobalState.update(globalState);
-
-            globalStateUpdateSpy.resetHistory();
-            globalStateGetStub.resetHistory();
-
-            await ExtensionUtil.setupCommands();
-
-            globalStateUpdateSpy.should.have.been.calledOnce;
-            const updateCall: any = globalStateUpdateSpy.getCall(0).args[0];
-            updateCall.createOneOrgLocalFabric.should.equal(false);
-            clearExtensionCacheStub.should.have.been.calledOnce;
-            rewritePackageJsonStub.should.have.been.calledOnce;
-            globalStateGetStub.should.have.been.calledOnce;
-            getExtensionLocalFabricSettingStub.should.have.been.calledOnce;
-            setupLocalRuntimeStub.should.have.been.calledOnce;
-
-            logSpy.callCount.should.equal(5);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Rewriting activation events');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Clearing extension cache`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'Restoring command registry');
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'Registering commands');
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, 'Execute stored commands in the registry');
-
-            restoreCommandsStub.should.have.been.calledOnce;
-            getExtensionContextStub.should.have.been.calledOnce;
-            registerCommandsStub.should.have.been.calledOnceWithExactly({ hello: 'world' });
-            executeStoredCommandsStub.should.have.been.calledOnce;
-            fabricConnectionFactorySpy.should.have.been.called;
-        });
-
         it('should not created one org local fabric if it has already been created', async () => {
-            getPackageJsonStub.returns({ activationEvents: ['*'] });
-            rewritePackageJsonStub.resolves();
             globalStateGetStub.returns({
                 version: '1.0.0'
             });
@@ -874,12 +821,11 @@ describe('ExtensionUtil Tests', () => {
             getExtensionLocalFabricSettingStub.should.have.been.calledOnce;
             setupLocalRuntimeStub.should.not.have.been.called;
 
-            logSpy.callCount.should.equal(5);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Rewriting activation events');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Clearing extension cache`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'Restoring command registry');
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'Registering commands');
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, 'Execute stored commands in the registry');
+            logSpy.callCount.should.equal(4);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `Clearing extension cache`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'Restoring command registry');
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'Registering commands');
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'Execute stored commands in the registry');
 
             restoreCommandsStub.should.have.been.calledOnce;
             getExtensionContextStub.should.have.been.calledOnce;
@@ -887,7 +833,6 @@ describe('ExtensionUtil Tests', () => {
             executeStoredCommandsStub.should.have.been.calledOnce;
             fabricConnectionFactorySpy.should.have.been.called;
             clearExtensionCacheStub.should.have.been.calledOnce;
-            rewritePackageJsonStub.should.have.been.calledOnce;
         });
 
         it(`should delete local registry entries if not enabled`, async () => {
@@ -900,8 +845,6 @@ describe('ExtensionUtil Tests', () => {
 
             await TestUtil.setupLocalFabric();
 
-            getPackageJsonStub.returns({ activationEvents: ['activationEvent1', 'activationEvent2'] });
-            rewritePackageJsonStub.resolves();
             globalStateGetStub.returns({
                 version: '1.0.0'
             });
@@ -929,10 +872,11 @@ describe('ExtensionUtil Tests', () => {
             getExtensionLocalFabricSettingStub.should.have.been.calledOnce;
             setupLocalRuntimeStub.should.not.have.been.calledOnce;
 
-            logSpy.should.have.been.calledThrice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Restoring command registry');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'Registering commands');
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'Execute stored commands in the registry');
+            logSpy.callCount.should.equal(4);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `Clearing extension cache`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'Restoring command registry');
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'Registering commands');
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'Execute stored commands in the registry');
 
             restoreCommandsStub.should.have.been.calledOnce;
             getExtensionContextStub.should.have.been.calledOnce;
@@ -942,8 +886,7 @@ describe('ExtensionUtil Tests', () => {
 
             deleteEnvironmentSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
             removeRuntimeStub.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC);
-            clearExtensionCacheStub.should.not.have.been.called;
-            rewritePackageJsonStub.should.not.have.been.called;
+            clearExtensionCacheStub.should.have.been.calledOnce;
         });
     });
 

@@ -34,10 +34,7 @@ cat package.json.orig \
           (.actualActivationEvents.other) as $other |
           .activationEvents = $onView + $onCommand + $other' \
     > package.json
-rm -rf ./node_modules/grpc/src/node/extension_binary/*
 rm -rf ./node_modules/pkcs11js/build/Release/*
-npm rebuild grpc --update-binary --runtime=node --target=10.0.0 --target_platform=linux --target_arch=x64 --target_libc=musl
-npm rebuild grpc --update-binary --runtime=node --target=10.0.0 --target_platform=linux --target_arch=x64 --target_libc=glibc
 npm run package
 cd ${ROOT}
 export VERSION=$(jq -r .version lerna.json)
