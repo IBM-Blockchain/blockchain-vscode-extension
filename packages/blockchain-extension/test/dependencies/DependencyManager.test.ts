@@ -1838,59 +1838,6 @@ describe('DependencyManager Tests', () => {
         });
     });
 
-    describe('rewritePackageJson', () => {
-        afterEach(async () => {
-            mySandBox.restore();
-        });
-
-        it('should rewrite package json', async () => {
-            const dependencyManager: DependencyManager = DependencyManager.instance();
-            const getRawPackageJsonStub: sinon.SinonStub = mySandBox.stub(dependencyManager, 'getRawPackageJson').resolves({
-                actualActivationEvents: {
-                    onView: [
-                        'some',
-                        'value'
-                    ],
-                    onCommand: [
-                        'other',
-                        'values'
-                    ],
-                    other: [
-                        'somethingelse'
-                    ]
-                }
-            });
-
-            const writePackageJsonStub: sinon.SinonStub = mySandBox.stub(dependencyManager, 'writePackageJson').resolves();
-
-            await dependencyManager.rewritePackageJson();
-
-            getRawPackageJsonStub.should.have.been.calledOnce;
-            writePackageJsonStub.should.have.been.calledOnceWithExactly({
-                actualActivationEvents: {
-                    onView: [
-                        'some',
-                        'value'
-                    ],
-                    onCommand: [
-                        'other',
-                        'values'
-                    ],
-                    other: [
-                        'somethingelse'
-                    ]
-                },
-                activationEvents: [
-                    'onView:some',
-                    'onView:value',
-                    'onCommand:other',
-                    'onCommand:values',
-                    'somethingelse',
-                ]
-            });
-        });
-    });
-
     describe('clearExtensionCache', () => {
         afterEach(async () => {
             mySandBox.restore();
