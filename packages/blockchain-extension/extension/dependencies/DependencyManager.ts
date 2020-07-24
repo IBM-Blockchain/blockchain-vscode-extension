@@ -372,27 +372,6 @@ export class DependencyManager {
 
     }
 
-    public async rewritePackageJson(): Promise<void> {
-        // Replace activationEvents with the events that the extension should be activated for subsequent sessions.
-        const packageJson: any = await this.getRawPackageJson();
-
-        packageJson.activationEvents = [];
-
-        packageJson.actualActivationEvents.onView.forEach((event: string) => {
-            packageJson.activationEvents.push('onView:' + event);
-        });
-
-        packageJson.actualActivationEvents.onCommand.forEach((event: string) => {
-            packageJson.activationEvents.push('onCommand:' + event);
-        });
-
-        packageJson.actualActivationEvents.other.forEach((event: string) => {
-            packageJson.activationEvents.push(event);
-        });
-
-        return this.writePackageJson(packageJson);
-    }
-
     public async getDockerVersion(): Promise<string> {
         try {
             const dockerResult: string = await CommandUtil.sendCommand('docker -v'); // Format: Docker version X.Y.Z-ce, build e68fc7a
