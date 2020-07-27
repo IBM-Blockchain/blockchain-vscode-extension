@@ -69,72 +69,76 @@ class DeployStepThree extends Component<IProps, StepThreeState> {
             }
         ];
 
-        const rowData: { id: string, organization: string, status: string }[] = [];
-
-        const approvalEntries: any[] = Object.entries(this.props.orgApprovals);
-
         let tableElement: JSX.Element = <></>;
 
-        if (approvalEntries.length > 0) {
-            for (const [org, approved] of approvalEntries) {
+        if (this.props.orgApprovals) {
+            const rowData: { id: string, organization: string, status: string }[] = [];
 
-                let environmentPeer: string | undefined;
-                if (!approved) {
-                    // Org should be marked as pending if we're about to deploy on an organisations peers.
-                    environmentPeer = this.props.orgMap[org].find((_peer: string) => this.props.environmentPeers.includes(_peer));
-                }
+            const approvalEntries: any[] = Object.entries(this.props.orgApprovals);
 
-                const entry: { id: string, organization: string, status: string } = {
-                    id: org,
-                    organization: org,
-                    status: approved ? 'Approved' : environmentPeer ? 'Pending (part of this deploy)' : 'Not approved'
-                };
+            if (approvalEntries.length > 0) {
+                for (const [org, approved] of approvalEntries) {
 
-                rowData.push(entry);
+                    let environmentPeer: string | undefined;
+                    if (!approved) {
+                        // Org should be marked as pending if we're about to deploy on an organisations peers.
+                        environmentPeer = this.props.orgMap[org].find((_peer: string) => this.props.environmentPeers.includes(_peer));
+                    }
 
-                tableElement = (
-                    <DataTable
-                        rows={rowData}
-                        headers={headerData}
-                        render={({ rows, headers, getHeaderProps }) => (
-                            <TableContainer>
-                                <Table size='short'>
-                                    <TableHead>
-                                        <TableRow>
-                                            {headers.map((header) => (
-                                                <TableHeader {...getHeaderProps({ header })}>
-                                                    {header.header}
-                                                </TableHeader>
-                                            ))}
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {rows.map((row) => (
-                                            <TableRow id={row.id + '-row'} key={row.id}>
-                                                {row.cells.map((cell) => (
-                                                    <TableCell key={cell.id}>{cell.value}</TableCell>
+                    const entry: { id: string, organization: string, status: string } = {
+                        id: org,
+                        organization: org,
+                        status: approved ? 'Approved' : environmentPeer ? 'Pending (part of this deploy)' : 'Not approved'
+                    };
+
+                    rowData.push(entry);
+
+                    tableElement = (
+                        <DataTable
+                            rows={rowData}
+                            headers={headerData}
+                            render={({ rows, headers, getHeaderProps }) => (
+                                <TableContainer>
+                                    <Table size='short'>
+                                        <TableHead>
+                                            <TableRow>
+                                                {headers.map((header) => (
+                                                    <TableHeader {...getHeaderProps({ header })}>
+                                                        {header.header}
+                                                    </TableHeader>
                                                 ))}
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>)}
+                                        </TableHead>
+                                        <TableBody>
+                                            {rows.map((row) => (
+                                                <TableRow id={row.id + '-row'} key={row.id}>
+                                                    {row.cells.map((cell) => (
+                                                        <TableCell key={cell.id}>{cell.value}</TableCell>
+                                                    ))}
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>)}
+                        />
+                    );
+                }
+            } else {
+            tableElement = (
+                    <InlineNotification
+                        hideCloseButton={true}
+                        kind='info'
+                        lowContrast={true}
+                        notificationType='inline'
+                        role='alert'
+                        statusIconDescription='describes the status icon'
+                        subtitle={<p>Commit has already been performed for this definition name and version.</p>}
+                        title='Unable to get organisation approvals'
                     />
                 );
             }
         } else {
-            tableElement = (
-                <InlineNotification
-                    hideCloseButton={true}
-                    kind='info'
-                    lowContrast={true}
-                    notificationType='inline'
-                    role='alert'
-                    statusIconDescription='describes the status icon'
-                    subtitle={<p>Commit has already been performed for this definition name and version.</p>}
-                    title='Unable to get organisation approvals'
-                />
-            );
+            tableElement = (<p>Retrieving organisation approvals...</p>);
         }
 
         let commitListItem: JSX.Element = <></>;

@@ -84,6 +84,11 @@ describe('DeployStepThree component', () => {
             component.html().includes(`<p>Commit has already been performed for this definition name and version.</p>`).should.equal(true);
             component.html().includes(`<tr><td>Org1MSP</td><td>Approved</td></tr><tr><td>Org2MSP</td><td>Not approved</td></tr>`).should.equal(false);
         });
+
+        it('should not show org approval table if no response from vs code', async () => {
+            const component: ShallowWrapper<DeployStepThree> = shallow(<DeployStepThree environmentPeers={['Org1Peer1']} discoveredPeers={['Org2Peer1']} orgMap={{ Org1MSP: ['Org1Peer1'], Org2MSP: ['Org2Peer1'] }} orgApprovals={undefined} selectedPeers={['Org2Peer1']} selectedPackage={packageOne} channelName='mychannel' commitSmartContract={undefined} onPeerChange={changePeersStub} onCommitChange={commitChangeStub} onGetOrgApproval={getOrgApprovalStub} />);
+            component.html().includes(`<p>Retrieving organisation approvals...</p>`).should.equal(true);
+        });
     });
 
     describe('toggleCommit', () => {

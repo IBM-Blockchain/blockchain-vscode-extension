@@ -53,7 +53,7 @@ class DeployPage extends Component<IProps, DeployState> {
             nameInvalid: false,
             versionInvalid: false,
             endorsementPolicy: undefined,
-            orgApprovals: {},
+            orgApprovals: undefined,
             orgMap: this.props.deployData.orgMap,
             environmentPeers: this.props.deployData.environmentPeers,
             discoveredPeers: this.props.deployData.discoveredPeers,
