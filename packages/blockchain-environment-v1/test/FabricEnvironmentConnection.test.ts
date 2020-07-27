@@ -241,36 +241,6 @@ describe('FabricEnvironmentConnection', () => {
             });
         });
 
-        it('should create peer clients for each peer node with API options that override the name', async () => {
-            const node: FabricNode = FabricNode.newPeer(
-                'org1peer',
-                'Org1 Peer',
-                `grpc://localhost:8080`,
-                'Org1',
-                FabricRuntimeUtil.ADMIN_USER,
-                'Org1MSP'
-            );
-            node.api_options = {
-                'grpc.default_authority': 'org1peer.127-0-0-1.nip.io:8080',
-                'grpc.ssl_target_name_override': 'org1peer.127-0-0-1.nip.io:8080'
-            };
-            connection.disconnect();
-            await connection.connect([node]);
-
-            const peerNames: string[] = Array.from(connection['lifecycle']['peers'].keys());
-            const peerValues: LifecyclePeer[] = Array.from(connection['lifecycle']['peers'].values());
-
-            peerNames.should.deep.equal(['org1peer.127-0-0-1.nip.io:8080']);
-            peerValues.should.have.lengthOf(1);
-            peerValues[0].should.be.an.instanceOf(LifecyclePeer);
-            peerValues[0]['url'].should.equal('grpc://localhost:8080');
-            peerValues[0]['name'].should.equal('org1peer.127-0-0-1.nip.io:8080');
-            peerValues[0]['apiOptions'].should.deep.equal({
-                'grpc.default_authority': 'org1peer.127-0-0-1.nip.io:8080',
-                'grpc.ssl_target_name_override': 'org1peer.127-0-0-1.nip.io:8080'
-            });
-        });
-
         it('should create secure peer clients for each secure peer node with an SSL target name override', async () => {
             const node: FabricNode = FabricNode.newSecurePeer(
                 'peer0.org2.example.com',
@@ -333,34 +303,6 @@ describe('FabricEnvironmentConnection', () => {
             const orderer: ConnectOptions = connection['lifecycle'].getOrderer(results[0]);
             orderer.url.should.equal('grpc://localhost:8080');
             orderer['grpc.some_option'].should.equal('some_value');
-        });
-
-        it('should create orderer clients for each orderer node with API options that override the name', async () => {
-            const node: FabricNode = FabricNode.newOrderer(
-                'orderer',
-                'Orderer',
-                `grpc://localhost:8080`,
-                'Org1',
-                FabricRuntimeUtil.ADMIN_USER,
-                'OrdererMSP',
-                'myCluster'
-            );
-            node.api_options = {
-                'grpc.default_authority': 'orderer.127-0-0-1.nip.io:8080',
-                'grpc.ssl_target_name_override': 'orderer.127-0-0-1.nip.io:8080'
-            };
-            connection.disconnect();
-            await connection.connect([node]);
-
-            const results: string[] = connection['lifecycle'].getAllOrdererNames();
-
-            results.length.should.equal(1);
-            results[0].should.equal('orderer.127-0-0-1.nip.io:8080');
-
-            const orderer: ConnectOptions = connection['lifecycle'].getOrderer(results[0]);
-            orderer.url.should.equal('grpc://localhost:8080');
-            orderer['grpc.default_authority'].should.equal('orderer.127-0-0-1.nip.io:8080');
-            orderer['grpc.ssl_target_name_override'].should.equal('orderer.127-0-0-1.nip.io:8080');
         });
 
         it('should create secure orderer clients for each secure orderer node with an SSL target name override', async () => {
@@ -767,10 +709,23 @@ describe('FabricEnvironmentConnection', () => {
     describe('installSmartContract', () => {
         const packagePath: string = path.join(TEST_PACKAGE_DIRECTORY, 'myContract@0.0.1.tar.gz');
 
-        let installSmartContractStub: sinon.SinonStub;
+        let mockPeer: sinon.SinonStubbedInstance<LifecyclePeer>;
 
         beforeEach(() => {
-            installSmartContractStub = mySandBox.stub(LifecyclePeer.prototype, 'installSmartContractPackage');
+            mockPeer = mySandBox.createStubInstance(LifecyclePeer);
+
+            connection['lifecycle']['peers'].clear();
+            connection['lifecycle']['peers'].set('peer0.org1.example.com', mockPeer);
+
+            mockPeer.getAllInstalledSmartContracts.resolves([
+                {
+                    label: 'biscuit_network',
+                    packageId: 'biscuit_network:12345'
+                },
+                {
+                    label: 'cake_network',
+                    packageId: 'cake_network:12345' }
+            ]);
         });
 
         it('should install the smart contract package', async () => {
@@ -780,10 +735,10 @@ describe('FabricEnvironmentConnection', () => {
                     status: 200
                 }
             }]];
-            installSmartContractStub.resolves(responseStub);
+            mockPeer.installSmartContractPackage.resolves(responseStub);
 
-            await connection.installSmartContract(packagePath, 'peer0.org1.example.com', 90000);
-            installSmartContractStub.should.have.been.calledWith(
+            await connection.installSmartContract(packagePath, 'peer0.org1.example.com', 'myContract_0.0.1', 90000);
+            mockPeer.installSmartContractPackage.should.have.been.calledWith(
                 sinon.match((buffer: Buffer) => {
                     buffer.should.be.an.instanceOf(Buffer);
                     buffer.length.should.equal(413);
@@ -795,10 +750,10 @@ describe('FabricEnvironmentConnection', () => {
 
         it('should handle error response', async () => {
             const error: Error = new Error('some error');
-            installSmartContractStub.rejects(error);
+            mockPeer.installSmartContractPackage.rejects(error);
 
-            await connection.installSmartContract(packagePath, 'peer0.org1.example.com').should.be.rejectedWith(/some error/);
-            installSmartContractStub.should.have.been.calledWith(
+            await connection.installSmartContract(packagePath, 'peer0.org1.example.com', 'some_label').should.be.rejectedWith(/some error/);
+            mockPeer.installSmartContractPackage.should.have.been.calledWith(
                 sinon.match((buffer: Buffer) => {
                     buffer.should.be.an.instanceOf(Buffer);
                     buffer.length.should.equal(413);
@@ -811,21 +766,41 @@ describe('FabricEnvironmentConnection', () => {
         it('should handle an error if the smart contract package does not exist', async () => {
             const invalidPackagePath: string = path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-doesnotexist@0.0.1.cds');
 
-            await connection.installSmartContract(invalidPackagePath, 'peer0.org1.example.com')
+            await connection.installSmartContract(invalidPackagePath, 'peer0.org1.example.com', 'vscode-pkg-doesnotexist_0.0.1')
                 .should.have.been.rejectedWith(/ENOENT/);
         });
 
         it('should handle an error installing the smart contract package', async () => {
-            installSmartContractStub.rejects(new Error('such error'));
+            mockPeer.installSmartContractPackage.rejects(new Error('such error'));
 
-            await connection.installSmartContract(packagePath, 'peer0.org1.example.com')
+            await connection.installSmartContract(packagePath, 'peer0.org1.example.com', 'some_label')
                 .should.have.been.rejectedWith(/such error/);
         });
 
         it('should throw an error installing smart contract onto a peer that does not exist', async () => {
-            await connection.installSmartContract(packagePath, 'nosuch.peer0.org1.example.com')
+            await connection.installSmartContract(packagePath, 'nosuch.peer0.org1.example.com', 'some_label')
                 .should.be.rejectedWith(/does not exist/);
         });
+
+        it('should return packageId if when peer throws chaincode already successfully installed', async () => {
+            const error: Error = new Error('failed to invoke backing implementation of \'InstallChaincode\': chaincode already successfully installed');
+            mockPeer.installSmartContractPackage.rejects(error);
+
+            const packageId: string = await connection.installSmartContract(packagePath, 'peer0.org1.example.com', 'cake_network');
+
+            mockPeer.getAllInstalledSmartContracts.should.have.been.called;
+            packageId.should.equal('cake_network:12345');
+        });
+
+        it('should handle peer throwing chaincode already successfully installed but sdk not returning the package', async () => {
+            const error: Error = new Error('failed to invoke backing implementation of \'InstallChaincode\': chaincode already successfully installed');
+            mockPeer.installSmartContractPackage.rejects(error);
+
+            await connection.installSmartContract(packagePath, 'peer0.org1.example.com', 'cookie_network').should.be.rejectedWith(`Unable to find installed contract for cookie_network after receiving: ${error.message}`);
+
+            mockPeer.getAllInstalledSmartContracts.should.have.been.called;
+        });
+
     });
 
     describe('approveSmartContractDefinition', () => {

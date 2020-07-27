@@ -189,8 +189,17 @@ export abstract class FabricConnection {
             const mspid: string = endorser.mspid;
             const url: string = endorser.endpoint['url'];
             const pem: string = endorser.endpoint['options'].pem;
+            // This is a bit janky as all of the options in the endpoint are jammed
+            // into one object, but the API below wants them separated... so just
+            // look for the grpc.* options which are the only ones we care about.
+            const apiOptions: object = {};
+            for (const [key, value] of Object.entries(endorser.endpoint['options'])) {
+                if (key.startsWith('grpc.')) {
+                    apiOptions[key] = value;
+                }
+            }
 
-            this.lifecycle.addPeer({ name, mspid, url, pem });
+            this.lifecycle.addPeer({ name, mspid, url, pem, apiOptions });
         }
     }
 
