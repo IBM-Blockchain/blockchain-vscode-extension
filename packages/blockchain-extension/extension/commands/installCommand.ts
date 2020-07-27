@@ -62,7 +62,7 @@ export async function installSmartContract(orgMap: Map<string, string[]>, chosen
                     if (timeout) {
                         timeout = timeout * 1000;
                     }
-                    packageId = await connection.installSmartContract(chosenPackage.path, peer, timeout);
+                    packageId = await connection.installSmartContract(chosenPackage.path, peer, `${chosenPackage.name}_${chosenPackage.version}`, timeout);
                     outputAdapter.log(LogType.SUCCESS, `Successfully installed on peer ${peer}`);
                 } catch (error) {
                     outputAdapter.log(LogType.ERROR, `Failed to install on peer ${peer} with reason: ${error.message}`, `Failed to install on peer ${peer} with reason: ${error.toString()}`);
