@@ -24,6 +24,13 @@ import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 
+async function update() {
+    await TimerUtil.sleep(1000);
+    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
+    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
+}
+
 export async function startFabricRuntime(registryEntry?: RuntimeTreeItem | FabricEnvironmentRegistryEntry): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'startFabricRuntime');
@@ -55,13 +62,13 @@ export async function startFabricRuntime(registryEntry?: RuntimeTreeItem | Fabri
         VSCodeBlockchainOutputAdapter.instance().show();
     }
 
-    await vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: 'IBM Blockchain Platform Extension',
-        cancellable: false
-    }, async (progress: vscode.Progress<{ message: string }>) => {
-        progress.report({ message: `Starting Fabric runtime ${runtime.getName()}` });
-        try {
+    try {
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: 'IBM Blockchain Platform Extension',
+            cancellable: false
+        }, async (progress: vscode.Progress<{ message: string }>) => {
+            progress.report({ message: `Starting Fabric runtime ${runtime.getName()}` });
 
             if (runtime instanceof LocalEnvironment) {
                 const isCreated: boolean = await runtime.isCreated();
@@ -70,14 +77,12 @@ export async function startFabricRuntime(registryEntry?: RuntimeTreeItem | Fabri
                 }
             }
             await runtime.start(outputAdapter);
-        } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Failed to start ${runtime.getName()}: ${error.message}`, `Failed to start ${runtime.getName()}: ${error.toString()}`);
-        }
-
-        await TimerUtil.sleep(1000);
-
-        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
-        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
-        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
-    });
+            await update();
+        });
+    }
+    catch (error)
+    {
+        await update();
+        await UserInputUtil.failedNetworkStart(`Failed to start ${runtime.getName()}: ${error.message}`, `Failed to start ${runtime.getName()}: ${error.toString()}`);
+    }
 }
