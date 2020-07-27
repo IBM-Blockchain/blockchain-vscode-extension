@@ -14,7 +14,6 @@
 
 // tslint:disable no-unused-expression
 
-import Axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import { MicrofabClient, MicrofabComponent, isIdentity, isOrderer, isPeer, isGateway } from '../../src/environments/MicrofabClient';
 import * as chai from 'chai';
@@ -30,7 +29,7 @@ describe('MicrofabClient', () => {
 
     beforeEach(() => {
         client = new MicrofabClient('http://console.microfab.example.org:8080');
-        mockAxios = new MockAdapter(Axios);
+        mockAxios = new MockAdapter(client['axios']);
         mockAxios.onGet('http://console.microfab.example.org:8080/ak/api/v1/components').reply(200, [
             {
                 id: 'ordereradmin',
@@ -155,6 +154,36 @@ describe('MicrofabClient', () => {
 
     afterEach(() => {
         mockAxios.restore();
+    });
+
+    describe('#isAlive', () => {
+
+        it('should return true if alive', async () => {
+            mockAxios.onGet('http://console.microfab.example.org:8080/ak/api/v1/health').reply(200, {});
+            await client.isAlive().should.eventually.be.true;
+        });
+
+        it('should return false if not alive (HTTP status code)', async () => {
+            mockAxios.onGet('http://console.microfab.example.org:8080/ak/api/v1/health').reply(500, { error: 'internal server error' });
+            await client.isAlive().should.eventually.be.false;
+        });
+
+        it('should return false if not alive (network error)', async () => {
+            mockAxios.onGet('http://console.microfab.example.org:8080/ak/api/v1/health').networkError();
+            await client.isAlive().should.eventually.be.false;
+        });
+
+        it('should return false if not alive (timeout)', async () => {
+            mockAxios.onGet('http://console.microfab.example.org:8080/ak/api/v1/health').reply(() => {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve([200, {}]);
+                    }, 2000);
+                });
+            });
+            await client.isAlive().should.eventually.be.false;
+        });
+
     });
 
     describe('#getComponents', () => {

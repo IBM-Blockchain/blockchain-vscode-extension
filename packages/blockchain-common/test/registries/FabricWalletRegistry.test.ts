@@ -143,6 +143,7 @@ describe('FabricWalletRegistry', () => {
 
             const newMicrofabEnvironmentStub: sinon.SinonStub = sandbox.stub(FabricWalletRegistry.instance(), 'newMicrofabEnvironment');
             const mockMicrofabEnvironment: sinon.SinonStubbedInstance<MicrofabEnvironment> = sinon.createStubInstance(MicrofabEnvironment);
+            mockMicrofabEnvironment.isAlive.resolves(true);
             mockMicrofabEnvironment.getWalletsAndIdentities.resolves([
                 {
                     name: 'myWallet',
@@ -161,6 +162,47 @@ describe('FabricWalletRegistry', () => {
             entries[0].displayName.should.equal('ansibleEnvironment - myWallet');
             entries[1].displayName.should.equal('microfabEnvironment - myWallet');
             entries[2].should.deep.equal(walletOne);
+
+        });
+
+        it('should get all including environments ones, but excluding Microfab ones that are not alive', async () => {
+            const walletOne: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+                name: 'walletOne',
+                walletPath: 'myPath'
+            });
+
+            await registry.getAll().should.eventually.deep.equal([]);
+
+            await registry.add(walletOne);
+
+            await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
+                name: 'ansibleEnvironment',
+                environmentDirectory: path.join('test', 'data', 'nonManagedAnsible'),
+                environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
+                managedRuntime: false
+            }));
+            await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
+                name: 'microfabEnvironment',
+                environmentDirectory: path.join('test', 'data', 'microfab'),
+                environmentType: EnvironmentType.MICROFAB_ENVIRONMENT,
+                managedRuntime: false
+            }));
+
+            const newMicrofabEnvironmentStub: sinon.SinonStub = sandbox.stub(FabricWalletRegistry.instance(), 'newMicrofabEnvironment');
+            const mockMicrofabEnvironment: sinon.SinonStubbedInstance<MicrofabEnvironment> = sinon.createStubInstance(MicrofabEnvironment);
+            mockMicrofabEnvironment.isAlive.resolves(false);
+            mockMicrofabEnvironment.getWalletsAndIdentities.rejects(new Error('should not be called'));
+            newMicrofabEnvironmentStub.callsFake((name: string, directory: string, url: string): sinon.SinonStubbedInstance<MicrofabEnvironment> => {
+                newMicrofabEnvironmentStub['wrappedMethod'](name, directory, url);
+                return mockMicrofabEnvironment;
+            });
+
+            const entries: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
+
+            entries.length.should.equal(2);
+
+            entries[0].displayName.should.equal('ansibleEnvironment - myWallet');
+            entries[1].should.deep.equal(walletOne);
 
         });
 

@@ -97,6 +97,7 @@ describe('MicrofabEnvironment', () => {
         directory = tmp.dirSync().name;
         environment = new MicrofabEnvironment('microfabEnvironment', directory, 'http://console.microfab.example.org:8080');
         mockClient =  sinon.createStubInstance(MicrofabClient);
+        mockClient.isAlive.resolves(true);
         mockClient.getComponents.resolves([
             {
                 id: 'ordereradmin',
@@ -215,6 +216,28 @@ describe('MicrofabEnvironment', () => {
 
     afterEach(() => {
         sandbox.restore();
+    });
+
+    describe('#getURL', () => {
+
+        it('should return the URL', () => {
+            environment.getURL().should.equal('http://console.microfab.example.org:8080');
+        });
+
+    });
+
+    describe('#isAlive', () => {
+
+        it('should return true if alive', async () => {
+            mockClient.isAlive.resolves(true);
+            await environment.isAlive().should.eventually.be.true;
+        });
+
+        it('should return false if not alive', async () => {
+            mockClient.isAlive.resolves(false);
+            await environment.isAlive().should.eventually.be.false;
+        });
+
     });
 
     describe('#getAllOrganizationNames', () => {
