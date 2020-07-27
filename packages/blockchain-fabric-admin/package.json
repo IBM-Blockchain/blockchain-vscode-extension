@@ -24,6 +24,7 @@
         "generatePolcyParser": "pegjs --plugin ./node_modules/ts-pegjs --extra-options-file ./src/pegjs/config.json -o ./src/pegjs/policyParser.ts --cache ./src/pegjs/endorsementPolicy.pegjs"
     },
     "dependencies": {
+        "deep-equal": "2.0.3",
         "fabric-ca-client": "2.1.2",
         "fabric-common": "2.1.2",
         "fabric-network": "2.1.2",
@@ -39,6 +40,7 @@
         "@types/chai": "^4.2.10",
         "@types/chai-as-promised": "^7.1.2",
         "@types/cucumber": "^6.0.1",
+        "@types/deep-equal": "^1.0.1",
         "@types/fs-extra": "^8.1.0",
         "@types/long": "^4.0.1",
         "@types/mocha": "^7.0.2",

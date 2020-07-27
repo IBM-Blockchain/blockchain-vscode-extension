@@ -69,20 +69,8 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
                     if (node.api_options) {
                         apiOptions = node.api_options;
                     }
-                    // Figure out what the name of the node should be; if the hostname is localhost, and any of these options are
-                    // being used to set the actual name in the host/authority header - then we should use that name instead.
-                    let name: string = node.name;
-                    if (apiOptions) {
-                        const nameOverrides: string[] = ['grpc.default_authority', 'grpc.ssl_target_name_override'];
-                        for (const nameOverride of nameOverrides) {
-                            if (apiOptions[nameOverride]) {
-                                name = apiOptions[nameOverride];
-                                break;
-                            }
-                        }
-                    }
                     this.lifecycle.addPeer({
-                        name,
+                        name: node.name,
                         mspid: node.msp_id,
                         pem,
                         sslTargetNameOverride,
@@ -105,20 +93,8 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
                     if (node.api_options) {
                         apiOptions = node.api_options;
                     }
-                    // Figure out what the name of the node should be; if the hostname is localhost, and any of these options are
-                    // being used to set the actual name in the host/authority header - then we should use that name instead.
-                    let name: string = node.name;
-                    if (apiOptions) {
-                        const nameOverrides: string[] = ['grpc.default_authority', 'grpc.ssl_target_name_override'];
-                        for (const nameOverride of nameOverrides) {
-                            if (apiOptions[nameOverride]) {
-                                name = apiOptions[nameOverride];
-                                break;
-                            }
-                        }
-                    }
                     this.lifecycle.addOrderer({
-                        name,
+                        name: node.name,
                         pem: pem,
                         sslTargetNameOverride,
                         url: node.api_url,

@@ -90,7 +90,10 @@ describe('LifecycleChannel', () => {
             url: 'grpc://localhost:8051',
             mspid: 'myMSPID',
             name: 'myPeer2',
-            sslTargetNameOverride: 'localhost'
+            sslTargetNameOverride: 'localhost',
+            apiOptions: {
+                'grpc.some_setting': 'maximum power'
+            }
         });
 
         lifecycle.addOrderer({
@@ -1592,6 +1595,65 @@ describe('LifecycleChannel', () => {
                 const result: string[] = await channel.getDiscoveredPeerNames(['myPeer']);
 
                 result.should.deep.equal(['myPeer', 'Org2Peer1', 'peer1.org3.example.com:6051']);
+
+                discoverServiceSignStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                discoverServiceBuildStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+
+                discoverServiceSendStub.should.have.been.calledWith({
+                    asLocalhost: true,
+                    targets: [sinon.match.instanceOf(Discoverer)]
+                });
+            });
+
+            it('should filter out peers with the same endpoint and same options and return discovered peers', async () => {
+                getEndorsersStub.returns([
+                    {
+                        name: 'myPeer1',
+                        endpoint: {
+                            url: 'localhost:8080',
+                            options: {
+                                'grpc.default_authority': 'peer0.org1.example.com'
+                            }
+                        }
+                    },
+                    {
+                        name: 'myPeer2',
+                        endpoint: {
+                            url: 'localhost:8080'
+                        }
+                    },
+                    {
+                        name: 'myPeer3',
+                        endpoint: {
+                            url: 'localhost:8080',
+                            options: {
+                                'grpc.default_authority': 'peer0.org1.example.com'
+                            }
+                        }
+                    },
+                    {
+                        name: 'myPeer4',
+                        endpoint: {
+                            url: '192.168.1.12:8080',
+                            options: {
+                                'grpc.default_authority': 'peer0.org1.example.com'
+                            }
+                        }
+                    },
+                    {
+                        name: 'myPeer5',
+                        endpoint: {
+                            url: 'localhost:8080',
+                            options: {
+                                'grpc.default_authority': 'peer0.org2.example.com'
+                            }
+                        }
+                    },
+                ]);
+
+                const result: string[] = await channel.getDiscoveredPeerNames(['myPeer']);
+
+                result.should.deep.equal(['myPeer2', 'myPeer3', 'myPeer4', 'myPeer5']);
 
                 discoverServiceSignStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 discoverServiceBuildStub.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));

@@ -44,6 +44,7 @@ import { LifecyclePeer } from './LifecyclePeer';
 import { EndorsementPolicy } from './Policy';
 import { Collection, CollectionConfig } from './CollectionConfig';
 import { URL } from 'url';
+import deepEqual = require('deep-equal');
 
 const logger: any = Utils.getLogger('LifecycleChannel');
 
@@ -473,7 +474,15 @@ export class LifecycleChannel {
 
         for (let currentIndex: number = endorsers.length - 1; currentIndex >= 0; currentIndex--) {
             const endorser: Endorser = endorsers[currentIndex];
-            const duplicateIndex: number = endorsers.findIndex((_endorser: Endorser) => { return _endorser.endpoint['url'] === endorser.endpoint['url'] && endorser.name !== _endorser.name });
+            const duplicateIndex: number = endorsers.findIndex((_endorser: Endorser) => {
+                if (_endorser.endpoint['url'] !== endorser.endpoint['url']) {
+                    return false;
+                } else if (!deepEqual(_endorser.endpoint['options'] || {}, endorser.endpoint['options'] || {})) {
+                    return false;
+                } else {
+                    return _endorser.name !== endorser.name;
+                }
+            });
             if (duplicateIndex === -1) {
                 continue;
             } else {
@@ -709,6 +718,10 @@ export class LifecycleChannel {
 
         if (peer.requestTimeout) {
             peerConnectOptions.requestTimeout = peer.requestTimeout;
+        }
+
+        if (peer.apiOptions) {
+            Object.assign(peerConnectOptions, peer.apiOptions);
         }
 
         const endpoint: Endpoint = fabricClient.newEndpoint(peerConnectOptions);
