@@ -65,7 +65,7 @@ describe('deployCommand', () => {
             environmentRegistryEntry.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
 
             packageRegistryEntry = new PackageRegistryEntry({
-                name: 'vscode-pkg-1@0.0.1',
+                name: 'vscode-pkg-1',
                 path: path.join('myPath', 'vscode-pkg-1@0.0.1.tar.gz'),
                 version: '0.0.1',
                 sizeKB: 23.45

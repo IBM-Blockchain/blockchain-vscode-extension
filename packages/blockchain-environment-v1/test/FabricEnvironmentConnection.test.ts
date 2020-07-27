@@ -767,10 +767,23 @@ describe('FabricEnvironmentConnection', () => {
     describe('installSmartContract', () => {
         const packagePath: string = path.join(TEST_PACKAGE_DIRECTORY, 'myContract@0.0.1.tar.gz');
 
-        let installSmartContractStub: sinon.SinonStub;
+        let mockPeer: sinon.SinonStubbedInstance<LifecyclePeer>;
 
         beforeEach(() => {
-            installSmartContractStub = mySandBox.stub(LifecyclePeer.prototype, 'installSmartContractPackage');
+            mockPeer = mySandBox.createStubInstance(LifecyclePeer);
+
+            connection['lifecycle']['peers'].clear();
+            connection['lifecycle']['peers'].set('peer0.org1.example.com', mockPeer);
+
+            mockPeer.getAllInstalledSmartContracts.resolves([
+                {
+                    label: 'biscuit_network',
+                    packageId: 'biscuit_network:12345'
+                },
+                {
+                    label: 'cake_network',
+                    packageId: 'cake_network:12345' }
+            ]);
         });
 
         it('should install the smart contract package', async () => {
@@ -780,10 +793,10 @@ describe('FabricEnvironmentConnection', () => {
                     status: 200
                 }
             }]];
-            installSmartContractStub.resolves(responseStub);
+            mockPeer.installSmartContractPackage.resolves(responseStub);
 
-            await connection.installSmartContract(packagePath, 'peer0.org1.example.com', 90000);
-            installSmartContractStub.should.have.been.calledWith(
+            await connection.installSmartContract(packagePath, 'peer0.org1.example.com', 'myContract_0.0.1', 90000);
+            mockPeer.installSmartContractPackage.should.have.been.calledWith(
                 sinon.match((buffer: Buffer) => {
                     buffer.should.be.an.instanceOf(Buffer);
                     buffer.length.should.equal(413);
@@ -795,10 +808,10 @@ describe('FabricEnvironmentConnection', () => {
 
         it('should handle error response', async () => {
             const error: Error = new Error('some error');
-            installSmartContractStub.rejects(error);
+            mockPeer.installSmartContractPackage.rejects(error);
 
-            await connection.installSmartContract(packagePath, 'peer0.org1.example.com').should.be.rejectedWith(/some error/);
-            installSmartContractStub.should.have.been.calledWith(
+            await connection.installSmartContract(packagePath, 'peer0.org1.example.com', 'some_label').should.be.rejectedWith(/some error/);
+            mockPeer.installSmartContractPackage.should.have.been.calledWith(
                 sinon.match((buffer: Buffer) => {
                     buffer.should.be.an.instanceOf(Buffer);
                     buffer.length.should.equal(413);
@@ -811,21 +824,41 @@ describe('FabricEnvironmentConnection', () => {
         it('should handle an error if the smart contract package does not exist', async () => {
             const invalidPackagePath: string = path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-doesnotexist@0.0.1.cds');
 
-            await connection.installSmartContract(invalidPackagePath, 'peer0.org1.example.com')
+            await connection.installSmartContract(invalidPackagePath, 'peer0.org1.example.com', 'vscode-pkg-doesnotexist_0.0.1')
                 .should.have.been.rejectedWith(/ENOENT/);
         });
 
         it('should handle an error installing the smart contract package', async () => {
-            installSmartContractStub.rejects(new Error('such error'));
+            mockPeer.installSmartContractPackage.rejects(new Error('such error'));
 
-            await connection.installSmartContract(packagePath, 'peer0.org1.example.com')
+            await connection.installSmartContract(packagePath, 'peer0.org1.example.com', 'some_label')
                 .should.have.been.rejectedWith(/such error/);
         });
 
         it('should throw an error installing smart contract onto a peer that does not exist', async () => {
-            await connection.installSmartContract(packagePath, 'nosuch.peer0.org1.example.com')
+            await connection.installSmartContract(packagePath, 'nosuch.peer0.org1.example.com', 'some_label')
                 .should.be.rejectedWith(/does not exist/);
         });
+
+        it('should return packageId if when peer throws chaincode already successfully installed', async () => {
+            const error: Error = new Error('failed to invoke backing implementation of \'InstallChaincode\': chaincode already successfully installed');
+            mockPeer.installSmartContractPackage.rejects(error);
+
+            const packageId: string = await connection.installSmartContract(packagePath, 'peer0.org1.example.com', 'cake_network');
+
+            mockPeer.getAllInstalledSmartContracts.should.have.been.called;
+            packageId.should.equal('cake_network:12345');
+        });
+
+        it('should handle peer throwing chaincode already successfully installed but sdk not returning the package', async () => {
+            const error: Error = new Error('failed to invoke backing implementation of \'InstallChaincode\': chaincode already successfully installed');
+            mockPeer.installSmartContractPackage.rejects(error);
+
+            await connection.installSmartContract(packagePath, 'peer0.org1.example.com', 'cookie_network').should.be.rejectedWith(`Unable to find installed contract for cookie_network after receiving: ${error.message}`);
+
+            mockPeer.getAllInstalledSmartContracts.should.have.been.called;
+        });
+
     });
 
     describe('approveSmartContractDefinition', () => {

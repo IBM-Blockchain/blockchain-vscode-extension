@@ -50,7 +50,7 @@ export interface IFabricEnvironmentConnection {
 
     getAllOrdererNames(): Array<string>;
 
-    installSmartContract(pathToPackage: string, peerName: string, defaultTimeout?: number): Promise<string>;
+    installSmartContract(pathToPackage: string, peerName: string, label: string, defaultTimeout?: number): Promise<string>;
 
     instantiateChaincode(chaincodeName: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionPath: string, contractEP: any): Promise<Buffer>;
 
