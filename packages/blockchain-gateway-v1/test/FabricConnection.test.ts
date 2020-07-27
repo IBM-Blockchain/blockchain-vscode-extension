@@ -128,7 +128,10 @@ describe('FabricConnection', () => {
             mspid: 'Org1MSP',
             endpoint: {
                 url: 'grpc://localhost:7051',
-                options: {}
+                options: {
+                    'grpc.default_authority': 'batman.ibm.com',
+                    'somewhere_over_the_rainbow': 'wat'
+                }
             }
         }, {
             name: 'peer0.org2.example.com',
