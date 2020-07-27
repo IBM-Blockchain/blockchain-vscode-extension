@@ -50,6 +50,7 @@ export class UserInputUtil {
     static readonly NO: string = 'No';
     static readonly DEFAULT: string = 'Default';
     static readonly CUSTOM: string = 'Custom';
+    static readonly MORE_DETAILS: string = 'More Details'
 
     static readonly DEFAULT_SC_EP: string = `${UserInputUtil.DEFAULT} (single endorser, any org)`;
 
@@ -1058,6 +1059,17 @@ export class UserInputUtil {
             await vscode.commands.executeCommand('vscode.open', uri);
         }
     }
+
+    public static async failedNetworkStart(popupMsg: string, logMsg: string): Promise<void> {
+
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+        outputAdapter.log(LogType.ERROR, undefined, logMsg);
+        const response: string = await vscode.window.showErrorMessage(popupMsg, UserInputUtil.MORE_DETAILS);
+        if (response === UserInputUtil.MORE_DETAILS) {
+            outputAdapter.show();
+        }
+     }
+
 
     /**
      * Method to determine if there are multiple smart contracts within the active workspace.

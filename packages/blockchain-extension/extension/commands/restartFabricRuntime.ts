@@ -57,27 +57,28 @@ export async function restartFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): P
     }
     const runtime: LocalEnvironment | ManagedAnsibleEnvironment = EnvironmentFactory.getEnvironment(registryEntry) as LocalEnvironment | ManagedAnsibleEnvironment;
 
-    await vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: 'IBM Blockchain Platform Extension',
-        cancellable: false
-    }, async (progress: vscode.Progress<{ message: string }>) => {
-        progress.report({ message: `Restarting Fabric runtime ${runtime.getName()}` });
+    try {
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: 'IBM Blockchain Platform Extension',
+            cancellable: false
+        }, async (progress: vscode.Progress<{ message: string }>) => {
+            progress.report({ message: `Restarting Fabric runtime ${runtime.getName()}` });
 
-        const connectedGatewayRegistry: FabricGatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
-        if (connectedGatewayRegistry && connectedGatewayRegistry.fromEnvironment === registryEntry.name) {
-            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
-        }
+            const connectedGatewayRegistry: FabricGatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
+            if (connectedGatewayRegistry && connectedGatewayRegistry.fromEnvironment === registryEntry.name) {
+                await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
+            }
 
-        const connectedEnvironmentRegistry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
-        if (connectedEnvironmentRegistry && registryEntry.name === connectedEnvironmentRegistry.name) {
-            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
-        }
-
-        try {
+            const connectedEnvironmentRegistry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+            if (connectedEnvironmentRegistry && registryEntry.name === connectedEnvironmentRegistry.name) {
+                await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            }
             await runtime.restart(outputAdapter);
-        } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Failed to restart ${runtime.getName()}: ${error.message}`, `Failed to restart ${runtime.getName()}: ${error.toString()}`);
-        }
-    });
+        });
+    }
+    catch (error)
+    {
+        await UserInputUtil.failedNetworkStart(`Failed to restart ${runtime.getName()}: ${error.message}`, `Failed to restart ${runtime.getName()}: ${error.toString()}`);
+    }
 }
