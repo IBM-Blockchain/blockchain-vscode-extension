@@ -2715,6 +2715,26 @@ describe('UserInputUtil', () => {
         });
     });
 
+    describe('failedNetworkStart', () => {
+
+         it('should display a message passed and the More Details button', async () => {
+            const showErrorMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showErrorMessage').resolves();
+            const showStub: sinon.SinonStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'show');
+            await UserInputUtil.failedNetworkStart('some error', 'some error message');
+            showErrorMessageStub.should.have.been.calledOnceWithExactly('some error', UserInputUtil.MORE_DETAILS);
+            showStub.should.not.have.been.called;
+         });
+
+         it('should display the Output channel if selected', async () => {
+            const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+            const showErrorMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showErrorMessage').resolves(UserInputUtil.MORE_DETAILS);
+            const showOutputChannelStub: sinon.SinonStub = mySandBox.stub(outputAdapter, 'show').resolves();
+            await UserInputUtil.failedNetworkStart('some error', 'some error message');
+            showErrorMessageStub.should.have.been.calledOnceWithExactly('some error', UserInputUtil.MORE_DETAILS);
+            showOutputChannelStub.should.have.been.calledOnce;
+        });
+     });
+
     describe('showQuickPick', () => {
         it('should be able to pick an item', async () => {
             const items: string[] = ['itemOne', 'itemTwo'];

@@ -346,6 +346,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
                     errorMessage += `\n${endorsementError}`;
                 }
             }
+            outputAdapter.show();
             if (transactionObject) {
                 return errorMessage;
             }
