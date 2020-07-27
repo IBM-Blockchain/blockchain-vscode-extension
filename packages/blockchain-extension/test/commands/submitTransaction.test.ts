@@ -56,6 +56,7 @@ describe('SubmitTransactionCommand', () => {
         let executeCommandStub: sinon.SinonStub;
         let logSpy: sinon.SinonSpy;
         let dockerLogsOutputSpy: sinon.SinonSpy;
+        let blockchainLogsOutputSpy: sinon.SinonSpy;
         let getConnectionStub: sinon.SinonStub;
         let showInstantiatedSmartContractQuickPickStub: sinon.SinonStub;
         let showTransactionQuickPickStub: sinon.SinonStub;
@@ -313,6 +314,7 @@ describe('SubmitTransactionCommand', () => {
 
         it('should handle error from evaluating transaction', async () => {
             fabricClientConnectionMock.submitTransaction.rejects({ message: 'some error' });
+            blockchainLogsOutputSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'show');
 
             await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
 
@@ -320,10 +322,12 @@ describe('SubmitTransactionCommand', () => {
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Error evaluating transaction: some error');
             reporterStub.should.not.have.been.called;
             dockerLogsOutputSpy.should.not.have.been.called;
+            blockchainLogsOutputSpy.should.have.been.calledOnce;
         });
 
         it('should handle error from evaluating transaction and output further errors', async () => {
             fabricClientConnectionMock.submitTransaction.rejects({ message: 'some error', endorsements: [{message: 'another error'}, {message: 'more error'}]});
+            blockchainLogsOutputSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'show');
 
             await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
 
@@ -334,6 +338,7 @@ describe('SubmitTransactionCommand', () => {
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Endorsement failed with: more error');
             reporterStub.should.not.have.been.called;
             dockerLogsOutputSpy.should.not.have.been.called;
+            blockchainLogsOutputSpy.should.have.been.calledOnce;
         });
 
         it('should handle cancel when choosing transaction', async () => {
@@ -752,6 +757,7 @@ describe('SubmitTransactionCommand', () => {
 
         it('should handle error from submitting a transaction through the transaction view', async () => {
             fabricClientConnectionMock.submitTransaction.rejects({ message: 'some error' });
+            blockchainLogsOutputSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'show');
 
             const transactionObject: any = {
                 smartContract: 'myContract',
@@ -768,10 +774,12 @@ describe('SubmitTransactionCommand', () => {
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Error submitting transaction: some error');
             reporterStub.should.not.have.been.called;
             dockerLogsOutputSpy.should.not.have.been.called;
+            blockchainLogsOutputSpy.should.have.been.calledOnce;
         });
 
         it('should handle error from submitting transaction through the transaction view and output further errors', async () => {
             fabricClientConnectionMock.submitTransaction.rejects({ message: 'some error', endorsements: [{message: 'another error'}, {message: 'more error'}]});
+            blockchainLogsOutputSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'show');
 
             const transactionObject: any = {
                 smartContract: 'myContract',
@@ -791,10 +799,12 @@ describe('SubmitTransactionCommand', () => {
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Endorsement failed with: more error');
             reporterStub.should.not.have.been.called;
             dockerLogsOutputSpy.should.not.have.been.called;
+            blockchainLogsOutputSpy.should.have.been.calledOnce;
         });
 
         it('should handle error from evaluating a transaction through the transaction view', async () => {
             fabricClientConnectionMock.submitTransaction.rejects({ message: 'some error' });
+            blockchainLogsOutputSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'show');
 
             const transactionObject: any = {
                 smartContract: 'myContract',
@@ -811,10 +821,12 @@ describe('SubmitTransactionCommand', () => {
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Error evaluating transaction: some error');
             reporterStub.should.not.have.been.called;
             dockerLogsOutputSpy.should.not.have.been.called;
+            blockchainLogsOutputSpy.should.have.been.calledOnce;
         });
 
         it('should handle error from evaluating transaction through the transaction view and output further errors', async () => {
             fabricClientConnectionMock.submitTransaction.rejects({ message: 'some error', endorsements: [{message: 'another error'}, {message: 'more error'}]});
+            blockchainLogsOutputSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'show');
 
             const transactionObject: any = {
                 smartContract: 'myContract',
@@ -834,6 +846,7 @@ describe('SubmitTransactionCommand', () => {
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Endorsement failed with: more error');
             reporterStub.should.not.have.been.called;
             dockerLogsOutputSpy.should.not.have.been.called;
+            blockchainLogsOutputSpy.should.have.been.calledOnce;
         });
 
         it(`should handle error when given incorrect args in the transaction view`, async () => {
