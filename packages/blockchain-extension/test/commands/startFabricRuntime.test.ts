@@ -42,6 +42,7 @@ describe('startFabricRuntime', () => {
     let blockchainLogsOutputSpy: sinon.SinonSpy;
     let commandStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
+    let popupStub: sinon.SinonStub;
     let localRegistryEntry: FabricEnvironmentRegistryEntry;
     let showFabricEnvironmentQuickPickBoxStub: sinon.SinonStub;
     let getEnvironmentStub: sinon.SinonStub;
@@ -75,6 +76,7 @@ describe('startFabricRuntime', () => {
         commandStub = sandbox.stub(vscode.commands, 'executeCommand').callThrough();
         commandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT).resolves();
         logSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+        popupStub = sandbox.stub(UserInputUtil, 'failedNetworkStart').resolves();
         localRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
         showFabricEnvironmentQuickPickBoxStub = sandbox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox');
         showFabricEnvironmentQuickPickBoxStub.resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localRegistryEntry});
@@ -176,8 +178,8 @@ describe('startFabricRuntime', () => {
         commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
         commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
         blockchainLogsOutputSpy.should.have.been.called;
-        logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'startFabricRuntime');
-        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to start ${mockLocalRuntime.getName()}: ${error.message}`, `Failed to start ${mockLocalRuntime.getName()}: ${error.toString()}`);
+        popupStub.should.have.been.calledWithExactly(`Failed to start ${mockLocalRuntime.getName()}: ${error.message}`,
+                    `Failed to start ${mockLocalRuntime.getName()}: ${error.toString()}`);
     });
 
     it('should start a local environment by right-clicking the tree item (emulating)', async () => {

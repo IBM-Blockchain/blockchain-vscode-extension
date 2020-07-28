@@ -39,6 +39,7 @@ describe('restartFabricRuntime', () => {
     let getGatewayRegistryEntryStub: sinon.SinonStub;
     let getEnvironmentRegistryEntryStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
+    let popupStub: sinon.SinonStub;
     let restartStub: sinon.SinonStub;
     let executeCommandSpy: sinon.SinonSpy;
     let getConnectionStub: sinon.SinonStub;
@@ -69,6 +70,7 @@ describe('restartFabricRuntime', () => {
         getEnvironmentRegistryEntryStub.returns(localEnvironment);
 
         logSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+        popupStub = sandbox.stub(UserInputUtil, 'failedNetworkStart').resolves();
         executeCommandSpy = sandbox.spy(vscode.commands, 'executeCommand');
 
         localRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
@@ -238,9 +240,8 @@ describe('restartFabricRuntime', () => {
 
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
-
-        logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'restartFabricRuntime');
-        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to restart ${environment.getName()}: ${error.message}`, `Failed to restart ${environment.getName()}: ${error.toString()}`);
+        popupStub.should.have.been.calledWithExactly(`Failed to restart ${environment.getName()}: ${error.message}`,
+                    `Failed to restart ${environment.getName()}: ${error.toString()}`);
     });
 
     it('should be able to restart the an environment from the command', async () => {
