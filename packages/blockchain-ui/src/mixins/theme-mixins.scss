@@ -12,6 +12,35 @@
 
 @mixin custom-spacing {
 
+    // MARGINS
+    .margin-top-05{
+        margin-top: $spacing-05;
+    }
+
+    .margin-top-06{
+        margin-top: $spacing-06;
+    }
+
+    .margin-top-07{
+        margin-top: $spacing-07;
+    }
+
+    .margin-left-07 {
+        margin-left: $spacing-07;
+    } 
+
+    .margin-right-05 {
+        margin-right: $spacing-05;
+    }        
+
+    .margin-right-06 {
+        margin-right: $spacing-06;
+    } 
+    
+    .margin-right-07 {
+        margin-right: $spacing-07;
+    } 
+
     .margin-bottom-03 {
         margin-bottom: $spacing-03;
     }
@@ -28,22 +57,19 @@
         margin-bottom: $spacing-07;
     }
 
+    .margin-bottom-09 {
+        margin-bottom: $spacing-09;
+    }
+
     .margin-bottom-10{
         margin-bottom: $spacing-08 + $spacing-09;
     }
 
-    .margin-right-06 {
-        margin-right: $spacing-06;
-    }        
-
-    .margin-top-06{
-        margin-top: $spacing-06;
+    // PADDING
+    .padding-top-05{
+        padding-top: $spacing-05;
     }
-
-    .margin-top-07{
-        margin-top: $spacing-07;
-    }
-
+    
     .padding-left-05 {
         padding-left: $spacing-05;
     }
@@ -52,8 +78,8 @@
         padding-left: $spacing-07;
     }
 
-    .padding-top-05{
-        padding-top: $spacing-05;
+    .padding-right-05 {
+        padding-right: $spacing-05;
     }
 
     .padding-bottom-05 {
