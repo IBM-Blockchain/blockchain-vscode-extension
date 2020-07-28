@@ -20,7 +20,7 @@ import { ExtensionUtil } from '../util/ExtensionUtil';
 import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentManager, ConnectedState } from '../fabric/environments/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, FabricNode, LogType, FabricEnvironment, AnsibleEnvironment, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, FabricNode, LogType, FabricEnvironment, AnsibleEnvironment, EnvironmentType, MicrofabEnvironment } from 'ibm-blockchain-platform-common';
 import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
@@ -32,7 +32,7 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
         outputAdapter.log(LogType.INFO, undefined, `connecting to fabric environment`);
     }
 
-    let fabricEnvironment: FabricEnvironment | AnsibleEnvironment | ManagedAnsibleEnvironment | LocalEnvironment;
+    let fabricEnvironment: FabricEnvironment | AnsibleEnvironment | ManagedAnsibleEnvironment | LocalEnvironment | MicrofabEnvironment;
 
     try {
         if (!fabricEnvironmentRegistryEntry) {
@@ -45,6 +45,14 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
         }
 
         fabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentRegistryEntry);
+
+        if (fabricEnvironment instanceof MicrofabEnvironment) {
+            const isAlive: boolean = await fabricEnvironment.isAlive();
+            if (!isAlive) {
+                outputAdapter.log(LogType.ERROR, `Unable to connect to Microfab runtime ${fabricEnvironment.getURL()}`);
+                return;
+            }
+        }
 
         if (fabricEnvironmentRegistryEntry.managedRuntime) {
 

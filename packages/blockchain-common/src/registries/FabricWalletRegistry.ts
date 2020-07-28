@@ -114,6 +114,10 @@ export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry
         const microfabEnvironmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.MICROFAB]);
         for (const microfabEnvironmentEntry of microfabEnvironmentEntries) {
             const environment: MicrofabEnvironment = this.newMicrofabEnvironment(microfabEnvironmentEntry.name, microfabEnvironmentEntry.environmentDirectory, microfabEnvironmentEntry.url);
+            const isAlive: boolean = await environment.isAlive();
+            if (!isAlive) {
+                continue;
+            }
             const walletEntries: FabricWalletRegistryEntry[] = await environment.getWalletsAndIdentities();
             otherEntries.push(...walletEntries);
         }

@@ -25,7 +25,7 @@ import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, EnvironmentType, FabricEnvironment, FabricNode } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, EnvironmentType, FabricEnvironment, FabricNode, MicrofabEnvironment } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { RuntimeTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
@@ -56,6 +56,8 @@ describe('EnvironmentConnectCommand', () => {
         let environmentRegistryEntry: FabricEnvironmentRegistryEntry;
         let localFabricRegistryEntry: FabricEnvironmentRegistryEntry;
         let opsToolsEnvRegistryEntry: FabricEnvironmentRegistryEntry;
+        let microfabEnvRegistryEntry: FabricEnvironmentRegistryEntry;
+        let mockMicrofabEnvironment: sinon.SinonStubbedInstance<MicrofabEnvironment>;
 
         let chooseEnvironmentQuickPick: sinon.SinonStub;
         let sendTelemetryEventStub: sinon.SinonStub;
@@ -127,6 +129,14 @@ describe('EnvironmentConnectCommand', () => {
             opsToolsEnvRegistryEntry.url = '/some/cloud:port';
             opsToolsEnvRegistryEntry.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
             executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).resolves(true);
+
+            microfabEnvRegistryEntry = new FabricEnvironmentRegistryEntry({
+                environmentType: EnvironmentType.MICROFAB_ENVIRONMENT,
+                url: 'http://console.microfab.example.org:8080',
+                name: 'Microfab'
+            });
+            mockMicrofabEnvironment = sinon.createStubInstance(MicrofabEnvironment);
+            mockMicrofabEnvironment.getURL.returns(microfabEnvRegistryEntry.url);
 
             warningNoNodesEditFilterStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').withArgs(`Problem connecting to environment ${opsToolsEnvRegistryEntry.name}: no visible nodes. Would you like to filter nodes?`);
             getStateStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getState');
@@ -348,6 +358,26 @@ describe('EnvironmentConnectCommand', () => {
                 mockConnection.connect.should.not.have.been.called;
                 sendTelemetryEventStub.should.not.have.been.called;
                 logSpy.should.have.been.calledWith(LogType.ERROR, `Cannot connect to environment: ${someError.message}`, `Cannot connect to environment: ${someError.toString()}`);
+            });
+
+            it('should not log an error if connecting to a Microfab environment that is alive', async () => {
+                requireSetupStub.resolves(false);
+                chooseEnvironmentQuickPick.resolves({ label: 'Microfab', data: microfabEnvRegistryEntry });
+                getEnvironmentStub.withArgs(microfabEnvRegistryEntry).returns(mockMicrofabEnvironment);
+                mockMicrofabEnvironment.isAlive.resolves(true);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+                mockConnection.connect.should.have.been.called;
+                logSpy.should.not.have.been.calledWith(LogType.ERROR, `Unable to connect to Microfab runtime ${microfabEnvRegistryEntry.url}`);
+            });
+
+            it('should log an error if connecting to a Microfab environment that is not alive', async () => {
+                requireSetupStub.resolves(false);
+                chooseEnvironmentQuickPick.resolves({ label: 'Microfab', data: microfabEnvRegistryEntry });
+                getEnvironmentStub.withArgs(microfabEnvRegistryEntry).returns(mockMicrofabEnvironment);
+                mockMicrofabEnvironment.isAlive.resolves(false);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+                mockConnection.connect.should.not.have.been.called;
+                logSpy.should.have.been.calledWith(LogType.ERROR, `Unable to connect to Microfab runtime ${microfabEnvRegistryEntry.url}`);
             });
         });
 

@@ -124,6 +124,7 @@ describe('FabricGatewayRegistry', () => {
 
         const newMicrofabEnvironmentStub: sinon.SinonStub = sandbox.stub(FabricGatewayRegistry.instance(), 'newMicrofabEnvironment');
         const mockMicrofabEnvironment: sinon.SinonStubbedInstance<MicrofabEnvironment> = sinon.createStubInstance(MicrofabEnvironment);
+        mockMicrofabEnvironment.isAlive.resolves(true);
         mockMicrofabEnvironment.getGateways.resolves([
             {
                 name: 'microfabEnvironment - myGateway'
@@ -143,6 +144,50 @@ describe('FabricGatewayRegistry', () => {
         entries[2].name.should.equal('ansibleEnvironment - yofn-org2');
         entries[3].should.deep.equal(gatewayOne);
         entries[4].name.should.equal('microfabEnvironment - myGateway');
+    });
+
+    it('should get all including environments ones but excluding Microfab ones that are not alive', async () => {
+        const gatewayOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
+            name: 'gatewayOne',
+            associatedWallet: '',
+            connectionProfilePath: path.join('myPath', 'connection.json')
+        });
+
+        await registry.getAll().should.eventually.deep.equal([]);
+
+        await registry.add(gatewayOne);
+
+        await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
+            name: 'ansibleEnvironment',
+            environmentDirectory: path.join('test', 'data', 'nonManagedAnsible'),
+            environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
+            managedRuntime: false
+        }));
+        await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
+            name: 'microfabEnvironment',
+            environmentDirectory: path.join('test', 'data', 'microfab'),
+            environmentType: EnvironmentType.MICROFAB_ENVIRONMENT,
+            managedRuntime: false,
+            url: 'http://console.microfab.example.org'
+        }));
+
+        const newMicrofabEnvironmentStub: sinon.SinonStub = sandbox.stub(FabricGatewayRegistry.instance(), 'newMicrofabEnvironment');
+        const mockMicrofabEnvironment: sinon.SinonStubbedInstance<MicrofabEnvironment> = sinon.createStubInstance(MicrofabEnvironment);
+        mockMicrofabEnvironment.isAlive.resolves(false);
+        mockMicrofabEnvironment.getGateways.rejects(new Error('should not be called'));
+        newMicrofabEnvironmentStub.callsFake((name: string, directory: string, url: string): sinon.SinonStubbedInstance<MicrofabEnvironment> => {
+            newMicrofabEnvironmentStub['wrappedMethod'](name, directory, url);
+            return mockMicrofabEnvironment;
+        });
+
+        const entries: FabricGatewayRegistryEntry[] = await FabricGatewayRegistry.instance().getAll();
+
+        entries.length.should.equal(4);
+
+        entries[0].name.should.equal('ansibleEnvironment - myGateway');
+        entries[1].name.should.equal('ansibleEnvironment - yofn-org1');
+        entries[2].name.should.equal('ansibleEnvironment - yofn-org2');
+        entries[3].should.deep.equal(gatewayOne);
     });
 
     it('should update an unmanaged gateway', async () => {
