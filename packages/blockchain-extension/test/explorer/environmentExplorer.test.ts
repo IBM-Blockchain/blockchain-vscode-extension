@@ -107,8 +107,8 @@ describe('environmentExplorer', () => {
                 allChildren[0].label.should.equal('Simple local networks');
                 allChildren[0].tooltip.should.equal('Simple local networks');
                 allChildren[0].contextValue.should.equal('blockchain-environment-group-item');
-                allChildren[1].label.should.equal('IBM Cloud');
-                allChildren[1].tooltip.should.equal('IBM Cloud');
+                allChildren[1].label.should.equal('IBM Blockchain Platform on cloud');
+                allChildren[1].tooltip.should.equal('IBM Blockchain Platform on cloud');
                 allChildren[1].contextValue.should.equal('blockchain-environment-group-item');
 
                 const localEnvItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
@@ -149,8 +149,8 @@ describe('environmentExplorer', () => {
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
 
                 allChildren.length.should.equal(1);
-                allChildren[0].label.should.equal('IBM Cloud');
-                allChildren[0].tooltip.should.equal('IBM Cloud');
+                allChildren[0].label.should.equal('IBM Blockchain Platform on cloud');
+                allChildren[0].tooltip.should.equal('IBM Blockchain Platform on cloud');
                 allChildren[0].contextValue.should.equal('blockchain-environment-group-item');
 
                 const ibmCloudItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
@@ -191,14 +191,23 @@ describe('environmentExplorer', () => {
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
 
                 allChildren.length.should.equal(2);
-                allChildren[0].label.should.equal('Other networks');
-                allChildren[0].tooltip.should.equal('Other networks');
+                allChildren[0].label.should.equal('IBM Blockchain Platform on cloud');
+                allChildren[0].tooltip.should.equal('IBM Blockchain Platform on cloud');
                 allChildren[0].contextValue.should.equal('blockchain-environment-group-item');
-                allChildren[1].label.should.equal('IBM Cloud');
-                allChildren[1].tooltip.should.equal('IBM Cloud');
+                allChildren[1].label.should.equal('Other networks');
+                allChildren[1].tooltip.should.equal('Other networks');
                 allChildren[1].contextValue.should.equal('blockchain-environment-group-item');
 
-                const otherItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
+                const ibmCloudItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
+                ibmCloudItems.length.should.equal(1);
+                ibmCloudItems[0].label.should.equal(`+ Log in to IBM Cloud`);
+                ibmCloudItems[0].command.should.deep.equal({
+                    command: ExtensionCommands.LOG_IN_AND_DISCOVER,
+                    title: '',
+                    arguments: []
+                });
+
+                const otherItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
                 otherItems.length.should.equal(3);
                 otherItems[0].label.should.equal(`${managedAnsible.name}  ○ (click to start)`);
                 otherItems[0].tooltip.should.equal(`Creates a local development runtime using Hyperledger Fabric Docker images`);
@@ -209,15 +218,6 @@ describe('environmentExplorer', () => {
                 otherItems[2].label.should.equal(otherEnvTwo.name);
                 otherItems[2].tooltip.should.equal(otherEnvTwo.name);
                 otherItems[2].contextValue.should.equal('blockchain-environment-item');
-
-                const ibmCloudItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
-                ibmCloudItems.length.should.equal(1);
-                ibmCloudItems[0].label.should.equal(`+ Log in to IBM Cloud`);
-                ibmCloudItems[0].command.should.deep.equal({
-                    command: ExtensionCommands.LOG_IN_AND_DISCOVER,
-                    title: '',
-                    arguments: []
-                });
 
                 loggedInStub.should.have.been.calledTwice;
                 anyResourcesStub.should.not.have.been.called;
@@ -276,8 +276,8 @@ describe('environmentExplorer', () => {
                 allChildren[0].label.should.equal('Simple local networks');
                 allChildren[0].tooltip.should.equal('Simple local networks');
                 allChildren[0].contextValue.should.equal('blockchain-environment-group-item');
-                allChildren[1].label.should.equal('IBM Cloud');
-                allChildren[1].tooltip.should.equal('IBM Cloud');
+                allChildren[1].label.should.equal('IBM Blockchain Platform on cloud');
+                allChildren[1].tooltip.should.equal('IBM Blockchain Platform on cloud');
                 allChildren[1].contextValue.should.equal('blockchain-environment-group-item');
                 allChildren[2].label.should.equal('Other networks');
                 allChildren[2].tooltip.should.equal('Other networks');
@@ -370,7 +370,7 @@ describe('environmentExplorer', () => {
                     arguments: []
                 });
 
-                allChildren[1].label.should.equal('IBM Cloud');
+                allChildren[1].label.should.equal('IBM Blockchain Platform on cloud');
                 const ibmCloudItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
                 ibmCloudItems.length.should.equal(1);
                 ibmCloudItems[0].label.should.equal(`+ Log in to IBM Cloud`);
@@ -401,7 +401,7 @@ describe('environmentExplorer', () => {
                     arguments: []
                 });
 
-                allChildren[1].label.should.equal('IBM Cloud');
+                allChildren[1].label.should.equal('IBM Blockchain Platform on cloud');
                 const ibmCloudItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
                 ibmCloudItems.length.should.equal(1);
                 ibmCloudItems[0].label.should.equal(`+ create new instance`);
@@ -412,6 +412,38 @@ describe('environmentExplorer', () => {
                 });
                 loggedInStub.should.have.been.calledTwice;
                 anyResourcesStub.should.have.been.calledTwice;
+            });
+
+            it('should show log in item if there are ops tools environments but no saas environments', async () => {
+                const opsToolsEnv: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                opsToolsEnv.name = 'opsToolsEnv';
+                opsToolsEnv.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
+
+                await FabricEnvironmentRegistry.instance().clear();
+                await FabricEnvironmentRegistry.instance().add(opsToolsEnv);
+
+                const loggedInStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
+                const anyResourcesStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountAnyIbpResources').resolves(false);
+
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+                allChildren.length.should.equal(1);
+                allChildren[0].label.should.equal('IBM Blockchain Platform on cloud');
+                const ibmCloudItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
+                ibmCloudItems.length.should.equal(2);
+                ibmCloudItems[0].label.should.equal(`+ Log in to IBM Cloud`);
+                ibmCloudItems[0].command.should.deep.equal({
+                    command: ExtensionCommands.LOG_IN_AND_DISCOVER,
+                    title: '',
+                    arguments: []
+                });
+                ibmCloudItems[1].label.should.equal(opsToolsEnv.name);
+                ibmCloudItems[1].tooltip.should.equal(opsToolsEnv.name);
+                ibmCloudItems[1].contextValue.should.equal('blockchain-environment-item');
+
+                loggedInStub.should.have.been.calledOnce;
+                anyResourcesStub.should.not.have.been.called;
             });
 
             it(`should try to automatically add discovered IBP instances`, async () => {
@@ -441,7 +473,6 @@ describe('environmentExplorer', () => {
 
             it(`should try to automatically add discovered IBP instances when other environments have already been added`, async () => {
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.DISCOVER_SAAS_ENVS, true, vscode.ConfigurationTarget.Global);
-                await FabricEnvironmentRegistry.instance().clear();
 
                 const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
                 registryEntry.name = 'myFabric';
@@ -457,17 +488,40 @@ describe('environmentExplorer', () => {
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
 
                 allChildren.length.should.equal(1);
-                allChildren[0].label.should.equal(`Other networks`);
-                allChildren[0].tooltip.should.equal('Other networks');
-                allChildren[0].contextValue.should.equal('blockchain-environment-group-item');
+                const otherGroupItem: EnvironmentGroupTreeItem = allChildren[0] as EnvironmentGroupTreeItem;
+                otherGroupItem.label.should.equal('Other networks');
+                otherGroupItem.environments.should.deep.equal([registryEntry]);
 
-                const groupChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
-                groupChildren[0].label.should.equal(registryEntry.name);
-                groupChildren[0].tooltip.should.equal(registryEntry.name);
-                groupChildren[0].contextValue.should.equal('blockchain-environment-item');
-
+                await blockchainRuntimeExplorerProvider.getChildren(otherGroupItem);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.LOG_IN_AND_DISCOVER);
+                loggedInStub.should.have.been.calledOnce;
+                anyResourcesStub.should.have.been.calledOnce;
+            });
 
+            it('should try to automatically add discovered IBP instances when there are ops tools environments but no saas environments', async () => {
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.DISCOVER_SAAS_ENVS, true, vscode.ConfigurationTarget.Global);
+
+                const opsToolsEnv: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                opsToolsEnv.name = 'opsToolsEnv';
+                opsToolsEnv.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
+
+                await FabricEnvironmentRegistry.instance().clear();
+                await FabricEnvironmentRegistry.instance().add(opsToolsEnv);
+
+                executeCommandStub.withArgs(ExtensionCommands.LOG_IN_AND_DISCOVER).resolves();
+                const loggedInStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(true);
+                const anyResourcesStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountAnyIbpResources').resolves(true);
+
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+                allChildren.length.should.equal(1);
+                const cloudGroupItem: EnvironmentGroupTreeItem = allChildren[0] as EnvironmentGroupTreeItem;
+                cloudGroupItem.label.should.equal('IBM Blockchain Platform on cloud');
+                cloudGroupItem.environments.should.deep.equal([opsToolsEnv]);
+
+                await blockchainRuntimeExplorerProvider.getChildren(cloudGroupItem);
+                executeCommandStub.should.have.been.calledWith(ExtensionCommands.LOG_IN_AND_DISCOVER);
                 loggedInStub.should.have.been.calledOnce;
                 anyResourcesStub.should.have.been.calledOnce;
             });

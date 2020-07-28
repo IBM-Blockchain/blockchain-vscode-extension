@@ -220,7 +220,7 @@ describe('EnvironmentConnectCommand', () => {
 
                 const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
-                const groupChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren(allChildren[1]);
+                const groupChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren(allChildren[2]);
 
                 const myConnectionItem: FabricEnvironmentTreeItem = groupChildren[0] as FabricEnvironmentTreeItem;
 

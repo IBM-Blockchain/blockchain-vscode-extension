@@ -124,7 +124,7 @@ module.exports = function(): any {
     this.Given('there are no IBM Cloud environments', this.timeout, async () => {
         const environments: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
         for (const env of environments) {
-            if (env.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || env.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
+            if (env.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
                 await this.fabricEnvironmentHelper.deleteEnvironment(env.name);
             }
         }

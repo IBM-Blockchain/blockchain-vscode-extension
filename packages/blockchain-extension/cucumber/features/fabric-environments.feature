@@ -58,7 +58,7 @@ Feature: Fabric Environments
     Scenario: It should automatically add a discovered SaaS environment
         Given there are no IBM Cloud environments
         When I log in to IBM Cloud
-        Then there should be a tree item with a label 'IBM Cloud' in the 'Fabric Environments' panel
+        Then there should be a tree item with a label 'IBM Blockchain Platform on cloud' in the 'Fabric Environments' panel
         And the 'Fabric Environments' tree item should have a child 'vscode'
         And the tree item should have a tooltip equal to 'vscode'
 
@@ -66,7 +66,7 @@ Feature: Fabric Environments
     Scenario Outline: It should create an environment without nodes
         When I create an environment '<environmentName>' of type '<environmentType>'
         And the wallet '<walletName>' with identity '<identity>' and mspid '<mspid>' exists
-        Then there should be a tree item with a label 'IBM Cloud' in the 'Fabric Environments' panel
+        Then there should be a tree item with a label 'IBM Blockchain Platform on cloud' in the 'Fabric Environments' panel
         And the 'Fabric Environments' tree item should have a child '<environmentName>'
         And the tree item should have a tooltip equal to '<environmentName>'
         And there should be a tree item with a label 'Other/shared wallets' in the 'Fabric Wallets' panel
