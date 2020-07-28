@@ -58,7 +58,7 @@ describe('ApproveCommand', () => {
 
             fabricRuntimeMock = mySandBox.createStubInstance(FabricEnvironmentConnection);
             fabricRuntimeMock.connect.resolves();
-            fabricRuntimeMock.approveSmartContractDefinition.resolves();
+            fabricRuntimeMock.approveSmartContractDefinition.resolves(true);
 
             getSettingsStub = mySandBox.stub();
             getSettingsStub.withArgs(SettingConfigurations.FABRIC_CLIENT_TIMEOUT).returns(9000);
@@ -204,5 +204,25 @@ describe('ApproveCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error approving smart contract: ${error.message}`, `Error approving smart contract: ${error.toString()}`);
             sendTelemetryEventStub.should.not.have.been.called;
         });
+
+        it('should inform user if smart contract already approved and ready for commit', async () => {
+            const orgMap: Map<string, string[]> = new Map<string, string[]>();
+            orgMap.set('Org1MSP', ['peerOne']);
+            environmentConnectionStub.resetHistory();
+            environmentConnectionStub.onFirstCall().returns(undefined);
+            fabricRuntimeMock.approveSmartContractDefinition.resolves(false);
+
+            await vscode.commands.executeCommand(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
+            fabricRuntimeMock.approveSmartContractDefinition.should.have.been.calledWithExactly('myOrderer', 'mychannel', ['peerOne'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'), 9000000);
+
+            dockerLogsOutputSpy.should.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'approveSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, 'Smart contract definition alreay approved by organisation Org1MSP');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('approveCommand');
+        });
+
     });
 });
