@@ -36,6 +36,14 @@ export class MicrofabEnvironment extends AnsibleEnvironment {
         this.client = new MicrofabClient(this.url);
     }
 
+    public getURL(): string {
+        return this.url;
+    }
+
+    public async isAlive(): Promise<boolean> {
+        return this.client.isAlive();
+    }
+
     public async getAllOrganizationNames(showOrderer: boolean = true): Promise<string[]> {
         return super.getAllOrganizationNames(showOrderer);
     }
