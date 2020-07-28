@@ -118,7 +118,6 @@ export class PreReqView extends View {
                     if (message.systemRequirements) {
                         // They have accepted that Docker for Windows has been configured correctly.
                         const extensionData: ExtensionData = GlobalState.get();
-                        extensionData.systemRequirements = true;
                         dependencies.systemRequirements.complete = true;
 
                         // Update global state
