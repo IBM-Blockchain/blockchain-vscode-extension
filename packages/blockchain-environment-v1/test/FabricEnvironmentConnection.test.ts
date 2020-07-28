@@ -807,7 +807,7 @@ describe('FabricEnvironmentConnection', () => {
         it('should approve a smart contract', async () => {
             const approveSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'approveSmartContractDefinition');
 
-            await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId'));
+            const result: boolean = await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId'));
 
             approveSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', {
                 smartContractName: 'myContract',
@@ -817,13 +817,14 @@ describe('FabricEnvironmentConnection', () => {
                 endorsementPolicy: undefined,
                 collectionConfig: undefined
             });
+            result.should.equal(true);
         });
 
         it('should approve a smart contract with endorsement policy', async () => {
             const collectionconfig: FabricCollectionDefinition = new FabricCollectionDefinition('myCollection', `OR('Org1MSP.member')`, 5, 4);
             const approveSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'approveSmartContractDefinition');
 
-            await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId', `OR('Org1.member', 'Org2.member')`, [collectionconfig]));
+            const result: boolean = await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId', `OR('Org1.member', 'Org2.member')`, [collectionconfig]));
 
             approveSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', {
                 smartContractName: 'myContract',
@@ -833,13 +834,14 @@ describe('FabricEnvironmentConnection', () => {
                 endorsementPolicy: `OR('Org1.member', 'Org2.member')`,
                 collectionConfig: [collectionconfig]
             });
+            result.should.equal(true);
         });
 
         it('should approve a smart contract within a given timeout', async () => {
             const collectionconfig: FabricCollectionDefinition = new FabricCollectionDefinition('myCollection', `OR('Org1MSP.member')`, 5, 4);
             const approveSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'approveSmartContractDefinition');
 
-            await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId', `OR('Org1.member', 'Org2.member')`, [collectionconfig]), 5000);
+            const result: boolean = await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId', `OR('Org1.member', 'Org2.member')`, [collectionconfig]), 5000);
 
             approveSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', {
                 smartContractName: 'myContract',
@@ -850,7 +852,78 @@ describe('FabricEnvironmentConnection', () => {
                 collectionConfig: [collectionconfig]
             },
                 5000);
+            result.should.equal(true);
         });
+
+        it('should throw error if unable to approve', async () => {
+            const approvedError: Error = new Error('some error');
+            const approveSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'approveSmartContractDefinition').rejects(approvedError);
+            const getCommitReadinessStub: sinon.SinonStub = mySandBox.stub(connection, 'getCommitReadiness').resolves();
+
+            await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId')).should.be.rejectedWith(approvedError);
+
+            approveSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', {
+                smartContractName: 'myContract',
+                smartContractVersion: '0.0.1',
+                packageId: 'myPackageId',
+                sequence: 1,
+                endorsementPolicy: undefined,
+                collectionConfig: undefined
+            });
+            getCommitReadinessStub.should.have.not.been.called;
+        });
+
+        it('should handle unable to approve if smart contract already approved and ready to commit', async () => {
+            const approvedError: Error = new Error('Could not approve smart contract definition, received error: No valid responses from any peers. Errors: peer=peer0, status=500, message=failed to invoke backing implementation of \'ApproveChaincodeDefinitionForMyOrg\': attempted to redefine uncommitted sequence (1) for namespace myContract with unchanged content');
+            const approveSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'approveSmartContractDefinition').rejects(approvedError);
+            const getCommitReadinessStub: sinon.SinonStub = mySandBox.stub(connection, 'getCommitReadiness').resolves(true);
+
+            const result: boolean = await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId'));
+
+            approveSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', {
+                smartContractName: 'myContract',
+                smartContractVersion: '0.0.1',
+                packageId: 'myPackageId',
+                sequence: 1,
+                endorsementPolicy: undefined,
+                collectionConfig: undefined
+            });
+            getCommitReadinessStub.should.have.been.calledWith('myChannel', 'peer0.org1.example.com', {
+                name: 'myContract',
+                version: '0.0.1',
+                packageId: 'myPackageId',
+                sequence: 1,
+                endorsementPolicy: undefined,
+                collectionConfig: undefined
+            });
+            result.should.equal(false);
+        });
+
+        it('should throw error if unable to approve and smart contract already approved but not ready to commit', async () => {
+            const approvedError: Error = new Error('Could not approve smart contract definition, received error: No valid responses from any peers. Errors: peer=peer0, status=500, message=failed to invoke backing implementation of \'ApproveChaincodeDefinitionForMyOrg\': attempted to redefine uncommitted sequence (1) for namespace myContract with unchanged content');
+            const approveSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'approveSmartContractDefinition').rejects(approvedError);
+            const getCommitReadinessStub: sinon.SinonStub = mySandBox.stub(connection, 'getCommitReadiness').resolves(false);
+
+            await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId')).should.be.rejectedWith(approvedError);
+
+            approveSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', {
+                smartContractName: 'myContract',
+                smartContractVersion: '0.0.1',
+                packageId: 'myPackageId',
+                sequence: 1,
+                endorsementPolicy: undefined,
+                collectionConfig: undefined
+            });
+            getCommitReadinessStub.should.have.been.calledWith('myChannel', 'peer0.org1.example.com', {
+                name: 'myContract',
+                version: '0.0.1',
+                packageId: 'myPackageId',
+                sequence: 1,
+                endorsementPolicy: undefined,
+                collectionConfig: undefined
+            });
+        });
+
     });
 
     describe('commitSmartContractDefinition', () => {

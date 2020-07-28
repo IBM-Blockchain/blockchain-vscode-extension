@@ -330,19 +330,31 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         return packageId;
     }
 
-    public async approveSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[], smartContractDefinition: FabricSmartContractDefinition, requestTimeout?: number): Promise<void> {
+    public async approveSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[], smartContractDefinition: FabricSmartContractDefinition, requestTimeout?: number): Promise<boolean> {
         const wallet: FabricWallet = await this.getWallet(peerNames[0]) as FabricWallet;
         const peerNode: FabricNode = this.getNode(peerNames[0]);
         const channel: LifecycleChannel = this.lifecycle.getChannel(channelName, wallet.getWallet(), peerNode.identity);
 
-        return channel.approveSmartContractDefinition(peerNames, ordererName, {
-            smartContractName: smartContractDefinition.name,
-            smartContractVersion: smartContractDefinition.version,
-            packageId: smartContractDefinition.packageId,
-            sequence: smartContractDefinition.sequence,
-            endorsementPolicy: smartContractDefinition.endorsementPolicy as string,
-            collectionConfig: smartContractDefinition.collectionConfig as FabricCollectionDefinition[]
-        }, requestTimeout);
+        try {
+            await channel.approveSmartContractDefinition(peerNames, ordererName, {
+                smartContractName: smartContractDefinition.name,
+                smartContractVersion: smartContractDefinition.version,
+                packageId: smartContractDefinition.packageId,
+                sequence: smartContractDefinition.sequence,
+                endorsementPolicy: smartContractDefinition.endorsementPolicy as string,
+                collectionConfig: smartContractDefinition.collectionConfig as FabricCollectionDefinition[]
+            }, requestTimeout);
+            return true;
+        } catch (error) {
+            if (error.message.match(/.*attempted to redefine uncommitted sequence (.+) for namespace .+ with unchanged content/)) {
+                // Smart contract already approved and ready for commit. Should not attempt to approve again.
+                const readyToCommit: boolean = await this.getCommitReadiness(channelName, peerNames[0], smartContractDefinition);
+                if (readyToCommit) {
+                    return false;
+                }
+            }
+            throw error;
+        }
     }
 
     public async commitSmartContractDefinition(ordererName: string, channelName: string, peerNames: string[], smartContractDefinition: FabricSmartContractDefinition, requestTimeout?: number): Promise<void> {

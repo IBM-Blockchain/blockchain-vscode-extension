@@ -50,6 +50,7 @@ export async function approveSmartContract(ordererName: string, channelName: str
                 VSCodeBlockchainDockerOutputAdapter.instance(fabricEnvironmentRegistryEntry.name).show();
             }
 
+            let anyApproved: boolean = false;
             for (const org of orgMap.keys()) {
                 progress.report({ message: `Approving Smart Contract for org ${org}` });
                 const peers: string[] = orgMap.get(org);
@@ -58,14 +59,19 @@ export async function approveSmartContract(ordererName: string, channelName: str
                 if (timeout) {
                     timeout = timeout * 1000;
                 }
-                await connection.approveSmartContractDefinition(ordererName, channelName, peers, smartContractDefinition, timeout);
+                const approved: boolean = await connection.approveSmartContractDefinition(ordererName, channelName, peers, smartContractDefinition, timeout);
+                if (!approved) {
+                    outputAdapter.log(LogType.INFO, `Smart contract definition alreay approved by organisation ${org}`);
+                }
+                anyApproved = anyApproved || approved;
             }
 
             Reporter.instance().sendTelemetryEvent('approveCommand');
-
-            outputAdapter.log(LogType.SUCCESS, 'Successfully approved smart contract definition');
-            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
-            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
+            if (anyApproved) {
+                outputAdapter.log(LogType.SUCCESS, 'Successfully approved smart contract definition');
+                await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+                await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
+            }
         });
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Error approving smart contract: ${error.message}`, `Error approving smart contract: ${error.toString()}`);
