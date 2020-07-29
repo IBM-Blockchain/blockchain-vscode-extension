@@ -204,14 +204,14 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
         const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
 
         const environmentGroups: Array<FabricEnvironmentRegistryEntry[]> = [];
-        const ibmCloudEnvironments: Array<FabricEnvironmentRegistryEntry> = [];
+        const cloudEnvironments: Array<FabricEnvironmentRegistryEntry> = [];
         const otherEnvironments: Array<FabricEnvironmentRegistryEntry> = [];
         for (const environment of environmentEntries) {
             if (environmentGroups.length === 0) {
                 if (environment.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
                     environmentGroups.push([environment]);
                 } else if (environment.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || environment.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
-                    ibmCloudEnvironments.push(environment);
+                    cloudEnvironments.push(environment);
                 } else {
                     otherEnvironments.push(environment);
                 }
@@ -228,7 +228,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 environmentGroups[groupIndex].push(environment);
             } else { // if there's a local env that group will have been created first, so check for other env types
                 if (environment.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || environment.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
-                    ibmCloudEnvironments.push(environment);
+                    cloudEnvironments.push(environment);
                 } else {
                     // group environments that aren't local or opstools
                     otherEnvironments.push(environment);
@@ -236,8 +236,8 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             }
         }
 
-        if (ibmCloudEnvironments.length > 0) {
-            environmentGroups.push(ibmCloudEnvironments);
+        if (cloudEnvironments.length > 0) {
+            environmentGroups.push(cloudEnvironments);
         }
 
         if (otherEnvironments.length > 0) {
@@ -255,7 +255,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
             // TODO - comment back in when IBP supports v2
             // if there are no environments at all we should still show the option to log in to IBM Cloud
-            // const treeItem: TextTreeItem = await this.getIBMCloudInteractionItem(true);
+            // const treeItem: EnvironmentGroupTreeItem = await this.getIBMCloudInteractionItem(true) as EnvironmentGroupTreeItem;
             // if (treeItem) {
             //     tree.push(treeItem);
             // }
@@ -265,19 +265,24 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 if (group[0].environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
                     groupName = 'Simple local networks';
                 } else if (group[0].environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || group[0].environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
-                    groupName = 'IBM Cloud';
+                    groupName = 'IBM Blockchain Platform on cloud';
                 } else {
                     groupName = 'Other networks';
                 }
                 tree.push(new EnvironmentGroupTreeItem(this, groupName, group, vscode.TreeItemCollapsibleState.Expanded));
             }
-            if (!tree.some((treeItem: BlockchainTreeItem) => treeItem.label === 'IBM Cloud' )) {
-                // TODO - comment back in when IBP supports v2
-                // const treeItem: TextTreeItem = await this.getIBMCloudInteractionItem(true);
-                // if (treeItem) {
-                //     tree.push(treeItem);
-                // }
-            }
+            // TODO - comment back in when IBP supports v2
+            // if (!tree.some((treeItem: BlockchainTreeItem) => treeItem.label === 'IBM Blockchain Platform on cloud' )) {
+            //     const treeItem: TextTreeItem = await this.getIBMCloudInteractionItem(true) as EnvironmentGroupTreeItem;
+            //     if (treeItem) {
+            //         tree.push(treeItem);
+            //         tree.sort((a: EnvironmentGroupTreeItem, b: EnvironmentGroupTreeItem): number => {
+            //             if (a.label !== 'Simple local networks' && b.label !== 'Simple local networks') {
+            //                 return a.label.localeCompare(b.label);
+            //             }
+            //         });
+            //     }
+            // }
         }
 
         return tree;
@@ -291,8 +296,17 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
             // TODO - comment if else back in when IBP supports v2
             // if (environments.length === 0) {
-                // tree.push(await this.getIBMCloudInteractionItem(false));
+                // tree.push(await this.getIBMCloudInteractionItem(false) as TextTreeItem);
             // } else {
+                // if there are no saas environments in the cloud group we should add the log in tree item
+                // if (environments[0].environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT) {
+                //     if (!environments.some((environment: FabricEnvironmentRegistryEntry) => environment.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT)) {
+                //         const treeItem: TextTreeItem = await this.getIBMCloudInteractionItem(false) as TextTreeItem;
+                //         if (treeItem) {
+                //             tree.push(treeItem);
+                //         }
+                //     }
+                // }
             for (const environment of environments) {
                 if (environment.managedRuntime) {
                     let runtime: LocalEnvironment | ManagedAnsibleEnvironment;
@@ -356,11 +370,11 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
     }
 
     // TODO - comment back in when IBP supports v2
-    // private async getIBMCloudInteractionItem(returnGroupItem: boolean): Promise<TextTreeItem> {
+    // private async getIBMCloudInteractionItem(returnGroupItem: boolean): Promise<BlockchainTreeItem> {
     //     const isLoggedIn: boolean = await ExtensionsInteractionUtil.cloudAccountIsLoggedIn();
     //     if ( !isLoggedIn ) {
     //         if (returnGroupItem) {
-    //             return new EnvironmentGroupTreeItem(this, 'IBM Cloud', [], vscode.TreeItemCollapsibleState.Expanded);
+    //             return new EnvironmentGroupTreeItem(this, 'IBM Blockchain Platform on cloud', [], vscode.TreeItemCollapsibleState.Expanded);
     //         } else {
     //             const command: vscode.Command = {
     //                 command: ExtensionCommands.LOG_IN_AND_DISCOVER,
@@ -380,7 +394,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
     //             }
     //         } else {
     //             if (returnGroupItem) {
-    //                 return new EnvironmentGroupTreeItem(this, 'IBM Cloud', [], vscode.TreeItemCollapsibleState.Expanded);
+    //                 return new EnvironmentGroupTreeItem(this, 'IBM Blockchain Platform on cloud', [], vscode.TreeItemCollapsibleState.Expanded);
     //             } else {
     //                 const command: vscode.Command = {
     //                     command: ExtensionCommands.OPEN_NEW_INSTANCE_LINK,
