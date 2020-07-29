@@ -1,5 +1,5 @@
-# IBM Blockchain Platform Extension updated to v1.0.35
-_Release date: July 16th 2020_
+# IBM Blockchain Platform Extension updated to v1.0.36
+_Release date: July 30th 2020_
 
 Announcements
 ---
@@ -8,10 +8,16 @@ Announcements
 
 Features & Enhancements
 ---
-*  Added "+ Log in to IBM Cloud" tree item to environment panel. [#2430](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2430).
+*  Allow user to bring output into focus on network start failure [#2172](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2172).
+*  Docker logs shown on transaction failure [#1964](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1964).
+*  Updated IBM Cloud group name and behaviour [#2521](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2521).
+
+Fixes
+---
+* Fallback on GitHub retrieval failure [#2543](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2543).
 
 This release's Conga Comic:
 ---
-<img src="https://congacomic.github.io/assets/img/blockheight-77.jpg" width="800">
+<img src="https://congacomic.github.io/assets/img/blockheight-78.jpg" width="800">
 
 For the full history of all releases, see the [change log](https://marketplace.visualstudio.com/items/IBMBlockchain.ibm-blockchain-platform/changelog).
