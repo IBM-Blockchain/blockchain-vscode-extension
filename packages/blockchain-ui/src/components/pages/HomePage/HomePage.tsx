@@ -1,3 +1,16 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
 import React, { Component } from 'react';
 import { Link, Tag } from 'carbon-components-react';
 import CommandTile from '../../elements/CommandTile/CommandTile';
@@ -8,6 +21,7 @@ import ThemedImage from '../../elements/ThemedImage/ThemedImage';
 import { ExtensionCommands } from '../../../ExtensionCommands';
 import devLearnerLight from '../../../resources/devLearnerLight.svg';
 import devLearnerDark from '../../../resources/devLearnerDark.svg';
+import fabric2Rocket from '../../../resources/rocket.svg';
 import './HomePage.scss';
 
 interface IProps {
@@ -16,12 +30,8 @@ interface IProps {
 
 class HomePage extends Component<IProps> {
     render(): JSX.Element {
+        const fabric2TileString: string = 'Congratulations on upgrading to Fabric v2.0! This update brings a new smart contract lifecycle, as well as new features. Learn about how this update will affect your workflow here.';
         const tutorialTileString: string = 'Learn about Hyperledger Fabric development using IBM Blockchain Platform. Complete these tutorials to grow your blockchain skills and earn accredited badges along the way!';
-
-        const commandTileOptions: {actionType: 'app' | 'vscode', command: string} = {
-            actionType: 'vscode',
-            command: ExtensionCommands.OPEN_TUTORIAL_GALLERY
-        };
 
         return (
             <div className='bx--grid home-page-container'>
@@ -33,8 +43,11 @@ class HomePage extends Component<IProps> {
                             </h2>
                             <p className='home-title-description'>This extension supports the complete development workflow for Hyperledger Fabric and IBM Blockchain Platform. Get started, learn best practices and earn developer qualifications with our tutorials.</p>
                         </div>
+                        <div className='bx--row margin-bottom-05' id='fabric-2-tile-container'>
+                            <CommandTile title={`Find out what's new with Fabric v2.0`} body={fabric2TileString} command={ExtensionCommands.OPEN_FABRIC_2_PAGE} image={fabric2Rocket}/>
+                        </div>
                         <div className='bx--row' id='tutorial-tile-container'>
-                            <CommandTile title='Tutorials' body={tutorialTileString} options={commandTileOptions}/>
+                            <CommandTile title='Tutorials' body={tutorialTileString} command={ExtensionCommands.OPEN_TUTORIAL_GALLERY}/>
                         </div>
                         <HeadingCombo
                             comboStyle='bx--row resources-title-container'

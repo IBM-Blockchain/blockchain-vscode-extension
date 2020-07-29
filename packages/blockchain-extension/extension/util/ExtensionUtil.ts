@@ -72,6 +72,7 @@ import { HomeView } from '../webview/HomeView';
 import { SampleView } from '../webview/SampleView';
 import { TutorialGalleryView } from '../webview/TutorialGalleryView';
 import { TutorialView } from '../webview/TutorialView';
+import { Fabric2View } from '../webview/Fabric2View';
 import { Reporter } from './Reporter';
 import { PreReqView } from '../webview/PreReqView';
 import { BlockchainEnvironmentExplorerProvider } from '../explorer/environmentExplorer';
@@ -279,6 +280,11 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TUTORIAL_PAGE, async (repoName: string, tutorialName: string) => {
             const tutorialView: TutorialView = new TutorialView(repoName, tutorialName);
             await tutorialView.openView();
+        }));
+
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_FABRIC_2_PAGE, async () => {
+            const fabric2View: Fabric2View = new Fabric2View(context);
+            await fabric2View.openView(true, vscode.ViewColumn.Beside);
         }));
 
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE, async (treeItem: InstantiatedTreeItem) => {

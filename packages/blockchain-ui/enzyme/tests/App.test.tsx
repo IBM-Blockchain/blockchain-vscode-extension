@@ -38,6 +38,18 @@ describe('App', () => {
         component.state().extensionVersion.should.equal('1.0.0');
     });
 
+    it('should redirect to the fabric 2 page', async () => {
+        const component: any = mount(<App />);
+
+        const msg: MessageEvent = new MessageEvent('message', {
+            data: {
+                path: '/fabric2'
+            }
+        });
+        dispatchEvent(msg);
+        component.state().redirectPath.should.equal('/fabric2');
+    });
+
     it('should redirect to the tutorial page', async () => {
         const tutorialData: Array<{ name: string, tutorials: ITutorialObject[] }> = [
             {

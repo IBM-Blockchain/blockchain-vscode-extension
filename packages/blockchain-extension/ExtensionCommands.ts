@@ -90,6 +90,7 @@ export class ExtensionCommands {
     static readonly OPEN_TUTORIAL_GALLERY: string = 'tutorialGallery.open';
     static readonly OPEN_DEPLOY_PAGE: string = 'deploy.open';
     static readonly OPEN_TUTORIAL_PAGE: string = 'tutorial.open';
+    static readonly OPEN_FABRIC_2_PAGE: string = 'fabric2Page.open';
     static readonly OPEN_TRANSACTION_PAGE: string = 'transactionPage.open';
     static readonly DEBUG_COMMAND_LIST: string = 'debug.commandList';
     static readonly SAVE_TUTORIAL_AS_PDF: string = 'tutorial.save';

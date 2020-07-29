@@ -33,38 +33,17 @@ describe('CommandTile component', () => {
     });
 
     it('should render the expected snapshot', () => {
-        const options: {actionType: 'app' | 'vscode', command: string} = {
-            actionType: 'vscode',
-            command: 'some_command'
-        };
-
         const component: any = renderer
-            .create(<CommandTile title='My Tile' body='Some text I want to display in my tile' options={options}/>)
+            .create(<CommandTile title='My Tile' body='Some text I want to display in my tile' command='some_command'/>)
             .toJSON();
         expect(component).toMatchSnapshot();
     });
 
     it('should post to VS Code', () => {
-        const options: {actionType: 'app' | 'vscode', command: string} = {
-            actionType: 'vscode',
-            command: 'some_command'
-        };
-
-        const component: ReactWrapper<IProps> = mount(<CommandTile title='My Tile' body='Some text I want to display in my tile' options={options}/>);
+        const component: ReactWrapper<IProps> = mount(<CommandTile title='My Tile' body='Some text I want to display in my tile' command='some_command'/>);
         component.find('.bx--tile').simulate('click');
         postToVSCodeStub.should.have.been.calledOnceWithExactly({
-            command: options.command
+            command: 'some_command'
         });
-    });
-
-    it('should redirect to another link in the app', () => {
-        const options: {actionType: 'app' | 'vscode', path: string} = {
-            actionType: 'app',
-            path: 'some/path'
-        };
-
-        const component: ReactWrapper<IProps> = mount(<CommandTile title='My Tile' body='Some text I want to display in my tile' options={options}/>);
-        component.find('.bx--tile').simulate('click');
-        changeRouteStub.should.have.been.calledOnceWithExactly(options.path);
     });
 });
