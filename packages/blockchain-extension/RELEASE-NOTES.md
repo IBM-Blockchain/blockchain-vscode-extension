@@ -1,5 +1,5 @@
-# IBM Blockchain Platform Extension updated to v2.0.0-beta.5
-_Release date: July 16th 2020_
+# IBM Blockchain Platform Extension updated to v2.0.0-beta.6
+_Release date: July 30th 2020_
 
 Announcements
 ---
@@ -13,17 +13,17 @@ Announcements
 
 Features & Enhancements
 ---
-* Updated tutorials for Fabric 2 [#1252](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1252).
-* Only allow users to package Fabric 2 smart contract [#1783](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1783).
-* Removed gRPC dependency [#2470](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2470).
-   > As gRPC is no longer used, the extension does not have to rebuild the dependency any more.
-* Allow users to only connect to Fabric 2 environments and gateways [#1782](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1782).
-* Generate Go functional tests [#2362](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2362).
-   > See [here](https://github.com/IBM-Blockchain/blockchain-vscode-extension/tree/v2#go-functional-tests---beta) for more information
+* Updated welcome page to mention the extension uses Fabric 2 [#1779](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1779)
+* Explain how v2 deployment works in step one of the deploy view [#2429](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2429)
+* Recover from failed deploy [#2512](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2512)
+* Allow user to bring output into focus on network start failure [#2172](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2172).
+* Docker logs shown on transaction failure [#1964](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1964).
+* Updated IBM Cloud group name and behaviour [#2521](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2521).
 
 Fixes
 ---
-* Updated packaging to use unique labels [#2511](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2511).
+* Fixed organsation approval table error appearing on initial load [#2545](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2545).
+* Fallback on GitHub retrieval failure [#2543](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2543).
 
 
 Notes
