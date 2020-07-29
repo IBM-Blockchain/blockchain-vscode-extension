@@ -26,6 +26,7 @@ import { ExtensionData, GlobalState } from '../../extension/util/GlobalState';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { TutorialGalleryView } from '../../extension/webview/TutorialGalleryView';
 import { HomeView } from '../../extension/webview/HomeView';
+import { Fabric2View } from '../../extension/webview/Fabric2View';
 import { SampleView } from '../../extension/webview/SampleView';
 import { TutorialView } from '../../extension/webview/TutorialView';
 import { Reporter } from '../../extension/util/Reporter';
@@ -413,6 +414,21 @@ describe('ExtensionUtil Tests', () => {
 
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
             homeViewStub.should.have.been.calledOnce;
+        });
+
+        it('should register and show fabric 2 page', async () => {
+            const fabric2ViewStub: sinon.SinonStub = mySandBox.stub(Fabric2View.prototype, 'openView');
+            fabric2ViewStub.resolves();
+
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+
+            await ExtensionUtil.registerCommands(ctx);
+
+            await vscode.commands.executeCommand(ExtensionCommands.OPEN_FABRIC_2_PAGE);
+
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            fabric2ViewStub.should.have.been.calledOnce;
         });
 
         it('should register and show tutorial gallery', async () => {

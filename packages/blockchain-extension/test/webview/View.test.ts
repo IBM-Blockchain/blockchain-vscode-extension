@@ -171,6 +171,14 @@ describe('View', () => {
         onDidChangeViewStub.should.not.have.been.called;
     });
 
+    it('should open webview panel in a different column if provided', async () => {
+        const testView: TestView = new TestView(context, 'myPanel', 'my panel');
+        await testView.openView(false, vscode.ViewColumn.Beside);
+        createWebviewPanelStub.should.have.been.called;
+        const viewColumn: vscode.ViewColumn = createWebviewPanelStub.getCall(0).args[2];
+        viewColumn.should.equal(vscode.ViewColumn.Beside);
+    });
+
     it('should update the page when the state changes', async () => {
 
         const onDidChangeViewStub: sinon.SinonStub = mySandBox.stub().yields();

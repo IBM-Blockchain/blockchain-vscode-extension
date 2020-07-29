@@ -1,0 +1,47 @@
+@import '@carbon/layout/scss/_spacing';
+
+#root {
+    .fabric2-heading-container {
+        margin-bottom: $spacing-09;
+
+        .fabric2-icon-and-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: $spacing-07;
+    
+            .fabric2-rocket {
+                height: 32px;
+                margin-right: $spacing-05;
+            }
+        }
+    }
+
+    .fabric2-content-container {
+        margin-bottom: $spacing-09;
+
+        h4 {
+            margin-bottom: $spacing-05;
+        }
+
+        .bx--accordion__content {
+            p {
+                margin-bottom: $spacing-05;
+
+                &:last-of-type {
+                    margin-bottom: 0px;
+                }
+            }
+
+            ol {
+                margin-left: $spacing-09;
+                margin-bottom: $spacing-05;
+            }
+        }
+    }
+
+    .fabric2-additional-info-container {
+        h4 {
+            margin-bottom: $spacing-05;
+        }
+    }
+}

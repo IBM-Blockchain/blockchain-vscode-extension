@@ -6,6 +6,7 @@ import TutorialPage from './components/pages/TutorialPage/TutorialPage';
 import ITutorialObject from './interfaces/ITutorialObject';
 import DeployPage from './components/pages/DeployPage/DeployPage';
 import IPackageRegistryEntry from './interfaces/IPackageRegistryEntry';
+import Fabric2Page from './components/pages/Fabric2Page/Fabric2Page';
 
 interface AppState {
     redirectPath: string;
@@ -62,6 +63,9 @@ class App extends Component<{}, AppState> {
                             <Route render={(): JSX.Element => <Redirect push to={this.state.redirectPath} />}></Route>
                             <Route exact path='/home' render={(): JSX.Element =>
                                 <HomePage extensionVersion={this.state.extensionVersion} />}>
+                            </Route>
+                            <Route exact path='/fabric2' render={(): JSX.Element =>
+                                <Fabric2Page/>}>
                             </Route>
                             <Route exact path='/tutorials' render={(): JSX.Element =>
                                 <TutorialPage tutorialData={this.state.tutorialData} />}>

@@ -6,7 +6,7 @@ interface IProps {
     commandName: string;
     linkContents: string;
     className?: string;
-    commandData?: any;
+    commandData?: any[];
     id?: string;
 }
 

@@ -62,7 +62,7 @@ html {
                 }
 
                 // CustomTile component
-                #tutorial-tile-container {
+                #tutorial-tile-container, #fabric-2-tile-container {
                     @include custom-tile-dark;
                 }
 
@@ -80,6 +80,11 @@ html {
                 // themed images
                 #dev-learner-themed-image, #step-1-deploy-themed-image, #step-2-deploy-themed-image, #step-3-deploy-themed-image, #step-4-deploy-themed-image {
                     @include themed-image-dark;
+                }
+
+                // rocket icon on fabric2 view
+                #fabric2-rocket {
+                    filter: invert(100%);
                 }
 
                 #tutorial-page-background {

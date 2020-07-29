@@ -3,6 +3,16 @@
 
 #root{
     .heading-combo-container {
+
+        .heading-combo-with-image {
+            display: flex;
+
+            img {
+                height: 20px;
+                margin-right: $spacing-05;
+            }
+        }
+
         h3 {
             margin-bottom: $spacing-05;
             line-height: inherit;

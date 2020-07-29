@@ -8,7 +8,8 @@ import './CommandTile.scss';
 interface IProps {
     title: string;
     body: string;
-    options: { actionType: 'app' | 'vscode', command?: string, path?: string };
+    command: string;
+    image?: string;
 }
 
 class CommandTile extends Component<IProps> {
@@ -19,13 +20,9 @@ class CommandTile extends Component<IProps> {
     }
 
     tileClickHandler(): void {
-        if (this.props.options.actionType === 'app') {
-            Utils.changeRoute(this.props.options.path as string);
-        } else {
-            Utils.postToVSCode({
-                command: this.props.options.command as string
-            });
-        }
+        Utils.postToVSCode({
+            command: this.props.command
+        });
     }
 
     render(): JSX.Element {
@@ -34,6 +31,7 @@ class CommandTile extends Component<IProps> {
                 <HeadingCombo
                     headingText={this.props.title}
                     subheadingText={this.props.body}
+                    image={this.props.image}
                 />
                 <img src={newTabImg} alt='' className='new-tab-img' />
             </Tile>

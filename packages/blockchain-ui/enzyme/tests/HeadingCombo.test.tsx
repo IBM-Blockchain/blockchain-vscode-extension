@@ -39,4 +39,15 @@ describe('HeadingCombo component', () => {
         component.find('h3').hasClass('extra-style-2').should.equal(true);
         component.find('p').hasClass('extra-style-3').should.equal(true);
     });
+
+    it('should render a provided image', async () => {
+        const component: ReactWrapper<IProps> = mount (
+            <HeadingCombo
+                headingText='Here Is A Heading'
+                subheadingText='And here is a subheading'
+                image='some image'
+            />
+        );
+        component.find('img').exists().should.equal(true);
+    });
 });

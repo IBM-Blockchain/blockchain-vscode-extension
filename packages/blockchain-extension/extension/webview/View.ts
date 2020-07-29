@@ -30,7 +30,7 @@ export abstract class View {
         this.context = context;
     }
 
-    public async openView(keepContext: boolean): Promise<void> {
+    public async openView(keepContext: boolean, viewColumn: vscode.ViewColumn = vscode.ViewColumn.One): Promise<void> {
 
         // Check to see if the panel is already open
         // In 1.44.x, they changed the structure of vscode.WebviewPanel - the second part of the statement supports this change.
@@ -51,7 +51,7 @@ export abstract class View {
             panel = vscode.window.createWebviewPanel(
                 this.panelID, // Identifies the type of the webview. Used internally
                 this.panelTitle, // Title of the panel displayed to the user
-                vscode.ViewColumn.One, // Editor column to show the new webview panel in.
+                viewColumn, // Editor column to show the new webview panel in.
                 {
                     enableScripts: true,
                     retainContextWhenHidden: keepContext,

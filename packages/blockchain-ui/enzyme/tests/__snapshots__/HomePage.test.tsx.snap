@@ -29,6 +29,40 @@ exports[`HomePage component should render the expected snapshot 1`] = `
         </p>
       </div>
       <div
+        className="bx--row margin-bottom-05"
+        id="fabric-2-tile-container"
+      >
+        <div
+          className="bx--tile custom-tile"
+          id="custom-tile-hack"
+          onClick={[Function]}
+        >
+          <div
+            className="heading-combo-container"
+          >
+            <div
+              className="heading-combo-with-image"
+            >
+              <img
+                alt=""
+                src="test-file-stub"
+              />
+              <h3>
+                Find out what's new with Fabric v2.0
+              </h3>
+            </div>
+            <p>
+              Congratulations on upgrading to Fabric v2.0! This update brings a new smart contract lifecycle, as well as new features. Learn about how this update will affect your workflow here.
+            </p>
+          </div>
+          <img
+            alt=""
+            className="new-tab-img"
+            src="test-file-stub"
+          />
+        </div>
+      </div>
+      <div
         className="bx--row"
         id="tutorial-tile-container"
       >
