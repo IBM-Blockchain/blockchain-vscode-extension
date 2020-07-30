@@ -36,34 +36,30 @@ export class DependencyManager {
 
     public isValidDependency(dependency: any): boolean {
         const name: string = dependency.name;
-        if (name === 'Node.js' || name === 'Java OpenJDK 8' || name === 'npm' || name === 'Docker' || name === 'Docker Compose' || name === 'Go' || name === 'OpenSSL') {
+        if (name === 'Node.js' || name === 'Java OpenJDK 8' || name === 'npm' || name === 'Docker' || name === 'Docker Compose' || name === 'Go' || name === 'OpenSSL' ) {
             if (dependency.version) {
                 return semver.satisfies(dependency.version, dependency.requiredVersion);
             } else {
                 return false;
             }
-        } else if (name === 'C++ Build Tools' || name === 'Xcode' || name === 'Go Extension' || name === 'Java Language Support Extension' || name === 'Java Debugger Extension' || name === 'Java Test Runner Extension') {
+        } else if (name === 'Go Extension' || name === 'Java Language Support Extension' || name === 'Java Debugger Extension' || name === 'Java Test Runner Extension') {
             if (dependency.version) {
                 return true;
             } else {
                 return false;
             }
         } else if (name === 'Docker for Windows' || name === 'System Requirements') {
+            if (!dependency.complete) {
+                dependency.complete = false;
+            }
             return dependency.complete;
         }
+        return false;
     }
 
     public async hasPreReqsInstalled(dependencies?: any, optionalInstalled: boolean = false): Promise<boolean> {
         if (!dependencies) {
             dependencies = await this.getPreReqVersions();
-        }
-
-        if (!this.isValidDependency(dependencies.node)) {
-            return false;
-        }
-
-        if (!this.isValidDependency(dependencies.npm)) {
-            return false;
         }
 
         const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
@@ -83,13 +79,8 @@ export class DependencyManager {
 
         if (process.platform === 'win32') {
             // Windows
-
             if (localFabricEnabled) {
                 if (!this.isValidDependency(dependencies.openssl)) {
-                    return false;
-                }
-
-                if (!this.isValidDependency(dependencies.buildTools)) {
                     return false;
                 }
 
@@ -100,15 +91,16 @@ export class DependencyManager {
 
         }
 
-        if (process.platform === 'darwin') {
-            // Mac
-            if (!this.isValidDependency(dependencies.xcode)) {
-                return false;
-            }
-        }
-
         // Optional installs
         if (optionalInstalled) {
+            if (!this.isValidDependency(dependencies.node)) {
+                return false;
+            }
+
+            if (!this.isValidDependency(dependencies.npm)) {
+                return false;
+            }
+
             if (!this.isValidDependency(dependencies.go)) {
                 return false;
             }
@@ -148,37 +140,7 @@ export class DependencyManager {
         // The order that we add dependencies to this object matters, as the webview will create the panels in the same order.
         // So we want to handle the optional dependencies last
 
-        const dependencies: any = {
-            node: { name: 'Node.js', required: true, version: undefined, url: 'https://nodejs.org/en/download/releases', requiredVersion: Dependencies.NODEJS_REQUIRED, requiredLabel: 'only', tooltip: 'Required for developing JavaScript and TypeScript smart contracts. If installing Node and npm using a manager such as \'nvm\' or \'nodenv\', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.' },
-            npm: { name: 'npm', required: true, version: undefined, url: 'https://nodejs.org/en/download/releases', requiredVersion: Dependencies.NPM_REQUIRED, requiredLabel: '', tooltip: 'Required for installing JavaScript and TypeScript smart contract dependencies. If installing Node and npm using a manager such as \'nvm\' or \'nodenv\', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.' },
-        };
-
-        // Node
-        try {
-            const nodeResult: string = await CommandUtil.sendCommand('node -v'); // Format: vX.Y.Z
-            if (this.isCommandFound(nodeResult)) {
-                const nodeVersion: string = nodeResult.substr(1);
-                const nodeValid: string = semver.valid(nodeVersion); // Returns version
-                if (nodeValid) {
-                    dependencies.node.version = nodeVersion;
-                }
-            }
-        } catch (error) {
-            // Ignore
-        }
-
-        // npm
-        try {
-            const npmResult: string = await CommandUtil.sendCommand('npm -v'); // Format: X.Y.Z
-            if (this.isCommandFound(npmResult)) {
-                const npmVersion: string = semver.valid(npmResult); // Returns version
-                if (npmVersion) {
-                    dependencies.npm.version = npmVersion;
-                }
-            }
-        } catch (error) {
-            // Ignore
-        }
+        const dependencies: any = {};
 
         const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
         if (localFabricEnabled) {
@@ -211,10 +173,7 @@ export class DependencyManager {
             // Windows
 
             if (localFabricEnabled) {
-                dependencies.dockerForWindows = { name: 'Docker for Windows', id: 'dockerForWindows', complete: undefined, checkbox: true, required: true, text: 'Docker for Windows must be configured to use Linux containers (this is the default)' };
-
                 dependencies.openssl = { name: 'OpenSSL', required: true, version: undefined, url: 'http://slproweb.com/products/Win32OpenSSL.html', requiredVersion: Dependencies.OPENSSL_REQUIRED, requiredLabel: 'for Node 8.x and Node 10.x respectively', tooltip: 'Install the Win32 version into `C:\\OpenSSL-Win32` on 32-bit systems and the Win64 version into `C:\\OpenSSL-Win64` on 64-bit systems`.' };
-                dependencies.buildTools = { name: 'C++ Build Tools', required: true, version: undefined, url: 'https://github.com/felixrieseberg/windows-build-tools#windows-build-tools', requiredVersion: undefined, requiredLabel: undefined };
                 try {
                     const win32: boolean = await fs.pathExists(`C:\\OpenSSL-Win32`);
                     const win64: boolean = await fs.pathExists(`C:\\OpenSSL-Win64`);
@@ -235,18 +194,7 @@ export class DependencyManager {
                     // Ignore
                 }
 
-                try {
-                    const buildToolsResult: string = await CommandUtil.sendCommand('npm ls -g windows-build-tools');
-                    if (this.isCommandFound(buildToolsResult)) {
-                        const buildToolsMatchedVersion: string = buildToolsResult.match(/windows-build-tools@(\S*)/)[1]; // Format: X.Y.Z
-                        const buildToolsVersion: string = semver.valid(buildToolsMatchedVersion); // Returns version
-                        if (buildToolsVersion) {
-                            dependencies.buildTools.version = buildToolsVersion;
-                        }
-                    }
-                } catch (error) {
-                    // Ignore
-                }
+                dependencies.dockerForWindows = { name: 'Docker for Windows', id: 'dockerForWindows', complete: undefined, checkbox: true, required: true, text: 'Docker for Windows must be configured to use Linux containers (this is the default)' };
 
                 if (!extensionData.dockerForWindows) {
                     dependencies.dockerForWindows.complete = false;
@@ -257,24 +205,36 @@ export class DependencyManager {
 
         }
 
-        if (process.platform === 'darwin') {
-            // Mac
+        // We want to display the optional dependencies last
 
-            dependencies['xcode'] = { name: 'Xcode', required: true, version: undefined, url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined, tooltip: 'Required for installing JavaScript and TypeScript smart contract dependencies.' };
-            try {
-                const xcodeInstalled: string = await CommandUtil.sendCommand('xcode-select -p'); // Get path of active developer directory
-                if (this.isCommandFound(xcodeInstalled)) {
-                    const xcodeResult: string = await CommandUtil.sendCommand('xcode-select -v'); // Get path of active developer directory
-                    const xcodeVersion: string = xcodeResult.match(/xcode-select version (\S*)./)[1]; // Format: XYZ
-                    dependencies.xcode.version = xcodeVersion;
-
+        // Node
+        dependencies.node = { name: 'Node.js', required: false, version: undefined, url: 'https://nodejs.org/en/download/releases', requiredVersion: Dependencies.NODEJS_REQUIRED, requiredLabel: 'only', tooltip: 'Required for developing JavaScript and TypeScript smart contracts. If installing Node and npm using a manager such as \'nvm\' or \'nodenv\', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.' };
+        try {
+            const nodeResult: string = await CommandUtil.sendCommand('node -v'); // Format: vX.Y.Z
+            if (this.isCommandFound(nodeResult)) {
+                const nodeVersion: string = nodeResult.substr(1);
+                const nodeValid: string = semver.valid(nodeVersion); // Returns version
+                if (nodeValid) {
+                    dependencies.node.version = nodeVersion;
                 }
-            } catch (error) {
-                // Ignore
             }
+        } catch (error) {
+            // Ignore
         }
 
-        // We want to display the optional dependencies last
+        // npm
+        dependencies.npm = { name: 'npm', required: false, version: undefined, url: 'https://nodejs.org/en/download/releases', requiredVersion: Dependencies.NPM_REQUIRED, requiredLabel: '', tooltip: 'Required for installing JavaScript and TypeScript smart contract dependencies. If installing Node and npm using a manager such as \'nvm\' or \'nodenv\', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.' };
+        try {
+            const npmResult: string = await CommandUtil.sendCommand('npm -v'); // Format: X.Y.Z
+            if (this.isCommandFound(npmResult)) {
+                const npmVersion: string = semver.valid(npmResult); // Returns version
+                if (npmVersion) {
+                    dependencies.npm.version = npmVersion;
+                }
+            }
+        } catch (error) {
+            // Ignore
+        }
 
         // Go
         dependencies.go = { name: 'Go', required: false, version: undefined, url: 'https://golang.org/dl/', requiredVersion: Dependencies.GO_REQUIRED, requiredLabel: '', tooltip: 'Required for developing Go smart contracts.' };
