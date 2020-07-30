@@ -23,6 +23,7 @@ import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { UserInputUtilHelper } from './userInputUtilHelper';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { IFabricWallet, IFabricWalletGenerator, FabricIdentity, FabricWalletRegistry, FabricWalletRegistryEntry, FabricWalletGeneratorFactory, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import * as fs from 'fs-extra';
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
@@ -123,19 +124,29 @@ export class WalletAndIdentityHelper {
     }
 
     private setIdentityStubs(method: string, identityName: string, mspid: string): void {
-        this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(identityName);
         this.userInputUtilHelper.inputBoxStub.withArgs('Enter MSPID').resolves(mspid);
 
         if (method === 'certs') {
             this.userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
+            this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(identityName);
             this.userInputUtilHelper.showGetCertKeyStub.resolves({ certificatePath: WalletAndIdentityHelper.certPath, privateKeyPath: WalletAndIdentityHelper.keyPath });
         } else if (method === 'JSON file') {
             const jsonPath: string = process.env.OPSTOOLS_FABRIC ? path.join(process.env.JSON_DIR, `${identityName}.json`) : WalletAndIdentityHelper.jsonFilePath;
             this.userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_JSON_ID_OPTION);
+            fs.readFile(jsonPath, 'utf8', function readFileCallback(err: any, data: string): void {
+                if (!err) {
+                    const obj: any = JSON.parse(data);
+                    obj.name = identityName;
+                    const json: any = JSON.stringify(obj);
+                    fs.writeFile(jsonPath, json, 'utf8', () => {
+                        return;
+                    });
+            }});
             this.userInputUtilHelper.browseStub.resolves(vscode.Uri.file(jsonPath));
         } else {
             // use enroll id and secret
             this.userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+            this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(identityName);
             const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             gatewayRegistryEntry.name = 'myGateway';
 
