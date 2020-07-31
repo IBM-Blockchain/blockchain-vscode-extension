@@ -88,6 +88,7 @@
             "environmentExplorer.teardownFabricRuntimeShort",
             "environmentExplorer.upgradeSmartContractEntry",
             "environmentExplorer.createNewIdentityEntry",
+            "environmentExplorer.openConsoleInBrowserEntry",
             "walletExplorer.refreshEntry",
             "walletExplorer.addWalletEntry",
             "walletExplorer.addWalletIdentityEntry",
@@ -462,6 +463,11 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "environmentExplorer.openConsoleInBrowserEntry",
+                "title": "Open Console in Browser",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "aPackagesExplorer.deleteSmartContractPackageEntry",
                 "title": "Delete Package",
                 "category": "IBM Blockchain Platform"
@@ -753,6 +759,11 @@
                     "group": "blockchain"
                 },
                 {
+                    "command": "environmentExplorer.openConsoleInBrowserEntry",
+                    "when": "view == environmentExplorer && blockchain-opstool-connected",
+                    "group": "blockchain"
+                },
+                {
                     "command": "walletExplorer.refreshEntry",
                     "when": "view == walletExplorer",
                     "group": "navigation"
@@ -867,6 +878,10 @@
                 {
                     "command": "environmentExplorer.replaceAssociatedIdentityEntry",
                     "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-environment-connected && !blockchain-runtime-connected"
+                },
+                {
+                    "command": "environmentExplorer.openConsoleInBrowserEntry",
+                    "when": "view == environmentExplorer && viewItem == blockchain-environment-item"
                 },
                 {
                     "command": "gatewaysExplorer.testSmartContractEntry",
