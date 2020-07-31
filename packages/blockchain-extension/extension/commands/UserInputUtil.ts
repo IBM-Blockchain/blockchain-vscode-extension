@@ -50,7 +50,7 @@ export class UserInputUtil {
     static readonly NO: string = 'No';
     static readonly DEFAULT: string = 'Default';
     static readonly CUSTOM: string = 'Custom';
-    static readonly MORE_DETAILS: string = 'More Details'
+    static readonly MORE_DETAILS: string = 'More Details';
 
     static readonly DEFAULT_SC_EP: string = `${UserInputUtil.DEFAULT} (single endorser, any org)`;
 
@@ -1069,7 +1069,6 @@ export class UserInputUtil {
             outputAdapter.show();
         }
      }
-
 
     /**
      * Method to determine if there are multiple smart contracts within the active workspace.
