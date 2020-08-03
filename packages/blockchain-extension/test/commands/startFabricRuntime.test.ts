@@ -69,6 +69,7 @@ describe('startFabricRuntime', () => {
         blockchainLogsOutputSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'show');
 
         sandbox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
+        sandbox.stub(ExtensionsInteractionUtil, 'cloudAccountHasSelectedAccount').resolves(false);
         const provider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const children: BlockchainTreeItem[] = await provider.getChildren();
         const groupChildren: BlockchainTreeItem[] = await provider.getChildren(children[0]);
