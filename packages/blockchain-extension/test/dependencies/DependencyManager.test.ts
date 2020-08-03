@@ -24,6 +24,7 @@ import { CommandUtil } from '../../extension/util/CommandUtil';
 import { TestUtil } from '../TestUtil';
 import { GlobalState, ExtensionData, DEFAULT_EXTENSION_DATA } from '../../extension/util/GlobalState.js';
 import { Dependencies } from '../../extension/dependencies/Dependencies';
+import * as OS from 'os';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -1277,6 +1278,7 @@ describe('DependencyManager Tests', () => {
         let sendCommandStub: sinon.SinonStub;
         let extensionData: ExtensionData;
         let dependencyManager: DependencyManager;
+        let totalmemStub: sinon.SinonStub;
         before(async () => {
             await TestUtil.setupTests(mySandBox);
         });
@@ -1286,9 +1288,11 @@ describe('DependencyManager Tests', () => {
             extensionData = DEFAULT_EXTENSION_DATA;
             extensionData.preReqPageShown = true;
             extensionData.dockerForWindows = false;
-            extensionData.systemRequirements = false;
             extensionData.version = currentExtensionVersion;
             extensionData.generatorVersion = extDeps['generator-fabric'];
+
+            totalmemStub = mySandBox.stub(OS, 'totalmem');
+            totalmemStub.returns(4294967296);
 
             await GlobalState.update(extensionData);
 
@@ -1311,6 +1315,7 @@ describe('DependencyManager Tests', () => {
             const _dependencyManager: DependencyManager = DependencyManager.instance();
             const result: any = await _dependencyManager.getPreReqVersions();
             result.node.version.should.equal('8.12.0');
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should get version of node', async () => {
@@ -1320,6 +1325,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             result.node.version.should.equal('8.12.0');
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should not get version of node if command not found', async () => {
@@ -1329,6 +1335,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             should.not.exist(result.node.version);
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should not get version of node if unexpected format is returned', async () => {
@@ -1338,6 +1345,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             should.not.exist(result.node.version);
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should get version of npm', async () => {
@@ -1347,6 +1355,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             result.npm.version.should.equal('6.4.1');
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should not get version of npm if command not found', async () => {
@@ -1356,6 +1365,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             should.not.exist(result.npm.version);
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should not get version of npm if unexpected format is returned', async () => {
@@ -1365,6 +1375,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             should.not.exist(result.npm.version);
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should get version of Docker', async () => {
@@ -1374,6 +1385,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             result.docker.version.should.equal('18.6.1');
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should not get version of Docker if command not found', async () => {
@@ -1383,6 +1395,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             should.not.exist(result.docker.version);
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should not get version of Docker if unexpected format is returned', async () => {
@@ -1392,6 +1405,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             should.not.exist(result.docker.version);
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should get version of Docker Compose', async () => {
@@ -1401,6 +1415,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             result.dockerCompose.version.should.equal('1.22.0');
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should not get version of Docker Compose if command not found', async () => {
@@ -1410,6 +1425,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             should.not.exist(result.dockerCompose.version);
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should not get version of Docker Compose if unexpected format is returned', async () => {
@@ -1419,6 +1435,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             should.not.exist(result.dockerCompose.version);
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should get version of Go', async () => {
@@ -1428,6 +1445,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             result.go.version.should.equal('1.12.7');
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should not get version of Go if command not found', async () => {
@@ -1437,6 +1455,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             should.not.exist(result.go.version);
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should not get version of Go if unexpected format is returned', async () => {
@@ -1446,6 +1465,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             should.not.exist(result.go.version);
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should get version of Go Extension', async () => {
@@ -1460,6 +1480,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             result.goExtension.version.should.equal('1.0.0');
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should not get version of Go Extension if it cannot be found', async () => {
@@ -1470,6 +1491,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             should.not.exist(result.goExtension.version);
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should get version of Java', async () => {
@@ -1478,6 +1500,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             result.java.version.should.equal('1.8.0');
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should not get version of Java if it cannot be found', async () => {
@@ -1486,6 +1509,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             should.not.exist(result.java.version);
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should not get version of Java if unexpected format is returned', async () => {
@@ -1495,6 +1519,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             should.not.exist(result.java.version);
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should get version of Java Language Extension', async () => {
@@ -1509,6 +1534,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             result.javaLanguageExtension.version.should.equal('2.0.0');
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should not get version of Java Language Extension if it cannot be found', async () => {
@@ -1519,6 +1545,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             should.not.exist(result.javaLanguageExtension.version);
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should get version of Java Debugger Extension', async () => {
@@ -1533,6 +1560,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             result.javaDebuggerExtension.version.should.equal('3.0.0');
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should not get version of Java Debugger Extension if it cannot be found', async () => {
@@ -1543,6 +1571,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             should.not.exist(result.javaDebuggerExtension.version);
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should get version of Java Test Runner Extension', async () => {
@@ -1555,6 +1584,7 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             result.javaTestRunnerExtension.version.should.equal('2.0.0');
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should not get version of Java Test Runner Extension if it cannot be found', async () => {
@@ -1565,37 +1595,40 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             should.not.exist(result.javaTestRunnerExtension.version);
+            totalmemStub.should.have.been.calledOnce;
         });
 
-        it('should return true if user has agreed to system requirements', async () => {
+        it('should return true if the computer resources meet the system requirements', async () => {
             mySandBox.stub(process, 'platform').value('some_other_platform');
 
             const newExtensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
 
             newExtensionData.preReqPageShown = true;
             newExtensionData.dockerForWindows = false;
-            newExtensionData.systemRequirements = true;
             newExtensionData.version = currentExtensionVersion;
             newExtensionData.generatorVersion = extDeps['generator-fabric'];
             await GlobalState.update(newExtensionData);
 
             const result: any = await dependencyManager.getPreReqVersions();
             result.systemRequirements.complete.should.equal(true);
+            totalmemStub.should.have.been.calledOnce;
         });
 
-        it(`should return false if user hasn't agreed to system requirements`, async () => {
+        it(`should return false if the computer resources doesn't meet the system requirements`, async () => {
             mySandBox.stub(process, 'platform').value('some_other_platform');
+
+            totalmemStub.returns(4294967295);
 
             const newExtensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
             newExtensionData.preReqPageShown = true;
             newExtensionData.dockerForWindows = false;
-            newExtensionData.systemRequirements = false;
             newExtensionData.version = currentExtensionVersion;
             newExtensionData.generatorVersion = extDeps['generator-fabric'];
             await GlobalState.update(newExtensionData);
 
             const result: any = await dependencyManager.getPreReqVersions();
             result.systemRequirements.complete.should.equal(false);
+            totalmemStub.should.have.been.calledOnce;
         });
 
         it('should only get non-local fabric versions', async () => {
@@ -1623,6 +1656,7 @@ describe('DependencyManager Tests', () => {
 
                 const result: any = await dependencyManager.getPreReqVersions();
                 result.openssl.version.should.equal('1.0.2');
+                totalmemStub.should.have.been.calledOnce;
             });
 
             it('should check if OpenSSL (64-bit) is installed', async () => {
@@ -1634,6 +1668,7 @@ describe('DependencyManager Tests', () => {
 
                 const result: any = await dependencyManager.getPreReqVersions();
                 result.openssl.version.should.equal('1.1.1');
+                totalmemStub.should.have.been.calledOnce;
             });
 
             it('should not get version of OpenSSL if command not found', async () => {
@@ -1645,6 +1680,7 @@ describe('DependencyManager Tests', () => {
 
                 const result: any = await dependencyManager.getPreReqVersions();
                 should.not.exist(result.openssl.version);
+                totalmemStub.should.have.been.calledOnce;
             });
 
             it('should not get version of OpenSSL if installation path(s) not found', async () => {
@@ -1655,6 +1691,7 @@ describe('DependencyManager Tests', () => {
 
                 const result: any = await dependencyManager.getPreReqVersions();
                 should.not.exist(result.openssl.version);
+                totalmemStub.should.have.been.calledOnce;
             });
 
             it('should not get version of OpenSSL if unexpected format is returned', async () => {
@@ -1666,6 +1703,7 @@ describe('DependencyManager Tests', () => {
 
                 const result: any = await dependencyManager.getPreReqVersions();
                 should.not.exist(result.openssl.version);
+                totalmemStub.should.have.been.calledOnce;
             });
             it('should get version of Windows Build Tools', async () => {
                 mySandBox.stub(process, 'platform').value('win32');
@@ -1674,6 +1712,7 @@ describe('DependencyManager Tests', () => {
 
                 const result: any = await dependencyManager.getPreReqVersions();
                 result.buildTools.version.should.equal('5.2.2');
+                totalmemStub.should.have.been.calledOnce;
             });
 
             it('should not get version of Windows Build Tools if command not found', async () => {
@@ -1683,6 +1722,7 @@ describe('DependencyManager Tests', () => {
 
                 const result: any = await dependencyManager.getPreReqVersions();
                 should.not.exist(result.buildTools.version);
+                totalmemStub.should.have.been.calledOnce;
             });
 
             it('should not get version of Windows Build Tools if unexpected format is returned', async () => {
@@ -1692,6 +1732,7 @@ describe('DependencyManager Tests', () => {
 
                 const result: any = await dependencyManager.getPreReqVersions();
                 should.not.exist(result.buildTools.version);
+                totalmemStub.should.have.been.calledOnce;
             });
 
             it('should return true if user has agreed to Docker setup', async () => {
@@ -1700,13 +1741,13 @@ describe('DependencyManager Tests', () => {
                 const newExtensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
                 newExtensionData.preReqPageShown = true;
                 newExtensionData.dockerForWindows = true;
-                newExtensionData.systemRequirements = false;
                 newExtensionData.version = currentExtensionVersion;
                 newExtensionData.generatorVersion = extDeps['generator-fabric'];
                 await GlobalState.update(newExtensionData);
 
                 const result: any = await dependencyManager.getPreReqVersions();
                 result.dockerForWindows.complete.should.equal(true);
+                totalmemStub.should.have.been.calledOnce;
             });
 
             it(`should return false if user hasn't agreed to Docker setup`, async () => {
@@ -1715,13 +1756,13 @@ describe('DependencyManager Tests', () => {
                 const newExtensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
                 newExtensionData.preReqPageShown = true;
                 newExtensionData.dockerForWindows = false;
-                newExtensionData.systemRequirements = false;
                 newExtensionData.version = currentExtensionVersion;
                 newExtensionData.generatorVersion = extDeps['generator-fabric'];
                 await GlobalState.update(newExtensionData);
 
                 const result: any = await dependencyManager.getPreReqVersions();
                 result.dockerForWindows.complete.should.equal(false);
+                totalmemStub.should.have.been.calledOnce;
             });
 
             it('should only get non-local fabric versions for Windows', async () => {
@@ -1748,6 +1789,7 @@ describe('DependencyManager Tests', () => {
 
                 const result: any = await dependencyManager.getPreReqVersions();
                 result.xcode.version.should.equal('2354');
+                totalmemStub.should.have.been.calledOnce;
             });
 
             it('should not get version of Xcode if command not found', async () => {
@@ -1757,6 +1799,7 @@ describe('DependencyManager Tests', () => {
 
                 const result: any = await dependencyManager.getPreReqVersions();
                 should.not.exist(result.xcode.version);
+                totalmemStub.should.have.been.calledOnce;
             });
 
             it('should continue to get version if Java path exists', async () => {
@@ -1768,6 +1811,7 @@ describe('DependencyManager Tests', () => {
                 const result: any = await dependencyManager.getPreReqVersions();
                 pathExistsStub.should.have.been.calledOnce;
                 result.java.version.should.equal('1.8.0');
+                totalmemStub.should.have.been.calledOnce;
             });
 
             it('should not continue to get version if Java path doesnt exist', async () => {
@@ -1780,6 +1824,7 @@ describe('DependencyManager Tests', () => {
                 pathExistsStub.should.have.been.calledOnce;
                 sendCommandStub.should.not.have.been.calledWith('java -version 2>&1');
                 should.not.exist(result.java.version);
+                totalmemStub.should.have.been.calledOnce;
             });
 
         });

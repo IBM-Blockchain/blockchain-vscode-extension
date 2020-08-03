@@ -715,7 +715,6 @@ describe('PreReqView', () => {
             const updateGlobalStateStub: sinon.SinonStub = mySandBox.stub(GlobalState, 'update').resolves();
 
             const expectedNewState: ExtensionData = DEFAULT_EXTENSION_DATA;
-            expectedNewState.systemRequirements = true;
 
             const expectedMockDependencies: any = mockDependencies;
             expectedMockDependencies.systemRequirements.complete = true;

@@ -21,6 +21,11 @@ import * as semver from 'semver';
 import { CommandUtil } from '../util/CommandUtil';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { Dependencies } from './Dependencies';
+<<<<<<< HEAD
+=======
+import { LogType } from 'ibm-blockchain-platform-common';
+import OS = require('os');
+>>>>>>> 8ca71292... Prerequisites updated (#2566)
 
 export class DependencyManager {
 
@@ -196,13 +201,12 @@ export class DependencyManager {
             if (composeVersion) {
                 dependencies.dockerCompose.version = composeVersion;
             }
-
-            dependencies.systemRequirements = { name: 'System Requirements', id: 'systemRequirements', complete: undefined, checkbox: true, required: true, text: 'In order to support the local runtime, please confirm your system has at least 4GB of RAM' };
-
-            if (!extensionData.systemRequirements) {
-                dependencies.systemRequirements.complete = false;
-            } else {
+            dependencies.systemRequirements = { name: 'System Requirements', id: 'systemRequirements', complete: undefined, checkbox: false, required: true, text: 'In order to support the local runtime, please confirm your system has at least 4GB of RAM' };
+            dependencies.systemRequirements.version = OS.totalmem() / 1073741824;
+            if (dependencies.systemRequirements.version >= 4) {
                 dependencies.systemRequirements.complete = true;
+            } else {
+                dependencies.systemRequirements.complete = false;
             }
 
         }
