@@ -130,13 +130,13 @@ describe('UserInputUtil', () => {
         fabricRuntimeConnectionStub.getAllCertificateAuthorityNames.returns(['ca.example.cake.com', 'ca1.example.cake.com']);
         const map: Map<string, Array<string>> = new Map<string, Array<string>>();
         map.set('channelOne', ['myPeerOne', 'myPeerTwo']);
-        fabricRuntimeConnectionStub.createChannelMap.resolves(map);
+        fabricRuntimeConnectionStub.createChannelMap.resolves({channelMap: map, v1channels: []});
         const chaincodeMapTwo: Map<string, Array<string>> = new Map<string, Array<string>>();
 
         fabricRuntimeConnectionStub.getCommittedSmartContractDefinitions.withArgs('channelTwo').resolves(chaincodeMapTwo);
 
         fabricClientConnectionStub = mySandBox.createStubInstance(FabricGatewayConnection);
-        fabricClientConnectionStub.createChannelMap.resolves(map);
+        fabricClientConnectionStub.createChannelMap.resolves({channelMap: map, v1channels: []});
         fabricClientConnectionStub.getInstantiatedChaincode.withArgs('channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
         getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionStub);
         getConnectedGatewayEntryStub = mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry').resolves(gatewayEntryOne);
@@ -799,7 +799,7 @@ describe('UserInputUtil', () => {
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
             map.set('channelOne', ['myPeerOne', 'myPeerTwo']);
             map.set('channelTwo', ['myPeerOne']);
-            fabricRuntimeConnectionStub.createChannelMap.resolves(map);
+            fabricRuntimeConnectionStub.createChannelMap.resolves({channelMap: map, v1channels: []});
             quickPickStub.resolves({ label: 'channelOne', data: ['myPeerOne', 'myPeerTwo'] });
 
             const result: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel');
@@ -816,7 +816,7 @@ describe('UserInputUtil', () => {
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
             map.set('channelThree', ['myPeerOne', 'myPeerTwo']);
             map.set('channelFour', ['myPeerOne']);
-            fabricRuntimeConnectionStub.createChannelMap.resolves(map);
+            fabricRuntimeConnectionStub.createChannelMap.resolves({channelMap: map, v1channels: []});
             quickPickStub.resolves({ label: 'channelThree', data: ['myPeerOne', 'myPeerTwo'] });
 
             const result: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel', map);
@@ -853,7 +853,7 @@ describe('UserInputUtil', () => {
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
             map.set('channelOne', ['myPeerOne', 'myPeerTwo']);
             map.set('channelTwo', ['myPeerOne']);
-            fabricClientConnectionStub.createChannelMap.resolves(map);
+            fabricClientConnectionStub.createChannelMap.resolves({channelMap: map, v1channels: []});
             quickPickStub.resolves({ label: 'channelOne', data: ['myPeerOne', 'myPeerTwo'] });
 
             const result: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelFromGatewayQuickPickBox('Choose a channel');

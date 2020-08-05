@@ -76,7 +76,8 @@ export async function openDeployView(fabricRegistryEntry?: FabricEnvironmentRegi
         const workspaceFolders: vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
         const workspaceNames: string[] = workspaceFolders.map((item: vscode.WorkspaceFolder) => item.name);
 
-        const channelMap: Map<string, string[]> = await connection.createChannelMap();
+        const createChannelsResult: {channelMap: Map<string, string[]>, v1channels: string[]} = await connection.createChannelMap();
+        const channelMap: Map<string, string[]> = createChannelsResult.channelMap;
         const channelPeers: string[] = channelMap.get(channelName);
         const allCommittedContracts: FabricSmartContractDefinition[] = await connection.getCommittedSmartContractDefinitions(channelPeers, channelName);
         const committedDefinitions: string[] = allCommittedContracts.map((definition: FabricSmartContractDefinition) => `${definition.name}@${definition.version}`);

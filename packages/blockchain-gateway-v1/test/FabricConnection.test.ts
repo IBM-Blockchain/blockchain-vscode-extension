@@ -498,7 +498,33 @@ describe('FabricConnection', () => {
             _map.set('channel1', ['peerOne']);
             _map.set('channel2', ['peerTwo']);
 
-            const map: Map<string, Array<string>> = await fabricConnection.createChannelMap();
+            const createChannelsResult: {channelMap: Map<string, Array<string>>, v1channels: Array<string>} = await fabricConnection.createChannelMap();
+            const map: Map<string, Array<string>> = createChannelsResult.channelMap;
+
+            getChannelCapabilitiesStub.should.have.been.calledTwice;
+            map.should.deep.equal(_map);
+        });
+
+        it('should create channel map without v1_4 channels', async () => {
+            mySandBox.stub(fabricConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
+
+            const getChannelCapabilitiesStub: sinon.SinonStub = mySandBox.stub(LifecyclePeer.prototype, 'getChannelCapabilities');
+            getChannelCapabilitiesStub.onFirstCall().resolves(['V1_4_3']);
+            getChannelCapabilitiesStub.onSecondCall().resolves(['V2_0']);
+            mySandBox.stub(Lifecycle.prototype, 'getPeer').returns({
+                getChannelCapabilities: getChannelCapabilitiesStub
+            });
+
+            const getAllChannelsForPeerStub: sinon.SinonStub = mySandBox.stub(fabricConnection, 'getAllChannelsForPeer');
+            getAllChannelsForPeerStub.withArgs('peerOne').returns(['channel1']);
+            getAllChannelsForPeerStub.withArgs('peerTwo').returns(['channel2']);
+
+            const _map: Map<string, Array<string>> = new Map<string, Array<string>>();
+            _map.set('channel2', ['peerTwo']);
+
+            const createChannelsResult: {channelMap: Map<string, Array<string>>, v1channels: Array<string>} = await fabricConnection.createChannelMap();
+            const map: Map<string, Array<string>> = createChannelsResult.channelMap;
+
             getChannelCapabilitiesStub.should.have.been.calledTwice;
             map.should.deep.equal(_map);
         });
@@ -520,7 +546,8 @@ describe('FabricConnection', () => {
             _map.set('channel1', ['peerOne']);
             _map.set('channel2', ['peerOne', 'peerTwo']);
 
-            const map: Map<string, Array<string>> = await fabricConnection.createChannelMap();
+            const createChannelsResult: {channelMap: Map<string, Array<string>>, v1channels: Array<string>} = await fabricConnection.createChannelMap();
+            const map: Map<string, Array<string>> = createChannelsResult.channelMap;
             map.should.deep.equal(_map);
         });
 
@@ -539,7 +566,7 @@ describe('FabricConnection', () => {
             await fabricConnection.createChannelMap().should.be.rejectedWith('Error querying channel list: Could not find any peers to query the list of channels from');
         });
 
-        it('should throw error if channel is not using v2 capabilities ', async () => {
+        it('should throw error none of the channels is using v2 capabilities ', async () => {
             mySandBox.stub(fabricConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
 
             const getChannelCapabilitiesStub: sinon.SinonStub = mySandBox.stub(LifecyclePeer.prototype, 'getChannelCapabilities');
@@ -552,8 +579,8 @@ describe('FabricConnection', () => {
             getAllChannelsForPeerStub.withArgs('peerOne').returns(['channel1']);
             getAllChannelsForPeerStub.withArgs('peerTwo').returns(['channel2']);
 
-            await fabricConnection.createChannelMap().should.be.rejectedWith(`Unable to connect to network, channel 'channel1' does not have V2_0 capabilities enabled.`);
-            getChannelCapabilitiesStub.should.have.been.calledOnce;
+            await fabricConnection.createChannelMap().should.be.rejectedWith(`There are no channels with V2_0 capabilities enabled.`);
+            getChannelCapabilitiesStub.should.have.been.calledTwice;
 
         });
 

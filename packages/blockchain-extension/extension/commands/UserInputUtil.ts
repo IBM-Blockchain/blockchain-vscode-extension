@@ -455,7 +455,8 @@ export class UserInputUtil {
 
         let channels: Array<string> = [];
         if (!channelMap) {
-            channelMap = await connection.createChannelMap();
+            const createChannelsResult: {channelMap: Map<string, string[]>, v1channels: Array<string>} = await connection.createChannelMap();
+            channelMap = createChannelsResult.channelMap;
         }
 
         channels = Array.from(channelMap.keys());
@@ -484,7 +485,8 @@ export class UserInputUtil {
             return;
         }
 
-        const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
+        const createChannelsResult: {channelMap: Map<string, Array<string>>, v1channels: Array<string>} = await connection.createChannelMap();
+        const channelMap: Map<string, Array<string>> = createChannelsResult.channelMap;
 
         const channels: Array<string> = Array.from(channelMap.keys());
 
@@ -588,7 +590,8 @@ export class UserInputUtil {
     public static async showClientInstantiatedSmartContractsQuickPick(prompt: string, channelName?: string, showAssociated?: boolean): Promise<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> | undefined> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         const connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
-        const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
+        const createChannelsResult: {channelMap: Map<string, Array<string>>, v1channels: Array<string>} = await connection.createChannelMap();
+        const channelMap: Map<string, Array<string>> = createChannelsResult.channelMap;
 
         let instantiatedChaincodes: Array<{ name: string, version: string, sequence: number, channel: string }> = [];
 
@@ -649,7 +652,8 @@ export class UserInputUtil {
             return;
         }
 
-        const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
+        const createChannelsResult: {channelMap: Map<string, Array<string>>, v1channels: Array<string>} = await connection.createChannelMap();
+        const channelMap: Map<string, Array<string>> = createChannelsResult.channelMap;
 
         const instantiatedChaincodes: Array<{ name: string, version: string, channel: string }> = [];
 

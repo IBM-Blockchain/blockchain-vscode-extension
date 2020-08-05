@@ -120,6 +120,12 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
         connection.identityName = identityName;
         FabricGatewayConnectionManager.instance().connect(connection, gatewayRegistryEntry, walletRegistryEntry);
 
+        // Inform the user if any of the channels is does not have v2_0 capability enabled.
+        const createChannelsResult: {channelMap: Map<string, Array<string>>, v1channels: Array<string>} = await connection.createChannelMap();
+        if (createChannelsResult.v1channels.length !== 0) {
+            VSCodeBlockchainOutputAdapter.instance().log(LogType.WARNING, `Detected channels without V2_0 capabilities enabled: ${createChannelsResult.v1channels.join(', ')}.`);
+        }
+
         outputAdapter.log(LogType.SUCCESS, `Connecting to ${gatewayName}`);
         if (!runtimeData) {
             const isIBP: boolean = connection.isIBPConnection();

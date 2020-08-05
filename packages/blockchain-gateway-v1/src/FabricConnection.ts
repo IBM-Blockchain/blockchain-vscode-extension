@@ -87,7 +87,8 @@ export abstract class FabricConnection {
     public async getInstantiatedChaincode(channelName: string): Promise<Array<FabricSmartContractDefinition>> {
         const lifecycleChannel: LifecycleChannel = this.lifecycle.getChannel(channelName, this.gateway.getOptions().wallet, this.gateway.getOptions().identity as string);
 
-        const channelMap: Map<string, string[]> = await this.createChannelMap();
+        const createChannelsResult: {channelMap: Map<string, string[]>, v1channels: string[]} = await this.createChannelMap();
+        const channelMap: Map<string, string[]> = createChannelsResult.channelMap;
 
         const peerNames: string[] = channelMap.get(channelName);
         const smartContracts: DefinedSmartContract[] = await lifecycleChannel.getAllCommittedSmartContracts(peerNames[0]);
@@ -101,9 +102,10 @@ export abstract class FabricConnection {
         this.gateway.disconnect();
     }
 
-    public async createChannelMap(): Promise<Map<string, Array<string>>> {
+    public async createChannelMap(): Promise<{channelMap: Map<string, Array<string>>, v1channels: Array<string>}> {
         try {
             const allPeerNames: Array<string> = this.getAllPeerNames();
+            const v1channels: Array<string> = [];
 
             if (allPeerNames.length === 0) {
                 throw new Error('Could not find any peers to query the list of channels from');
@@ -117,7 +119,8 @@ export abstract class FabricConnection {
                     const peer: LifecyclePeer = this.lifecycle.getPeer(peerName, this.gateway.getOptions().wallet, this.gateway.getOptions().identity as string);
                     const capabilities: string[] = await peer.getChannelCapabilities(channelName);
                     if (!capabilities.includes('V2_0')) {
-                        throw new Error(`channel '${channelName}' does not have V2_0 capabilities enabled.`);
+                        v1channels.push(channelName);
+                        continue;
                     }
                     let peers: Array<string> = channelMap.get(channelName);
                     if (peers) {
@@ -130,12 +133,15 @@ export abstract class FabricConnection {
                 }
             }
 
-            return channelMap;
+            if (channelMap.size === 0) {
+                throw new Error(`There are no channels with V2_0 capabilities enabled.`);
+            }
+            return {channelMap: channelMap, v1channels: v1channels};
 
         } catch (error) {
             if (error.message && error.message.includes('Received http2 header with status: 503')) { // If gRPC can't connect to Fabric
                 throw new Error(`Cannot connect to Fabric: ${error.message}`);
-            } else if (error.message.includes('does not have V2_0 capabilities enabled.')) {
+            } else if (error.message.includes('There are no channels with V2_0 capabilities enabled.')) {
                 throw new Error(`Unable to connect to network, ${error.message}`);
             } else {
                 throw new Error(`Error querying channel list: ${error.message}`);

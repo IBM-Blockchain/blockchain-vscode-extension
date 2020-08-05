@@ -70,7 +70,7 @@ describe('createNewIdentityCommand', () => {
         mockFabricRuntimeConnection.getAllCertificateAuthorityNames.returns(['ca.name']);
         mockFabricRuntimeConnection.getAllOrdererNames.returns([]);
         mockFabricRuntimeConnection.getAllPeerNames.returns([]);
-        mockFabricRuntimeConnection.createChannelMap.resolves(new Map());
+        mockFabricRuntimeConnection.createChannelMap.resolves({channelMap: new Map(), v1channels: []});
         mockFabricRuntimeConnection.register.resolves('it\'s a secret');
         mockFabricRuntimeConnection.enroll.resolves({
             certificate: 'this is a certificate',

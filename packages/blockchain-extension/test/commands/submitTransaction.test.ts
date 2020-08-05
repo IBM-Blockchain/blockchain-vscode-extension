@@ -168,7 +168,7 @@ describe('SubmitTransactionCommand', () => {
 
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
             map.set('channelOne', ['peerOne']);
-            fabricClientConnectionMock.createChannelMap.resolves(map);
+            fabricClientConnectionMock.createChannelMap.resolves({channelMap: map, v1channels: []});
 
             const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             registryEntry.name = 'myConnection';

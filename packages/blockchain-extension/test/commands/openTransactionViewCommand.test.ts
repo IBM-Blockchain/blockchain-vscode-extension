@@ -79,7 +79,7 @@ describe('OpenTransactionViewCommand', () => {
 
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
             map.set('myChannel', ['peerOne']);
-            fabricClientConnectionMock.createChannelMap.resolves(map);
+            fabricClientConnectionMock.createChannelMap.resolves({channelMap: map, v1channels: []});
             fabricConnectionManager = FabricGatewayConnectionManager.instance();
             getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionMock);
 
