@@ -49,6 +49,7 @@ export class ExtensionCommands {
     static readonly UPGRADE_SMART_CONTRACT: string = 'environmentExplorer.upgradeSmartContractEntry';
     static readonly CREATE_NEW_IDENTITY: string = 'environmentExplorer.createNewIdentityEntry';
     static readonly LOG_IN_AND_DISCOVER: string = 'environmentExplorer.logInAndDiscover';
+    static readonly OPEN_CONSOLE_IN_BROWSER: string = 'environmentExplorer.openConsoleInBrowserEntry';
 
     static readonly APPROVE_SMART_CONTRACT: string = 'environmentExplorer.approveSmartContractEntry';
     static readonly COMMIT_SMART_CONTRACT: string = 'environmentExplorer.commitSmartContractEntry';

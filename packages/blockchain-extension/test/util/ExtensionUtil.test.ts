@@ -307,9 +307,10 @@ describe('ExtensionUtil Tests', () => {
                 ExtensionCommands.SUBSCRIBE_TO_EVENT,
                 ExtensionCommands.EXPORT_APP_DATA,
                 ExtensionCommands.LOG_IN_AND_DISCOVER,
+                ExtensionCommands.OPEN_CONSOLE_IN_BROWSER,
                 ExtensionCommands.OPEN_HOME_PAGE,
                 ExtensionCommands.OPEN_PRE_REQ_PAGE,
-                ExtensionCommands.OPEN_RELEASE_NOTES
+                ExtensionCommands.OPEN_RELEASE_NOTES,
             ]);
         });
 
@@ -367,6 +368,7 @@ describe('ExtensionUtil Tests', () => {
                 `onCommand:${ExtensionCommands.TEARDOWN_FABRIC_SHORT}`,
                 `onCommand:${ExtensionCommands.UPGRADE_SMART_CONTRACT}`,
                 `onCommand:${ExtensionCommands.CREATE_NEW_IDENTITY}`,
+                `onCommand:${ExtensionCommands.OPEN_CONSOLE_IN_BROWSER}`,
                 `onCommand:${ExtensionCommands.REFRESH_WALLETS}`,
                 `onCommand:${ExtensionCommands.ADD_WALLET}`,
                 `onCommand:${ExtensionCommands.ADD_WALLET_IDENTITY}`,
