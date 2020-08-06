@@ -91,4 +91,5 @@ export class ExtensionCommands {
     static readonly SAVE_TUTORIAL_AS_PDF: string = 'tutorial.save';
     static readonly MANAGE_FEATURE_FLAGS: string = 'manageFeatureFlags';
     static readonly OPEN_NEW_INSTANCE_LINK: string = 'openNewInstanceLink';
+    static readonly DELETE_DIRECTORY: string = 'deleteExtensionDirectory';
 }
