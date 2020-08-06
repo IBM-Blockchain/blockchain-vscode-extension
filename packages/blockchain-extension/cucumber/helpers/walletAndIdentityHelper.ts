@@ -123,11 +123,11 @@ export class WalletAndIdentityHelper {
     }
 
     private setIdentityStubs(method: string, identityName: string, mspid: string): void {
-        this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(identityName);
         this.userInputUtilHelper.inputBoxStub.withArgs('Enter MSPID').resolves(mspid);
 
         if (method === 'certs') {
             this.userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
+            this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(identityName);
             this.userInputUtilHelper.showGetCertKeyStub.resolves({ certificatePath: WalletAndIdentityHelper.certPath, privateKeyPath: WalletAndIdentityHelper.keyPath });
         } else if (method === 'JSON file') {
             const jsonPath: string = process.env.OPSTOOLS_FABRIC ? path.join(process.env.JSON_DIR, `${identityName}.json`) : WalletAndIdentityHelper.jsonFilePath;
@@ -136,6 +136,7 @@ export class WalletAndIdentityHelper {
         } else {
             // use enroll id and secret
             this.userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+            this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(identityName);
             const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             gatewayRegistryEntry.name = 'myGateway';
 
