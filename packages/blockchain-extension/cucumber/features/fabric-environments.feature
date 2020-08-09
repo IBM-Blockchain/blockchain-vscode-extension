@@ -239,6 +239,7 @@ Feature: Fabric Environments
         And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
         And the 'myFabric' environment is connected
         When I associate identity '<identity>' in wallet '<wallet>' with node '<name>'
+        Then the logger should have been called with 'INFO', 'undefined' and 'addWalletIdentity'
         Then the log should have been called with 'SUCCESS' and 'Successfully associated identity <identity> from wallet <wallet> with node <name>'
         Examples:
         | name                    | wallet   | identity |

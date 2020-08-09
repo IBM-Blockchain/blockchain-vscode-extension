@@ -55,18 +55,6 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
         walletRegistryEntry = chosenWallet.data;
     }
 
-    // Ask for an identity name
-    const identityName: string = await UserInputUtil.showInputBox('Provide a name for the identity');
-    if (!identityName) {
-        return;
-    }
-
-    const identityExists: boolean = await wallet.exists(identityName);
-    if (identityExists) {
-        outputAdapter.log(LogType.ERROR, `An identity called ${identityName} already exists`);
-        return;
-    }
-
     let isManagedWallet: boolean;
     if (walletRegistryEntry && walletRegistryEntry.managedWallet) {
         isManagedWallet = true;
@@ -106,10 +94,15 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
         return;
     }
 
+    let identityName: string;
     try {
 
         if (addIdentityMethod === UserInputUtil.ADD_CERT_KEY_OPTION) {
             // User wants to add an identity by providing a certificate and private key
+            identityName = await UserInputUtil.showInputBox('Provide a name for the identity');
+            if (!await checkIdentityName(identityName, await wallet.exists(identityName))) {
+                return;
+            }
             const certKey: { certificatePath: string, privateKeyPath: string } = await UserInputUtil.getCertKey();
             if (!certKey) {
                 return;
@@ -133,12 +126,21 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
             if (!jsonIdentityPath) {
                 return;
             }
+            const name: string = 'name';
             const certProperty: string = 'cert';
             const privateKeyProperty: string = 'private_key';
             const jsonIdentityContents: string = await fs.readFile(jsonIdentityPath.fsPath, 'utf8');
             const jsonIdentity: any = JSON.parse(jsonIdentityContents);
 
             if (jsonIdentity[certProperty] && jsonIdentity[privateKeyProperty]) {
+                if (!jsonIdentity[name]) {
+                    identityName = await UserInputUtil.showInputBox('Provide a name for the identity');
+                } else {
+                    identityName = jsonIdentity[name];
+                }
+                if (!await checkIdentityName(identityName, await wallet.exists(identityName))) {
+                    return;
+                }
                 certificate = Buffer.from(jsonIdentity[certProperty], 'base64').toString();
                 privateKey = Buffer.from(jsonIdentity[privateKeyProperty], 'base64').toString();
             } else {
@@ -151,7 +153,10 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
             // Ask them what gateway they want to use for enrollment.
             // We can't tell this automatically as a wallet is associated with a gateway (and a wallet can be associated with multiple gateways)
             let gatewayRegistryEntry: FabricGatewayRegistryEntry;
-
+            identityName = await UserInputUtil.showInputBox('Provide a name for the identity');
+            if (!await checkIdentityName(identityName, await wallet.exists(identityName))) {
+                return;
+            }
             if (isManagedWallet) {
                 // make sure environment is running
 
@@ -248,4 +253,17 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
     }
 
     return identityName;
+}
+
+function checkIdentityName(identityName: string, identityExists: boolean): boolean {
+    if (!identityName) {
+        VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, `An identity name cannot be empty`);
+        return false;
+    }
+
+    if (identityExists) {
+        VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, `An identity called ${identityName} already exists`);
+        return false;
+    }
+    return true;
 }
