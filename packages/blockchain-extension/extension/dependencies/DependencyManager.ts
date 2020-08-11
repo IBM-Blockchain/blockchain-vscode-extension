@@ -21,11 +21,7 @@ import * as semver from 'semver';
 import { CommandUtil } from '../util/CommandUtil';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { Dependencies } from './Dependencies';
-<<<<<<< HEAD
-=======
-import { LogType } from 'ibm-blockchain-platform-common';
 import OS = require('os');
->>>>>>> 8ca71292... Prerequisites updated (#2566)
 
 export class DependencyManager {
 
