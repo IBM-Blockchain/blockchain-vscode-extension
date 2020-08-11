@@ -105,7 +105,8 @@
             "tutorialGallery.open",
             "transactionPage.open",
             "tutorial.save",
-            "manageFeatureFlags"
+            "manageFeatureFlags",
+            "deleteExtensionDirectory"
         ]
     },
     "main": "./build/extension/extension",
@@ -593,6 +594,11 @@
             {
                 "command": "manageFeatureFlags",
                 "title": "Enable or disable experimental features",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "deleteExtensionDirectory",
+                "title": "Delete Extension Directory",
                 "category": "IBM Blockchain Platform"
             }
         ],
