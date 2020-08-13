@@ -156,8 +156,8 @@ describe('AddWalletIdentityCommand', () => {
                 }
             }`);
 
-            inputBoxStub.onFirstCall().resolves('greenConga');
-            inputBoxStub.onSecondCall().resolves('myMSPID');
+            inputBoxStub.onFirstCall().resolves('myMSPID');
+            inputBoxStub.onSecondCall().resolves('greenConga');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
             const gatewayA: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayA');
             showGatewayQuickPickBoxStub.resolves({
@@ -241,8 +241,8 @@ describe('AddWalletIdentityCommand', () => {
               ca0:
                 url: http://ca0url`);
 
-            inputBoxStub.onFirstCall().resolves('greenConga');
-            inputBoxStub.onSecondCall().resolves('myMSPID');
+            inputBoxStub.onFirstCall().resolves('myMSPID');
+            inputBoxStub.onSecondCall().resolves('greenConga');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
             const myGatewayC: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayC');
 
@@ -285,8 +285,8 @@ describe('AddWalletIdentityCommand', () => {
                 url: http://ca0url
                 caName: clientCA`);
 
-            inputBoxStub.onFirstCall().resolves('greenConga');
-            inputBoxStub.onSecondCall().resolves('myMSPID');
+            inputBoxStub.onFirstCall().resolves('myMSPID');
+            inputBoxStub.onSecondCall().resolves('greenConga');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
             const myGatewayC: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayC');
             showGatewayQuickPickBoxStub.resolves({
@@ -314,19 +314,90 @@ describe('AddWalletIdentityCommand', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addWalletIdentityCommand', { method: 'enrollmentID' });
         });
 
-        it('should error when user tries to add an identity with the same name as one that already exists', async () => {
+        it('should error when user tries to add an identity using an enroll id and secret, with the same name as one that already exists ', async () => {
             const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
                 data: externalWallet
             });
             const identityName: string = 'greenConga';
-            inputBoxStub.onFirstCall().resolves(identityName);
+            inputBoxStub.onFirstCall().resolves('myMSPID');
+            inputBoxStub.onSecondCall().resolves(identityName);
+            addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
             walletExistsStub.resolves(true);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `An identity called ${identityName} already exists`);
+        });
+
+        it('should error when user tries to add an identity using a certificate and private key, with the same name as one that already exists ', async () => {
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
+            showWalletsQuickPickStub.resolves({
+                label: 'externalWallet',
+                data: externalWallet
+            });
+            const identityName: string = 'greenConga';
+            inputBoxStub.onFirstCall().resolves('myMSPID');
+            inputBoxStub.onSecondCall().resolves(identityName);
+            addIdentityMethodStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
+            walletExistsStub.resolves(true);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `An identity called ${identityName} already exists`);
+        });
+
+        it('should error when user tries to add an identity using a json file, with the same name as one that already exists ', async () => {
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
+            showWalletsQuickPickStub.resolves({
+                label: 'externalWallet',
+                data: externalWallet
+            });
+            inputBoxStub.onFirstCall().resolves('myMSPID');
+            addIdentityMethodStub.resolves(UserInputUtil.ADD_JSON_ID_OPTION);
+            browseStub.resolves('myTestPath');
+            fsReadFile.resolves('{"name": "purpleConga","cert": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0", "private_key": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0"}');
+            walletExistsStub.resolves(true);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `An identity called purpleConga already exists`);
+        });
+
+        it('should error when user tries to add an identity using a json file, providing no name ', async () => {
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
+            showWalletsQuickPickStub.resolves({
+                label: 'externalWallet',
+                data: externalWallet
+            });
+            inputBoxStub.onFirstCall().resolves('myMSPID');
+            addIdentityMethodStub.resolves(UserInputUtil.ADD_JSON_ID_OPTION);
+            browseStub.resolves('myTestPath');
+            fsReadFile.resolves('{"cert": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0", "private_key": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0"}');
+            inputBoxStub.onSecondCall().resolves('');
+            walletExistsStub.resolves(true);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `An identity name cannot be empty`);
+        });
+
+        it('should ask user to enter an identity name and use it if none is provided in a json file ', async () => {
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
+            showWalletsQuickPickStub.resolves({
+                label: 'externalWallet',
+                data: externalWallet
+            });
+            inputBoxStub.onFirstCall().resolves('myMSPID');
+            addIdentityMethodStub.resolves(UserInputUtil.ADD_JSON_ID_OPTION);
+            browseStub.resolves('myTestPath');
+            fsReadFile.resolves('{"cert": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0", "private_key": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0"}');
+            inputBoxStub.onSecondCall().resolves('biscuit');
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to wallet`);
         });
 
         it('should return when user cancels when selecting a CA to enroll with', async () => {
@@ -349,8 +420,8 @@ describe('AddWalletIdentityCommand', () => {
 
             const showQuickPickCAStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showQuickPickCA').resolves();
 
-            inputBoxStub.onFirstCall().resolves('greenConga');
-            inputBoxStub.onSecondCall().resolves('myMSPID');
+            inputBoxStub.onFirstCall().resolves('myMSPID');
+            inputBoxStub.onSecondCall().resolves('greenConga');
             importIdentityStub.resetHistory();
             addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
             const myGatewayA: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayA');
@@ -398,8 +469,8 @@ describe('AddWalletIdentityCommand', () => {
 
             const showQuickPickCAStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showQuickPickCA').resolves('ca1');
 
-            inputBoxStub.onFirstCall().resolves('greenConga');
-            inputBoxStub.onSecondCall().resolves('myMSPID');
+            inputBoxStub.onFirstCall().resolves('myMSPID');
+            inputBoxStub.onSecondCall().resolves('greenConga');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
 
             const myGatewayA: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayA');
@@ -446,7 +517,7 @@ describe('AddWalletIdentityCommand', () => {
                 label: 'blueWallet',
                 data: blueWallet
             });
-
+            addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
             inputBoxStub.resolves();
 
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
@@ -464,14 +535,13 @@ describe('AddWalletIdentityCommand', () => {
                 data: blueWallet
             });
 
-            inputBoxStub.onFirstCall().resolves('greenConga');
-            inputBoxStub.onSecondCall().resolves('myMSPID');
+            inputBoxStub.onFirstCall().resolves('myMSPID');
             addIdentityMethodStub.resolves();
 
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
             showGatewayQuickPickBoxStub.should.not.have.been.called;
-            inputBoxStub.should.have.been.calledTwice;
+            inputBoxStub.should.have.been.calledOnce;
             addIdentityMethodStub.should.have.been.calledOnce;
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
             sendTelemetryEventStub.should.not.have.been.called;
@@ -484,13 +554,12 @@ describe('AddWalletIdentityCommand', () => {
                 data: externalWallet
             });
 
-            inputBoxStub.onFirstCall().resolves('greenConga');
-            inputBoxStub.onSecondCall().resolves();
+            inputBoxStub.onFirstCall().resolves();
 
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
             showGatewayQuickPickBoxStub.should.not.have.been.called;
-            inputBoxStub.should.have.been.calledTwice;
+            inputBoxStub.should.have.been.calledOnce;
             addIdentityMethodStub.should.not.have.been.called;
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
         });
@@ -523,8 +592,8 @@ describe('AddWalletIdentityCommand', () => {
                 data: externalWallet
             });
 
-            inputBoxStub.onFirstCall().resolves('greenConga');
-            inputBoxStub.onSecondCall().resolves('myMSPID');
+            inputBoxStub.onFirstCall().resolves('myMSPID');
+            inputBoxStub.onSecondCall().resolves('greenConga');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
             const myGatewayB: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayB');
             showGatewayQuickPickBoxStub.resolves({
@@ -549,8 +618,8 @@ describe('AddWalletIdentityCommand', () => {
                 data: blueWallet
             });
 
-            inputBoxStub.onFirstCall().resolves('blueConga');
-            inputBoxStub.onSecondCall().resolves('myMSPID');
+            inputBoxStub.onFirstCall().resolves('myMSPID');
+            inputBoxStub.onSecondCall().resolves('blueConga');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
             getCertKeyStub.resolves({
                 certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
@@ -578,8 +647,8 @@ describe('AddWalletIdentityCommand', () => {
                 label: 'blueWallet',
                 data: blueWallet
             });
-            inputBoxStub.onFirstCall().resolves('blueConga');
-            inputBoxStub.onSecondCall().resolves('myMSPID');
+            inputBoxStub.onFirstCall().resolves('myMSPID');
+            inputBoxStub.onSecondCall().resolves('greenConga');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
             getCertKeyStub.resolves();
 
@@ -598,8 +667,8 @@ describe('AddWalletIdentityCommand', () => {
                 label: 'blueWallet',
                 data: blueWallet
             });
-            inputBoxStub.onFirstCall().resolves('blueConga');
-            inputBoxStub.onSecondCall().resolves('myMSPID');
+            inputBoxStub.onFirstCall().resolves('myMSPID');
+            inputBoxStub.onSecondCall().resolves('greenConga');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
             const error: Error = new Error('certificate invalid');
             getCertKeyStub.throws(error);
@@ -631,8 +700,8 @@ describe('AddWalletIdentityCommand', () => {
                 label: 'externalWallet',
                 data: externalWallet
             });
-            inputBoxStub.onFirstCall().resolves('greenConga');
-            inputBoxStub.onSecondCall().resolves('myMSPID');
+            inputBoxStub.onFirstCall().resolves('myMSPID');
+            inputBoxStub.onSecondCall().resolves('greenConga');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
 
             const myGatewayB: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayB');
@@ -673,8 +742,8 @@ describe('AddWalletIdentityCommand', () => {
 
             await FabricGatewayRegistry.instance().clear();
 
-            inputBoxStub.onFirstCall().resolves('greenConga');
-            inputBoxStub.onSecondCall().resolves('myMSPID');
+            inputBoxStub.onFirstCall().resolves('myMSPID');
+            inputBoxStub.onSecondCall().resolves('greenConga');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
 
             getEnrollIdSecretStub.resolves();
@@ -696,15 +765,14 @@ describe('AddWalletIdentityCommand', () => {
                 data: externalWallet
             });
 
-            inputBoxStub.onFirstCall().resolves('purpleConga');
-            inputBoxStub.onSecondCall().resolves('myMSPID');
+            inputBoxStub.onFirstCall().resolves('myMSPID');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_JSON_ID_OPTION);
             browseStub.resolves('myTestPath');
             fsReadFile.resolves('{"name": "purpleConga","cert": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0", "private_key": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0"}');
 
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             result.should.equal('purpleConga');
-            inputBoxStub.should.have.been.calledTwice;
+            inputBoxStub.should.have.been.calledOnce;
             browseStub.should.have.been.calledOnce;
             fsReadFile.should.have.been.calledOnce;
             showGatewayQuickPickBoxStub.should.not.have.been.called;
@@ -722,14 +790,13 @@ describe('AddWalletIdentityCommand', () => {
                 data: externalWallet
             });
 
-            inputBoxStub.onFirstCall().resolves('purpleConga');
-            inputBoxStub.onSecondCall().resolves('myMSPID');
+            inputBoxStub.onFirstCall().resolves('myMSPID');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_JSON_ID_OPTION);
             browseStub.resolves();
 
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
-            inputBoxStub.should.have.been.calledTwice;
+            inputBoxStub.should.have.been.calledOnce;
             browseStub.should.have.been.calledOnce;
             fsReadFile.should.not.have.been.called;
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
@@ -743,8 +810,7 @@ describe('AddWalletIdentityCommand', () => {
                 data: externalWallet
             });
 
-            inputBoxStub.onFirstCall().resolves('purpleConga');
-            inputBoxStub.onSecondCall().resolves('myMSPID');
+            inputBoxStub.onFirstCall().resolves('myMSPID');
             addIdentityMethodStub.resolves(UserInputUtil.ADD_JSON_ID_OPTION);
             browseStub.resolves('myTestPath');
             fsReadFile.resolves('{"name": "purpleConga","certificate": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0", "privateKEy": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0"}');
@@ -752,7 +818,7 @@ describe('AddWalletIdentityCommand', () => {
             importIdentityStub.resetHistory();
             const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             should.not.exist(result);
-            inputBoxStub.should.have.been.calledTwice;
+            inputBoxStub.should.have.been.calledOnce;
             browseStub.should.have.been.calledOnce;
             fsReadFile.should.have.been.calledOnce;
             showGatewayQuickPickBoxStub.should.not.have.been.called;
@@ -775,8 +841,8 @@ describe('AddWalletIdentityCommand', () => {
                     }
                 }`);
 
-                inputBoxStub.onFirstCall().resolves('greenConga');
-                inputBoxStub.onSecondCall().resolves('myMSPID');
+                inputBoxStub.onFirstCall().resolves('myMSPID');
+                inputBoxStub.onSecondCall().resolves('greenConga');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
                 const myGatewayA: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayA');
                 showGatewayQuickPickBoxStub.resolves({
@@ -1006,7 +1072,7 @@ describe('AddWalletIdentityCommand', () => {
                 should.not.exist(result);
                 showOrgQuickPickStub.should.have.been.calledWith(`Select the organization which the identity belongs to`, localEnvironmentEntry);
                 showWalletsQuickPickStub.should.not.have.been.called;
-                inputBoxStub.should.have.been.calledOnce;
+                inputBoxStub.should.not.have.been.called;
                 fsReadFile.should.not.have.been.called;
                 logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
                 sendTelemetryEventStub.should.not.have.been.called;
@@ -1030,8 +1096,8 @@ describe('AddWalletIdentityCommand', () => {
                     }
                 }`);
 
-                inputBoxStub.onFirstCall().resolves('greenConga');
-                inputBoxStub.onSecondCall().resolves('myMSPID');
+                inputBoxStub.onFirstCall().resolves('myMSPID');
+                inputBoxStub.onSecondCall().resolves('greenConga');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
                 const myGatewayA: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayA');
                 showGatewayQuickPickBoxStub.resolves({
