@@ -113,6 +113,7 @@ import Axios from 'axios';
 import { URL } from 'url';
 import { FeatureFlagManager } from './FeatureFlags';
 import { openConsoleInBrowser } from '../commands/openConsoleInBrowserCommand';
+import { deleteExtensionDirectory } from '../commands/deleteExtensionDirectoryCommand';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -337,6 +338,7 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_APP_DATA, (treeItem: ContractTreeItem | InstantiatedTreeItem) => exportAppData(treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.LOG_IN_AND_DISCOVER, () => logInAndDiscover()));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_CONSOLE_IN_BROWSER, (environment?: FabricEnvironmentTreeItem ) => openConsoleInBrowser(environment)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_DIRECTORY, () => deleteExtensionDirectory()));
 
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_HOME_PAGE, async () => {
             const homeView: HomeView = new HomeView(context);
