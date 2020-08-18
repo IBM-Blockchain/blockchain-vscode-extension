@@ -495,6 +495,8 @@ The following dependencies are required on all operating systems:
 - [VS Code version 1.40.0 or greater](https://code.visualstudio.com)
 > VS Code version can be found by running: `code --version`
 
+The following dependencies are optional:
+
 - [Node v8.x or v10.x and npm v6.x or greater](https://nodejs.org/en/download/)
 > Node version can be found by running: `node --version`
 >
@@ -502,20 +504,12 @@ The following dependencies are required on all operating systems:
 
 **If installing Node and npm using a manager such as 'nvm' or 'nodenv', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.**
 
-The following dependencies are optional:
 - [Go version v1.12 or greater for developing Go contracts](https://golang.org/dl/)
 > Go version can be found by running: `go version`
 
 - [Java v8 for developing Java contracts](https://adoptopenjdk.net/?variant=openjdk8)
 > Java version can be found by running: `java -version`
 
-
-### Additional requirements for Mac & Linux
-
-- Xcode Command Line Tools
-> Can be installed by running: `xcode-select --install`
->
-> Can find version by running: `xcode-select --version`
 
 ### Additional requirements for Windows
 
@@ -536,7 +530,6 @@ You will need the following:
 #### Additional requirements for Windows
 
 - Docker for Windows is configured to use Linux containers (this is the default)
-- You will need to install the C++ Build Tools for Windows from [windows-build-tools](https://github.com/felixrieseberg/windows-build-tools#windows-build-tools)
 - You will need to install OpenSSL v1.0.2 if using Node 8, or v1.1.1 if using Node 10 from [Win32 OpenSSL](http://slproweb.com/products/Win32OpenSSL.html)
   - Install the normal version, not the version marked as "light"
   - Install the Win32 version into `C:\OpenSSL-Win32` on 32-bit systems
