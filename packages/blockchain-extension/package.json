@@ -694,7 +694,7 @@
                     "group": "navigation"
                 }
             ],
-            "debug/toolbar": [
+            "debug/toolBar": [
                 {
                     "command": "debug.commandList",
                     "when": "blockchain-debug",

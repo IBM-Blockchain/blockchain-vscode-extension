@@ -66,11 +66,11 @@ Feature: Fabric Wallets
 
     @otherFabric
     Scenario: create a new wallet using a JSON file
-        When I create a wallet 'myWalletyWallet' using JSON file with identity name 'jason' and mspid 'Org1MSP'
+        When I create a wallet 'myWalletyWallet' using JSON file with identity name 'secondBiscuit' and mspid 'Org1MSP'
         Then there should be a tree item with a label 'Other/shared wallets' in the 'Fabric Wallets' panel
         And the 'Fabric Wallets' tree item should have a child 'myWalletyWallet'
         And the tree item should have a tooltip equal to 'myWalletyWallet'
-        And there should be a identity tree item with a label 'jason' in the 'Fabric Wallets' panel for the current tree item
+        And there should be a identity tree item with a label 'secondBiscuit' in the 'Fabric Wallets' panel for the current tree item
         And the tree item should have a tooltip equal to 'Attributes:\n\nNone'
 
     @otherFabric
