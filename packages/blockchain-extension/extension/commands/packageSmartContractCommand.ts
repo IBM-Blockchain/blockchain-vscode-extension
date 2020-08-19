@@ -97,6 +97,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
         cancellable: false
     }, async (progress: vscode.Progress<{ message: string }>) => {
         progress.report({ message: `Packaging Smart Contract` });
+        let originalGOPATH: string = '';
         try {
 
             // Determine the filename of the new package.
@@ -115,25 +116,34 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
             // Determine the path argument.
             let contractPath: string = workspace.uri.fsPath; // Workspace path
             if (language === 'golang') {
-
                 if (!process.env.GOPATH) {
-                    // The path is relative to $GOPATH/src for Go smart contracts.
-                    const srcPath: string = path.join(contractPath, '..', '..', 'src');
-                    contractPath = path.basename(contractPath);
-                    const exists: boolean = await fs.pathExists(srcPath);
-
-                    if (!exists) {
-                        // Project path is not under GOPATH.
+                    // The path is relative to $GOPATH/src for Go smart contracts.
+                    const indexSrc: number = contractPath.indexOf(path.sep + 'src' + path.sep);
+                    const srcPath: string = contractPath.substring(0, indexSrc + 4);
+                    contractPath = path.relative(srcPath, contractPath);
+                    if (indexSrc === -1) {
+                        // Project path is not under GOPATH.
                         throw new Error('The environment variable GOPATH has not been set, and the extension was not able to automatically detect the correct value. You cannot package a Go smart contract without setting the environment variable GOPATH.');
                     } else {
                         process.env.GOPATH = path.join(srcPath, '..');
                     }
                 } else {
-                    // The path is relative to $GOPATH/src for Go smart contracts.
-                    const srcPath: string = path.join(process.env.GOPATH, 'src');
+                    // The path is relative to $GOPATH/src for Go smart contracts.
+                    const indexSrc: number = contractPath.indexOf(path.sep + 'src' + path.sep);
+                    const srcPath: string = contractPath.substring(0, indexSrc + 4);
+                    const goPaths: string[] = process.env.GOPATH.split(path.delimiter);
+                    let pathsMatch: boolean = false;
+                    if (goPaths.length > 1) {
+                        originalGOPATH = process.env.GOPATH;
+                    }
+                    goPaths.forEach((value: string) => {
+                        if (value === srcPath.substr(0, srcPath.length - 4)) {
+                            process.env.GOPATH = value;
+                            pathsMatch = true;
+                        }
+                    });
                     contractPath = path.relative(srcPath, contractPath);
-                    if (!contractPath || contractPath.startsWith('..') || path.isAbsolute(contractPath)) {
-                        // Project path is not under GOPATH.
+                    if (!pathsMatch || !contractPath || contractPath.startsWith('..') || path.isAbsolute(contractPath)) {
                         throw new Error('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
                     }
                 }
@@ -165,10 +175,15 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
             packageEntry.name = properties.workspacePackageName;
             packageEntry.version = properties.workspacePackageVersion;
             packageEntry.path = pkgFile;
-
+            if (originalGOPATH) {
+                process.env.GOPATH = originalGOPATH;
+            }
             return packageEntry;
         } catch (err) {
             outputAdapter.log(LogType.ERROR, err.message, err.toString());
+            if (originalGOPATH) {
+                process.env.GOPATH = originalGOPATH;
+            }
             return;
         }
     });
