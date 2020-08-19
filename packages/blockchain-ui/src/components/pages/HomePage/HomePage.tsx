@@ -47,13 +47,20 @@ class HomePage extends Component<IProps> {
                                 <Link href='https://github.com/IBM-Blockchain/blockchain-vscode-extension/blob/master/README.md#features' id='home-link-01'>
                                     Extension documentation
                                 </Link>
-                                <CommandLink linkContents='Release notes' commandName={ExtensionCommands.OPEN_RELEASE_NOTES} id='home-link-02'/>
                                 <Link href='https://cloud.ibm.com/docs/blockchain?topic=blockchain-get-started-ibp' id='home-link-03'>
                                     IBM Blockchain Platform documentation
                                 </Link>
                                 <TelemetryLink linkContents='Free e-book: Getting Started with Enterprise Blockchain' url='https://www.ibm.com/account/reg/uk-en/signup?formid=urx-38322&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+Oreilly+book+promo&cm_mmca1=000026VG&cm_mmca2=10008691' id='home-link-04'/>
+                                <Link href='http://ibm.biz/blockchainuserseries' id='home-link-03'>
+                                    Join the IBM Blockchain Platform User Series Webcast
+                                </Link>
+                                <Link href='https://www.ibm.com/blockchain/platform?schedulerform' id='home-link-03'>
+                                    Schedule a free 1:1 consultation with an IBM Blockchain Platform expert
+                                </Link>
+
                             </div>
                             <div className='bx--col link-list-container'>
+                                <CommandLink linkContents='Release notes' commandName={ExtensionCommands.OPEN_RELEASE_NOTES} id='home-link-02'/>
                                 <CommandLink linkContents='Sample code: FabCar' commandName={ExtensionCommands.OPEN_SAMPLE_PAGE} commandData={['fabric-samples', 'FabCar']} id='home-link-05'/>
                                 <CommandLink linkContents='Sample code: Commercial Paper' commandName={ExtensionCommands.OPEN_SAMPLE_PAGE} commandData={['fabric-samples', 'Commercial Paper']} id='home-link-06'/>
                                 <Link href='https://hyperledger-fabric.readthedocs.io/en/release-2.0/' id='home-link-07'>
