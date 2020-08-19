@@ -25,6 +25,7 @@ import { TestUtil } from '../TestUtil';
 import { GlobalState, ExtensionData, DEFAULT_EXTENSION_DATA } from '../../extension/util/GlobalState.js';
 import { Dependencies } from '../../extension/dependencies/Dependencies';
 import * as OS from 'os';
+import * as semver from 'semver';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -35,8 +36,150 @@ const should: Chai.Should = chai.should();
 describe('DependencyManager Tests', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let getExtensionLocalFabricSetting: sinon.SinonStub;
+
     beforeEach(async () => {
         getExtensionLocalFabricSetting = mySandBox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting').returns(true);
+    });
+
+    afterEach(async () => {
+        mySandBox.restore();
+    });
+
+    describe('isValidDependency', () => {
+        let semverSatisfiesStub: sinon.SinonStub;
+        let dependencyManager: DependencyManager;
+
+        beforeEach(async () => {
+            mySandBox.stub(process, 'platform').value('linux'); // We don't have any Linux only prereqs, so this is okay.
+            dependencyManager = DependencyManager.instance();
+            getExtensionLocalFabricSetting.returns(false);
+            semverSatisfiesStub = mySandBox.stub(semver, 'satisfies').returns(false);
+        });
+
+        it(`should return false when dependency version is incorrect, absent or incomplete`, async () => {
+            const dependenciesKeys: string[] = ['node', 'java', 'docker', 'compose', 'go', 'goExtension', 'javaLangSupp', 'javaDebug', 'javaTestRunner', 'dockerWin', 'sysReq'];
+
+            const dependencies: any = {
+                node: {
+                    name: 'Node.js'
+                },
+                java: {
+                    name: 'Java OpenJDK 8'
+                },
+                docker: {
+                    name: 'Docker'
+                },
+                compose: {
+                    name: 'Docker Compose'
+                },
+                go: {
+                    name: 'Go'
+                },
+                goExtension: {
+                    name: 'Go Extension'
+                },
+                javaLangSupp: {
+                    name: 'Java Language Support Extension'
+                },
+                javaDebug: {
+                    name: 'Java Debugger Extension'
+                },
+                javaTestRunner: {
+                    name: 'Java Test Runner Extension'
+                },
+                dockerWin: {
+                    name: 'Docker for Windows',
+                    complete: false
+                },
+                sysReq: {
+                    name: 'System Requirements'
+                }
+            };
+
+            for (let i: number = 0; i < dependenciesKeys.length; i++) {
+                const result: boolean = dependencyManager.isValidDependency(dependencies[dependenciesKeys[i]]);
+                try {
+                    result.should.equal(false);
+                } catch (error) {
+                    throw new Error(`Dependency ${dependenciesKeys[i]} should not be valid - ${error.message}`);
+                }
+            }
+        });
+
+        it(`should return true when dependency version is correct, present or complete`, async () => {
+            semverSatisfiesStub.returns(true);
+            const dependenciesKeys: string[] = ['node', 'java', 'docker', 'compose', 'go', 'goExtension', 'javaLangSupp', 'javaDebug', 'javaTestRunner', 'dockerWin', 'sysReq'];
+
+            const dependencies: any = {
+                node: {
+                    name: 'Node.js',
+                    version: 'x'
+                },
+                java: {
+                    name: 'Java OpenJDK 8',
+                    version: 'x'
+                },
+                docker: {
+                    name: 'Docker',
+                    version: 'x'
+                },
+                compose: {
+                    name: 'Docker Compose',
+                    version: 'x'
+                },
+                go: {
+                    name: 'Go',
+                    version: 'x'
+                },
+                goExtension: {
+                    name: 'Go Extension',
+                    version: 'x'
+                },
+                javaLangSupp: {
+                    name: 'Java Language Support Extension',
+                    version: 'x'
+                },
+                javaDebug: {
+                    name: 'Java Debugger Extension',
+                    version: 'x'
+                },
+                javaTestRunner: {
+                    name: 'Java Test Runner Extension',
+                    version: 'x'
+                },
+                dockerWin: {
+                    name: 'Docker for Windows',
+                    complete: true
+                },
+                sysReq: {
+                    name: 'System Requirements',
+                    complete: true
+                }
+            };
+
+            for (let i: number = 0; i < dependenciesKeys.length; i++) {
+                const result: boolean = dependencyManager.isValidDependency(dependencies[dependenciesKeys[i]]);
+                try {
+                    result.should.equal(true);
+                } catch (error) {
+                    throw new Error(`Dependency ${dependenciesKeys[i]} should be valid - ${error.message}`);
+                }
+            }
+        });
+
+        it(`should be able to handle unknown dependencies`, async () => {
+            const dependencies: any = {
+                docker: {
+                    name: 'some_dependency',
+                    version: '0.0.1',
+                }
+            };
+
+            const result: boolean = dependencyManager.isValidDependency(dependencies);
+
+            result.should.equal(false);
+        });
+
     });
 
     describe('hasPreReqsInstalled', () => {
@@ -46,106 +189,8 @@ describe('DependencyManager Tests', () => {
             getPreReqVersionsStub = mySandBox.stub(DependencyManager.prototype, 'getPreReqVersions');
         });
 
-        afterEach(async () => {
-            mySandBox.restore();
-        });
-
-        it(`should return false if there's no Node version`, async () => {
-            const dependencies: any = {
-                node: {
-                    name: 'Node.js',
-                    version: undefined
-                }
-            };
-
-            getPreReqVersionsStub.resolves(dependencies);
-
-            const dependencyManager: DependencyManager = DependencyManager.instance();
-            const result: boolean = await dependencyManager.hasPreReqsInstalled();
-
-            result.should.equal(false);
-            getPreReqVersionsStub.should.have.been.calledOnce;
-
-        });
-
-        it(`should return false if Node version isn't between 8 and 11`, async () => {
-            const dependencies: any = {
-                node: {
-                    name: 'Node.js',
-                    version: '12',
-                    requiredVersion: Dependencies.NODEJS_REQUIRED
-                }
-            };
-
-            getPreReqVersionsStub.resolves(dependencies);
-
-            const dependencyManager: DependencyManager = DependencyManager.instance();
-            const result: boolean = await dependencyManager.hasPreReqsInstalled();
-
-            result.should.equal(false);
-            getPreReqVersionsStub.should.have.been.calledOnce;
-
-        });
-
-        it(`should return false if there's no npm version`, async () => {
-            const dependencies: any = {
-                node: {
-                    name: 'Node.js',
-                    version: '8.12.0',
-                    requiredVersion: Dependencies.NODEJS_REQUIRED
-                },
-                npm: {
-                    name: 'npm',
-                    version: undefined
-                }
-            };
-
-            getPreReqVersionsStub.resolves(dependencies);
-
-            const dependencyManager: DependencyManager = DependencyManager.instance();
-            const result: boolean = await dependencyManager.hasPreReqsInstalled();
-
-            result.should.equal(false);
-            getPreReqVersionsStub.should.have.been.calledOnce;
-
-        });
-
-        it(`should return false if npm version is less than required version`, async () => {
-            const dependencies: any = {
-                node: {
-                    name: 'Node.js',
-                    version: '8.12.0',
-                    requiredVersion: Dependencies.NODEJS_REQUIRED
-                },
-                npm: {
-                    name: 'npm',
-                    version: '4.0.0',
-                    requiredVersion: Dependencies.NPM_REQUIRED
-                }
-            };
-
-            getPreReqVersionsStub.resolves(dependencies);
-
-            const dependencyManager: DependencyManager = DependencyManager.instance();
-            const result: boolean = await dependencyManager.hasPreReqsInstalled();
-
-            result.should.equal(false);
-            getPreReqVersionsStub.should.have.been.calledOnce;
-
-        });
-
         it(`should return false if there's no Docker version`, async () => {
             const dependencies: any = {
-                node: {
-                    name: 'Node.js',
-                    version: '8.12.0',
-                    requiredVersion: Dependencies.NODEJS_REQUIRED
-                },
-                npm: {
-                    name: 'npm',
-                    version: '6.4.1',
-                    requiredVersion: Dependencies.NPM_REQUIRED
-                },
                 docker: {
                     name: 'Docker',
                     version: undefined
@@ -164,16 +209,6 @@ describe('DependencyManager Tests', () => {
 
         it(`should return false if Docker version is less than required version`, async () => {
             const dependencies: any = {
-                node: {
-                    name: 'Node.js',
-                    version: '8.12.0',
-                    requiredVersion: Dependencies.NODEJS_REQUIRED
-                },
-                npm: {
-                    name: 'npm',
-                    version: '6.4.1',
-                    requiredVersion: Dependencies.NPM_REQUIRED
-                },
                 docker: {
                     name: 'Docker',
                     version: '16.0.0',
@@ -193,16 +228,6 @@ describe('DependencyManager Tests', () => {
 
         it(`should return false if there's no Docker Compose version`, async () => {
             const dependencies: any = {
-                node: {
-                    name: 'Node.js',
-                    version: '8.12.0',
-                    requiredVersion: Dependencies.NODEJS_REQUIRED
-                },
-                npm: {
-                    name: 'npm',
-                    version: '6.4.1',
-                    requiredVersion: Dependencies.NPM_REQUIRED
-                },
                 docker: {
                     name: 'Docker',
                     version: '18.1.2',
@@ -226,16 +251,6 @@ describe('DependencyManager Tests', () => {
 
         it(`should return false if Docker Compose version is less than required version`, async () => {
             const dependencies: any = {
-                node: {
-                    name: 'Node.js',
-                    version: '8.12.0',
-                    requiredVersion: Dependencies.NODEJS_REQUIRED
-                },
-                npm: {
-                    name: 'npm',
-                    version: '6.4.1',
-                    requiredVersion: Dependencies.NPM_REQUIRED
-                },
                 docker: {
                     name: 'Docker',
                     version: '18.1.2',
@@ -260,16 +275,6 @@ describe('DependencyManager Tests', () => {
 
         it(`should return false if they haven't confirmed to have system requirements`, async () => {
             const dependencies: any = {
-                node: {
-                    name: 'Node.js',
-                    version: '8.12.0',
-                    requiredVersion: Dependencies.NODEJS_REQUIRED
-                },
-                npm: {
-                    name: 'npm',
-                    version: '6.4.1',
-                    requiredVersion: Dependencies.NPM_REQUIRED
-                },
                 docker: {
                     name: 'Docker',
                     version: '18.1.2',
@@ -300,16 +305,6 @@ describe('DependencyManager Tests', () => {
             mySandBox.stub(process, 'platform').value('linux'); // We don't have any Linux only prereqs, so this is okay.
 
             const dependencies: any = {
-                node: {
-                    name: 'Node.js',
-                    version: '8.12.0',
-                    requiredVersion: Dependencies.NODEJS_REQUIRED
-                },
-                npm: {
-                    name: 'npm',
-                    version: '6.4.1',
-                    requiredVersion: Dependencies.NPM_REQUIRED
-                },
                 docker: {
                     name: 'Docker',
                     version: '18.1.2',
@@ -341,16 +336,6 @@ describe('DependencyManager Tests', () => {
             mySandBox.stub(process, 'platform').value('linux'); // We don't have any Linux only prereqs, so this is okay.
 
             const dependencies: any = {
-                node: {
-                    name: 'Node.js',
-                    version: '8.12.0',
-                    requiredVersion: Dependencies.NODEJS_REQUIRED
-                },
-                npm: {
-                    name: 'npm',
-                    version: '6.4.1',
-                    requiredVersion: Dependencies.NPM_REQUIRED
-                },
                 systemRequirements: {
                     name: 'System Requirements',
                     complete: true
@@ -373,16 +358,6 @@ describe('DependencyManager Tests', () => {
             mySandBox.stub(process, 'platform').value('linux'); // We don't have any Linux only prereqs, so this is okay.
 
             const dependencies: any = {
-                node: {
-                    name: 'Node.js',
-                    version: '8.12.0',
-                    requiredVersion: Dependencies.NODEJS_REQUIRED
-                },
-                npm: {
-                    name: 'npm',
-                    version: '6.4.1',
-                    requiredVersion: Dependencies.NPM_REQUIRED
-                },
                 docker: {
                     name: 'Docker',
                     version: '18.1.2',
@@ -412,16 +387,6 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('win32');
 
                 const dependencies: any = {
-                    node: {
-                        name: 'Node.js',
-                        version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
-                    },
-                    npm: {
-                        name: 'npm',
-                        version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
-                    },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -456,16 +421,6 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('win32');
 
                 const dependencies: any = {
-                    node: {
-                        name: 'Node.js',
-                        version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
-                    },
-                    npm: {
-                        name: 'npm',
-                        version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
-                    },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -496,69 +451,10 @@ describe('DependencyManager Tests', () => {
 
             });
 
-            it(`should return false if there's no version of the build tools (Windows)`, async () => {
-                mySandBox.stub(process, 'platform').value('win32');
-
-                const dependencies: any = {
-                    node: {
-                        name: 'Node.js',
-                        version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
-                    },
-                    npm: {
-                        name: 'npm',
-                        version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
-                    },
-                    docker: {
-                        name: 'Docker',
-                        version: '18.1.2',
-                        requiredVersion: Dependencies.DOCKER_REQUIRED
-                    },
-                    dockerCompose: {
-                        name: 'Docker Compose',
-                        version: '1.21.1',
-                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
-                    },
-                    systemRequirements: {
-                        name: 'System Requirements',
-                        complete: true
-                    },
-                    openssl: {
-                        name: 'OpenSSL',
-                        version: '1.0.2',
-                        requiredVersion: Dependencies.OPENSSL_REQUIRED
-                    },
-                    buildTools: {
-                        name: 'C++ Build Tools',
-                        version: undefined
-                    }
-                };
-
-                getPreReqVersionsStub.resolves(dependencies);
-
-                const dependencyManager: DependencyManager = DependencyManager.instance();
-                const result: boolean = await dependencyManager.hasPreReqsInstalled();
-
-                result.should.equal(false);
-                getPreReqVersionsStub.should.have.been.calledOnce;
-
-            });
-
             it(`should return false if the user hasn't confirmed the Docker for Windows setup (Windows)`, async () => {
                 mySandBox.stub(process, 'platform').value('win32');
 
                 const dependencies: any = {
-                    node: {
-                        name: 'Node.js',
-                        version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
-                    },
-                    npm: {
-                        name: 'npm',
-                        version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
-                    },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -577,10 +473,6 @@ describe('DependencyManager Tests', () => {
                         name: 'OpenSSL',
                         version: '1.0.2',
                         requiredVersion: Dependencies.OPENSSL_REQUIRED
-                    },
-                    buildTools: {
-                        name: 'C++ Build Tools',
-                        version: '1.2.3'
                     },
                     dockerForWindows: {
                         name: 'Docker for Windows',
@@ -602,16 +494,6 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('win32');
 
                 const dependencies: any = {
-                    node: {
-                        name: 'Node.js',
-                        version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
-                    },
-                    npm: {
-                        name: 'npm',
-                        version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
-                    },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -630,10 +512,6 @@ describe('DependencyManager Tests', () => {
                         name: 'OpenSSL',
                         version: '1.0.2',
                         requiredVersion: Dependencies.OPENSSL_REQUIRED
-                    },
-                    buildTools: {
-                        name: 'C++ Build Tools',
-                        version: '1.2.3'
                     },
                     dockerForWindows: {
                         name: 'Docker for Windows',
@@ -657,16 +535,6 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('win32');
 
                 const dependencies: any = {
-                    node: {
-                        name: 'Node.js',
-                        version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
-                    },
-                    npm: {
-                        name: 'npm',
-                        version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
-                    }
                 };
 
                 getPreReqVersionsStub.resolves(dependencies);
@@ -681,64 +549,10 @@ describe('DependencyManager Tests', () => {
         });
 
         describe('Mac', () => {
-            it(`should return false if there's no version of Xcode installed (Mac)`, async () => {
-                mySandBox.stub(process, 'platform').value('darwin');
-
-                const dependencies: any = {
-                    node: {
-                        name: 'Node.js',
-                        version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
-                    },
-                    npm: {
-                        name: 'npm',
-                        version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
-                    },
-                    docker: {
-                        name: 'Docker',
-                        version: '18.1.2',
-                        requiredVersion: Dependencies.DOCKER_REQUIRED
-                    },
-                    dockerCompose: {
-                        name: 'Docker Compose',
-                        version: '1.21.1',
-                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
-                    },
-                    systemRequirements: {
-                        name: 'System Requirements',
-                        complete: true
-                    },
-                    xcode: {
-                        name: 'Xcode',
-                        version: undefined
-                    }
-                };
-
-                getPreReqVersionsStub.resolves(dependencies);
-
-                const dependencyManager: DependencyManager = DependencyManager.instance();
-                const result: boolean = await dependencyManager.hasPreReqsInstalled();
-
-                result.should.equal(false);
-                getPreReqVersionsStub.should.have.been.calledOnce;
-
-            });
-
             it(`should return true if all Mac prereqs have been met (Mac)`, async () => {
                 mySandBox.stub(process, 'platform').value('darwin');
 
                 const dependencies: any = {
-                    node: {
-                        name: 'Node.js',
-                        version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
-                    },
-                    npm: {
-                        name: 'npm',
-                        version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
-                    },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -752,10 +566,6 @@ describe('DependencyManager Tests', () => {
                     systemRequirements: {
                         name: 'System Requirements',
                         complete: true
-                    },
-                    xcode: {
-                        name: 'Xcode',
-                        version: '1234'
                     }
                 };
 
@@ -772,20 +582,8 @@ describe('DependencyManager Tests', () => {
 
         describe('optional dependencies', () => {
 
-            it(`should return false if the optional Go dependency hasn't been installed`, async () => {
-                mySandBox.stub(process, 'platform').value('linux');
-
+            it(`should return false the optional Node dependency hasn't been installed`, async () => {
                 const dependencies: any = {
-                    node: {
-                        name: 'Node.js',
-                        version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
-                    },
-                    npm: {
-                        name: 'npm',
-                        version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
-                    },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -799,6 +597,158 @@ describe('DependencyManager Tests', () => {
                     systemRequirements: {
                         name: 'System Requirements',
                         complete: true
+                    },
+                    node: {
+                        name: 'Node.js',
+                        version: undefined
+                    }
+                };
+
+                getPreReqVersionsStub.resolves(dependencies);
+
+                const dependencyManager: DependencyManager = DependencyManager.instance();
+                const result: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+
+                result.should.equal(false);
+                getPreReqVersionsStub.should.have.been.calledOnce;
+
+            });
+
+            it(`should return false if the optional Node dependency isn't between 8 and 11`, async () => {
+                const dependencies: any = {
+                    docker: {
+                        name: 'Docker',
+                        version: '18.1.2',
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                    },
+                    dockerCompose: {
+                        name: 'Docker Compose',
+                        version: '1.21.1',
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                    },
+                    systemRequirements: {
+                        name: 'System Requirements',
+                        complete: true
+                    },
+                    node: {
+                        name: 'Node.js',
+                        version: '12',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    }
+                };
+
+                getPreReqVersionsStub.resolves(dependencies);
+
+                const dependencyManager: DependencyManager = DependencyManager.instance();
+                const result: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+
+                result.should.equal(false);
+                getPreReqVersionsStub.should.have.been.calledOnce;
+
+            });
+
+            it(`should return false if the optional npm dependency hasn't been installed`, async () => {
+                const dependencies: any = {
+                    docker: {
+                        name: 'Docker',
+                        version: '18.1.2',
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                    },
+                    dockerCompose: {
+                        name: 'Docker Compose',
+                        version: '1.21.1',
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                    },
+                    systemRequirements: {
+                        name: 'System Requirements',
+                        complete: true
+                    },
+                    node: {
+                        name: 'Node.js',
+                        version: '8.12.0',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: undefined
+                    }
+                };
+
+                getPreReqVersionsStub.resolves(dependencies);
+
+                const dependencyManager: DependencyManager = DependencyManager.instance();
+                const result: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+
+                result.should.equal(false);
+                getPreReqVersionsStub.should.have.been.calledOnce;
+
+            });
+
+            it(`should return false if the optional npm dependency version is less than required version`, async () => {
+                const dependencies: any = {
+                    docker: {
+                        name: 'Docker',
+                        version: '18.1.2',
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                    },
+                    dockerCompose: {
+                        name: 'Docker Compose',
+                        version: '1.21.1',
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                    },
+                    systemRequirements: {
+                        name: 'System Requirements',
+                        complete: true
+                    },
+                    node: {
+                        name: 'Node.js',
+                        version: '8.12.0',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '4.0.0',
+                        requiredVersion: Dependencies.NPM_REQUIRED
+                    }
+                };
+
+                getPreReqVersionsStub.resolves(dependencies);
+
+                const dependencyManager: DependencyManager = DependencyManager.instance();
+                const result: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+
+                result.should.equal(false);
+                getPreReqVersionsStub.should.have.been.calledOnce;
+
+            });
+
+            it(`should return false if the optional Go dependency hasn't been installed`, async () => {
+                mySandBox.stub(process, 'platform').value('linux');
+
+                const dependencies: any = {
+                    docker: {
+                        name: 'Docker',
+                        version: '18.1.2',
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                    },
+                    dockerCompose: {
+                        name: 'Docker Compose',
+                        version: '1.21.1',
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                    },
+                    systemRequirements: {
+                        name: 'System Requirements',
+                        complete: true
+                    },
+                    node: {
+                        name: 'Node.js',
+                        version: '8.12.0',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     go: {
                         name: 'Go',
@@ -820,16 +770,6 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
                 const dependencies: any = {
-                    node: {
-                        name: 'Node.js',
-                        version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
-                    },
-                    npm: {
-                        name: 'npm',
-                        version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
-                    },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -843,6 +783,16 @@ describe('DependencyManager Tests', () => {
                     systemRequirements: {
                         name: 'System Requirements',
                         complete: true
+                    },
+                    node: {
+                        name: 'Node.js',
+                        version: '8.12.0',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     go: {
                         name: 'Go',
@@ -865,16 +815,6 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
                 const dependencies: any = {
-                    node: {
-                        name: 'Node.js',
-                        version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
-                    },
-                    npm: {
-                        name: 'npm',
-                        version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
-                    },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -888,6 +828,16 @@ describe('DependencyManager Tests', () => {
                     systemRequirements: {
                         name: 'System Requirements',
                         complete: true
+                    },
+                    node: {
+                        name: 'Node.js',
+                        version: '8.12.0',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     go: {
                         name: 'Go',
@@ -914,16 +864,6 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
                 const dependencies: any = {
-                    node: {
-                        name: 'Node.js',
-                        version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
-                    },
-                    npm: {
-                        name: 'npm',
-                        version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
-                    },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -937,6 +877,16 @@ describe('DependencyManager Tests', () => {
                     systemRequirements: {
                         name: 'System Requirements',
                         complete: true
+                    },
+                    node: {
+                        name: 'Node.js',
+                        version: '8.12.0',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     go: {
                         name: 'Go',
@@ -968,16 +918,6 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
                 const dependencies: any = {
-                    node: {
-                        name: 'Node.js',
-                        version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
-                    },
-                    npm: {
-                        name: 'npm',
-                        version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
-                    },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -991,6 +931,16 @@ describe('DependencyManager Tests', () => {
                     systemRequirements: {
                         name: 'System Requirements',
                         complete: true
+                    },
+                    node: {
+                        name: 'Node.js',
+                        version: '8.12.0',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     go: {
                         name: 'Go',
@@ -1022,16 +972,6 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
                 const dependencies: any = {
-                    node: {
-                        name: 'Node.js',
-                        version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
-                    },
-                    npm: {
-                        name: 'npm',
-                        version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
-                    },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -1045,6 +985,16 @@ describe('DependencyManager Tests', () => {
                     systemRequirements: {
                         name: 'System Requirements',
                         complete: true
+                    },
+                    node: {
+                        name: 'Node.js',
+                        version: '8.12.0',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     go: {
                         name: 'Go',
@@ -1080,16 +1030,6 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
                 const dependencies: any = {
-                    node: {
-                        name: 'Node.js',
-                        version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
-                    },
-                    npm: {
-                        name: 'npm',
-                        version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
-                    },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -1103,6 +1043,16 @@ describe('DependencyManager Tests', () => {
                     systemRequirements: {
                         name: 'System Requirements',
                         complete: true
+                    },
+                    node: {
+                        name: 'Node.js',
+                        version: '8.12.0',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     go: {
                         name: 'Go',
@@ -1142,16 +1092,6 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
                 const dependencies: any = {
-                    node: {
-                        name: 'Node.js',
-                        version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
-                    },
-                    npm: {
-                        name: 'npm',
-                        version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
-                    },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -1165,6 +1105,16 @@ describe('DependencyManager Tests', () => {
                     systemRequirements: {
                         name: 'System Requirements',
                         complete: true
+                    },
+                    node: {
+                        name: 'Node.js',
+                        version: '8.12.0',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     go: {
                         name: 'Go',
@@ -1208,16 +1158,6 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
                 const dependencies: any = {
-                    node: {
-                        name: 'Node.js',
-                        version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
-                    },
-                    npm: {
-                        name: 'npm',
-                        version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
-                    },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -1231,6 +1171,16 @@ describe('DependencyManager Tests', () => {
                     systemRequirements: {
                         name: 'System Requirements',
                         complete: true
+                    },
+                    node: {
+                        name: 'Node.js',
+                        version: '8.12.0',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     go: {
                         name: 'Go',
@@ -1301,10 +1251,6 @@ describe('DependencyManager Tests', () => {
             sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand');
             sendCommandStub.resolves();
 
-        });
-
-        afterEach(async () => {
-            mySandBox.restore();
         });
 
         it('should get extension context if not passed to dependency manager', async () => {
@@ -1705,35 +1651,6 @@ describe('DependencyManager Tests', () => {
                 should.not.exist(result.openssl.version);
                 totalmemStub.should.have.been.calledOnce;
             });
-            it('should get version of Windows Build Tools', async () => {
-                mySandBox.stub(process, 'platform').value('win32');
-
-                sendCommandStub.withArgs('npm ls -g windows-build-tools').resolves('windows-build-tools@5.2.2');
-
-                const result: any = await dependencyManager.getPreReqVersions();
-                result.buildTools.version.should.equal('5.2.2');
-                totalmemStub.should.have.been.calledOnce;
-            });
-
-            it('should not get version of Windows Build Tools if command not found', async () => {
-                mySandBox.stub(process, 'platform').value('win32');
-
-                sendCommandStub.withArgs('npm ls -g windows-build-tools').resolves('command not found');
-
-                const result: any = await dependencyManager.getPreReqVersions();
-                should.not.exist(result.buildTools.version);
-                totalmemStub.should.have.been.calledOnce;
-            });
-
-            it('should not get version of Windows Build Tools if unexpected format is returned', async () => {
-                mySandBox.stub(process, 'platform').value('win32');
-
-                sendCommandStub.withArgs('npm ls -g windows-build-tools').resolves('windows-build-tools@version-1.2.3');
-
-                const result: any = await dependencyManager.getPreReqVersions();
-                should.not.exist(result.buildTools.version);
-                totalmemStub.should.have.been.calledOnce;
-            });
 
             it('should return true if user has agreed to Docker setup', async () => {
                 mySandBox.stub(process, 'platform').value('win32');
@@ -1774,33 +1691,11 @@ describe('DependencyManager Tests', () => {
                 sendCommandStub.should.not.have.been.calledWith('docker -v');
                 sendCommandStub.should.not.have.been.calledWith('docker-compose -v');
                 sendCommandStub.should.not.have.been.calledWith('openssl version -v');
-                sendCommandStub.should.not.have.been.calledWith('npm ls -g windows-build-tools');
             });
 
         });
 
         describe('Mac', () => {
-
-            it('should get version of Xcode', async () => {
-                mySandBox.stub(process, 'platform').value('darwin');
-
-                sendCommandStub.withArgs('xcode-select -p').resolves('/some/path');
-                sendCommandStub.withArgs('xcode-select -v').resolves('xcode-select version 2354.');
-
-                const result: any = await dependencyManager.getPreReqVersions();
-                result.xcode.version.should.equal('2354');
-                totalmemStub.should.have.been.calledOnce;
-            });
-
-            it('should not get version of Xcode if command not found', async () => {
-                mySandBox.stub(process, 'platform').value('darwin');
-
-                sendCommandStub.withArgs('xcode-select -p').resolves('command not found');
-
-                const result: any = await dependencyManager.getPreReqVersions();
-                should.not.exist(result.xcode.version);
-                totalmemStub.should.have.been.calledOnce;
-            });
 
             it('should continue to get version if Java path exists', async () => {
                 // Test for issue #1657 fix
