@@ -48,37 +48,37 @@ The identities that were exported need to be imported into VS Code. First we wil
 
 2. You will then be asked to enter a name for the wallet use `ibp-wallet`.
 
-3. You will then be asked to provide a name for the identity use `Org1 Admin`.
+3. You will then be asked to provide the MSPID use `org1msp` if you followed the tutorial.
 
-4. You will then be asked to provide the MSPID use `org1msp` if you followed the tutorial.
+4. You will then be asked for the method for adding an identity choose `Provide JSON identity file from IBM Blockchain Platform`.
 
-5. You will then be asked for the method for adding an identity chose `Provide JSON identity file from IBM Blockchain Platform`.
+5. Browse to the location of the previously exported `Org1 Admin` file and select it.
 
-6. Browse to the location of the previously exported `Org1 Admin` file and select it.
+6. If the JSON identity file does not contain the name property, you will be asked to enter a name for the identity, otherwise this step is skipped.
 
 You will now have a new wallet called `ibp-wallet` containing the `Org1 Admin` identity. Now we need to add the identity for the orderer.
 
 1. On the `Wallets` panel right click on `ibp-wallet` and choose `Add identity to wallet`.
 
-2. You will the be asked to provide a name for the identity use `Orderer Admin`.
+2. You will then be asked to provide an MSPID use `osmsp`.
 
-3. You will then be asked to provide an MSPID use `osmsp`.
+3. You will then be asked for the method for adding an identity choose `Provide JSON identity file from IBM Blockchain Plaform`.
 
-4. You will then be asked for the method for adding an identity chose `Provide JSON identity file from IBM Blockchain Plaform`.
+4. Browse to the location of the previously exported `Orderer Admin` file and select it.
 
-6. Browse to the location of the previously exported `Orderer Admin` file and select it.
+5. If the JSON identity file does not contain the name property, you will be asked to enter a name for the identity, otherwise this step is skipped.
 
 Finally you now need to add the identity for the certificate authority
 
 1. On the `Wallets` panel right click on `ibp-wallet` and choose `Add identity to wallet`.
 
-2. You will then be asked to provide a name for the identity. Enter `Org1 CA Admin` here.
+2. You will then be asked to provide an MSPID. Use `org1msp` here.
 
-3. You will then be asked to provide an MSPID. Use `org1msp` here.
+3. You will then be asked for the method for adding an identity, select `Provide JSON identity file from IBM Blockchain Plaform`.
 
-4. You will then be asked for the method for adding an identity, select `Provide JSON identity file from IBM Blockchain Plaform`.
+4. Browse to the location of the previously exported `Org1 CA Admin` file and select it.
 
-6. Browse to the location of the previously exported `Org1 CA Admin` file and select it.
+5. If the JSON identity file does not contain the name property, you will be asked to enter a name for the identity, otherwise this step is skipped.
 
 </details>
 
