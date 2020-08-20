@@ -8,6 +8,15 @@ For a step-by-step guide on getting started with the extension's features, acces
 
 ![IBP Extension Homepage](media/VSCodeImage.png)
 
+## Want to learn more about the IBM Blockchain Platform?
+
+Join us for the IBM Blockchain Platform User Series where product and technical experts share their expertise and educate on a specific feature, function or capability of the IBM Blockchain Platform. Get the answers to your questions and engage live with the experts, while ensuring you're leveraging all that the IBM Blockchain Platform has to offer.
+
+**[Click here to find out more information about the IBM Blockchain Platform User Series webcast!](http://ibm.biz/blockchainuserseries)**
+
+**[Click here to schedule a free 1:1 consultation with an IBM Blockchain Platform expert!](https://www.ibm.com/blockchain/platform?schedulerform)**
+
+
 ## Installation
 
 Please visit the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=IBMBlockchain.ibm-blockchain-platform) for installation and more details.

@@ -80,14 +80,6 @@ exports[`HomePage component should render the expected snapshot 1`] = `
           </a>
           <a
             className="bx--link"
-            href=""
-            id="home-link-02"
-            onClick={[Function]}
-          >
-            Release notes
-          </a>
-          <a
-            className="bx--link"
             href="https://cloud.ibm.com/docs/blockchain?topic=blockchain-get-started-ibp"
             id="home-link-03"
           >
@@ -101,10 +93,32 @@ exports[`HomePage component should render the expected snapshot 1`] = `
           >
             Free e-book: Getting Started with Enterprise Blockchain
           </a>
+          <a
+            className="bx--link"
+            href="http://ibm.biz/blockchainuserseries"
+            id="home-link-03"
+          >
+            Join the IBM Blockchain Platform User Series Webcast
+          </a>
+          <a
+            className="bx--link"
+            href="https://www.ibm.com/blockchain/platform?schedulerform"
+            id="home-link-03"
+          >
+            Schedule a free 1:1 consultation with an IBM Blockchain Platform expert
+          </a>
         </div>
         <div
           className="bx--col link-list-container"
         >
+          <a
+            className="bx--link"
+            href=""
+            id="home-link-02"
+            onClick={[Function]}
+          >
+            Release notes
+          </a>
           <a
             className="bx--link"
             href=""
