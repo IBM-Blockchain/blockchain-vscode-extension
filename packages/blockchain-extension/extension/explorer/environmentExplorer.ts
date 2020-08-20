@@ -386,16 +386,18 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
     private async getIBMCloudInteractionItem(returnGroupItem: boolean): Promise<BlockchainTreeItem> {
         const isLoggedIn: boolean = await ExtensionsInteractionUtil.cloudAccountIsLoggedIn();
-        if ( !isLoggedIn ) {
+        const hasAccountSelected: boolean = await ExtensionsInteractionUtil.cloudAccountHasSelectedAccount();
+        if ( !isLoggedIn || !hasAccountSelected) {
             if (returnGroupItem) {
                 return new EnvironmentGroupTreeItem(this, 'IBM Blockchain Platform on cloud', [], vscode.TreeItemCollapsibleState.Expanded);
             } else {
+                const label: string = !isLoggedIn ? '+ Log in to IBM Cloud' : '+ Select IBM Cloud account';
                 const command: vscode.Command = {
                     command: ExtensionCommands.LOG_IN_AND_DISCOVER,
                     title: '',
                     arguments: []
                 };
-                return new TextTreeItem(this, '+ Log in to IBM Cloud', command);
+                return new TextTreeItem(this, label, command);
             }
         } else {
             // if we're logged in we need to figure out if they've got stuff stood up on IBP, and if they dont show the tree item
