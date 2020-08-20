@@ -80,6 +80,18 @@ export class ExtensionsInteractionUtil {
         return await cloudAccount.loggedIn();
     }
 
+    public static async cloudAccountHasSelectedAccount(): Promise<boolean> {
+        const  cloudAccountExtension: vscode.Extension<any> = vscode.extensions.getExtension( 'IBM.ibmcloud-account' );
+        if ( !cloudAccountExtension ) {
+            throw new Error('IBM Cloud Account extension must be installed');
+        } else if ( !cloudAccountExtension.isActive ) {
+            await cloudAccountExtension.activate();
+        }
+        const cloudAccount: CloudAccountApi = cloudAccountExtension.exports;
+
+        return await cloudAccount.accountSelected();
+    }
+
     public static async cloudAccountAnyIbpResources(): Promise<boolean> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         let anyIbpResources: boolean = false;

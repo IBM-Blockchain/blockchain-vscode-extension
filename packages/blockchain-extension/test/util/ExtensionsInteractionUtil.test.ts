@@ -343,6 +343,74 @@ describe('ExtensionsInteractionUtil Test', () => {
         });
     });
 
+    describe('#cloudAccountHasSelectedAccount', () => {
+        let hasAccountSelectedStub: sinon.SinonStub;
+        let activateStub: sinon.SinonStub;
+        let cloudExtensionStub: any;
+        let hasAccountSelected: boolean;
+
+        beforeEach(() => {
+            hasAccountSelectedStub = mySandBox.stub().resolves(true);
+            activateStub = mySandBox.stub().resolves();
+            cloudExtensionStub = {
+                isActive: true,
+                activate: activateStub,
+                exports: {
+                            accountSelected: hasAccountSelectedStub,
+                         }
+            };
+            getExtensionStub.withArgs('IBM.ibmcloud-account').returns(cloudExtensionStub);
+
+            hasAccountSelected = undefined;
+        });
+
+        it('should return account selected status', async () => {
+            chai.should().equal(undefined, hasAccountSelected);
+
+            try {
+                hasAccountSelected = await ExtensionsInteractionUtil.cloudAccountHasSelectedAccount();
+            } catch (e) {
+                chai.assert.isNull(e, 'there should not have been an error!');
+            }
+            hasAccountSelected.should.be.true;
+            getExtensionStub.should.have.been.calledOnce;
+            hasAccountSelectedStub.should.have.been.calledOnce;
+            activateStub.should.not.have.been.called;
+        });
+
+        it('should activate cloud extension if not active', async () => {
+            chai.should().equal(undefined, hasAccountSelected);
+            cloudExtensionStub.isActive = false;
+
+            try {
+                hasAccountSelected = await ExtensionsInteractionUtil.cloudAccountHasSelectedAccount();
+            } catch (e) {
+                chai.assert.isNull(e, 'there should not have been an error!');
+            }
+            hasAccountSelected.should.be.true;
+            getExtensionStub.should.have.been.calledOnce;
+            hasAccountSelectedStub.should.have.been.calledOnce;
+            activateStub.should.have.been.called;
+        });
+
+        it('should error if no cloud extension', async () => {
+            chai.should().equal(undefined, hasAccountSelected);
+            getExtensionStub.withArgs('IBM.ibmcloud-account').returns(undefined);
+            const expectedError: Error = new Error('IBM Cloud Account extension must be installed');
+
+            try {
+                hasAccountSelected = await ExtensionsInteractionUtil.cloudAccountHasSelectedAccount();
+            } catch (e) {
+                e.toString().should.deep.equal(expectedError.toString());
+            }
+
+            chai.should().equal(undefined, hasAccountSelected);
+            getExtensionStub.should.have.been.calledOnce;
+            hasAccountSelectedStub.should.not.have.been.calledOnce;
+            activateStub.should.not.have.been.called;
+        });
+    });
+
     describe('#cloudAccountAnyIbpResources', () => {
         let cloudAccountGetAccessTokenStub: sinon.SinonStub;
         let axiosGetStub: sinon.SinonStub;
