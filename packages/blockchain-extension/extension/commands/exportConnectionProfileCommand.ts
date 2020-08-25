@@ -26,6 +26,7 @@ import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { ConnectionProfileUtil, LogType, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import * as lodash from 'lodash';
 
 export async function exportConnectionProfile(gatewayTreeItem: GatewayTreeItem, isConnected?: boolean): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -51,7 +52,8 @@ export async function exportConnectionProfile(gatewayTreeItem: GatewayTreeItem, 
     // Ask the user where they want to export it to
     // set the default path to be the first open workspace folder
     let defaultPath: string;
-    const fileName: string = `${gatewayEntry.name}_connection.json`;
+    let fileName: string = gatewayEntry.name;
+    fileName = fileName[0].toUpperCase() + lodash.camelCase(fileName.slice(1)) + `Connection.json`;
     const workspaceFolders: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
     if (workspaceFolders.length > 0) {
         defaultPath = path.join(workspaceFolders[0].uri.fsPath, fileName);
