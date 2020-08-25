@@ -44,7 +44,7 @@ import { ManagedAnsibleEnvironmentManager } from '../../extension/fabric/environ
 import { CommittedContractTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/CommittedSmartContractTreeItem';
 import { DeployTreeItem } from '../../extension/explorer/runtimeOps/connectedTree/DeployTreeItem';
 import { EnvironmentGroupTreeItem } from '../../extension/explorer/runtimeOps/EnvironmentGroupTreeItem';
-import { ExtensionsInteractionUtil } from '../../extension/util/ExtensionsInteractionUtil';
+// import { ExtensionsInteractionUtil } from '../../extension/util/ExtensionsInteractionUtil';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -65,10 +65,14 @@ describe('environmentExplorer', () => {
     describe('getChildren', () => {
         describe('unconnected tree', () => {
             let executeCommandStub: sinon.SinonStub;
+            // let loggedInStub: sinon.SinonStub;
+            // let accountSelectedStub: sinon.SinonStub;
             let logSpy: sinon.SinonSpy;
 
             beforeEach(async () => {
                 mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns(undefined);
+                // loggedInStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
+                // accountSelectedStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountHasSelectedAccount').resolves(false);
 
                 logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
@@ -85,7 +89,6 @@ describe('environmentExplorer', () => {
 
                 await TestUtil.setupLocalFabric();
 
-                // const loggedInStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
                 // const anyResourcesStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountAnyIbpResources');
 
                 const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
@@ -123,8 +126,8 @@ describe('environmentExplorer', () => {
                 // });
 
                 // loggedInStub.should.have.been.calledTwice;
+                // accountSelectedStub.should.have.been.calledTwice;
                 // anyResourcesStub.should.not.have.been.called;
-
             });
 
             it ('should correctly group ibm cloud environments', async () => {
@@ -159,7 +162,6 @@ describe('environmentExplorer', () => {
             });
 
             it(`should correctly group 'other' environments`, async () => {
-                // const loggedInStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
                 // const anyResourcesStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountAnyIbpResources');
 
                 const otherEnvOne: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
@@ -215,6 +217,7 @@ describe('environmentExplorer', () => {
                 // });
 
                 // loggedInStub.should.have.been.calledTwice;
+                // accountSelectedStub.should.have.been.calledTwice;
                 // anyResourcesStub.should.not.have.been.called;
             });
 
@@ -319,7 +322,6 @@ describe('environmentExplorer', () => {
             it('should get correct context value for running local runtime', async () => {
                 const ensureRuntimeLocalSpy: sinon.SinonSpy = mySandBox.spy(LocalEnvironmentManager.instance(), 'ensureRuntime');
                 const ensureRuntimeManagedSpy: sinon.SinonSpy = mySandBox.spy(ManagedAnsibleEnvironmentManager.instance(), 'ensureRuntime');
-                mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
 
                 await FabricEnvironmentRegistry.instance().clear();
 
@@ -351,7 +353,6 @@ describe('environmentExplorer', () => {
             it('should say that there are no environments', async () => {
                 await FabricEnvironmentRegistry.instance().clear();
 
-                // const loggedInStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
                 // const anyResourcesStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountAnyIbpResources');
 
                 const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -376,13 +377,15 @@ describe('environmentExplorer', () => {
                 // });
 
                 // loggedInStub.should.have.been.calledTwice;
+                // accountSelectedStub.should.have.been.calledTwice;
                 // anyResourcesStub.should.not.have.been.called;
             });
 
             // it(`should show a 'create new instance' tree item if logged into IBM Cloud with no available instances`, async () => {
             //     await FabricEnvironmentRegistry.instance().clear();
 
-            //     const loggedInStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(true);
+            //     loggedInStub.resolves(true);
+            //     accountSelectedStub.resolves(true);
             //     const anyResourcesStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountAnyIbpResources').resolves(false);
 
             //     const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -406,6 +409,7 @@ describe('environmentExplorer', () => {
             //         arguments: []
             //     });
             //     loggedInStub.should.have.been.calledTwice;
+            //     accountSelectedStub.should.have.been.calledTwice;
             //     anyResourcesStub.should.have.been.calledTwice;
             // });
 
@@ -417,7 +421,6 @@ describe('environmentExplorer', () => {
             //     await FabricEnvironmentRegistry.instance().clear();
             //     await FabricEnvironmentRegistry.instance().add(opsToolsEnv);
 
-            //     const loggedInStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
             //     const anyResourcesStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountAnyIbpResources').resolves(false);
 
             //     const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -438,6 +441,41 @@ describe('environmentExplorer', () => {
             //     ibmCloudItems[1].contextValue.should.equal('blockchain-environment-item');
 
             //     loggedInStub.should.have.been.calledOnce;
+            //     accountSelectedStub.should.have.been.calledOnce;
+            //     anyResourcesStub.should.not.have.been.called;
+            // });
+
+            // it('should show select account item if user logged in to IBM cloud but no account selected', async () => {
+            //     const opsToolsEnv: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            //     opsToolsEnv.name = 'opsToolsEnv';
+            //     opsToolsEnv.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
+
+            //     await FabricEnvironmentRegistry.instance().clear();
+            //     await FabricEnvironmentRegistry.instance().add(opsToolsEnv);
+
+            //     loggedInStub.resolves(true);
+            //     accountSelectedStub.resolves(false);
+            //     const anyResourcesStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountAnyIbpResources').resolves(false);
+
+            //     const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+            //     const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+            //     allChildren.length.should.equal(1);
+            //     allChildren[0].label.should.equal('IBM Blockchain Platform on cloud');
+            //     const ibmCloudItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
+            //     ibmCloudItems.length.should.equal(2);
+            //     ibmCloudItems[0].label.should.equal(`+ Select IBM Cloud account`);
+            //     ibmCloudItems[0].command.should.deep.equal({
+            //         command: ExtensionCommands.LOG_IN_AND_DISCOVER,
+            //         title: '',
+            //         arguments: []
+            //     });
+            //     ibmCloudItems[1].label.should.equal(opsToolsEnv.name);
+            //     ibmCloudItems[1].tooltip.should.equal(opsToolsEnv.name);
+            //     ibmCloudItems[1].contextValue.should.equal('blockchain-environment-item');
+
+            //     loggedInStub.should.have.been.calledOnce;
+            //     accountSelectedStub.should.have.been.calledOnce;
             //     anyResourcesStub.should.not.have.been.called;
             // });
 
@@ -446,7 +484,8 @@ describe('environmentExplorer', () => {
             //     await FabricEnvironmentRegistry.instance().clear();
 
             //     executeCommandStub.withArgs(ExtensionCommands.LOG_IN_AND_DISCOVER).resolves();
-            //     const loggedInStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(true);
+            //     loggedInStub.resolves(true);
+            //     accountSelectedStub.resolves(true);
             //     const anyResourcesStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountAnyIbpResources').resolves(true);
 
             //     const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -463,6 +502,7 @@ describe('environmentExplorer', () => {
             //     executeCommandStub.should.have.been.calledWith(ExtensionCommands.LOG_IN_AND_DISCOVER);
 
             //     loggedInStub.should.have.been.calledOnce;
+            //     accountSelectedStub.should.have.been.calledOnce;
             //     anyResourcesStub.should.have.been.calledOnce;
             // });
 
@@ -476,7 +516,8 @@ describe('environmentExplorer', () => {
             //     await FabricEnvironmentRegistry.instance().add(registryEntry);
 
             //     executeCommandStub.withArgs(ExtensionCommands.LOG_IN_AND_DISCOVER).resolves();
-            //     const loggedInStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(true);
+            //     loggedInStub.resolves(true);
+            //     accountSelectedStub.resolves(true);
             //     const anyResourcesStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountAnyIbpResources').resolves(true);
 
             //     const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -490,6 +531,7 @@ describe('environmentExplorer', () => {
             //     await blockchainRuntimeExplorerProvider.getChildren(otherGroupItem);
             //     executeCommandStub.should.have.been.calledWith(ExtensionCommands.LOG_IN_AND_DISCOVER);
             //     loggedInStub.should.have.been.calledOnce;
+            //     accountSelectedStub.should.have.been.calledOnce;
             //     anyResourcesStub.should.have.been.calledOnce;
             // });
 
@@ -504,7 +546,8 @@ describe('environmentExplorer', () => {
             //     await FabricEnvironmentRegistry.instance().add(opsToolsEnv);
 
             //     executeCommandStub.withArgs(ExtensionCommands.LOG_IN_AND_DISCOVER).resolves();
-            //     const loggedInStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(true);
+            //     loggedInStub.resolves(true);
+            //     accountSelectedStub.resolves(true);
             //     const anyResourcesStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountAnyIbpResources').resolves(true);
 
             //     const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -518,6 +561,7 @@ describe('environmentExplorer', () => {
             //     await blockchainRuntimeExplorerProvider.getChildren(cloudGroupItem);
             //     executeCommandStub.should.have.been.calledWith(ExtensionCommands.LOG_IN_AND_DISCOVER);
             //     loggedInStub.should.have.been.calledOnce;
+            //     accountSelectedStub.should.have.been.calledOnce;
             //     anyResourcesStub.should.have.been.calledOnce;
             // });
 
@@ -526,7 +570,8 @@ describe('environmentExplorer', () => {
             //     await FabricEnvironmentRegistry.instance().clear();
 
             //     executeCommandStub.withArgs(ExtensionCommands.LOG_IN_AND_DISCOVER).resolves();
-            //     const loggedInStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(true);
+            //     loggedInStub.resolves(true);
+            //     accountSelectedStub.resolves(true);
             //     const anyResourcesStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountAnyIbpResources').resolves(true);
 
             //     const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -543,6 +588,7 @@ describe('environmentExplorer', () => {
             //     executeCommandStub.withArgs(ExtensionCommands.LOG_IN_AND_DISCOVER).should.not.have.been.called;
 
             //     loggedInStub.should.have.been.calledOnce;
+            //     accountSelectedStub.should.have.been.calledOnce;
             //     anyResourcesStub.should.have.been.calledOnce;
             // });
 
@@ -554,7 +600,6 @@ describe('environmentExplorer', () => {
                 await FabricEnvironmentRegistry.instance().clear();
                 await TestUtil.setupLocalFabric();
 
-                mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
                 const error: Error = new Error('some error');
                 mySandBox.stub(RuntimeTreeItem, 'newRuntimeTreeItem').rejects(error);
 
@@ -1523,13 +1568,22 @@ describe('environmentExplorer', () => {
     });
 
     describe('getTreeItem', () => {
+        // let loggedInStub: sinon.SinonStub;
+        // let accountSelectedStub: sinon.SinonStub;
 
+        beforeEach(async () => {
+            // loggedInStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
+            // accountSelectedStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountHasSelectedAccount').resolves(false);
+        });
+
+        afterEach(() => {
+            mySandBox.restore();
+        });
         it('should get a tree item', async () => {
 
             await TestUtil.setupLocalFabric();
             await ExtensionUtil.activateExtension();
 
-            mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
             mySandBox.stub(LocalEnvironmentManager.instance().getRuntime(FabricRuntimeUtil.LOCAL_FABRIC), 'isRunning').resolves(false);
             mySandBox.stub(LocalEnvironmentManager.instance().getRuntime(FabricRuntimeUtil.LOCAL_FABRIC), 'getName').returns(FabricRuntimeUtil.LOCAL_FABRIC);
             const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
@@ -1538,6 +1592,8 @@ describe('environmentExplorer', () => {
             const result: EnvironmentGroupTreeItem = blockchainRuntimeExplorerProvider.getTreeItem(allChildren[0]) as EnvironmentGroupTreeItem;
 
             result.label.should.equal('Simple local networks');
+            // loggedInStub.should.have.been.called.calledOnce;
+            // accountSelectedStub.should.have.been.called.calledOnce;
         });
     });
 });
