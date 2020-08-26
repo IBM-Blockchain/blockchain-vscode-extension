@@ -1,5 +1,5 @@
-# IBM Blockchain Platform Extension updated to v1.0.36
-_Release date: July 30th 2020_
+# IBM Blockchain Platform Extension updated to v1.0.37
+_Release date: August 27th 2020_
 
 Announcements
 ---
@@ -8,16 +8,18 @@ Announcements
 
 Features & Enhancements
 ---
-*  Allow user to bring output into focus on network start failure [#2172](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2172).
-*  Docker logs shown on transaction failure [#1964](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1964).
-*  Updated IBM Cloud group name and behaviour [#2521](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2521).
+* Ability to open the IBM Blockchain Platform Console from the environment [#2536](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2536).
+* Automatically detect system requirements [#1398](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1398).
+* Read identity name from JSON file [#755](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/755).
+* Added command to remove extension directory [#1639](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1639).
+* Updated default export connection profile name to be in pascal case [#2175](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2175).
 
 Fixes
 ---
-* Fallback on GitHub retrieval failure [#2543](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2543).
+* Fixed IBM Cloud account selection bug [#2583](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2583).
 
 This release's Conga Comic:
 ---
-<img src="https://congacomic.github.io/assets/img/blockheight-78.jpg" width="800">
+<img src="https://congacomic.github.io/assets/img/blockheight-79.jpg" width="800">
 
 For the full history of all releases, see the [change log](https://marketplace.visualstudio.com/items/IBMBlockchain.ibm-blockchain-platform/changelog).
