@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # IBM Blockchain Platform Extension updated to v2.0.0-beta.7
+=======
+# IBM Blockchain Platform Extension updated to v1.0.37
+>>>>>>> 7fa8c43d... Changelog (#2621)
 _Release date: August 27th 2020_
 
 Announcements
@@ -13,6 +17,7 @@ Announcements
 
 Features & Enhancements
 ---
+<<<<<<< HEAD
 * Ability to open the IBM Blockchain Platform Console from the environment [#2536](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2536).
 * Automatically detect system requirements [#1398](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1398).
 * Read identity name from JSON file [#755](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/755).
@@ -25,6 +30,21 @@ Fixes
 ---
 * Fixed IBM Cloud account selection bug [#2583](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2583).
 
+=======
+* Ability to open the IBM Blockchain Platform Console from the environment [#2536](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2536).
+* Automatically detect system requirements [#1398](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1398).
+* Read identity name from JSON file [#755](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/755).
+* Added command to remove extension directory [#1639](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1639).
+* Updated default export connection profile name to be in pascal case [#2175](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2175).
+
+Fixes
+---
+* Fixed IBM Cloud account selection bug [#2583](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2583).
+
+This release's Conga Comic:
+---
+<img src="https://congacomic.github.io/assets/img/blockheight-79.jpg" width="800">
+>>>>>>> 7fa8c43d... Changelog (#2621)
 
 Notes
 ---
