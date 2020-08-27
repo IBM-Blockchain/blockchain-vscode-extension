@@ -53,7 +53,8 @@ export async function openTransactionView(treeItem?: InstantiatedTreeItem): Prom
         smartContractLabel = chosenSmartContract.data.name + '@' + chosenSmartContract.data.version;
     }
 
-    const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
+    const createChannelsResult: {channelMap: Map<string, Array<string>>, v2channels: Array<string>} = await connection.createChannelMap();
+    const channelMap: Map<string, Array<string>> = createChannelsResult.channelMap;
 
     let selectedSmartContract: {label: string, channel: string};
 

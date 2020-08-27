@@ -96,7 +96,7 @@ describe('exportAppData', () => {
 
         const map: Map<string, Array<string>> = new Map<string, Array<string>>();
         map.set('myChannel', ['peerOne']);
-        fabricClientConnectionMock.createChannelMap.resolves(map);
+        fabricClientConnectionMock.createChannelMap.resolves({channelMap: map, v2channels: []});
         fabricConnectionManager = FabricGatewayConnectionManager.instance();
         getConnectionStub = mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getConnection').returns(fabricClientConnectionMock);
 

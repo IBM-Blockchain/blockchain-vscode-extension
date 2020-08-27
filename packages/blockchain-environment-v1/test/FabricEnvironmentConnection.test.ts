@@ -400,10 +400,14 @@ describe('FabricEnvironmentConnection', () => {
         let mockPeer1: sinon.SinonStubbedInstance<Client.Peer>;
         let mockPeer2: sinon.SinonStubbedInstance<Client.Peer>;
         let queryChannelsStub: sinon.SinonStub;
+        let getChannelConfigStub: sinon.SinonStub;
+        let getChannelCapabilitiesStub: sinon.SinonStub;
 
         beforeEach(async () => {
             mockPeer1 = mySandBox.createStubInstance(Client.Peer);
             mockPeer2 = mySandBox.createStubInstance(Client.Peer);
+            getChannelConfigStub = mySandBox.stub(Client.Channel.prototype, 'getChannelConfig').resolves();
+            getChannelCapabilitiesStub = mySandBox.stub(Client.Channel.prototype, 'getChannelCapabilities').returns(['V1_4_3']);
             connection['peers'].has('peer0.org1.example.com').should.be.true;
             connection['peers'].set('peer0.org1.example.com', mockPeer1);
             connection['peers'].has('peer0.org2.example.com').should.be.true;
@@ -423,8 +427,9 @@ describe('FabricEnvironmentConnection', () => {
         });
 
         it('should get all of the channel names, with the list of peers', async () => {
-            const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
-            channelMap.should.deep.equal(
+            const createChannelsResult: {channelMap: Map<string, string[]>, v2channels: string[]}  = await connection.createChannelMap();
+
+            createChannelsResult.channelMap.should.deep.equal(
                 new Map<string, Array<string>>(
                     [
                         ['channel1', ['peer0.org1.example.com']],
@@ -432,6 +437,33 @@ describe('FabricEnvironmentConnection', () => {
                     ]
                 )
             );
+            getChannelConfigStub.should.have.been.calledThrice;
+            getChannelCapabilitiesStub.should.have.been.calledThrice;
+        });
+
+        it('should get only the V1 channel names, with the list of peers', async () => {
+            getChannelCapabilitiesStub.onFirstCall().returns(['V2_0']);             // peer 1 channel 1
+            getChannelCapabilitiesStub.onSecondCall().returns(['V1_4_3']);          // peer 1 channel 2
+            getChannelCapabilitiesStub.onThirdCall().returns(['V1_4_3']);           // peer 2 channel 2
+            const createChannelsResult: {channelMap: Map<string, string[]>, v2channels: string[]}  = await connection.createChannelMap();
+            const channelMap: Map<string, Array<string>> = createChannelsResult.channelMap;
+            channelMap.should.deep.equal(
+                new Map<string, Array<string>>(
+                    [
+                        ['channel2', ['peer0.org1.example.com', 'peer0.org2.example.com']]
+                    ]
+                )
+            );
+            getChannelConfigStub.should.have.been.calledThrice;
+            getChannelCapabilitiesStub.should.have.been.calledThrice;
+        });
+
+        it('should throw error if none of the channels is using v1 capabilities', async () => {
+            getChannelCapabilitiesStub.returns(['V2_0']);
+
+            await connection.createChannelMap().should.be.rejectedWith(/There are no channels with V1 capabilities enabled./);
+            getChannelConfigStub.should.have.been.calledThrice;
+            getChannelCapabilitiesStub.should.have.been.calledThrice;
         });
 
         it('should throw a specific error if gRPC returns an HTTP 503 status code', async () => {
@@ -496,10 +528,14 @@ describe('FabricEnvironmentConnection', () => {
         let channel2: Client.Channel;
         let queryInstantiatedChaincodesStub1: sinon.SinonStub;
         let queryInstantiatedChaincodesStub2: sinon.SinonStub;
+        let getChannelConfigStub: sinon.SinonStub;
+        let getChannelCapabilitiesStub: sinon.SinonStub;
 
         beforeEach(() => {
             mockPeer1 = mySandBox.createStubInstance(Client.Peer);
             mockPeer2 = mySandBox.createStubInstance(Client.Peer);
+            getChannelConfigStub = mySandBox.stub(Client.Channel.prototype, 'getChannelConfig').resolves();
+            getChannelCapabilitiesStub = mySandBox.stub(Client.Channel.prototype, 'getChannelCapabilities').returns(['V1_4_3']);
             connection['peers'].has('peer0.org1.example.com').should.be.true;
             connection['peers'].set('peer0.org1.example.com', mockPeer1);
             connection['peers'].has('peer0.org2.example.com').should.be.true;
@@ -573,6 +609,8 @@ describe('FabricEnvironmentConnection', () => {
                     version: '0.0.1'
                 }
             ]);
+            getChannelConfigStub.should.have.been.called;
+            getChannelCapabilitiesStub.should.have.been.called;
         });
 
         it('should rethrow any errors', async () => {

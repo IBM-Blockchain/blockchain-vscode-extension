@@ -128,7 +128,7 @@ describe('InstantiateCommand', () => {
             fabricRuntimeMock.getInstantiatedChaincode.resolves([]);
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
             map.set('myChannel', ['peerOne']);
-            fabricRuntimeMock.createChannelMap.resolves(map);
+            fabricRuntimeMock.createChannelMap.resolves({channelMap: map, v2channels: []});
 
             blockchainRuntimeExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
             allChildren = await blockchainRuntimeExplorerProvider.getChildren();

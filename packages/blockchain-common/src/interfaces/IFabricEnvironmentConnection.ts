@@ -28,7 +28,7 @@ export interface IFabricEnvironmentConnection {
 
     getAllPeerNames(): Array<string>;
 
-    createChannelMap(): Promise<Map<string, Array<string>>>;
+    createChannelMap(): Promise<{channelMap: Map<string, Array<string>>, v2channels: Array<string>}>;
 
     getInstantiatedChaincode(peerNames: Array<string>, channelName: string): Promise<Array<FabricChaincode>>;
 
