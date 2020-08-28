@@ -1,5 +1,5 @@
-# IBM Blockchain Platform Extension updated to v2.0.0-beta.6
-_Release date: July 30th 2020_
+# IBM Blockchain Platform Extension updated to v2.0.0-beta.7
+_Release date: August 27th 2020_
 
 Announcements
 ---
@@ -13,17 +13,17 @@ Announcements
 
 Features & Enhancements
 ---
-* Updated welcome page to mention the extension uses Fabric 2 [#1779](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1779)
-* Explain how v2 deployment works in step one of the deploy view [#2429](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2429)
-* Recover from failed deploy [#2512](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2512)
-* Allow user to bring output into focus on network start failure [#2172](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2172).
-* Docker logs shown on transaction failure [#1964](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1964).
-* Updated IBM Cloud group name and behaviour [#2521](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2521).
+* Ability to open the IBM Blockchain Platform Console from the environment [#2536](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2536).
+* Automatically detect system requirements [#1398](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1398).
+* Read identity name from JSON file [#755](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/755).
+* Added command to remove extension directory [#1639](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1639).
+* Updated default export connection profile name to be in pascal case [#2175](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2175).
+* Removed required dependencies for old gRPC rebuild [#2560](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2560).
+* Create Fabric 2.2 smart contracts [#2573](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2573).
 
 Fixes
 ---
-* Fixed organsation approval table error appearing on initial load [#2545](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2545).
-* Fallback on GitHub retrieval failure [#2543](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2543).
+* Fixed IBM Cloud account selection bug [#2583](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2583).
 
 
 Notes

@@ -55,7 +55,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         generatorVersion: originalExtensionData.generatorVersion,
         preReqPageShown: originalExtensionData.preReqPageShown,
         dockerForWindows: originalExtensionData.dockerForWindows,
-        systemRequirements: originalExtensionData.systemRequirements,
         createOneOrgLocalFabric: originalExtensionData.createOneOrgLocalFabric,
         deletedOneOrgLocalFabric: originalExtensionData.deletedOneOrgLocalFabric
     };

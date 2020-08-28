@@ -992,25 +992,30 @@
                                     <div class="prereq-required optional">Optional</div>
                                 <% } %>
                             </div>
-                            <div class="installed-title">Installed version</div>
+                            <div class="installed-title">Installed<% if(missingDependencies[dependency].name != 'System Requirements') { %> version <% } %></div>
                             <div class="installed-version">
                                 <% if(missingDependencies[dependency].version){ %>
                                     <%= missingDependencies[dependency].version %>
+                                    <% if(missingDependencies[dependency].name == 'System Requirements') { %> GB of RAM <% } %>
                                 <% } else { %>
                                     -
                                 <% } %>
                             </div>
-                            <div class="required-title">Required version</div>
+                            <div class="required-title">Required<% if(missingDependencies[dependency].name != 'System Requirements') { %> version <% } %></div>
                             <div class="required-version">
                                 <% if(missingDependencies[dependency].requiredVersion) { %>
                                     <%= missingDependencies[dependency].requiredVersion %> <%= missingDependencies[dependency].requiredLabel%>
+                                <% } else if (missingDependencies[dependency].name == 'System Requirements') { %>
+                                    4 GB of RAM
                                 <% } else { %>
                                     any
                                 <% } %>
                             </div>
-                            <div class="launch">
-                                <div class="launch-icon"></div>
-                            </div>
+                            <% if(missingDependencies[dependency].name != 'System Requirements'){ %>
+                                <div class="launch">
+                                    <div class="launch-icon"></div>
+                                </div>
+                            <% } %>
                         </a>
                         <% } %>
                     <% } %>
@@ -1151,7 +1156,7 @@
                     <div class="table-cell">${pageDisplayed[x].name}</div>
                 `;
 
-                if(pageDisplayed[x].version){
+                if(pageDisplayed[x].version && pageDisplayed[x].name !== 'System Requirements'){
                     table += `
                     <div class="table-cell">${pageDisplayed[x].version}</div>`;
                 } else if(pageDisplayed[x].name === 'Docker for Windows' && pageDisplayed[x].complete){
