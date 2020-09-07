@@ -2384,7 +2384,6 @@ describe('DependencyManager Tests', () => {
                 sendCommandStub.should.not.have.been.calledWith('docker -v');
                 sendCommandStub.should.not.have.been.calledWith('docker-compose -v');
                 sendCommandStub.should.not.have.been.calledWith('openssl version -v');
-                sendCommandStub.should.not.have.been.calledWith('npm ls -g windows-build-tools');
             });
 
         });
