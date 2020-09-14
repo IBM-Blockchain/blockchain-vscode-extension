@@ -57,6 +57,7 @@ export interface RequiredDependencies {
 
 export interface OptionalDependencies {
     node: DependencyWithVersion;
+    nodeTestRunnerExtension: DependencyWithVersion;
     npm: DependencyWithVersion;
     go: DependencyWithVersion;
     goExtension: DependencyWithVersion;
@@ -123,6 +124,15 @@ export const defaultDependencies: { required: RequiredDependencies, optional: Op
             requiredVersion: DependencyVersions.NODEJS_REQUIRED,
             requiredLabel: 'only',
             tooltip: 'Required for developing JavaScript and TypeScript smart contracts. If installing Node and npm using a manager such as \'nvm\' or \'nodenv\', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.'
+        },
+        nodeTestRunnerExtension: {
+            name: 'Node Test Runner Extension',
+            required: false,
+            version: undefined,
+            url: 'vscode:extension/oshri6688.javascript-test-runner',
+            requiredVersion: undefined,
+            requiredLabel: '',
+            tooltip: 'Used for running Node smart contract functional tests.'
         },
         npm: {
             name: 'npm',
