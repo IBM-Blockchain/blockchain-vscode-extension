@@ -69,9 +69,9 @@ describe('TransactionView', () => {
         namespace: 'GreenContract'
     };
 
-    const mockAppState: {gatewayName: string, selectedSmartContract: ISmartContract} = {
+    const mockAppState: {gatewayName: string, smartContract: ISmartContract} = {
         gatewayName: 'my gateway',
-        selectedSmartContract: greenContract
+        smartContract: greenContract
     };
 
     const transactionObject: any = {
@@ -124,11 +124,11 @@ describe('TransactionView', () => {
         createWebviewPanelStub.should.have.been.called;
         postMessageStub.should.have.been.calledWith({
             path: '/transaction',
-            state: mockAppState
+            ...mockAppState
         });
     });
 
-    it(`should handle a 'submit' message`, async () => {
+    it(`should handle submitting a transaction`, async () => {
         const onDidReceiveMessagePromises: any[] = [];
 
         onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
@@ -137,8 +137,8 @@ describe('TransactionView', () => {
                     postMessage: mySandBox.stub(),
                     onDidReceiveMessage: async (callback: any): Promise<void> => {
                         await callback({
-                            command: 'submit',
-                            data: transactionObject
+                            command: ExtensionCommands.SUBMIT_TRANSACTION,
+                            transactionInfo: transactionObject
                         });
                         resolve();
                     }
@@ -158,7 +158,7 @@ describe('TransactionView', () => {
         executeCommandStub.should.have.been.calledWith(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
     });
 
-    it(`should handle an 'evaluate' message`, async () => {
+    it(`should handle evaluating a transaction`, async () => {
         const onDidReceiveMessagePromises: any[] = [];
 
         onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
@@ -167,8 +167,8 @@ describe('TransactionView', () => {
                     postMessage: mySandBox.stub(),
                     onDidReceiveMessage: async (callback: any): Promise<void> => {
                         await callback({
-                            command: 'evaluate',
-                            data: transactionObject
+                            command: ExtensionCommands.EVALUATE_TRANSACTION,
+                            transactionInfo: transactionObject
                         });
                         resolve();
                     }
@@ -187,35 +187,4 @@ describe('TransactionView', () => {
 
         executeCommandStub.should.have.been.calledWith(ExtensionCommands.EVALUATE_TRANSACTION, undefined, undefined, undefined, transactionObject);
     });
-
-    it('should not do anything if it receives an invalid message', async () => {
-        const onDidReceiveMessagePromises: any[] = [];
-
-        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
-            createWebviewPanelStub.returns({
-                webview: {
-                    postMessage: mySandBox.stub(),
-                    onDidReceiveMessage: async (callback: any): Promise<void> => {
-                        await callback({
-                            command: 'invalid',
-                            data: transactionObject
-                        });
-                        resolve();
-                    }
-                },
-                reveal: (): void => {
-                    return;
-                },
-                onDidDispose: mySandBox.stub(),
-                onDidChangeViewState: mySandBox.stub()
-            });
-        }));
-
-        const transactionView: TransactionView = new TransactionView(context, mockAppState);
-        await transactionView.openView(false);
-        await Promise.all(onDidReceiveMessagePromises);
-
-        executeCommandStub.should.not.have.been.called;
-    });
-
 });

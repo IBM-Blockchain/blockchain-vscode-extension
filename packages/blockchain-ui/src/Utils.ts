@@ -12,7 +12,11 @@ const Utils: any = {
     },
 
     postToVSCode(message: {command: string, data?: any}): void {
-        vscode.postMessage(message);
+        if (!(window as any)['Cypress']) {
+            vscode.postMessage(message);
+        } else {
+            window.postMessage(message, '*');
+        }
     }
 
 };

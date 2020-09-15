@@ -3,15 +3,15 @@ import './TransactionForm.scss';
 import { Button, Form, FormGroup, TextInput, Select, SelectItem, Checkbox, TextArea } from 'carbon-components-react';
 import ITransaction from '../../../interfaces/ITransaction';
 import ISmartContract from '../../../interfaces/ISmartContract';
+import { ExtensionCommands } from '../../../ExtensionCommands';
+import Utils from '../../../Utils';
 
 interface IProps {
     smartContract: ISmartContract;
-    postMessageHandler: (command: string, data?: any) => void;
 }
 
 interface IState {
     smartContract: ISmartContract;
-    postMessageHandler: (command: string, data?: any) => void;
     activeTransaction: ITransaction | undefined;
     transactionArguments: string;
     transientData: string;
@@ -25,7 +25,6 @@ class TransactionForm extends Component<IProps, IState> {
             activeTransaction: undefined,
             transactionArguments: '',
             transientData: '',
-            postMessageHandler: this.props.postMessageHandler
         };
         this.generateTransactionArguments = this.generateTransactionArguments.bind(this);
         this.updateTransactionArguments = this.updateTransactionArguments.bind(this);
@@ -92,21 +91,21 @@ class TransactionForm extends Component<IProps, IState> {
     submitTxn(evaluate: boolean): void {
         const activeTransaction: ITransaction = this.state.activeTransaction as ITransaction;
 
-        const command: string = evaluate ? 'evaluate' : 'submit';
+        const command: string = evaluate ? ExtensionCommands.EVALUATE_TRANSACTION : ExtensionCommands.SUBMIT_TRANSACTION;
         const args: string = this.parseArgs(activeTransaction, this.state.transactionArguments);
 
-        const transactionData: any = {
+        const transactionInfo: any = {
             smartContract: this.state.smartContract.name,
             transactionName: activeTransaction.name,
             channelName: this.state.smartContract.channel,
-            args: args,
+            args,
             namespace: this.state.smartContract.namespace,
             transientData: this.state.transientData,
-            evaluate: evaluate,
+            evaluate,
             peerTargetNames: []
         };
 
-        this.state.postMessageHandler(command, transactionData);
+        Utils.postToVSCode({command, transactionInfo});
     }
 
     render(): JSX.Element {

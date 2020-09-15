@@ -7,6 +7,7 @@ import sinonChai from 'sinon-chai';
 
 import App from '../../src/App';
 import ITutorialObject from '../../src/interfaces/ITutorialObject';
+import ISmartContract from '../../src/interfaces/ISmartContract';
 
 chai.should();
 chai.use(sinonChai);
@@ -84,5 +85,44 @@ describe('App', () => {
         dispatchEvent(msg);
         component.state().redirectPath.should.equal('/tutorials');
         component.state().tutorialData.should.equal(tutorialData);
+    });
+
+    it('should redirect to the transaction page', async () => {
+        const data: {gatewayName: string, smartContract: ISmartContract} = {
+            gatewayName: 'myGateway',
+            smartContract: {
+                name: 'mySmartContract',
+                version: '0.0.1',
+                channel: 'myChannel',
+                label: 'mySmartContract@0.0.1',
+                transactions: [],
+                namespace: 'My Smart Contract'
+            }
+        };
+
+        const component: any = mount(<App/>);
+
+        const msg: MessageEvent = new MessageEvent('message', {
+            data: {
+                path: '/transaction',
+                ...data
+            }
+        });
+        dispatchEvent(msg);
+        component.state().redirectPath.should.deep.equal('/transaction');
+        component.state().gatewayName.should.deep.equal(data.gatewayName);
+        component.state().smartContract.should.deep.equal(data.smartContract);
+    });
+
+    it('should handle receiving a message with transactionOutput', async () => {
+        const transactionOutput: string = 'here is some output from a transaction';
+        const component: any = mount(<App/>);
+        const msg: MessageEvent = new MessageEvent('message', {
+            data: {
+                transactionOutput
+            }
+        });
+        dispatchEvent(msg);
+        component.state().transactionOutput.should.deep.equal(transactionOutput);
     });
 });

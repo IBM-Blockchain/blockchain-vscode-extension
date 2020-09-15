@@ -3,12 +3,16 @@ import './App.scss';
 import { HashRouter as Router, Route, Redirect } from 'react-router-dom';
 import HomePage from './components/pages/HomePage/HomePage';
 import TutorialPage from './components/pages/TutorialPage/TutorialPage';
+import TransactionPage from './components/pages/TransactionPage/TransactionPage';
 import ITutorialObject from './interfaces/ITutorialObject';
 
 interface AppState {
     redirectPath: string;
     extensionVersion: string;
     tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string}>;
+    gatewayName: string;
+    smartContract: any;
+    transactionOutput: string;
 }
 
 class App extends Component<{}, AppState> {
@@ -17,7 +21,17 @@ class App extends Component<{}, AppState> {
         this.state = {
             redirectPath: '',
             extensionVersion: '',
-            tutorialData: []
+            tutorialData: [],
+            gatewayName: '',
+            smartContract: {
+                name: '',
+                version: '',
+                channel: '',
+                label: '',
+                transactions: [],
+                namespace: ''
+            },
+            transactionOutput: ''
         };
     }
 
@@ -33,6 +47,15 @@ class App extends Component<{}, AppState> {
 
             if (event.data.tutorialData) {
                 newState.tutorialData = event.data.tutorialData;
+            }
+
+            if (event.data.gatewayName) {
+                newState.gatewayName = event.data.gatewayName;
+                newState.smartContract = event.data.smartContract;
+            }
+
+            if (event.data.transactionOutput) {
+                newState.transactionOutput = event.data.transactionOutput;
             }
 
             this.setState(newState);
@@ -57,6 +80,9 @@ class App extends Component<{}, AppState> {
                             </Route>
                             <Route exact path='/tutorials' render={(): JSX.Element =>
                                 <TutorialPage tutorialData={this.state.tutorialData}/>}>
+                            </Route>
+                            <Route exact path='/transaction' render={(): JSX.Element =>
+                                <TransactionPage gatewayName={this.state.gatewayName} smartContract={this.state.smartContract} transactionOutput={this.state.transactionOutput}/>}>
                             </Route>
                         </div>
                     </div>
