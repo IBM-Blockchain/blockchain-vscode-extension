@@ -198,7 +198,7 @@
 }
 
 @mixin output-panel-dark {
-    background-color: #1E2529;
+    background-color: #323232;
     .output-title {
         color: #ababab;
     }
@@ -225,14 +225,14 @@
     }
 
     .bx--select-input {
-        background-color: #1E2529;
+        background-color: #323232;
         color: white;
     }
 }
 
 @mixin text-inputs-dark {
     input, textarea {
-        background-color: #1E2529   ;
+        background-color: #323232   ;
         color: white;
     }
 }
