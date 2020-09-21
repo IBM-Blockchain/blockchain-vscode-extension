@@ -15,7 +15,7 @@
 // tslint:disable no-unused-expression
 
 import MockAdapter from 'axios-mock-adapter';
-import { MicrofabClient, MicrofabComponent, isIdentity, isOrderer, isPeer, isGateway } from '../../src/environments/MicrofabClient';
+import { MicrofabClient, MicrofabComponent, isIdentity, isOrderer, isPeer, isGateway, isCertificateAuthority } from '../../src/environments/MicrofabClient';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
@@ -43,6 +43,15 @@ describe('MicrofabClient', () => {
             {
                 id: 'org1admin',
                 display_name: 'Org1 Admin',
+                type: 'identity',
+                cert: 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ6RENDQVhTZ0F3SUJBZ0lRZHBtaE9FOVkxQ3V3WHl2b3pmMjFRakFLQmdncWhrak9QUVFEQWpBU01SQXcKRGdZRFZRUURFd2RQY21jeElFTkJNQjRYRFRJd01EVXhOREV3TkRjd01Gb1hEVE13TURVeE1qRXdORGN3TUZvdwpKVEVPTUF3R0ExVUVDeE1GWVdSdGFXNHhFekFSQmdOVkJBTVRDazl5WnpFZ1FXUnRhVzR3V1RBVEJnY3Foa2pPClBRSUJCZ2dxaGtqT1BRTUJCd05DQUFSN0l4UmRGb0theE1ZWHFyK01zU1F6UDhIS1lITVphRmYrVmt3SnpsbisKNGJsa1M0aWVxZFRiRWhqUThvc1F2QmxpZk1Ca29YeUVKd3JkNHdmUzNtc1dvNEdZTUlHVk1BNEdBMVVkRHdFQgovd1FFQXdJRm9EQWRCZ05WSFNVRUZqQVVCZ2dyQmdFRkJRY0RBZ1lJS3dZQkJRVUhBd0V3REFZRFZSMFRBUUgvCkJBSXdBREFwQmdOVkhRNEVJZ1FnNEpNUmx6cVhxaEFTaE1EaHIrOE5Hd0FFVE85bDFld3lJcDh0RHBMMTZMa3cKS3dZRFZSMGpCQ1F3SW9BZ21qczI3VG56V0ZvZWZ4Y3RYMGRZWUl4UnJKRmpVeXdyTHJ3YzMzdkp3Tmd3Q2dZSQpLb1pJemowRUF3SURSZ0F3UXdJZkVkS2xoSCsySk4yNDhVQnE3UjBtWnU5NGxiK1BXRFA4QnAxN0hMSHpMQUlnClRSMVF4ZUUrUitkNDhpWjB0ZEZ2S1FRVGQvWTJlZXJZMnJiUDZsQzVYWUU9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K',
+                private_key: 'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR0hBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJHMHdhd0lCQVFRZ1RMdWdydldMaXVvNWM5dnUKenh4MjBmZzBJS1B2c0haV2NLenUrTUVUcmNhaFJBTkNBQVI3SXhSZEZvS2F4TVlYcXIrTXNTUXpQOEhLWUhNWgphRmYrVmt3Snpsbis0YmxrUzRpZXFkVGJFaGpROG9zUXZCbGlmTUJrb1h5RUp3cmQ0d2ZTM21zVwotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg==',
+                msp_id: 'Org1MSP',
+                wallet: 'Org1'
+            },
+            {
+                id: 'org1caadmin',
+                display_name: 'Org1 CA Admin',
                 type: 'identity',
                 cert: 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ6RENDQVhTZ0F3SUJBZ0lRZHBtaE9FOVkxQ3V3WHl2b3pmMjFRakFLQmdncWhrak9QUVFEQWpBU01SQXcKRGdZRFZRUURFd2RQY21jeElFTkJNQjRYRFRJd01EVXhOREV3TkRjd01Gb1hEVE13TURVeE1qRXdORGN3TUZvdwpKVEVPTUF3R0ExVUVDeE1GWVdSdGFXNHhFekFSQmdOVkJBTVRDazl5WnpFZ1FXUnRhVzR3V1RBVEJnY3Foa2pPClBRSUJCZ2dxaGtqT1BRTUJCd05DQUFSN0l4UmRGb0theE1ZWHFyK01zU1F6UDhIS1lITVphRmYrVmt3SnpsbisKNGJsa1M0aWVxZFRiRWhqUThvc1F2QmxpZk1Ca29YeUVKd3JkNHdmUzNtc1dvNEdZTUlHVk1BNEdBMVVkRHdFQgovd1FFQXdJRm9EQWRCZ05WSFNVRUZqQVVCZ2dyQmdFRkJRY0RBZ1lJS3dZQkJRVUhBd0V3REFZRFZSMFRBUUgvCkJBSXdBREFwQmdOVkhRNEVJZ1FnNEpNUmx6cVhxaEFTaE1EaHIrOE5Hd0FFVE85bDFld3lJcDh0RHBMMTZMa3cKS3dZRFZSMGpCQ1F3SW9BZ21qczI3VG56V0ZvZWZ4Y3RYMGRZWUl4UnJKRmpVeXdyTHJ3YzMzdkp3Tmd3Q2dZSQpLb1pJemowRUF3SURSZ0F3UXdJZkVkS2xoSCsySk4yNDhVQnE3UjBtWnU5NGxiK1BXRFA4QnAxN0hMSHpMQUlnClRSMVF4ZUUrUitkNDhpWjB0ZEZ2S1FRVGQvWTJlZXJZMnJiUDZsQzVYWUU9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K',
                 private_key: 'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR0hBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJHMHdhd0lCQVFRZ1RMdWdydldMaXVvNWM5dnUKenh4MjBmZzBJS1B2c0haV2NLenUrTUVUcmNhaFJBTkNBQVI3SXhSZEZvS2F4TVlYcXIrTXNTUXpQOEhLWUhNWgphRmYrVmt3Snpsbis0YmxrUzRpZXFkVGJFaGpROG9zUXZCbGlmTUJrb1h5RUp3cmQ0d2ZTM21zVwotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg==',
@@ -89,6 +98,24 @@ describe('MicrofabClient', () => {
                 msp_id: 'Org1MSP',
                 wallet: 'Org1',
                 identity: 'Org1 Admin'
+            },
+            {
+                id: 'org1ca',
+                display_name: 'Org1 CA',
+                type: 'fabric-ca',
+                api_url: 'http://localhost:8080',
+                api_options: {
+                    'grpc.default_authority': 'org1ca-api.127-0-0-1.nip.io:8080',
+                    'grpc.ssl_target_name_override': 'org1ca-api.127-0-0-1.nip.io:8080'
+                },
+                operations_url: 'http://localhost:8080',
+                operations_options: {
+                    'grpc.default_authority': 'org1ca-operations.127-0-0-1.nip.io:8080',
+                    'grpc.ssl_target_name_override': 'org1ca-operations.127-0-0-1.nip.io:8080'
+                },
+                msp_id: 'Org1MSP',
+                wallet: 'Org1',
+                identity: 'Org1 CA Admin'
             },
             {
                 client: {
@@ -190,17 +217,21 @@ describe('MicrofabClient', () => {
 
         it('should get the list of components', async () => {
             const components: MicrofabComponent[] = await client.getComponents();
-            components.should.have.lengthOf(5);
+            components.should.have.lengthOf(7);
             isIdentity(components[0]).should.be.true;
             components[0].display_name.should.equal('Orderer Admin');
             isIdentity(components[1]).should.be.true;
             components[1].display_name.should.equal('Org1 Admin');
-            isOrderer(components[2]).should.be.true;
-            components[2].display_name.should.equal('Orderer');
-            isPeer(components[3]).should.be.true;
-            components[3].display_name.should.equal('Org1 Peer');
-            isGateway(components[4]).should.be.true;
-            components[4].display_name.should.equal('Org1 Gateway');
+            isIdentity(components[2]).should.be.true;
+            components[2].display_name.should.equal('Org1 CA Admin');
+            isOrderer(components[3]).should.be.true;
+            components[3].display_name.should.equal('Orderer');
+            isPeer(components[4]).should.be.true;
+            components[4].display_name.should.equal('Org1 Peer');
+            isCertificateAuthority(components[5]).should.be.true;
+            components[5].display_name.should.equal('Org1 CA');
+            isGateway(components[6]).should.be.true;
+            components[6].display_name.should.equal('Org1 Gateway');
         });
 
     });

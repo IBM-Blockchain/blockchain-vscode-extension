@@ -18,7 +18,7 @@ import { URL } from 'url';
 export interface MicrofabComponent {
     id: string;
     display_name: string;
-    type: 'fabric-peer' | 'fabric-orderer' | 'gateway' | 'identity';
+    type: 'fabric-peer' | 'fabric-orderer' | 'fabric-ca' | 'gateway' | 'identity';
 }
 
 export interface MicrofabPeer extends MicrofabComponent {
@@ -35,6 +35,20 @@ export interface MicrofabPeer extends MicrofabComponent {
 
 export function isPeer(component: MicrofabComponent): component is MicrofabPeer {
     return component.type === 'fabric-peer';
+}
+
+export interface MicrofabCertificateAuthority extends MicrofabComponent {
+    api_url: string;
+    api_options?: Map<string, any>;
+    operations_url: string;
+    operations_options?: Map<string, any>;
+    msp_id: string;
+    wallet: string;
+    identity: string;
+}
+
+export function isCertificateAuthority(component: MicrofabComponent): component is MicrofabCertificateAuthority {
+    return component.type === 'fabric-ca';
 }
 
 export interface MicrofabOrderer extends MicrofabComponent {
@@ -65,6 +79,7 @@ export interface MicrofabIdentity extends MicrofabComponent {
     private_key: string;
     msp_id: string;
     wallet: string;
+    hide: boolean;
 }
 
 export function isIdentity(component: MicrofabComponent): component is MicrofabIdentity {

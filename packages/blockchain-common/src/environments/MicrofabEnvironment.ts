@@ -18,7 +18,7 @@ import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEnt
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
 import { FabricIdentity } from '../fabricModel/FabricIdentity';
 import { FabricGateway } from '../fabricModel/FabricGateway';
-import { MicrofabClient, isPeer, isOrderer, MicrofabComponent, MicrofabIdentity, isIdentity, isGateway, MicrofabGateway } from './MicrofabClient';
+import { MicrofabClient, isPeer, isOrderer, MicrofabComponent, MicrofabIdentity, isIdentity, isGateway, MicrofabGateway, isCertificateAuthority } from './MicrofabClient';
 import { FileConfigurations } from '../registries/FileConfigurations';
 import { IFabricWalletGenerator } from '../interfaces/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../util/FabricWalletGeneratorFactory';
@@ -75,6 +75,21 @@ export class MicrofabEnvironment extends AnsibleEnvironment {
                     component.identity,
                     component.msp_id,
                     component.display_name,
+                    false
+                );
+                node.api_options = component.api_options;
+                nodes.push(node);
+            } else if (isCertificateAuthority(component)) {
+                const node: FabricNode = FabricNode.newCertificateAuthority(
+                    component.id,
+                    component.display_name,
+                    component.api_url,
+                    null,
+                    component.wallet,
+                    component.identity,
+                    component.msp_id,
+                    null,
+                    null,
                     false
                 );
                 node.api_options = component.api_options;
