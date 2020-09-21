@@ -3151,4 +3151,30 @@ describe('UserInputUtil', () => {
             result.should.deep.equal(expectedSortedNodes);
         });
     });
+
+    describe('showExternalLinkButton', () => {
+        const msg: string = 'msg';
+        const callToAction: string = 'callToAction';
+        const url: string = 'url';
+
+        it('should open the URL as the selected text is the callToAction', async () => {
+            const showInformationMessage: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage').resolves(callToAction);
+            const openSurvey: sinon.SinonStub = mySandBox.stub(vscode.env, 'openExternal');
+
+            await UserInputUtil.showExternalLinkButton(msg, callToAction, url);
+
+            showInformationMessage.should.have.been.calledWith(msg, callToAction);
+            openSurvey.should.have.been.calledWith(vscode.Uri.parse(url));
+        });
+
+        it('should do nothing as the selected text is not the callToAction', async () => {
+            const showInformationMessage: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage').resolves(msg);
+            const openSurvey: sinon.SinonStub = mySandBox.stub(vscode.env, 'openExternal');
+
+            await UserInputUtil.showExternalLinkButton(msg, callToAction, url);
+
+            showInformationMessage.should.have.been.calledWith(msg, callToAction);
+            openSurvey.should.have.not.been.called;
+        });
+    });
 });
