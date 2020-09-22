@@ -27,7 +27,7 @@ class App extends Component<{}, AppState> {
             extensionVersion: '',
             tutorialData: [],
             deployData: { channelName: '', environmentName: '', packageEntries: [], workspaceNames: [], selectedPackage: undefined, committedDefinitions: [], environmentPeers: [], discoveredPeers: [], orgMap: {}, orgApprovals: {} },
-            transactionData: {gatewayName: '', smartContract: {name: '', version: '', channel: '', label: '', transactions: [], namespace: ''} },
+            transactionData: {gatewayName: '', smartContract: {name: '', version: '', channel: '', label: '', transactions: [], namespace: '', peerNames: []} },
             transactionOutput: ''
         };
     }
