@@ -108,7 +108,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
                         trustedRoots = Buffer.from(node.pem, 'base64');
                     }
 
-                    const caName: string = node.ca_name || node.name;
+                    const caName: string = node.ca_name;
                     const certificateAuthority: FabricCAServices = new FabricCAServices(node.api_url, {
                         trustedRoots,
                         verify: false

@@ -352,7 +352,7 @@ describe('FabricEnvironmentConnection', () => {
             certificateAuthorityValues[1].getCaName().should.equal('ca_name');
         });
 
-        it('should create certificate authority clients and use name proptery if ca_name not set', async () => {
+        it('should create certificate authority clients and use null ca_name if not set', async () => {
             const certificateAuthorityNames: string[] = Array.from(connection['certificateAuthorities'].keys());
             const certificateAuthorityValues: FabricCAServices[] = Array.from(connection['certificateAuthorities'].values());
             certificateAuthorityNames.should.deep.equal(['ca.example.com', 'ca2.example.com', 'ca3.example.com']);
@@ -360,7 +360,7 @@ describe('FabricEnvironmentConnection', () => {
             certificateAuthorityValues[2].should.be.an.instanceOf(FabricCAServices);
             certificateAuthorityValues[2].toString().should.match(/hostname: localhost/);
             certificateAuthorityValues[2].toString().should.match(/port: 9054/);
-            certificateAuthorityValues[2].getCaName().should.equal('ca3.example.com');
+            should.not.exist(certificateAuthorityValues[2].getCaName());
         });
 
         it('should ignore any other nodes', async () => {
