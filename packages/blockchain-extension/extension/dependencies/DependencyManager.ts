@@ -43,7 +43,11 @@ export class DependencyManager {
             } else {
                 return false;
             }
+<<<<<<< HEAD
         } else if (name === 'Go Extension' || name === 'Java Language Support Extension' || name === 'Java Debugger Extension' || name === 'Java Test Runner Extension') {
+=======
+        } else if (name === 'C++ Build Tools' || name === 'Xcode' || name === 'Go Extension' || name === 'Java Language Support Extension' || name === 'Java Debugger Extension' || name === 'Java Test Runner Extension' || name === 'Node Test Runner Extension') {
+>>>>>>> d3e157b1... Make Node runner optional (#2635)
             if (dependency.version) {
                 return true;
             } else {
@@ -126,6 +130,9 @@ export class DependencyManager {
                 return false;
             }
 
+            if (!this.isValidDependency(dependencies.nodeTestRunnerExtension)) {
+                return false;
+            }
         }
 
         return true;
@@ -316,7 +323,7 @@ export class DependencyManager {
             // Ignore the error
         }
 
-        // Java Debugger Extension
+        // Java Test Runner Extension
         dependencies.javaTestRunnerExtension = { name: 'Java Test Runner Extension', required: false, version: undefined, url: 'vscode:extension/vscjava.vscode-java-test', requiredVersion: undefined, requiredLabel: '', tooltip: 'Used for running Java smart contract functional tests.' };
         try {
             const javaTestRunnerExtensionResult: vscode.Extension<any> = vscode.extensions.getExtension('vscjava.vscode-java-test');
@@ -328,6 +335,17 @@ export class DependencyManager {
             // Ignore the error
         }
 
+        // Node Test Runner Extension
+        dependencies.nodeTestRunnerExtension = { name: 'Node Test Runner Extension', required: false, version: undefined, url: 'vscode:extension/oshri6688.javascript-test-runner', requiredVersion: undefined, requiredLabel: '', tooltip: 'Used for running Node smart contract functional tests.' };
+        try {
+            const nodeTestRunnerExtensionResult: vscode.Extension<any> = vscode.extensions.getExtension('oshri6688.javascript-test-runner');
+            if (nodeTestRunnerExtensionResult) {
+                const version: string = nodeTestRunnerExtensionResult.packageJSON.version;
+                dependencies.nodeTestRunnerExtension.version = version;
+            }
+        } catch (error) {
+            // Ignore the error
+        }
         return dependencies;
 
     }
