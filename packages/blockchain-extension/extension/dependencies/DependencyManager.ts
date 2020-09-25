@@ -173,7 +173,14 @@ export class DependencyManager {
             // Windows
 
             if (localFabricEnabled) {
+<<<<<<< HEAD
                 dependencies.openssl = { name: 'OpenSSL', required: true, version: undefined, url: 'http://slproweb.com/products/Win32OpenSSL.html', requiredVersion: Dependencies.OPENSSL_REQUIRED, requiredLabel: 'for Node 8.x and Node 10.x respectively', tooltip: 'Install the Win32 version into `C:\\OpenSSL-Win32` on 32-bit systems and the Win64 version into `C:\\OpenSSL-Win64` on 64-bit systems`.' };
+=======
+                dependencies.dockerForWindows = { name: 'Docker for Windows', id: 'dockerForWindows', complete: undefined, checkbox: true, required: true, text: 'Docker for Windows must be configured to use Linux containers (this is the default)' };
+
+                dependencies.openssl = { name: 'OpenSSL', required: true, version: undefined, url: 'http://slproweb.com/products/Win32OpenSSL.html', requiredVersion: Dependencies.OPENSSL_REQUIRED, requiredLabel: 'only', tooltip: 'Install the Win64 version into `C:\\OpenSSL-Win64` on 64-bit systems`.' };
+                dependencies.buildTools = { name: 'C++ Build Tools', required: true, version: undefined, url: 'https://github.com/felixrieseberg/windows-build-tools#windows-build-tools', requiredVersion: undefined, requiredLabel: undefined };
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                 try {
                     const win32: boolean = await fs.pathExists(`C:\\OpenSSL-Win32`);
                     const win64: boolean = await fs.pathExists(`C:\\OpenSSL-Win64`);

@@ -106,6 +106,7 @@ describe('DependencyManager Tests', () => {
             }
         });
 
+<<<<<<< HEAD
         it(`should return true when dependency version is correct, present or complete`, async () => {
             semverSatisfiesStub.returns(true);
             const dependenciesKeys: string[] = ['node', 'java', 'docker', 'compose', 'go', 'goExtension', 'javaLangSupp', 'javaDebug', 'javaTestRunner', 'dockerWin', 'sysReq'];
@@ -154,9 +155,20 @@ describe('DependencyManager Tests', () => {
                 sysReq: {
                     name: 'System Requirements',
                     complete: true
+=======
+        it(`should return false if wrong Node version`, async () => {
+            // should be >=10.15.3 < 11.0.0|| >=12.15.0 < 13.0.0
+            const dependencyManager: DependencyManager = DependencyManager.instance();
+            getPreReqVersionsStub.resolves({
+                node: {
+                    name: 'Node.js',
+                    version: '8.12.0',
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                 }
-            };
+            });
 
+<<<<<<< HEAD
             for (let i: number = 0; i < dependenciesKeys.length; i++) {
                 const result: boolean = dependencyManager.isValidDependency(dependencies[dependenciesKeys[i]]);
                 try {
@@ -165,13 +177,75 @@ describe('DependencyManager Tests', () => {
                     throw new Error(`Dependency ${dependenciesKeys[i]} should be valid - ${error.message}`);
                 }
             }
+=======
+            const resultNode8: boolean = await dependencyManager.hasPreReqsInstalled();
+            resultNode8.should.equal(false);
+
+            getPreReqVersionsStub.resolves({
+                node: {
+                    name: 'Node.js',
+                    version: '10.15.2',
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
+                }
+            });
+
+            const resultNode10low: boolean = await dependencyManager.hasPreReqsInstalled();
+            resultNode10low.should.equal(false);
+
+            getPreReqVersionsStub.resolves({
+                node: {
+                    name: 'Node.js',
+                    version: '11.1.1',
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
+                }
+            });
+
+            const resultNode11: boolean = await dependencyManager.hasPreReqsInstalled();
+            resultNode11.should.equal(false);
+
+            getPreReqVersionsStub.resolves({
+                node: {
+                    name: 'Node.js',
+                    version: '12.14.0',
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
+                }
+            });
+
+            const resultNode12low: boolean = await dependencyManager.hasPreReqsInstalled();
+            resultNode12low.should.equal(false);
+
+            getPreReqVersionsStub.resolves({
+                node: {
+                    name: 'Node.js',
+                    version: '13.0.0',
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
+                }
+            });
+
+            const resultNode13: boolean = await dependencyManager.hasPreReqsInstalled();
+            resultNode13.should.equal(false);
+
+            getPreReqVersionsStub.getCalls().length.should.equal(5);
+
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
         });
 
         it(`should be able to handle unknown dependencies`, async () => {
             const dependencies: any = {
+<<<<<<< HEAD
                 docker: {
                     name: 'some_dependency',
                     version: '0.0.1',
+=======
+                node: {
+                    name: 'Node.js',
+                    version: '10.15.3',
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
+                },
+                npm: {
+                    name: 'npm',
+                    version: undefined
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                 }
             };
 
@@ -180,7 +254,28 @@ describe('DependencyManager Tests', () => {
             result.should.equal(false);
         });
 
+<<<<<<< HEAD
     });
+=======
+        it(`should return false if npm version is less than required version`, async () => {
+            const dependencies: any = {
+                node: {
+                    name: 'Node.js',
+                    version: '10.15.3',
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
+                },
+                npm: {
+                    name: 'npm',
+                    version: '4.0.0',
+                    requiredVersion: Dependencies.NPM_REQUIRED
+                }
+            };
+
+            getPreReqVersionsStub.resolves(dependencies);
+
+            const dependencyManager: DependencyManager = DependencyManager.instance();
+            const result: boolean = await dependencyManager.hasPreReqsInstalled();
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
 
     describe('hasPreReqsInstalled', () => {
         let getPreReqVersionsStub: sinon.SinonStub;
@@ -191,6 +286,19 @@ describe('DependencyManager Tests', () => {
 
         it(`should return false if there's no Docker version`, async () => {
             const dependencies: any = {
+<<<<<<< HEAD
+=======
+                node: {
+                    name: 'Node.js',
+                    version: '10.15.3',
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
+                },
+                npm: {
+                    name: 'npm',
+                    version: '6.4.1',
+                    requiredVersion: Dependencies.NPM_REQUIRED
+                },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                 docker: {
                     name: 'Docker',
                     version: undefined
@@ -209,6 +317,19 @@ describe('DependencyManager Tests', () => {
 
         it(`should return false if Docker version is less than required version`, async () => {
             const dependencies: any = {
+<<<<<<< HEAD
+=======
+                node: {
+                    name: 'Node.js',
+                    version: '10.15.3',
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
+                },
+                npm: {
+                    name: 'npm',
+                    version: '6.4.1',
+                    requiredVersion: Dependencies.NPM_REQUIRED
+                },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                 docker: {
                     name: 'Docker',
                     version: '16.0.0',
@@ -228,6 +349,19 @@ describe('DependencyManager Tests', () => {
 
         it(`should return false if there's no Docker Compose version`, async () => {
             const dependencies: any = {
+<<<<<<< HEAD
+=======
+                node: {
+                    name: 'Node.js',
+                    version: '10.15.3',
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
+                },
+                npm: {
+                    name: 'npm',
+                    version: '6.4.1',
+                    requiredVersion: Dependencies.NPM_REQUIRED
+                },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                 docker: {
                     name: 'Docker',
                     version: '18.1.2',
@@ -251,6 +385,19 @@ describe('DependencyManager Tests', () => {
 
         it(`should return false if Docker Compose version is less than required version`, async () => {
             const dependencies: any = {
+<<<<<<< HEAD
+=======
+                node: {
+                    name: 'Node.js',
+                    version: '10.15.3',
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
+                },
+                npm: {
+                    name: 'npm',
+                    version: '6.4.1',
+                    requiredVersion: Dependencies.NPM_REQUIRED
+                },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                 docker: {
                     name: 'Docker',
                     version: '18.1.2',
@@ -275,6 +422,19 @@ describe('DependencyManager Tests', () => {
 
         it(`should return false if they haven't confirmed to have system requirements`, async () => {
             const dependencies: any = {
+<<<<<<< HEAD
+=======
+                node: {
+                    name: 'Node.js',
+                    version: '10.15.3',
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
+                },
+                npm: {
+                    name: 'npm',
+                    version: '6.4.1',
+                    requiredVersion: Dependencies.NPM_REQUIRED
+                },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                 docker: {
                     name: 'Docker',
                     version: '18.1.2',
@@ -305,6 +465,19 @@ describe('DependencyManager Tests', () => {
             mySandBox.stub(process, 'platform').value('linux'); // We don't have any Linux only prereqs, so this is okay.
 
             const dependencies: any = {
+<<<<<<< HEAD
+=======
+                node: {
+                    name: 'Node.js',
+                    version: '10.15.3',
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
+                },
+                npm: {
+                    name: 'npm',
+                    version: '6.4.1',
+                    requiredVersion: Dependencies.NPM_REQUIRED
+                },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                 docker: {
                     name: 'Docker',
                     version: '18.1.2',
@@ -336,6 +509,19 @@ describe('DependencyManager Tests', () => {
             mySandBox.stub(process, 'platform').value('linux'); // We don't have any Linux only prereqs, so this is okay.
 
             const dependencies: any = {
+<<<<<<< HEAD
+=======
+                node: {
+                    name: 'Node.js',
+                    version: '10.15.3',
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
+                },
+                npm: {
+                    name: 'npm',
+                    version: '6.4.1',
+                    requiredVersion: Dependencies.NPM_REQUIRED
+                },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                 systemRequirements: {
                     name: 'System Requirements',
                     complete: true
@@ -358,6 +544,19 @@ describe('DependencyManager Tests', () => {
             mySandBox.stub(process, 'platform').value('linux'); // We don't have any Linux only prereqs, so this is okay.
 
             const dependencies: any = {
+<<<<<<< HEAD
+=======
+                node: {
+                    name: 'Node.js',
+                    version: '10.15.3',
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
+                },
+                npm: {
+                    name: 'npm',
+                    version: '6.4.1',
+                    requiredVersion: Dependencies.NPM_REQUIRED
+                },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                 docker: {
                     name: 'Docker',
                     version: '18.1.2',
@@ -373,6 +572,8 @@ describe('DependencyManager Tests', () => {
                     complete: true
                 }
             };
+<<<<<<< HEAD
+=======
 
             const dependencyManager: DependencyManager = DependencyManager.instance();
             const result: boolean = await dependencyManager.hasPreReqsInstalled(dependencies);
@@ -387,6 +588,16 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('win32');
 
                 const dependencies: any = {
+                    node: {
+                        name: 'Node.js',
+                        version: '10.15.3',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
+                    },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -408,6 +619,60 @@ describe('DependencyManager Tests', () => {
                 };
 
                 getPreReqVersionsStub.resolves(dependencies);
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
+
+            const dependencyManager: DependencyManager = DependencyManager.instance();
+            const result: boolean = await dependencyManager.hasPreReqsInstalled(dependencies);
+
+            result.should.equal(true);
+            getPreReqVersionsStub.should.not.have.been.called;
+
+        });
+
+        describe('Windows', () => {
+            it(`should return false if there's no OpenSSL version (Windows)`, async () => {
+                mySandBox.stub(process, 'platform').value('win32');
+
+                const dependencies: any = {
+<<<<<<< HEAD
+=======
+                    node: {
+                        name: 'Node.js',
+                        version: '10.15.3',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
+                    },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
+                    docker: {
+                        name: 'Docker',
+                        version: '18.1.2',
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                    },
+                    dockerCompose: {
+                        name: 'Docker Compose',
+                        version: '1.21.1',
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                    },
+                    systemRequirements: {
+                        name: 'System Requirements',
+                        complete: true
+                    },
+                    openssl: {
+                        name: 'OpenSSL',
+<<<<<<< HEAD
+                        version: undefined
+=======
+                        version: '1.1.1',
+                        requiredVersion: Dependencies.OPENSSL_REQUIRED
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
+                    }
+                };
+
+                getPreReqVersionsStub.resolves(dependencies);
 
                 const dependencyManager: DependencyManager = DependencyManager.instance();
                 const result: boolean = await dependencyManager.hasPreReqsInstalled();
@@ -421,6 +686,19 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('win32');
 
                 const dependencies: any = {
+<<<<<<< HEAD
+=======
+                    node: {
+                        name: 'Node.js',
+                        version: '10.15.3',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
+                    },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -455,6 +733,19 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('win32');
 
                 const dependencies: any = {
+<<<<<<< HEAD
+=======
+                    node: {
+                        name: 'Node.js',
+                        version: '10.15.3',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
+                    },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -494,6 +785,19 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('win32');
 
                 const dependencies: any = {
+<<<<<<< HEAD
+=======
+                    node: {
+                        name: 'Node.js',
+                        version: '10.15.3',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
+                    },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -535,6 +839,19 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('win32');
 
                 const dependencies: any = {
+<<<<<<< HEAD
+=======
+                    node: {
+                        name: 'Node.js',
+                        version: '10.15.3',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
+                    }
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                 };
 
                 getPreReqVersionsStub.resolves(dependencies);
@@ -553,6 +870,19 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('darwin');
 
                 const dependencies: any = {
+<<<<<<< HEAD
+=======
+                    node: {
+                        name: 'Node.js',
+                        version: '10.15.3',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
+                    },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -584,6 +914,19 @@ describe('DependencyManager Tests', () => {
 
             it(`should return false the optional Node dependency hasn't been installed`, async () => {
                 const dependencies: any = {
+<<<<<<< HEAD
+=======
+                    node: {
+                        name: 'Node.js',
+                        version: '10.15.3',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
+                    },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -616,6 +959,19 @@ describe('DependencyManager Tests', () => {
 
             it(`should return false if the optional Node dependency isn't between 8 and 11`, async () => {
                 const dependencies: any = {
+<<<<<<< HEAD
+=======
+                    node: {
+                        name: 'Node.js',
+                        version: '10.15.3',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
+                    },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -665,7 +1021,7 @@ describe('DependencyManager Tests', () => {
                     },
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
@@ -726,6 +1082,19 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
                 const dependencies: any = {
+<<<<<<< HEAD
+=======
+                    node: {
+                        name: 'Node.js',
+                        version: '10.15.3',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
+                    },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -786,7 +1155,7 @@ describe('DependencyManager Tests', () => {
                     },
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
@@ -864,6 +1233,19 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
                 const dependencies: any = {
+<<<<<<< HEAD
+=======
+                    node: {
+                        name: 'Node.js',
+                        version: '10.15.3',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
+                    },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -918,6 +1300,19 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
                 const dependencies: any = {
+<<<<<<< HEAD
+=======
+                    node: {
+                        name: 'Node.js',
+                        version: '10.15.3',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
+                    },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -972,6 +1367,19 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
                 const dependencies: any = {
+<<<<<<< HEAD
+=======
+                    node: {
+                        name: 'Node.js',
+                        version: '10.15.3',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
+                    },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -1030,6 +1438,19 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
                 const dependencies: any = {
+<<<<<<< HEAD
+=======
+                    node: {
+                        name: 'Node.js',
+                        version: '10.15.3',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
+                    },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -1092,6 +1513,19 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
                 const dependencies: any = {
+<<<<<<< HEAD
+=======
+                    node: {
+                        name: 'Node.js',
+                        version: '10.15.3',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
+                    },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
@@ -1158,6 +1592,19 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
                 const dependencies: any = {
+<<<<<<< HEAD
+=======
+                    node: {
+                        name: 'Node.js',
+                        version: '10.15.3',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
+                    },
+>>>>>>> ae6d2dc6... v1 - Fix dependencies (#2646)
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
