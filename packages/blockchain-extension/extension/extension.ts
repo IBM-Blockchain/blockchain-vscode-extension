@@ -56,7 +56,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         preReqPageShown: originalExtensionData.preReqPageShown,
         dockerForWindows: originalExtensionData.dockerForWindows,
         createOneOrgLocalFabric: originalExtensionData.createOneOrgLocalFabric,
-        deletedOneOrgLocalFabric: originalExtensionData.deletedOneOrgLocalFabric
+        deletedOneOrgLocalFabric: originalExtensionData.deletedOneOrgLocalFabric,
+        shownFirstSubmissionSurveyURL: originalExtensionData.shownFirstSubmissionSurveyURL,
     };
 
     let extDir: string = SettingConfigurations.getExtensionDir();

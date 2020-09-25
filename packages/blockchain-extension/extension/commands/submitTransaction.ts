@@ -25,6 +25,7 @@ import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchain
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 import { IFabricGatewayConnection, LogType, FabricGatewayRegistryEntry, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
+import { GlobalState, ExtensionData } from '../util/GlobalState';
 
 interface ITransactionData {
     transactionName: string;
@@ -331,6 +332,22 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
             outputAdapter.log(LogType.SUCCESS, `Successfully ${actioned} transaction`, message);
 
             outputAdapter.show(); // Bring the 'Blockchain' output channel into focus.
+
+            const extensionData: ExtensionData = GlobalState.get();
+
+            // On the user's first transaction submit, show a link to a survey
+            if (!evaluate && !extensionData.shownFirstSubmissionSurveyURL) {
+                // Show review box when we know that it has been successful
+                const surveyMessage: string = 'Congratulations on submitting your first transaction! We appreciate your feedback to help improve the extension';
+                const surveyCallToAction: string = 'Open survey';
+                const surveyURL: string = 'https://www.surveygizmo.com/s3/5561397/VSCodeExt-Popup-Link';
+                await GlobalState.update({ ...extensionData, shownFirstSubmissionSurveyURL: true });
+
+                // Don't use async/await here so that the parent function can return
+                // tslint:disable-next-line: no-floating-promises
+                UserInputUtil.showExternalLinkButton(surveyMessage, surveyCallToAction, surveyURL);
+
+            }
 
             if (transactionObject) {
                 return message;
