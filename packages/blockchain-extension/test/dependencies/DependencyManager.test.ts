@@ -537,22 +537,65 @@ describe('DependencyManager Tests', () => {
 
         });
 
-        it(`should return false if Node version isn't between 8 and 11`, async () => {
-            const dependencies: any = {
+        it(`should return false if wrong Node version`, async () => {
+            // should be >=10.15.3 < 11.0.0|| >=12.15.0 < 13.0.0
+            const dependencyManager: DependencyManager = DependencyManager.instance();
+            getPreReqVersionsStub.resolves({
                 node: {
                     name: 'Node.js',
-                    version: '12',
+                    version: '8.12.0',
                     requiredVersion: Dependencies.NODEJS_REQUIRED
                 }
-            };
+            });
 
-            getPreReqVersionsStub.resolves(dependencies);
+            const resultNode8: boolean = await dependencyManager.hasPreReqsInstalled();
+            resultNode8.should.equal(false);
 
-            const dependencyManager: DependencyManager = DependencyManager.instance();
-            const result: boolean = await dependencyManager.hasPreReqsInstalled();
+            getPreReqVersionsStub.resolves({
+                node: {
+                    name: 'Node.js',
+                    version: '10.15.2',
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
+                }
+            });
 
-            result.should.equal(false);
-            getPreReqVersionsStub.should.have.been.calledOnce;
+            const resultNode10low: boolean = await dependencyManager.hasPreReqsInstalled();
+            resultNode10low.should.equal(false);
+
+            getPreReqVersionsStub.resolves({
+                node: {
+                    name: 'Node.js',
+                    version: '11.1.1',
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
+                }
+            });
+
+            const resultNode11: boolean = await dependencyManager.hasPreReqsInstalled();
+            resultNode11.should.equal(false);
+
+            getPreReqVersionsStub.resolves({
+                node: {
+                    name: 'Node.js',
+                    version: '12.14.0',
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
+                }
+            });
+
+            const resultNode12low: boolean = await dependencyManager.hasPreReqsInstalled();
+            resultNode12low.should.equal(false);
+
+            getPreReqVersionsStub.resolves({
+                node: {
+                    name: 'Node.js',
+                    version: '13.0.0',
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
+                }
+            });
+
+            const resultNode13: boolean = await dependencyManager.hasPreReqsInstalled();
+            resultNode13.should.equal(false);
+
+            getPreReqVersionsStub.getCalls().length.should.equal(5);
 
         });
 
@@ -560,7 +603,7 @@ describe('DependencyManager Tests', () => {
             const dependencies: any = {
                 node: {
                     name: 'Node.js',
-                    version: '8.12.0',
+                    version: '10.15.3',
                     requiredVersion: Dependencies.NODEJS_REQUIRED
                 },
                 npm: {
@@ -583,7 +626,7 @@ describe('DependencyManager Tests', () => {
             const dependencies: any = {
                 node: {
                     name: 'Node.js',
-                    version: '8.12.0',
+                    version: '10.15.3',
                     requiredVersion: Dependencies.NODEJS_REQUIRED
                 },
                 npm: {
@@ -607,7 +650,7 @@ describe('DependencyManager Tests', () => {
             const dependencies: any = {
                 node: {
                     name: 'Node.js',
-                    version: '8.12.0',
+                    version: '10.15.3',
                     requiredVersion: Dependencies.NODEJS_REQUIRED
                 },
                 npm: {
@@ -635,7 +678,7 @@ describe('DependencyManager Tests', () => {
             const dependencies: any = {
                 node: {
                     name: 'Node.js',
-                    version: '8.12.0',
+                    version: '10.15.3',
                     requiredVersion: Dependencies.NODEJS_REQUIRED
                 },
                 npm: {
@@ -664,7 +707,7 @@ describe('DependencyManager Tests', () => {
             const dependencies: any = {
                 node: {
                     name: 'Node.js',
-                    version: '8.12.0',
+                    version: '10.15.3',
                     requiredVersion: Dependencies.NODEJS_REQUIRED
                 },
                 npm: {
@@ -697,7 +740,7 @@ describe('DependencyManager Tests', () => {
             const dependencies: any = {
                 node: {
                     name: 'Node.js',
-                    version: '8.12.0',
+                    version: '10.15.3',
                     requiredVersion: Dependencies.NODEJS_REQUIRED
                 },
                 npm: {
@@ -731,7 +774,7 @@ describe('DependencyManager Tests', () => {
             const dependencies: any = {
                 node: {
                     name: 'Node.js',
-                    version: '8.12.0',
+                    version: '10.15.3',
                     requiredVersion: Dependencies.NODEJS_REQUIRED
                 },
                 npm: {
@@ -771,7 +814,7 @@ describe('DependencyManager Tests', () => {
             const dependencies: any = {
                 node: {
                     name: 'Node.js',
-                    version: '8.12.0',
+                    version: '10.15.3',
                     requiredVersion: Dependencies.NODEJS_REQUIRED
                 },
                 npm: {
@@ -812,7 +855,7 @@ describe('DependencyManager Tests', () => {
             const dependencies: any = {
                 node: {
                     name: 'Node.js',
-                    version: '8.12.0',
+                    version: '10.15.3',
                     requiredVersion: Dependencies.NODEJS_REQUIRED
                 },
                 npm: {
@@ -844,7 +887,7 @@ describe('DependencyManager Tests', () => {
             const dependencies: any = {
                 node: {
                     name: 'Node.js',
-                    version: '8.12.0',
+                    version: '10.15.3',
                     requiredVersion: Dependencies.NODEJS_REQUIRED
                 },
                 npm: {
@@ -883,7 +926,7 @@ describe('DependencyManager Tests', () => {
                 const dependencies: any = {
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
@@ -927,7 +970,7 @@ describe('DependencyManager Tests', () => {
                 const dependencies: any = {
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
@@ -950,7 +993,7 @@ describe('DependencyManager Tests', () => {
                     },
                     openssl: {
                         name: 'OpenSSL',
-                        version: '1.0.6',
+                        version: '1.1.1',
                         requiredVersion: Dependencies.OPENSSL_REQUIRED
                     }
                 };
@@ -971,7 +1014,7 @@ describe('DependencyManager Tests', () => {
                 const dependencies: any = {
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
@@ -1020,7 +1063,7 @@ describe('DependencyManager Tests', () => {
                 const dependencies: any = {
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
@@ -1073,7 +1116,7 @@ describe('DependencyManager Tests', () => {
                 const dependencies: any = {
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
@@ -1128,7 +1171,7 @@ describe('DependencyManager Tests', () => {
                 const dependencies: any = {
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
@@ -1156,7 +1199,7 @@ describe('DependencyManager Tests', () => {
                 const dependencies: any = {
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
@@ -1200,7 +1243,7 @@ describe('DependencyManager Tests', () => {
                 const dependencies: any = {
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
@@ -1247,7 +1290,7 @@ describe('DependencyManager Tests', () => {
                 const dependencies: any = {
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
@@ -1291,7 +1334,7 @@ describe('DependencyManager Tests', () => {
                 const dependencies: any = {
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
@@ -1336,7 +1379,7 @@ describe('DependencyManager Tests', () => {
                 const dependencies: any = {
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
@@ -1385,7 +1428,7 @@ describe('DependencyManager Tests', () => {
                 const dependencies: any = {
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
@@ -1439,7 +1482,7 @@ describe('DependencyManager Tests', () => {
                 const dependencies: any = {
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
@@ -1493,7 +1536,7 @@ describe('DependencyManager Tests', () => {
                 const dependencies: any = {
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
@@ -1551,7 +1594,7 @@ describe('DependencyManager Tests', () => {
                 const dependencies: any = {
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
@@ -1613,7 +1656,7 @@ describe('DependencyManager Tests', () => {
                 const dependencies: any = {
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
@@ -1679,7 +1722,7 @@ describe('DependencyManager Tests', () => {
                 const dependencies: any = {
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
@@ -1749,7 +1792,7 @@ describe('DependencyManager Tests', () => {
                 const dependencies: any = {
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
