@@ -31,6 +31,7 @@ import { UserInputUtil } from './commands/UserInputUtil';
 import { GlobalState, ExtensionData } from './util/GlobalState';
 import { FabricWalletRegistry, FabricEnvironmentRegistry, LogType, FabricGatewayRegistry, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { RepositoryRegistry } from './registries/RepositoryRegistry';
+import { Dependencies } from './dependencies/Dependencies';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
 
@@ -100,11 +101,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     try {
         const dependencyManager: DependencyManager = DependencyManager.instance();
+        const dependencies: Dependencies = await dependencyManager.getPreReqVersions();
 
         const bypassPreReqs: boolean = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_BYPASS_PREREQS);
         let dependenciesInstalled: boolean;
         if (!bypassPreReqs) {
-            dependenciesInstalled = await dependencyManager.hasPreReqsInstalled();
+            dependenciesInstalled = await dependencyManager.hasPreReqsInstalled(dependencies);
         }
 
         const tempCommandRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
@@ -130,7 +132,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             if (!originalExtensionData.preReqPageShown) {
 
                 // Show pre req page
-                await vscode.commands.executeCommand(ExtensionCommands.OPEN_PRE_REQ_PAGE);
+                await vscode.commands.executeCommand(ExtensionCommands.OPEN_PRE_REQ_PAGE, dependencies);
 
                 // Update global state
                 newExtensionData.preReqPageShown = true;
@@ -139,7 +141,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             } else if (!dependenciesInstalled) {
 
                 // Show prereq page if they don't have everything installed
-                await vscode.commands.executeCommand(ExtensionCommands.OPEN_PRE_REQ_PAGE);
+                await vscode.commands.executeCommand(ExtensionCommands.OPEN_PRE_REQ_PAGE, dependencies);
             }
         }
 
