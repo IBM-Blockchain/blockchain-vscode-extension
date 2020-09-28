@@ -1067,13 +1067,17 @@ describe('LifecyclePeer', () => {
                                     data: protos.common.ConfigEnvelope.encode({
                                         config: {
                                             channel_group: {
-                                                values: {
-                                                    Capabilities: {
-                                                        value: protos.common.Capabilities.encode({
-                                                            capabilities: {
-                                                                'V2_0': {}
+                                                groups: {
+                                                    Application: {
+                                                        values: {
+                                                            Capabilities: {
+                                                                value: protos.common.Capabilities.encode({
+                                                                    capabilities: {
+                                                                        'V2_0': {}
+                                                                    }
+                                                                }).finish()
                                                             }
-                                                        }).finish()
+                                                        }
                                                     }
                                                 }
                                             }
