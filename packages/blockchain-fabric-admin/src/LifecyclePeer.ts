@@ -232,7 +232,7 @@ export class LifecyclePeer {
         const envelope: protos.common.Envelope = protos.common.Envelope.decode(blockData);
         const dataPayload: protos.common.Payload = protos.common.Payload.decode(envelope.payload);
         const configEnvelope: protos.common.ConfigEnvelope = protos.common.ConfigEnvelope.decode(dataPayload.data);
-        const _capabilities: protos.common.Capabilities = protos.common.Capabilities.decode(configEnvelope.config.channel_group.values.Capabilities.value);
+        const _capabilities: protos.common.Capabilities = protos.common.Capabilities.decode(configEnvelope.config.channel_group.groups.Application.values.Capabilities.value);
         const capabilities: any = _capabilities.capabilities;
         const keys: string[] = Object.keys(capabilities);
         return keys;
