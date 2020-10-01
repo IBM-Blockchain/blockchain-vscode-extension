@@ -23,7 +23,7 @@ import { DependencyManager } from '../../extension/dependencies/DependencyManage
 import { CommandUtil } from '../../extension/util/CommandUtil';
 import { TestUtil } from '../TestUtil';
 import { GlobalState, ExtensionData, DEFAULT_EXTENSION_DATA } from '../../extension/util/GlobalState.js';
-import { Dependencies } from '../../extension/dependencies/Dependencies';
+import { Dependencies, DependencyVersions } from '../../extension/dependencies/Dependencies';
 import * as semver from 'semver';
 import * as OS from 'os';
 
@@ -212,7 +212,7 @@ describe('DependencyManager Tests', () => {
                 docker: {
                     name: 'Docker',
                     version: '16.0.0',
-                    requiredVersion: Dependencies.DOCKER_REQUIRED
+                    requiredVersion: DependencyVersions.DOCKER_REQUIRED
                 }
             };
 
@@ -231,7 +231,7 @@ describe('DependencyManager Tests', () => {
                 docker: {
                     name: 'Docker',
                     version: '18.1.2',
-                    requiredVersion: Dependencies.DOCKER_REQUIRED
+                    requiredVersion: DependencyVersions.DOCKER_REQUIRED
                 },
                 dockerCompose: {
                     name: 'Docker Compose',
@@ -254,12 +254,12 @@ describe('DependencyManager Tests', () => {
                 docker: {
                     name: 'Docker',
                     version: '18.1.2',
-                    requiredVersion: Dependencies.DOCKER_REQUIRED
+                    requiredVersion: DependencyVersions.DOCKER_REQUIRED
                 },
                 dockerCompose: {
                     name: 'Docker Compose',
                     version: '1.1.2',
-                    requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                    requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                 }
             };
 
@@ -278,12 +278,12 @@ describe('DependencyManager Tests', () => {
                 docker: {
                     name: 'Docker',
                     version: '18.1.2',
-                    requiredVersion: Dependencies.DOCKER_REQUIRED
+                    requiredVersion: DependencyVersions.DOCKER_REQUIRED
                 },
                 dockerCompose: {
                     name: 'Docker Compose',
                     version: '1.21.1',
-                    requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                    requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                 },
                 systemRequirements: {
                     name: 'System Requirements',
@@ -308,12 +308,12 @@ describe('DependencyManager Tests', () => {
                 docker: {
                     name: 'Docker',
                     version: '18.1.2',
-                    requiredVersion: Dependencies.DOCKER_REQUIRED
+                    requiredVersion: DependencyVersions.DOCKER_REQUIRED
                 },
                 dockerCompose: {
                     name: 'Docker Compose',
                     version: '1.21.1',
-                    requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                    requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                 },
                 systemRequirements: {
                     name: 'System Requirements',
@@ -361,12 +361,12 @@ describe('DependencyManager Tests', () => {
                 docker: {
                     name: 'Docker',
                     version: '18.1.2',
-                    requiredVersion: Dependencies.DOCKER_REQUIRED
+                    requiredVersion: DependencyVersions.DOCKER_REQUIRED
                 },
                 dockerCompose: {
                     name: 'Docker Compose',
                     version: '1.21.1',
-                    requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                    requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                 },
                 systemRequirements: {
                     name: 'System Requirements',
@@ -390,12 +390,12 @@ describe('DependencyManager Tests', () => {
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -424,11 +424,11 @@ describe('DependencyManager Tests', () => {
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         version: '1.21.1',
-                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -437,7 +437,7 @@ describe('DependencyManager Tests', () => {
                     openssl: {
                         name: 'OpenSSL',
                         version: '1.0.6',
-                        requiredVersion: Dependencies.OPENSSL_REQUIRED
+                        requiredVersion: DependencyVersions.OPENSSL_REQUIRED
                     }
                 };
 
@@ -458,12 +458,12 @@ describe('DependencyManager Tests', () => {
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -472,7 +472,7 @@ describe('DependencyManager Tests', () => {
                     openssl: {
                         name: 'OpenSSL',
                         version: '1.0.2',
-                        requiredVersion: Dependencies.OPENSSL_REQUIRED
+                        requiredVersion: DependencyVersions.OPENSSL_REQUIRED
                     },
                     dockerForWindows: {
                         name: 'Docker for Windows',
@@ -497,12 +497,12 @@ describe('DependencyManager Tests', () => {
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -511,7 +511,7 @@ describe('DependencyManager Tests', () => {
                     openssl: {
                         name: 'OpenSSL',
                         version: '1.0.2',
-                        requiredVersion: Dependencies.OPENSSL_REQUIRED
+                        requiredVersion: DependencyVersions.OPENSSL_REQUIRED
                     },
                     dockerForWindows: {
                         name: 'Docker for Windows',
@@ -556,12 +556,12 @@ describe('DependencyManager Tests', () => {
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -587,12 +587,12 @@ describe('DependencyManager Tests', () => {
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -619,12 +619,12 @@ describe('DependencyManager Tests', () => {
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -633,7 +633,7 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '12',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                        requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     }
                 };
 
@@ -652,12 +652,12 @@ describe('DependencyManager Tests', () => {
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -666,7 +666,7 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                        requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
@@ -689,12 +689,12 @@ describe('DependencyManager Tests', () => {
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -703,12 +703,12 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                        requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '4.0.0',
-                        requiredVersion: Dependencies.NPM_REQUIRED
+                        requiredVersion: DependencyVersions.NPM_REQUIRED
                     }
                 };
 
@@ -729,12 +729,12 @@ describe('DependencyManager Tests', () => {
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -743,12 +743,12 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                        requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
+                        requiredVersion: DependencyVersions.NPM_REQUIRED
                     },
                     go: {
                         name: 'Go',
@@ -773,12 +773,12 @@ describe('DependencyManager Tests', () => {
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -787,17 +787,17 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                        requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
+                        requiredVersion: DependencyVersions.NPM_REQUIRED
                     },
                     go: {
                         name: 'Go',
                         version: '1.0.0',
-                        requiredVersion: Dependencies.GO_REQUIRED
+                        requiredVersion: DependencyVersions.GO_REQUIRED
                     }
                 };
 
@@ -818,12 +818,12 @@ describe('DependencyManager Tests', () => {
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -832,17 +832,17 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                        requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
+                        requiredVersion: DependencyVersions.NPM_REQUIRED
                     },
                     go: {
                         name: 'Go',
                         version: '2.0.0',
-                        requiredVersion: Dependencies.GO_REQUIRED
+                        requiredVersion: DependencyVersions.GO_REQUIRED
                     },
                     goExtension: {
                         name: 'Go Extension',
@@ -867,12 +867,12 @@ describe('DependencyManager Tests', () => {
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -881,17 +881,17 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                        requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
+                        requiredVersion: DependencyVersions.NPM_REQUIRED
                     },
                     go: {
                         name: 'Go',
                         version: '2.0.0',
-                        requiredVersion: Dependencies.GO_REQUIRED
+                        requiredVersion: DependencyVersions.GO_REQUIRED
                     },
                     goExtension: {
                         name: 'Go Extension',
@@ -921,12 +921,12 @@ describe('DependencyManager Tests', () => {
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -935,17 +935,17 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                        requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
+                        requiredVersion: DependencyVersions.NPM_REQUIRED
                     },
                     go: {
                         name: 'Go',
                         version: '2.0.0',
-                        requiredVersion: Dependencies.GO_REQUIRED
+                        requiredVersion: DependencyVersions.GO_REQUIRED
                     },
                     goExtension: {
                         name: 'Go Extension',
@@ -954,7 +954,7 @@ describe('DependencyManager Tests', () => {
                     java: {
                         name: 'Java OpenJDK 8',
                         version: '1.7.1',
-                        requiredVersion: Dependencies.JAVA_REQUIRED
+                        requiredVersion: DependencyVersions.JAVA_REQUIRED
                     }
                 };
 
@@ -975,12 +975,12 @@ describe('DependencyManager Tests', () => {
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -989,17 +989,17 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                        requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
+                        requiredVersion: DependencyVersions.NPM_REQUIRED
                     },
                     go: {
                         name: 'Go',
                         version: '2.0.0',
-                        requiredVersion: Dependencies.GO_REQUIRED
+                        requiredVersion: DependencyVersions.GO_REQUIRED
                     },
                     goExtension: {
                         name: 'Go Extension',
@@ -1008,7 +1008,7 @@ describe('DependencyManager Tests', () => {
                     java: {
                         name: 'Java OpenJDK 8',
                         version: '1.8.0',
-                        requiredVersion: Dependencies.JAVA_REQUIRED
+                        requiredVersion: DependencyVersions.JAVA_REQUIRED
                     },
                     javaLanguageExtension: {
                         name: 'Java Language Support Extension',
@@ -1033,12 +1033,12 @@ describe('DependencyManager Tests', () => {
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -1047,17 +1047,17 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                        requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
+                        requiredVersion: DependencyVersions.NPM_REQUIRED
                     },
                     go: {
                         name: 'Go',
                         version: '2.0.0',
-                        requiredVersion: Dependencies.GO_REQUIRED
+                        requiredVersion: DependencyVersions.GO_REQUIRED
                     },
                     goExtension: {
                         name: 'Go Extension',
@@ -1066,7 +1066,7 @@ describe('DependencyManager Tests', () => {
                     java: {
                         name: 'Java OpenJDK 8',
                         version: '1.8.0',
-                        requiredVersion: Dependencies.JAVA_REQUIRED
+                        requiredVersion: DependencyVersions.JAVA_REQUIRED
                     },
                     javaLanguageExtension: {
                         name: 'Java Language Support Extension',
@@ -1095,12 +1095,12 @@ describe('DependencyManager Tests', () => {
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -1109,17 +1109,17 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                        requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
+                        requiredVersion: DependencyVersions.NPM_REQUIRED
                     },
                     go: {
                         name: 'Go',
                         version: '2.0.0',
-                        requiredVersion: Dependencies.GO_REQUIRED
+                        requiredVersion: DependencyVersions.GO_REQUIRED
                     },
                     goExtension: {
                         name: 'Go Extension',
@@ -1128,7 +1128,7 @@ describe('DependencyManager Tests', () => {
                     java: {
                         name: 'Java OpenJDK 8',
                         version: '1.8.0',
-                        requiredVersion: Dependencies.JAVA_REQUIRED
+                        requiredVersion: DependencyVersions.JAVA_REQUIRED
                     },
                     javaLanguageExtension: {
                         name: 'Java Language Support Extension',
@@ -1161,12 +1161,12 @@ describe('DependencyManager Tests', () => {
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -1175,17 +1175,17 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                        requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: Dependencies.NPM_REQUIRED
+                        requiredVersion: DependencyVersions.NPM_REQUIRED
                     },
                     go: {
                         name: 'Go',
                         version: '2.0.0',
-                        requiredVersion: Dependencies.GO_REQUIRED
+                        requiredVersion: DependencyVersions.GO_REQUIRED
                     },
                     goExtension: {
                         name: 'Go Extension',
@@ -1194,7 +1194,7 @@ describe('DependencyManager Tests', () => {
                     java: {
                         name: 'Java OpenJDK 8',
                         version: '1.8.0',
-                        requiredVersion: Dependencies.JAVA_REQUIRED
+                        requiredVersion: DependencyVersions.JAVA_REQUIRED
                     },
                     javaLanguageExtension: {
                         name: 'Java Language Support Extension',
@@ -1259,7 +1259,7 @@ describe('DependencyManager Tests', () => {
             sendCommandStub.withArgs('node -v').resolves('v8.12.0');
 
             const _dependencyManager: DependencyManager = DependencyManager.instance();
-            const result: any = await _dependencyManager.getPreReqVersions();
+            const result: Dependencies = await _dependencyManager.getPreReqVersions();
             result.node.version.should.equal('8.12.0');
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1269,7 +1269,7 @@ describe('DependencyManager Tests', () => {
 
             sendCommandStub.withArgs('node -v').resolves('v8.12.0');
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             result.node.version.should.equal('8.12.0');
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1279,7 +1279,7 @@ describe('DependencyManager Tests', () => {
 
             sendCommandStub.withArgs('node -v').resolves('-bash: node: command not found');
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.node.version);
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1289,7 +1289,7 @@ describe('DependencyManager Tests', () => {
 
             sendCommandStub.withArgs('node -v').resolves('something v1.2.3');
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.node.version);
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1299,7 +1299,7 @@ describe('DependencyManager Tests', () => {
 
             sendCommandStub.withArgs('npm -v').resolves('6.4.1');
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             result.npm.version.should.equal('6.4.1');
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1309,7 +1309,7 @@ describe('DependencyManager Tests', () => {
 
             sendCommandStub.withArgs('npm -v').resolves('-bash: npm: command not found');
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.npm.version);
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1319,7 +1319,7 @@ describe('DependencyManager Tests', () => {
 
             sendCommandStub.withArgs('npm -v').resolves('something v1.2.3');
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.npm.version);
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1329,7 +1329,7 @@ describe('DependencyManager Tests', () => {
 
             sendCommandStub.withArgs('docker -v').resolves('Docker version 18.06.1-ce, build e68fc7a');
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             result.docker.version.should.equal('18.6.1');
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1339,7 +1339,7 @@ describe('DependencyManager Tests', () => {
 
             sendCommandStub.withArgs('docker -v').resolves('-bash: /usr/local/bin/docker: No such file or directory');
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.docker.version);
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1349,7 +1349,7 @@ describe('DependencyManager Tests', () => {
 
             sendCommandStub.withArgs('docker -v').resolves('version 1-2-3, community edition');
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.docker.version);
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1359,7 +1359,7 @@ describe('DependencyManager Tests', () => {
 
             sendCommandStub.withArgs('docker-compose -v').resolves('docker-compose version 1.22.0, build f46880f');
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             result.dockerCompose.version.should.equal('1.22.0');
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1369,7 +1369,7 @@ describe('DependencyManager Tests', () => {
 
             sendCommandStub.withArgs('docker-compose -v').resolves('-bash: docker-compose: command not found');
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.dockerCompose.version);
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1379,7 +1379,7 @@ describe('DependencyManager Tests', () => {
 
             sendCommandStub.withArgs('docker-compose -v').resolves('version 1-2-3, something');
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.dockerCompose.version);
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1389,7 +1389,7 @@ describe('DependencyManager Tests', () => {
 
             sendCommandStub.withArgs('go version').resolves('go version go1.12.7 darwin/amd64');
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             result.go.version.should.equal('1.12.7');
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1399,7 +1399,7 @@ describe('DependencyManager Tests', () => {
 
             sendCommandStub.withArgs('go version').resolves('-bash: go: command not found');
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.go.version);
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1409,7 +1409,7 @@ describe('DependencyManager Tests', () => {
 
             sendCommandStub.withArgs('go version').resolves('go version go-version-one.two.three x64');
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.go.version);
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1424,7 +1424,7 @@ describe('DependencyManager Tests', () => {
                 }
             });
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             result.goExtension.version.should.equal('1.0.0');
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1435,7 +1435,7 @@ describe('DependencyManager Tests', () => {
             const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
             getExtensionStub.withArgs('golang.go').returns(undefined);
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.goExtension.version);
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1444,7 +1444,7 @@ describe('DependencyManager Tests', () => {
             mySandBox.stub(process, 'platform').value('some_other_platform');
             sendCommandStub.withArgs('java -version 2>&1').resolves('openjdk version "1.8.0_212"');
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             result.java.version.should.equal('1.8.0');
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1453,7 +1453,7 @@ describe('DependencyManager Tests', () => {
             mySandBox.stub(process, 'platform').value('some_other_platform');
             sendCommandStub.withArgs('java -version 2>&1').resolves('command not found');
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.java.version);
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1463,7 +1463,7 @@ describe('DependencyManager Tests', () => {
 
             sendCommandStub.withArgs('java -version 2>&1').resolves('openjdk version "version one.two.three"');
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.java.version);
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1478,7 +1478,7 @@ describe('DependencyManager Tests', () => {
                 }
             });
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             result.javaLanguageExtension.version.should.equal('2.0.0');
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1489,7 +1489,7 @@ describe('DependencyManager Tests', () => {
             const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
             getExtensionStub.withArgs('redhat.java').returns(undefined);
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.javaLanguageExtension.version);
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1504,7 +1504,7 @@ describe('DependencyManager Tests', () => {
                 }
             });
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             result.javaDebuggerExtension.version.should.equal('3.0.0');
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1515,7 +1515,7 @@ describe('DependencyManager Tests', () => {
             const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
             getExtensionStub.withArgs('vscjava.vscode-java-debug').returns(undefined);
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.javaDebuggerExtension.version);
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1528,7 +1528,7 @@ describe('DependencyManager Tests', () => {
                 }
             });
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             result.javaTestRunnerExtension.version.should.equal('2.0.0');
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1539,7 +1539,7 @@ describe('DependencyManager Tests', () => {
             const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
             getExtensionStub.withArgs('vscjava.vscode-java-test').returns(undefined);
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.javaTestRunnerExtension.version);
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1555,7 +1555,7 @@ describe('DependencyManager Tests', () => {
             newExtensionData.generatorVersion = extDeps['generator-fabric'];
             await GlobalState.update(newExtensionData);
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             result.systemRequirements.complete.should.equal(true);
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1572,7 +1572,7 @@ describe('DependencyManager Tests', () => {
             newExtensionData.generatorVersion = extDeps['generator-fabric'];
             await GlobalState.update(newExtensionData);
 
-            const result: any = await dependencyManager.getPreReqVersions();
+            const result: Dependencies = await dependencyManager.getPreReqVersions();
             result.systemRequirements.complete.should.equal(false);
             totalmemStub.should.have.been.calledOnce;
         });
@@ -1600,7 +1600,7 @@ describe('DependencyManager Tests', () => {
                 existsStub.withArgs(`C:\\OpenSSL-Win64`).resolves(false);
                 sendCommandStub.withArgs(`C:\\OpenSSL-Win32\\bin\\openssl.exe version`).resolves('OpenSSL 1.0.2k  26 Jan 2017');
 
-                const result: any = await dependencyManager.getPreReqVersions();
+                const result: Dependencies = await dependencyManager.getPreReqVersions();
                 result.openssl.version.should.equal('1.0.2');
                 totalmemStub.should.have.been.calledOnce;
             });
@@ -1612,7 +1612,7 @@ describe('DependencyManager Tests', () => {
                 existsStub.withArgs(`C:\\OpenSSL-Win64`).resolves(true);
                 sendCommandStub.withArgs(`C:\\OpenSSL-Win64\\bin\\openssl.exe version`).resolves('OpenSSL 1.1.1d  26 Jan 2017');
 
-                const result: any = await dependencyManager.getPreReqVersions();
+                const result: Dependencies = await dependencyManager.getPreReqVersions();
                 result.openssl.version.should.equal('1.1.1');
                 totalmemStub.should.have.been.calledOnce;
             });
@@ -1624,7 +1624,7 @@ describe('DependencyManager Tests', () => {
                 existsStub.withArgs(`C:\\OpenSSL-Win64`).resolves(false);
                 sendCommandStub.withArgs(`C:\\OpenSSL-Win32\\bin\\openssl.exe version`).resolves('openssl not recognized');
 
-                const result: any = await dependencyManager.getPreReqVersions();
+                const result: Dependencies = await dependencyManager.getPreReqVersions();
                 should.not.exist(result.openssl.version);
                 totalmemStub.should.have.been.calledOnce;
             });
@@ -1635,7 +1635,7 @@ describe('DependencyManager Tests', () => {
                 existsStub.withArgs(`C:\\OpenSSL-Win32`).resolves(false);
                 existsStub.withArgs(`C:\\OpenSSL-Win64`).resolves(false);
 
-                const result: any = await dependencyManager.getPreReqVersions();
+                const result: Dependencies = await dependencyManager.getPreReqVersions();
                 should.not.exist(result.openssl.version);
                 totalmemStub.should.have.been.calledOnce;
             });
@@ -1647,7 +1647,7 @@ describe('DependencyManager Tests', () => {
                 existsStub.withArgs(`C:\\OpenSSL-Win64`).resolves(false);
                 sendCommandStub.withArgs(`C:\\OpenSSL-Win32\\bin\\openssl.exe version`).resolves('OpenSSL version 1.2.3');
 
-                const result: any = await dependencyManager.getPreReqVersions();
+                const result: Dependencies = await dependencyManager.getPreReqVersions();
                 should.not.exist(result.openssl.version);
                 totalmemStub.should.have.been.calledOnce;
             });
@@ -1662,7 +1662,7 @@ describe('DependencyManager Tests', () => {
                 newExtensionData.generatorVersion = extDeps['generator-fabric'];
                 await GlobalState.update(newExtensionData);
 
-                const result: any = await dependencyManager.getPreReqVersions();
+                const result: Dependencies = await dependencyManager.getPreReqVersions();
                 result.dockerForWindows.complete.should.equal(true);
                 totalmemStub.should.have.been.calledOnce;
             });
@@ -1677,7 +1677,7 @@ describe('DependencyManager Tests', () => {
                 newExtensionData.generatorVersion = extDeps['generator-fabric'];
                 await GlobalState.update(newExtensionData);
 
-                const result: any = await dependencyManager.getPreReqVersions();
+                const result: Dependencies = await dependencyManager.getPreReqVersions();
                 result.dockerForWindows.complete.should.equal(false);
                 totalmemStub.should.have.been.calledOnce;
             });
@@ -1703,7 +1703,7 @@ describe('DependencyManager Tests', () => {
                 const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').withArgs('/Library/Java/JavaVirtualMachines').resolves(true);
                 sendCommandStub.withArgs('java -version 2>&1').resolves('openjdk version "1.8.0_212"');
 
-                const result: any = await dependencyManager.getPreReqVersions();
+                const result: Dependencies = await dependencyManager.getPreReqVersions();
                 pathExistsStub.should.have.been.calledOnce;
                 result.java.version.should.equal('1.8.0');
                 totalmemStub.should.have.been.calledOnce;
@@ -1715,7 +1715,7 @@ describe('DependencyManager Tests', () => {
                 const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').withArgs('/Library/Java/JavaVirtualMachines').resolves(false);
                 sendCommandStub.withArgs('java -version 2>&1');
 
-                const result: any = await dependencyManager.getPreReqVersions();
+                const result: Dependencies = await dependencyManager.getPreReqVersions();
                 pathExistsStub.should.have.been.calledOnce;
                 sendCommandStub.should.not.have.been.calledWith('java -version 2>&1');
                 should.not.exist(result.java.version);
@@ -1750,7 +1750,7 @@ describe('DependencyManager Tests', () => {
             const getPackageJsonPathStub: sinon.SinonStub = mySandBox.stub(dependencyManager, 'getPackageJsonPath').returns('/some/path');
             const readFileStub: sinon.SinonStub = mySandBox.stub(fs, 'readFile').resolves('{"some":"json"}');
 
-            const rawJson: any = await dependencyManager.getRawPackageJson();
+            const rawJson: Dependencies = await dependencyManager.getRawPackageJson();
 
             getPackageJsonPathStub.should.have.been.calledOnce;
             readFileStub.should.have.been.calledOnceWithExactly('/some/path', 'utf8');
