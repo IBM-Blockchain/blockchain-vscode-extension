@@ -1,31 +1,27 @@
 import React, { Component } from 'react';
 import './TransactionPage.scss';
-import TransactionForm from '../TransactionForm/TransactionForm';
-import TransactionOutput from '../TransactionOutput/TransactionOutput';
+import TransactionForm from '../../elements/TransactionForm/TransactionForm';
+import TransactionOutput from '../../elements/TransactionOutput/TransactionOutput';
 import ISmartContract from '../../../interfaces/ISmartContract';
 
 interface IProps {
-    gatewayName: string;
-    smartContract: ISmartContract;
+    transactionData: {gatewayName: string, smartContract: ISmartContract };
     transactionOutput: string;
-    postMessageHandler: (command: string, data?: any) => void;
 }
 
 interface IState {
     gatewayName: string;
     smartContract: ISmartContract;
     transactionOutput: string;
-    postMessageHandler: (command: string, data?: any) => void;
 }
 
 class TransactionPage extends Component<IProps, IState> {
     constructor(props: Readonly<IProps>) {
         super(props);
         this.state = {
-            gatewayName: this.props.gatewayName,
-            smartContract: this.props.smartContract,
+            gatewayName: this.props.transactionData.gatewayName,
+            smartContract: this.props.transactionData.smartContract,
             transactionOutput: this.props.transactionOutput,
-            postMessageHandler: this.props.postMessageHandler
         };
     }
 
@@ -48,7 +44,7 @@ class TransactionPage extends Component<IProps, IState> {
                         </div>
                         <div className='contents-container bx--row'>
                             <div className='bx--col'>
-                                <TransactionForm smartContract={this.state.smartContract} postMessageHandler={this.state.postMessageHandler}/>
+                                <TransactionForm smartContract={this.state.smartContract}/>
                             </div>
                         </div>
                     </div>
