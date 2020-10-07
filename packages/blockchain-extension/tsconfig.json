@@ -12,7 +12,7 @@
         "src",
         "cypress",
         "build",
-        "tutorials/*"
+        "resources/tutorials/*"
     ],
     "include": [
         "extension",

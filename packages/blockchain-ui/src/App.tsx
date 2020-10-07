@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import './App.scss';
 import { HashRouter as Router, Route, Redirect } from 'react-router-dom';
 import HomePage from './components/pages/HomePage/HomePage';
-import TutorialPage from './components/pages/TutorialPage/TutorialPage';
+import TutorialGalleryPage from './components/pages/TutorialGalleryPage/TutorialGalleryPage';
+import TutorialPage from './components/pages/TutorialSinglePage/TutorialSinglePage';
 import ITutorialObject from './interfaces/ITutorialObject';
 import DeployPage from './components/pages/DeployPage/DeployPage';
 import IPackageRegistryEntry from './interfaces/IPackageRegistryEntry';
@@ -15,6 +16,7 @@ interface AppState {
     extensionVersion: string;
     deployData: { channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, committedDefinitions: string[], environmentPeers: string[], discoveredPeers: string[], orgMap: any, orgApprovals: any };
     tutorialData: Array<{ name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string }>;
+    activeTutorial: ITutorialObject;
     transactionData: {gatewayName: string, smartContract: ISmartContract };
     transactionOutput: string;
 }
@@ -26,9 +28,10 @@ class App extends Component<{}, AppState> {
             redirectPath: '',
             extensionVersion: '',
             tutorialData: [],
+            activeTutorial: { title: '', series: '', length: '', file: '', objectives: [] },
             deployData: { channelName: '', environmentName: '', packageEntries: [], workspaceNames: [], selectedPackage: undefined, committedDefinitions: [], environmentPeers: [], discoveredPeers: [], orgMap: {}, orgApprovals: {} },
             transactionData: {gatewayName: '', smartContract: {name: '', version: '', channel: '', label: '', transactions: [], namespace: ''} },
-            transactionOutput: ''
+            transactionOutput: '',
         };
     }
 
@@ -42,8 +45,13 @@ class App extends Component<{}, AppState> {
                 newState.extensionVersion = event.data.version;
             }
 
-            if (event.data.tutorialData) {
-                newState.tutorialData = event.data.tutorialData;
+            if (event.data.tutorialData && event.data.tutorialData.tutorials) {
+                // tutorials should always be passed, activeTutorial is optional for single tutorial page
+                newState.tutorialData = event.data.tutorialData.tutorials;
+
+                if (event.data.tutorialData.activeTutorial) {
+                    newState.activeTutorial = event.data.tutorialData.activeTutorial;
+                }
             }
 
             if (event.data.deployData) {
@@ -82,7 +90,10 @@ class App extends Component<{}, AppState> {
                                 <Fabric2Page/>}>
                             </Route>
                             <Route exact path='/tutorials' render={(): JSX.Element =>
-                                <TutorialPage tutorialData={this.state.tutorialData} />}>
+                                <TutorialGalleryPage tutorialData={this.state.tutorialData} />}>
+                            </Route>
+                            <Route exact path='/viewTutorial' render={(): JSX.Element =>
+                                <TutorialPage tutorialData={this.state.tutorialData} tutorial={this.state.activeTutorial} />}>
                             </Route>
                             <Route exact path='/deploy' render={(): JSX.Element =>
                                 <DeployPage deployData={this.state.deployData} />}>
