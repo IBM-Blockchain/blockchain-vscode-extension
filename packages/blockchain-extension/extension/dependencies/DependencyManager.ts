@@ -43,7 +43,7 @@ export class DependencyManager {
             } else {
                 return false;
             }
-        } else if (name === 'Go Extension' || name === 'Java Language Support Extension' || name === 'Java Debugger Extension' || name === 'Java Test Runner Extension') {
+        } else if (name === 'Go Extension' || name === 'Java Language Support Extension' || name === 'Java Debugger Extension' || name === 'Java Test Runner Extension' || name === 'Node Test Runner Extension') {
             if (dependency.version) {
                 return true;
             } else {
@@ -126,6 +126,9 @@ export class DependencyManager {
                 return false;
             }
 
+            if (!this.isValidDependency(dependencies.nodeTestRunnerExtension)) {
+                return false;
+            }
         }
 
         return true;
@@ -252,6 +255,7 @@ export class DependencyManager {
         const javaLanguageExtensionVersion: string = this.getJavaLanguageExtensionVersion();
         const javaDebuggerExtensionVersion: string = this.getJavaDebuggerExtensionVersion();
         const javaTestRunnerExtensionVersion: string = this.getJavaTestRunnerExtensionVersion();
+        const nodeTestRunnerExtensionVersion: string = this.getNodeTestRunnerExtensionVersion();
 
         const optionalDependencies: OptionalDependencies = {
             ...defaultDependencies.optional,
@@ -259,6 +263,7 @@ export class DependencyManager {
 
         // Update versions
         optionalDependencies.node.version = nodeVersion;
+        optionalDependencies.nodeTestRunnerExtension.version = nodeTestRunnerExtensionVersion;
         optionalDependencies.npm.version = npmVersion;
         optionalDependencies.go.version = goVersion;
         optionalDependencies.goExtension.version = goExtensionVersion;
@@ -430,5 +435,16 @@ export class DependencyManager {
             // Ignore the error
         }
 
+    }
+
+    private getNodeTestRunnerExtensionVersion(): string {
+        try {
+            const nodeTestRunnerExtensionResult: vscode.Extension<any> = vscode.extensions.getExtension('oshri6688.javascript-test-runner');
+            if (nodeTestRunnerExtensionResult) {
+                return nodeTestRunnerExtensionResult.packageJSON.version;
+            }
+        } catch (error) {
+            // Ignore the error
+        }
     }
 }
