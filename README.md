@@ -506,7 +506,7 @@ The following dependencies are required on all operating systems:
 
 The following dependencies are optional:
 
-- [Node v8.x or v10.x and npm v6.x or greater](https://nodejs.org/en/download/)
+- [Node v10 (v10.15.3 or greater) or v12 (v12.13.1 or greater) and npm v6.x or greater](https://nodejs.org/en/download/)
 > Node version can be found by running: `node --version`
 >
 > npm version can be found by running: `npm --version`
