@@ -42,8 +42,10 @@ class TransactionOutput extends Component<IProps, IState> {
     render(): JSX.Element {
         return (
             <div className='output-panel' id='output-panel'>
-                <p className='output-title'>Output for untitled transaction</p>
-                {this.determineOutput()}
+                <div className='output-panel-inner'>
+                    <p className='output-title'>Output for untitled transaction</p>
+                    {this.determineOutput()}
+                </div>
             </div>
         );
     }
