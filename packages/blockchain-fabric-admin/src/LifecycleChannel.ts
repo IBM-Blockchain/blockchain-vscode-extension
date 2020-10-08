@@ -20,6 +20,7 @@ import {
     Discoverer,
     DiscoveryService,
     Endorsement,
+    EndorsementResponse,
     Endorser,
     Endpoint,
     IdentityContext,
@@ -268,6 +269,69 @@ export class LifecycleChannel {
     }
 
     /**
+     * Get a list of all the committed smart contracts
+     * @param peerName
+     * @param requestTimeout
+     * @return DefinedSmartContract[], a list of the defined smart contracts
+     */
+    public async getAllInstantiatedSmartContracts(peerName: string, requestTimeout?: number): Promise<DefinedSmartContract[]> {
+        const method: string = 'getAllInstantiatedSmartContracts';
+        logger.debug('%s - start', method);
+
+        if (!peerName) {
+            throw new Error('parameter peerName is missing');
+        }
+
+        const definitions: DefinedSmartContract[] = [];
+        try {
+            logger.debug('%s - build the get defined smart contract request', method);
+            const buildRequest: { fcn: string; args: Buffer[] } = {
+                fcn: 'GetChaincodes',
+                args: []
+            };
+
+            const result: ProposalResponse = await this.evaluateTransaction(peerName, buildRequest, requestTimeout, 'lscc');
+            if (result) {
+                // will only be one response as we are only querying one peer
+                if (result.errors && result.errors[0] instanceof Error) {
+                    throw result.errors[0];
+                }
+                const response: EndorsementResponse = result.responses[0];
+                if (response.response) {
+                    if (response.response.status === 200) {
+                        const queryTrans: protos.protos.ChaincodeQueryResponse = protos.protos.ChaincodeQueryResponse.decode(response.response.payload);
+                        for (const chaincode of queryTrans.chaincodes) {
+                            const defined: DefinedSmartContract = {
+                                smartContractName: chaincode.name,
+                                sequence: Number(-1),
+                                smartContractVersion: chaincode.version,
+                                initRequired: undefined,
+                                endorsementPlugin: chaincode.escc,
+                                validationPlugin: chaincode.vscc,
+                                endorsementPolicy: undefined,
+                                collectionConfig: undefined,
+                            };
+                            definitions.push(defined);
+                        }
+                        logger.debug('%s - end', method);
+                        return definitions;
+                    } else if (response.response.message) {
+                        throw new Error(response.response.message);
+                    }
+                }
+                // no idea what we have, lets fail it and send it back
+                throw new Error(response.toString());
+            }
+            throw new Error('Payload results are missing from the query');
+
+        } catch (error) {
+            logger.error('Problem with request :: %s', error);
+            logger.error(' problem at ::' + error.stack);
+            throw new Error(`Could not get smart contract definitions, received error: ${error.message}`);
+        }
+    }
+
+    /**
      * Get the details of a committed smart contract
      * @param peerName string, the name of the peer to endorse the transaction
      * @param smartContractName string, the name of the comitted smart contract to get the details for
@@ -337,6 +401,7 @@ export class LifecycleChannel {
             throw new Error(`Could not get smart contract definition, received error: ${error.message}`);
         }
     }
+
     public static getEndorsementPolicyBytes(endorsementPolicy: string): Buffer {
         const method: string = 'getEndorsementPolicyBytes';
         logger.debug('%s - start', method);
@@ -734,7 +799,7 @@ export class LifecycleChannel {
         return endorser;
     }
 
-    private async evaluateTransaction(peerName: string, buildRequest: any, requestTimeout?: number): Promise<ProposalResponse> {
+    private async evaluateTransaction(peerName: string, buildRequest: any, requestTimeout?: number, smartContractName: string = '_lifecycle'): Promise<ProposalResponse> {
 
         const gateway: Gateway = new Gateway();
 
@@ -754,7 +819,7 @@ export class LifecycleChannel {
             const network: Network = await gateway.getNetwork(this.channelName);
 
             //  we are going to talk to lifecycle which is really just a smart contract
-            const endorsement: Endorsement = network.getChannel().newEndorsement('_lifecycle');
+            const endorsement: Endorsement = network.getChannel().newEndorsement(smartContractName);
             endorsement.build(network.getGateway().identityContext, buildRequest);
 
             logger.debug('%s - sign the request');

@@ -104,6 +104,15 @@ describe('FabricEnvironmentConnection', () => {
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org2MSP'
             ),
+            FabricNode.newSecurePeer(
+                'peer0.org3.example.com',
+                'peer0.org3.example.com',
+                `grpcs://localhost:9051`,
+                TLS_CA_CERTIFICATE,
+                `Org1`,
+                FabricRuntimeUtil.ADMIN_USER,
+                'Org3MSP'
+            ),
             FabricNode.newCertificateAuthority(
                 'ca.example.com',
                 'ca.example.com',
@@ -124,6 +133,18 @@ describe('FabricEnvironmentConnection', () => {
                 'Org1',
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org2MSP',
+                'admin',
+                'adminpw'
+            ),
+            FabricNode.newSecureCertificateAuthority(
+                'ca3.example.com',
+                'ca3.example.com',
+                `https://localhost:9054`,
+                'ca_name',
+                TLS_CA_CERTIFICATE,
+                'Org1',
+                FabricRuntimeUtil.ADMIN_USER,
+                'Org3MSP',
                 'admin',
                 'adminpw'
             ),
@@ -205,9 +226,9 @@ describe('FabricEnvironmentConnection', () => {
             const peerNames: string[] = Array.from(connection['lifecycle']['peers'].keys());
             const peerValues: LifecyclePeer[] = Array.from(connection['lifecycle']['peers'].values());
 
-            peerNames.should.deep.equal(['peer0.org1.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com', 'peer0.org2.example.com']);
+            peerNames.should.deep.equal(['peer0.org1.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com', 'peer0.org2.example.com', 'peer0.org3.example.com']);
 
-            peerValues.should.have.lengthOf(4);
+            peerValues.should.have.lengthOf(5);
             peerValues[0].should.be.an.instanceOf(LifecyclePeer);
             peerValues[0]['url'].should.equal('grpc://localhost:7051');
             peerValues[0]['name'].should.equal('peer0.org1.example.com');
@@ -370,7 +391,7 @@ describe('FabricEnvironmentConnection', () => {
 
         it('should set the mspids', () => {
             const mspids: string[] = Array.from(connection['mspIDs']);
-            mspids.should.deep.equal(['Org1MSP', 'Org2MSP', 'OrdererMSP']);
+            mspids.should.deep.equal(['Org1MSP', 'Org2MSP', 'Org3MSP', 'OrdererMSP']);
         });
     });
 
@@ -390,24 +411,28 @@ describe('FabricEnvironmentConnection', () => {
             const endorser2: sinon.SinonStubbedInstance<Endorser> = mySandBox.createStubInstance(Endorser);
             const endorser3: sinon.SinonStubbedInstance<Endorser> = mySandBox.createStubInstance(Endorser);
             const endorser4: sinon.SinonStubbedInstance<Endorser> = mySandBox.createStubInstance(Endorser);
+            const endorser5: sinon.SinonStubbedInstance<Endorser> = mySandBox.createStubInstance(Endorser);
             (endorser1 as any)['name'] = 'peer0.org1.example.com';
             (endorser2 as any)['name'] = 'peer1.org1.example.com';
             (endorser3 as any)['name'] = 'peer0.org2.example.com';
             (endorser4 as any)['name'] = 'peer1.org2.example.com';
+            (endorser5 as any)['name'] = 'peer0.org3.example.com';
 
             (endorser1 as any)['mspid'] = 'Org1MSP';
             (endorser2 as any)['mspid'] = 'Org1MSP';
             (endorser3 as any)['mspid'] = 'Org2MSP';
             (endorser4 as any)['mspid'] = 'Org2MSP';
+            (endorser5 as any)['mspid'] = 'Org3MSP';
 
             const orgMap: Map<string, string[]> = new Map();
             orgMap.set('Org1MSP', ['peer0.org1.example.com', 'peer1.org1.example.com']);
             orgMap.set('Org2MSP', ['peer0.org2.example.com', 'peer1.org2.example.com']);
+            orgMap.set('Org3MSP', ['peer0.org3.example.com']);
 
-            const getDiscoveredPeersStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'getDiscoveredPeers').resolves([endorser1, endorser2, endorser3, endorser4]);
+            const getDiscoveredPeersStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'getDiscoveredPeers').resolves([endorser1, endorser2, endorser3, endorser4, endorser5]);
             const result: Map<string, string[]> = await connection.getDiscoveredOrgs('mychannel');
             result.should.deep.equal(orgMap);
-            getDiscoveredPeersStub.should.have.been.calledOnceWithExactly(['peer0.org1.example.com', 'peer0.org2.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com']);
+            getDiscoveredPeersStub.should.have.been.calledOnceWithExactly(['peer0.org1.example.com', 'peer0.org2.example.com', 'peer0.org3.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com']);
         });
 
         it('should throw an error if no peers are found for discovery', async () => {
@@ -418,10 +443,10 @@ describe('FabricEnvironmentConnection', () => {
 
     describe('getAllDiscoveredPeerNames', () => {
         it('should get the names of all discovered peers', async () => {
-            const getDiscoveredPeerNamesStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'getDiscoveredPeerNames').resolves(['peer0.org1.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com', 'peer0.org2.example.com']);
+            const getDiscoveredPeerNamesStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'getDiscoveredPeerNames').resolves(['peer0.org1.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com', 'peer0.org2.example.com', 'peer0.org3.example.com']);
             const result: string[] = await connection.getAllDiscoveredPeerNames('mychannel');
-            result.should.deep.equal(['peer0.org1.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com', 'peer0.org2.example.com']);
-            getDiscoveredPeerNamesStub.should.have.been.calledOnceWithExactly(['peer0.org1.example.com', 'peer0.org2.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com']);
+            result.should.deep.equal(['peer0.org1.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com', 'peer0.org2.example.com', 'peer0.org3.example.com']);
+            getDiscoveredPeerNamesStub.should.have.been.calledOnceWithExactly(['peer0.org1.example.com', 'peer0.org2.example.com', 'peer0.org3.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com']);
         });
 
         it('should throw an error if no peers are found for discovery', async () => {
@@ -433,7 +458,7 @@ describe('FabricEnvironmentConnection', () => {
 
     describe('getAllPeerNames', () => {
         it('should get all of the peer names', () => {
-            connection.getAllPeerNames().should.deep.equal(['peer0.org1.example.com', 'peer0.org2.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com']);
+            connection.getAllPeerNames().should.deep.equal(['peer0.org1.example.com', 'peer0.org2.example.com', 'peer0.org3.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com']);
         });
     });
 
@@ -462,7 +487,8 @@ describe('FabricEnvironmentConnection', () => {
             mockPeer2.getChannelCapabilities.resolves(['V2_0']);
         });
 
-        it('should get all of the channel names, with the list of peers', async () => {
+        // TODO remove/modify this when a design for displaying v1 and v2 tree elements is decided
+        it.skip('should get all of the channel names, with the list of peers', async () => {
             const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
             channelMap.should.deep.equal(
                 new Map<string, Array<string>>(
@@ -483,7 +509,8 @@ describe('FabricEnvironmentConnection', () => {
                 .should.be.rejectedWith(/Cannot connect to Fabric/);
         });
 
-        it('should throw error if channel is not using v2 capabilities', async () => {
+        // TODO remove/modify this when a design for displaying v1 and v2 tree elements is decided
+        it.skip('should throw error if channel is not using v2 capabilities', async () => {
             mockPeer1.getChannelCapabilities.resolves(['V1_4_3']);
             await connection.createChannelMap().should.be.rejectedWith(/Unable to connect to network, channel 'channel1' does not have V2_0 capabilities enabled./);
             mockPeer1.getChannelCapabilities.should.have.been.calledOnce;
@@ -500,8 +527,21 @@ describe('FabricEnvironmentConnection', () => {
 
     describe('getCommittedSmartContracts', () => {
         let getAllCommittedSmartContractsStub: sinon.SinonStub;
+        let getAllInstantiatedSmartContractsStub: sinon.SinonStub;
+        let mockPeer1: sinon.SinonStubbedInstance<LifecyclePeer>;
+        let mockPeer3: sinon.SinonStubbedInstance<LifecyclePeer>;
 
         beforeEach(() => {
+            mockPeer1 = mySandBox.createStubInstance(LifecyclePeer);
+            mockPeer3 = mySandBox.createStubInstance(LifecyclePeer);
+            mockPeer1.getAllChannelNames.resolves(['channel1', 'channel2']);
+            mockPeer3.getAllChannelNames.resolves(['channel3']);
+            mockPeer1.getChannelCapabilities.resolves(['V2_0']);
+            mockPeer3.getChannelCapabilities.resolves(['V1_4']);
+            connection['lifecycle']['peers'].clear();
+            connection['lifecycle']['peers'].set('peer0.org1.example.com', mockPeer1);
+            connection['lifecycle']['peers'].set('peer0.org3.example.com', mockPeer3);
+
             getAllCommittedSmartContractsStub = mySandBox.stub(LifecycleChannel.prototype, 'getAllCommittedSmartContracts');
             getAllCommittedSmartContractsStub.resolves([
                 {
@@ -517,9 +557,51 @@ describe('FabricEnvironmentConnection', () => {
                     collectionConfig: Buffer.from([{ name: 'myCollection' }])
                 }
             ]);
+            getAllInstantiatedSmartContractsStub = mySandBox.stub(LifecycleChannel.prototype, 'getAllInstantiatedSmartContracts');
+            getAllInstantiatedSmartContractsStub.resolves([
+                {
+                    smartContractName: 'myChaincodev1',
+                    smartContractVersion: '0.0.3',
+                    sequence: -1
+                },
+                {
+                    smartContractName: 'otherChaincodev1',
+                    smartContractVersion: '0.0.4',
+                    sequence: -1,
+                    // endorsementPolicy: Buffer.from('myPolicy'),
+                    // collectionConfig: Buffer.from([{ name: 'myCollection' }])
+                }
+            ]);
+
         });
 
-        it('should return the list of committed smart contracts', async () => {
+        it('should return the list of committed smart contracts on v1 channel', async () => {
+            const chaincodes: Array<FabricSmartContractDefinition> = await connection.getCommittedSmartContractDefinitions(['peer0.org3.example.com'], 'mychannel');
+            chaincodes.should.deep.equal([
+                {
+                    name: 'myChaincodev1',
+                    version: '0.0.3',
+                    sequence: -1,
+                    packageId: undefined,
+                    endorsementPolicy: undefined,
+                    collectionConfig: undefined
+                },
+                {
+                    name: 'otherChaincodev1',
+                    version: '0.0.4',
+                    sequence: -1,
+                    packageId: undefined,
+                    // endorsementPolicy: Buffer.from('myPolicy'),
+                    // collectionConfig: Buffer.from([{ name: 'myCollection' }])
+                    endorsementPolicy: undefined,
+                    collectionConfig: undefined
+                }
+            ]);
+            getAllCommittedSmartContractsStub.should.have.not.been.called;
+            getAllInstantiatedSmartContractsStub.should.have.been.called;
+        });
+
+        it('should return the list of committed smart contracts on v2 channel', async () => {
             const chaincodes: Array<FabricSmartContractDefinition> = await connection.getCommittedSmartContractDefinitions(['peer0.org1.example.com'], 'mychannel');
             chaincodes.should.deep.equal([
                 {
@@ -539,28 +621,36 @@ describe('FabricEnvironmentConnection', () => {
                     collectionConfig: Buffer.from([{ name: 'myCollection' }])
                 }
             ]);
+            getAllCommittedSmartContractsStub.should.have.been.called;
+            getAllInstantiatedSmartContractsStub.should.have.not.been.called;
         });
     });
 
     describe('getAllCommittedSmartContracts', () => {
         let mockPeer1: sinon.SinonStubbedInstance<LifecyclePeer>;
         let mockPeer2: sinon.SinonStubbedInstance<LifecyclePeer>;
+        let mockPeer3: sinon.SinonStubbedInstance<LifecyclePeer>;
 
         let getAllCommittedSmartContractsStub: sinon.SinonStub;
+        let getAllInstantiatedSmartContractsStub: sinon.SinonStub;
 
         beforeEach(() => {
             mockPeer1 = mySandBox.createStubInstance(LifecyclePeer);
             mockPeer2 = mySandBox.createStubInstance(LifecyclePeer);
+            mockPeer3 = mySandBox.createStubInstance(LifecyclePeer);
 
             mockPeer1.getAllChannelNames.resolves(['channel1', 'channel2']);
             mockPeer2.getAllChannelNames.resolves(['channel2']);
+            mockPeer3.getAllChannelNames.resolves(['channel3']);
 
             mockPeer1.getChannelCapabilities.resolves(['V2_0']);
             mockPeer2.getChannelCapabilities.resolves(['V2_0']);
+            mockPeer3.getChannelCapabilities.resolves(['V1_4']);
 
             connection['lifecycle']['peers'].clear();
             connection['lifecycle']['peers'].set('peer0.org1.example.com', mockPeer1);
             connection['lifecycle']['peers'].set('peer0.org2.example.com', mockPeer2);
+            connection['lifecycle']['peers'].set('peer0.org3.example.com', mockPeer3);
 
             getAllCommittedSmartContractsStub = mySandBox.stub(LifecycleChannel.prototype, 'getAllCommittedSmartContracts');
             getAllCommittedSmartContractsStub.onFirstCall().resolves([
@@ -594,6 +684,21 @@ describe('FabricEnvironmentConnection', () => {
                     smartContractName: 'kittyChaincode',
                     smartContractVersion: '0.0.3',
                     sequence: 1
+                }
+            ]);
+            getAllInstantiatedSmartContractsStub = mySandBox.stub(LifecycleChannel.prototype, 'getAllInstantiatedSmartContracts');
+            getAllInstantiatedSmartContractsStub.onFirstCall().resolves([
+                {
+                    smartContractName: 'myChaincode',
+                    smartContractVersion: '0.0.1',
+                    sequence: -1
+                },
+                {
+                    smartContractName: 'otherChaincode',
+                    smartContractVersion: '0.0.1',
+                    sequence: -1,
+                    // endorsementPolicy: Buffer.from('myPolicy'),
+                    // collectionConfig: Buffer.from([{ name: 'myCollection' }])
                 }
             ]);
         });
@@ -647,7 +752,7 @@ describe('FabricEnvironmentConnection', () => {
 
     describe('getAllOrganizationNames', () => {
         it('should get all of the organization names', () => {
-            connection.getAllOrganizationNames().should.deep.equal(['OrdererMSP', 'Org1MSP', 'Org2MSP']);
+            connection.getAllOrganizationNames().should.deep.equal(['OrdererMSP', 'Org1MSP', 'Org2MSP', 'Org3MSP']);
         });
     });
 

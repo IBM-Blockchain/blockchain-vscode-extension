@@ -85,12 +85,19 @@ export abstract class FabricConnection {
 
     // TODO: this needs to be changed to getAllCommitttedSmartContracts
     public async getInstantiatedChaincode(channelName: string): Promise<Array<FabricSmartContractDefinition>> {
+        const allPeerNames: Array<string> = this.getAllPeerNames();
+        const peer: LifecyclePeer = this.lifecycle.getPeer(allPeerNames[0], this.gateway.getOptions().wallet, this.gateway.getOptions().identity as string);
+        const capabilities: string[] = await peer.getChannelCapabilities(channelName);
         const lifecycleChannel: LifecycleChannel = this.lifecycle.getChannel(channelName, this.gateway.getOptions().wallet, this.gateway.getOptions().identity as string);
-
         const channelMap: Map<string, string[]> = await this.createChannelMap();
-
         const peerNames: string[] = channelMap.get(channelName);
-        const smartContracts: DefinedSmartContract[] = await lifecycleChannel.getAllCommittedSmartContracts(peerNames[0]);
+        let smartContracts: DefinedSmartContract[];
+
+        if (!capabilities.includes('V2_0')) {
+            smartContracts = await lifecycleChannel.getAllInstantiatedSmartContracts(peerNames[0]);
+        } else {
+            smartContracts = await lifecycleChannel.getAllCommittedSmartContracts(peerNames[0]);
+        }
 
         return smartContracts.map((smartContract: DefinedSmartContract) => {
             return { name: smartContract.smartContractName, version: smartContract.smartContractVersion, sequence: smartContract.sequence };
@@ -114,11 +121,12 @@ export abstract class FabricConnection {
             for (const peerName of allPeerNames) {
                 const channels: Array<string> = await this.getAllChannelsForPeer(peerName);
                 for (const channelName of channels) {
-                    const peer: LifecyclePeer = this.lifecycle.getPeer(peerName, this.gateway.getOptions().wallet, this.gateway.getOptions().identity as string);
-                    const capabilities: string[] = await peer.getChannelCapabilities(channelName);
-                    if (!capabilities.includes('V2_0')) {
-                        throw new Error(`channel '${channelName}' does not have V2_0 capabilities enabled.`);
-                    }
+                    // TODO remove/modify this when a design for displaying v1 and v2 tree elements is decided
+                    // const peer: LifecyclePeer = this.lifecycle.getPeer(peerName, this.gateway.getOptions().wallet, this.gateway.getOptions().identity as string);
+                    // const capabilities: string[] = await peer.getChannelCapabilities(channelName);
+                    // if (!capabilities.includes('V2_0')) {
+                    //     throw new Error(`channel '${channelName}' does not have V2_0 capabilities enabled.`);
+                    // }
                     let peers: Array<string> = channelMap.get(channelName);
                     if (peers) {
                         peers.push(peerName);
@@ -135,8 +143,9 @@ export abstract class FabricConnection {
         } catch (error) {
             if (error.message && error.message.includes('Received http2 header with status: 503')) { // If gRPC can't connect to Fabric
                 throw new Error(`Cannot connect to Fabric: ${error.message}`);
-            } else if (error.message.includes('does not have V2_0 capabilities enabled.')) {
-                throw new Error(`Unable to connect to network, ${error.message}`);
+            // TODO remove/modify this when a design for displaying v1 and v2 tree elements is decided
+            // } else if (error.message.includes('does not have V2_0 capabilities enabled.')) {
+            //     throw new Error(`Unable to connect to network, ${error.message}`);
             } else {
                 throw new Error(`Error querying channel list: ${error.message}`);
             }
