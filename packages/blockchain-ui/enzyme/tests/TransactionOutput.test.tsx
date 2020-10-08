@@ -1,7 +1,7 @@
 // tslint:disable no-unused-expression
 import React from 'react';
 import renderer from 'react-test-renderer';
-import TransactionOutput from '../../src/components/transactionView/TransactionOutput/TransactionOutput';
+import TransactionOutput from '../../src/components/elements/TransactionOutput/TransactionOutput';
 import chai from 'chai';
 import sinonChai from 'sinon-chai';
 chai.should();

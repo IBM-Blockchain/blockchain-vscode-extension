@@ -5,16 +5,20 @@ exports[`TransactionOutput component should render the expected snapshot 1`] = `
   className="output-panel"
   id="output-panel"
 >
-  <p
-    className="output-title"
+  <div
+    className="output-panel-inner"
   >
-    Output for untitled transaction
-  </p>
-  <p
-    className="output-body"
-  >
-    some output
-  </p>
+    <p
+      className="output-title"
+    >
+      Output for untitled transaction
+    </p>
+    <p
+      className="output-body"
+    >
+      some output
+    </p>
+  </div>
 </div>
 `;
 
@@ -23,15 +27,19 @@ exports[`TransactionOutput component should render the expected snapshot when no
   className="output-panel"
   id="output-panel"
 >
-  <p
-    className="output-title"
+  <div
+    className="output-panel-inner"
   >
-    Output for untitled transaction
-  </p>
-  <p
-    className="output-body"
-  >
-    No transaction output available. Submit/evaluate to produce an output.
-  </p>
+    <p
+      className="output-title"
+    >
+      Output for untitled transaction
+    </p>
+    <p
+      className="output-body"
+    >
+      No transaction output available. Submit/evaluate to produce an output.
+    </p>
+  </div>
 </div>
 `;
