@@ -195,11 +195,12 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
             for (const peerName of peerNames) {
                 const channelNames: Array<string> = await this.getAllChannelNamesForPeer(peerName);
                 for (const channelName of channelNames) {
-                    const peer: LifecyclePeer = await this.getPeer(peerName);
-                    const capabilities: string[] = await peer.getChannelCapabilities(channelName);
-                    if (!capabilities.includes('V2_0')) {
-                        throw new Error(`channel '${channelName}' does not have V2_0 capabilities enabled.`);
-                    }
+                    // TODO remove/modify this when a design for displaying v1 and v2 tree elements is decided
+                    // const peer: LifecyclePeer = await this.getPeer(peerName);
+                    // const capabilities: string[] = await peer.getChannelCapabilities(channelName);
+                    // if (!capabilities.includes('V2_0')) {
+                    //     throw new Error(`channel '${channelName}' does not have V2_0 capabilities enabled.`);
+                    // }
                     if (!channelMap.has(channelName)) {
                         channelMap.set(channelName, [peerName]);
                     } else {
@@ -213,8 +214,9 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         } catch (error) {
             if (error.message && error.message.includes('Received http2 header with status: 503')) { // If gRPC can't connect to Fabric
                 throw new Error(`Cannot connect to Fabric: ${error.message}`);
-            } else if (error.message.includes('does not have V2_0 capabilities enabled.')) {
-                throw new Error(`Unable to connect to network, ${error.message}`);
+            // TODO remove/modify this when a design for displaying v1 and v2 tree elements is decided
+            // } else if (error.message.includes('does not have V2_0 capabilities enabled.')) {
+            //     throw new Error(`Unable to connect to network, ${error.message}`);
             } else {
                 throw new Error(`Error querying channels: ${error.message}`);
             }
@@ -226,10 +228,16 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         const wallet: FabricWallet = await this.getWallet(peerNames[0]) as FabricWallet;
         const peerNode: FabricNode = this.getNode(peerNames[0]);
 
-        // Get the channel.
-        const channel: LifecycleChannel = this.lifecycle.getChannel(channelName, wallet.getWallet(), peerNode.identity);
-        const committedContracts: DefinedSmartContract[] = await channel.getAllCommittedSmartContracts(peerNames[0]);
+        const peer: LifecyclePeer = await this.getPeer(peerNames[0]);
+        const capabilities: string[] = await peer.getChannelCapabilities(channelName);
 
+        const channel: LifecycleChannel = this.lifecycle.getChannel(channelName, wallet.getWallet(), peerNode.identity);
+        let committedContracts: DefinedSmartContract[];
+        if (!capabilities.includes('V2_0')) {
+            committedContracts = await channel.getAllInstantiatedSmartContracts(peerNames[0]);
+        } else {
+            committedContracts = await channel.getAllCommittedSmartContracts(peerNames[0]);
+        }
         return committedContracts.map((committedContract: DefinedSmartContract) => {
             return new FabricSmartContractDefinition(committedContract.smartContractName, committedContract.smartContractVersion, committedContract.sequence, undefined, committedContract.endorsementPolicy, committedContract.collectionConfig);
         });
