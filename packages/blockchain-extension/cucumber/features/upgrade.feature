@@ -7,14 +7,14 @@ Feature: Upgrade Smart Contracts
     And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
     And the environment is setup
     And the 'myFabric' environment is connected
-    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
     And a smart contract definition with the name <name> and version <version>
     And the contract has been created
     And the contract has been packaged
     And the contract has been deployed on channel 'mychannel'
     And the contract has been deleted
     And the package has been deleted
-    And a <language> smart contract for <assetType2> assets with the name <name> and version <version>
+    And a <language> smart contract using Fabric v2 for <assetType2> assets with the name <name> and version <version>
     And a smart contract definition with the name <name> and version <version>
     And the contract has been created
     And the contract has been packaged
@@ -34,7 +34,7 @@ Feature: Upgrade Smart Contracts
     And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
     And the environment is setup
     And the 'myFabric' environment is connected
-    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
     And a smart contract definition with the name <name> and version <version>
     And the contract has been created
     And the contract has been packaged

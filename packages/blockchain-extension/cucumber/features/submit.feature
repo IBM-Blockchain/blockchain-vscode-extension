@@ -2,13 +2,13 @@ Feature: Submit transaction
   Test submitting a transaction
 
   Scenario Outline: Submit a transaction for a smart contract (local fabric)
-    Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
+    Given a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
     And the 1 Org Local Fabric environment is running
     And the '1 Org Local Fabric' environment is connected
     And the 'Org1' wallet
     And the 'Local Fabric Admin' identity
     And I'm connected to the '1 Org Local Fabric - Org1' gateway
-    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
     And the contract has been created
     And the contract has been packaged
     And the contract has been deployed on channel 'mychannel'
@@ -23,13 +23,13 @@ Feature: Submit transaction
 
 
   Scenario Outline: Submit a transaction for a smart contract using generated transaction data
-    Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
+    Given a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
     And the 1 Org Local Fabric environment is running
     And the '1 Org Local Fabric' environment is connected
     And the 'Org1' wallet
     And the 'Local Fabric Admin' identity
     And I'm connected to the '1 Org Local Fabric - Org1' gateway
-    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
     And the contract has been created
     And the contract has been packaged
     And the contract has been deployed on channel 'mychannel'
@@ -42,7 +42,7 @@ Feature: Submit transaction
 
   @ansibleFabric
   Scenario Outline: Submit a verify transaction for a private data smart contract
-    Given a private <language> smart contract for <assetType> assets with the name <name> and version <version> and mspid <mspid>
+    Given a private <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version> and mspid <mspid>
     Given an environment 'myAnsibleFabric' exists
     And the 'myAnsibleFabric' environment is connected
     And the 'admin' identity
@@ -69,7 +69,7 @@ Feature: Submit transaction
     And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
     And the environment is setup
     And the 'myFabric' environment is connected
-    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
     And the contract has been created
     And the contract has been packaged
     And the contract has been deployed on channel 'mychannel'
@@ -95,7 +95,7 @@ Feature: Submit transaction
     And I have edited filters and imported all nodes to environment 'myOpsToolsFabric'
     And the 'software' opstools environment is setup
     And the 'myOpsToolsFabric' environment is connected
-    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
     And I have created a gateway 'myOpsGateway' from an 'environment'
     And the 'opsToolsWallet' wallet
     And the 'Org1MSPAdmin' identity
@@ -116,7 +116,7 @@ Feature: Submit transaction
     And I have edited filters and imported all nodes to environment 'mySaaSOpsToolsFabric'
     And the 'SaaS' opstools environment is setup
     And the 'mySaaSOpsToolsFabric' environment is connected
-    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
     And I have created a gateway 'mySaaSOpsGateway' from an 'environment'
     And the 'SaaSOpsToolsWallet' wallet
     And the 'SaaSOrg1MSPAdmin' identity

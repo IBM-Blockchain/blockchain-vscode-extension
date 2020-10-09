@@ -2,10 +2,10 @@ Feature: Deploy Smart Contracts
   Deploy a smart contract of all the languages supported
 
   Scenario Outline: Deploy a smart contract
-    Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
+    Given a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
     And the 1 Org Local Fabric environment is running
     And the '1 Org Local Fabric' environment is connected
-    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
     And a smart contract definition with the name <name> and version <version>
     And the contract has been created
     And the contract has been packaged
@@ -25,7 +25,7 @@ Feature: Deploy Smart Contracts
     And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
     And the environment is setup
     And the 'myFabric' environment is connected
-    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
     And a smart contract definition with the name <name> and version <version>
     And the contract has been created
     And the contract has been packaged
@@ -38,7 +38,7 @@ Feature: Deploy Smart Contracts
 
   @ansibleFabric
   Scenario Outline: Deploy a private smart contract
-    Given a private <language> smart contract for <assetType> assets with the name <name> and version <version> and mspid <mspid>
+    Given a private <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version> and mspid <mspid>
     Given an environment 'myAnsibleFabric' exists
     And the 'myAnsibleFabric' environment is connected
     And the private contract has been created
