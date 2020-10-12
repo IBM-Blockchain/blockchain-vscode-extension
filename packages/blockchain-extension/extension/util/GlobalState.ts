@@ -27,6 +27,7 @@ export class ExtensionData {
     public dockerForWindows: boolean;
     public createOneOrgLocalFabric: boolean;
     public deletedOneOrgLocalFabric: boolean;
+    public shownFirstSubmissionSurveyURL: boolean;
 }
 
 export const EXTENSION_DATA_KEY: string = 'ibm-blockchain-platform-extension-data';
@@ -39,7 +40,8 @@ export const DEFAULT_EXTENSION_DATA: ExtensionData = {
     preReqPageShown: false, // The very first time the extension is installed, the prereq page should be shown,
     dockerForWindows: false, // Has the user agreed to configure Windows containers to use Linux (default)
     createOneOrgLocalFabric: true, // Should we create the '1 Org Local Fabric' environment?
-    deletedOneOrgLocalFabric: false // Has the user deleted the '1 Org Local Fabric' environment?
+    deletedOneOrgLocalFabric: false, // Has the user deleted the '1 Org Local Fabric' environment?
+    shownFirstSubmissionSurveyURL: false // Show the survey URL the first time the user submits a transaction
 };
 
 // tslint:disable-next-line: max-classes-per-file

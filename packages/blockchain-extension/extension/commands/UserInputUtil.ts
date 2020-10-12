@@ -1237,6 +1237,13 @@ export class UserInputUtil {
         return newNodes.concat(hiddenNodes, pickedNodes);
     }
 
+    public static async showExternalLinkButton(message: string, callToAction: string, url: string): Promise<void> {
+        const selectedText: string = await vscode.window.showInformationMessage(message, callToAction);
+        if (selectedText === callToAction) {
+            vscode.env.openExternal(vscode.Uri.parse(url));
+        }
+    }
+
     private static async checkForUnsavedFiles(): Promise<void> {
         const unsavedFiles: vscode.TextDocument = vscode.workspace.textDocuments.find((document: vscode.TextDocument) => {
             return document.isDirty;
