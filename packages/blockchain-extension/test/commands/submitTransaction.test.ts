@@ -39,6 +39,7 @@ import { InstantiatedUnknownTreeItem } from '../../extension/explorer/model/Inst
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricRuntimeUtil, LogType, FabricGatewayRegistryEntry, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
+import { GlobalState, DEFAULT_EXTENSION_DATA } from '../../extension/util/GlobalState';
 
 chai.use(sinonChai);
 chai.should();
@@ -66,6 +67,7 @@ describe('SubmitTransactionCommand', () => {
         let showChannelPeersQuickPickStub: sinon.SinonStub;
         let reporterStub: sinon.SinonStub;
         let showChannelFromGatewayStub: sinon.SinonStub;
+        let globalStateUpdateStub: sinon.SinonStub;
 
         let allChildren: Array<BlockchainTreeItem>;
         let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
@@ -91,6 +93,8 @@ describe('SubmitTransactionCommand', () => {
                 label: 'myChannel',
                 data: ['peerOne']
             });
+
+            globalStateUpdateStub = mySandBox.stub(GlobalState, 'update').returns(DEFAULT_EXTENSION_DATA);
 
             showInstantiatedSmartContractQuickPickStub = mySandBox.stub(UserInputUtil, 'showClientInstantiatedSmartContractsQuickPick').resolves({
                 label: 'myContract',
@@ -1297,6 +1301,40 @@ describe('SubmitTransactionCommand', () => {
             logSpy.should.not.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.not.have.been.calledWith('submit transaction');
+        });
+
+        it('should show the complete survey information message when a transaction is submitted for the first time', async () => {
+            mySandBox.stub(GlobalState, 'get').returns(DEFAULT_EXTENSION_DATA);
+            const showInformationMessage: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage').resolves('Open survey');
+            const openSurvey: sinon.SinonStub = mySandBox.stub(vscode.env, 'openExternal');
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+
+            showInformationMessage.should.have.been.calledWith(sinon.match.string, 'Open survey');
+            globalStateUpdateStub.should.have.been.calledOnce;
+            const updateCall: any = globalStateUpdateStub.getCall(0).args[0];
+            updateCall.shownFirstSubmissionSurveyURL.should.equal(true);
+            openSurvey.should.have.been.calledOnce;
+        });
+
+        it('should not show the survey information message as it is not the first time a transaction is submitted', async () => {
+            mySandBox.stub(GlobalState, 'get').returns({ ...DEFAULT_EXTENSION_DATA, shownFirstSubmissionSurveyURL: true });
+            const showInformationMessage: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage').resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+
+            showInformationMessage.should.not.have.been.calledWith(sinon.match.string, 'Open survey');
+            globalStateUpdateStub.should.have.not.been.called;
+        });
+
+        it('should not show the survey information message when a transaction is evaluated', async () => {
+            mySandBox.stub(GlobalState, 'get').returns(DEFAULT_EXTENSION_DATA);
+            const showInformationMessage: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage').resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
+
+            showInformationMessage.should.not.have.been.calledWith(sinon.match.string, 'Open survey');
+            globalStateUpdateStub.should.have.not.been.called;
         });
 
     });

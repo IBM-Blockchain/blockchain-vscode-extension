@@ -62,65 +62,65 @@ exports[`TransactionForm component should render the expected snapshot 1`] = `
       Transaction name
     </legend>
     <div
-      className="bx--form-item"
+      className="bx--dropdown__wrapper bx--list-box__wrapper"
     >
-      <div
-        className="bx--select select-width"
+      <span
+        className="bx--label"
       >
-        <label
-          className="bx--label"
-          htmlFor="transaction-name-select"
-        >
-          Transaction name*
-        </label>
+        Transaction name*
+      </span>
+      <div
+        aria-label="dropdown"
+        className="bx--dropdown bx--list-box"
+        id="transaction-select"
+        onClick={[Function]}
+        onKeyDown={[Function]}
+      >
         <div
-          className="bx--select-input__wrapper"
-          data-invalid={null}
+          aria-controls={null}
+          aria-disabled={false}
+          aria-expanded={false}
+          aria-haspopup={true}
+          aria-labelledby="dropdown-label-transaction-select dropdown-field-label-transaction-select"
+          aria-owns={null}
+          className="bx--list-box__field"
+          data-toggle={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onKeyDown={[Function]}
+          role="button"
+          tabIndex="0"
+          type="button"
         >
-          <select
-            className="bx--select-input"
-            id="transaction-name-select"
-            onChange={[Function]}
+          <span
+            className="bx--list-box__label"
+            htmlFor="downshift-0-input"
+            id="dropdown-field-label-transaction-select"
           >
-            <option
-              className="bx--select-option"
-              disabled={false}
-              hidden={true}
-              value="placeholder-item"
-            >
-              Select the transaction name
-            </option>
-            <option
-              className="bx--select-option"
-              disabled={false}
-              hidden={false}
-              value="transactionOne"
-            >
-              transactionOne
-            </option>
-            <option
-              className="bx--select-option"
-              disabled={false}
-              hidden={false}
-              value="transactionTwo"
-            >
-              transactionTwo
-            </option>
-          </select>
-          <svg
-            aria-hidden={true}
-            className="bx--select__arrow"
-            focusable="false"
-            height={16}
-            preserveAspectRatio="xMidYMid meet"
-            viewBox="0 0 16 16"
-            width={16}
-            xmlns="http://www.w3.org/2000/svg"
+            Select the transaction name
+          </span>
+          <div
+            className="bx--list-box__menu-icon"
           >
-            <polygon
-              points="8,11 3,6 3.7,5.3 8,9.6 12.3,5.3 13,6"
-            />
-          </svg>
+            <svg
+              aria-label="Open menu"
+              focusable="false"
+              height={16}
+              name="chevron--down"
+              preserveAspectRatio="xMidYMid meet"
+              role="img"
+              viewBox="0 0 16 16"
+              width={16}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <polygon
+                points="8,11 3,6 3.7,5.3 8,9.6 12.3,5.3 13,6"
+              />
+              <title>
+                Open menu
+              </title>
+            </svg>
+          </div>
         </div>
       </div>
     </div>
@@ -134,27 +134,6 @@ exports[`TransactionForm component should render the expected snapshot 1`] = `
     >
       Peer targeting
     </legend>
-    <div
-      className="bx--form-item bx--checkbox-wrapper"
-    >
-      <input
-        className="bx--checkbox"
-        id="target-peer-checkbox"
-        onChange={[Function]}
-        type="checkbox"
-      />
-      <label
-        className="bx--checkbox-label"
-        htmlFor="target-peer-checkbox"
-        title={null}
-      >
-        <span
-          className="bx--checkbox-label-text"
-        >
-          Target custom peer
-        </span>
-      </label>
-    </div>
     <div
       className="bx--form-item"
     >
@@ -281,26 +260,33 @@ exports[`TransactionForm component should render the expected snapshot 1`] = `
     >
       Submit and Evaluate buttons
     </legend>
-    <button
-      className="submit-and-evaluate-buttons bx--btn bx--btn--field bx--btn--primary bx--btn--disabled"
-      disabled={true}
-      id="evaluate-button"
-      onClick={[Function]}
-      tabIndex={0}
-      type="button"
+    <div
+      className="submit-txn-button-container"
     >
-      Evaluate
-    </button>
-    <button
-      className="submit-and-evaluate-buttons bx--btn bx--btn--field bx--btn--primary bx--btn--disabled"
-      disabled={true}
-      id="submit-button"
-      onClick={[Function]}
-      tabIndex={0}
-      type="button"
-    >
-      Submit
-    </button>
+      <button
+        className="submit-txn-button bx--btn bx--btn--field bx--btn--primary bx--btn--disabled"
+        disabled={true}
+        id="evaluate-button"
+        onClick={[Function]}
+        tabIndex={0}
+        type="button"
+      >
+        Evaluate
+      </button>
+      <div
+        className="button-separator"
+      />
+      <button
+        className="submit-txn-button bx--btn bx--btn--field bx--btn--primary bx--btn--disabled"
+        disabled={true}
+        id="submit-button"
+        onClick={[Function]}
+        tabIndex={0}
+        type="button"
+      >
+        Submit
+      </button>
+    </div>
   </fieldset>
    
 </form>

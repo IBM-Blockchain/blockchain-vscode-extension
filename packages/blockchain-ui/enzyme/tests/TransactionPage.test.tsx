@@ -2,7 +2,7 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
 import { mount } from 'enzyme';
-import TransactionPage from '../../src/components/transactionView/TransactionPage/TransactionPage';
+import TransactionPage from '../../src/components/pages/TransactionPage/TransactionPage';
 import chai from 'chai';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
@@ -46,6 +46,11 @@ describe('TransactionPage component', () => {
         namespace: 'GreenContract'
     };
 
+    const state: {gatewayName: string, smartContract: ISmartContract} = {
+        gatewayName: 'myGateway',
+        smartContract: greenContract
+    };
+
     const mockTransactionOutput: string = 'here is some transaction output';
     const moreMockTransactionOutput: string = 'here is some more transaction output';
 
@@ -60,14 +65,14 @@ describe('TransactionPage component', () => {
 
     it('should render the expected snapshot', async () => {
         const component: any = renderer
-            .create(<TransactionPage gatewayName={'my gateway'} smartContract={greenContract} transactionOutput={mockTransactionOutput} postMessageHandler={postMessageHandlerStub}/>)
+            .create(<TransactionPage transactionData={state} transactionOutput={mockTransactionOutput}/>)
             .toJSON();
         expect(component).toMatchSnapshot();
     });
 
     it('should update the transaction output when something new is passed down through props', async () => {
         const componentDidUpdateSpy: sinon.SinonSpy = mySandBox.spy(TransactionPage.prototype, 'componentDidUpdate');
-        const component: any = mount(<TransactionPage gatewayName={'my gateway'} smartContract={greenContract} transactionOutput={mockTransactionOutput} postMessageHandler={postMessageHandlerStub}/>);
+        const component: any = mount(<TransactionPage transactionData={state} transactionOutput={mockTransactionOutput}/>);
         component.state().transactionOutput.should.equal(mockTransactionOutput);
 
         component.setProps({

@@ -33,6 +33,7 @@ import { Transaction } from 'fabric-network/lib/transaction'
 chai.should();
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
+const should: Chai.Should = chai.should();
 
 // tslint:disable:no-unused-expression
 describe('LifecycleChannel', () => {
@@ -1293,6 +1294,199 @@ describe('LifecycleChannel', () => {
 
                 await channel.getAllCommittedSmartContracts('myPeer').should.eventually.be.rejectedWith('Could not get smart contract definitions, received error: some error');
             });
+        });
+
+        describe('getAllInstantiatedSmartContracts', () => {
+
+            let mysandbox: sinon.SinonSandbox;
+            let endorserConnectStub: sinon.SinonStub;
+
+            let endorsementBuildSpy: sinon.SinonSpy;
+            let endorsementSignSpy: sinon.SinonSpy;
+            let endorsementSendStub: sinon.SinonStub;
+
+            let buildRequest: any;
+
+            beforeEach(() => {
+                mysandbox = sinon.createSandbox();
+
+                buildRequest = {
+                    fcn: 'GetChaincodes',
+                    args: []
+                };
+
+                endorserConnectStub = mysandbox.stub(Endorser.prototype, 'connect').resolves();
+
+                endorsementBuildSpy = mysandbox.spy(Endorsement.prototype, 'build');
+                endorsementSignSpy = mysandbox.spy(Endorsement.prototype, 'sign');
+                endorsementSendStub = mysandbox.stub(Endorsement.prototype, 'send');
+                endorsementSendStub.resolves();
+            });
+
+            afterEach(() => {
+                mysandbox.restore();
+            });
+
+            it('should get all the instantiated smart contracts', async () => {
+                const encodedResult: Buffer = Buffer.from(protos.protos.ChaincodeQueryResponse.encode({
+                    chaincodes: [{
+                        name: 'myContract',
+                        version: '0.0.2',
+                        escc: 'escc',
+                        vscc: 'vscc',
+                    }, {
+                        name: 'myContract2',
+                        version: '0.0.3',
+                        escc: 'escc',
+                        vscc: 'vscc',
+                    }]
+                }).finish());
+
+                endorsementSendStub.resolves({
+                    responses: [{
+                        response: {
+                            status: 200,
+                            payload: encodedResult
+                        }
+                    }]
+                });
+
+                const result: DefinedSmartContract[] = await channel.getAllInstantiatedSmartContracts('myPeer');
+
+                result.length.should.equal(2);
+
+                result[0].smartContractName.should.equal('myContract');
+                result[0].smartContractVersion.should.equal('0.0.2');
+                result[0].sequence.should.equal(-1);
+                should.equal(undefined, result[0].initRequired);
+
+                result[1].smartContractName.should.equal('myContract2');
+                result[1].smartContractVersion.should.equal('0.0.3');
+                result[1].sequence.should.equal(-1);
+                should.equal(undefined, result[1].initRequired);
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)]
+                });
+            });
+
+            it('should get all the instantiated smart contracts with timeout', async () => {
+
+                const encodedResult: Buffer = Buffer.from(protos.protos.ChaincodeQueryResponse.encode({
+                    chaincodes: [{
+                        name: 'myContract',
+                        version: '0.0.2',
+                        escc: 'escc',
+                        vscc: 'vscc',
+                    }, {
+                        name: 'myContract2',
+                        version: '0.0.3',
+                        escc: 'escc',
+                        vscc: 'vscc',
+                    }]
+                }).finish());
+
+                endorsementSendStub.resolves({
+                    responses: [{
+                        response: {
+                            status: 200,
+                            payload: encodedResult
+                        }
+                    }]
+                });
+
+                const result: DefinedSmartContract[] = await channel.getAllInstantiatedSmartContracts('myPeer', 1234);
+
+                result.length.should.equal(2);
+
+                result[0].smartContractName.should.equal('myContract');
+                result[0].smartContractVersion.should.equal('0.0.2');
+                result[0].sequence.should.equal(-1);
+                should.equal(undefined, result[0].initRequired);
+                // @ts-ignore
+                // result[0].initRequired.should.equal(false);
+
+                result[1].smartContractName.should.equal('myContract2');
+                result[1].smartContractVersion.should.equal('0.0.3');
+                result[1].sequence.should.equal(-1);
+                should.equal(undefined, result[0].initRequired);
+                // @ts-ignore
+                // result[1].initRequired.should.equal(false);
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)],
+                    requestTimeout: 1234
+                });
+            });
+
+            it('should handle no peerName', async () => {
+                // @ts-ignore
+                await channel.getAllCommittedSmartContracts(undefined).should.eventually.be.rejectedWith('parameter peerName is missing');
+            });
+
+            it('should handle empty response from send', async () => {
+                endorsementSendStub.resolves();
+
+                await channel.getAllInstantiatedSmartContracts('myPeer').should.eventually.be.rejectedWith('Could not get smart contract definitions, received error: Payload results are missing from the query');
+            });
+
+            it('should handle send throwing error', async () => {
+                endorsementSendStub.rejects({ message: 'some error' });
+
+                await channel.getAllInstantiatedSmartContracts('myPeer').should.eventually.be.rejectedWith('Could not get smart contract definitions, received error: some error');
+            });
+
+            it('should handle error response', async () => {
+                endorsementSendStub.resolves({
+                    errors: [
+                        new Error('some service error')
+                    ]
+                });
+
+                await channel.getAllInstantiatedSmartContracts('myPeer').should.eventually.be.rejectedWith('Could not get smart contract definitions, received error: some service error');
+            });
+
+            it('should handle problem with request response flagged up by status and message', async () => {
+                endorsementSendStub.resolves({
+                    responses: [{
+                        response: {
+                            status: 500,
+                            message: 'some fabric error'
+                        }
+                    }]
+                });
+
+                await channel.getAllInstantiatedSmartContracts('myPeer').should.eventually.be.rejectedWith('Could not get smart contract definitions, received error: some fabric error');
+            });
+
+            it('should handle problem with request response flagged up by status but no message', async () => {
+                const problemResponse: any = {
+                    response: {
+                        status: 300,
+                    }
+                };
+                endorsementSendStub.resolves({
+                    responses: [problemResponse]
+                });
+
+                await channel.getAllInstantiatedSmartContracts('myPeer').should.eventually.be.rejectedWith(`Could not get smart contract definitions, received error: ${problemResponse.toString()}`);
+            });
+
+            it('should handle problem with request response', async () => {
+                const problemResponse: any = {strangeKey: 'strange value'};
+                endorsementSendStub.resolves({
+                    responses: [problemResponse]
+                });
+
+                await channel.getAllInstantiatedSmartContracts('myPeer').should.eventually.be.rejectedWith(`Could not get smart contract definitions, received error: ${problemResponse.toString()}`);
+            });
+
         });
 
         describe('getCommittedSmartContract', () => {

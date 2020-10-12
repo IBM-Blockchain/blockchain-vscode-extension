@@ -124,7 +124,7 @@ describe('TransactionView', () => {
         createWebviewPanelStub.should.have.been.called;
         postMessageStub.should.have.been.calledWith({
             path: '/transaction',
-            state: mockAppState
+            transactionData: mockAppState
         });
     });
 
@@ -137,7 +137,7 @@ describe('TransactionView', () => {
                     postMessage: mySandBox.stub(),
                     onDidReceiveMessage: async (callback: any): Promise<void> => {
                         await callback({
-                            command: 'submit',
+                            command: ExtensionCommands.SUBMIT_TRANSACTION,
                             data: transactionObject
                         });
                         resolve();
@@ -167,7 +167,7 @@ describe('TransactionView', () => {
                     postMessage: mySandBox.stub(),
                     onDidReceiveMessage: async (callback: any): Promise<void> => {
                         await callback({
-                            command: 'evaluate',
+                            command: ExtensionCommands.EVALUATE_TRANSACTION,
                             data: transactionObject
                         });
                         resolve();
@@ -186,36 +186,6 @@ describe('TransactionView', () => {
         await Promise.all(onDidReceiveMessagePromises);
 
         executeCommandStub.should.have.been.calledWith(ExtensionCommands.EVALUATE_TRANSACTION, undefined, undefined, undefined, transactionObject);
-    });
-
-    it('should not do anything if it receives an invalid message', async () => {
-        const onDidReceiveMessagePromises: any[] = [];
-
-        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
-            createWebviewPanelStub.returns({
-                webview: {
-                    postMessage: mySandBox.stub(),
-                    onDidReceiveMessage: async (callback: any): Promise<void> => {
-                        await callback({
-                            command: 'invalid',
-                            data: transactionObject
-                        });
-                        resolve();
-                    }
-                },
-                reveal: (): void => {
-                    return;
-                },
-                onDidDispose: mySandBox.stub(),
-                onDidChangeViewState: mySandBox.stub()
-            });
-        }));
-
-        const transactionView: TransactionView = new TransactionView(context, mockAppState);
-        await transactionView.openView(false);
-        await Promise.all(onDidReceiveMessagePromises);
-
-        executeCommandStub.should.not.have.been.called;
     });
 
 });
