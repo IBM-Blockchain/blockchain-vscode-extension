@@ -82,6 +82,7 @@ describe('GatewayConnectCommand', () => {
 
             mockConnection = mySandBox.createStubInstance(FabricGatewayConnection);
             mockConnection.connect.resolves();
+            mockConnection.createChannelMap.resolves({channelMap: new Map(), v2channels: []});
             mockConnection.isIBPConnection.returns(false);
 
             mySandBox.stub(FabricConnectionFactory, 'createFabricGatewayConnection').returns(mockConnection);
@@ -331,6 +332,21 @@ describe('GatewayConnectCommand', () => {
                 logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `connect`);
                 logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `${error.message}`, `${error.toString()}`);
                 sendTelemetryEventStub.should.not.have.been.called;
+            });
+
+            it('should test a fabric gateway can be connected to from the command and user informed if some channels are not v1_4', async () => {
+                const connectStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil.getBlockchainGatewayExplorerProvider(), 'connect');
+                mockConnection.createChannelMap.resolves({channelMap: new Map(), v2channels: ['channel1']});
+                const gatewayName: string = connectionSingle.name;
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
+
+                connectStub.should.have.been.calledOnce;
+                choseIdentityQuickPick.should.not.have.been.called;
+                mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label, timeout);
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
+                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `connect`);
+                logSpy.getCall(1).should.have.been.calledWith(LogType.WARNING, 'Detected channels without V1_4 capabilities enabled: channel1.');
+                logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Connecting to ${gatewayName}`);
             });
         });
 

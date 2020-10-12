@@ -37,7 +37,8 @@ export async function debugCommandList(commandName?: string): Promise<void> {
         VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, undefined, 'No connection to a blockchain found');
         return;
     }
-    const channelMap: Map<string, string[]> = await connection.createChannelMap();
+    const createChannelsResult: {channelMap: Map<string, string[]>, v2channels: string[]}  = await connection.createChannelMap();
+    const channelMap: Map<string, string[]> = createChannelsResult.channelMap;
     // Assume local_fabric was one channel so just get the first
     const channelName: string = Array.from(channelMap.keys())[0];
     const peerNames: Array<string> = channelMap.get(channelName);

@@ -97,35 +97,53 @@ export abstract class FabricConnection {
         this.gateway.disconnect();
     }
 
-    public async createChannelMap(): Promise<Map<string, Array<string>>> {
+    public async createChannelMap(): Promise<{channelMap: Map<string, Array<string>>, v2channels: Array<string>}> {
         try {
-            const allPeerNames: Array<string> = this.getAllPeerNames();
+            const allPeers: Client.Peer[] = this.getAllPeers();
 
-            if (allPeerNames.length === 0) {
+            if (allPeers.length === 0) {
                 throw new Error('Could not find any peers to query the list of channels from');
             }
 
             const channelMap: Map<string, Array<string>> = new Map<string, Array<string>>();
+            const v2channels: Array<string> = [];
 
-            for (const peer of allPeerNames) {
-                const channels: Array<string> = await this.getAllChannelsForPeer(peer);
-                channels.forEach((channelName: string) => {
+            for (const peer of allPeers) {
+                const channels: Array<string> = await this.getAllChannelsForPeer(peer.getName());
+                for (const channelName of channels) {
+                    const network: Network = await this.gateway.getNetwork(channelName);
+                    const channel: Client.Channel = network.getChannel();
+
+                    const configEnvelope: any = await channel.getChannelConfig(peer);
+                    const capabilities: string[] = channel.getChannelCapabilities(configEnvelope);
+                    if (capabilities.includes('V2_0')) {
+                        if (!v2channels.includes(channelName)) {
+                            v2channels.push(channelName);
+                        }
+                        continue;
+                    }
+
                     let peers: Array<string> = channelMap.get(channelName);
                     if (peers) {
-                        peers.push(peer);
+                        peers.push(peer.getName());
                         channelMap.set(channelName, peers);
                     } else {
-                        peers = [peer];
+                        peers = [peer.getName()];
                         channelMap.set(channelName, peers);
                     }
-                });
+                }
             }
 
-            return channelMap;
+            if (channelMap.size === 0) {
+                throw new Error(`There are no channels with V1 capabilities enabled.`);
+            }
+            return {channelMap: channelMap, v2channels: v2channels};
 
         } catch (error) {
             if (error.message && error.message.includes('Received http2 header with status: 503')) { // If gRPC can't connect to Fabric
                 throw new Error(`Cannot connect to Fabric: ${error.message}`);
+            } else if (error.message.includes('There are no channels with V1 capabilities enabled.')) {
+                throw new Error(`Unable to connect to network, ${error.message}`);
             } else {
                 throw new Error(`Error querying channel list: ${error.message}`);
             }

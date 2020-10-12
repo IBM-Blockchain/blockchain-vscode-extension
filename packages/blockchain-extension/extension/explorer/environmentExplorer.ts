@@ -457,7 +457,8 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
         const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
 
         try {
-            const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
+            const createChannelsResult: {channelMap: Map<string, Array<string>>, v2channels: Array<string>} = await connection.createChannelMap();
+            const channelMap: Map<string, Array<string>> = createChannelsResult.channelMap;
             const channels: Array<string> = Array.from(channelMap.keys());
 
             for (const channel of channels) {
@@ -558,7 +559,8 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
         try {
             const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
-            const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
+            const createChannelsResult: {channelMap: Map<string, Array<string>>, v2channels: Array<string>} = await connection.createChannelMap();
+            const channelMap: Map<string, Array<string>> = createChannelsResult.channelMap;
             for (const [channelName, peerNames] of channelMap) {
                 const chaincodes: FabricChaincode[] = await connection.getInstantiatedChaincode(peerNames, channelName);
                 const channelTreeItem: ChannelTreeItem = new ChannelTreeItem(this, channelName, peerNames, chaincodes, vscode.TreeItemCollapsibleState.None);
