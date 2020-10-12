@@ -116,13 +116,25 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         return Array.from(this.peers.keys()).sort();
     }
 
-    public async createChannelMap(): Promise<Map<string, Array<string>>> {
+    public async createChannelMap(): Promise<{channelMap: Map<string, Array<string>>, v2channels: Array<string>}> {
         try {
             const channelMap: Map<string, Array<string>> = new Map<string, Array<string>>();
+            const v2channels: Array<string> = [];
 
-            for (const [peerName] of this.peers) {
+            for (const [peerName, peer] of this.peers.entries()) {
                 const channelNames: Array<string> = await this.getAllChannelNamesForPeer(peerName);
                 for (const channelName of channelNames) {
+                    const channel: Client.Channel = this.getOrCreateChannel(channelName);
+
+                    const configEnvelope: any = await channel.getChannelConfig(peer);
+                    const capabilities: string[] = channel.getChannelCapabilities(configEnvelope);
+                    if (capabilities.includes('V2_0')) {
+                        if (!v2channels.includes(channelName)) {
+                            v2channels.push(channelName);
+                        }
+                        continue;
+                    }
+
                     if (!channelMap.has(channelName)) {
                         channelMap.set(channelName, [peerName]);
                     } else {
@@ -131,11 +143,16 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
                 }
             }
 
-            return channelMap;
+            if (channelMap.size === 0) {
+                throw new Error(`There are no channels with V1 capabilities enabled.`);
+            }
+            return {channelMap: channelMap, v2channels: v2channels};
 
         } catch (error) {
             if (error.message && error.message.includes('Received http2 header with status: 503')) { // If gRPC can't connect to Fabric
                 throw new Error(`Cannot connect to Fabric: ${error.message}`);
+            } else if (error.message.includes('There are no channels with V1 capabilities enabled.')) {
+                throw new Error(`Unable to connect to network, ${error.message}`);
             } else {
                 throw new Error(`Error querying channels: ${error.message}`);
             }
@@ -162,11 +179,11 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
     public async getAllInstantiatedChaincodes(): Promise<Array<FabricChaincode>> {
 
         try {
-            const channelMap: Map<string, Array<string>> = await this.createChannelMap();
+            const createChannelsResult: {channelMap: Map<string, string[]>, v2channels: string[]} = await this.createChannelMap();
 
             const chaincodes: Array<FabricChaincode> = []; // We can change the array type if we need more detailed chaincodes in future
 
-            for (const [channelName, peerNames] of channelMap) {
+            for (const [channelName, peerNames] of createChannelsResult.channelMap) {
                 const channelChaincodes: Array<FabricChaincode> = await this.getInstantiatedChaincode(peerNames, channelName); // Returns channel chaincodes
                 for (const chaincode of channelChaincodes) { // For each channel chaincodes, push it to the 'chaincodes' array if it doesn't exist
 

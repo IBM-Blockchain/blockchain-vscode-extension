@@ -430,9 +430,8 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
 
                 const fabricConnection: sinon.SinonStubbedInstance<FabricGatewayConnection> = mySandBox.createStubInstance(FabricGatewayConnection);
                 getConnectionStub.returns(fabricConnection);
-                fabricConnection.getAllPeerNames.returns(['peerOne']);
-                fabricConnection.createChannelMap.callThrough();
-                fabricConnection.getAllChannelsForPeer.throws({ message: 'some error' });
+                const error: Error = new Error('some error');
+                fabricConnection.createChannelMap.rejects(error);
 
                 const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
                 registryEntry.name = 'myGateway';
@@ -447,16 +446,15 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
                 await blockchainGatewayExplorerProvider.getChildren(allChildren[2]);
 
                 disconnectSpy.should.have.been.called;
-                logSpy.should.have.been.calledWith(LogType.ERROR, `Could not connect to gateway: Error querying channel list: some error`);
+                logSpy.should.have.been.calledWith(LogType.ERROR, `Could not connect to gateway: ${error.message}`);
             });
 
             it('should error if gRPC cant connect to Fabric', async () => {
 
                 const fabricConnection: sinon.SinonStubbedInstance<FabricGatewayConnection> = mySandBox.createStubInstance(FabricGatewayConnection);
                 getConnectionStub.returns(fabricConnection);
-                fabricConnection.getAllPeerNames.returns(['peerOne']);
-                fabricConnection.createChannelMap.callThrough();
-                fabricConnection.getAllChannelsForPeer.throws({ message: 'Received http2 header with status: 503' });
+                const error: Error = new Error('Cannot connect to Fabric: Received http2 header with status: 503');
+                fabricConnection.createChannelMap.rejects(error);
 
                 const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
                 registryEntry.name = 'myGateway';
@@ -472,7 +470,7 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
                 await blockchainGatewayExplorerProvider.getChildren(allChildren[2]);
 
                 disconnectSpy.should.have.been.called;
-                logSpy.should.have.been.calledWith(LogType.ERROR, `Could not connect to gateway: Cannot connect to Fabric: Received http2 header with status: 503`);
+                logSpy.should.have.been.calledWith(LogType.ERROR, `Could not connect to gateway: ${error.message}`);
             });
         });
 
@@ -580,7 +578,7 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
                 map.set('channelTwo', ['peerOne', 'peerTwo']);
 
                 fabricConnection.getAllChannelsForPeer.withArgs('peerTwo').resolves(['channelTwo']);
-                fabricConnection.createChannelMap.resolves(map);
+                fabricConnection.createChannelMap.resolves({channelMap: map, v2channels: []});
                 fabricConnection.identityName = 'pigeon';
 
                 fabricConnection.getMetadata.withArgs('legacy-network', 'channelTwo').resolves(null);

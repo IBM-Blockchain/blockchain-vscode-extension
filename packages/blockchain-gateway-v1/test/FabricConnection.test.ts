@@ -569,9 +569,19 @@ describe('FabricConnection', () => {
     });
 
     describe('createChannelMap', () => {
+        let peer1: Client.Peer;
+        let peer2: Client.Peer;
+
+        beforeEach(async () => {
+            peer1 = new Client.Peer('grpc://localhost:1454', { name: 'peerOne' });
+            peer2 = new Client.Peer('grpc://localhost:1453', { name: 'peerTwo' });
+            fabricClientStub.getPeersForOrg.returns([peer1, peer2]);
+
+            fabricChannelStub.getChannelConfig.resolves();
+            fabricChannelStub.getChannelCapabilities.returns(['V1_4_3']);
+        });
 
         it('should create channel map', async () => {
-            mySandBox.stub(fabricConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
             const getAllChannelsForPeerStub: sinon.SinonStub = mySandBox.stub(fabricConnection, 'getAllChannelsForPeer');
             getAllChannelsForPeerStub.withArgs('peerOne').returns(['channel1']);
             getAllChannelsForPeerStub.withArgs('peerTwo').returns(['channel2']);
@@ -580,12 +590,45 @@ describe('FabricConnection', () => {
             _map.set('channel1', ['peerOne']);
             _map.set('channel2', ['peerTwo']);
 
-            const map: Map<string, Array<string>> = await fabricConnection.createChannelMap();
+            const createChannelsResult: {channelMap: Map<string, string[]>, v2channels: string[]} = await fabricConnection.createChannelMap();
+            createChannelsResult.channelMap.should.deep.equal(_map);
+            fabricChannelStub.getChannelConfig.should.have.been.calledTwice;
+            fabricChannelStub.getChannelCapabilities.should.have.been.calledTwice;
+        });
+
+        it('should create channel map without v2 channels', async () => {
+            fabricChannelStub.getChannelCapabilities.onFirstCall().returns(['V2_0']);
+            fabricChannelStub.getChannelCapabilities.onSecondCall().returns(['V2_0']);
+            fabricChannelStub.getChannelCapabilities.onThirdCall().returns(['V1_4_3']);
+
+            const getAllChannelsForPeerStub: sinon.SinonStub = mySandBox.stub(fabricConnection, 'getAllChannelsForPeer');
+            getAllChannelsForPeerStub.withArgs('peerOne').returns(['channel1']);
+            getAllChannelsForPeerStub.withArgs('peerTwo').returns(['channel1', 'channel2']);
+
+            const _map: Map<string, Array<string>> = new Map<string, Array<string>>();
+            _map.set('channel2', ['peerTwo']);
+
+            const createChannelsResult: {channelMap: Map<string, Array<string>>, v2channels: Array<string>} = await fabricConnection.createChannelMap();
+            const map: Map<string, Array<string>> = createChannelsResult.channelMap;
+
+            fabricChannelStub.getChannelCapabilities.should.have.been.calledThrice;
             map.should.deep.equal(_map);
+         });
+
+        it('should throw error when none of the channels is using v1_4 capabilities ', async () => {
+
+            fabricChannelStub.getChannelCapabilities.returns(['V2_0']);
+
+            const getAllChannelsForPeerStub: sinon.SinonStub = mySandBox.stub(fabricConnection, 'getAllChannelsForPeer');
+            getAllChannelsForPeerStub.withArgs('peerOne').returns(['channel1']);
+            getAllChannelsForPeerStub.withArgs('peerTwo').returns(['channel2']);
+
+            await fabricConnection.createChannelMap().should.be.rejectedWith(`There are no channels with V1 capabilities enabled.`);
+
+            fabricChannelStub.getChannelCapabilities.should.have.been.calledTwice;
         });
 
         it('should add any peers to channel map if the channel already exists', async () => {
-            mySandBox.stub(fabricConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
             const getAllChannelsForPeerStub: sinon.SinonStub = mySandBox.stub(fabricConnection, 'getAllChannelsForPeer');
             getAllChannelsForPeerStub.withArgs('peerOne').returns(['channel1', 'channel2']);
             getAllChannelsForPeerStub.withArgs('peerTwo').returns(['channel2']);
@@ -594,13 +637,11 @@ describe('FabricConnection', () => {
             _map.set('channel1', ['peerOne']);
             _map.set('channel2', ['peerOne', 'peerTwo']);
 
-            const map: Map<string, Array<string>> = await fabricConnection.createChannelMap();
-            map.should.deep.equal(_map);
+            const createChannelsResult: {channelMap: Map<string, string[]>, v2channels: string[]} = await fabricConnection.createChannelMap();
+            createChannelsResult.channelMap.should.deep.equal(_map);
         });
 
         it('should handle gRPC connection errors', async () => {
-            mySandBox.stub(fabricConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
-
             const error: Error = new Error('Received http2 header with status: 503');
             mySandBox.stub(fabricConnection, 'getAllChannelsForPeer').throws(error);
 
@@ -608,14 +649,14 @@ describe('FabricConnection', () => {
         });
 
         it('should handle no peers', async () => {
-            mySandBox.stub(fabricConnection, 'getAllPeerNames').returns([]);
+            fabricClientStub.getPeersForOrg.returns([]);
 
             await fabricConnection.createChannelMap().should.be.rejectedWith('Error querying channel list: Could not find any peers to query the list of channels from');
         });
 
         it('should handle any other errors', async () => {
             const error: Error = new Error('some error');
-            mySandBox.stub(fabricConnection, 'getAllPeerNames').throws(error);
+            fabricClientStub.getPeersForOrg.throws(error);
 
             await fabricConnection.createChannelMap().should.be.rejectedWith(`Error querying channel list: ${error.message}`);
         });
