@@ -497,7 +497,7 @@ You will need the following:
 
 - Docker for Windows is configured to use Linux containers (this is the default)
 - You will need to install the C++ Build Tools for Windows from [windows-build-tools](https://github.com/felixrieseberg/windows-build-tools#windows-build-tools)
-- You will need to install OpenSSL v1.0.2 [Win32 OpenSSL](http://slproweb.com/products/Win32OpenSSL.html)
+- You will need to install OpenSSL v1.1.1 [OpenSSL binaries](https://www.openssl.org/community/binaries.html)
   - Install the normal version, not the version marked as "light"
   - Install the Win64 version into `C:\OpenSSL-Win64` on 64-bit systems
 

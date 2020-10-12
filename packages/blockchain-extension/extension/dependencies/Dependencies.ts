@@ -20,7 +20,7 @@ export class Dependencies {
     static readonly DOCKER_REQUIRED: string = '>=17.6.2';
     static readonly DOCKER_COMPOSE_REQUIRED: string = '>=1.14.0';
 
-    static readonly OPENSSL_REQUIRED: string = '1.0.2';
+    static readonly OPENSSL_REQUIRED: string = '1.1.1';
 
     static readonly GO_REQUIRED: string = '>=1.12.0';
     static readonly JAVA_REQUIRED: string = '1.8.x';
