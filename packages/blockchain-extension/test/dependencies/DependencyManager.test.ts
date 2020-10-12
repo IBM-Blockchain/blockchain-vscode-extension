@@ -478,7 +478,7 @@ describe('DependencyManager Tests', () => {
                     },
                     openssl: {
                         name: 'OpenSSL',
-                        version: '1.0.2',
+                        version: '1.1.1',
                         requiredVersion: DependencyVersions.OPENSSL_REQUIRED
                     },
                     dockerForWindows: {
@@ -517,7 +517,7 @@ describe('DependencyManager Tests', () => {
                     },
                     openssl: {
                         name: 'OpenSSL',
-                        version: '1.0.2',
+                        version: '1.1.1',
                         requiredVersion: DependencyVersions.OPENSSL_REQUIRED
                     },
                     dockerForWindows: {
@@ -1703,10 +1703,10 @@ describe('DependencyManager Tests', () => {
 
                 existsStub.withArgs(`C:\\OpenSSL-Win32`).resolves(true);
                 existsStub.withArgs(`C:\\OpenSSL-Win64`).resolves(false);
-                sendCommandStub.withArgs(`C:\\OpenSSL-Win32\\bin\\openssl.exe version`).resolves('OpenSSL 1.0.2k  26 Jan 2017');
+                sendCommandStub.withArgs(`C:\\OpenSSL-Win32\\bin\\openssl.exe version`).resolves('OpenSSL 1.1.1k  26 Jan 2017');
 
                 const result: Dependencies = await dependencyManager.getPreReqVersions();
-                result.openssl.version.should.equal('1.0.2');
+                result.openssl.version.should.equal('1.1.1');
                 totalmemStub.should.have.been.calledOnce;
             });
 
