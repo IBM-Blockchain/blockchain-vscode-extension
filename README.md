@@ -455,7 +455,7 @@ The following dependencies are required on all operating systems:
 - [VS Code version 1.38.0 or greater](https://code.visualstudio.com)
 > VS Code version can be found by running: `code --version`
 
-- [Node v8.x or v10.x and npm v6.x or greater](https://nodejs.org/en/download/)
+- [Node v10 (v10.15.3 or greater) or v12 (v12.15.0 or greater) and npm v6.x or greater](https://nodejs.org/en/download/)
 > Node version can be found by running: `node --version`
 >
 > npm version can be found by running: `npm --version`
@@ -497,9 +497,8 @@ You will need the following:
 
 - Docker for Windows is configured to use Linux containers (this is the default)
 - You will need to install the C++ Build Tools for Windows from [windows-build-tools](https://github.com/felixrieseberg/windows-build-tools#windows-build-tools)
-- You will need to install OpenSSL v1.0.2 if using Node 8, or v1.1.1 if using Node 10 from [Win32 OpenSSL](http://slproweb.com/products/Win32OpenSSL.html)
+- You will need to install OpenSSL v1.0.2 [Win32 OpenSSL](http://slproweb.com/products/Win32OpenSSL.html)
   - Install the normal version, not the version marked as "light"
-  - Install the Win32 version into `C:\OpenSSL-Win32` on 32-bit systems
   - Install the Win64 version into `C:\OpenSSL-Win64` on 64-bit systems
 
 For more information see the [1 Org Local Fabric](#1-org-local-fabric) section.

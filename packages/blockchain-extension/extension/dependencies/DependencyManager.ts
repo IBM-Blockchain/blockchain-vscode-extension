@@ -254,12 +254,24 @@ export class DependencyManager {
 
         if (process.platform === 'win32') {
             // Windows
+            dependencies.buildTools = { name: 'C++ Build Tools', required: true, version: undefined, url: 'https://github.com/felixrieseberg/windows-build-tools#windows-build-tools', requiredVersion: undefined, requiredLabel: undefined };
+            try {
+                const buildToolsResult: string = await CommandUtil.sendCommand('npm ls -g windows-build-tools');
+                if (this.isCommandFound(buildToolsResult)) {
+                    const buildToolsMatchedVersion: string = buildToolsResult.match(/windows-build-tools@(\S*)/)[1]; // Format: X.Y.Z
+                    const buildToolsVersion: string = semver.valid(buildToolsMatchedVersion); // Returns version
+                    if (buildToolsVersion) {
+                        dependencies.buildTools.version = buildToolsVersion;
+                    }
+                }
+            } catch (error) {
+                // Ignore
+            }
 
             if (localFabricEnabled) {
                 dependencies.dockerForWindows = { name: 'Docker for Windows', id: 'dockerForWindows', complete: undefined, checkbox: true, required: true, text: 'Docker for Windows must be configured to use Linux containers (this is the default)' };
 
                 dependencies.openssl = { name: 'OpenSSL', required: true, version: undefined, url: 'http://slproweb.com/products/Win32OpenSSL.html', requiredVersion: Dependencies.OPENSSL_REQUIRED, requiredLabel: 'for Node 8.x and Node 10.x respectively', tooltip: 'Install the Win32 version into `C:\\OpenSSL-Win32` on 32-bit systems and the Win64 version into `C:\\OpenSSL-Win64` on 64-bit systems`.' };
-                dependencies.buildTools = { name: 'C++ Build Tools', required: true, version: undefined, url: 'https://github.com/felixrieseberg/windows-build-tools#windows-build-tools', requiredVersion: undefined, requiredLabel: undefined };
                 try {
                     const win32: boolean = await fs.pathExists(`C:\\OpenSSL-Win32`);
                     const win64: boolean = await fs.pathExists(`C:\\OpenSSL-Win64`);
@@ -274,19 +286,6 @@ export class DependencyManager {
                             if (opensslVersion) {
                                 dependencies.openssl.version = opensslVersion;
                             }
-                        }
-                    }
-                } catch (error) {
-                    // Ignore
-                }
-
-                try {
-                    const buildToolsResult: string = await CommandUtil.sendCommand('npm ls -g windows-build-tools');
-                    if (this.isCommandFound(buildToolsResult)) {
-                        const buildToolsMatchedVersion: string = buildToolsResult.match(/windows-build-tools@(\S*)/)[1]; // Format: X.Y.Z
-                        const buildToolsVersion: string = semver.valid(buildToolsMatchedVersion); // Returns version
-                        if (buildToolsVersion) {
-                            dependencies.buildTools.version = buildToolsVersion;
                         }
                     }
                 } catch (error) {
