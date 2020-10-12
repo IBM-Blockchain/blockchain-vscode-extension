@@ -24,14 +24,16 @@ import { SettingConfigurations } from '../configurations';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from 'ibm-blockchain-platform-common';
+import { Dependencies } from '../dependencies/Dependencies';
 
 export class PreReqView extends View {
 
-    public dependencies: any;
+    public dependencies: Dependencies;
     public restoreCommandHijack: boolean = false;
 
-    constructor(context: vscode.ExtensionContext) {
+    constructor(context: vscode.ExtensionContext, d?: Dependencies) {
         super(context, 'preReq', 'Prerequisites');
+        this.dependencies = d;
     }
 
     async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
@@ -50,7 +52,7 @@ export class PreReqView extends View {
                 // If they close the panel by pressing 'x', we need to determine whether to restore command hijacking.
                 // This is because it's possible to open the prereq page even after having installed all the prereqs.
                 const dependencyManager: DependencyManager = DependencyManager.instance();
-                isComplete = await dependencyManager.hasPreReqsInstalled();
+                isComplete = await dependencyManager.hasPreReqsInstalled(this.dependencies);
             }
 
             const bypassPreReqs: boolean = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_BYPASS_PREREQS);
@@ -103,22 +105,23 @@ export class PreReqView extends View {
                     await vscode.commands.executeCommand('setContext', 'local-fabric-enabled', localFabricFunctionality);
 
                     const dependencyManager: DependencyManager = DependencyManager.instance();
-                    const dependencies: any = await dependencyManager.getPreReqVersions();
 
-                    if (message.dockerForWindows) {
-                        // They have accepted that Docker for Windows has been configured correctly.
+                    // Refresh the dependencies
+                    const dependencies: Dependencies = await dependencyManager.getPreReqVersions();
+
+                    if (message.dockerForWindows || message.systemRequirements) {
                         const extensionData: ExtensionData = GlobalState.get();
-                        extensionData.dockerForWindows = true;
-                        dependencies.dockerForWindows.complete = true;
 
-                        // Update global state
-                        await GlobalState.update(extensionData);
-                    }
+                        if (message.dockerForWindows) {
+                            // They have accepted that Docker for Windows has been configured correctly.
+                            extensionData.dockerForWindows = true;
+                            dependencies.dockerForWindows.complete = true;
+                        }
 
-                    if (message.systemRequirements) {
-                        // They have accepted that Docker for Windows has been configured correctly.
-                        const extensionData: ExtensionData = GlobalState.get();
-                        dependencies.systemRequirements.complete = true;
+                        if (message.systemRequirements) {
+                            // They have accepted that Docker for Windows has been configured correctly.
+                            dependencies.systemRequirements.complete = true;
+                        }
 
                         // Update global state
                         await GlobalState.update(extensionData);
@@ -135,7 +138,7 @@ export class PreReqView extends View {
 
             } else if (message.command === 'skip') {
                 const dependencyManager: DependencyManager = DependencyManager.instance();
-                const dependencies: any = await dependencyManager.getPreReqVersions();
+                const dependencies: Dependencies = this.dependencies || await dependencyManager.getPreReqVersions();
                 const dependenciesMissingObject: any = {};
 
                 for (const dependency of Object.keys(dependencies)) {
@@ -171,15 +174,13 @@ export class PreReqView extends View {
         return;
     }
 
-    async getHTMLString(dependencies?: any, isComplete?: boolean, localFabricFunctionality?: boolean): Promise<any> {
+    async getHTMLString(d?: Dependencies, isComplete?: boolean, localFabricFunctionality?: boolean): Promise<any> {
         const packageJson: any = await ExtensionUtil.getPackageJSON();
         const extensionPath: string = ExtensionUtil.getExtensionPath();
         const extensionVersion: string = packageJson.version;
         const dependencyManager: DependencyManager = DependencyManager.instance();
 
-        if (!dependencies) {
-            dependencies = await dependencyManager.getPreReqVersions();
-        }
+        const dependencies: Dependencies = d || this.dependencies || await dependencyManager.getPreReqVersions();
 
         if (isComplete === undefined) {
             isComplete = await dependencyManager.hasPreReqsInstalled(dependencies);

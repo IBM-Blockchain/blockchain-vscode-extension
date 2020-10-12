@@ -66,7 +66,7 @@ export async function run(testsRoot: string, cb: (error: any, failures?: number)
     }
 
     try {
-        if (!process.env.WITHOUTCOVERAGE) {
+        if (process.env.WITHOUTCOVERAGE !== 'true') {
             console.log('setting up coverage');
             const coverOptions: ITestRunnerOptions = _readCoverOptions();
             if (coverOptions && coverOptions.enabled) {
@@ -75,6 +75,8 @@ export async function run(testsRoot: string, cb: (error: any, failures?: number)
                 const coverageRunner: CoverageRunner = new CoverageRunner(coverOptions, testsRoot);
                 coverageRunner.setupCoverage();
             }
+        } else {
+            console.log('coverage is disabled');
         }
 
         console.log('finding files', testsRoot);

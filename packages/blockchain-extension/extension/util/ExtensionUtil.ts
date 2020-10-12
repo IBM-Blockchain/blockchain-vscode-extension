@@ -114,6 +114,7 @@ import { URL } from 'url';
 import { FeatureFlagManager } from './FeatureFlags';
 import { openConsoleInBrowser } from '../commands/openConsoleInBrowserCommand';
 import { deleteExtensionDirectory } from '../commands/deleteExtensionDirectoryCommand';
+import { Dependencies } from '../dependencies/Dependencies';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -740,8 +741,8 @@ export class ExtensionUtil {
     }
 
     public static async registerPreReqAndReleaseNotesCommand(context: vscode.ExtensionContext): Promise<vscode.ExtensionContext> {
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_PRE_REQ_PAGE, async () => {
-            const preReqView: PreReqView = new PreReqView(context);
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_PRE_REQ_PAGE, async (d: Dependencies) => {
+            const preReqView: PreReqView = new PreReqView(context, d);
             await preReqView.openView(true);
         }));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_RELEASE_NOTES, () => openReleaseNotes()));
