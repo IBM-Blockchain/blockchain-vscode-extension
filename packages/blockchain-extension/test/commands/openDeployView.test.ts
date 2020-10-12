@@ -78,7 +78,7 @@ describe('OpenDeployView', () => {
 
             localEnvironmentConnectionMock = mySandBox.createStubInstance(FabricEnvironmentConnection);
             localEnvironmentConnectionMock.environmentName = FabricRuntimeUtil.LOCAL_FABRIC;
-            localEnvironmentConnectionMock.createChannelMap.resolves(map);
+            localEnvironmentConnectionMock.createChannelMap.resolves({channelMap: map, v1channels: []});
             localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.resolves(contractDefinitions);
             localEnvironmentConnectionMock.getAllDiscoveredPeerNames.resolves(['Org1Peer1', 'Org2Peer1']);
             const orgMap: Map<string, string[]> = new Map();
@@ -87,7 +87,7 @@ describe('OpenDeployView', () => {
             localEnvironmentConnectionMock.getDiscoveredOrgs.resolves(orgMap);
             otherEnvironmentConnectionMock = mySandBox.createStubInstance(FabricEnvironmentConnection);
             otherEnvironmentConnectionMock.environmentName = 'otherEnvironment';
-            otherEnvironmentConnectionMock.createChannelMap.resolves(map);
+            otherEnvironmentConnectionMock.createChannelMap.resolves({channelMap: map, v1channels: []});
             localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.resolves(contractDefinitions);
 
             fabricEnvironmentManager = FabricEnvironmentManager.instance();

@@ -36,7 +36,7 @@ export interface IFabricEnvironmentConnection {
 
     getAllPeerNamesForOrg(orgName: string): Array<string>;
 
-    createChannelMap(): Promise<Map<string, Array<string>>>;
+    createChannelMap(): Promise<{channelMap: Map<string, Array<string>>, v1channels: Array<string>}>;
 
     getCommittedSmartContractDefinitions(peerNames: Array<string>, channelName: string): Promise<Array<FabricSmartContractDefinition>>;
 

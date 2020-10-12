@@ -406,7 +406,8 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         try {
             const connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
 
-            const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
+            const createChannelsResult: {channelMap: Map<string, Array<string>>, v1channels: Array<string>} = await connection.createChannelMap();
+            const channelMap: Map<string, Array<string>> = createChannelsResult.channelMap;
             const channels: Array<string> = Array.from(channelMap.keys());
 
             const tree: Array<ChannelTreeItem> = [];

@@ -93,7 +93,7 @@ describe('EnvironmentConnectCommand', () => {
             mySandBox.stub(ExtensionUtil.getBlockchainEnvironmentExplorerProvider(), 'refresh').resolves();
             mockConnection = mySandBox.createStubInstance(FabricEnvironmentConnection);
             mockConnection.connect.resolves();
-            mockConnection.createChannelMap.resolves();
+            mockConnection.createChannelMap.resolves({channelMap: new Map(), v1channels: []});
 
             mySandBox.stub(FabricConnectionFactory, 'createFabricEnvironmentConnection').returns(mockConnection);
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand').callThrough();
@@ -247,6 +247,20 @@ describe('EnvironmentConnectCommand', () => {
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
 
                 sendTelemetryEventStub.should.not.have.been.called;
+            });
+
+            it('should connect but warn user if some channels do not have v2_0 capability enabled', async () => {
+                mockConnection.createChannelMap.resolves({channelMap: new Map(), v1channels: ['channel1', 'channel2']});
+
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+
+                chooseEnvironmentQuickPick.should.have.been.calledWith(sinon.match.string, false, true);
+                connectExplorerStub.should.have.been.called;
+                connectManagerSpy.should.have.been.calledWith(mockConnection, environmentRegistryEntry, ConnectedState.CONNECTING, true);
+                mockConnection.connect.should.have.been.called;
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'user environment', connectEnvironmentIBM: sinon.match.string });
+                logSpy.calledWith(LogType.WARNING, 'Detected channels without V2_0 capabilities enabled: channel1, channel2.');
+                logSpy.calledWith(LogType.SUCCESS, 'Connected to myFabric');
             });
 
             it('should do nothing if the user cancels after trying to connect to an Ops Tools evironment without nodes', async () => {

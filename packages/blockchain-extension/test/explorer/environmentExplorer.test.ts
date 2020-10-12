@@ -629,7 +629,7 @@ describe('environmentExplorer', () => {
                 const map: Map<string, Array<string>> = new Map<string, Array<string>>();
                 map.set('channelOne', ['peerOne']);
                 map.set('channelTwo', ['peerOne', 'peerTwo']);
-                fabricConnection.createChannelMap.resolves(map);
+                fabricConnection.createChannelMap.resolves({channelMap: map, v1channels: []});
 
                 fabricConnection.getCommittedSmartContractDefinitions.withArgs(['peerOne'], 'channelOne').resolves([{
                     name: 'biscuit-network',
@@ -862,11 +862,11 @@ describe('environmentExplorer', () => {
 
                 const installedChaincodeMapOne: FabricInstalledSmartContract[] = [{ label: 'sample-car-network', packageId: '1.0' }, { label: 'sample-car-network', packageId: '1.2' }, { label: 'sample-food-network', packageId: '0.6' }];
 
-                fabricConnection.getInstalledSmartContracts.withArgs('peerOne').returns(installedChaincodeMapOne);
+                fabricConnection.getInstalledSmartContracts.withArgs('peerOne').returns({channelMap: installedChaincodeMapOne, v1channels: []});
 
                 const installedChaincodeMapTwo: FabricInstalledSmartContract[] = [{ label: 'biscuit-network', packageId: '0.7' }, { label: 'sample-food-network', packageId: '0.6' }];
 
-                fabricConnection.getInstalledSmartContracts.withArgs('peerTwo').returns(installedChaincodeMapTwo);
+                fabricConnection.getInstalledSmartContracts.withArgs('peerTwo').returns({channelMap: installedChaincodeMapTwo, v1channels: []});
 
                 fabricConnection.getCommittedSmartContractDefinitions.withArgs(['peerOne'], 'channelOne').resolves([{
                     name: 'biscuit-network',
@@ -894,7 +894,7 @@ describe('environmentExplorer', () => {
                 map.set('channelOne', ['peerOne']);
                 map.set('channelTwo', ['peerOne', 'peerTwo']);
                 map.set('channelThree', ['peerOne']);
-                fabricConnection.createChannelMap.resolves(map);
+                fabricConnection.createChannelMap.resolves({channelMap: map, v1channels: []});
 
                 environmentRegistry = new FabricEnvironmentRegistryEntry();
                 environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
@@ -910,8 +910,8 @@ describe('environmentExplorer', () => {
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
 
                 const getTransactionNamesStub: sinon.SinonStub = mySandBox.stub(MetadataUtil, 'getTransactionNames');
-                getTransactionNamesStub.withArgs(sinon.match.any, 'biscuit-network', sinon.match.any).resolves(new Map<string, string[]>());
-                getTransactionNamesStub.withArgs(sinon.match.any, 'cake-network', sinon.match.any).resolves(new Map<string, string[]>());
+                getTransactionNamesStub.withArgs(sinon.match.any, 'biscuit-network', sinon.match.any).resolves({channelMap: new Map<string, string[]>(), v1channels: []});
+                getTransactionNamesStub.withArgs(sinon.match.any, 'cake-network', sinon.match.any).resolves({channelMap: new Map<string, string[]>(), v1channels: []});
                 getTransactionNamesStub.withArgs(sinon.match.any, 'legacy-network', sinon.match.any).resolves(null);
             });
 
@@ -1395,7 +1395,7 @@ describe('environmentExplorer', () => {
             map.set('channelOne', ['peerOne']);
             map.set('channelTwo', ['peerOne', 'peerTwo']);
             const fabricConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection> = mySandBox.createStubInstance(FabricEnvironmentConnection);
-            fabricConnection.createChannelMap.resolves(map);
+            fabricConnection.createChannelMap.resolves({channelMap: map, v1channels: []});
 
             fabricConnection.getCommittedSmartContractDefinitions.withArgs(['peerOne'], 'channelOne').resolves([{
                 name: 'biscuit-network',

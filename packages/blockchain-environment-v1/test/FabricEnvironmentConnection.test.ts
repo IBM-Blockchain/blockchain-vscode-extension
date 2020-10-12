@@ -463,11 +463,30 @@ describe('FabricEnvironmentConnection', () => {
         });
 
         it('should get all of the channel names, with the list of peers', async () => {
-            const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
+            const createChannelsResult: {channelMap: Map<string, Array<string>>, v1channels: Array<string>} = await connection.createChannelMap();
+            const channelMap: Map<string, Array<string>> = createChannelsResult.channelMap;
             channelMap.should.deep.equal(
                 new Map<string, Array<string>>(
                     [
                         ['channel1', ['peer0.org1.example.com']],
+                        ['channel2', ['peer0.org1.example.com', 'peer0.org2.example.com']]
+                    ]
+                )
+            );
+
+            mockPeer1.getChannelCapabilities.should.have.been.calledTwice;
+            mockPeer2.getChannelCapabilities.should.have.been.calledOnce;
+        });
+
+        it('should get only the V2 channel names, with the list of peers', async () => {
+            mockPeer1.getChannelCapabilities.onFirstCall().resolves(['V1_4_3']);            // peer 1 channel 1
+            mockPeer1.getChannelCapabilities.onSecondCall().resolves(['V1_4_3', 'V2_0']);   // peer 1 channel 2
+            mockPeer2.getChannelCapabilities.resolves(['V2_0']);                            // peer 2 channel 2
+            const createChannelsResult: {channelMap: Map<string, Array<string>>, v1channels: Array<string>} = await connection.createChannelMap();
+            const channelMap: Map<string, Array<string>> = createChannelsResult.channelMap;
+            channelMap.should.deep.equal(
+                new Map<string, Array<string>>(
+                    [
                         ['channel2', ['peer0.org1.example.com', 'peer0.org2.example.com']]
                     ]
                 )
@@ -483,11 +502,12 @@ describe('FabricEnvironmentConnection', () => {
                 .should.be.rejectedWith(/Cannot connect to Fabric/);
         });
 
-        it('should throw error if channel is not using v2 capabilities', async () => {
+        it('should throw error if none of the channels is using v2 capabilities', async () => {
             mockPeer1.getChannelCapabilities.resolves(['V1_4_3']);
-            await connection.createChannelMap().should.be.rejectedWith(/Unable to connect to network, channel 'channel1' does not have V2_0 capabilities enabled./);
-            mockPeer1.getChannelCapabilities.should.have.been.calledOnce;
-            mockPeer2.getChannelCapabilities.should.not.have.been.called;
+            mockPeer2.getChannelCapabilities.resolves(['V1_4_3']);
+            await connection.createChannelMap().should.be.rejectedWith(/There are no channels with V2_0 capabilities enabled./);
+            mockPeer1.getChannelCapabilities.should.have.been.calledTwice;
+            mockPeer2.getChannelCapabilities.should.have.been.calledOnce;
         });
 
         it('should rethrow any other errors', async () => {

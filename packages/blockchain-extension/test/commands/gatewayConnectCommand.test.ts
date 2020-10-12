@@ -86,6 +86,8 @@ describe('GatewayConnectCommand', () => {
 
             mySandBox.stub(FabricConnectionFactory, 'createFabricGatewayConnection').returns(mockConnection);
 
+            mockConnection.createChannelMap.resolves({channelMap: new Map(), v1channels: []});
+
             rootPath = path.dirname(__dirname);
 
             connectionSingle = new FabricGatewayRegistryEntry({
@@ -335,6 +337,22 @@ describe('GatewayConnectCommand', () => {
                 logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `${error.message}`, `${error.toString()}`);
                 sendTelemetryEventStub.should.not.have.been.called;
             });
+
+            it('should test a fabric gateway can be connected to from the command and user informed if some channels are not v2_0', async () => {
+                const connectStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil.getBlockchainGatewayExplorerProvider(), 'connect');
+                mockConnection.createChannelMap.resolves({channelMap: new Map(), v1channels: ['channel1']});
+                const gatewayName: string = connectionSingle.name;
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
+
+                connectStub.should.have.been.calledOnce;
+                choseIdentityQuickPick.should.not.have.been.called;
+                mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label, timeout);
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
+                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `connect`);
+                logSpy.getCall(1).should.have.been.calledWith(LogType.WARNING, 'Detected channels without V2_0 capabilities enabled: channel1.');
+                logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Connecting to ${gatewayName}`);
+            });
+
         });
 
         describe('wallet associated and local fabric', () => {

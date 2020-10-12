@@ -433,7 +433,8 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
         const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
 
         try {
-            const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
+            const createChannelsResult: {channelMap: Map<string, Array<string>>, v1channels: Array<string>} = await connection.createChannelMap();
+            const channelMap: Map<string, Array<string>> = createChannelsResult.channelMap;
             const channels: Array<string> = Array.from(channelMap.keys());
 
             for (const channel of channels) {
