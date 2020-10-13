@@ -500,10 +500,26 @@ describe('DependencyManager Tests', () => {
                 getPreReqVersionsStub.resolves(dependencies);
 
                 const dependencyManager: DependencyManager = DependencyManager.instance();
-                const result: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+                const resultNode8: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+                resultNode8.should.equal(false);
 
-                result.should.equal(false);
-                getPreReqVersionsStub.should.have.been.calledOnce;
+                dependencies.node.version = '10.15.2';
+                const resultNode10low: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+                resultNode10low.should.equal(false);
+
+                dependencies.node.version = '11.1.1';
+                const resultNode11: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+                resultNode11.should.equal(false);
+
+                dependencies.node.version = '12.13.0';
+                const resultNode12low: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+                resultNode12low.should.equal(false);
+
+                dependencies.node.version = '13.0.0';
+                const resultNode13: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+                resultNode13.should.equal(false);
+
+                getPreReqVersionsStub.callCount.should.equal(5);
 
             });
 
@@ -783,21 +799,21 @@ describe('DependencyManager Tests', () => {
         it('should get extension context if not passed to dependency manager', async () => {
             mySandBox.stub(process, 'platform').value('some_other_platform');
 
-            sendCommandStub.withArgs('node -v').resolves('v8.12.0');
+            sendCommandStub.withArgs('node -v').resolves('v10.15.3');
 
             const _dependencyManager: DependencyManager = DependencyManager.instance();
             const result: Dependencies = await _dependencyManager.getPreReqVersions();
-            result.node.version.should.equal('8.12.0');
+            result.node.version.should.equal('10.15.3');
             totalmemStub.should.have.been.calledOnce;
         });
 
         it('should get version of node', async () => {
             mySandBox.stub(process, 'platform').value('some_other_platform');
 
-            sendCommandStub.withArgs('node -v').resolves('v8.12.0');
+            sendCommandStub.withArgs('node -v').resolves('v10.15.3');
 
             const result: Dependencies = await dependencyManager.getPreReqVersions();
-            result.node.version.should.equal('8.12.0');
+            result.node.version.should.equal('10.15.3');
             totalmemStub.should.have.been.calledOnce;
         });
 

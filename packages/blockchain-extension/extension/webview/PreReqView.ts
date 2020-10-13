@@ -24,7 +24,7 @@ import { SettingConfigurations } from '../configurations';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from 'ibm-blockchain-platform-common';
-import { Dependencies } from '../dependencies/Dependencies';
+import { Dependencies, Dependency, DependencyWithVersion } from '../dependencies/Dependencies';
 
 export class PreReqView extends View {
 
@@ -191,12 +191,21 @@ export class PreReqView extends View {
         let missingPrerequisitesLength: number = 0;
 
         for (const _dependency of Object.keys(dependencies)) {
+            let dependency: Dependency = dependencies[_dependency];
+            if (_dependency === 'node') {
+                // Make node version requirements more readable
+                const modified: DependencyWithVersion = {
+                    ...dependencies[_dependency],
+                    requiredVersion: dependencies[_dependency].requiredVersion.replace(/<.*\|\|/, '||').replace(/<.*/, ''),
+                };
+                dependency = modified;
+            }
 
-            const isInstalled: boolean = dependencyManager.isValidDependency(dependencies[_dependency]);
+            const isInstalled: boolean = dependencyManager.isValidDependency(dependency);
             if (isInstalled) {
-                installedDependencies[_dependency] = dependencies[_dependency];
+                installedDependencies[_dependency] = dependency;
             } else {
-                missingDependencies[_dependency] = dependencies[_dependency];
+                missingDependencies[_dependency] = dependency;
 
                 // Count the required missing prerequisites
                 if (missingDependencies[_dependency].required === true) {

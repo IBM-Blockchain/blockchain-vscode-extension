@@ -30,7 +30,7 @@ export class DependencyProperties {
     static readonly IBM_CLOUD_ACCOUNT_EXTENSION: string = 'IBM.ibmcloud-account';
 }
 
-interface Dependency {
+export interface Dependency {
     name: string;
     required: boolean;
 }
