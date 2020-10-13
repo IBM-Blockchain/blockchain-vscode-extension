@@ -22,6 +22,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType, FileSystemUtil } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { SettingConfigurations } from '../../configurations';
+import { CommandUtil } from '../util/CommandUtil';
 
 /**
  * Main function which calls the methods and refreshes the blockchain explorer box each time that it runs successfully.
@@ -116,6 +117,14 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
             // Determine the path argument.
             let contractPath: string = workspace.uri.fsPath; // Workspace path
             if (language === 'golang') {
+
+                // fabric-client requires the project to be under the GOPATH
+                // https://github.com/hyperledger/fabric-sdk-node/blob/release-1.3/fabric-client/lib/packager/Golang.js#L34
+                const isModule: boolean = await fs.pathExists(path.join(contractPath, 'go.mod'));
+                if (isModule) {
+                    await CommandUtil.sendCommandWithOutput('go', ['mod', 'vendor'], contractPath);
+                }
+
                 if (!process.env.GOPATH) {
                     // The path is relative to $GOPATH/src for Go smart contracts.
                     const indexSrc: number = contractPath.indexOf(path.sep + 'src' + path.sep);
