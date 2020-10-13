@@ -114,12 +114,17 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
 
         await connection.connect(nodes);
 
+        let createChannelsResult: {channelMap: Map<string, string[]>, v1channels: string[]};
         try {
-            await connection.createChannelMap();
+            createChannelsResult = await connection.createChannelMap();
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error connecting to environment ${fabricEnvironment.getName()}: ${error.message}`, `Error connecting to environment ${fabricEnvironment.getName()}: ${error.toString()}`);
             await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             return;
+        }
+
+        if (createChannelsResult.v1channels.length !== 0) {
+            VSCodeBlockchainOutputAdapter.instance().log(LogType.WARNING, `Detected channels without V2_0 capabilities enabled: ${createChannelsResult.v1channels.join(', ')}.`);
         }
 
         FabricEnvironmentManager.instance().connect(connection, fabricEnvironmentRegistryEntry, ConnectedState.CONNECTING, startRefresh);

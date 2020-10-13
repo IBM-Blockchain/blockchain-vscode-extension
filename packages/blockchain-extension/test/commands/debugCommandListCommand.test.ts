@@ -76,7 +76,7 @@ describe('DebugCommandListCommand', () => {
 
         const channelMap: Map<string, string[]> = new Map<string, string[]>();
         channelMap.set('mychannel', ['peerOne']);
-        runtimeStub.createChannelMap.resolves(channelMap);
+        runtimeStub.createChannelMap.resolves({channelMap: channelMap, v1channels: []});
         runtimeStub.getCommittedSmartContractDefinitions.resolves([]);
 
         environmentConnectionStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns(runtimeStub);

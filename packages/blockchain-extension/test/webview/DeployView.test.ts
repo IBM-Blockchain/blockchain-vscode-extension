@@ -118,7 +118,7 @@ describe('DeployView', () => {
 
         const channelMap: Map<string, string[]> = new Map();
         channelMap.set('mychannel', ['Org1Peer1', 'Org1Peer2']);
-        localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
+        localEnvironmentConnectionMock.createChannelMap.resolves({channelMap: channelMap, v1channels: []});
 
         const orgApproval: Map<string, boolean> = new Map();
         orgApproval.set('Org1MSP', true);
@@ -789,7 +789,7 @@ describe('DeployView', () => {
 
             const channelMap: Map<string, string[]> = new Map();
             channelMap.set('mychannel', ['Org1Peer1', 'Org2Peer1']);
-            localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
+            localEnvironmentConnectionMock.createChannelMap.resolves({channelMap: channelMap, v1channels: []});
 
             await deployView.getOrgApprovals(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'defName', '0.0.1', undefined, undefined);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
@@ -820,7 +820,7 @@ describe('DeployView', () => {
 
             const channelMap: Map<string, string[]> = new Map();
             channelMap.set('mychannel', ['Org1Peer1', 'Org2Peer1']);
-            localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
+            localEnvironmentConnectionMock.createChannelMap.resolves({channelMap: channelMap, v1channels: []});
 
             await deployView.getOrgApprovals(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'defName', '0.0.1', undefined, undefined);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
@@ -854,7 +854,7 @@ describe('DeployView', () => {
 
             const channelMap: Map<string, string[]> = new Map();
             channelMap.set('mychannel', ['Org1Peer1', 'Org2Peer1']);
-            localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
+            localEnvironmentConnectionMock.createChannelMap.resolves({channelMap: channelMap, v1channels: []});
 
             await deployView.getOrgApprovals(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'defName', '0.0.1', undefined, undefined);
 
@@ -891,7 +891,7 @@ describe('DeployView', () => {
 
             const channelMap: Map<string, string[]> = new Map();
             channelMap.set('mychannel', ['Org1Peer1', 'Org2Peer1']);
-            localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
+            localEnvironmentConnectionMock.createChannelMap.resolves({channelMap: channelMap, v1channels: []});
 
             await deployView.getOrgApprovals(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'defName', '0.0.1', undefined, undefined);
 
@@ -927,7 +927,7 @@ describe('DeployView', () => {
 
             const channelMap: Map<string, string[]> = new Map();
             channelMap.set('mychannel', ['Org1Peer1', 'Org2Peer1']);
-            localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
+            localEnvironmentConnectionMock.createChannelMap.resolves({channelMap: channelMap, v1channels: []});
 
             await deployView.getOrgApprovals(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'defName', '0.0.1', undefined, undefined);
 
@@ -961,7 +961,7 @@ describe('DeployView', () => {
 
             const channelMap: Map<string, string[]> = new Map();
             channelMap.set('mychannel', ['Org1Peer1', 'Org2Peer1']);
-            localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
+            localEnvironmentConnectionMock.createChannelMap.resolves({channelMap: channelMap, v1channels: []});
             localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.resolves([{ name: 'defName', version: '0.0.1', sequence: 1 }]);
 
             await deployView.getOrgApprovals(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'defName', '0.0.2', undefined, undefined);
@@ -999,7 +999,7 @@ describe('DeployView', () => {
 
             const channelMap: Map<string, string[]> = new Map();
             channelMap.set('mychannel', ['Org1Peer1', 'Org2Peer1']);
-            localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
+            localEnvironmentConnectionMock.createChannelMap.resolves({channelMap: channelMap, v1channels: []});
             localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.resolves([{ name: 'defName', version: '0.0.2', sequence: 1 }]);
             localEnvironmentConnectionMock.getOrgApprovals.rejects('sequenece needs incrementing'); // Not the exact error that would be shown
 
@@ -1035,7 +1035,7 @@ describe('DeployView', () => {
 
             const channelMap: Map<string, string[]> = new Map();
             channelMap.set('mychannel', ['Org1Peer1', 'Org2Peer1']);
-            localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
+            localEnvironmentConnectionMock.createChannelMap.resolves({channelMap: channelMap, v1channels: []});
 
             await deployView.getOrgApprovals(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'defName', '0.0.1', 'OR("Org1MSP.member","Org2MSP.member")', undefined);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
@@ -1072,7 +1072,7 @@ describe('DeployView', () => {
 
             const channelMap: Map<string, string[]> = new Map();
             channelMap.set('mychannel', ['Org1Peer1', 'Org2Peer1']);
-            localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
+            localEnvironmentConnectionMock.createChannelMap.resolves({channelMap: channelMap, v1channels: []});
 
             const collection: any = [
                 {

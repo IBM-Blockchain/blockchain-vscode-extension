@@ -23,7 +23,7 @@ export interface IFabricGatewayConnection {
 
     connect(wallet: IFabricWallet, identityName: string, timeout: number): Promise<void>;
 
-    createChannelMap(): Promise<Map<string, Array<string>>>;
+    createChannelMap(): Promise<{channelMap: Map<string, Array<string>>, v1channels: Array<string>}>;
 
     disconnect(): void;
 

@@ -57,11 +57,14 @@ describe('DependencyManager Tests', () => {
         });
 
         it(`should return false when dependency version is incorrect, absent or incomplete`, async () => {
-            const dependenciesKeys: string[] = ['node', 'java', 'docker', 'compose', 'go', 'goExtension', 'javaLangSupp', 'javaDebug', 'javaTestRunner', 'dockerWin', 'sysReq'];
+            const dependenciesKeys: string[] = ['node', 'nodeTestRunner', 'java', 'docker', 'compose', 'go', 'goExtension', 'javaLangSupp', 'javaDebug', 'javaTestRunner', 'dockerWin', 'sysReq'];
 
             const dependencies: any = {
                 node: {
                     name: 'Node.js'
+                },
+                nodeTestRunner: {
+                    name: 'Node Test Runner Extension'
                 },
                 java: {
                     name: 'Java OpenJDK 8'
@@ -108,11 +111,15 @@ describe('DependencyManager Tests', () => {
 
         it(`should return true when dependency version is correct, present or complete`, async () => {
             semverSatisfiesStub.returns(true);
-            const dependenciesKeys: string[] = ['node', 'java', 'docker', 'compose', 'go', 'goExtension', 'javaLangSupp', 'javaDebug', 'javaTestRunner', 'dockerWin', 'sysReq'];
+            const dependenciesKeys: string[] = ['node', 'nodeTestRunner', 'java', 'docker', 'compose', 'go', 'goExtension', 'javaLangSupp', 'javaDebug', 'javaTestRunner', 'dockerWin', 'sysReq'];
 
             const dependencies: any = {
                 node: {
                     name: 'Node.js',
+                    version: 'x'
+                },
+                nodeTestRunner: {
+                    name: 'Node Test Runner Extension',
                     version: 'x'
                 },
                 java: {
@@ -614,7 +621,7 @@ describe('DependencyManager Tests', () => {
 
             });
 
-            it(`should return false if the optional Node dependency isn't between 8 and 11`, async () => {
+            it(`should return false if wrong Node version`, async () => {
                 const dependencies: any = {
                     docker: {
                         name: 'Docker',
@@ -632,7 +639,7 @@ describe('DependencyManager Tests', () => {
                     },
                     node: {
                         name: 'Node.js',
-                        version: '12',
+                        version: '8.12.0',
                         requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     }
                 };
@@ -640,10 +647,26 @@ describe('DependencyManager Tests', () => {
                 getPreReqVersionsStub.resolves(dependencies);
 
                 const dependencyManager: DependencyManager = DependencyManager.instance();
-                const result: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+                const resultNode8: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+                resultNode8.should.equal(false);
 
-                result.should.equal(false);
-                getPreReqVersionsStub.should.have.been.calledOnce;
+                dependencies.node.version = '10.15.2';
+                const resultNode10low: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+                resultNode10low.should.equal(false);
+
+                dependencies.node.version = '11.1.1';
+                const resultNode11: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+                resultNode11.should.equal(false);
+
+                dependencies.node.version = '12.13.0';
+                const resultNode12low: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+                resultNode12low.should.equal(false);
+
+                dependencies.node.version = '13.0.0';
+                const resultNode13: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+                resultNode13.should.equal(false);
+
+                getPreReqVersionsStub.callCount.should.equal(5);
 
             });
 
@@ -665,7 +688,7 @@ describe('DependencyManager Tests', () => {
                     },
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
@@ -702,7 +725,7 @@ describe('DependencyManager Tests', () => {
                     },
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
@@ -742,7 +765,7 @@ describe('DependencyManager Tests', () => {
                     },
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
@@ -786,7 +809,7 @@ describe('DependencyManager Tests', () => {
                     },
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
@@ -831,7 +854,7 @@ describe('DependencyManager Tests', () => {
                     },
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
@@ -880,7 +903,7 @@ describe('DependencyManager Tests', () => {
                     },
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
@@ -934,7 +957,7 @@ describe('DependencyManager Tests', () => {
                     },
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
@@ -988,7 +1011,7 @@ describe('DependencyManager Tests', () => {
                     },
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
@@ -1046,7 +1069,7 @@ describe('DependencyManager Tests', () => {
                     },
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
@@ -1108,7 +1131,7 @@ describe('DependencyManager Tests', () => {
                     },
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
@@ -1154,6 +1177,76 @@ describe('DependencyManager Tests', () => {
 
             });
 
+            it(`should return false if the optional Node Test Runner Extension hasn't been installed`, async () => {
+                mySandBox.stub(process, 'platform').value('linux');
+
+                const dependencies: any = {
+                    node: {
+                        name: 'Node.js',
+                        version: '10.15.3',
+                        requiredVersion: DependencyVersions.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: DependencyVersions.NPM_REQUIRED
+                    },
+                    docker: {
+                        name: 'Docker',
+                        version: '18.1.2',
+                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
+                    },
+                    dockerCompose: {
+                        name: 'Docker Compose',
+                        version: '1.21.1',
+                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
+                    },
+                    systemRequirements: {
+                        name: 'System Requirements',
+                        complete: true
+                    },
+                    go: {
+                        name: 'Go',
+                        version: '2.0.0',
+                        requiredVersion: DependencyVersions.GO_REQUIRED
+                    },
+                    goExtension: {
+                        name: 'Go Extension',
+                        version: '1.0.0'
+                    },
+                    java: {
+                        name: 'Java OpenJDK 8',
+                        version: '1.8.0',
+                        requiredVersion: DependencyVersions.JAVA_REQUIRED
+                    },
+                    javaLanguageExtension: {
+                        name: 'Java Language Support Extension',
+                        version: '1.0.0'
+                    },
+                    javaDebuggerExtension: {
+                        name: 'Java Debugger Extension',
+                        version: '1.0.0'
+                    },
+                    javaTestRunnerExtension: {
+                        name: 'Java Test Runner Extension',
+                        version: '1.0.0'
+                    },
+                    nodeTestRunnerExtension: {
+                        name: 'Node Test Runner Extension',
+                        version: undefined
+                    }
+                };
+
+                getPreReqVersionsStub.resolves(dependencies);
+
+                const dependencyManager: DependencyManager = DependencyManager.instance();
+                const result: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+
+                result.should.equal(false);
+                getPreReqVersionsStub.should.have.been.calledOnce;
+
+            });
+
             it(`should return true if all the optional prereqs have been installed`, async () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
@@ -1174,7 +1267,7 @@ describe('DependencyManager Tests', () => {
                     },
                     node: {
                         name: 'Node.js',
-                        version: '8.12.0',
+                        version: '10.15.3',
                         requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
                     npm: {
@@ -1206,6 +1299,10 @@ describe('DependencyManager Tests', () => {
                     },
                     javaTestRunnerExtension: {
                         name: 'Java Test Runner Extension',
+                        version: '1.0.0'
+                    },
+                    nodeTestRunnerExtension: {
+                        name: 'Node Test Runner Extension',
                         version: '1.0.0'
                     }
                 };
@@ -1256,21 +1353,21 @@ describe('DependencyManager Tests', () => {
         it('should get extension context if not passed to dependency manager', async () => {
             mySandBox.stub(process, 'platform').value('some_other_platform');
 
-            sendCommandStub.withArgs('node -v').resolves('v8.12.0');
+            sendCommandStub.withArgs('node -v').resolves('v10.15.3');
 
             const _dependencyManager: DependencyManager = DependencyManager.instance();
             const result: Dependencies = await _dependencyManager.getPreReqVersions();
-            result.node.version.should.equal('8.12.0');
+            result.node.version.should.equal('10.15.3');
             totalmemStub.should.have.been.calledOnce;
         });
 
         it('should get version of node', async () => {
             mySandBox.stub(process, 'platform').value('some_other_platform');
 
-            sendCommandStub.withArgs('node -v').resolves('v8.12.0');
+            sendCommandStub.withArgs('node -v').resolves('v10.15.3');
 
             const result: Dependencies = await dependencyManager.getPreReqVersions();
-            result.node.version.should.equal('8.12.0');
+            result.node.version.should.equal('10.15.3');
             totalmemStub.should.have.been.calledOnce;
         });
 
@@ -1541,6 +1638,30 @@ describe('DependencyManager Tests', () => {
 
             const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.javaTestRunnerExtension.version);
+            totalmemStub.should.have.been.calledOnce;
+        });
+
+        it('should get version of Node Test Runner Extension', async () => {
+            const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
+            getExtensionStub.withArgs('oshri6688.javascript-test-runner').returns({
+                packageJSON: {
+                    version: '2.0.0'
+                }
+            });
+
+            const result: any = await dependencyManager.getPreReqVersions();
+            result.nodeTestRunnerExtension.version.should.equal('2.0.0');
+            totalmemStub.should.have.been.calledOnce;
+        });
+
+        it('should not get version of Node Test Runner Extension if it cannot be found', async () => {
+            mySandBox.stub(process, 'platform').value('some_other_platform');
+
+            const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
+            getExtensionStub.withArgs('oshri6688.javascript-test-runner').returns(undefined);
+
+            const result: any = await dependencyManager.getPreReqVersions();
+            should.not.exist(result.nodeTestRunnerExtension.version);
             totalmemStub.should.have.been.calledOnce;
         });
 

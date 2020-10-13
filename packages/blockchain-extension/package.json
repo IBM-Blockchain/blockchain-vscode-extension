@@ -1594,7 +1594,6 @@
         "yeoman-environment": "^2.3.3"
     },
     "extensionPack": [
-        "oshri6688.javascript-test-runner",
         "IBM.ibmcloud-account"
     ],
     "license-check-and-add-config": {

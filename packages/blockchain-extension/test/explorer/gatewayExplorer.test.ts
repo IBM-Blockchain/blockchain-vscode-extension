@@ -583,7 +583,7 @@ ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Wallet`);
                 map.set('channelTwo', ['peerOne', 'peerTwo']);
 
                 fabricConnection.getAllChannelsForPeer.withArgs('peerTwo').resolves(['channelTwo']);
-                fabricConnection.createChannelMap.resolves(map);
+                fabricConnection.createChannelMap.resolves({channelMap: map, v1channels: []});
                 fabricConnection.identityName = 'pigeon';
 
                 fabricConnection.getMetadata.withArgs('legacy-network', 'channelTwo').resolves(null);

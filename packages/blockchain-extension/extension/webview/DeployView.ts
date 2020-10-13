@@ -140,7 +140,8 @@ export class DeployView extends ReactView {
             // All discovered orgs and peers.
             const orgMap: Map<string, string[]> = await connection.getDiscoveredOrgs(channelName);
 
-            const channelMap: Map<string, string[]> = await connection.createChannelMap();
+            const createChannelsResult: {channelMap: Map<string, string[]>, v1channels: string[]} = await connection.createChannelMap();
+            const channelMap: Map<string, string[]> = createChannelsResult.channelMap;
 
             // Environment's peers
             const channelPeers: string[] = channelMap.get(channelName);
@@ -261,7 +262,8 @@ export class DeployView extends ReactView {
                 throw new Error(`Unable to deploy, cannot connect to environment: ${environmentEntry.name}`);
             }
 
-            const channelMap: Map<string, string[]> = await connection.createChannelMap();
+            const createChannelsResult: {channelMap: Map<string, string[]>, v1channels: string[]} = await connection.createChannelMap();
+            const channelMap: Map<string, string[]> = createChannelsResult.channelMap;
             const channelPeers: string[] = channelMap.get(channelName);
 
             const allCommittedContracts: FabricSmartContractDefinition[] = await connection.getCommittedSmartContractDefinitions(channelPeers, channelName);

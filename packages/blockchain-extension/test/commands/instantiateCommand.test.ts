@@ -118,7 +118,7 @@ describe('InstantiateCommand', () => {
             fabricRuntimeMock.getCommittedSmartContractDefinitions.resolves([]);
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
             map.set('myChannel', ['peerOne']);
-            fabricRuntimeMock.createChannelMap.resolves(map);
+            fabricRuntimeMock.createChannelMap.resolves({channelMap: map, v1channels: []});
 
             showQuickPick = mySandBox.stub(UserInputUtil, 'showQuickPick').resolves(UserInputUtil.DEFAULT_SC_EP);
             browseStub = mySandBox.stub(UserInputUtil, 'browse');

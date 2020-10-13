@@ -18,14 +18,14 @@ export class DependencyVersions {
     static readonly DOCKER_REQUIRED: string = '>=17.6.2';
     static readonly DOCKER_COMPOSE_REQUIRED: string = '>=1.14.0';
 
-    static readonly NODEJS_REQUIRED: string = '8.x || 10.x';
+    static readonly NODEJS_REQUIRED: string =  '>=10.15.3 < 11.0.0|| >=12.13.1 < 13.0.0';
     static readonly NPM_REQUIRED: string = '>=6.0.0';
     static readonly OPENSSL_REQUIRED: string = '1.0.2 || 1.1.1';
     static readonly GO_REQUIRED: string = '>=1.12.0';
     static readonly JAVA_REQUIRED: string = '1.8.x';
 }
 
-interface Dependency {
+export interface Dependency {
     name: string;
     required: boolean;
 }
@@ -57,6 +57,7 @@ export interface RequiredDependencies {
 
 export interface OptionalDependencies {
     node: DependencyWithVersion;
+    nodeTestRunnerExtension: DependencyWithVersion;
     npm: DependencyWithVersion;
     go: DependencyWithVersion;
     goExtension: DependencyWithVersion;
@@ -123,6 +124,15 @@ export const defaultDependencies: { required: RequiredDependencies, optional: Op
             requiredVersion: DependencyVersions.NODEJS_REQUIRED,
             requiredLabel: 'only',
             tooltip: 'Required for developing JavaScript and TypeScript smart contracts. If installing Node and npm using a manager such as \'nvm\' or \'nodenv\', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.'
+        },
+        nodeTestRunnerExtension: {
+            name: 'Node Test Runner Extension',
+            required: false,
+            version: undefined,
+            url: 'vscode:extension/oshri6688.javascript-test-runner',
+            requiredVersion: undefined,
+            requiredLabel: '',
+            tooltip: 'Used for running Node smart contract functional tests.'
         },
         npm: {
             name: 'npm',

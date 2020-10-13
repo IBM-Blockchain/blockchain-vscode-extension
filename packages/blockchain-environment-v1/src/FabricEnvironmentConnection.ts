@@ -186,10 +186,10 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         return this.lifecycle.getAllPeerNamesForOrg(orgName);
     }
 
-    public async createChannelMap(): Promise<Map<string, Array<string>>> {
+    public async createChannelMap(): Promise<{channelMap: Map<string, Array<string>>, v1channels: Array<string>}> {
         try {
             const channelMap: Map<string, Array<string>> = new Map<string, Array<string>>();
-
+            const v1channels: Array<string> = [];
             const peerNames: string[] = this.getAllPeerNames();
 
             for (const peerName of peerNames) {
@@ -198,7 +198,10 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
                     const peer: LifecyclePeer = await this.getPeer(peerName);
                     const capabilities: string[] = await peer.getChannelCapabilities(channelName);
                     if (!capabilities.includes('V2_0')) {
-                        throw new Error(`channel '${channelName}' does not have V2_0 capabilities enabled.`);
+                        if (!v1channels.includes(channelName)) {
+                            v1channels.push(channelName);
+                        }
+                        continue;
                     }
                     if (!channelMap.has(channelName)) {
                         channelMap.set(channelName, [peerName]);
@@ -208,12 +211,15 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
                 }
             }
 
-            return channelMap;
+            if (channelMap.size === 0) {
+                throw new Error(`There are no channels with V2_0 capabilities enabled.`);
+            }
+            return {channelMap: channelMap, v1channels: v1channels};
 
         } catch (error) {
             if (error.message && error.message.includes('Received http2 header with status: 503')) { // If gRPC can't connect to Fabric
                 throw new Error(`Cannot connect to Fabric: ${error.message}`);
-            } else if (error.message.includes('does not have V2_0 capabilities enabled.')) {
+            } else if (error.message.includes('There are no channels with V2_0 capabilities enabled.')) {
                 throw new Error(`Unable to connect to network, ${error.message}`);
             } else {
                 throw new Error(`Error querying channels: ${error.message}`);
@@ -238,7 +244,8 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
     public async getAllCommittedSmartContractDefinitions(): Promise<Array<FabricSmartContractDefinition>> {
 
         try {
-            const channelMap: Map<string, Array<string>> = await this.createChannelMap();
+            const createChannelsResult: {channelMap: Map<string, string[]>, v1channels: string[]} = await this.createChannelMap();
+            const channelMap: Map<string, string[]> = createChannelsResult.channelMap;
 
             const smartContractDefinitions: Array<FabricSmartContractDefinition> = [];
 

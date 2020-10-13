@@ -98,7 +98,7 @@ describe('UpgradeCommand', () => {
 
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
             map.set('channelOne', ['peerOne']);
-            fabricRuntimeMock.createChannelMap.resolves(map);
+            fabricRuntimeMock.createChannelMap.resolves({channelMap: map, v1channels: []});
 
             showChaincodeAndVersionQuickPick = mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick').withArgs(sinon.match.any, 'channelOne', ['peerOne']).resolves(
                 {
