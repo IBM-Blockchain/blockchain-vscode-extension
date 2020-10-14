@@ -271,13 +271,11 @@ export class DependencyManager {
             if (localFabricEnabled) {
                 dependencies.dockerForWindows = { name: 'Docker for Windows', id: 'dockerForWindows', complete: undefined, checkbox: true, required: true, text: 'Docker for Windows must be configured to use Linux containers (this is the default)' };
 
-                dependencies.openssl = { name: 'OpenSSL', required: true, version: undefined, url: 'http://slproweb.com/products/Win32OpenSSL.html', requiredVersion: Dependencies.OPENSSL_REQUIRED, requiredLabel: 'for Node 8.x and Node 10.x respectively', tooltip: 'Install the Win32 version into `C:\\OpenSSL-Win32` on 32-bit systems and the Win64 version into `C:\\OpenSSL-Win64` on 64-bit systems`.' };
+                dependencies.openssl = { name: 'OpenSSL', required: true, version: undefined, url: 'https://www.openssl.org/community/binaries.html', requiredVersion: Dependencies.OPENSSL_REQUIRED, requiredLabel: 'only', tooltip: 'Install the Win64 version into `C:\\OpenSSL-Win64` on 64-bit systems`.' };
                 try {
-                    const win32: boolean = await fs.pathExists(`C:\\OpenSSL-Win32`);
                     const win64: boolean = await fs.pathExists(`C:\\OpenSSL-Win64`);
-                    if (win32 || win64) {
-                        const arch: string = (win32) ? '32' : '64';
-                        const binPath: string = path.win32.join(`C:\\OpenSSL-Win${arch}`, 'bin', 'openssl.exe');
+                    if (win64) {
+                        const binPath: string = path.win32.join('C:\\OpenSSL-Win64', 'bin', 'openssl.exe');
                         const opensslResult: string = await CommandUtil.sendCommand(`${binPath} version`); // Format: OpenSSL 1.0.2k  26 Jan 2017
                         if (this.isCommandFound(opensslResult)) {
                             const opensslMatchedVersion: string = opensslResult.match(/OpenSSL (\S*)/)[1]; // Format: 1.0.2k
