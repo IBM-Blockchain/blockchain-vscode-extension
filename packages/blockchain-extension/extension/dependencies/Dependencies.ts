@@ -101,10 +101,10 @@ export const defaultDependencies: { required: RequiredDependencies, optional: Op
             name: 'OpenSSL',
             required: true,
             version: undefined,
-            url: 'http://slproweb.com/products/Win32OpenSSL.html',
+            url: 'https://www.openssl.org/community/binaries.html',
             requiredVersion: DependencyVersions.OPENSSL_REQUIRED,
-            requiredLabel: 'for Node 8.x and Node 10.x respectively',
-            tooltip: 'Install the Win32 version into `C:\\OpenSSL-Win32` on 32-bit systems and the Win64 version into `C:\\OpenSSL-Win64` on 64-bit systems`.'
+            requiredLabel: 'only',
+            tooltip: 'Install the Win64 version into `C:\\OpenSSL-Win64` on 64-bit systems`.'
         },
         dockerForWindows: {
             name: 'Docker for Windows',
