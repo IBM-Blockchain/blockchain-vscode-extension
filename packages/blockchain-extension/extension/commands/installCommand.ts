@@ -21,8 +21,9 @@ import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, 
 import { Reporter } from '../util/Reporter';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { SettingConfigurations } from '../configurations';
+import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 
-export async function installSmartContract(orgMap: Map<string, string[]>, chosenPackage: PackageRegistryEntry): Promise<string> {
+export async function installSmartContract(orgMap?: Map<string, string[]>, chosenPackage?: PackageRegistryEntry): Promise<string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'installSmartContract');
 
@@ -51,23 +52,53 @@ export async function installSmartContract(orgMap: Map<string, string[]>, chosen
             VSCodeBlockchainDockerOutputAdapter.instance(environmentRegistryEntry.name).show();
         }
 
-        for (const org of orgMap.keys()) {
-            const peers: string[] = orgMap.get(org);
-            for (const peer of peers) {
-                peerCount++;
-                progress.report({ message: `Installing Smart Contract on peer ${peer}` });
-                try {
-                    let timeout: number = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_CLIENT_TIMEOUT);
-                    // convert from seconds to milliseconds
-                    if (timeout) {
-                        timeout = timeout * 1000;
-                    }
-                    packageId = await connection.installSmartContract(chosenPackage.path, peer, `${chosenPackage.name}_${chosenPackage.version}`, timeout);
-                    outputAdapter.log(LogType.SUCCESS, `Successfully installed on peer ${peer}`);
-                } catch (error) {
-                    outputAdapter.log(LogType.ERROR, `Failed to install on peer ${peer} with reason: ${error.message}`, `Failed to install on peer ${peer} with reason: ${error.toString()}`);
-                    successfulInstall = false;
+        let peerNameArray: string[] = [];
+        let peerNames: Set<string>;
+        if (orgMap) {
+            for (const org of orgMap.keys()) {
+                peerNameArray.push(...orgMap.get(org));
+            }
+            peerNames = new Set(peerNameArray);
+        } else {
+            // TODO: remove/modify when v1 deploy view done. We are coming from cmd palette, ie, the user can only choose v1 channels
+            try {
+                const chosenChannel: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showV1ChannelQuickPickBox('Choose which channel to install the contract on');
+                if (!chosenChannel) {
+                    return;
                 }
+                peerNameArray = chosenChannel.data;
+                if (!peerNameArray || peerNameArray.length === 0) {
+                    return;
+                }
+                peerNames = new Set(peerNameArray);
+
+                // Coming from cm palette there will aso be no contract selected yet. Show only v1 contracts not yet installed.
+                const chosenInstallable: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install', peerNames) as IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>;
+                if (!chosenInstallable) {
+                    return;
+                }
+                chosenPackage = chosenInstallable.data.packageEntry;
+            } catch (error) {
+                outputAdapter.log(LogType.ERROR, `Unable to proceed with install command: ${error.message}`, `Unable to proceed with install command: ${error.toString()}`);
+                successfulInstall = false;
+                return;
+            }
+        }
+
+        for (const peer of peerNames) {
+            peerCount++;
+            progress.report({ message: `Installing Smart Contract on peer ${peer}` });
+            try {
+                let timeout: number = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_CLIENT_TIMEOUT);
+                // convert from seconds to milliseconds
+                if (timeout) {
+                    timeout = timeout * 1000;
+                }
+                packageId = await connection.installSmartContract(chosenPackage.path, peer, `${chosenPackage.name}_${chosenPackage.version}`, timeout);
+                outputAdapter.log(LogType.SUCCESS, `Successfully installed on peer ${peer}`);
+            } catch (error) {
+                outputAdapter.log(LogType.ERROR, `Failed to install on peer ${peer} with reason: ${error.message}`, `Failed to install on peer ${peer} with reason: ${error.toString()}`);
+                successfulInstall = false;
             }
         }
 
