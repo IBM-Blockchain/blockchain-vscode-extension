@@ -13,7 +13,7 @@ Feature: Smart Contracts packages
         | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1 | 52       | 0.0.1   |
         | TypeScript | Conga     | TypeScriptContract | TypeScriptContract@0.0.1 | 49       | 0.0.1   |
         | Java       | Conga     | JavaContract       | JavaContract@0.0.1       | 56       | 0.0.1   |
-        | Go         | null      | GoContract         | GoContract@0.0.1         | 1        | 0.0.1   |
+        | Go         | null      | GoContract         | GoContract@0.0.1         | 3672     | 0.0.1   |
 
     Scenario Outline: Inspect smart contract contents
         Given a <language> smart contract for <assetType> assets with the name <name> and version <version>

@@ -24,6 +24,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
+import { CommandUtil } from '../../extension/util/CommandUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -46,7 +47,7 @@ describe('packageSmartContract', () => {
 
     let folders: Array<any> = [];
 
-    async function createTestFiles(packageName: string, version: string, language: string, createValid: boolean, createMetadata: boolean, createWrongPlace: boolean = false, srcChild: boolean = true): Promise<void> {
+    async function createTestFiles(packageName: string, version: string, language: string, createValid: boolean, createMetadata: boolean, createWrongPlace: boolean = false, srcChild: boolean = true, goModule: boolean = false): Promise<void> {
         let projectDir: string;
         if (language === 'golang') {
             if (createWrongPlace) {
@@ -102,6 +103,10 @@ describe('packageSmartContract', () => {
             } else if (language === 'golang') {
                 const goChaincode: string = path.join(projectDir, 'chaincode.go');
                 await fs.writeFile(goChaincode, emptyContent);
+                if (goModule) {
+                    const goMod: string = path.join(projectDir, 'go.mod');
+                    await fs.ensureFile(goMod);
+                }
             } else if (language === 'java-gradle' || language === 'java-maven') {
                 if (language === 'java-gradle') {
                     const gradleFile: string = path.join(projectDir, 'build.gradle');
@@ -151,6 +156,8 @@ describe('packageSmartContract', () => {
     let sendTelemetryEventStub: sinon.SinonStub;
 
     beforeEach(async () => {
+
+        delete process.env.GOPATH;
 
         await TestUtil.deleteTestFiles(fileDest);
         await TestUtil.deleteTestFiles(testWorkspace);
@@ -245,8 +252,6 @@ describe('packageSmartContract', () => {
     });
 
     afterEach(async () => {
-        delete process.env.GOPATH;
-
         await TestUtil.deleteTestFiles(fileDest);
         await TestUtil.deleteTestFiles(testWorkspace);
         mySandBox.restore();
@@ -575,6 +580,50 @@ describe('packageSmartContract', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
+        });
+
+        it('should run go mod vendor if the project has a go.mod file', async () => {
+            await createTestFiles('goProject', '0.0.1', 'golang', true, false, false, true, true);
+
+            const testIndex: number = 2;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            const runVendorStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, 'dogechain', '1.2.3');
+
+            runVendorStub.should.have.been.called;
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
+        });
+
+        it('should skip the go mod vendor if the project does not have a go.mod file', async () => {
+            await createTestFiles('goProject', '0.0.1', 'golang', true, false, false, true, false);
+
+            const testIndex: number = 2;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            const runVendorStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, 'dogechain', '1.2.3');
+
+            runVendorStub.should.not.have.been.called;
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
