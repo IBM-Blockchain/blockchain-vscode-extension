@@ -1,5 +1,5 @@
-# IBM Blockchain Platform Extension updated to v2.0.0-beta.7
-_Release date: August 27th 2020_
+# IBM Blockchain Platform Extension updated to v2.0.0-beta.8
+_Release date: October 15th 2020_
 
 Announcements
 ---
@@ -11,19 +11,18 @@ Announcements
  
 * **VS Code v1.40 or greater is now the minimum version required for using the 'v2' version of the extension.**
 
-Features & Enhancements
+Features & Enhancements
 ---
-* Ability to open the IBM Blockchain Platform Console from the environment [#2536](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2536).
-* Automatically detect system requirements [#1398](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1398).
-* Read identity name from JSON file [#755](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/755).
-* Added command to remove extension directory [#1639](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1639).
-* Updated default export connection profile name to be in pascal case [#2175](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2175).
-* Removed required dependencies for old gRPC rebuild [#2560](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2560).
-* Create Fabric 2.2 smart contracts [#2573](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2573).
+* Added NPS survey link on first transaction submission [#2210](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2210).
+* Updated Node test runner to be optional [#2636](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2635).
+* Updated packaging to handle multiple GOPATH paths [#2596](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2596).
+* Updated required versions of Node [#2641](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2641).
 
 Fixes
 ---
-* Fixed IBM Cloud account selection bug [#2583](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2583).
+* Fixed channel capability retrieval [#2669](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2669).
+* Improved prerequisites page load time [#1437](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1437).
+* Allow users to connect to environments & gateways with at least one v2 capability enabled channel [#2540](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2540).
 
 
 Notes
