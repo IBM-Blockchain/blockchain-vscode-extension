@@ -268,7 +268,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 arguments: []
             };
 
-            tree.push(new TextTreeItem(this, '+ add local or remote environment', command));
+            tree.push(new TextTreeItem(this, '+ Add local or remote environment', command));
 
             // if there are no environments at all we should still show the option to log in to IBM Cloud
             const treeItem: EnvironmentGroupTreeItem = await this.getIBMCloudInteractionItem(true) as EnvironmentGroupTreeItem;
@@ -385,6 +385,21 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
     }
 
     private async getIBMCloudInteractionItem(returnGroupItem: boolean): Promise<BlockchainTreeItem> {
+        const ibmCloudExtensionInstalled: boolean = ExtensionsInteractionUtil.isIBMCloudExtensionInstalled();
+        if (!ibmCloudExtensionInstalled) {
+            if (returnGroupItem) {
+                return new EnvironmentGroupTreeItem(this, 'IBM Blockchain Platform on cloud', [], vscode.TreeItemCollapsibleState.Expanded);
+            } else {
+                const label: string = '+ Install IBM Cloud Account extension';
+                const command: vscode.Command = {
+                    command: ExtensionCommands.OPEN_IBM_CLOUD_EXTENSION,
+                    title: '',
+                    arguments: []
+                };
+                return new TextTreeItem(this, label, command);
+            }
+        }
+
         const isLoggedIn: boolean = await ExtensionsInteractionUtil.cloudAccountIsLoggedIn();
         const hasAccountSelected: boolean = await ExtensionsInteractionUtil.cloudAccountHasSelectedAccount();
         if ( !isLoggedIn || !hasAccountSelected) {

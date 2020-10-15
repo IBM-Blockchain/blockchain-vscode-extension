@@ -463,6 +463,7 @@ describe('DependencyManager Tests', () => {
             dependencyManager['dependencies'].length.should.equal(1);
             dependencyManager['dependencies'][0].should.equal('grpc');
 
+            // If this fails, run compile again to move the fallback-build-info.json into the build directory
             sendCommandStub.should.have.been.calledOnce;
 
             const jsonPath: string = path.join(__dirname, '..', '..', 'fallback-build-info.json');
@@ -1786,6 +1787,80 @@ describe('DependencyManager Tests', () => {
 
             });
 
+            it(`should return false if the optional IBM Cloud Account Extension hasn't been installed`, async () => {
+                mySandBox.stub(process, 'platform').value('linux');
+
+                const dependencies: any = {
+                    node: {
+                        name: 'Node.js',
+                        version: '10.15.3',
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
+                    },
+                    npm: {
+                        name: 'npm',
+                        version: '6.4.1',
+                        requiredVersion: Dependencies.NPM_REQUIRED
+                    },
+                    docker: {
+                        name: 'Docker',
+                        version: '18.1.2',
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
+                    },
+                    dockerCompose: {
+                        name: 'Docker Compose',
+                        version: '1.21.1',
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
+                    },
+                    systemRequirements: {
+                        name: 'System Requirements',
+                        complete: true
+                    },
+                    go: {
+                        name: 'Go',
+                        version: '2.0.0',
+                        requiredVersion: Dependencies.GO_REQUIRED
+                    },
+                    goExtension: {
+                        name: 'Go Extension',
+                        version: '1.0.0'
+                    },
+                    java: {
+                        name: 'Java OpenJDK 8',
+                        version: '1.8.0',
+                        requiredVersion: Dependencies.JAVA_REQUIRED
+                    },
+                    javaLanguageExtension: {
+                        name: 'Java Language Support Extension',
+                        version: '1.0.0'
+                    },
+                    javaDebuggerExtension: {
+                        name: 'Java Debugger Extension',
+                        version: '1.0.0'
+                    },
+                    javaTestRunnerExtension: {
+                        name: 'Java Test Runner Extension',
+                        version: '1.0.0'
+                    },
+                    nodeTestRunnerExtension: {
+                        name: 'Node Test Runner Extension',
+                        version: '1.0.0'
+                    },
+                    ibmCloudAccountExtension: {
+                        name: 'IBM Cloud Account Extension',
+                        version: undefined
+                    }
+                };
+
+                getPreReqVersionsStub.resolves(dependencies);
+
+                const dependencyManager: DependencyManager = DependencyManager.instance();
+                const result: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+
+                result.should.equal(false);
+                getPreReqVersionsStub.should.have.been.calledOnce;
+
+            });
+
             it(`should return true if all the optional prereqs have been installed`, async () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
@@ -1842,6 +1917,10 @@ describe('DependencyManager Tests', () => {
                     },
                     nodeTestRunnerExtension: {
                         name: 'Node Test Runner Extension',
+                        version: '1.0.0'
+                    },
+                    ibmCloudAccountExtension: {
+                        name: 'IBM Cloud Account Extension',
                         version: '1.0.0'
                     }
                 };
@@ -2205,6 +2284,30 @@ describe('DependencyManager Tests', () => {
 
             const result: any = await dependencyManager.getPreReqVersions();
             should.not.exist(result.nodeTestRunnerExtension.version);
+            totalmemStub.should.have.been.calledOnce;
+        });
+
+        it('should get version of IBM Cloud Account Extension', async () => {
+            const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
+            getExtensionStub.withArgs('IBM.ibmcloud-account').returns({
+                packageJSON: {
+                    version: '2.0.0'
+                }
+            });
+
+            const result: any = await dependencyManager.getPreReqVersions();
+            result.ibmCloudAccountExtension.version.should.equal('2.0.0');
+            totalmemStub.should.have.been.calledOnce;
+        });
+
+        it('should not get version of IBM Cloud Account Extension if it cannot be found', async () => {
+            mySandBox.stub(process, 'platform').value('some_other_platform');
+
+            const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
+            getExtensionStub.withArgs('IBM.ibmcloud-account').returns(undefined);
+
+            const result: any = await dependencyManager.getPreReqVersions();
+            should.not.exist(result.ibmCloudAccountExtension.version);
             totalmemStub.should.have.been.calledOnce;
         });
 

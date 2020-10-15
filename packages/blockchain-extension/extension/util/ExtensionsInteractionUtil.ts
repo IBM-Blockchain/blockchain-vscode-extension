@@ -25,6 +25,10 @@ import { URL } from 'url';
  */
 export class ExtensionsInteractionUtil {
 
+    public static isIBMCloudExtensionInstalled(): boolean {
+        return !!vscode.extensions.getExtension( 'IBM.ibmcloud-account' );
+    }
+
     public static async cloudAccountGetAccessToken(userInteraction: boolean = true): Promise<string> {
         const  cloudAccountExtension: vscode.Extension<any> = vscode.extensions.getExtension( 'IBM.ibmcloud-account' );
         if ( !cloudAccountExtension ) {

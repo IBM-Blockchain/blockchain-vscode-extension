@@ -370,6 +370,11 @@ export class ExtensionUtil {
             await vscode.commands.executeCommand('vscode.open', vscode.Uri.parse('https://cloud.ibm.com/catalog/services/blockchain-platform'));
             Reporter.instance().sendTelemetryEvent('openNewInstanceLink');
         }));
+
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_IBM_CLOUD_EXTENSION, async () => {
+            await vscode.commands.executeCommand('vscode.open', vscode.Uri.parse('vscode:extension/IBM.ibmcloud-account'));
+        }));
+
         // Teardown old containers and delete environments, wallets, gateways.
         await this.purgeOldRuntimes();
 
