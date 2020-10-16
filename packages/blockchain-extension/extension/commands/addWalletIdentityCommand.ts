@@ -23,9 +23,8 @@ import { FabricCertificateAuthorityFactory } from '../fabric/FabricCertificateAu
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { FabricWalletRegistryEntry, IFabricCertificateAuthority, IFabricWallet, IFabricWalletGenerator, LogType, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, FabricGatewayRegistryEntry, FabricWalletGeneratorFactory, FabricNode } from 'ibm-blockchain-platform-common';
-import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
-import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
+import { LocalMicroEnvironment } from '../fabric/environments/LocalMicroEnvironment';
 
 export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalletRegistryEntry, mspid: string): Promise<string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -163,13 +162,13 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
             if (isManagedWallet) {
                 // make sure environment is running
 
-                let environment: ManagedAnsibleEnvironment | LocalEnvironment = EnvironmentFactory.getEnvironment(environmentEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+                let environment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(environmentEntry) as LocalMicroEnvironment;
 
                 let isRunning: boolean = await environment.isRunning();
                 if (!isRunning) {
                     // Start local_fabric to enroll identity
                     await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC, environmentEntry);
-                    environment = EnvironmentFactory.getEnvironment(environmentEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+                    environment = EnvironmentFactory.getEnvironment(environmentEntry) as LocalMicroEnvironment;
                     isRunning = await environment.isRunning();
                     if (!isRunning) {
                         // Start local_fabric failed so return

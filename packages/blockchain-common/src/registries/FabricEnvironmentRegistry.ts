@@ -37,7 +37,7 @@ export class FabricEnvironmentRegistry extends FileRegistry<FabricEnvironmentReg
 
         // need to remove any local ones
         entries = entries.filter((entry: FabricEnvironmentRegistryEntry) => {
-            if (entry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+            if (entry.environmentType === EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT) {
                 local.push(entry);
                 return false;
             }

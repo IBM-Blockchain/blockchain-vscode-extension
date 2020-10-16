@@ -29,7 +29,7 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
         let identityName: string;
         if (!environmentRegistryEntry || !node) {
             // If called from command palette
-            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll([], [EnvironmentFlags.LOCAL]);
+            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll([], [EnvironmentFlags.MANAGED_MICROFAB]);
             if (environments.length === 0) {
                 if (!replace) {
                     outputAdapter.log(LogType.ERROR, `Add an environment to associate identities with nodes. Local environments cannot be edited.`);

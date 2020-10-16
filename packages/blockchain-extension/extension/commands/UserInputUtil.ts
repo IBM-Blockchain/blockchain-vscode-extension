@@ -24,9 +24,9 @@ import { FabricCertificate, FabricSmartContractDefinition, FabricInstalledSmartC
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { TimerUtil } from '../util/TimerUtil';
-import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
-import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { ExtensionUtil } from '../util/ExtensionUtil';
+import { LocalMicroEnvironment } from '../fabric/environments/LocalMicroEnvironment';
+import { LocalMicroEnvironmentManager } from '../fabric/environments/LocalMicroEnvironmentManager';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -168,7 +168,7 @@ export class UserInputUtil {
 
             for (let i: number = environments.length - 1; i >= 0; i--) {
                 const entry: FabricEnvironmentRegistryEntry = environments[i];
-                const _runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime(entry.name);
+                const _runtime: LocalMicroEnvironment = LocalMicroEnvironmentManager.instance().getRuntime(entry.name);
                 const _isRuntimeRunning: boolean = await _runtime.isRunning();
                 if (_isRuntimeRunning === isRunning) {
                     continue;

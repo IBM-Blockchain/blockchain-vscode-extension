@@ -47,7 +47,7 @@ export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry
                 const environment: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(envName);
                 environmentType = environment.environmentType;
             }
-            if (environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+            if (environmentType === EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT) {
                 localWallets.push(entry);
                 continue;
             }
@@ -111,13 +111,17 @@ export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry
         }
 
         // Get wallets from all Microfab environments.
-        const microfabEnvironmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.MICROFAB]);
+        const microfabEnvironmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.MICROFAB, EnvironmentFlags.MANAGED_MICROFAB]);
+
         for (const microfabEnvironmentEntry of microfabEnvironmentEntries) {
+
             const environment: MicrofabEnvironment = this.newMicrofabEnvironment(microfabEnvironmentEntry.name, microfabEnvironmentEntry.environmentDirectory, microfabEnvironmentEntry.url);
             const isAlive: boolean = await environment.isAlive();
+
             if (!isAlive) {
                 continue;
             }
+
             const walletEntries: FabricWalletRegistryEntry[] = await environment.getWalletsAndIdentities();
             otherEntries.push(...walletEntries);
         }

@@ -47,7 +47,7 @@ export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEnt
                 const environment: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(envName);
                 environmentType = environment.environmentType;
             }
-            if (environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+            if (environmentType === EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT) {
                 localGateways.push(entry);
                 continue;
             }
@@ -75,7 +75,7 @@ export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEnt
         }
 
         // Get gateways from all Microfab environments.
-        const microfabEnvironmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.MICROFAB]);
+        const microfabEnvironmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.MICROFAB, EnvironmentFlags.MANAGED_MICROFAB]);
         for (const microfabEnvironmentEntry of microfabEnvironmentEntries) {
             const environment: MicrofabEnvironment = this.newMicrofabEnvironment(microfabEnvironmentEntry.name, microfabEnvironmentEntry.environmentDirectory, microfabEnvironmentEntry.url);
             const isAlive: boolean = await environment.isAlive();

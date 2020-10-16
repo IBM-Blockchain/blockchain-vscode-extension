@@ -26,7 +26,7 @@ import { TemporaryCommandRegistry } from '../extension/dependencies/TemporaryCom
 import { TestUtil } from './TestUtil';
 import { Reporter } from '../extension/util/Reporter';
 import { ExtensionCommands } from '../ExtensionCommands';
-import { LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, EnvironmentType, EnvironmentFlags, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { SettingConfigurations } from '../extension/configurations';
 import { UserInputUtil } from '../extension/commands/UserInputUtil';
 import { dependencies } from '../package.json';
@@ -34,6 +34,7 @@ import { GlobalState, DEFAULT_EXTENSION_DATA, ExtensionData } from '../extension
 import { BlockchainGatewayExplorerProvider } from '../extension/explorer/gatewayExplorer';
 import { BlockchainEnvironmentExplorerProvider } from '../extension/explorer/environmentExplorer';
 import { BlockchainWalletExplorerProvider } from '../extension/explorer/walletExplorer';
+import { LocalMicroEnvironmentManager } from '../extension/fabric/environments/LocalMicroEnvironmentManager';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -324,6 +325,7 @@ describe('Extension Tests', () => {
         });
 
         it('should activate if the extension has been updated', async () => {
+
             const releaseNotesPath: string = path.join(ExtensionUtil.getExtensionPath(), 'RELEASE-NOTES.md');
             const releaseNotesUri: vscode.Uri = vscode.Uri.file(releaseNotesPath);
             setupCommandsStub.resolves();
@@ -341,7 +343,7 @@ describe('Extension Tests', () => {
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
             extensionData.preReqPageShown = true;
             extensionData.dockerForWindows = true;
-            extensionData.version = '1.0.6';
+            extensionData.version = '2.0.0-beta.9';
             extensionData.generatorVersion = dependencies['generator-fabric'];
             extensionData.migrationCheck = 2;
             extensionData.createOneOrgLocalFabric = true;
@@ -356,6 +358,196 @@ describe('Extension Tests', () => {
             logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
 
+            setExtensionContextStub.should.have.been.calledTwice;
+
+            hasPreReqsInstalledStub.should.have.been.calledOnce;
+            createTempCommandsStub.should.have.been.calledOnceWith(true);
+            setupCommandsStub.should.have.been.calledOnce;
+
+            hasPreReqsInstalledStub.should.have.been.calledOnce;
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
+            executeCommandStub.should.have.been.calledWith('markdown.showPreview', releaseNotesUri);
+
+            completeActivationStub.should.have.been.calledOnce;
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
+        });
+
+        it(`should delete any local environments`, async () => {
+
+            const releaseNotesPath: string = path.join(ExtensionUtil.getExtensionPath(), 'RELEASE-NOTES.md');
+            const releaseNotesUri: vscode.Uri = vscode.Uri.file(releaseNotesPath);
+            setupCommandsStub.resolves();
+            completeActivationStub.resolves();
+
+            const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            setExtensionContextStub.returns(undefined);
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs('markdown.showPreview', releaseNotesUri).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.DELETE_ENVIRONMENT).resolves();
+
+            hasPreReqsInstalledStub.resolves(true);
+            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            createTempCommandsStub.returns(undefined);
+
+            const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
+            extensionData.preReqPageShown = true;
+            extensionData.dockerForWindows = true;
+            extensionData.version = '2.0.0-beta.9';
+            extensionData.generatorVersion = dependencies['generator-fabric'];
+            extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
+            await GlobalState.update(extensionData);
+
+            const oldOtherEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({name: 'oldlocal', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1});
+
+            const getAllEnvironmentsStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll');
+            getAllEnvironmentsStub.resolves([oldOtherEntry]);
+
+            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'initialize').resolves();
+
+            await myExtension.activate(context);
+
+            getAllEnvironmentsStub.should.have.been.calledOnceWithExactly([EnvironmentFlags.LOCAL]);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT, oldOtherEntry, true);
+            sendTelemetryStub.should.have.been.calledWith('updatedInstall', { IBM: sinon.match.string });
+            initializeStub.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
+
+            setExtensionContextStub.should.have.been.calledTwice;
+
+            hasPreReqsInstalledStub.should.have.been.calledOnce;
+            createTempCommandsStub.should.have.been.calledOnceWith(true);
+            setupCommandsStub.should.have.been.calledOnce;
+
+            hasPreReqsInstalledStub.should.have.been.calledOnce;
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
+            executeCommandStub.should.have.been.calledWith('markdown.showPreview', releaseNotesUri);
+
+            completeActivationStub.should.have.been.calledOnce;
+        });
+
+        it(`should delete any local environments and start a new ${FabricRuntimeUtil.LOCAL_FABRIC} if an older version existed`, async () => {
+
+            const releaseNotesPath: string = path.join(ExtensionUtil.getExtensionPath(), 'RELEASE-NOTES.md');
+            const releaseNotesUri: vscode.Uri = vscode.Uri.file(releaseNotesPath);
+            setupCommandsStub.resolves();
+            completeActivationStub.resolves();
+
+            const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            setExtensionContextStub.returns(undefined);
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs('markdown.showPreview', releaseNotesUri).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.DELETE_ENVIRONMENT).resolves();
+
+            hasPreReqsInstalledStub.resolves(true);
+            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            createTempCommandsStub.returns(undefined);
+
+            const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
+            extensionData.preReqPageShown = true;
+            extensionData.dockerForWindows = true;
+            extensionData.version = '2.0.0-beta.9';
+            extensionData.generatorVersion = dependencies['generator-fabric'];
+            extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
+            await GlobalState.update(extensionData);
+
+            const oldOneOrgEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1});
+            const oldOtherEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({name: 'oldlocal', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1});
+
+            const getAllEnvironmentsStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll');
+            getAllEnvironmentsStub.resolves([oldOneOrgEntry, oldOtherEntry]);
+
+            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'initialize').resolves();
+
+            await myExtension.activate(context);
+
+            getAllEnvironmentsStub.should.have.been.calledOnceWithExactly([EnvironmentFlags.LOCAL]);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT, oldOneOrgEntry, true);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT, oldOtherEntry, true);
+            sendTelemetryStub.should.have.been.calledWith('updatedInstall', { IBM: sinon.match.string });
+            initializeStub.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, 1);
+            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
+
+            setExtensionContextStub.should.have.been.calledTwice;
+
+            hasPreReqsInstalledStub.should.have.been.calledOnce;
+            createTempCommandsStub.should.have.been.calledOnceWith(true);
+            setupCommandsStub.should.have.been.calledOnce;
+
+            hasPreReqsInstalledStub.should.have.been.calledOnce;
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
+            executeCommandStub.should.have.been.calledWith('markdown.showPreview', releaseNotesUri);
+
+            completeActivationStub.should.have.been.calledOnce;
+        });
+
+        it('should remove any old settings', async () => {
+            const releaseNotesPath: string = path.join(ExtensionUtil.getExtensionPath(), 'RELEASE-NOTES.md');
+            const releaseNotesUri: vscode.Uri = vscode.Uri.file(releaseNotesPath);
+            setupCommandsStub.resolves();
+            completeActivationStub.resolves();
+
+            const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            setExtensionContextStub.returns(undefined);
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs('markdown.showPreview', releaseNotesUri).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.DELETE_ENVIRONMENT).resolves();
+
+            hasPreReqsInstalledStub.resolves(true);
+            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            createTempCommandsStub.returns(undefined);
+
+            const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
+            extensionData.preReqPageShown = true;
+            extensionData.dockerForWindows = true;
+            extensionData.version = '2.0.0-beta.9';
+            extensionData.generatorVersion = dependencies['generator-fabric'];
+            extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
+            await GlobalState.update(extensionData);
+
+            const oldOneOrgEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1});
+            const oldOtherEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({name: 'oldlocal', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1});
+
+            const getAllEnvironmentsStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll');
+            getAllEnvironmentsStub.resolves([oldOneOrgEntry, oldOtherEntry]);
+
+            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'initialize').resolves();
+
+            const originalSettings: any = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
+            const newSettings: any  = Object.assign({otherLocal: {startPort: 1000, endPort: 2000}, anotherLocal: {startPort: 3000, endPort: 4000}, microfabLocal: 9001}, originalSettings);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, newSettings, vscode.ConfigurationTarget.Global);
+
+            await myExtension.activate(context);
+            const finalSettings: any = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
+            finalSettings.should.deep.equal({
+                microfabLocal: 9001
+            });
+            getAllEnvironmentsStub.should.have.been.calledOnceWithExactly([EnvironmentFlags.LOCAL]);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT, oldOneOrgEntry, true);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT, oldOtherEntry, true);
+            sendTelemetryStub.should.have.been.calledWith('updatedInstall', { IBM: sinon.match.string });
+            initializeStub.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, 1);
+            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
             setExtensionContextStub.should.have.been.calledTwice;
 
             hasPreReqsInstalledStub.should.have.been.calledOnce;
@@ -419,7 +611,7 @@ describe('Extension Tests', () => {
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
             executeCommandStub.should.have.been.calledWith('markdown.showPreview', releaseNotesUri);
-
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
             completeActivationStub.should.have.been.calledOnce;
         });
 
@@ -516,7 +708,7 @@ describe('Extension Tests', () => {
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
             executeCommandStub.should.have.been.calledWith('markdown.showPreview', releaseNotesUri);
-
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
             completeActivationStub.should.have.been.calledOnce;
 
         });
@@ -559,7 +751,7 @@ describe('Extension Tests', () => {
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
 
             executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
-
+            executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
             completeActivationStub.should.have.been.calledOnce;
 
         });
@@ -628,6 +820,8 @@ describe('Extension Tests', () => {
 
             const failedActivationWindowStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'failedActivationWindow').resolves();
 
+            const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+
             await myExtension.activate(context);
             setExtensionContextStub.should.have.been.calledOnce;
 
@@ -635,6 +829,7 @@ describe('Extension Tests', () => {
             failedActivationWindowStub.should.have.been.calledOnceWithExactly('some error');
             sendTelemetryStub.should.have.been.calledWith('activationFailed', { activationError: 'some error' });
             logSpy.should.have.been.calledWith(LogType.ERROR, undefined, `Failed to activate extension: ${error.toString()}`, error.stack);
+            executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
         });
 
         it('should add home page button to the status bar', async () => {
@@ -653,6 +848,8 @@ describe('Extension Tests', () => {
             extensionData.generatorVersion = dependencies['generator-fabric'];
             extensionData.migrationCheck = 2;
             await GlobalState.update(extensionData);
+
+            const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
             await myExtension.activate(context);
 
@@ -674,6 +871,9 @@ describe('Extension Tests', () => {
             });
             homePageButton.tooltip.should.equal('View Homepage');
             homePageButton.command.should.equal(ExtensionCommands.OPEN_HOME_PAGE);
+
+            executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
+
         });
     });
 

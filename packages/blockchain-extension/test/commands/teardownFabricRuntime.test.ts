@@ -18,19 +18,16 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { TestUtil } from '../TestUtil';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import * as path from 'path';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
-import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, FabricEnvironmentRegistry, EnvironmentType, FabricGatewayRegistry, FabricGatewayRegistryEntry, EnvironmentFlags } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, FabricEnvironmentRegistry, FabricGatewayRegistry, FabricGatewayRegistryEntry, EnvironmentFlags } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
-import { ManagedAnsibleEnvironment } from '../../extension/fabric/environments/ManagedAnsibleEnvironment';
 import { UserInputUtil, IBlockchainQuickPickItem } from '../../extension/commands/UserInputUtil';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
 import { RuntimeTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
-import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
-import { ManagedAnsibleEnvironmentManager } from '../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
-import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
+import { LocalMicroEnvironment } from '../../extension/fabric/environments/LocalMicroEnvironment';
+import { LocalMicroEnvironmentManager } from '../../extension/fabric/environments/LocalMicroEnvironmentManager';
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -46,9 +43,7 @@ describe('teardownFabricRuntime', () => {
     let getConnectionStub: sinon.SinonStub;
     let showFabricEnvironmentQuickPickBoxStub: sinon.SinonStub;
     let localRegistryEntry: FabricEnvironmentRegistryEntry;
-    let localEnvironment: LocalEnvironment;
-    let managedAnsibleEntry: FabricEnvironmentRegistryEntry;
-    let managedEnvironment: ManagedAnsibleEnvironment;
+    let localEnvironment: LocalMicroEnvironment;
     let showConfirmationWarningMessageStub: sinon.SinonStub;
 
     let getEnvironmentStub: sinon.SinonStub;
@@ -59,11 +54,11 @@ describe('teardownFabricRuntime', () => {
     beforeEach(async () => {
         await connectionRegistry.clear();
         await FabricEnvironmentRegistry.instance().clear();
-        await TestUtil.setupLocalFabric();
+        await TestUtil.startLocalFabric();
 
-        await LocalEnvironmentManager.instance().ensureRuntime(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1);
+        await LocalMicroEnvironmentManager.instance().ensureRuntime(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1);
 
-        const localGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
+        const localGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Gateway`);
 
         getGatewayRegistryEntryStub = sandbox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry');
         getGatewayRegistryEntryStub.resolves(localGateway);
@@ -84,21 +79,11 @@ describe('teardownFabricRuntime', () => {
         showConfirmationWarningMessageStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage');
         showConfirmationWarningMessageStub.resolves(true);
 
-        localEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalEnvironment;
-
-        managedAnsibleEntry = new FabricEnvironmentRegistryEntry();
-        managedAnsibleEntry.name = 'managedAnsibleEntry';
-        managedAnsibleEntry.managedRuntime = true;
-        managedAnsibleEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-        managedAnsibleEntry.environmentDirectory = path.join(__dirname, '..', 'data', 'managedAnsible');
-
-        ManagedAnsibleEnvironmentManager.instance().ensureRuntime('managedAnsibleEntry', path.join(__dirname, '..', 'data', 'managedAnsible'));
-        managedEnvironment = EnvironmentFactory.getEnvironment(managedAnsibleEntry) as ManagedAnsibleEnvironment;
+        localEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalMicroEnvironment;
 
         getEnvironmentStub = sandbox.stub(EnvironmentFactory, 'getEnvironment');
 
         getEnvironmentStub.withArgs(localRegistryEntry).returns(localEnvironment);
-        getEnvironmentStub.withArgs(managedAnsibleEntry).returns(managedEnvironment);
     });
 
     afterEach(async () => {
@@ -255,7 +240,7 @@ describe('teardownFabricRuntime', () => {
 
         showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`All world state and ledger data for the Fabric runtime ${localEnvironment.getName()} will be destroyed. Do you want to continue?`);
 
-        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to teardown', false, true, [EnvironmentFlags.MANAGED]);
+        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to teardown', false, true, [EnvironmentFlags.MANAGED_MICROFAB]);
 
         teardownStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
 
@@ -264,6 +249,31 @@ describe('teardownFabricRuntime', () => {
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+
+        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'teardownFabricRuntime');
+    });
+
+    it('should be able to teardown the an environment from the command and not refresh the panels', async () => {
+        showFabricEnvironmentQuickPickBoxStub.resolves({ label: FabricRuntimeUtil.LOCAL_FABRIC, data: localRegistryEntry } as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>);
+
+        teardownStub = sandbox.stub(localEnvironment, 'teardown').resolves();
+
+        getGatewayRegistryEntryStub.resolves();
+        getEnvironmentRegistryEntryStub.returns(undefined);
+
+        await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, undefined, undefined, true);
+
+        showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`All world state and ledger data for the Fabric runtime ${localEnvironment.getName()} will be destroyed. Do you want to continue?`);
+
+        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to teardown', false, true, [EnvironmentFlags.MANAGED_MICROFAB]);
+
+        teardownStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'teardownFabricRuntime');
     });
@@ -281,7 +291,7 @@ describe('teardownFabricRuntime', () => {
 
         showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`All world state and ledger data for the Fabric runtime ${localEnvironment.getName()} will be destroyed. Do you want to continue?`);
 
-        showFabricEnvironmentQuickPickBoxStub.should.not.have.been.calledWith('Select an environment to teardown', false, true, [EnvironmentFlags.MANAGED]);
+        showFabricEnvironmentQuickPickBoxStub.should.not.have.been.calledWith('Select an environment to teardown', false, true, [EnvironmentFlags.MANAGED_MICROFAB]);
 
         teardownStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
 
@@ -307,7 +317,7 @@ describe('teardownFabricRuntime', () => {
 
         showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`All world state and ledger data for the Fabric runtime ${localEnvironment.getName()} will be destroyed. Do you want to continue?`);
 
-        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledWith('Select an environment to teardown', false, true, [EnvironmentFlags.MANAGED]);
+        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledWith('Select an environment to teardown', false, true, [EnvironmentFlags.MANAGED_MICROFAB]);
 
         teardownStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
 
@@ -327,7 +337,7 @@ describe('teardownFabricRuntime', () => {
 
         showConfirmationWarningMessageStub.should.not.have.been.called;
 
-        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to teardown', false, true, [EnvironmentFlags.MANAGED]);
+        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to teardown', false, true, [EnvironmentFlags.MANAGED_MICROFAB]);
 
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
@@ -352,7 +362,7 @@ describe('teardownFabricRuntime', () => {
 
         showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`All world state and ledger data for the Fabric runtime ${localEnvironment.getName()} will be destroyed. Do you want to continue?`);
 
-        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to teardown', false, true, [EnvironmentFlags.MANAGED]);
+        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to teardown', false, true, [EnvironmentFlags.MANAGED_MICROFAB]);
 
         teardownStub.should.not.have.been.called;
 
@@ -367,19 +377,22 @@ describe('teardownFabricRuntime', () => {
 
     it(`shouldn't disconnect from the connected gateway if the environment isn't associated`, async () => {
 
-        await FabricEnvironmentRegistry.instance().add(managedAnsibleEntry);
+        showFabricEnvironmentQuickPickBoxStub.resolves({ label: FabricRuntimeUtil.LOCAL_FABRIC, data: localRegistryEntry });
 
-        showFabricEnvironmentQuickPickBoxStub.resolves({ label: 'managedAnsibleEntry', data: managedAnsibleEntry });
-
-        teardownStub = sandbox.stub(ManagedAnsibleEnvironment.prototype, 'teardown').resolves();
+        teardownStub = sandbox.stub(LocalMicroEnvironment.prototype, 'teardown').resolves();
 
         getEnvironmentRegistryEntryStub.returns(undefined);
 
+        getGatewayRegistryEntryStub.resolves({
+            name: 'SomeGateway',
+            fromEnvironment: 'SomeEnvironment'
+        } as FabricGatewayRegistryEntry);
+
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
 
-        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to teardown', false, true, [EnvironmentFlags.MANAGED]);
+        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to teardown', false, true, [EnvironmentFlags.MANAGED_MICROFAB]);
 
-        showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`All world state and ledger data for the Fabric runtime ${managedEnvironment.getName()} will be destroyed. Do you want to continue?`);
+        showConfirmationWarningMessageStub.should.have.been.calledOnceWith(`All world state and ledger data for the Fabric runtime ${localEnvironment.getName()} will be destroyed. Do you want to continue?`);
 
         teardownStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
 
@@ -404,7 +417,7 @@ describe('teardownFabricRuntime', () => {
 
         showConfirmationWarningMessageStub.should.not.have.been.called;
 
-        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to teardown', false, true, [EnvironmentFlags.MANAGED]);
+        showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Select an environment to teardown', false, true, [EnvironmentFlags.MANAGED_MICROFAB]);
 
         teardownStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
 
@@ -429,7 +442,7 @@ describe('teardownFabricRuntime', () => {
 
         showConfirmationWarningMessageStub.should.not.have.been.called;
 
-        showFabricEnvironmentQuickPickBoxStub.should.not.have.been.calledOnceWithExactly('Select an environment to teardown', false, true, [EnvironmentFlags.MANAGED]);
+        showFabricEnvironmentQuickPickBoxStub.should.not.have.been.calledOnceWithExactly('Select an environment to teardown', false, true, [EnvironmentFlags.MANAGED_MICROFAB]);
 
         teardownStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
 

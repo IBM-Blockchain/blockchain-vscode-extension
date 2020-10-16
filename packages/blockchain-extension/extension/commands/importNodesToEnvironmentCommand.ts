@@ -326,7 +326,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                     return;
                 }
             }
-            const currentEnvironents: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll([], [EnvironmentFlags.LOCAL]);
+            const currentEnvironents: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll([], [EnvironmentFlags.MANAGED_MICROFAB]);
             const stillExists: boolean = currentEnvironents.some((_env: FabricEnvironmentRegistryEntry) => _env.name === environment.getName());
             if (!stillExists) {
                 return;

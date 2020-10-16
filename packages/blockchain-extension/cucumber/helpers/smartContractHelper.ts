@@ -162,13 +162,13 @@ export class SmartContractHelper {
             orderer = 'Orderer1';
         } else if (process.env.TWO_ORG_FABRIC) {
             // local fabric 2 orgs
-            peers = ['Org1Peer1', 'Org2Peer1'];
-            orgMap.set('Org1MSP', ['Org1Peer1']);
-            orgMap.set('Org2MSP', ['Org2Peer1']);
+            peers = ['Org1 Peer', 'Org2 Peer'];
+            orgMap.set('Org1MSP', ['Org1 Peer']);
+            orgMap.set('Org2MSP', ['Org2 Peer']);
             orderer = 'Orderer';
         } else {
             // local fabric 1 org
-            peers = ['Org1Peer1'];
+            peers = ['Org1 Peer'];
             orgMap.set('Org1MSP', peers);
             orderer = 'Orderer';
         }
