@@ -62,7 +62,7 @@ describe('deployCommand', () => {
             environmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             environmentRegistryEntry.managedRuntime = true;
-            environmentRegistryEntry.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
+            environmentRegistryEntry.environmentType = EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT;
 
             packageRegistryEntry = new PackageRegistryEntry({
                 name: 'vscode-pkg-1',

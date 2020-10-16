@@ -18,7 +18,7 @@ import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { WalletTreeItem } from './wallets/WalletTreeItem';
 import { LocalWalletTreeItem } from './wallets/LocalWalletTreeItem';
-import { FabricCertificate, Attribute, FabricWalletRegistry, FabricWalletRegistryEntry, FabricRuntimeUtil, IFabricWalletGenerator, IFabricWallet, LogType, FabricWalletGeneratorFactory, FabricNode, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, FabricEnvironment, FabricIdentity, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricCertificate, Attribute, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWalletGenerator, IFabricWallet, LogType, FabricWalletGeneratorFactory, FabricNode, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, FabricEnvironment, FabricIdentity, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { IdentityTreeItem } from './model/IdentityTreeItem';
 import { AdminIdentityTreeItem } from './model/AdminIdentityTreeItem';
@@ -26,7 +26,9 @@ import { TextTreeItem } from './model/TextTreeItem';
 import { WalletGroupTreeItem } from './model/WalletGroupTreeItem';
 import { ExplorerUtil } from '../util/ExplorerUtil';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
-import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
+import { LocalMicroEnvironmentManager } from '../fabric/environments/LocalMicroEnvironmentManager';
+import { LocalMicroEnvironment } from '../fabric/environments/LocalMicroEnvironment';
+import { FabricWalletHelper } from '../fabric/FabricWalletHelper';
 
 export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvider {
 
@@ -76,6 +78,19 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
 
         let walletRegistryEntries: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
         walletRegistryEntries = await this.updateWalletEnvironmentGroups(walletRegistryEntries);
+        const newEntries: FabricWalletRegistryEntry[] = [];
+        // Filter out invalid wallets, or wallets without a wallet path
+        for (const _entry of walletRegistryEntries) {
+            try {
+                // Check the wallet is valid before attempting to display it
+                const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
+                await walletGenerator.getWallet(_entry);
+                newEntries.push(_entry);
+            } catch (err) {
+                // ignore
+            }
+        }
+        walletRegistryEntries = newEntries;
 
         const walletGroups: any[] = [];
         const otherWallets: Array<FabricWalletRegistryEntry | FabricWalletRegistryEntry[]> = [];
@@ -84,12 +99,11 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
         // iterate through wallets and group them until there are none left
         while (0 < totalWallets) {
             const wallet: FabricWalletRegistryEntry = walletRegistryEntries[0];
+
             if (!wallet.fromEnvironment && (!wallet.environmentGroups || wallet.environmentGroups.length < 1)) {
                 // group wallets that don't belong to environments
-                // don't add wallet if it doesn't have a wallet path
-                if (wallet.walletPath) {
-                    otherWallets.push(wallet);
-                }
+
+                otherWallets.push(wallet);
 
                 // remove wallet from array as it's already been grouped
                 walletRegistryEntries.splice(0, 1);
@@ -195,7 +209,24 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
                 // get identityNames in the wallet
                 const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
                 const wallet: IFabricWallet = await walletGenerator.getWallet(walletItem);
-                const identityNames: string[] = await wallet.getIdentityNames();
+
+                let identityNames: string[];
+
+                if (walletItem.fromEnvironment) {
+                    const environmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(walletItem.fromEnvironment);
+                    if (environmentEntry.environmentType === EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT) {
+                        const environment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(environmentEntry) as LocalMicroEnvironment;
+                        const visibleIdentities: FabricIdentity[] = await environment.getVisibleIdentities(walletItem.name);
+                        identityNames = visibleIdentities.map((identity: FabricIdentity) => {
+                            return identity.name;
+                        });
+
+                    }
+                }
+
+                if (identityNames === undefined) {
+                   identityNames = await wallet.getIdentityNames();
+                }
 
                 // Collapse if there are identities, otherwise the expanded tree takes up a lot of room in the panel
                 const treeState: vscode.TreeItemCollapsibleState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None; //
@@ -216,15 +247,24 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
         // Populate the tree with the identity names
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
         const wallet: IFabricWallet = await fabricWalletGenerator.getWallet(walletTreeItem.registryEntry);
-        const identities: FabricIdentity[] = await wallet.getIdentities();
+
+        let identities: FabricIdentity[];
+
+        if (walletTreeItem.registryEntry.fromEnvironment) {
+            const environmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(walletTreeItem.registryEntry.fromEnvironment);
+            if (environmentEntry.environmentType === EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT) {
+                identities = await FabricWalletHelper.getVisibleIdentities(environmentEntry, walletTreeItem.registryEntry);
+            }
+        }
+
+        if (identities === undefined) {
+            identities = await wallet.getIdentities();
+        }
 
         for (const identity of identities) {
             let isAdminIdentity: boolean = false;
             if (walletTreeItem instanceof LocalWalletTreeItem) {
-                // Check 'admin' in local_fabric
-                if (identity.name === FabricRuntimeUtil.ADMIN_USER) {
-                    isAdminIdentity = true;
-                }
+                isAdminIdentity = true;
             }
 
             // Get attributes fcn
@@ -244,8 +284,11 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
 
     private async updateWalletEnvironmentGroups(walletRegistryEntries: FabricWalletRegistryEntry[]): Promise<FabricWalletRegistryEntry[]> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-        for (const wallet of walletRegistryEntries) {
 
+        const finalEntries: FabricWalletRegistryEntry[] = [];
+        let includeWallet: boolean;
+        for (const wallet of walletRegistryEntries) {
+            includeWallet = true;
             if (wallet.environmentGroups) {
                 const updatedGroups: string [] = [];
 
@@ -254,8 +297,8 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
                     if (await FabricEnvironmentRegistry.instance().exists(env)) {
                         try {
                             const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(env);
-                            if (fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
-                                await LocalEnvironmentManager.instance().ensureRuntime(fabricEnvironmentRegistryEntry.name, undefined, fabricEnvironmentRegistryEntry.numberOfOrgs);
+                            if (fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT) {
+                                await LocalMicroEnvironmentManager.instance().ensureRuntime(fabricEnvironmentRegistryEntry.name, undefined, fabricEnvironmentRegistryEntry.numberOfOrgs);
                             }
                             const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentRegistryEntry);
                             const nodes: FabricNode[] = await environment.getNodes();
@@ -266,8 +309,10 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
                             if (associatedNodes) {
                                 updatedGroups.push(env);
                             }
+
                         } catch (error) {
                             outputAdapter.log(LogType.ERROR, `Error displaying Fabric Wallets: ${error.message}`, `Error displaying Fabric Wallets: ${error.message}`);
+                            includeWallet = false;
                         }
                     }
                 }
@@ -277,9 +322,13 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
                     wallet.environmentGroups = updatedGroups;
                     await FabricWalletRegistry.instance().update(wallet);
                 }
+
+            }
+            if (includeWallet) {
+                finalEntries.push(wallet);
             }
         }
 
-        return walletRegistryEntries;
+        return finalEntries;
     }
 }

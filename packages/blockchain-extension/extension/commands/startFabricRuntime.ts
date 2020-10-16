@@ -15,14 +15,13 @@
 import * as vscode from 'vscode';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
-import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { LogType, FabricEnvironmentRegistryEntry, EnvironmentFlags, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { LogType, FabricEnvironmentRegistryEntry, EnvironmentFlags } from 'ibm-blockchain-platform-common';
 import { TimerUtil } from '../util/TimerUtil';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { ExtensionUtil } from '../util/ExtensionUtil';
+import { LocalMicroEnvironment } from '../fabric/environments/LocalMicroEnvironment';
 
 async function update() {
     await TimerUtil.sleep(1000);
@@ -42,7 +41,7 @@ export async function startFabricRuntime(registryEntry?: RuntimeTreeItem | Fabri
     }
 
     if (!registryEntry) {
-        const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Select an environment to start', false, true, [EnvironmentFlags.MANAGED], [], false) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+        const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Select an environment to start', false, true, [EnvironmentFlags.LOCAL], [], false) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
         if (!chosenEnvironment) {
             return;
         }
@@ -56,11 +55,9 @@ export async function startFabricRuntime(registryEntry?: RuntimeTreeItem | Fabri
         registryEntry = registryEntry.environmentRegistryEntry;
     }
 
-    const runtime: LocalEnvironment | ManagedAnsibleEnvironment = EnvironmentFactory.getEnvironment(registryEntry) as LocalEnvironment | ManagedAnsibleEnvironment;
+    const runtime: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(registryEntry) as LocalMicroEnvironment;
 
-    if (registryEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
-        VSCodeBlockchainOutputAdapter.instance().show();
-    }
+    VSCodeBlockchainOutputAdapter.instance().show();
 
     try {
         await vscode.window.withProgress({
@@ -70,18 +67,23 @@ export async function startFabricRuntime(registryEntry?: RuntimeTreeItem | Fabri
         }, async (progress: vscode.Progress<{ message: string }>) => {
             progress.report({ message: `Starting Fabric runtime ${runtime.getName()}` });
 
-            if (runtime instanceof LocalEnvironment) {
-                const isCreated: boolean = await runtime.isCreated();
-                if (!isCreated) {
-                    await runtime.create();
-                }
+            const isCreated: boolean = await runtime.isCreated();
+            if (!isCreated) {
+                await runtime.create();
             }
+
             await runtime.start(outputAdapter);
-            await update();
+
+            const isAlive: boolean = await runtime.waitFor();
+            if (!isAlive) {
+                throw new Error('Environment failed to become available. Please check the Docker container logs for more details.');
+                
+            } else {
+                await update();
+            }
+
         });
-    }
-    catch (error)
-    {
+    } catch (error) {
         await update();
         await UserInputUtil.failedNetworkStart(`Failed to start ${runtime.getName()}: ${error.message}`, `Failed to start ${runtime.getName()}: ${error.toString()}`);
     }

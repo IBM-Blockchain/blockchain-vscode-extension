@@ -26,6 +26,7 @@ Feature: Fabric Environments
   #     | Organizations         | OrdererMSP                                   | OrdererMSP                                                              |
   #     | Organizations         | Org1MSP                                      | Org1MSP                                                                 |
 
+
   Scenario Outline: It should persist data after being stopped
     Given the 1 Org Local Fabric environment is running
     And the '1 Org Local Fabric' environment is connected
