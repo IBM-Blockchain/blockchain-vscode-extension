@@ -18,13 +18,13 @@ import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWalletGenerator, FabricGatewayRegistryEntry, FabricWalletGeneratorFactory, IFabricGatewayConnection, IFabricWallet, LogType, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWalletGenerator, FabricGatewayRegistryEntry, FabricWalletGeneratorFactory, IFabricGatewayConnection, IFabricWallet, LogType, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricIdentity, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { SettingConfigurations } from '../configurations';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
-import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
-import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
+import { LocalMicroEnvironment } from '../fabric/environments/LocalMicroEnvironment';
+import { FabricWalletHelper } from '../fabric/FabricWalletHelper';
 
 export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistryEntry, identityName?: string): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -50,19 +50,14 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
     }
 
     if (environmentEntry && environmentEntry.managedRuntime) {
-        const environment: ManagedAnsibleEnvironment | LocalEnvironment = EnvironmentFactory.getEnvironment(environmentEntry) as ManagedAnsibleEnvironment | LocalEnvironment;
+        const environment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(environmentEntry) as LocalMicroEnvironment;
         const running: boolean = await environment.isRunning();
         if (!running) {
             outputAdapter.log(LogType.ERROR, `${environmentName} has not been started, please start it before connecting.`);
             return;
         }
 
-        if (environment instanceof LocalEnvironment) {
-            // Is LocalEnvironment instance
-            runtimeData = 'managed runtime';
-        } else {
-            runtimeData = 'managed ansible runtime';
-        }
+        runtimeData = 'managed runtime';
     }
 
     let walletName: string;
@@ -94,8 +89,16 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
     const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
     const wallet: IFabricWallet = await FabricWalletGenerator.getWallet(walletRegistryEntry);
 
-    // Get the identities
-    const identityNames: string[] = await wallet.getIdentityNames();
+    let identityNames: string[];
+    if (environmentEntry && environmentEntry.environmentType === EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT) {
+        const identities: FabricIdentity[] = await FabricWalletHelper.getVisibleIdentities(environmentEntry, walletRegistryEntry);
+        identityNames = identities.map((identity: FabricIdentity) => identity.name);
+    } else {
+        // Get the identities
+        identityNames = await wallet.getIdentityNames();
+
+    }
+
     if (identityNames.length > 1) {
         identityName = await UserInputUtil.showIdentitiesQuickPickBox('Choose an identity to connect with', false, identityNames) as string;
         if (!identityName) {

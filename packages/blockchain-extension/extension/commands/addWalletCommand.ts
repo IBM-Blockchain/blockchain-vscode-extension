@@ -39,7 +39,7 @@ export async function addWallet(createIdentity: boolean = true, environmentGroup
         if (!walletMethod) {
             // User cancelled dialog box
             return;
-    }
+        }
         if (walletMethod === UserInputUtil.IMPORT_WALLET) {
             // User has a wallet - get the path
             const openDialogOptions: vscode.OpenDialogOptions = {

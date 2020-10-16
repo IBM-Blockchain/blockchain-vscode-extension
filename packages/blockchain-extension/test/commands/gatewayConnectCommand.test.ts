@@ -31,13 +31,13 @@ import { GatewayAssociatedTreeItem } from '../../extension/explorer/model/Gatewa
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { LocalGatewayTreeItem } from '../../extension/explorer/model/LocalGatewayTreeItem';
-import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry, EnvironmentType, FabricEnvironmentRegistryEntry, FabricIdentity } from 'ibm-blockchain-platform-common';
 import { SettingConfigurations } from '../../extension/configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
-import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
-import { ManagedAnsibleEnvironment } from '../../extension/fabric/environments/ManagedAnsibleEnvironment';
+import { LocalMicroEnvironment } from '../../extension/fabric/environments/LocalMicroEnvironment';
+import { FabricWalletHelper } from '../../extension/fabric/FabricWalletHelper';
 
 chai.use(sinonChai);
 // tslint:disable-next-line no-var-requires
@@ -55,7 +55,7 @@ describe('GatewayConnectCommand', () => {
 
         let rootPath: string;
         let mockConnection: sinon.SinonStubbedInstance<FabricGatewayConnection>;
-        let mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment>;
+        let mockRuntime: sinon.SinonStubbedInstance<LocalMicroEnvironment>;
 
         let logSpy: sinon.SinonSpy;
         let connectionMultiple: FabricGatewayRegistryEntry;
@@ -64,8 +64,6 @@ describe('GatewayConnectCommand', () => {
         let connectionMultipleWallet: FabricWalletRegistryEntry;
         let connectionSingleWallet: FabricWalletRegistryEntry;
         let connectionAssociatedWallet: FabricWalletRegistryEntry;
-        let managedGateway: FabricGatewayRegistryEntry;
-        let managedWallet: FabricWalletRegistryEntry;
         let emptyWallet: FabricWalletRegistryEntry;
         let choseIdentityQuickPick: sinon.SinonStub;
         let chosenGatewayQuickPick: sinon.SinonStub;
@@ -73,7 +71,8 @@ describe('GatewayConnectCommand', () => {
         let identity: any;
         let walletGenerator: FabricWalletGenerator;
         let sendTelemetryEventStub: sinon.SinonStub;
-        let getEnvironmentStub: sinon.SinonStub;
+        let orgOneIdentities: FabricIdentity[];
+        let getVisibleIdentitiesStub: sinon.SinonStub;
         const timeout: number = 120;
 
         beforeEach(async () => {
@@ -113,7 +112,7 @@ describe('GatewayConnectCommand', () => {
             await FabricGatewayRegistry.instance().add(connectionMultiple);
             await FabricGatewayRegistry.instance().add(connectionAssociated);
 
-            await TestUtil.setupLocalFabric();
+            await TestUtil.startLocalFabric();
 
             mySandBox.stub(FabricGatewayHelper, 'getConnectionProfilePath').resolves(path.join('myPath'));
 
@@ -143,13 +142,20 @@ describe('GatewayConnectCommand', () => {
             await FabricWalletRegistry.instance().add(connectionAssociatedWallet);
             await FabricWalletRegistry.instance().add(emptyWallet);
 
-            mockRuntime = mySandBox.createStubInstance(LocalEnvironment);
+            const localEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+            const environment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(localEntry) as LocalMicroEnvironment;
+            orgOneIdentities = await environment.getVisibleIdentities('Org1');
+
+            mockRuntime = mySandBox.createStubInstance(LocalMicroEnvironment);
             mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(true);
             mockRuntime.start.resolves();
             mockRuntime.create.resolves();
-            getEnvironmentStub = mySandBox.stub(EnvironmentFactory, 'getEnvironment').returns(mockRuntime);
+
+            getVisibleIdentitiesStub = mySandBox.stub(FabricWalletHelper, 'getVisibleIdentities');
+            getVisibleIdentitiesStub.resolves(orgOneIdentities);
+            mySandBox.stub(EnvironmentFactory, 'getEnvironment').returns(mockRuntime);
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             walletGenerator = FabricWalletGenerator.instance();
@@ -159,7 +165,8 @@ describe('GatewayConnectCommand', () => {
                 identifier: 'identifier',
                 mspId: 'Org1MSP'
             };
-            choseIdentityQuickPick = mySandBox.stub(UserInputUtil, 'showIdentitiesQuickPickBox').resolves(identity.label);
+            choseIdentityQuickPick = mySandBox.stub(UserInputUtil, 'showIdentitiesQuickPickBox');
+            choseIdentityQuickPick.resolves(identity.label);
 
             chosenGatewayQuickPick = mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox').resolves({
                 label: 'myGatewayA',
@@ -361,14 +368,14 @@ describe('GatewayConnectCommand', () => {
             let connection: FabricGatewayRegistryEntry;
 
             beforeEach(async () => {
-                connection = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
+                connection = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Gateway`);
 
                 const walletRegistryEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Org1', FabricRuntimeUtil.LOCAL_FABRIC);
 
                 testFabricWallet = await FabricWallet.newFabricWallet(walletRegistryEntry.walletPath);
 
                 chosenGatewayQuickPick.resolves({
-                    label: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`,
+                    label: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Gateway`,
                     data: connection
                 });
 
@@ -378,21 +385,32 @@ describe('GatewayConnectCommand', () => {
                 });
 
                 connectStub = mySandBox.stub(ExtensionUtil.getBlockchainGatewayExplorerProvider(), 'connect');
+
+                identity = {
+                    label: 'Org1 Admin',
+                    identifier: 'identifier',
+                    mspId: 'Org1MSP'
+                };
             });
 
             it('should connect to a managed runtime using a quick pick', async () => {
-                mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves(identity.label);
+                mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves([identity.label]);
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
                 connectStub.should.have.been.calledOnce;
-                choseIdentityQuickPick.should.have.been.calledOnceWithExactly;
+                choseIdentityQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.have.been.calledOnceWithExactly(testFabricWallet, identity.label, timeout);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'managed runtime', connectIBM: sinon.match.string });
             });
 
             it('should connect to a managed runtime with multiple identities, using a quick pick', async () => {
+                testFabricWallet = await FabricWallet.newFabricWallet(path.join(__dirname, '..', '..', 'tmp', 'v2', 'environments', '1 Org Local Fabric', 'wallets', 'Org1'));
+                const getWalletStub: sinon.SinonStub = mySandBox.stub(walletGenerator, 'getWallet');
+                getWalletStub.callThrough();
+                getWalletStub.onCall(1).resolves(testFabricWallet);
+                getVisibleIdentitiesStub.resolves([new FabricIdentity('other', 'cert', 'pkey', 'Org2MSP'), new FabricIdentity(identity.label, 'cert', 'pkey', 'Org1MSP')]);
+                mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves(['other', identity.label]);
                 choseIdentityQuickPick.resolves(identity.label);
-
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
                 connectStub.should.have.been.calledOnce;
@@ -413,49 +431,16 @@ describe('GatewayConnectCommand', () => {
                 connectStub.should.have.been.calledOnce;
                 mockConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label, timeout);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'managed runtime', connectIBM: sinon.match.string });
-                logSpy.should.have.been.calledWith(LogType.SUCCESS, `Connecting to ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
-            });
-
-            it('should connect to a managed ansible', async () => {
-                managedGateway = new FabricGatewayRegistryEntry({
-                    name: 'managedEnvironment - Org1',
-                    associatedWallet: 'myGatewayDWallet',
-                    fromEnvironment: 'managedEnvironment',
-                    connectionProfilePath: path.join('myPath', 'connection.json'),
-                    displayName: 'Org1'
-                });
-
-                await FabricGatewayRegistry.instance().add(managedGateway);
-
-                managedWallet = new FabricWalletRegistryEntry({
-                    name: 'myGatewayDWallet',
-                    walletPath: path.join(rootPath, '../../test/data/walletDir/wallet'),
-                    fromEnvironment: 'managedEnvironment',
-                    managedWallet: true
-                });
-
-                await FabricWalletRegistry.instance().add(managedWallet);
-
-                const managedAnsible: ManagedAnsibleEnvironment = new ManagedAnsibleEnvironment('managedEnvironment', '/some/path');
-                mySandBox.stub(managedAnsible, 'isRunning').resolves(true);
-                getEnvironmentStub.returns(managedAnsible);
-
-                testFabricWallet = await FabricWallet.newFabricWallet(managedWallet.walletPath);
-
-                const blockchainNetworkExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
-                const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
-                const groupChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(allChildren[1]);
-                const myConnectionItem: LocalGatewayTreeItem = groupChildren[0] as LocalGatewayTreeItem;
-
-                await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
-
-                connectStub.should.have.been.calledOnce;
-                mockConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label, timeout);
-                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'managed ansible runtime', connectIBM: sinon.match.string });
-                logSpy.should.have.been.calledWith(LogType.SUCCESS, `Connecting to managedEnvironment - Org1`);
+                logSpy.should.have.been.calledWith(LogType.SUCCESS, `Connecting to ${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Gateway`);
             });
 
             it('should handle the user cancelling an identity to choose from when connecting to a fabric runtime', async () => {
+                testFabricWallet = await FabricWallet.newFabricWallet(path.join(__dirname, '..', '..', 'tmp', 'v2', 'environments', '1 Org Local Fabric', 'wallets', 'Org1'));
+                const getWalletStub: sinon.SinonStub = mySandBox.stub(walletGenerator, 'getWallet');
+                getWalletStub.callThrough();
+                getWalletStub.onCall(1).resolves(testFabricWallet);
+                getVisibleIdentitiesStub.resolves([new FabricIdentity('other', 'cert', 'pkey', 'Org2MSP'), new FabricIdentity(identity.label, 'cert', 'pkey', 'Org1MSP')]);
+
                 choseIdentityQuickPick.resolves();
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
@@ -494,7 +479,7 @@ describe('GatewayConnectCommand', () => {
                 testFabricWallet = await FabricWallet.newFabricWallet(path.join(__dirname, '../../tmp/v2/wallets/testWallet'));
                 const getWalletStub: sinon.SinonStub = mySandBox.stub(walletGenerator, 'getWallet');
                 getWalletStub.callThrough();
-                getWalletStub.withArgs(wallet).returns(testFabricWallet);
+                getWalletStub.withArgs(wallet).resolves(testFabricWallet);
 
                 getIdentitiesStub = mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves([identity.label]);
 

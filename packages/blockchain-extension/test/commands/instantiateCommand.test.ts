@@ -78,7 +78,7 @@ describe('InstantiateCommand', () => {
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             environmentRegistryEntry.managedRuntime = true;
-            environmentRegistryEntry.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
+            environmentRegistryEntry.environmentType = EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT;
 
             environmentRegistryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistryEntry);
 
