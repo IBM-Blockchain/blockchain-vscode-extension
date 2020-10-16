@@ -20,6 +20,27 @@ pull_request_rules:
         add:
           - v2 pr
 
+  - name: Create merge-2648 backport PR
+    conditions:
+      - base=v2 # PR must have been on v2
+      - merged # Must have been merged
+      - label!=merge-2648 pr # Ignore merge-2648 prs
+      - label!=ignore-merge-2648 # Add this label to override backport
+    actions:
+      backport:
+        ignore_conflicts: true
+        label_conflicts: conflicts
+        branches:
+          - merge-2648 # Backport to 'merge-2648' branch
+         
+  - name: Add merge pr label # Add 'merge-2648 pr' label to all PRs for 'merge-2648' branch
+    conditions:
+      - base=merge-2648
+    actions:
+      label:
+        add:
+          - merge-2648 pr
+
   - name: Update tutorials
     conditions: []
     actions:
