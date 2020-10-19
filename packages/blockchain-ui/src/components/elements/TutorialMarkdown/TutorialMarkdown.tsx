@@ -25,9 +25,9 @@ const isUrlAbsolute: any = (url: string) => (url.includes('://') || url.indexOf(
 const createTutorialLink: any = (tutorial: ITutorialObject, linkContents: any): ReactElement => {
     return (
         <CommandLink
-          linkContents={linkContents}
-          commandName={ExtensionCommands.OPEN_TUTORIAL_PAGE}
-          commandData={[tutorial.series, tutorial.title]}
+            linkContents={linkContents}
+            commandName={ExtensionCommands.OPEN_TUTORIAL_PAGE}
+            commandData={[tutorial.series, tutorial.title]}
         />
     );
 };

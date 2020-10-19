@@ -1,0 +1,16 @@
+@import '@carbon/layout/scss/_spacing';
+@import '@carbon/colors/scss/colors';
+
+.bx--form {
+    .associate-tx-data {
+        > p {
+            color: $gray-50;
+            padding-bottom: $spacing-04;
+            font-size: 0.875rem;
+        }
+
+        .bx--file__selected-file {
+            max-width: 100%;
+        }
+    }
+}
