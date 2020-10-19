@@ -19,14 +19,19 @@ import { CloudAccountApi } from '../interfaces/cloud-account-api';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from 'ibm-blockchain-platform-common';
 import { URL } from 'url';
+import { DependencyProperties } from '../dependencies/Dependencies';
 
 /*
  * This file will hold functions to allow interaction with other extensions.
  */
 export class ExtensionsInteractionUtil {
 
+    // public static isIBMCloudExtensionInstalled(): boolean {
+    //     return !!vscode.extensions.getExtension(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION);
+    // }
+
     public static async cloudAccountGetAccessToken(userInteraction: boolean = true): Promise<string> {
-        const  cloudAccountExtension: vscode.Extension<any> = vscode.extensions.getExtension( 'IBM.ibmcloud-account' );
+        const  cloudAccountExtension: vscode.Extension<any> = vscode.extensions.getExtension(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION);
         if ( !cloudAccountExtension ) {
             throw new Error('IBM Cloud Account extension must be installed');
         } else if ( !cloudAccountExtension.isActive ) {
@@ -69,7 +74,7 @@ export class ExtensionsInteractionUtil {
     }
 
     public static async cloudAccountIsLoggedIn(): Promise<boolean> {
-        const  cloudAccountExtension: vscode.Extension<any> = vscode.extensions.getExtension( 'IBM.ibmcloud-account' );
+        const  cloudAccountExtension: vscode.Extension<any> = vscode.extensions.getExtension(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION);
         if ( !cloudAccountExtension ) {
             throw new Error('IBM Cloud Account extension must be installed');
         } else if ( !cloudAccountExtension.isActive ) {
@@ -81,7 +86,7 @@ export class ExtensionsInteractionUtil {
     }
 
     public static async cloudAccountHasSelectedAccount(): Promise<boolean> {
-        const  cloudAccountExtension: vscode.Extension<any> = vscode.extensions.getExtension( 'IBM.ibmcloud-account' );
+        const  cloudAccountExtension: vscode.Extension<any> = vscode.extensions.getExtension(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION);
         if ( !cloudAccountExtension ) {
             throw new Error('IBM Cloud Account extension must be installed');
         } else if ( !cloudAccountExtension.isActive ) {
