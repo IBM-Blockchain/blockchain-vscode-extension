@@ -43,7 +43,11 @@ export class DependencyManager {
             } else {
                 return false;
             }
+<<<<<<< HEAD
         } else if (name === 'Go Extension' || name === 'Java Language Support Extension' || name === 'Java Debugger Extension' || name === 'Java Test Runner Extension' || name === 'Node Test Runner Extension') {
+=======
+        } else if (name === 'C++ Build Tools' || name === 'Xcode' || name === 'Go Extension' || name === 'Java Language Support Extension' || name === 'Java Debugger Extension' || name === 'Java Test Runner Extension' || name === 'Node Test Runner Extension' || name === 'IBM Cloud Account Extension') {
+>>>>>>> 3c52bfb7... Link to IBM Cloud Account Extension if it isn't installed, add to optional dependencies (#2713)
             if (dependency.version) {
                 return true;
             } else {
@@ -127,6 +131,10 @@ export class DependencyManager {
             }
 
             if (!this.isValidDependency(dependencies.nodeTestRunnerExtension)) {
+                return false;
+            }
+
+            if (!this.isValidDependency(dependencies.ibmCloudAccountExtension)) {
                 return false;
             }
         }
@@ -444,5 +452,283 @@ export class DependencyManager {
         } catch (error) {
             // Ignore the error
         }
+<<<<<<< HEAD
+=======
+
+        dependencies.ibmCloudAccountExtension = { name: 'IBM Cloud Account Extension', required: false, version: undefined, url: 'vscode:extension/IBM.ibmcloud-account', requiredVersion: undefined, requiredLabel: '', tooltip: 'Required for discovering IBM Blockchain Platform on IBM Cloud networks.' };
+        try {
+            const ibmCloudAccountExtensionResult: vscode.Extension<any> = vscode.extensions.getExtension('IBM.ibmcloud-account');
+            if (ibmCloudAccountExtensionResult) {
+                const version: string = ibmCloudAccountExtensionResult.packageJSON.version;
+                dependencies.ibmCloudAccountExtension.version = version;
+            }
+        } catch (error) {
+            // Ignore the error
+        }
+
+        return dependencies;
+
+    }
+
+    public async rewritePackageJson(): Promise<void> {
+        // Replace activationEvents with the events that the extension should be activated for subsequent sessions.
+        const packageJson: any = await this.getRawPackageJson();
+
+        packageJson.activationEvents = [];
+
+        packageJson.actualActivationEvents.onView.forEach((event: string) => {
+            packageJson.activationEvents.push('onView:' + event);
+        });
+
+        packageJson.actualActivationEvents.onCommand.forEach((event: string) => {
+            packageJson.activationEvents.push('onCommand:' + event);
+        });
+
+        packageJson.actualActivationEvents.other.forEach((event: string) => {
+            packageJson.activationEvents.push(event);
+        });
+
+        return this.writePackageJson(packageJson);
+    }
+
+    public async getDockerVersion(): Promise<string> {
+        try {
+            const dockerResult: string = await CommandUtil.sendCommand('docker -v'); // Format: Docker version X.Y.Z-ce, build e68fc7a
+            if (this.isCommandFound(dockerResult)) {
+                const dockerMatchedVersion: string = dockerResult.match(/version (.*),/)[1]; // Format: X.Y.Z-ce "version 18.06.1-ce,"
+                const dockerCleaned: string = semver.clean(dockerMatchedVersion, { loose: true });
+                const dockerVersionCoerced: semver.SemVer = semver.coerce(dockerCleaned); // Format: X.Y.Z
+                const dockerVersion: string = semver.valid(dockerVersionCoerced); // Returns version
+                return dockerVersion;
+            }
+        } catch (error) {
+            // Ignore
+            return;
+        }
+    }
+
+    public async getDockerComposeVersion(): Promise<string> {
+        try {
+            const composeResult: string = await CommandUtil.sendCommand('docker-compose -v'); // Format: docker-compose version 1.22.0, build f46880f
+            if (this.isCommandFound(composeResult)) {
+                const composeMatchedVersion: string = composeResult.match(/version (.*),/)[1]; // Format: X.Y.Z
+                const composeCleaned: string = semver.clean(composeMatchedVersion, { loose: true });
+                const composeVersionCoerced: semver.SemVer = semver.coerce(composeCleaned); // Format: X.Y.Z
+                const composeVersion: string = semver.valid(composeVersionCoerced); // Returns version
+                return composeVersion;
+            }
+        } catch (error) {
+            // Ignore
+            return;
+        }
+    }
+
+    private isCommandFound(output: string): boolean {
+        if (output.toLowerCase().includes('not found') || output.toLowerCase().includes('not recognized') || output.toLowerCase().includes('no such file or directory') || output.toLowerCase().includes('unable to get active developer directory')) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    private getPackageJsonPath(): string {
+        return path.resolve(ExtensionUtil.getExtensionPath(), 'package.json');
+    }
+
+    private loadDependencies(): void {
+        const packageJSON: any = ExtensionUtil.getPackageJSON();
+
+        this.dependencies = packageJSON.nativeDependencies;
+    }
+
+    private async installNativeDependenciesInternal(): Promise<void> {
+        const extensionPath: string = ExtensionUtil.getExtensionPath();
+
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: 'IBM Blockchain Platform Extension',
+            cancellable: false
+        }, async (progress: vscode.Progress<{ message: string }>) => {
+
+            const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+
+            const architecture: string = process.arch; // Returns the architecture Code is running on
+            const os: string = process.platform;
+            let thing: string;
+            if (os === 'linux') {
+                thing = 'glibc';
+            } else {
+                thing = 'unknown';
+            }
+
+            let runtime: string = 'electron';
+            let info: { modules?: string, longVersion: string, shortVersion?: string };
+
+            const remote: boolean = vscode.extensions.getExtension(EXTENSION_ID).extensionKind === vscode.ExtensionKind.Workspace;
+            const che: boolean = ExtensionUtil.isChe();
+
+            if (remote || che) {
+                runtime = 'node';
+                const nodeVersion: string = process.versions.node;
+                info = {
+                    longVersion: nodeVersion
+                };
+            } else {
+                info = await this.getLocalRebuildInfo(os, architecture, thing);
+            }
+
+            outputAdapter.log(LogType.INFO, undefined, 'Updating native node modules');
+            progress.report({ message: 'Updating native node modules' });
+
+            for (const dependency of this.dependencies) {
+                outputAdapter.log(LogType.INFO, undefined, 'Rebuilding native node modules');
+                progress.report({ message: 'Rebuilding native node modules' });
+
+                // npm needs to run in a shell on Windows
+                const shell: boolean = (process.platform === 'win32') ? true : false;
+
+                try {
+                    const args: string[] = ['rebuild', dependency, `--target=${info.longVersion}`, `--runtime=${runtime}`, '--update-binary', '--fallback-to-build', `--target_arch=${architecture}`];
+                    if (!remote) {
+                        args.push('--dist-url=https://atom.io/download/electron');
+                    }
+
+                    await CommandUtil.sendCommandWithOutput('npm', args, extensionPath, null, outputAdapter, shell);
+
+                } catch (error) {
+                    outputAdapter.log(LogType.ERROR, `Could not rebuild native dependencies ${error.message}. Please ensure that you have node and npm installed`);
+                    throw error;
+                }
+
+                if (!remote && semver.lt(info.longVersion, '6.0.0')) {
+                    progress.report({ message: `Updating ${dependency}` });
+                    outputAdapter.log(LogType.INFO, undefined, `Updating ${dependency}`);
+                    let basePath: string = path.join(extensionPath, 'node_modules', 'grpc', 'src', 'node', 'extension_binary');
+
+                    let origPath: string = path.join(basePath, `node-v${info.modules}-${os}-${architecture}-${thing}`);
+                    let newPath: string = path.join(basePath, `electron-v${info.shortVersion}-${os}-${architecture}-${thing}`);
+
+                    let exists: boolean = await fs.pathExists(origPath);
+                    if (exists) {
+                        await fs.remove(origPath);
+                    }
+
+                    await fs.rename(newPath, origPath);
+
+                    // this is probably only needed in development
+                    const otherGRPC: string[] = ['ibm-blockchain-platform-gateway-v1', 'ibm-blockchain-platform-environment-v1', 'ibm-blockchain-platform-wallet'];
+
+                    for (const other of otherGRPC) {
+                        basePath = path.join(extensionPath, 'node_modules', `${other}`, 'node_modules', 'grpc', 'src', 'node', 'extension_binary');
+
+                        origPath = path.join(basePath, `node-v${info.modules}-${os}-${architecture}-${thing}`);
+                        newPath = path.join(basePath, `electron-v${info.shortVersion}-${os}-${architecture}-${thing}`);
+
+                        exists = await fs.pathExists(origPath);
+                        if (exists) {
+                            await fs.remove(origPath);
+                        }
+
+                        exists = await fs.pathExists(newPath);
+                        if (exists) {
+                            await fs.rename(newPath, origPath);
+                        }
+                    }
+                }
+            }
+
+            outputAdapter.log(LogType.SUCCESS, undefined, 'Finished updating native node modules');
+            progress.report({ message: 'Finished updating native node modules' });
+        });
+    }
+
+    private async getLocalRebuildInfo(os: string, arch: string, thing: string): Promise<{ modules: string, longVersion: string, shortVersion: string }> {
+        try {
+            const modules: string = process.versions.modules;
+            const electronVersion: string = process.versions['electron'];
+
+            let version: { longVersion: string, shortVersion: string };
+
+            if (!electronVersion) {
+
+                let info: any[] = [];
+                try {
+                    const response: any = await Axios.get('https://raw.githubusercontent.com/electron/releases/master/lite.json');
+                    info = response.data;
+                } catch (error) {
+                    // Will be handled by reading a local JSON file, on the next few lines.
+                }
+
+                if (!info || info.length === 0) {
+                    const fallbackPath: string = path.join(__dirname, '..', '..', 'fallback-build-info.json');
+                    info = await fs.readJSON(fallbackPath);
+                }
+
+                info = info.filter((_info: any) => {
+                    return _info && _info.deps && _info.deps.modules === modules;
+                });
+
+                const filteredVersions: any[] = [];
+
+                for (const _info of info) {
+                    const tempVersion: string = `${semver.major(_info.version)}.${semver.minor(_info.version)}`;
+                    const found: { longVersion: string, shortVersion: string } = filteredVersions.find((_version: { longVersion: string, shortVersion: string }) => _version.shortVersion === tempVersion);
+                    if (!found) {
+                        filteredVersions.push({ longVersion: _info.version, shortVersion: tempVersion });
+                    }
+                }
+
+                if (filteredVersions.length === 0) {
+                    throw new Error(`no matching electron versions for modules ${modules}`);
+                }
+
+                for (const _version of filteredVersions) {
+                    try {
+                        const preBuiltBinarypath: string = `https://node-precompiled-binaries.grpc.io/grpc/v1.24.2/electron-v${_version.shortVersion}-${os}-${arch}-${thing}.tar.gz`;
+                        await Axios.get(preBuiltBinarypath);
+                        // found one that exists so use it
+                        version = _version;
+                        break;
+                    } catch (error) {
+                        // don't care about the error here as if error then it probably doesn't exist
+                    }
+                }
+
+                if (!version) {
+                    // didn't find a prebuilt one so just pick the first and use that
+                    version = filteredVersions[0];
+                }
+            } else {
+                version = {
+                    shortVersion: `${semver.major(electronVersion)}.${semver.minor(electronVersion)}`,
+                    longVersion: electronVersion,
+                };
+            }
+
+            return { modules: modules, longVersion: version.longVersion, shortVersion: version.shortVersion };
+        } catch (error) {
+            throw new Error(`Could not get electron version, ${error.message}`);
+        }
+    }
+
+    private async getRawPackageJson(): Promise<any> {
+        // Use getRawPackageJson to read and write back to package.json
+        // This prevents obtaining any of VSCode's expanded variables.
+        const fileContents: Buffer = await fs.readFile(this.getPackageJsonPath());
+        return JSON.parse(fileContents.toString());
+    }
+
+    private async writePackageJson(packageJson: any): Promise<void> {
+        const packageJsonString: string = JSON.stringify(packageJson, null, 4);
+
+        return fs.writeFile(this.getPackageJsonPath(), packageJsonString, 'utf8');
+    }
+
+    private async clearExtensionCache(): Promise<void> {
+        const extensionPath: string = ExtensionUtil.getExtensionPath();
+        const extensionsPath: string = path.resolve(extensionPath, '..');
+        const currentDate: Date = new Date();
+        await fs.utimes(extensionsPath, currentDate, currentDate);
+>>>>>>> 3c52bfb7... Link to IBM Cloud Account Extension if it isn't installed, add to optional dependencies (#2713)
     }
 }

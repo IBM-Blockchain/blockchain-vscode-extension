@@ -2795,7 +2795,7 @@ describe('UserInputUtil', () => {
 
     describe('getWorkspaceFolders', () => {
 
-        it(' getWorkspaceFolders should not show package chooser when only one folder to package', async () => {
+        it('getWorkspaceFolders should not show package chooser when only one folder to package', async () => {
 
             const pathOne: string = path.join('some', 'path');
             const uriOne: vscode.Uri = vscode.Uri.file(pathOne);

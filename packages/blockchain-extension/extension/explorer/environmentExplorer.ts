@@ -251,7 +251,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 arguments: []
             };
 
-            tree.push(new TextTreeItem(this, '+ add local or remote environment', command));
+            tree.push(new TextTreeItem(this, '+ Add local or remote environment', command));
 
             // TODO - comment back in when IBP supports v2
             // if there are no environments at all we should still show the option to log in to IBM Cloud
@@ -369,6 +369,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
         }
     }
 
+<<<<<<< HEAD
     // TODO - comment back in when IBP supports v2
     // private async getIBMCloudInteractionItem(returnGroupItem: boolean): Promise<BlockchainTreeItem> {
     //     const isLoggedIn: boolean = await ExtensionsInteractionUtil.cloudAccountIsLoggedIn();
@@ -408,6 +409,61 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
     //         }
     //     }
     // }
+=======
+    private async getIBMCloudInteractionItem(returnGroupItem: boolean): Promise<BlockchainTreeItem> {
+        const ibmCloudExtensionInstalled: boolean = ExtensionsInteractionUtil.isIBMCloudExtensionInstalled();
+        if (!ibmCloudExtensionInstalled) {
+            if (returnGroupItem) {
+                return new EnvironmentGroupTreeItem(this, 'IBM Blockchain Platform on cloud', [], vscode.TreeItemCollapsibleState.Expanded);
+            } else {
+                const label: string = '+ Install IBM Cloud Account extension';
+                const command: vscode.Command = {
+                    command: ExtensionCommands.OPEN_IBM_CLOUD_EXTENSION,
+                    title: '',
+                    arguments: []
+                };
+                return new TextTreeItem(this, label, command);
+            }
+        }
+
+        const isLoggedIn: boolean = await ExtensionsInteractionUtil.cloudAccountIsLoggedIn();
+        const hasAccountSelected: boolean = await ExtensionsInteractionUtil.cloudAccountHasSelectedAccount();
+        if ( !isLoggedIn || !hasAccountSelected) {
+            if (returnGroupItem) {
+                return new EnvironmentGroupTreeItem(this, 'IBM Blockchain Platform on cloud', [], vscode.TreeItemCollapsibleState.Expanded);
+            } else {
+                const label: string = !isLoggedIn ? '+ Log in to IBM Cloud' : '+ Select IBM Cloud account';
+                const command: vscode.Command = {
+                    command: ExtensionCommands.LOG_IN_AND_DISCOVER,
+                    title: '',
+                    arguments: []
+                };
+                return new TextTreeItem(this, label, command);
+            }
+        } else {
+            // if we're logged in we need to figure out if they've got stuff stood up on IBP, and if they dont show the tree item
+            const anyIbpResources: boolean = await ExtensionsInteractionUtil.cloudAccountAnyIbpResources();
+            if (anyIbpResources) {
+                // we should try and automatically add the environments for them
+                const shouldDiscover: boolean = vscode.workspace.getConfiguration().get(SettingConfigurations.DISCOVER_SAAS_ENVS);
+                if (shouldDiscover === true) {
+                    await vscode.commands.executeCommand(ExtensionCommands.LOG_IN_AND_DISCOVER);
+                }
+            } else {
+                if (returnGroupItem) {
+                    return new EnvironmentGroupTreeItem(this, 'IBM Blockchain Platform on cloud', [], vscode.TreeItemCollapsibleState.Expanded);
+                } else {
+                    const command: vscode.Command = {
+                        command: ExtensionCommands.OPEN_NEW_INSTANCE_LINK,
+                        title: '',
+                        arguments: []
+                    };
+                    return new TextTreeItem(this, '+ create new instance', command);
+                }
+            }
+        }
+    }
+>>>>>>> 3c52bfb7... Link to IBM Cloud Account Extension if it isn't installed, add to optional dependencies (#2713)
 
     private async createConnectedTree(environmentRegistryEntry: FabricEnvironmentRegistryEntry): Promise<Array<BlockchainTreeItem>> {
         const tree: Array<BlockchainTreeItem> = [];

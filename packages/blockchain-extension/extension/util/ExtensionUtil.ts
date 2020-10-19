@@ -302,6 +302,16 @@ export class ExtensionUtil {
             await vscode.commands.executeCommand('vscode.open', vscode.Uri.parse('https://cloud.ibm.com/catalog/services/blockchain-platform'));
             Reporter.instance().sendTelemetryEvent('openNewInstanceLink');
         }));
+<<<<<<< HEAD
+=======
+
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_IBM_CLOUD_EXTENSION, async () => {
+            await vscode.commands.executeCommand('vscode.open', vscode.Uri.parse('vscode:extension/IBM.ibmcloud-account'));
+        }));
+
+        // Teardown old containers and delete environments, wallets, gateways.
+        await this.purgeOldRuntimes();
+>>>>>>> 3c52bfb7... Link to IBM Cloud Account Extension if it isn't installed, add to optional dependencies (#2713)
 
         const goDebugProvider: FabricGoDebugConfigurationProvider = new FabricGoDebugConfigurationProvider();
         const javaDebugProvider: FabricJavaDebugConfigurationProvider = new FabricJavaDebugConfigurationProvider();

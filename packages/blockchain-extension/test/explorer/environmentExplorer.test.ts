@@ -65,14 +65,26 @@ describe('environmentExplorer', () => {
     describe('getChildren', () => {
         describe('unconnected tree', () => {
             let executeCommandStub: sinon.SinonStub;
+<<<<<<< HEAD
             // let loggedInStub: sinon.SinonStub;
             // let accountSelectedStub: sinon.SinonStub;
+=======
+            let isIBMCloudExtensionInstalled: sinon.SinonStub;
+            let loggedInStub: sinon.SinonStub;
+            let accountSelectedStub: sinon.SinonStub;
+>>>>>>> 3c52bfb7... Link to IBM Cloud Account Extension if it isn't installed, add to optional dependencies (#2713)
             let logSpy: sinon.SinonSpy;
 
             beforeEach(async () => {
                 mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns(undefined);
+<<<<<<< HEAD
                 // loggedInStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
                 // accountSelectedStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountHasSelectedAccount').resolves(false);
+=======
+                isIBMCloudExtensionInstalled = mySandBox.stub(ExtensionsInteractionUtil, 'isIBMCloudExtensionInstalled').returns(true);
+                loggedInStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
+                accountSelectedStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountHasSelectedAccount').resolves(false);
+>>>>>>> 3c52bfb7... Link to IBM Cloud Account Extension if it isn't installed, add to optional dependencies (#2713)
 
                 logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
@@ -353,13 +365,170 @@ describe('environmentExplorer', () => {
             it('should say that there are no environments', async () => {
                 await FabricEnvironmentRegistry.instance().clear();
 
+<<<<<<< HEAD
                 // const anyResourcesStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountAnyIbpResources');
+=======
+                const anyResourcesStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountAnyIbpResources');
+
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+                allChildren.length.should.equal(2);
+                allChildren[0].label.should.equal(`+ Add local or remote environment`);
+                allChildren[0].command.should.deep.equal({
+                    command: ExtensionCommands.ADD_ENVIRONMENT,
+                    title: '',
+                    arguments: []
+                });
+
+                allChildren[1].label.should.equal('IBM Blockchain Platform on cloud');
+                const ibmCloudItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
+                ibmCloudItems.length.should.equal(1);
+                ibmCloudItems[0].label.should.equal(`+ Log in to IBM Cloud`);
+                ibmCloudItems[0].command.should.deep.equal({
+                    command: ExtensionCommands.LOG_IN_AND_DISCOVER,
+                    title: '',
+                    arguments: []
+                });
+
+                loggedInStub.should.have.been.calledTwice;
+                accountSelectedStub.should.have.been.calledTwice;
+                anyResourcesStub.should.not.have.been.called;
+            });
+
+            it(`should show a 'create new instance' tree item if logged into IBM Cloud with no available instances`, async () => {
+                await FabricEnvironmentRegistry.instance().clear();
+
+                loggedInStub.resolves(true);
+                accountSelectedStub.resolves(true);
+                const anyResourcesStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountAnyIbpResources').resolves(false);
+
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+                allChildren.length.should.equal(2);
+                allChildren[0].label.should.equal(`+ Add local or remote environment`);
+                allChildren[0].command.should.deep.equal({
+                    command: ExtensionCommands.ADD_ENVIRONMENT,
+                    title: '',
+                    arguments: []
+                });
+
+                allChildren[1].label.should.equal('IBM Blockchain Platform on cloud');
+                const ibmCloudItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
+                ibmCloudItems.length.should.equal(1);
+                ibmCloudItems[0].label.should.equal(`+ create new instance`);
+                ibmCloudItems[0].command.should.deep.equal({
+                    command: ExtensionCommands.OPEN_NEW_INSTANCE_LINK,
+                    title: '',
+                    arguments: []
+                });
+                loggedInStub.should.have.been.calledTwice;
+                accountSelectedStub.should.have.been.calledTwice;
+                anyResourcesStub.should.have.been.calledTwice;
+            });
+
+            it(`should show a 'install IBM Cloud Account Extension' tree item if the IBM Cloud Account Extension is not installed`, async () => {
+                await FabricEnvironmentRegistry.instance().clear();
+
+                isIBMCloudExtensionInstalled.returns(false);
+
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+                allChildren.length.should.equal(2);
+                allChildren[1].label.should.equal('IBM Blockchain Platform on cloud');
+                const ibmCloudItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
+                ibmCloudItems.length.should.equal(1);
+                ibmCloudItems[0].label.should.equal(`+ Install IBM Cloud Account extension`);
+                ibmCloudItems[0].command.should.deep.equal({
+                    command: ExtensionCommands.OPEN_IBM_CLOUD_EXTENSION,
+                    title: '',
+                    arguments: []
+                });
+            });
+
+            it('should show log in item if there are ops tools environments but no saas environments', async () => {
+                const opsToolsEnv: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                opsToolsEnv.name = 'opsToolsEnv';
+                opsToolsEnv.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
+
+                await FabricEnvironmentRegistry.instance().clear();
+                await FabricEnvironmentRegistry.instance().add(opsToolsEnv);
+
+                const anyResourcesStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountAnyIbpResources').resolves(false);
 
                 const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
 
                 allChildren.length.should.equal(1);
-                allChildren[0].label.should.equal(`+ add local or remote environment`);
+                allChildren[0].label.should.equal('IBM Blockchain Platform on cloud');
+                const ibmCloudItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
+                ibmCloudItems.length.should.equal(2);
+                ibmCloudItems[0].label.should.equal(`+ Log in to IBM Cloud`);
+                ibmCloudItems[0].command.should.deep.equal({
+                    command: ExtensionCommands.LOG_IN_AND_DISCOVER,
+                    title: '',
+                    arguments: []
+                });
+                ibmCloudItems[1].label.should.equal(opsToolsEnv.name);
+                ibmCloudItems[1].tooltip.should.equal(opsToolsEnv.name);
+                ibmCloudItems[1].contextValue.should.equal('blockchain-environment-item');
+
+                loggedInStub.should.have.been.calledOnce;
+                accountSelectedStub.should.have.been.calledOnce;
+                anyResourcesStub.should.not.have.been.called;
+            });
+
+            it('should show select account item if user logged in to IBM cloud but no account selected', async () => {
+                const opsToolsEnv: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                opsToolsEnv.name = 'opsToolsEnv';
+                opsToolsEnv.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
+
+                await FabricEnvironmentRegistry.instance().clear();
+                await FabricEnvironmentRegistry.instance().add(opsToolsEnv);
+
+                loggedInStub.resolves(true);
+                accountSelectedStub.resolves(false);
+                const anyResourcesStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountAnyIbpResources').resolves(false);
+
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+                allChildren.length.should.equal(1);
+                allChildren[0].label.should.equal('IBM Blockchain Platform on cloud');
+                const ibmCloudItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
+                ibmCloudItems.length.should.equal(2);
+                ibmCloudItems[0].label.should.equal(`+ Select IBM Cloud account`);
+                ibmCloudItems[0].command.should.deep.equal({
+                    command: ExtensionCommands.LOG_IN_AND_DISCOVER,
+                    title: '',
+                    arguments: []
+                });
+                ibmCloudItems[1].label.should.equal(opsToolsEnv.name);
+                ibmCloudItems[1].tooltip.should.equal(opsToolsEnv.name);
+                ibmCloudItems[1].contextValue.should.equal('blockchain-environment-item');
+
+                loggedInStub.should.have.been.calledOnce;
+                accountSelectedStub.should.have.been.calledOnce;
+                anyResourcesStub.should.not.have.been.called;
+            });
+
+            it(`should try to automatically add discovered IBP instances`, async () => {
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.DISCOVER_SAAS_ENVS, true, vscode.ConfigurationTarget.Global);
+                await FabricEnvironmentRegistry.instance().clear();
+
+                executeCommandStub.withArgs(ExtensionCommands.LOG_IN_AND_DISCOVER).resolves();
+                loggedInStub.resolves(true);
+                accountSelectedStub.resolves(true);
+                const anyResourcesStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountAnyIbpResources').resolves(true);
+>>>>>>> 3c52bfb7... Link to IBM Cloud Account Extension if it isn't installed, add to optional dependencies (#2713)
+
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+                allChildren.length.should.equal(1);
+                allChildren[0].label.should.equal(`+ Add local or remote environment`);
                 allChildren[0].command.should.deep.equal({
                     command: ExtensionCommands.ADD_ENVIRONMENT,
                     title: '',
@@ -381,6 +550,7 @@ describe('environmentExplorer', () => {
                 // anyResourcesStub.should.not.have.been.called;
             });
 
+<<<<<<< HEAD
             // it(`should show a 'create new instance' tree item if logged into IBM Cloud with no available instances`, async () => {
             //     await FabricEnvironmentRegistry.instance().clear();
 
@@ -591,6 +761,34 @@ describe('environmentExplorer', () => {
             //     accountSelectedStub.should.have.been.calledOnce;
             //     anyResourcesStub.should.have.been.calledOnce;
             // });
+=======
+            it('should not automatically add discovered environments if set to false in user settings', async () => {
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.DISCOVER_SAAS_ENVS, false, vscode.ConfigurationTarget.Global);
+                await FabricEnvironmentRegistry.instance().clear();
+
+                executeCommandStub.withArgs(ExtensionCommands.LOG_IN_AND_DISCOVER).resolves();
+                loggedInStub.resolves(true);
+                accountSelectedStub.resolves(true);
+                const anyResourcesStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountAnyIbpResources').resolves(true);
+
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+                allChildren.length.should.equal(1);
+                allChildren[0].label.should.equal(`+ Add local or remote environment`);
+                allChildren[0].command.should.deep.equal({
+                    command: ExtensionCommands.ADD_ENVIRONMENT,
+                    title: '',
+                    arguments: []
+                });
+
+                executeCommandStub.withArgs(ExtensionCommands.LOG_IN_AND_DISCOVER).should.not.have.been.called;
+
+                loggedInStub.should.have.been.calledOnce;
+                accountSelectedStub.should.have.been.calledOnce;
+                anyResourcesStub.should.have.been.calledOnce;
+            });
+>>>>>>> 3c52bfb7... Link to IBM Cloud Account Extension if it isn't installed, add to optional dependencies (#2713)
 
             it('should handle errors populating the tree with runtimeTreeItems', async () => {
                 const registryEntryOne: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
@@ -1572,8 +1770,14 @@ describe('environmentExplorer', () => {
         // let accountSelectedStub: sinon.SinonStub;
 
         beforeEach(async () => {
+<<<<<<< HEAD
             // loggedInStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
             // accountSelectedStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountHasSelectedAccount').resolves(false);
+=======
+            mySandBox.stub(ExtensionsInteractionUtil, 'isIBMCloudExtensionInstalled').returns(true);
+            loggedInStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
+            accountSelectedStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountHasSelectedAccount').resolves(false);
+>>>>>>> 3c52bfb7... Link to IBM Cloud Account Extension if it isn't installed, add to optional dependencies (#2713)
         });
 
         afterEach(() => {

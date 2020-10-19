@@ -508,8 +508,29 @@ describe('ExtensionUtil Tests', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('openNewInstanceLink');
         });
 
+<<<<<<< HEAD
         // it('should reload blockchain explorer when debug event emitted', async () => {
         //     await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
+=======
+        it('should register and open ibm cloud account extension link', async () => {
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').callThrough();
+            executeCommandStub.withArgs('vscode.open').resolves();
+
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+
+            await ExtensionUtil.registerCommands(ctx);
+            purgeOldRuntimesStub.should.have.been.calledOnce;
+
+            await vscode.commands.executeCommand(ExtensionCommands.OPEN_IBM_CLOUD_EXTENSION);
+
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWith('vscode.open', vscode.Uri.parse('vscode:extension/IBM.ibmcloud-account'));
+        });
+
+        it('should reload blockchain explorer when debug event emitted', async () => {
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
+>>>>>>> 3c52bfb7... Link to IBM Cloud Account Extension if it isn't installed, add to optional dependencies (#2713)
 
         //     const session: any = {
         //         some: 'thing',
