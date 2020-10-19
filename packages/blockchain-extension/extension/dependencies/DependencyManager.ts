@@ -85,7 +85,7 @@ export class DependencyManager {
             } else {
                 return false;
             }
-        } else if (name === 'C++ Build Tools' || name === 'Xcode' || name === 'Go Extension' || name === 'Java Language Support Extension' || name === 'Java Debugger Extension' || name === 'Java Test Runner Extension' || name === 'Node Test Runner Extension') {
+        } else if (name === 'C++ Build Tools' || name === 'Xcode' || name === 'Go Extension' || name === 'Java Language Support Extension' || name === 'Java Debugger Extension' || name === 'Java Test Runner Extension' || name === 'Node Test Runner Extension' || name === 'IBM Cloud Account Extension') {
             if (dependency.version) {
                 return true;
             } else {
@@ -177,6 +177,10 @@ export class DependencyManager {
             }
 
             if (!this.isValidDependency(dependencies.nodeTestRunnerExtension)) {
+                return false;
+            }
+
+            if (!this.isValidDependency(dependencies.ibmCloudAccountExtension)) {
                 return false;
             }
         }
@@ -421,6 +425,18 @@ export class DependencyManager {
         } catch (error) {
             // Ignore the error
         }
+
+        dependencies.ibmCloudAccountExtension = { name: 'IBM Cloud Account Extension', required: false, version: undefined, url: 'vscode:extension/IBM.ibmcloud-account', requiredVersion: undefined, requiredLabel: '', tooltip: 'Required for discovering IBM Blockchain Platform on IBM Cloud networks.' };
+        try {
+            const ibmCloudAccountExtensionResult: vscode.Extension<any> = vscode.extensions.getExtension('IBM.ibmcloud-account');
+            if (ibmCloudAccountExtensionResult) {
+                const version: string = ibmCloudAccountExtensionResult.packageJSON.version;
+                dependencies.ibmCloudAccountExtension.version = version;
+            }
+        } catch (error) {
+            // Ignore the error
+        }
+
         return dependencies;
 
     }
