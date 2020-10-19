@@ -549,7 +549,7 @@ describe('SubmitTransactionCommand', () => {
             showInputBoxStub.onFirstCall().resolves('"testArg]');
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             logSpy.should.have.been.calledTwice;
-            logSpy.should.have.been.calledWith(LogType.ERROR, 'Error with transaction arguments: transaction arguments should be in the format ["arg1", {"key" : "value"}]');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Error with transaction arguments: transaction arguments should be in the format ["arg1", {"arg2key" : "arg2value"}]');
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.not.have.been.calledWith('submit transaction');
             dockerLogsOutputSpy.should.not.have.been.called;
@@ -559,7 +559,7 @@ describe('SubmitTransactionCommand', () => {
             showInputBoxStub.onFirstCall().resolves('1');
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             logSpy.should.have.been.calledTwice;
-            logSpy.should.have.been.calledWith(LogType.ERROR, 'Error with transaction arguments: transaction arguments should be in the format ["arg1", {"key" : "value"}]');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Error with transaction arguments: transaction arguments should be in the format ["arg1", {"arg2key" : "arg2value"}]');
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.not.have.been.calledWith('submit transaction');
             dockerLogsOutputSpy.should.not.have.been.called;
@@ -891,6 +891,25 @@ describe('SubmitTransactionCommand', () => {
             dockerLogsOutputSpy.should.not.have.been.called;
         });
 
+        it('should submit a transaction through the transaction view with transient data where args is an array', async () => {
+            const transactionObject: any = {
+                smartContract: 'myContract',
+                transactionName: 'transaction1',
+                channelName: 'myChannel',
+                args: ['arg1', 'arg2', 'arg3'],
+                namespace: 'my-contract',
+                transientData: '{"key": "value"}',
+                peerTargetNames: []
+            };
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', { key: Buffer.from('value') }, false, []);
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
+            dockerLogsOutputSpy.should.not.have.been.called;
+        });
+
         it('should error when required to give transient data in the transaction view', async () => {
             const transactionObject: any = {
                 smartContract: 'myContract',
@@ -1083,6 +1102,37 @@ describe('SubmitTransactionCommand', () => {
             logSpy.should.not.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.not.have.been.calledWith('submit transaction');
+        });
+
+        it('should submit a transaction data file through the transaction view', async () => {
+            const gatewayWithTestData: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gatewayWithTestData.name = 'myConnection';
+            gatewayWithTestData.transactionDataDirectories = [
+                {
+                    chaincodeName: 'myContract',
+                    channelName: 'myChannel',
+                    transactionDataPath
+                }
+            ];
+            registryStub.resolves(gatewayWithTestData);
+
+            const transactionObject: any = {
+                smartContract: 'myContract',
+                transactionName: 'transaction1',
+                channelName: 'myChannel',
+                args: ['arg1', 'arg2', 'arg3'],
+                namespace: 'my-contract',
+                transientData: '',
+                peerTargetNames: [],
+                txDataFile: '/path/data.txdata',
+            };
+
+            await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION, undefined, undefined, undefined, transactionObject);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `evaluating transaction transaction1 with args arg1,arg2,arg3 on channel myChannel`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully evaluated transaction');
+            reporterStub.should.have.been.calledWith('evaluate transaction');
         });
 
         it('should submit a transaction data file correctly when no transaction label is provided', async () => {

@@ -1,54 +1,39 @@
-import React, { Component } from 'react';
+import React, { FunctionComponent } from 'react';
+import { Launch32 } from '@carbon/icons-react';
+import { ExtensionCommands } from '../../../ExtensionCommands';
+import CommandLink from '../CommandLink/CommandLink';
 import './TransactionOutput.scss';
+import block from '../../../resources/block.svg';
 
 interface IProps {
     output: string;
 }
 
-interface IState {
-    output: string;
-}
-
-class TransactionOutput extends Component<IProps, IState> {
-    constructor(props: Readonly<IProps>) {
-        super(props);
-        this.state = {
-            output: this.props.output
-        };
-        this.determineOutput = this.determineOutput.bind(this);
-    }
-
-    componentDidUpdate(prevProps: IProps): void {
-        if (prevProps.output !== this.props.output) {
-            this.setState({
-                output: this.props.output
-            });
-        }
-    }
-
-    determineOutput(): Array<JSX.Element>  {
-        const outputArray: Array<JSX.Element> = [];
-        if (this.state.output === '') {
-            outputArray.push(<p className='output-body'>No transaction output available. Submit/evaluate to produce an output.</p>);
-        } else {
-            const outputStrings: Array<string> = this.state.output.split('\n');
-            for (const output of outputStrings) {
-                outputArray.push(<p className='output-body'>{output}</p>);
-            }
-        }
-        return outputArray;
-    }
-
-    render(): JSX.Element {
-        return (
-            <div className='output-panel' id='output-panel'>
-                <div className='output-panel-inner'>
-                    <p className='output-title'>Output for untitled transaction</p>
-                    {this.determineOutput()}
-                </div>
+const TransactionOutput: FunctionComponent<IProps> = ({ output }) => {
+    return (
+        <div className='output-panel' id='output-panel'>
+            <p className='output-title'>Transaction output</p>
+            <div className='output-panel-inner'>
+                {output
+                    ?  output.split('\n').map((line) => <p className='output-body'>{line}</p>)
+                    : (
+                        <div className='output-placeholder-container'>
+                            <div className='output-placeholder'>
+                                <img src={block} alt='block icon' />
+                                <h4>No transaction output, yet!</h4>
+                                <p>Submit or evaluate a transaction to view it's output here.</p>
+                                <CommandLink
+                                    linkContents={<>Learn more <Launch32/></>}
+                                    commandName={ExtensionCommands.OPEN_TUTORIAL_PAGE}
+                                    commandData={['Basic tutorials', 'A4: Invoking a smart contract from VS Code']}
+                                />
+                            </div>
+                        </div>
+                    )
+                }
             </div>
-        );
-    }
-}
+        </div>
+    );
+};
 
 export default TransactionOutput;

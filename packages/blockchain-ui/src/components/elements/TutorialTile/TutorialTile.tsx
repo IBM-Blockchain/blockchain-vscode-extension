@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
-import { Timer16 } from '@carbon/icons-react';
-import { CircleDash16 } from '@carbon/icons-react';
+import { Timer16, CircleDash16 } from '@carbon/icons-react';
 import { Button } from 'carbon-components-react';
 import ITutorialObject from '../../../interfaces/ITutorialObject';
 import { ExtensionCommands } from '../../../ExtensionCommands';
