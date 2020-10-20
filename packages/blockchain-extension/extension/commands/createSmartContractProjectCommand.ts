@@ -121,6 +121,7 @@ export async function createSmartContractProject(): Promise<void> {
 
         const runOptions: any = {
             'destination': folderPath,
+            'fabricVersion': 'v2',
             'contractType': contractType.data,
             'language': smartContractLanguage,
             'name': folderName,
