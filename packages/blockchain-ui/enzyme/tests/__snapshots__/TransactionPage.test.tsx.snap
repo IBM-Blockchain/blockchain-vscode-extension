@@ -168,48 +168,88 @@ exports[`TransactionPage component should render the expected snapshot 1`] = `
                 Peer targeting
               </legend>
               <div
-                className="bx--form-item"
+                className="bx--multi-select__wrapper bx--list-box__wrapper"
               >
-                <div
-                  className="bx--select select-width hide-label"
+                <span
+                  className="bx--label"
+                  id="multiselect-label-1"
                 >
-                  <label
-                    className="bx--label"
-                    htmlFor="peers-select"
-                  >
-                    Peers
-                  </label>
+                  Target specific peer (optional)
+                </span>
+                <div
+                  className="bx--multi-select bx--multi-select--selected bx--list-box"
+                  id="peer-select"
+                  onClick={[Function]}
+                  onKeyDown={[Function]}
+                >
                   <div
-                    className="bx--select-input__wrapper"
-                    data-invalid={null}
+                    aria-controls={null}
+                    aria-disabled={false}
+                    aria-expanded={false}
+                    aria-haspopup={true}
+                    aria-labelledby="multiselect-label-1 multiselect-field-label-1"
+                    aria-owns={null}
+                    className="bx--list-box__field"
+                    data-toggle={true}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onKeyDown={[Function]}
+                    role="button"
+                    tabIndex="0"
+                    type="button"
                   >
-                    <select
-                      className="bx--select-input"
-                      id="peers-select"
+                    <div
+                      aria-label="Clear Selection"
+                      className="bx--list-box__selection bx--tag--filter bx--list-box__selection--multi"
+                      onClick={[Function]}
+                      onKeyDown={[Function]}
+                      role="button"
+                      tabIndex={0}
+                      title="Clear all selected items"
                     >
-                      <option
-                        className="bx--select-option"
-                        disabled={false}
-                        hidden={false}
-                        value="select-a-peer"
+                      2
+                      <svg
+                        aria-hidden={true}
+                        focusable="false"
+                        height={16}
+                        preserveAspectRatio="xMidYMid meet"
+                        viewBox="0 0 32 32"
+                        width={16}
+                        xmlns="http://www.w3.org/2000/svg"
                       >
-                        Select a peer
-                      </option>
-                    </select>
-                    <svg
-                      aria-hidden={true}
-                      className="bx--select__arrow"
-                      focusable="false"
-                      height={16}
-                      preserveAspectRatio="xMidYMid meet"
-                      viewBox="0 0 16 16"
-                      width={16}
-                      xmlns="http://www.w3.org/2000/svg"
+                        <polygon
+                          points="24 9.4 22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4"
+                        />
+                      </svg>
+                    </div>
+                    <span
+                      className="bx--list-box__label"
+                      id="multiselect-field-label-1"
                     >
-                      <polygon
-                        points="8,11 3,6 3.7,5.3 8,9.6 12.3,5.3 13,6"
-                      />
-                    </svg>
+                      Select peers
+                    </span>
+                    <div
+                      className="bx--list-box__menu-icon"
+                    >
+                      <svg
+                        aria-label="Open menu"
+                        focusable="false"
+                        height={16}
+                        name="chevron--down"
+                        preserveAspectRatio="xMidYMid meet"
+                        role="img"
+                        viewBox="0 0 16 16"
+                        width={16}
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <polygon
+                          points="8,11 3,6 3.7,5.3 8,9.6 12.3,5.3 13,6"
+                        />
+                        <title>
+                          Open menu
+                        </title>
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>

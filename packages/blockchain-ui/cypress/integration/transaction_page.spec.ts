@@ -36,7 +36,8 @@ describe('Transaction page', () => {
         channel: 'mychannel',
         label: 'greenContract@0.0.1',
         transactions: [transactionOne, transactionTwo],
-        namespace: 'GreenContract'
+        namespace: 'GreenContract',
+        peerNames: ['peer1', 'peer2']
     };
 
     const mockMessage: {path: string, transactionData: {gatewayName: string, smartContract: ISmartContract} } = {
@@ -61,8 +62,10 @@ describe('Transaction page', () => {
     });
 
     it('generates appropriate arguments when a transaction is selected', () => {
+        cy.get('#transaction-select').contains('Select the transaction name');
         cy.get('#transaction-select').click(); // Expand dropdown
         cy.get('#transaction-select').contains('transactionOne').click(); // Click on option
+        cy.get('#transaction-select').contains('transactionOne');
         cy.get('#arguments-text-area')
             .invoke('val')
             .then((text: JQuery<HTMLElement>): void => {
@@ -71,8 +74,10 @@ describe('Transaction page', () => {
     });
 
     it('replaces generated arguments when a new transaction is selected', () => {
+        cy.get('#transaction-select').contains('Select the transaction name');
         cy.get('#transaction-select').click(); // Expand dropdown
         cy.get('#transaction-select').contains('transactionOne').click(); // Click on option
+        cy.get('#transaction-select').contains('transactionOne');
         cy.get('#arguments-text-area')
             .invoke('val')
             .then((text: JQuery<HTMLElement>): void => {
@@ -81,6 +86,7 @@ describe('Transaction page', () => {
 
         cy.get('#transaction-select').click(); // Expand dropdown
         cy.get('#transaction-select').contains('transactionTwo').click(); // Click on option
+        cy.get('#transaction-select').contains('transactionTwo');
         cy.get('#arguments-text-area')
             .invoke('val')
             .then((text: JQuery<HTMLElement>): void => {
@@ -89,8 +95,11 @@ describe('Transaction page', () => {
     });
 
     it(`can submit a transaction with the user's input`, () => {
+        cy.get('#transaction-select').contains('Select the transaction name');
         cy.get('#transaction-select').click(); // Expand dropdown
         cy.get('#transaction-select').contains('transactionOne').click(); // Click on option
+        cy.get('#transaction-select').contains('transactionOne');
+
         cy.get('#arguments-text-area').type('{leftarrow}{leftarrow}{leftarrow}penguin');
 
         cy.get('#submit-button').click();
@@ -103,8 +112,11 @@ describe('Transaction page', () => {
     });
 
     it(`can submit a transaction with transient data`, () => {
+        cy.get('#transaction-select').contains('Select the transaction name');
         cy.get('#transaction-select').click(); // Expand dropdown
         cy.get('#transaction-select').contains('transactionOne').click(); // Click on option
+        cy.get('#transaction-select').contains('transactionOne');
+
         cy.get('#arguments-text-area').type('{leftarrow}{leftarrow}{leftarrow}penguin');
         cy.get('#transient-data-input').type('{"some": "data"}', {parseSpecialCharSequences: false});
 
@@ -117,9 +129,32 @@ describe('Transaction page', () => {
         cy.get('.output-body').contains(mockOutput.transactionOutput);
     });
 
+    it(`can submit a transaction with custom peer`, () => {
+        cy.get('#transaction-select').contains('Select the transaction name');
+        cy.get('#transaction-select').click(); // Expand dropdown
+        cy.get('#transaction-select').contains('transactionOne').click(); // Click on option
+        cy.get('#transaction-select').contains('transactionOne');
+
+        cy.get('#peer-select').contains('Select peers');
+        cy.get('#peer-select').click(); // Expand dropdown
+        cy.get('#peer-select').contains('peer1').click(); // Click on option
+        cy.get('#peer-select').contains('peer1');
+
+        cy.get('#submit-button').click();
+
+        cy.window().then((window: Window) => {
+            window.postMessage(mockOutput, '*');
+        });
+
+        cy.get('.output-body').contains(mockOutput.transactionOutput);
+    });
+
     it(`can evaluate a transaction with the user's input`, () => {
+        cy.get('#transaction-select').contains('Select the transaction name');
         cy.get('#transaction-select').click(); // Expand dropdown
         cy.get('#transaction-select').contains('transactionTwo').click(); // Click on option
+        cy.get('#transaction-select').contains('transactionTwo');
+
         cy.get('#arguments-text-area').type('{leftarrow}{leftarrow}{leftarrow}big');
 
         cy.get('#evaluate-button').click();
@@ -132,10 +167,33 @@ describe('Transaction page', () => {
     });
 
     it(`can evaluate a transaction with transient data`, () => {
+        cy.get('#transaction-select').contains('Select the transaction name');
         cy.get('#transaction-select').click(); // Expand dropdown
         cy.get('#transaction-select').contains('transactionTwo').click(); // Click on option
+        cy.get('#transaction-select').contains('transactionTwo');
+
         cy.get('#arguments-text-area').type('{leftarrow}{leftarrow}{leftarrow}big');
         cy.get('#transient-data-input').type('{"some": "data"}', {parseSpecialCharSequences: false});
+
+        cy.get('#evaluate-button').click();
+
+        cy.window().then((window: Window) => {
+            window.postMessage(mockOutput, '*');
+        });
+
+        cy.get('.output-body').contains(mockOutput.transactionOutput);
+    });
+
+    it(`can submit a transaction with custom peer`, () => {
+        cy.get('#transaction-select').contains('Select the transaction name');
+        cy.get('#transaction-select').click(); // Expand dropdown
+        cy.get('#transaction-select').contains('transactionOne').click(); // Click on option
+        cy.get('#transaction-select').contains('transactionOne');
+
+        cy.get('#peer-select').contains('Select peers');
+        cy.get('#peer-select').click(); // Expand dropdown
+        cy.get('#peer-select').contains('peer1').click(); // Click on option
+        cy.get('#peer-select').contains('peer1');
 
         cy.get('#evaluate-button').click();
 
