@@ -29,7 +29,7 @@ Feature: Fabric Environments
   Scenario Outline: It should persist data after being stopped
     Given the 1 Org Local Fabric environment is running
     And the '1 Org Local Fabric' environment is connected
-    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
     And the contract has been created
     And the contract has been packaged
     And the contract has been deployed on channel 'mychannel'
@@ -312,4 +312,3 @@ Feature: Fabric Environments
     Given an environment 'myAnsibleFabric2' exists
     When I delete an environment 'myAnsibleFabric2'
     Then there shouldn't be a tree item with a label 'myAnsibleFabric2' in the 'Fabric Environments' panel
-

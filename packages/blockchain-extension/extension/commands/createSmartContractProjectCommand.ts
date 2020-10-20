@@ -30,7 +30,8 @@ export async function createSmartContractProject(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
     let chaincodeLanguageOptions: string[] = getChaincodeLanguageOptions();
-    const smartContractLanguageOptions: string[] = getSmartContractLanguageOptions();
+    let smartContractLanguageOptions: string[] = getSmartContractLanguageOptions();
+    let fabricVersion: IBlockchainQuickPickItem<string>;
     let contractType: IBlockchainQuickPickItem<string>;
     let privateOrDefault: string;
     let mspID: string;
@@ -40,8 +41,12 @@ export async function createSmartContractProject(): Promise<void> {
     const defaultAsset: string = 'MyAsset';
     const privateAsset: string = 'MyPrivateAsset';
 
-    contractType = await UserInputUtil.showQuickPickItem('Choose a contract type to generate:', [{ label: UserInputUtil.GENERATE_DEFAULT_CONTRACT, description: UserInputUtil.GENERATE_DEFAULT_CONTRACT_DESCRIPTION, data: 'default' }, { label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private' }] as IBlockchainQuickPickItem<string>[]) as IBlockchainQuickPickItem<string>;
+    fabricVersion = await UserInputUtil.showQuickPickItem('Choose the version of Fabric for the smart contract:', [{ label: 'v1.4', data: 'v1' }, { label: 'v2.0', data: 'v2' }] as IBlockchainQuickPickItem<string>[]) as IBlockchainQuickPickItem<string>;
+    if (!fabricVersion) {
+        return;
+    }
 
+    contractType = await UserInputUtil.showQuickPickItem('Choose a contract type to generate:', [{ label: UserInputUtil.GENERATE_DEFAULT_CONTRACT, description: UserInputUtil.GENERATE_DEFAULT_CONTRACT_DESCRIPTION, data: 'default' }, { label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private' }] as IBlockchainQuickPickItem<string>[]) as IBlockchainQuickPickItem<string>;
     if (!contractType) {
         return;
         // User has cancelled the QuickPick box
@@ -58,10 +63,18 @@ export async function createSmartContractProject(): Promise<void> {
     }
 
     const smartContractLanguagePrompt: string = localize('smartContractLanguage.prompt', 'Choose smart contract language (Esc to cancel)');
+
+    if (fabricVersion.data === 'v1') {
+        smartContractLanguageOptions = smartContractLanguageOptions.filter((language: string) => {
+            return language !== 'Go';
+        });
+    }
+
     if (contractType.data !== typeDefault) {
         // don't want to show low level options for private data
         chaincodeLanguageOptions = [];
     }
+
     const smartContractLanguageItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick(smartContractLanguagePrompt, chaincodeLanguageOptions, smartContractLanguageOptions);
     if (!smartContractLanguageItem) {
         // User has cancelled the QuickPick box
@@ -121,6 +134,7 @@ export async function createSmartContractProject(): Promise<void> {
 
         const runOptions: any = {
             'destination': folderPath,
+            'fabricVersion': fabricVersion.data,
             'contractType': contractType.data,
             'language': smartContractLanguage,
             'name': folderName,
