@@ -1427,7 +1427,7 @@ describe('LifecycleChannel', () => {
 
             it('should handle no peerName', async () => {
                 // @ts-ignore
-                await channel.getAllCommittedSmartContracts(undefined).should.eventually.be.rejectedWith('parameter peerName is missing');
+                await channel.getAllInstantiatedSmartContracts(undefined).should.eventually.be.rejectedWith('parameter peerName is missing');
             });
 
             it('should handle empty response from send', async () => {

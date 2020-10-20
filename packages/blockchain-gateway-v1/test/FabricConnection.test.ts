@@ -447,17 +447,17 @@ describe('FabricConnection', () => {
 
     describe('getInstantiatedChaincode', () => {
         it('should get the instantiated chaincode from a v2 channel in the connection profile', async () => {
-            mySandBox.stub(fabricConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
-
             const getChannelCapabilitiesStub: sinon.SinonStub = mySandBox.stub(LifecyclePeer.prototype, 'getChannelCapabilities');
             getChannelCapabilitiesStub.resolves(['V2_0']);
             mySandBox.stub(Lifecycle.prototype, 'getPeer').returns({
                 getChannelCapabilities: getChannelCapabilitiesStub
             });
 
+            // this is needed for creating a channel map
             const getAllChannelsForPeerStub: sinon.SinonStub = mySandBox.stub(fabricConnection, 'getAllChannelsForPeer');
             getAllChannelsForPeerStub.withArgs('peerOne').returns(['channel1']);
             getAllChannelsForPeerStub.withArgs('peerTwo').returns(['channel2']);
+            mySandBox.stub(fabricConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
 
             mySandBox.stub(LifecycleChannel.prototype, 'getAllCommittedSmartContracts').resolves([{ smartContractName: 'biscuit-network', smartContractVersion: '0.7', sequence: 2 }, { smartContractName: 'cake-network', smartContractVersion: '0.8', sequence: 3 }]);
 
@@ -472,31 +472,31 @@ describe('FabricConnection', () => {
         });
 
         it('should get the instantiated chaincode from a v1 channel in the connection profile', async () => {
-            mySandBox.stub(fabricConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
-
             const getChannelCapabilitiesStub: sinon.SinonStub = mySandBox.stub(LifecyclePeer.prototype, 'getChannelCapabilities');
             getChannelCapabilitiesStub.resolves(['V1_4']);
             mySandBox.stub(Lifecycle.prototype, 'getPeer').returns({
                 getChannelCapabilities: getChannelCapabilitiesStub
             });
 
+            // this is needed for creating a channel map
             const getAllChannelsForPeerStub: sinon.SinonStub = mySandBox.stub(fabricConnection, 'getAllChannelsForPeer');
             getAllChannelsForPeerStub.withArgs('peerOne').returns(['channel1']);
             getAllChannelsForPeerStub.withArgs('peerTwo').returns(['channel2']);
+            mySandBox.stub(fabricConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
 
-            mySandBox.stub(LifecycleChannel.prototype, 'getAllInstantiatedSmartContracts').resolves([{ smartContractName: 'biscuit-network', smartContractVersion: '0.8', sequence: -1 }, { smartContractName: 'cake-network', smartContractVersion: '0.9', sequence: -1 }]);
+            mySandBox.stub(LifecycleChannel.prototype, 'getAllInstantiatedSmartContracts').resolves([{ smartContractName: 'grape-network', smartContractVersion: '0.8', sequence: -1 }, { smartContractName: 'fruit-network', smartContractVersion: '0.9', sequence: -1 }]);
 
             await fabricConnection.connect(fabricWallet, mockIdentityName, timeout);
             const instantiatedChaincodes: Array<any> = await fabricConnection.getInstantiatedChaincode('channel1');
 
             instantiatedChaincodes.should.deep.equal([
                 {
-                    name: 'biscuit-network',
+                    name: 'grape-network',
                     version: '0.8',
                     sequence: -1
                 },
                 {
-                    name: 'cake-network',
+                    name: 'fruit-network',
                     version: '0.9',
                     sequence: -1
                 }

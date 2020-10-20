@@ -46,7 +46,7 @@ export interface IFabricEnvironmentConnection {
 
     getAllCertificateAuthorityNames(): Array<string>;
 
-    getInstalledSmartContracts(peerName: string): Promise<FabricInstalledSmartContract[]>;
+    getInstalledSmartContracts(peerName: string, isV1?: boolean): Promise<FabricInstalledSmartContract[]>;
 
     getAllOrdererNames(): Array<string>;
 
@@ -75,4 +75,6 @@ export interface IFabricEnvironmentConnection {
     getEndorsementPolicyBuffer(policy: string): Buffer;
 
     getCollectionConfigBuffer(collectionConfig: FabricCollectionDefinition[]): Buffer;
+
+    getChannelCapabilityFromPeer(channelName: string, peerName: string): Promise<Array<string>>;
 }

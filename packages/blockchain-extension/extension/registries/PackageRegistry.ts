@@ -80,7 +80,7 @@ export class PackageRegistry {
             // get size
             const sizeKB: number = Math.round(stat.size / 1000);
 
-            const packageRegex: RegExp = new RegExp(/(.+?)(@(.*?)){0,1}(\.tar\.gz|\.tgz){1}/gm);
+            const packageRegex: RegExp = new RegExp(/(.+?)(@(.*?)){0,1}(\.cds|\.tar\.gz|\.tgz){1}/gm);
 
             const result: RegExpMatchArray = packageRegex.exec(pkgFileName);
 
