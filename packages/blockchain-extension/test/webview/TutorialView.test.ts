@@ -18,20 +18,90 @@ import * as vscode from 'vscode';
 import * as sinon from 'sinon';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
-import * as path from 'path';
+import * as fs from 'fs-extra';
 import { TutorialView } from '../../extension/webview/TutorialView';
+import { View } from '../../extension/webview/View';
 import { Reporter } from '../../extension/util/Reporter';
 import { SettingConfigurations } from '../../extension/configurations';
+import { GlobalState } from '../../extension/util/GlobalState';
+import { ExtensionCommands } from '../../ExtensionCommands';
+import { TestUtil } from '../TestUtil';
 
 chai.use(sinonChai);
 
 describe('TutorialView', () => {
-    let mySandBox: sinon.SinonSandbox;
-    let sendTelemetryEventStub: sinon.SinonStub;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
+    let context: vscode.ExtensionContext;
+    let createWebviewPanelStub: sinon.SinonStub;
+    let postMessageStub: sinon.SinonStub;
+    let executeCommandStub: sinon.SinonStub;
+    let onDidReceiveMessagePromises: any[];
+
+    const dummyMarkdown: string = '# Header\nparagraph';
+
+    const tutorial: { title: string, length: string, file: string } = {
+        title: 'a1',
+        length: '4 weeks',
+        file: 'some/file/path',
+    };
+
+    const tutorials: Array<{name: string, tutorials: any[]}> = [
+        {
+            name: 'Basic tutorials',
+            tutorials: [
+                tutorial,
+            ]
+        },
+        {
+            name: 'Other tutorials',
+            tutorials: [
+                {
+                    title: 'something really interesting',
+                    length: '10 minutes',
+                    file: 'another/file/path'
+                }
+            ]
+        }
+    ];
+
+    const initialMessage: {
+        path: string,
+        tutorialData: {
+            tutorials: Array<{name: string, tutorials: any[]}>,
+            activeTutorial: { title: string, length: string, file: string, markdown: string },
+        },
+    } = {
+        path: '/viewTutorial',
+        tutorialData: {
+            tutorials,
+            activeTutorial: {
+                ...tutorial,
+                markdown: dummyMarkdown,
+            },
+        }
+    };
+
+    before(async () => {
+        await TestUtil.setupTests(mySandBox);
+    });
 
     beforeEach(async () => {
-        mySandBox = sinon.createSandbox();
-        sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+        mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+
+        context = GlobalState.getExtensionContext();
+
+        executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
+        executeCommandStub.callThrough();
+
+        createWebviewPanelStub = mySandBox.stub(vscode.window, 'createWebviewPanel');
+
+        postMessageStub = mySandBox.stub().resolves();
+
+        View['openPanels'].splice(0, View['openPanels'].length);
+
+        mySandBox.stub(fs, 'readJson').resolves(tutorials);
+        mySandBox.stub(fs, 'readFile').resolves(dummyMarkdown);
+        // mySandBox.stub(TutorialView.prototype, 'getTutorialInfo').resolves(tutorials);
 
         await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
         await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_NEXT_ACTIVATION, false, vscode.ConfigurationTarget.Global);
@@ -41,34 +111,64 @@ describe('TutorialView', () => {
         mySandBox.restore();
     });
 
-    it('should show tutorial', async () => {
-        const commandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+    it('should register and show the tutorial', async () => {
+        createWebviewPanelStub.returns({
+            title: 'Tutorial',
+            webview: {
+                postMessage: postMessageStub,
+                onDidReceiveMessage: mySandBox.stub()
+            },
+            reveal: mySandBox.stub(),
+            dispose: mySandBox.stub(),
+            onDidDispose: mySandBox.stub(),
+            onDidChangeViewState: mySandBox.stub()
+        });
 
-        const tutorialView: TutorialView = new TutorialView('Basic tutorials', 'A1: Introduction');
-        await tutorialView.openView();
-
-        const filePath: string = path.join(__dirname, '..', '..', '..', 'tutorials', 'new-tutorials', 'basic-tutorials', 'a1.md');
-        const uri: vscode.Uri = vscode.Uri.file(filePath);
-
-        commandSpy.getCall(0).args[0].should.equal('markdown.showPreview');
-        commandSpy.getCall(0).args[1].fsPath.should.equal(uri.fsPath);
-        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('Tutorial Viewed', {series: 'Basic tutorials', tutorial: 'A1: Introduction'});
+        const tutorialView: TutorialView = new TutorialView(context, tutorials[0].name, tutorial.title);
+        await tutorialView.openView(true);
+        createWebviewPanelStub.should.have.been.called;
+        const call: sinon.SinonSpyCall = postMessageStub.getCall(0);
+        call.args[0].should.deep.equal(initialMessage);
     });
 
-    it('should do nothing on openPanelInner', async () => {
-        const tutorialView: TutorialView = new TutorialView('Basic tutorials', 'A1: Introduction');
-        await tutorialView['openPanelInner']();
-        sendTelemetryEventStub.should.not.have.been.called;
-    });
+    it('should execute a command with args specified in a received message', async () => {
+        onDidReceiveMessagePromises = [];
 
-    it('should return empty string on getHTMLString', async () => {
-        const tutorialView: TutorialView = new TutorialView('Basic tutorials', 'A1: Introduction');
-        const result: string = await tutorialView['getHTMLString']();
-        result.should.equal('');
+        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
+            createWebviewPanelStub.returns({
+                webview: {
+                    postMessage: mySandBox.stub(),
+                    onDidReceiveMessage: async (callback: any): Promise<void> => {
+                        await callback({
+                            command: ExtensionCommands.OPEN_TUTORIAL_PAGE,
+                            data: [
+                                'my series',
+                                'my tutorial'
+                            ]
+                        });
+                        resolve();
+                    }
+                },
+                reveal: (): void => {
+                    return;
+                },
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
+            });
+        }));
+
+        executeCommandStub.withArgs(ExtensionCommands.OPEN_TUTORIAL_PAGE).resolves();
+
+        const tutorialView: TutorialView = new TutorialView(context, tutorials[0].name, tutorial.title);
+        await tutorialView.openView(false);
+        await Promise.all(onDidReceiveMessagePromises);
+
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_TUTORIAL_PAGE, 'my series', 'my tutorial');
     });
 
     it('should load component', async () => {
-        const tutorialView: TutorialView = new TutorialView('Basic tutorials', 'A1: Introduction');
+        const tutorialView: TutorialView = new TutorialView(context, 'Basic tutorials', 'A1: Introduction');
+        // tslint:disable-next-line: no-floating-promises
         tutorialView.loadComponent({} as vscode.WebviewPanel);
     });
 });

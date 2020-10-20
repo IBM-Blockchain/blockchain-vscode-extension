@@ -34,7 +34,7 @@ class TutorialTile extends Component <IProps> {
             command: ExtensionCommands.OPEN_TUTORIAL_PAGE,
             data: [
                 this.props.tutorialObject.series,
-                this.props.tutorialObject.title
+                this.props.tutorialObject.title,
             ]
         });
     }

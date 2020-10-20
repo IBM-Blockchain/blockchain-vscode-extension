@@ -1,0 +1,53 @@
+.tutorial-page {
+  width: 100%;
+
+  .ibp-icon {
+    display: block;
+  }
+
+  summary {
+    cursor: pointer;
+  }
+
+  .tutorial-next, .tutorial-previous {
+    display: block;
+    margin: 10px 0;
+
+    a.bx--link {
+      font-size: 1.2rem;
+    }
+  }
+
+  .tutorial-next {
+    text-align: right;
+  }
+
+  .tutorial-name, .tutorial-time, hr {
+    margin: 15px 0;
+  }
+
+  .tutorial-content {
+    p {
+      margin: 10px 0;
+    }
+
+    ul {
+      list-style-type: disc;
+      margin: 10px 0 10px 30px;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    code, li, blockquote {
+      line-height: 1.2em;
+    }
+
+    blockquote {
+      padding: 1em;
+      border-left: 0.4em solid grey;
+    }
+  }
+
+}
