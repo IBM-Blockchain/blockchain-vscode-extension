@@ -751,10 +751,6 @@
                     "when": "false"
                 },
                 {
-                    "command": "environmentExplorer.installSmartContractEntry",
-                    "when": "false"
-                },
-                {
                     "command": "environmentExplorer.approveSmartContractEntry",
                     "when": "false"
                 },

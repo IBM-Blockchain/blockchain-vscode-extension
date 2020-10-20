@@ -22,7 +22,7 @@ import {
     ProposalResponse,
     User,
     Utils,
-    ConnectOptions
+    ConnectOptions, EndorsementResponse
 } from 'fabric-common';
 import * as protos from 'fabric-protos';
 import { Identity, IdentityProvider, Wallet } from 'fabric-network';
@@ -128,6 +128,39 @@ export class LifecyclePeer {
     }
 
     /**
+     * Install a smart contract package - CDS - onto a peer
+     * @param buffer Buffer, the smart contract package buffer
+     * @param requestTimeout number, [optional] the timeout used when performing the install operation
+     * @return Promise<void>, nothing to return
+     */
+    public async installSmartContractPackageCds(buffer: Buffer, requestTimeout?: number): Promise<void> {
+        const method: string = 'installPackage';
+        logger.debug(method);
+
+        if (!buffer) {
+            throw new Error('parameter buffer missing');
+        }
+
+        try {
+            logger.debug('%s - build the install smart contract request', method);
+            const buildRequest: { fcn: string; args: Buffer[] } = {
+                fcn: 'install',
+                args: [buffer]
+            };
+
+            const responses: ProposalResponse = await this.sendRequest(buildRequest, 'lscc', requestTimeout);
+            await LifecycleCommon.processResponse(responses);
+
+            logger.debug('%s - return %s', method);
+            return;
+        } catch (error) {
+            logger.error('Problem with the request :: %s', error);
+            logger.error(' problem at ::' + error.stack);
+            throw new Error(`Could not install smart contact received error: ${error.message}`);
+        }
+
+    }
+    /**
      * Get all the smart contracts installed on a peer
      * @param requestTimeout number [optional, [optional] the timeout used when performing the install operation
      * @return Promise<InstalledSmartContract>, the label and packageId of each installed smart contract
@@ -167,6 +200,52 @@ export class LifecyclePeer {
 
             logger.debug('%s - end', method);
             return results;
+        } catch (error) {
+            logger.error('Problem with the request :: %s', error);
+            logger.error(' problem at ::' + error.stack);
+            throw new Error(`Could not get all the installed smart contract packages, received: ${error.message}`);
+        }
+    }
+
+    public async getAllInstalledSmartContractsV1(requestTimeout?: number): Promise<InstalledSmartContract[]> {
+        const method: string = 'getAllInstalledSmartContracts';
+        logger.debug(method);
+
+        const results: InstalledSmartContract[] = [];
+
+        try {
+            logger.debug('%s - build the get all installed smart contracts request', method);
+            const buildRequest: { fcn: string; args: Buffer[] } = {
+                fcn: 'GetInstalledChaincodes',
+                args: []
+            };
+            const result: ProposalResponse = await this.sendRequest(buildRequest, 'lscc', requestTimeout);
+            if (result) {
+                // will only be one response as we are only querying one peer
+                if (result.errors && result.errors[0] instanceof Error) {
+                    throw result.errors[0];
+                }
+                const response: EndorsementResponse = result.responses[0];
+                if (response.response) {
+                    if (response.response.status === 200) {
+                        const queryTrans: protos.protos.ChaincodeQueryResponse = protos.protos.ChaincodeQueryResponse.decode(response.response.payload);
+                        for (const queryResults of queryTrans.chaincodes) {
+                            const contract: InstalledSmartContract = {
+                                packageId: queryResults.name,
+                                label: `${queryResults.name}@${queryResults.version}`
+                            };
+                            results.push(contract);
+                        }
+                        logger.debug('%s - end', method);
+                        return results;
+                    } else if (response.response.message) {
+                        throw new Error(response.response.message);
+                    }
+                }
+                // no idea what we have, lets fail it and send it back
+                throw new Error(response.toString());
+            }
+            throw new Error('Payload results are missing from the query');
         } catch (error) {
             logger.error('Problem with the request :: %s', error);
             logger.error(' problem at ::' + error.stack);

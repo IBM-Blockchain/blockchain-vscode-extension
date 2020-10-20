@@ -361,6 +361,7 @@ export class UserInputUtil {
         }
     }
 
+    // TODO this is only used in v1 contracts - need to check usefulness once merge is complete
     public static async showChaincodeAndVersionQuickPick(prompt: string, channel: string, peers: Array<string>, contractName?: string, contractVersion?: string): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> | undefined> {
         const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
         if (!connection) {
@@ -444,6 +445,31 @@ export class UserInputUtil {
             return await vscode.window.showQuickPick(quickPickItems, quickPickOptions);
         }
 
+    }
+
+    // TODO: remove when v1 deploy view completed - will be associated with a channel, no need to ask the user to select one.
+    public static async showV1ChannelQuickPickBox(prompt: string): Promise<IBlockchainQuickPickItem<Array<string>>> {
+        const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
+        if (!connection) {
+            VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, undefined, 'No connection to a blockchain found');
+            return;
+        }
+
+        const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
+        const channelMapv1: Map<string, Array<string>> = new Map();
+
+        for (const channel of Array.from(channelMap.keys())) {
+            const capabilities: string[] = await connection.getChannelCapabilityFromPeer(channel, channelMap.get(channel)[0]);
+            if (!capabilities.includes('V2_0')) {
+                channelMapv1.set('channel', channelMap.get(channel));
+            }
+        }
+        if (channelMapv1.size === 0) {
+            throw new Error('There are no channels with V1 capabilities enabled in this environment');
+        }
+
+        const chosenChannel: IBlockchainQuickPickItem<Array<string>> = await this.showChannelQuickPickBox(prompt, channelMapv1);
+        return chosenChannel;
     }
 
     public static async showChannelQuickPickBox(prompt: string, channelMap?: Map<string, Array<string>>): Promise<IBlockchainQuickPickItem<Array<string>>> {
@@ -755,6 +781,8 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
     }
 
+    // TODO - Only used for contracts installed on v1 channels. Needs decision regarding showing all contracts even installed ones.
+    // At the moment, only returning v1 contracts not already installed
     public static async showInstallableSmartContractsQuickPick(prompt: string, peers: Set<string>): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> | undefined> {
         // Get connection
         const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
@@ -769,13 +797,11 @@ export class UserInputUtil {
 
         // For each peer, get the installed chaincode, and remove already installed contracts from the packagedContracts array
         for (const peer of peers) {
-            const chaincodes: FabricInstalledSmartContract[] = await connection.getInstalledSmartContracts(peer);
+            const chaincodes: FabricInstalledSmartContract[] = await connection.getInstalledSmartContracts(peer, true);
             // TODO: this is wrong but won't be needed
             chaincodes.forEach((chaincode: FabricInstalledSmartContract) => {
-                const label: string = `${chaincode.label}@${chaincode.packageId}`;
-
                 packagedContracts = packagedContracts.filter((_package: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>) => {
-                    return label !== _package.label;
+                    return chaincode.label !== _package.label && _package.data.packageEntry.path.endsWith('.cds');
                 });
             });
         }
@@ -799,7 +825,7 @@ export class UserInputUtil {
         };
 
         if (quickPickItems.length === 0) {
-            throw new Error('No packages found to install on peer');
+            throw new Error('No packages found to install');
         } else {
             return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
         }

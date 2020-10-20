@@ -794,6 +794,55 @@ describe('UserInputUtil', () => {
         });
     });
 
+    describe('showV1ChannelQuickPickBox', () => {
+        let showChannelQuickPickBox: sinon.SinonStub;
+        let map: Map<string, Array<string>>;
+
+        beforeEach(() => {
+            showChannelQuickPickBox = mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox').resolves();
+            map = new Map<string, Array<string>>();
+            map.set('channelOne', ['myPeerOne', 'myPeerTwo']);
+            map.set('channelTwo', ['myPeerOne']);
+            fabricRuntimeConnectionStub.createChannelMap.resolves(map);
+            fabricRuntimeConnectionStub.getChannelCapabilityFromPeer.onFirstCall().resolves(['V2_0']);
+            fabricRuntimeConnectionStub.getChannelCapabilityFromPeer.onSecondCall().resolves(['V1_4_3']);
+        });
+
+        it('should give error if no connection', async () => {
+            environmentStub.returns(undefined);
+
+            await UserInputUtil.showV1ChannelQuickPickBox('Choose a channel').should.eventually.be.fulfilled;
+
+            fabricRuntimeConnectionStub.createChannelMap.should.have.not.been.called;
+            fabricRuntimeConnectionStub.getChannelCapabilityFromPeer.should.have.not.been.called;
+            showChannelQuickPickBox.should.have.not.been.called;
+            logSpy.should.have.been.calledWith(LogType.ERROR, undefined, 'No connection to a blockchain found');
+        });
+
+        it('should return only v1 channels', async () => {
+            const channelMapv1: Map<string, Array<string>> = new Map();
+            channelMapv1.set('channelTwo', map.get('channelTwo'));
+
+            await UserInputUtil.showV1ChannelQuickPickBox('Choose a channel').should.eventually.be.fulfilled;
+
+            fabricRuntimeConnectionStub.createChannelMap.should.have.been.calledOnce;
+            fabricRuntimeConnectionStub.getChannelCapabilityFromPeer.should.have.been.calledTwice;
+            showChannelQuickPickBox.should.have.been.calledWithExactly('Choose a channel', channelMapv1);
+        });
+
+        it('should throw if there are no v1 channels', async () => {
+            fabricRuntimeConnectionStub.getChannelCapabilityFromPeer.onSecondCall().resolves(['V2_0']);
+            try {
+                await UserInputUtil.showV1ChannelQuickPickBox('Choose a channel').should.eventually.be.rejected;
+            } catch (error) {
+                error.should.deep.equal(new Error('There are no channels with V1 capabilities enabled in this environment'));
+            }
+            fabricRuntimeConnectionStub.createChannelMap.should.have.been.calledOnce;
+            fabricRuntimeConnectionStub.getChannelCapabilityFromPeer.should.have.been.calledTwice;
+            showChannelQuickPickBox.should.have.not.been.called;
+        });
+
+    });
     describe('showChannelQuickPickBox', () => {
         it('should show quick pick box with channels', async () => {
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
@@ -2090,6 +2139,9 @@ describe('UserInputUtil', () => {
                 workspaceTwo
             ]);
 
+            const chaincodeArray: FabricInstalledSmartContract[] = [{label: 'biscuit-network@0.0.1', packageId: '0.0.1'}, {label: 'biscuit-network@0.0.2', packageId: '0.0.2'}, {label: 'cake-network@0.0.3', packageId: '0.0.3'}];
+            fabricRuntimeConnectionStub.getInstalledSmartContracts.withArgs('myPeerOne', true).resolves(chaincodeArray);
+
             mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([packageOne, packageTwo, packageThree, packageFour, packageFive]);
             await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', new Set(['myPeerOne']));
 
@@ -2137,7 +2189,7 @@ describe('UserInputUtil', () => {
 
         it('should throw error if no packages found to install', async () => {
             mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([]);
-            await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', new Set(['myPeerOne'])).should.eventually.be.rejectedWith(`No packages found to install on peer`);
+            await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', new Set(['myPeerOne'])).should.eventually.be.rejectedWith(`No packages found to install`);
             quickPickStub.should.not.have.been.called;
         });
 
