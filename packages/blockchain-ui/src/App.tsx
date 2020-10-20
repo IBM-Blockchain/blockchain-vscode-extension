@@ -30,7 +30,7 @@ class App extends Component<{}, AppState> {
             tutorialData: [],
             activeTutorial: { title: '', series: '', length: '', file: '', objectives: [] },
             deployData: { channelName: '', environmentName: '', packageEntries: [], workspaceNames: [], selectedPackage: undefined, committedDefinitions: [], environmentPeers: [], discoveredPeers: [], orgMap: {}, orgApprovals: {} },
-            transactionData: {gatewayName: '', smartContract: {name: '', version: '', channel: '', label: '', transactions: [], namespace: '', } },
+            transactionData: {gatewayName: '', smartContract: {name: '', version: '', channel: '', label: '', transactions: [], namespace: '', peerNames: []} },
             transactionOutput: ''
         };
     }
