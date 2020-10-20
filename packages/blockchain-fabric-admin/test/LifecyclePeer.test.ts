@@ -394,6 +394,193 @@ describe('LifecyclePeer', () => {
             });
         });
 
+        describe('installSmartContractPackageCds', () => {
+            let mysandbox: sinon.SinonSandbox;
+
+            let buildRequest: any;
+            const packageBuffer: Buffer = Buffer.from('mySmartContractCds');
+
+            let endorserConnectStub: sinon.SinonStub;
+            let endorsementBuildSpy: sinon.SinonSpy;
+            let endorsementSignSpy: sinon.SinonSpy;
+            let endorsementSendStub: sinon.SinonStub;
+
+            beforeEach(() => {
+                mysandbox = sinon.createSandbox();
+
+                peer.setCredentials(wallet, 'myIdentity');
+                peer['requestTimeout'] = undefined;
+
+                peer2.setCredentials(wallet, 'myIdentity');
+                peer2['requestTimeout'] = undefined;
+
+                endorserConnectStub = mysandbox.stub(Endorser.prototype, 'connect').resolves();
+
+                endorsementBuildSpy = mysandbox.spy(Endorsement.prototype, 'build');
+                endorsementSignSpy = mysandbox.spy(Endorsement.prototype, 'sign');
+                endorsementSendStub = mysandbox.stub(Endorsement.prototype, 'send');
+                endorsementSendStub.resolves();
+
+                buildRequest = {
+                    fcn: 'install',
+                    args: [packageBuffer]
+                };
+            });
+
+            afterEach(() => {
+                mysandbox.restore();
+            });
+
+            it('should install the smart contract package', async () => {
+
+                endorsementSendStub.resolves({
+                    responses: [{
+                        response: {
+                            status: 200,
+                        }
+                    }]
+                });
+
+                await peer.installSmartContractPackageCds(packageBuffer).should.eventually.be.fulfilled;
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)]
+                });
+            });
+
+            it('should install the smart contract package using the timeout passed in', async () => {
+                peer2['requestTimeout'] = 1234;
+
+                endorsementSendStub.resolves({
+                    responses: [{
+                        response: {
+                            status: 200,
+                        }
+                    }]
+                });
+
+                await peer2.installSmartContractPackageCds(packageBuffer, 4321).should.eventually.be.fulfilled;
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)],
+                    requestTimeout: 4321
+                });
+            });
+
+            it('should install the smart contract package using the timeout', async () => {
+                peer['requestTimeout'] = 1234;
+                const encodedResult: Buffer = Buffer.from(protos.lifecycle.InstallChaincodeResult.encode({
+                    package_id: 'myPackageId'
+                }).finish());
+
+                endorsementSendStub.resolves({
+                    responses: [{
+                        response: {
+                            status: 200,
+                            payload: encodedResult
+                        }
+                    }]
+                });
+
+                await peer.installSmartContractPackageCds(packageBuffer).should.eventually.be.fulfilled;
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)],
+                    requestTimeout: 1234
+                });
+            });
+
+            it('should handle buffer not being set', async () => {
+                // @ts-ignore
+                await peer.installSmartContractPackageCds().should.eventually.be.rejectedWith('parameter buffer missing');
+            });
+
+            it('should handle wallet or identity not being set', async () => {
+                peer['wallet'] = undefined;
+                peer['identity'] = undefined;
+                await peer.installSmartContractPackageCds(packageBuffer).should.eventually.be.rejectedWith('Wallet or identity property not set, call setCredentials first');
+            });
+
+            it('should handle identity not being in the wallet', async () => {
+                peer['identity'] = 'otherIdentity';
+                await peer.installSmartContractPackageCds(packageBuffer).should.eventually.be.rejectedWith('Could not install smart contact received error: Identity otherIdentity does not exist in the wallet');
+            });
+
+            it('should handle errors in the response', async () => {
+                endorsementSendStub.resolves({
+                    errors: [new Error('some error')]
+                });
+
+                await peer.installSmartContractPackageCds(packageBuffer).should.eventually.be.rejectedWith('Could not install smart contact received error: some error');
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)]
+                });
+            });
+
+            it('should handle a non 200 status code', async () => {
+                endorsementSendStub.resolves({
+                    responses: [{
+                        response: {
+                            status: 400,
+                            message: 'some error'
+                        }
+                    }]
+                });
+
+                await peer.installSmartContractPackageCds(packageBuffer).should.eventually.be.rejectedWith('Could not install smart contact received error: failed with status:400 ::some error');
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)]
+                });
+            });
+
+            it('should handle no response details', async () => {
+                endorsementSendStub.resolves({
+                    responses: [{
+                        response: {}
+                    }]
+                });
+
+                await peer.installSmartContractPackageCds(packageBuffer).should.eventually.be.rejectedWith('Could not install smart contact received error: failure in response');
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)]
+                });
+            });
+
+            it('should handle no response', async () => {
+                endorsementSendStub.resolves({});
+
+                await peer.installSmartContractPackageCds(packageBuffer).should.eventually.be.rejectedWith('Could not install smart contact received error: No response returned');
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)]
+                });
+            });
+        });
+
         describe('getAllInstalledSmartContracts', () => {
             let mysandbox: sinon.SinonSandbox;
 
@@ -1109,5 +1296,166 @@ describe('LifecyclePeer', () => {
                 });
             });
         });
+
+        describe('getAllInstalledSmartContractsV1', () => {
+            let mysandbox: sinon.SinonSandbox;
+
+            let buildRequest: any;
+
+            let endorserConnectStub: sinon.SinonStub;
+            let endorsementBuildSpy: sinon.SinonSpy;
+            let endorsementSignSpy: sinon.SinonSpy;
+            let endorsementSendStub: sinon.SinonStub;
+
+            beforeEach(() => {
+                mysandbox = sinon.createSandbox();
+
+                peer.setCredentials(wallet, 'myIdentity');
+                peer['requestTimeout'] = undefined;
+
+                endorserConnectStub = mysandbox.stub(Endorser.prototype, 'connect').resolves();
+
+                endorsementBuildSpy = mysandbox.spy(Endorsement.prototype, 'build');
+                endorsementSignSpy = mysandbox.spy(Endorsement.prototype, 'sign');
+                endorsementSendStub = mysandbox.stub(Endorsement.prototype, 'send');
+                endorsementSendStub.resolves();
+
+
+                buildRequest = {
+                    fcn: 'GetInstalledChaincodes',
+                    args: []
+                };
+            });
+
+            afterEach(() => {
+                mysandbox.restore();
+            });
+
+            it('should get all the installed smart contracts', async () => {
+
+                const encodedResult: Uint8Array = protos.protos.ChaincodeQueryResponse.encode({
+                    chaincodes: [{
+                        name: 'myPackageName',
+                        version: 'myVersion'
+                    }, {
+                        name: 'anotherPackageName',
+                        version: 'anotherVersion'
+                    }]
+                }).finish();
+
+                endorsementSendStub.resolves({
+                    responses: [{
+                        response: {
+                            status: 200,
+                            payload: encodedResult
+                        }
+                    }]
+                });
+
+                const result: InstalledSmartContract[] = await peer.getAllInstalledSmartContractsV1();
+                result.should.deep.equal([{ packageId: 'myPackageName', label: 'myPackageName@myVersion' }, {
+                    packageId: 'anotherPackageName',
+                    label: 'anotherPackageName@anotherVersion'
+                }]);
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)]
+                });
+            });
+
+            it('should throw error if reponse contains error', async () => {
+                const error: Error = new Error('response error');
+                endorsementSendStub.resolves({ errors: [error] });
+
+                await peer.getAllInstalledSmartContractsV1().should.eventually.be.rejectedWith('Could not get all the installed smart contract packages, received: response error');
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)]
+                });
+            });
+
+            it('should throw error if status not 200 and there is a message', async () => {
+                const message: string = 'some error message';
+                endorsementSendStub.resolves({
+                    responses: [{
+                        response: {
+                            status: 500,
+                            message: message
+                        }
+                    }]
+                });
+
+                await peer.getAllInstalledSmartContractsV1().should.eventually.be.rejectedWith(`Could not get all the installed smart contract packages, received: ${message}`);
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)]
+                });
+            });
+
+            it('should throw error if status not 200 and there is no message', async () => {
+                const strangeRespose: any = { response: { status: 'some message', field2: 0x5AD } };
+                endorsementSendStub.resolves({ responses: [strangeRespose] });
+
+                await peer.getAllInstalledSmartContractsV1().should.eventually.be.rejectedWith(`Could not get all the installed smart contract packages, received: ${strangeRespose.toString()}`);
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)]
+                });
+            });
+
+            it('should throw error if problem with response', async () => {
+                const strangeRespose: any = { status: 'some message', field2: 0x5AD };
+                endorsementSendStub.resolves({ responses: [strangeRespose] });
+
+                await peer.getAllInstalledSmartContractsV1().should.eventually.be.rejectedWith(`Could not get all the installed smart contract packages, received: ${strangeRespose.toString()}`);
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)]
+                });
+            });
+
+            it('should throw error if no response', async () => {
+                endorsementSendStub.resolves();
+
+                await peer.getAllInstalledSmartContractsV1().should.eventually.be.rejectedWith('Could not get all the installed smart contract packages, received: Payload results are missing from the query');
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)]
+                });
+            });
+
+            it('should throw error if got error from sending transaction', async () => {
+                const error: Error = new Error('some transaction error');
+                endorsementSendStub.rejects(error);
+
+                await peer.getAllInstalledSmartContractsV1().should.eventually.be.rejectedWith('Could not get all the installed smart contract packages, received: some transaction error');
+
+                endorserConnectStub.should.have.been.called;
+                endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
+                endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
+                endorsementSendStub.should.have.been.calledWith({
+                    targets: [sinon.match.instanceOf(Endorser)]
+                });
+            });
+        });
+
     });
 });

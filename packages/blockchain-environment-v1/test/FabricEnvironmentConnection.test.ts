@@ -15,6 +15,7 @@
 import { FabricEnvironmentConnection } from '../src/FabricEnvironmentConnection';
 import * as FabricCAServices from 'fabric-ca-client';
 import * as fs from 'fs';
+import * as fs_extra from 'fs-extra';
 import * as path from 'path';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
@@ -771,20 +772,53 @@ describe('FabricEnvironmentConnection', () => {
             connection['lifecycle']['peers'].clear();
             connection['lifecycle']['peers'].set('peer0.org1.example.com', mockPeer);
 
-            mockPeer.getAllInstalledSmartContracts.resolves([{
-                label: 'biscuit-network',
-                packageId: 'biscuit-network-12345'
-            }, { label: 'cake-network', packageId: 'cake-network-12345' }]);
+            mockPeer.getAllInstalledSmartContractsV1.resolves([
+                {
+                    label: 'grape-network',
+                    packageId: 'grape-network-12345'
+                },
+                {
+                    label: 'fruit-network',
+                    packageId: 'fruit-network-12345'
+                }
+            ]);
+
+            mockPeer.getAllInstalledSmartContracts.resolves([
+                {
+                    label: 'biscuit-network',
+                    packageId: 'biscuit-network-12345'
+                },
+                {
+                    label: 'cake-network',
+                    packageId: 'cake-network-12345'
+                }
+            ]);
         });
 
-        it('should get the install smart contracts', async () => {
+        it('should get the v1 installed smart contracts', async () => {
+            const installedSmartContracts: Array<FabricInstalledSmartContract> = await connection.getInstalledSmartContracts('peer0.org1.example.com', true);
+            installedSmartContracts.length.should.equal(2);
+            installedSmartContracts[0].should.deep.equal({
+                label: 'grape-network',
+                packageId: 'grape-network-12345'
+            });
+            installedSmartContracts[1].should.deep.equal({
+                label: 'fruit-network',
+                packageId: 'fruit-network-12345'
+            });
+        });
+
+        it('should get the v2 installed smart contracts', async () => {
             const installedSmartContracts: Array<FabricInstalledSmartContract> = await connection.getInstalledSmartContracts('peer0.org1.example.com');
             installedSmartContracts.length.should.equal(2);
             installedSmartContracts[0].should.deep.equal({
                 label: 'biscuit-network',
                 packageId: 'biscuit-network-12345'
             });
-            installedSmartContracts[1].should.deep.equal({ label: 'cake-network', packageId: 'cake-network-12345' });
+            installedSmartContracts[1].should.deep.equal({
+                label: 'cake-network',
+                packageId: 'cake-network-12345'
+            });
         });
 
         it('should handle and swallow an access denied error', async () => {
@@ -851,6 +885,21 @@ describe('FabricEnvironmentConnection', () => {
                 }),
                 90000
             );
+        });
+
+        it('should install the smart contract package - CDS', async () => {
+            const cdsPackagePath: string = path.join(TEST_PACKAGE_DIRECTORY, 'myContract@0.0.1.cds');
+            const responseStub: any = [[{
+                response: {
+                    message: 'all good in da hood',
+                    status: 200
+                }
+            }]];
+            mockPeer.installSmartContractPackageCds.resolves(responseStub);
+            mySandBox.stub(fs_extra, 'readFile').resolves(Buffer.from([]));
+            await connection.installSmartContract(cdsPackagePath, 'peer0.org1.example.com', 'myContract_0.0.1', 90000);
+            mockPeer.installSmartContractPackageCds.should.have.been.calledWith(Buffer.from([]), 90000);
+
         });
 
         it('should handle error response', async () => {
@@ -1290,6 +1339,35 @@ describe('FabricEnvironmentConnection', () => {
             ((): void => {
                 connection.getNode('nosuch.ca.example.com');
             }).should.throw(/does not exist/);
+        });
+    });
+
+    describe('getChannelCapabilityFromPeer', () => {
+        let mockPeer: sinon.SinonStubbedInstance<LifecyclePeer>;
+        let channelName: string;
+        let peerName: string;
+
+        beforeEach(() => {
+            channelName = 'mychannel';
+            peerName = 'peer0.org1.example.com';
+            mockPeer = mySandBox.createStubInstance(LifecyclePeer);
+            connection['lifecycle']['peers'].clear();
+            connection['lifecycle']['peers'].set(peerName, mockPeer);
+
+            mockPeer.getChannelCapabilities.resolves(['V2_0']);
+        });
+
+        it('should get the capabilities of channel', async () => {
+            const result: string[] = await connection.getChannelCapabilityFromPeer(channelName, peerName);
+            result.should.deep.equal(['V2_0']);
+            mockPeer.getChannelCapabilities.should.have.been.calledOnce;
+        });
+
+        it('should handle errors', async () => {
+            const error: Error = new Error('some error');
+            mockPeer.getChannelCapabilities.rejects(error);
+            await connection.getChannelCapabilityFromPeer(channelName, peerName).should.be.rejectedWith(`Unable to determine channel capabilities of channel ${channelName}: ${error.message}`);
+            mockPeer.getChannelCapabilities.should.have.been.calledOnce;
         });
     });
 });

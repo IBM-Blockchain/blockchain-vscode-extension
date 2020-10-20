@@ -85,14 +85,14 @@ export abstract class FabricConnection {
 
     // TODO: this needs to be changed to getAllCommitttedSmartContracts
     public async getInstantiatedChaincode(channelName: string): Promise<Array<FabricSmartContractDefinition>> {
-        const allPeerNames: Array<string> = this.getAllPeerNames();
-        const peer: LifecyclePeer = this.lifecycle.getPeer(allPeerNames[0], this.gateway.getOptions().wallet, this.gateway.getOptions().identity as string);
-        const capabilities: string[] = await peer.getChannelCapabilities(channelName);
         const lifecycleChannel: LifecycleChannel = this.lifecycle.getChannel(channelName, this.gateway.getOptions().wallet, this.gateway.getOptions().identity as string);
         const channelMap: Map<string, string[]> = await this.createChannelMap();
         const peerNames: string[] = channelMap.get(channelName);
-        let smartContracts: DefinedSmartContract[];
 
+        const peer: LifecyclePeer = this.lifecycle.getPeer(peerNames[0], this.gateway.getOptions().wallet, this.gateway.getOptions().identity as string);
+        const capabilities: string[] = await peer.getChannelCapabilities(channelName);
+
+        let smartContracts: DefinedSmartContract[];
         if (!capabilities.includes('V2_0')) {
             smartContracts = await lifecycleChannel.getAllInstantiatedSmartContracts(peerNames[0]);
         } else {

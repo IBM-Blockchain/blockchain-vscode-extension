@@ -286,11 +286,15 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         return Array.from(this.certificateAuthorities.keys()).sort();
     }
 
-    public async getInstalledSmartContracts(peerName: string): Promise<Array<FabricInstalledSmartContract>> {
+    public async getInstalledSmartContracts(peerName: string, isV1?: boolean): Promise<Array<FabricInstalledSmartContract>> {
         const peer: LifecyclePeer = await this.getPeer(peerName);
         let installedSmartContracts: InstalledSmartContract[];
         try {
-            installedSmartContracts = await peer.getAllInstalledSmartContracts();
+            if (!isV1) {
+                installedSmartContracts = await peer.getAllInstalledSmartContracts();
+            } else {
+                installedSmartContracts = await peer.getAllInstalledSmartContractsV1();
+            }
         } catch (error) {
             if (error.message && error.message.match(/access denied/)) {
                 // Not allowed to do this as we're probably not an administrator.
@@ -318,7 +322,11 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         let packageId: string;
 
         try {
-            packageId = await peer.installSmartContractPackage(pkgBuffer, requestTimeout);
+            if (pathToPackage.endsWith('.cds')) {
+                await peer.installSmartContractPackageCds(pkgBuffer, requestTimeout);
+            } else {
+                packageId = await peer.installSmartContractPackage(pkgBuffer, requestTimeout);
+            }
         } catch (error) {
             if (error.message.includes('chaincode already successfully installed')) {
                 const installedContracts: FabricInstalledSmartContract[] = await this.getInstalledSmartContracts(peerName);
@@ -329,7 +337,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
                 if (installedContract.length === 0) {
                     throw new Error(`Unable to find installed contract for ${label} after receiving: ${error.message}`);
                 } else {
-                    packageId =  installedContract[0].packageId;
+                    packageId = installedContract[0].packageId;
                 }
             } else {
                 throw error;
@@ -461,6 +469,16 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
 
         const walletRegistryEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletName, this.environmentName);
         return FabricWalletGenerator.instance().getWallet(walletRegistryEntry);
+    }
+
+    public async getChannelCapabilityFromPeer(channelName: string, peerName: string): Promise<Array<string>> {
+        try {
+            const peer: LifecyclePeer = await this.getPeer(peerName);
+            const capabilities: string[] = await peer.getChannelCapabilities(channelName);
+            return capabilities;
+        } catch (error) {
+            throw new Error(`Unable to determine channel capabilities of channel ${channelName}: ${error.message}`);
+        }
     }
 
     private async getPeer(peerName: string): Promise<LifecyclePeer> {
