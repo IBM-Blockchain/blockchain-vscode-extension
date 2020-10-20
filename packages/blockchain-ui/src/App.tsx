@@ -30,13 +30,8 @@ class App extends Component<{}, AppState> {
             tutorialData: [],
             activeTutorial: { title: '', series: '', length: '', file: '', objectives: [] },
             deployData: { channelName: '', environmentName: '', packageEntries: [], workspaceNames: [], selectedPackage: undefined, committedDefinitions: [], environmentPeers: [], discoveredPeers: [], orgMap: {}, orgApprovals: {} },
-<<<<<<< HEAD
-            transactionData: {gatewayName: '', smartContract: {name: '', version: '', channel: '', label: '', transactions: [], namespace: ''} },
-            transactionOutput: ''
-=======
-            transactionData: {gatewayName: '', smartContract: {name: '', version: '', channel: '', label: '', transactions: [], namespace: '', peerNames: []} },
+            transactionData: {gatewayName: '', smartContract: {name: '', version: '', channel: '', label: '', transactions: [], namespace: '' } },
             transactionOutput: '',
->>>>>>> b4476477... * Add React view for Tutorial and fix relative paths for images and links (#2698)
         };
     }
 
