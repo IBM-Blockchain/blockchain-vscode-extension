@@ -30,6 +30,7 @@ describe('ExtensionsInteractionUtil Test', () => {
     let mySandBox: sinon.SinonSandbox;
     let executeCommandStub: sinon.SinonStub;
     let getExtensionStub: sinon.SinonStub;
+    let getCommandsStub: sinon.SinonStub;
 
     before(async () => {
         mySandBox = sinon.createSandbox();
@@ -38,6 +39,7 @@ describe('ExtensionsInteractionUtil Test', () => {
     beforeEach(() => {
         executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand').callThrough();
         getExtensionStub = mySandBox.stub(vscode.extensions, 'getExtension').callThrough();
+        getCommandsStub = mySandBox.stub(vscode.commands, 'getCommands').callThrough();
     });
 
     afterEach(() => {
@@ -46,6 +48,7 @@ describe('ExtensionsInteractionUtil Test', () => {
 
     describe('#cloudAccountGetAccessToken', () => {
         let loginStub: sinon.SinonStub;
+        let pingStub: sinon.SinonStub;
         let selectAccountStub: sinon.SinonStub;
         let isLoggedInStub: sinon.SinonStub;
         let accountSelectedStub: sinon.SinonStub;
@@ -74,6 +77,8 @@ describe('ExtensionsInteractionUtil Test', () => {
             selectAccountStub.resolves(true);
             loginStub = executeCommandStub.withArgs('ibmcloud-account.login');
             loginStub.resolves(true);
+            pingStub = executeCommandStub.withArgs('ibmcloud-account.ping');
+            pingStub.resolves();
             accessToken = undefined;
         });
 
@@ -211,11 +216,13 @@ describe('ExtensionsInteractionUtil Test', () => {
             loginStub.should.have.not.been.called;
         });
 
-        it('should handle ibmcloud-account not activated', async () => {
+        it('should handle ibmcloud-account not activated when ping is available', async () => {
             chai.should().equal(undefined, accessToken);
             isLoggedInStub.onFirstCall().resolves(false);
             cloudExtensionStub.isActive = false;
             getExtensionStub.withArgs('IBM.ibmcloud-account').returns(cloudExtensionStub);
+            getCommandsStub.resetBehavior();
+            getCommandsStub.returns(['ibmcloud-account.ping']);
 
             try {
                 accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken();
@@ -227,6 +234,31 @@ describe('ExtensionsInteractionUtil Test', () => {
             isLoggedInStub.should.have.been.calledOnce;
             accountSelectedStub.should.have.not.been.called;
             getAccessTokenStub.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWithExactly('ibmcloud-account.ping');
+            activateStub.should.not.have.been.called;
+            selectAccountStub.should.have.not.been.called;
+            loginStub.should.have.been.calledOnce;
+        });
+
+        it('should handle ibmcloud-account not activated when ping not available', async () => {
+            chai.should().equal(undefined, accessToken);
+            isLoggedInStub.onFirstCall().resolves(false);
+            cloudExtensionStub.isActive = false;
+            getExtensionStub.withArgs('IBM.ibmcloud-account').returns(cloudExtensionStub);
+            getCommandsStub.resetBehavior();
+            getCommandsStub.returns([]);
+
+            try {
+                accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken();
+            } catch (e) {
+                chai.assert.isNull(e, 'there should not have been an error!');
+            }
+            accessToken.should.equal('some token');
+            getExtensionStub.should.have.been.calledOnce;
+            isLoggedInStub.should.have.been.calledOnce;
+            accountSelectedStub.should.have.not.been.called;
+            getAccessTokenStub.should.have.been.calledOnce;
+            executeCommandStub.should.not.have.been.calledWithExactly('ibmcloud-account.ping');
             activateStub.should.have.been.called;
             selectAccountStub.should.have.not.been.called;
             loginStub.should.have.been.calledOnce;
