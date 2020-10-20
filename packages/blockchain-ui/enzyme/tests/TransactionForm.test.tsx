@@ -46,7 +46,8 @@ describe('TransactionForm component', () => {
         channel: 'mychannel',
         label: 'greenContract@0.0.1',
         transactions: [transactionOne, transactionTwo],
-        namespace: 'GreenContract'
+        namespace: 'GreenContract',
+        peerNames: ['peer1', 'peer2']
     };
 
     beforeEach(async () => {
@@ -106,6 +107,19 @@ describe('TransactionForm component', () => {
         component.state().transientData.should.equal('some transient data');
     });
 
+    it('should update state when a peer is selected', async () => {
+        const onChangeEvent: { selectedItems: { id: string; label: string}[] } = {
+            selectedItems: [{
+                id: 'peer1',
+                label: 'peer1'
+            }]
+        };
+        const component: any = mount(<TransactionForm smartContract={greenContract}/>);
+        component.state().selectedPeerNames.should.deep.equal(greenContract.peerNames);
+        component.find('MultiSelect').at(0).prop('onChange')(onChangeEvent);
+        component.state().selectedPeerNames.should.deep.equal(['peer1']);
+    });
+
     it('should attempt to submit a transaction when the submit button is clicked ', async () => {
         const component: any = mount(<TransactionForm smartContract={greenContract}/>);
         component.setState({
@@ -120,7 +134,7 @@ describe('TransactionForm component', () => {
                 channelName: 'mychannel',
                 evaluate: false,
                 namespace: 'GreenContract',
-                peerTargetNames: [],
+                peerTargetNames: greenContract.peerNames,
                 smartContract: 'greenContract',
                 transactionName: 'transactionOne',
                 transientData: ''
@@ -142,7 +156,7 @@ describe('TransactionForm component', () => {
                 channelName: 'mychannel',
                 evaluate: true,
                 namespace: 'GreenContract',
-                peerTargetNames: [],
+                peerTargetNames: greenContract.peerNames,
                 smartContract: 'greenContract',
                 transactionName: 'transactionOne',
                 transientData: ''
@@ -165,7 +179,7 @@ describe('TransactionForm component', () => {
                 channelName: 'mychannel',
                 evaluate: false,
                 namespace: 'GreenContract',
-                peerTargetNames: [],
+                peerTargetNames: greenContract.peerNames,
                 smartContract: 'greenContract',
                 transactionName: 'transactionOne',
                 transientData: '{"some": "data"}'
@@ -188,7 +202,55 @@ describe('TransactionForm component', () => {
                 channelName: 'mychannel',
                 evaluate: true,
                 namespace: 'GreenContract',
-                peerTargetNames: [],
+                peerTargetNames: greenContract.peerNames,
+                smartContract: 'greenContract',
+                transactionName: 'transactionOne',
+                transientData: '{"some": "data"}'
+            }
+        });
+    });
+
+    it('should attempt to submit a transaction with custom peers when the submit button is clicked ', async () => {
+        const component: any = mount(<TransactionForm smartContract={greenContract}/>);
+        component.setState({
+            activeTransaction: transactionOne,
+            transactionArguments: '[\nname: "Green"\n]',
+            transientData: '{"some": "data"}',
+            selectedPeerNames: ['peer1']
+        });
+        component.find('#submit-button').at(1).simulate('click');
+        postToVSCodeStub.should.have.been.calledOnceWithExactly({
+            command: ExtensionCommands.SUBMIT_TRANSACTION,
+            data: {
+                args: '["Green"]',
+                channelName: 'mychannel',
+                evaluate: false,
+                namespace: 'GreenContract',
+                peerTargetNames: ['peer1'],
+                smartContract: 'greenContract',
+                transactionName: 'transactionOne',
+                transientData: '{"some": "data"}'
+            }
+        });
+    });
+
+    it('should attempt to evaluate a transaction with transient data when the evaluate button is clicked', async () => {
+        const component: any = mount(<TransactionForm smartContract={greenContract}/>);
+        component.setState({
+            activeTransaction: transactionOne,
+            transactionArguments: '[\nname: "Green"\n]',
+            transientData: '{"some": "data"}',
+            selectedPeerNames: ['peer1']
+        });
+        component.find('#evaluate-button').at(1).simulate('click');
+        postToVSCodeStub.should.have.been.calledOnceWithExactly({
+            command: ExtensionCommands.EVALUATE_TRANSACTION,
+            data: {
+                args: '["Green"]',
+                channelName: 'mychannel',
+                evaluate: true,
+                namespace: 'GreenContract',
+                peerTargetNames: ['peer1'],
                 smartContract: 'greenContract',
                 transactionName: 'transactionOne',
                 transientData: '{"some": "data"}'
