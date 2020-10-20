@@ -180,7 +180,8 @@ describe('App', () => {
                 channel: 'myChannel',
                 label: 'mySmartContract@0.0.1',
                 transactions: [],
-                namespace: 'My Smart Contract'
+                namespace: 'My Smart Contract',
+                peerNames: ['peer1', 'peer2']
             }
         };
 

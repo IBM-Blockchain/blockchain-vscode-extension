@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import './TransactionForm.scss';
-import { Button, Dropdown, Form, FormGroup, Select, SelectItem, TextArea, TextInput } from 'carbon-components-react';
+import { Button, Dropdown, Form, FormGroup, MultiSelect, TextArea, TextInput } from 'carbon-components-react';
 import ITransaction from '../../../interfaces/ITransaction';
 import ISmartContract from '../../../interfaces/ISmartContract';
 import { ExtensionCommands } from '../../../ExtensionCommands';
@@ -15,6 +15,7 @@ interface IState {
     activeTransaction: ITransaction | undefined;
     transactionArguments: string;
     transientData: string;
+    selectedPeerNames: string[];
 }
 
 class TransactionForm extends Component<IProps, IState> {
@@ -24,12 +25,14 @@ class TransactionForm extends Component<IProps, IState> {
             smartContract: this.props.smartContract,
             activeTransaction: undefined,
             transactionArguments: '',
-            transientData: ''
+            transientData: '',
+            selectedPeerNames: this.props.smartContract.peerNames
         };
         this.populateTransactionDropdown = this.populateTransactionDropdown.bind(this);
         this.generateTransactionArguments = this.generateTransactionArguments.bind(this);
         this.updateTransactionArguments = this.updateTransactionArguments.bind(this);
         this.updateTransientData = this.updateTransientData.bind(this);
+        this.updateCustomPeers = this.updateCustomPeers.bind(this);
         this.submitTxn = this.submitTxn.bind(this);
     }
 
@@ -78,6 +81,23 @@ class TransactionForm extends Component<IProps, IState> {
         });
     }
 
+    updateCustomPeers(event: { selectedItems: { id: string; label: string}[] } ): void {
+        const peers: string[] = event.selectedItems.map((peerObject: {id: string, label: string }) => {
+            return peerObject.id;
+        });
+        this.setState({
+            selectedPeerNames: peers
+        });
+    }
+
+    formatPeers(peers: string[]): { id: string, label: string }[] {
+        const formattedPeers: { id: string, label: string }[] = [];
+        for (const peer of peers) {
+            formattedPeers.push({id: peer, label: peer});
+        }
+        return formattedPeers;
+    }
+
     parseArgs(activeTransaction: ITransaction, transactionArguments: string): string {
         let parsedArguments: string = transactionArguments.replace(/\n/g, '');
         for (const param of activeTransaction.parameters) {
@@ -100,13 +120,15 @@ class TransactionForm extends Component<IProps, IState> {
             namespace: this.state.smartContract.namespace,
             transientData: this.state.transientData,
             evaluate,
-            peerTargetNames: []
+            peerTargetNames: this.state.selectedPeerNames
         };
         Utils.postToVSCode({command, data});
     }
 
     render(): JSX.Element {
         const shouldDisableButtons: boolean = this.state.activeTransaction === undefined;
+        const allPeers: { id: string, label: string }[] = this.formatPeers(this.state.smartContract.peerNames);
+        const selectedPeers: { id: string, label: string }[] = this.formatPeers(this.state.selectedPeerNames);
 
         return (
             <Form id='create-txn-form'>
@@ -130,9 +152,14 @@ class TransactionForm extends Component<IProps, IState> {
                     />
                 </FormGroup>
                 <FormGroup legendText='Peer targeting' id='target-peer-input'>
-                    <Select id='peers-select' labelText='Peers' className='select-width hide-label'>
-                        <SelectItem disabled={false} hidden={false} text='Select a peer' value='select-a-peer'/>
-                    </Select>
+                    <MultiSelect
+                        id='peer-select'
+                        initialSelectedItems={selectedPeers}
+                        items={allPeers}
+                        label='Select peers'
+                        onChange={this.updateCustomPeers}
+                        titleText={'Target specific peer (optional)'}
+                    />
                 </FormGroup>
                 <FormGroup legendText='Arguments'>
                     <TextArea labelText='Arguments*' id='arguments-text-area' onChange={this.updateTransactionArguments} value={this.state.transactionArguments}/>

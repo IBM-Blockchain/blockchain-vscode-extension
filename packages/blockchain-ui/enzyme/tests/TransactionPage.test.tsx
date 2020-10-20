@@ -43,7 +43,8 @@ describe('TransactionPage component', () => {
         channel: 'mychannel',
         label: 'greenContract@0.0.1',
         transactions: [transactionOne, transactionTwo],
-        namespace: 'GreenContract'
+        namespace: 'GreenContract',
+        peerNames: ['peer1', 'peer2']
     };
 
     const state: {gatewayName: string, smartContract: ISmartContract} = {
