@@ -17,7 +17,6 @@ import * as path from 'path';
 import { ReactView } from './ReactView';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { Reporter } from '../util/Reporter';
-import * as fs from 'fs-extra';
 
 export class TutorialGalleryView extends ReactView {
     constructor(context: vscode.ExtensionContext) {
@@ -39,18 +38,13 @@ export class TutorialGalleryView extends ReactView {
         await this.loadComponent(panel);
     }
 
-    async getTutorialInfo(): Promise<Array<{seriesName: string, seriesTutorials: any[]}>> {
-        const extensionPath: any = ExtensionUtil.getExtensionPath();
-        const tutorialsPath: string = path.join(extensionPath, 'tutorials.json');
-        const json: any = await fs.readJson(tutorialsPath);
-        return json;
-    }
-
     async loadComponent(panel: vscode.WebviewPanel): Promise<void> {
-        const tutorialData: Array<{seriesName: string, seriesTutorials: any[]}> = await this.getTutorialInfo();
+        const tutorials: Array<{seriesName: string, seriesTutorials: any[]}> = await this.getTutorialInfo();
         panel.webview.postMessage({
             path: '/tutorials',
-            tutorialData
+            tutorialData: {
+                tutorials,
+            }
         });
     }
 }

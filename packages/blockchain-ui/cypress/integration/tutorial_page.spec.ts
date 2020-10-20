@@ -4,7 +4,7 @@ chai.should();
 
 describe('Tutorial page', () => {
 
-    const tutorialData: Array<{name: string, tutorials: Array<ITutorialObject>}> = [
+    const tutorials: Array<{name: string, tutorials: Array<ITutorialObject>}> = [
         {
             name: 'Basic tutorials',
             tutorials: [
@@ -40,9 +40,11 @@ describe('Tutorial page', () => {
         }
     ];
 
-    const mockMessage: {path: string, tutorialData: Array<{name: string, tutorials: any[]}>} = {
+    const mockMessage: {path: string, tutorialData: object } = {
         path: 'tutorials',
-        tutorialData
+        tutorialData: {
+            tutorials,
+        }
     };
 
     beforeEach(() => {
@@ -52,9 +54,9 @@ describe('Tutorial page', () => {
     });
 
     it(`should correctly render the tabs and their contents`, () => {
-        let currentTutorial: ITutorialObject = tutorialData[0].tutorials[0];
+        let currentTutorial: ITutorialObject = tutorials[0].tutorials[0];
 
-        cy.get('.bx--tabs__nav-item--selected > .bx--tabs__nav-link').contains(tutorialData[0].name);
+        cy.get('.bx--tabs__nav-item--selected > .bx--tabs__nav-link').contains(tutorials[0].name);
         cy.get('.download-all').contains(`Download all "${currentTutorial.series}" as PDF`);
         cy.get('[aria-hidden="false"] > .tab-container').contains(currentTutorial.title);
         cy.get('[aria-hidden="false"] > .tab-container').contains(currentTutorial.length);
@@ -66,10 +68,10 @@ describe('Tutorial page', () => {
         cy.get('[aria-hidden="false"] > .tab-container > .button-container > .pdf-button').contains('Download as PDF');
         cy.get('[aria-hidden="false"] > .tab-container > .button-container > .button').contains('Open tutorial');
 
-        currentTutorial = tutorialData[1].tutorials[0];
+        currentTutorial = tutorials[1].tutorials[0];
         cy.get('[aria-selected="false"] > .bx--tabs__nav-link').click();
 
-        cy.get('.bx--tabs__nav-item--selected > .bx--tabs__nav-link').contains(tutorialData[1].name);
+        cy.get('.bx--tabs__nav-item--selected > .bx--tabs__nav-link').contains(tutorials[1].name);
         cy.get('[aria-hidden="false"] > .tab-container').contains(currentTutorial.title);
         cy.get('[aria-hidden="false"] > .tab-container').contains(currentTutorial.length);
 
