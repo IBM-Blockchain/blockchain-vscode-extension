@@ -82,7 +82,8 @@ describe('CreateSmartContractProjectCommand', () => {
         skipNpmInstallStub.resolves(true);  // we don't want npm install running during unit tests
         sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
-        showQuickPickItemStub.resolves({label: UserInputUtil.GENERATE_DEFAULT_CONTRACT, description: UserInputUtil.GENERATE_DEFAULT_CONTRACT_DESCRIPTION, data: 'default'});
+        showQuickPickItemStub.onFirstCall().resolves({label: 'v2.0', data: 'v2'});
+        showQuickPickItemStub.onSecondCall().resolves({label: UserInputUtil.GENERATE_DEFAULT_CONTRACT, description: UserInputUtil.GENERATE_DEFAULT_CONTRACT_DESCRIPTION, data: 'default'});
     });
     afterEach(() => {
         mySandBox.restore();
@@ -267,10 +268,27 @@ describe('CreateSmartContractProjectCommand', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label, contractType: 'default' });
         });
 
+        it(`should start a v1 ${testLanguageItem.label} smart contract project in a new window`, async () => {
+            showLanguagesQuickPickStub.resolves(testLanguageItem);
+            if (testLanguageItem.type === LanguageType.CONTRACT) {
+                showInputBoxStub.onFirstCall().resolves('Conga');
+            }
+            showFolderOptionsStub.resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
+            browseStub.resolves(uri);
+            showQuickPickItemStub.onFirstCall().resolves({label: 'v1.4', data: 'v1'});
+
+            await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
+            executeCommandStub.should.have.been.calledThrice;
+            executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
+            executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, true);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Smart Contract Project');
+            await checkSmartContract();
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label, contractType: 'default' });
+        });
     }
 
     it('should start a typescript private data smart contract project, in a new window', async () => {
-        showQuickPickItemStub.resolves({label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private'});
+        showQuickPickItemStub.onSecondCall().resolves({label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private'});
         showInputBoxStub.onFirstCall().resolves('Org1MSP');
         showLanguagesQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
         showInputBoxStub.onSecondCall().resolves('Conga');
@@ -286,7 +304,7 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should have the correct default asset name when user selects private data smart contract', async () => {
-        showQuickPickItemStub.resolves({label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private'});
+        showQuickPickItemStub.onSecondCall().resolves({label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private'});
         showInputBoxStub.onFirstCall().resolves('Org1MSP');
         showLanguagesQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
         showInputBoxStub.onSecondCall().resolves('MyPrivateAsset');
@@ -305,7 +323,7 @@ describe('CreateSmartContractProjectCommand', () => {
 
     it('should not report an error when focusFilesExplorer throws an error', async () => {
         executeCommandStub.withArgs('workbench.files.action.focusFilesExplorer').rejects(new Error('unsupported'));
-        showQuickPickItemStub.resolves({label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private'});
+        showQuickPickItemStub.onSecondCall().resolves({label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private'});
         showInputBoxStub.onFirstCall().resolves('Org1MSP');
         showLanguagesQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
         showInputBoxStub.onSecondCall().resolves('MyPrivateAsset');
@@ -318,7 +336,7 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should not do anything if the user cancels when asked for the mspID', async () => {
-        showQuickPickItemStub.resolves({label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private'});
+        showQuickPickItemStub.onSecondCall().resolves({label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private'});
         showInputBoxStub.onFirstCall().resolves(undefined);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         browseStub.should.not.have.been.called;
@@ -326,9 +344,19 @@ describe('CreateSmartContractProjectCommand', () => {
         sendTelemetryEventStub.should.not.have.been.called;
     });
 
-    it('should not do anything if the user cancels the type of smart contract', async () => {
-        showQuickPickItemStub.resolves(undefined);
+    it('should not do anything if the user cancels the fabric version of the smart contract', async () => {
+        showQuickPickItemStub.onFirstCall().resolves(undefined);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
+        browseStub.should.not.have.been.called;
+        showLanguagesQuickPickStub.should.not.have.been.called;
+        showInputBoxStub.should.not.have.been.called;
+        sendTelemetryEventStub.should.not.have.been.called;
+    });
+
+    it('should not do anything if the user cancels the type of smart contract', async () => {
+        showQuickPickItemStub.onSecondCall().resolves(undefined);
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
+        showQuickPickItemStub.should.have.been.calledTwice;
         browseStub.should.not.have.been.called;
         showLanguagesQuickPickStub.should.not.have.been.called;
         showInputBoxStub.should.not.have.been.called;
@@ -381,11 +409,11 @@ describe('CreateSmartContractProjectCommand', () => {
         executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
     });
 
-    it('should not do anything if the user cancels chosing a smart contract language', async () => {
+    it('should not do anything if the user cancels choosing a smart contract language', async () => {
         showLanguagesQuickPickStub.resolves(undefined);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         showLanguagesQuickPickStub.should.have.been.calledOnce;
-        showQuickPickItemStub.should.have.been.calledOnce;
+        showQuickPickItemStub.should.have.been.calledTwice;
         showInputBoxStub.should.not.have.been.called;
         browseStub.should.not.have.been.called;
     });
@@ -395,7 +423,7 @@ describe('CreateSmartContractProjectCommand', () => {
         showInputBoxStub.onCall(0).resolves(undefined);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         showInputBoxStub.should.have.been.calledOnce;
-        showQuickPickItemStub.should.have.been.calledOnce;
+        showQuickPickItemStub.should.have.been.calledTwice;
         browseStub.should.not.have.been.called;
     });
 
@@ -403,9 +431,9 @@ describe('CreateSmartContractProjectCommand', () => {
         showLanguagesQuickPickStub.resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
         showInputBoxStub.onCall(0).resolves('@xyz/myAsset');
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        showQuickPickItemStub.should.have.been.calledOnce;
+        showQuickPickItemStub.should.have.been.calledTwice;
         browseStub.should.not.have.been.called;
         logSpy.should.have.been.calledWith(LogType.ERROR, 'Invalid asset name, it should only contain lowercase and uppercase letters.');
     });
 
-}); // end of createFabricCommand tests
+});

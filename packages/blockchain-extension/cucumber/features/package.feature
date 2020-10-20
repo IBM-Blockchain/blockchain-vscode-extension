@@ -2,7 +2,7 @@ Feature: Smart Contracts packages
     Test a smart contract can be packaged in all the languages supported, and it's contents inspected with View package Information
 
     Scenario Outline: Package a smart contract
-        Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
+        Given a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
         And the contract has been created
         When I package the contract
         Then a new package should be created with the name <name> and version <version>
@@ -16,7 +16,7 @@ Feature: Smart Contracts packages
         | Go         | Conga     | GoContract         | GoContract@0.0.1         | 2418     | 0.0.1   |
 
     Scenario Outline: Inspect smart contract contents
-        Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
+        Given a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
         And the contract has been created
         And the contract has been packaged
         And there should be a tree item with a label '<packagedName>' in the 'Smart Contracts' panel

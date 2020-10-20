@@ -95,7 +95,7 @@ Feature: Fabric Gateways
     And the 'Org1' wallet
     And the 'Local Fabric Admin' identity
     And I'm connected to the '1 Org Local Fabric - Org1' gateway
-    And a <contractLanguage> smart contract for <assetType> assets with the name <contractName> and version <version>
+    And a <contractLanguage> smart contract using Fabric v2 for <assetType> assets with the name <contractName> and version <version>
     And the contract has been created
     And the contract has been packaged
     And the contract has been deployed on channel 'mychannel'
@@ -117,7 +117,7 @@ Feature: Fabric Gateways
     And an environment 'myFabric' exists
     And the environment is setup
     And the 'myFabric' environment is connected
-    And a <contractLanguage> smart contract for <assetType> assets with the name <contractName> and version <version>
+    And a <contractLanguage> smart contract using Fabric v2 for <assetType> assets with the name <contractName> and version <version>
     And the contract has been created
     And the contract has been packaged
     And the contract has been deployed on channel 'mychannel'

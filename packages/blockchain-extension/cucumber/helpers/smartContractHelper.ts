@@ -53,17 +53,26 @@ export class SmartContractHelper {
         this.userInputUtilHelper = userInputUtilHelper;
     }
 
-    public async createSmartContract(language: string, assetType: string, contractName: string, mspid?: string): Promise<string> {
+    public async createSmartContract(fabricVersion: string, language: string, assetType: string, contractName: string, mspid?: string): Promise<string> {
 
         let type: LanguageType;
         if (language === 'JavaScript' || language === 'TypeScript' || language === 'Java' || language === 'Go') {
-            type = LanguageType.CONTRACT;
+            if (fabricVersion === 'v2' || (fabricVersion === 'v1' && language !== 'Go')) {
+                type = LanguageType.CONTRACT;
+            } else {
+                type = LanguageType.CHAINCODE;
+            }
         } else {
             throw new Error(`You must update this test to support the ${language} language`);
         }
 
+        this.userInputUtilHelper.showQuickPickItemStub.withArgs('Choose the version of Fabric for the smart contract:').resolves({
+            label: fabricVersion === 'v1' ? 'v1.4' : 'v2.0',
+            data: fabricVersion
+        });
+
         if (contractName.includes('Private')) {
-            this.userInputUtilHelper.showQuickPickItemStub.resolves({
+            this.userInputUtilHelper.showQuickPickItemStub.withArgs('Choose a contract type to generate:').resolves({
                 label: UserInputUtil.GENERATE_PD_CONTRACT,
                 description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION,
                 data: 'private'
@@ -71,7 +80,7 @@ export class SmartContractHelper {
             this.userInputUtilHelper.inputBoxStub.withArgs('Name the type of asset managed by this smart contract', 'MyPrivateAsset').resolves(assetType);
             this.userInputUtilHelper.inputBoxStub.withArgs('Please provide an mspID for the private data collection', 'Org1MSP').resolves(mspid);
         } else {
-            this.userInputUtilHelper.showQuickPickItemStub.resolves({
+            this.userInputUtilHelper.showQuickPickItemStub.withArgs('Choose a contract type to generate:').resolves({
                 label: UserInputUtil.GENERATE_DEFAULT_CONTRACT,
                 description: UserInputUtil.GENERATE_DEFAULT_CONTRACT_DESCRIPTION,
                 data: 'default'
