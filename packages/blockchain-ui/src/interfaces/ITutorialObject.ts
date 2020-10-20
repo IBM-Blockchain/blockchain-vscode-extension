@@ -6,6 +6,7 @@ interface ITutorialObject {
     file: string;
     objectives: string[];
     badge?: boolean;
+    markdown?: string;
 }
 
 export default ITutorialObject;

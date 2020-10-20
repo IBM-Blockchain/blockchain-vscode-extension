@@ -14,43 +14,59 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs-extra';
+import { ReactView } from './ReactView';
+import { ExtensionUtil } from '../util/ExtensionUtil';
 import { Reporter } from '../util/Reporter';
-import { View } from './View';
 
-export class TutorialView extends View {
+export class TutorialView extends ReactView {
 
     private seriesName: string;
     private tutorialName: string;
 
-    constructor(seriesName: string, tutorialName: string) {
-        super(null, null, null);
+    constructor(context: vscode.ExtensionContext, seriesName: string, tutorialName: string) {
+        const seriesAndName: string = `${tutorialName} (${seriesName})`;
+        super(context, seriesAndName, seriesAndName);
         this.seriesName = seriesName;
         this.tutorialName = tutorialName;
     }
 
-    loadComponent(_panel: vscode.WebviewPanel): void {
-        return;
+    async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
+        Reporter.instance().sendTelemetryEvent('openedView', {openedView: panel.title}); // Report that a user has opened a new panel
+
+        const extensionPath: string = ExtensionUtil.getExtensionPath();
+        const panelIcon: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'logo.svg'));
+
+        panel.iconPath = panelIcon;
+
+        panel.webview.onDidReceiveMessage(async (message: {command: string, data: any}) => {
+            await vscode.commands.executeCommand(message.command, ...message.data);
+        });
+
+        await this.loadComponent(panel);
     }
 
-    public async openView(): Promise<void> {
+    async loadComponent(panel: vscode.WebviewPanel): Promise<void> {
+        Reporter.instance().sendTelemetryEvent('Tutorial Viewed', { series: this.seriesName, tutorial: this.tutorialName });
+
         const series: any = await this.getSeries(this.seriesName);
         const tutorial: any = await this.getTutorial(series, this.tutorialName);
 
-        const tutorialPath: string = path.join(__dirname, '..', '..', '..', 'tutorials', tutorial.file);
+        const tutorialPath: string = path.join(this.getTutorialsDirectory(), tutorial.file);
+        const markdown: string = await fs.readFile(tutorialPath, 'utf8');
 
-        const uri: vscode.Uri = vscode.Uri.file(tutorialPath);
+        const tutorials: Array<{seriesName: string, seriesTutorials: any[]}> = await this.getTutorialInfo();
 
-        await vscode.commands.executeCommand('markdown.showPreview', uri);
-        Reporter.instance().sendTelemetryEvent('Tutorial Viewed', {series: this.seriesName, tutorial: this.tutorialName});
-    }
-
-    // Not needed for a tutorial view
-    protected async openPanelInner(): Promise<void> {
-        return;
-    }
-
-    // Not needed for a tutorial view
-    protected async getHTMLString(): Promise<string> {
-        return '';
+        panel.webview.postMessage({
+            path: '/viewTutorial',
+            // Add the active tutorial into the tutorials data
+            tutorialData: {
+                tutorials,
+                activeTutorial: {
+                    ...tutorial,
+                    markdown,
+                },
+            }
+        });
     }
 }

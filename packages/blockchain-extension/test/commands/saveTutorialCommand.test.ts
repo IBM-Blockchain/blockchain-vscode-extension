@@ -31,6 +31,7 @@ describe('saveTutorial', () => {
 
     const targetPath: string = path.join('/', 'path', 'to', 'the', 'tutorial.pdf');
     const extensionPath: string = ExtensionUtil.getExtensionPath();
+    const tutorialBaseDir: string = path.join(extensionPath, 'resources', 'tutorials');
     let mySandbox: sinon.SinonSandbox;
     let showSaveDialogStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
@@ -70,7 +71,7 @@ describe('saveTutorial', () => {
     describe('saveSeries', async () => {
         beforeEach(async () => {
             showSaveDialogStub.resolves(vscode.Uri.file(targetPath));
-            folderPath = path.join(extensionPath, 'tutorials', 'new-tutorials', 'basic-tutorials', 'pdf');
+            folderPath = path.join(tutorialBaseDir, 'new-tutorials', 'basic-tutorials', 'pdf');
         });
         it('should save all pdfs in the series', async () => {
             await vscode.commands.executeCommand(ExtensionCommands.SAVE_TUTORIAL_AS_PDF, undefined, true, 'basic-tutorials');
@@ -95,7 +96,7 @@ describe('saveTutorial', () => {
         beforeEach(async () => {
             showSaveDialogStub.resolves(vscode.Uri.file(targetPath));
             const pathToFolder: string = (tutorialObject.file).substring(0, tutorialObject.file.lastIndexOf('/'));
-            folderPath = path.join(extensionPath, 'tutorials', pathToFolder, 'pdf');
+            folderPath = path.join(tutorialBaseDir, pathToFolder, 'pdf');
         });
 
         it('should save the selected pdf', async () => {

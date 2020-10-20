@@ -51,8 +51,8 @@ describe('App', () => {
         component.state().redirectPath.should.equal('/fabric2');
     });
 
-    it('should redirect to the tutorial page', async () => {
-        const tutorialData: Array<{ name: string, tutorials: ITutorialObject[] }> = [
+    it('should redirect to the tutorial gallery page', async () => {
+        const tutorials: Array<{ name: string, tutorials: ITutorialObject[] }> = [
             {
                 name: 'Basic tutorials',
                 tutorials: [
@@ -92,12 +92,69 @@ describe('App', () => {
         const msg: MessageEvent = new MessageEvent('message', {
             data: {
                 path: '/tutorials',
-                tutorialData
+                tutorialData: {
+                    tutorials,
+                }
             }
         });
         dispatchEvent(msg);
         component.state().redirectPath.should.equal('/tutorials');
-        component.state().tutorialData.should.equal(tutorialData);
+        component.state().tutorialData.should.equal(tutorials);
+    });
+
+    it('should redirect to the tutorial page', async () => {
+        const tutorial: ITutorialObject = {
+            title: 'a1',
+            series: 'Basic tutorials',
+            length: '4 weeks',
+            objectives: [
+                'objective 1',
+                'objective 2',
+                'objective 3'
+            ],
+            file: 'some/file/path'
+        };
+
+        const tutorials: Array<{ name: string, tutorials: ITutorialObject[] }> = [
+            {
+                name: 'Basic tutorials',
+                tutorials: [
+                    tutorial,
+                ]
+            },
+            {
+                name: 'Other tutorials',
+                tutorials: [
+                    {
+                        title: 'something really interesting',
+                        series: 'Other tutorials',
+                        length: '10 minutes',
+                        objectives: [
+                            'objective 1',
+                            'objective 2',
+                            'objective 3'
+                        ],
+                        file: 'another/file/path'
+                    }
+                ]
+            }
+        ];
+
+        const component: any = mount(<App />);
+
+        const msg: MessageEvent = new MessageEvent('message', {
+            data: {
+                path: '/viewTutorial',
+                tutorialData: {
+                    tutorials,
+                    activeTutorial: tutorial,
+                }
+            }
+        });
+        dispatchEvent(msg);
+        component.state().redirectPath.should.equal('/viewTutorial');
+        component.state().tutorialData.should.equal(tutorials);
+        component.state().activeTutorial.should.equal(tutorial);
     });
 
     it('should redirect to the deploy page', async () => {
