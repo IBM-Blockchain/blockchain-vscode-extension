@@ -29,14 +29,27 @@ export class ExtensionsInteractionUtil {
         return !!vscode.extensions.getExtension( 'IBM.ibmcloud-account' );
     }
 
-    public static async cloudAccountGetAccessToken(userInteraction: boolean = true): Promise<string> {
+    public static async getIBMCloudExtension(): Promise<CloudAccountApi> {
         const  cloudAccountExtension: vscode.Extension<any> = vscode.extensions.getExtension( 'IBM.ibmcloud-account' );
         if ( !cloudAccountExtension ) {
             throw new Error('IBM Cloud Account extension must be installed');
+        }
+        const commands: string[] = await vscode.commands.getCommands();
+        // Determine if the IBM Cloud Account extension supports the ping command. If it
+        // does, call the ping command to activate the extension if it is not activated.
+        // We need to do this as the activate() call does not work on current versions of
+        // Eclipse Che/Theia: https://github.com/eclipse-theia/theia/issues/8463
+        const hasPing: boolean = commands.includes('ibmcloud-account.ping');
+        if (hasPing) {
+            await vscode.commands.executeCommand('ibmcloud-account.ping');
         } else if ( !cloudAccountExtension.isActive ) {
             await cloudAccountExtension.activate();
         }
-        const cloudAccount: CloudAccountApi = cloudAccountExtension.exports;
+        return cloudAccountExtension.exports;
+    }
+
+    public static async cloudAccountGetAccessToken(userInteraction: boolean = true): Promise<string> {
+        const cloudAccount: CloudAccountApi = await this.getIBMCloudExtension();
 
         const isLoggedIn: boolean = await cloudAccount.loggedIn();
         let result: boolean;
@@ -73,25 +86,13 @@ export class ExtensionsInteractionUtil {
     }
 
     public static async cloudAccountIsLoggedIn(): Promise<boolean> {
-        const  cloudAccountExtension: vscode.Extension<any> = vscode.extensions.getExtension( 'IBM.ibmcloud-account' );
-        if ( !cloudAccountExtension ) {
-            throw new Error('IBM Cloud Account extension must be installed');
-        } else if ( !cloudAccountExtension.isActive ) {
-            await cloudAccountExtension.activate();
-        }
-        const cloudAccount: CloudAccountApi = cloudAccountExtension.exports;
+        const cloudAccount: CloudAccountApi = await this.getIBMCloudExtension();
 
         return await cloudAccount.loggedIn();
     }
 
     public static async cloudAccountHasSelectedAccount(): Promise<boolean> {
-        const  cloudAccountExtension: vscode.Extension<any> = vscode.extensions.getExtension( 'IBM.ibmcloud-account' );
-        if ( !cloudAccountExtension ) {
-            throw new Error('IBM Cloud Account extension must be installed');
-        } else if ( !cloudAccountExtension.isActive ) {
-            await cloudAccountExtension.activate();
-        }
-        const cloudAccount: CloudAccountApi = cloudAccountExtension.exports;
+        const cloudAccount: CloudAccountApi = await this.getIBMCloudExtension();
 
         return await cloudAccount.accountSelected();
     }
