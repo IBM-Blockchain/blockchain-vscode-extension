@@ -539,9 +539,8 @@ You will need the following:
 #### Additional requirements for Windows
 
 - Docker for Windows is configured to use Linux containers (this is the default)
-- You will need to install OpenSSL v1.0.2 if using Node 8, or v1.1.1 if using Node 10 from [Win32 OpenSSL](http://slproweb.com/products/Win32OpenSSL.html)
+- You will need to install OpenSSL v1.0.2 or v1.1.1 [OpenSSL binaries](https://www.openssl.org/community/binaries.html)
   - Install the normal version, not the version marked as "light"
-  - Install the Win32 version into `C:\OpenSSL-Win32` on 32-bit systems
   - Install the Win64 version into `C:\OpenSSL-Win64` on 64-bit systems
 
 For more information see the [1 Org Local Fabric](#1-org-local-fabric) section.

@@ -282,9 +282,9 @@ export class ExtensionUtil {
             await tutorialGalleryView.openView(true);
         }));
 
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TUTORIAL_PAGE, async (repoName: string, tutorialName: string) => {
-            const tutorialView: TutorialView = new TutorialView(repoName, tutorialName);
-            await tutorialView.openView();
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TUTORIAL_PAGE, async (seriesName: string, tutorialName: string) => {
+            const tutorialView: TutorialView = new TutorialView(context, seriesName, tutorialName);
+            await tutorialView.openView(true);
         }));
 
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_FABRIC_2_PAGE, async () => {
@@ -301,6 +301,12 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_NEW_INSTANCE_LINK, async () => {
             await vscode.commands.executeCommand('vscode.open', vscode.Uri.parse('https://cloud.ibm.com/catalog/services/blockchain-platform'));
             Reporter.instance().sendTelemetryEvent('openNewInstanceLink');
+        }));
+
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_RESOURCE_FILE, async (relativePath: string) => {
+            const extensionPath: string = ExtensionUtil.getExtensionPath();
+            const fullPath: string = path.join(extensionPath, relativePath);
+            await vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(fullPath));
         }));
 
         const goDebugProvider: FabricGoDebugConfigurationProvider = new FabricGoDebugConfigurationProvider();

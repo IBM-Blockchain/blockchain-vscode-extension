@@ -7,6 +7,7 @@ interface ISmartContract {
     label: string;
     transactions: Array<ITransaction>;
     namespace: string;
+    peerNames: string[];
 }
 
 export default ISmartContract;

@@ -35,7 +35,7 @@ describe('TutorialGalleryView', () => {
     let executeCommandStub: sinon.SinonStub;
     let onDidReceiveMessagePromises: any[];
 
-    const tutorialData: Array<{seriesName: string, seriesTutorials: any[]}> = [
+    const tutorials: Array<{seriesName: string, seriesTutorials: any[]}> = [
         {
             seriesName: 'Basic tutorials',
             seriesTutorials: [
@@ -58,9 +58,11 @@ describe('TutorialGalleryView', () => {
         }
     ];
 
-    const initialMessage: {path: string, tutorialData: Array<{seriesName: string, seriesTutorials: any[]}>} = {
+    const initialMessage: {path: string, tutorialData: { tutorials: Array<{seriesName: string, seriesTutorials: any[]}> } } = {
         path: '/tutorials',
-        tutorialData
+        tutorialData: {
+            tutorials,
+        }
     };
 
     before(async () => {
@@ -78,7 +80,7 @@ describe('TutorialGalleryView', () => {
 
         View['openPanels'].splice(0, View['openPanels'].length);
 
-        mySandBox.stub(fs, 'readJson').resolves(tutorialData);
+        mySandBox.stub(fs, 'readJson').resolves(tutorials);
 
     });
 

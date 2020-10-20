@@ -508,6 +508,23 @@ describe('ExtensionUtil Tests', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('openNewInstanceLink');
         });
 
+        it('should register and open a resource file', async () => {
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').callThrough();
+            executeCommandStub.withArgs('vscode.open').resolves();
+
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+
+            await ExtensionUtil.registerCommands(ctx);
+
+            await vscode.commands.executeCommand(ExtensionCommands.OPEN_RESOURCE_FILE, 'URL');
+
+            const url: string = path.join(ExtensionUtil.getExtensionPath(), 'URL');
+
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWith('vscode.open', vscode.Uri.parse(url));
+        });
+
         // it('should reload blockchain explorer when debug event emitted', async () => {
         //     await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
 
