@@ -948,6 +948,44 @@ describe('SubmitTransactionCommand', () => {
             dockerLogsOutputSpy.should.not.have.been.called;
         });
 
+        it('should submit a transaction with custom peer targeting through the transaction view', async () => {
+            const transactionObject: any = {
+                smartContract: 'myContract',
+                transactionName: 'transaction1',
+                channelName: 'myChannel',
+                args: `["arg1", "arg2", "arg3"]`,
+                namespace: 'my-contract',
+                transientData: '',
+                peerTargetNames: ['peer1', 'peer2']
+            };
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `submitting transaction transaction1 with args arg1,arg2,arg3 on channel myChannel to peers peer1,peer2`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
+        });
+
+        it('should evaluate a transaction with custom peer targeting through the transaction view', async () => {
+            const transactionObject: any = {
+                smartContract: 'myContract',
+                transactionName: 'transaction1',
+                channelName: 'myChannel',
+                args: `["arg1", "arg2", "arg3"]`,
+                namespace: 'my-contract',
+                transientData: '',
+                peerTargetNames: ['peer1', 'peer2']
+            };
+
+            await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION, undefined, undefined, undefined, transactionObject);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `evaluating transaction transaction1 with args arg1,arg2,arg3 on channel myChannel to peers peer1,peer2`);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully evaluated transaction');
+            reporterStub.should.have.been.calledWith('evaluate transaction');
+        });
+
         it('should let a user submit a file in their associated transaction data directory', async () => {
             const gatewayWithTestData: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             gatewayWithTestData.name = 'myConnection';

@@ -27,7 +27,7 @@ export async function openTransactionView(treeItem?: InstantiatedTreeItem): Prom
     outputAdapter.log(LogType.INFO, undefined, `Open Transaction View`);
     let smartContractLabel: string;
     let contract: { name: string, contractInstance: {}, transactions: Array<{}>, info: {} };
-    let data: { name: string, version: string, channel: string, label: string, transactions: Array<{}>, namespace: string };
+    let data: { name: string, version: string, channel: string, label: string, transactions: Array<{}>, namespace: string, peerNames: string[] };
 
     let connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
 
@@ -68,6 +68,10 @@ export async function openTransactionView(treeItem?: InstantiatedTreeItem): Prom
 
     for (const [thisChannelName] of channelMap) {
         const chaincodes: Array<FabricSmartContractDefinition> = await connection.getInstantiatedChaincode(thisChannelName); // returns array of objects
+        const channelPeerInfo: {name: string, mspID: string}[] = await connection.getChannelPeersInfo(thisChannelName);
+        const peerNames: string[] = channelPeerInfo.map((peer: {name: string, mspID: string}) => {
+            return peer.name;
+        });
         for (const chaincode of chaincodes) {
             metadataObj = await connection.getMetadata(chaincode.name, thisChannelName);
             const contractsObject: any = metadataObj.contracts;
@@ -81,7 +85,8 @@ export async function openTransactionView(treeItem?: InstantiatedTreeItem): Prom
                             channel: thisChannelName,
                             label: chaincode.name + '@' + chaincode.version,
                             transactions: contract.transactions,
-                            namespace: contract.name
+                            namespace: contract.name,
+                            peerNames
                         };
                         selectedSmartContract = data;
                         return;
