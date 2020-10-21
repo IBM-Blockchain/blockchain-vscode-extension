@@ -33,9 +33,10 @@ export async function saveTutorial(tutorialObject: any, saveAll?: boolean, tutor
         let defaultPath: string;
         let fileName: string;
         const extensionPath: string = ExtensionUtil.getExtensionPath();
+        const tutorialBaseDir: string = path.join(extensionPath, 'resources', 'tutorials');
 
         if (saveAll) {
-            folderPath = path.join(extensionPath, 'tutorials', 'new-tutorials', tutorialFolder, 'pdf');
+            folderPath = path.join(tutorialBaseDir, 'new-tutorials', tutorialFolder, 'pdf');
             defaultPath = path.join(os.homedir(), tutorialFolder);
             packageUri = await vscode.window.showSaveDialog({
                 defaultUri: vscode.Uri.file(defaultPath)
@@ -49,7 +50,7 @@ export async function saveTutorial(tutorialObject: any, saveAll?: boolean, tutor
             outputAdapter.log(LogType.SUCCESS, `Downloaded all ${tutorialFolder} to ${packageUri.fsPath}.`);
         } else {
             const pathToFolder: string = (tutorialObject.file).substring(0, tutorialObject.file.lastIndexOf('/'));
-            folderPath = path.join(extensionPath, 'tutorials', pathToFolder, 'pdf');
+            folderPath = path.join(tutorialBaseDir, pathToFolder, 'pdf');
             const tutorialPDF: string = tutorialObject.title.split(':')[0].toLocaleLowerCase();
             const pdfPath: string = path.join(folderPath, `${tutorialPDF}.pdf`);
 

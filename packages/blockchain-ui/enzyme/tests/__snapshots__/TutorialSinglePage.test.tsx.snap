@@ -1,0 +1,191 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TutorialPage component should render the component when no tutorialData is passed in 1`] = `
+<div
+  className="bx--grid tutorial-page-container"
+>
+  <div
+    className="bx--row"
+  >
+    <div
+      className="tutorial-page"
+    >
+      <p>
+        <strong>
+          IBM Blockchain Platform
+        </strong>
+      </p>
+      <img
+        alt="IBM Blockchain Platform"
+        className="ibp-icon"
+        src="test-file-stub"
+      />
+      <h2
+        className="tutorial-name"
+      >
+        a2
+      </h2>
+      <hr />
+      <p>
+        Estimated time: 
+        <code>
+          4 weeks
+        </code>
+      </p>
+      <div
+        className="tutorial-content"
+      >
+        <h2>
+          Heading
+        </h2>
+        <p>
+          paragraph
+
+          <img
+            alt="alt"
+            src="../resources/tutorials/some/file/relative/link"
+          />
+          mailto ignore me
+          <a
+            className="bx--link"
+            href=""
+            onClick={[Function]}
+          >
+            Link to resource file
+          </a>
+          <a
+            href="./a1.md"
+          >
+            Link to another tutorial
+          </a>
+          <a
+            href="https://ibm.com"
+          >
+            Link to external webpage
+          </a>
+          <a>
+            Bad anchor tag ignore me
+          </a>
+          <a
+            href="./a1.md"
+          >
+            <img
+              alt="alt"
+              src="../resources/tutorials/some/file/image/within/link"
+            />
+          </a>
+        </p>
+      </div>
+      <hr />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`TutorialPage component should render the expected snapshot 1`] = `
+<div
+  className="bx--grid tutorial-page-container"
+>
+  <div
+    className="bx--row"
+  >
+    <div
+      className="tutorial-page"
+    >
+      <p>
+        <strong>
+          IBM Blockchain Platform
+        </strong>
+      </p>
+      <div
+        className="tutorial-previous"
+      >
+        <a
+          className="bx--link"
+          href=""
+          onClick={[Function]}
+        >
+          ← a1
+        </a>
+      </div>
+      <img
+        alt="IBM Blockchain Platform"
+        className="ibp-icon"
+        src="test-file-stub"
+      />
+      <h2
+        className="tutorial-name"
+      >
+        a2
+      </h2>
+      <hr />
+      <p>
+        Estimated time: 
+        <code>
+          4 weeks
+        </code>
+      </p>
+      <div
+        className="tutorial-content"
+      >
+        <h2>
+          Heading
+        </h2>
+        <p>
+          paragraph
+
+          <img
+            alt="alt"
+            src="../resources/tutorials/some/file/relative/link"
+          />
+          mailto ignore me
+          <a
+            className="bx--link"
+            href=""
+            onClick={[Function]}
+          >
+            Link to resource file
+          </a>
+          <a
+            className="bx--link"
+            href=""
+            onClick={[Function]}
+          >
+            Link to another tutorial
+          </a>
+          <a
+            href="https://ibm.com"
+          >
+            Link to external webpage
+          </a>
+          <a>
+            Bad anchor tag ignore me
+          </a>
+          <a
+            className="bx--link"
+            href=""
+            onClick={[Function]}
+          >
+            <img
+              alt="alt"
+              src="../resources/tutorials/some/file/image/within/link"
+            />
+          </a>
+        </p>
+      </div>
+      <hr />
+      <div
+        className="tutorial-next"
+      >
+        <a
+          className="bx--link"
+          href=""
+          onClick={[Function]}
+        >
+          → a3
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+`;

@@ -93,6 +93,14 @@ describe('OpenTransactionViewCommand', () => {
             fabricClientConnectionMock.getAllPeerNames.returns(['peerOne']);
             fabricClientConnectionMock.getAllChannelsForPeer.withArgs('peerOne').resolves(['myChannel']);
 
+            fabricClientConnectionMock.getChannelPeersInfo.resolves([{
+                name: 'peerOne',
+                mspID: 'org1msp'
+            }, {
+                name: 'peerTwo',
+                mspID: 'org1msp'
+            }]);
+
             fabricClientConnectionMock.getInstantiatedChaincode.resolves([{ name: 'mySmartContract', version: '0.0.1' }]);
 
             fabricClientConnectionMock.getMetadata.resolves(
