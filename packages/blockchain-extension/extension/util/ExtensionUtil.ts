@@ -114,7 +114,7 @@ import { URL } from 'url';
 import { FeatureFlagManager } from './FeatureFlags';
 import { openConsoleInBrowser } from '../commands/openConsoleInBrowserCommand';
 import { deleteExtensionDirectory } from '../commands/deleteExtensionDirectoryCommand';
-import { Dependencies } from '../dependencies/Dependencies';
+import { defaultDependencies, Dependencies } from '../dependencies/Dependencies';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -303,6 +303,19 @@ export class ExtensionUtil {
             Reporter.instance().sendTelemetryEvent('openNewInstanceLink');
         }));
 
+<<<<<<< HEAD
+=======
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_RESOURCE_FILE, async (relativePath: string) => {
+            const extensionPath: string = ExtensionUtil.getExtensionPath();
+            const fullPath: string = path.join(extensionPath, relativePath);
+            await vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(fullPath));
+        }));
+
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_IBM_CLOUD_EXTENSION, async () => {
+            await vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(defaultDependencies.optional.ibmCloudAccountExtension.url));
+        }));
+
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
         const goDebugProvider: FabricGoDebugConfigurationProvider = new FabricGoDebugConfigurationProvider();
         const javaDebugProvider: FabricJavaDebugConfigurationProvider = new FabricJavaDebugConfigurationProvider();
         const nodeDebugProvider: FabricNodeDebugConfigurationProvider = new FabricNodeDebugConfigurationProvider();

@@ -13,8 +13,16 @@
 */
 'use strict';
 
-export class DependencyVersions {
+export class DependencyProperties {
+    static readonly DOCKER_REQUIRED_VERSION: string = '>=17.6.2';
+    static readonly DOCKER_COMPOSE_REQUIRED_VERSION: string = '>=1.14.0';
+    static readonly NODEJS_REQUIRED_VERSION: string =  '>=10.15.3 < 11.0.0|| >=12.13.1 < 13.0.0';
+    static readonly NPM_REQUIRED_VERSION: string = '>=6.0.0';
+    static readonly OPENSSL_REQUIRED_VERSION: string = '1.0.2 || 1.1.1';
+    static readonly GO_REQUIRED_VERSION: string = '>=1.12.0';
+    static readonly JAVA_REQUIRED_VERSION: string = '1.8.x';
 
+<<<<<<< HEAD
     static readonly DOCKER_REQUIRED: string = '>=17.6.2';
     static readonly DOCKER_COMPOSE_REQUIRED: string = '>=1.14.0';
 
@@ -23,6 +31,14 @@ export class DependencyVersions {
     static readonly OPENSSL_REQUIRED: string = '1.0.2 || 1.1.1';
     static readonly GO_REQUIRED: string = '>=1.12.0';
     static readonly JAVA_REQUIRED: string = '1.8.x';
+=======
+    static readonly NODEJS_TEST_RUNNER_EXTENSION: string = 'oshri6688.javascript-test-runner';
+    static readonly GO_LANGUAGE_EXTENSION: string = 'golang.go';
+    static readonly JAVA_LANGUAGE_EXTENSION: string = 'redhat.java';
+    static readonly JAVA_DEBUG_EXTENSION: string = 'vscjava.vscode-java-debug';
+    static readonly JAVA_TEST_RUNNER_EXTENSION: string = 'vscjava.vscode-java-test';
+    static readonly IBM_CLOUD_ACCOUNT_EXTENSION: string = 'IBM.ibmcloud-account';
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
 }
 
 interface Dependency {
@@ -64,6 +80,7 @@ export interface OptionalDependencies {
     javaLanguageExtension: DependencyWithVersion;
     javaDebuggerExtension: DependencyWithVersion;
     javaTestRunnerExtension: DependencyWithVersion;
+    ibmCloudAccountExtension: DependencyWithVersion;
 }
 
 export interface Dependencies extends RequiredDependencies, OptionalDependencies {}
@@ -75,7 +92,7 @@ export const defaultDependencies: { required: RequiredDependencies, optional: Op
             required: true,
             version: undefined,
             url: 'https://docs.docker.com/install/#supported-platforms',
-            requiredVersion: DependencyVersions.DOCKER_REQUIRED,
+            requiredVersion: DependencyProperties.DOCKER_REQUIRED_VERSION,
             requiredLabel: '',
             tooltip: `Used to download Hyperledger Fabric images and manage containers for local environments.`,
         },
@@ -84,7 +101,7 @@ export const defaultDependencies: { required: RequiredDependencies, optional: Op
             required: true,
             version: undefined,
             url: 'https://docs.docker.com/compose/install/',
-            requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED,
+            requiredVersion: DependencyProperties.DOCKER_COMPOSE_REQUIRED_VERSION,
             requiredLabel: '',
             tooltip: `Used for managing and operating the individual local environment components.`
         },
@@ -100,10 +117,17 @@ export const defaultDependencies: { required: RequiredDependencies, optional: Op
             name: 'OpenSSL',
             required: true,
             version: undefined,
+<<<<<<< HEAD
             url: 'http://slproweb.com/products/Win32OpenSSL.html',
             requiredVersion: DependencyVersions.OPENSSL_REQUIRED,
             requiredLabel: 'for Node 8.x and Node 10.x respectively',
             tooltip: 'Install the Win32 version into `C:\\OpenSSL-Win32` on 32-bit systems and the Win64 version into `C:\\OpenSSL-Win64` on 64-bit systems`.'
+=======
+            url: 'https://www.openssl.org/community/binaries.html',
+            requiredVersion: DependencyProperties.OPENSSL_REQUIRED_VERSION,
+            requiredLabel: 'only',
+            tooltip: 'Install the Win64 version into `C:\\OpenSSL-Win64` on 64-bit systems`.'
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
         },
         dockerForWindows: {
             name: 'Docker for Windows',
@@ -120,16 +144,28 @@ export const defaultDependencies: { required: RequiredDependencies, optional: Op
             required: false,
             version: undefined,
             url: 'https://nodejs.org/en/download/releases',
-            requiredVersion: DependencyVersions.NODEJS_REQUIRED,
+            requiredVersion: DependencyProperties.NODEJS_REQUIRED_VERSION,
             requiredLabel: 'only',
             tooltip: 'Required for developing JavaScript and TypeScript smart contracts. If installing Node and npm using a manager such as \'nvm\' or \'nodenv\', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.'
         },
+<<<<<<< HEAD
+=======
+        nodeTestRunnerExtension: {
+            name: 'Node Test Runner Extension',
+            required: false,
+            version: undefined,
+            url: `vscode:extension/${DependencyProperties.NODEJS_TEST_RUNNER_EXTENSION}`,
+            requiredVersion: undefined,
+            requiredLabel: '',
+            tooltip: 'Used for running Node smart contract functional tests.'
+        },
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
         npm: {
             name: 'npm',
             required: false,
             version: undefined,
             url: 'https://nodejs.org/en/download/releases',
-            requiredVersion: DependencyVersions.NPM_REQUIRED,
+            requiredVersion: DependencyProperties.NPM_REQUIRED_VERSION,
             requiredLabel: '',
             tooltip: 'Required for installing JavaScript and TypeScript smart contract dependencies. If installing Node and npm using a manager such as \'nvm\' or \'nodenv\', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.'
         },
@@ -138,7 +174,7 @@ export const defaultDependencies: { required: RequiredDependencies, optional: Op
             required: false,
             version: undefined,
             url: 'https://golang.org/dl/',
-            requiredVersion: DependencyVersions.GO_REQUIRED,
+            requiredVersion: DependencyProperties.GO_REQUIRED_VERSION,
             requiredLabel: '',
             tooltip: 'Required for developing Go smart contracts.'
         },
@@ -146,7 +182,7 @@ export const defaultDependencies: { required: RequiredDependencies, optional: Op
             name: 'Go Extension',
             required: false,
             version: undefined,
-            url: 'vscode:extension/golang.go',
+            url: `vscode:extension/${DependencyProperties.GO_LANGUAGE_EXTENSION}`,
             requiredVersion: '',
             requiredLabel: '',
             tooltip: 'Provides language support for Go.'
@@ -156,7 +192,7 @@ export const defaultDependencies: { required: RequiredDependencies, optional: Op
             required: false,
             version: undefined,
             url: 'https://adoptopenjdk.net/?variant=openjdk8',
-            requiredVersion: DependencyVersions.JAVA_REQUIRED,
+            requiredVersion: DependencyProperties.JAVA_REQUIRED_VERSION,
             requiredLabel: 'only',
             tooltip: 'Required for developing Java smart contracts.'
         },
@@ -164,7 +200,7 @@ export const defaultDependencies: { required: RequiredDependencies, optional: Op
             name: 'Java Language Support Extension',
             required: false,
             version: undefined,
-            url: 'vscode:extension/redhat.java',
+            url: `vscode:extension/${DependencyProperties.JAVA_LANGUAGE_EXTENSION}`,
             requiredVersion: undefined,
             requiredLabel: '',
             tooltip: 'Provides language support for Java.'
@@ -173,7 +209,7 @@ export const defaultDependencies: { required: RequiredDependencies, optional: Op
             name: 'Java Debugger Extension',
             required: false,
             version: undefined,
-            url: 'vscode:extension/vscjava.vscode-java-debug',
+            url: `vscode:extension/${DependencyProperties.JAVA_DEBUG_EXTENSION}`,
             requiredVersion: undefined,
             requiredLabel: '',
             tooltip: 'Used for debugging Java smart contracts.'
@@ -182,10 +218,19 @@ export const defaultDependencies: { required: RequiredDependencies, optional: Op
             name: 'Java Test Runner Extension',
             required: false,
             version: undefined,
-            url: 'vscode:extension/vscjava.vscode-java-test',
+            url: `vscode:extension/${DependencyProperties.JAVA_TEST_RUNNER_EXTENSION}`,
             requiredVersion: undefined,
             requiredLabel: '',
             tooltip: 'Used for running Java smart contract functional tests.'
+        },
+        ibmCloudAccountExtension: {
+            name: 'IBM Cloud Account Extension',
+            required: false,
+            version: undefined,
+            url: `vscode:extension/${DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION}`,
+            requiredVersion: undefined,
+            requiredLabel: '',
+            tooltip: 'Required for discovering IBM Blockchain Platform on IBM Cloud networks.',
         },
     },
 };

@@ -20,7 +20,7 @@ import * as vscode from 'vscode';
 import * as semver from 'semver';
 import { CommandUtil } from '../util/CommandUtil';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
-import { RequiredDependencies, OptionalDependencies, Dependencies, defaultDependencies } from './Dependencies';
+import { RequiredDependencies, OptionalDependencies, Dependencies, defaultDependencies, DependencyProperties } from './Dependencies';
 import OS = require('os');
 
 export class DependencyManager {
@@ -37,25 +37,58 @@ export class DependencyManager {
 
     public isValidDependency(dependency: any): boolean {
         const name: string = dependency.name;
-        if (name === 'Node.js' || name === 'Java OpenJDK 8' || name === 'npm' || name === 'Docker' || name === 'Docker Compose' || name === 'Go' || name === 'OpenSSL' ) {
+
+        const needsToBeInstalledWithSemver: Array<string> = [
+            defaultDependencies.optional.node.name,
+            defaultDependencies.optional.java.name,
+            defaultDependencies.optional.npm.name,
+            defaultDependencies.required.docker.name,
+            defaultDependencies.required.dockerCompose.name,
+            defaultDependencies.optional.go.name,
+            defaultDependencies.required.openssl.name,
+        ];
+
+        const needsToBeInstalled: Array<string> = [
+            defaultDependencies.optional.goExtension.name,
+            defaultDependencies.optional.javaLanguageExtension.name,
+            defaultDependencies.optional.javaDebuggerExtension.name,
+            defaultDependencies.optional.javaTestRunnerExtension.name,
+            defaultDependencies.optional.nodeTestRunnerExtension.name,
+            defaultDependencies.optional.ibmCloudAccountExtension.name,
+        ];
+
+        const needsToBeComplete: Array<string> = [
+            defaultDependencies.required.dockerForWindows.name,
+            defaultDependencies.required.systemRequirements.name
+        ];
+
+        if (needsToBeInstalledWithSemver.includes(name)) {
             if (dependency.version) {
                 return semver.satisfies(dependency.version, dependency.requiredVersion);
             } else {
                 return false;
             }
+<<<<<<< HEAD
         } else if (name === 'Go Extension' || name === 'Java Language Support Extension' || name === 'Java Debugger Extension' || name === 'Java Test Runner Extension') {
+=======
+        } else if (needsToBeInstalled.includes(name)) {
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
             if (dependency.version) {
                 return true;
             } else {
                 return false;
             }
-        } else if (name === 'Docker for Windows' || name === 'System Requirements') {
+        } else if (needsToBeComplete.includes(name)) {
             if (!dependency.complete) {
                 dependency.complete = false;
             }
             return dependency.complete;
         }
         return false;
+    }
+
+    public areAllValidDependencies(properties: Array<string>, dependencies: any): boolean {
+        return properties.every((property) => dependencies.hasOwnProperty(property) && this.isValidDependency(dependencies[property]));
     }
 
     public async hasPreReqsInstalled(dependencies?: any, optionalInstalled: boolean = false): Promise<boolean> {
@@ -65,15 +98,8 @@ export class DependencyManager {
 
         const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
         if (localFabricEnabled) {
-            if (!this.isValidDependency(dependencies.docker)) {
-                return false;
-            }
-
-            if (!this.isValidDependency(dependencies.dockerCompose)) {
-                return false;
-            }
-
-            if (!this.isValidDependency(dependencies.systemRequirements)) {
+            const localFabricProperties: Array<string> = ['docker', 'dockerCompose', 'systemRequirements'];
+            if (!this.areAllValidDependencies(localFabricProperties, dependencies)) {
                 return false;
             }
         }
@@ -81,11 +107,8 @@ export class DependencyManager {
         if (process.platform === 'win32') {
             // Windows
             if (localFabricEnabled) {
-                if (!this.isValidDependency(dependencies.openssl)) {
-                    return false;
-                }
-
-                if (!this.isValidDependency(dependencies.dockerForWindows)) {
+                const windowsProperties: Array<string> = ['openssl', 'dockerForWindows'];
+                if (!this.areAllValidDependencies(windowsProperties, dependencies)) {
                     return false;
                 }
             }
@@ -94,30 +117,9 @@ export class DependencyManager {
 
         // Optional installs
         if (optionalInstalled) {
-            if (!this.isValidDependency(dependencies.node)) {
-                return false;
-            }
+            const optionalInstallProperties: Array<string> = Object.getOwnPropertyNames(defaultDependencies.optional);
 
-            if (!this.isValidDependency(dependencies.npm)) {
-                return false;
-            }
-
-            if (!this.isValidDependency(dependencies.go)) {
-                return false;
-            }
-
-            if (!this.isValidDependency(dependencies.goExtension)) {
-                return false;
-            }
-
-            if (!this.isValidDependency(dependencies.java)) {
-                return false;
-            }
-
-            if (!this.isValidDependency(dependencies.javaLanguageExtension)) {
-                return false;
-            }
-
+<<<<<<< HEAD
             if (!this.isValidDependency(dependencies.javaDebuggerExtension)) {
                 return false;
             }
@@ -126,6 +128,11 @@ export class DependencyManager {
                 return false;
             }
 
+=======
+            if (!this.areAllValidDependencies(optionalInstallProperties, dependencies)) {
+                return false;
+            }
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
         }
 
         return true;
@@ -248,10 +255,19 @@ export class DependencyManager {
         const [nodeVersion, npmVersion, goVersion, javaVersion] = await Promise.all(getOptionalVersions);
 
         // VSCode extension dependencies
+<<<<<<< HEAD
         const goExtensionVersion: string = this.getGoExtensionVersion();
         const javaLanguageExtensionVersion: string = this.getJavaLanguageExtensionVersion();
         const javaDebuggerExtensionVersion: string = this.getJavaDebuggerExtensionVersion();
         const javaTestRunnerExtensionVersion: string = this.getJavaTestRunnerExtensionVersion();
+=======
+        const goExtensionVersion: string = this.getExtensionVersion(DependencyProperties.GO_LANGUAGE_EXTENSION);
+        const javaLanguageExtensionVersion: string = this.getExtensionVersion(DependencyProperties.JAVA_LANGUAGE_EXTENSION);
+        const javaDebuggerExtensionVersion: string = this.getExtensionVersion(DependencyProperties.JAVA_DEBUG_EXTENSION);
+        const javaTestRunnerExtensionVersion: string = this.getExtensionVersion(DependencyProperties.JAVA_TEST_RUNNER_EXTENSION);
+        const nodeTestRunnerExtensionVersion: string = this.getExtensionVersion(DependencyProperties.NODEJS_TEST_RUNNER_EXTENSION);
+        const ibmCloudAccountExtensionVersion: string = this.getExtensionVersion(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION);
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
 
         const optionalDependencies: OptionalDependencies = {
             ...defaultDependencies.optional,
@@ -266,6 +282,7 @@ export class DependencyManager {
         optionalDependencies.javaLanguageExtension.version = javaLanguageExtensionVersion;
         optionalDependencies.javaDebuggerExtension.version = javaDebuggerExtensionVersion;
         optionalDependencies.javaTestRunnerExtension.version = javaTestRunnerExtensionVersion;
+        optionalDependencies.ibmCloudAccountExtension.version = ibmCloudAccountExtensionVersion;
 
         return optionalDependencies;
     }
@@ -361,17 +378,6 @@ export class DependencyManager {
         }
     }
 
-    private getGoExtensionVersion(): string {
-        try {
-            const goExtensionResult: vscode.Extension<any> = vscode.extensions.getExtension('golang.go');
-            if (goExtensionResult) {
-                return goExtensionResult.packageJSON.version;
-            }
-        } catch (error) {
-            // Ignore the error
-        }
-    }
-
     private async getJavaVersion(): Promise<string> {
         try {
 
@@ -398,16 +404,25 @@ export class DependencyManager {
         }
     }
 
+<<<<<<< HEAD
     private getJavaLanguageExtensionVersion(): string {
         try {
             const javaLanguageExtensionResult: vscode.Extension<any> = vscode.extensions.getExtension('redhat.java');
             if (javaLanguageExtensionResult) {
                 return javaLanguageExtensionResult.packageJSON.version;
+=======
+    private getExtensionVersion(extension: string): string {
+        try {
+            const nextensionResult: vscode.Extension<any> = vscode.extensions.getExtension(extension);
+            if (nextensionResult) {
+                return nextensionResult.packageJSON.version;
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
             }
         } catch (error) {
             // Ignore the error
         }
     }
+<<<<<<< HEAD
 
     private getJavaDebuggerExtensionVersion(): string {
         try {
@@ -431,4 +446,6 @@ export class DependencyManager {
         }
 
     }
+=======
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
 }

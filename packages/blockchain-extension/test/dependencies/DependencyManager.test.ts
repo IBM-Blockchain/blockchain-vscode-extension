@@ -23,7 +23,7 @@ import { DependencyManager } from '../../extension/dependencies/DependencyManage
 import { CommandUtil } from '../../extension/util/CommandUtil';
 import { TestUtil } from '../TestUtil';
 import { GlobalState, ExtensionData, DEFAULT_EXTENSION_DATA } from '../../extension/util/GlobalState.js';
-import { Dependencies, DependencyVersions } from '../../extension/dependencies/Dependencies';
+import { Dependencies, defaultDependencies, DependencyProperties } from '../../extension/dependencies/Dependencies';
 import * as semver from 'semver';
 import * as OS from 'os';
 
@@ -31,6 +31,61 @@ chai.should();
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
+
+const validDependencies: Dependencies = {
+    docker: {
+        ...defaultDependencies.required.docker,
+        version: '18.1.2',
+    },
+    dockerCompose: {
+        ...defaultDependencies.required.dockerCompose,
+        version: '1.21.1',
+    },
+    systemRequirements: {
+        ...defaultDependencies.required.systemRequirements,
+        complete: true
+    },
+    node: {
+        ...defaultDependencies.optional.node,
+        version: '10.15.3',
+    },
+    npm: {
+        ...defaultDependencies.optional.npm,
+        version: '6.4.1',
+    },
+    go: {
+        ...defaultDependencies.optional.go,
+        version: '2.0.0',
+    },
+    goExtension: {
+        ...defaultDependencies.optional.goExtension,
+        version: '1.0.0'
+    },
+    java: {
+        ...defaultDependencies.optional.java,
+        version: '1.8.0',
+    },
+    javaLanguageExtension: {
+        ...defaultDependencies.optional.javaLanguageExtension,
+        version: '1.0.0'
+    },
+    javaDebuggerExtension: {
+        ...defaultDependencies.optional.javaDebuggerExtension,
+        version: '1.0.0'
+    },
+    javaTestRunnerExtension: {
+        ...defaultDependencies.optional.javaTestRunnerExtension,
+        version: '1.0.0'
+    },
+    nodeTestRunnerExtension: {
+        ...defaultDependencies.optional.nodeTestRunnerExtension,
+        version: '1.0.0'
+    },
+    ibmCloudAccountExtension: {
+        ...defaultDependencies.optional.ibmCloudAccountExtension,
+        version: '1.0.0',
+    },
+};
 
 // tslint:disable no-unused-expression
 describe('DependencyManager Tests', () => {
@@ -57,6 +112,7 @@ describe('DependencyManager Tests', () => {
         });
 
         it(`should return false when dependency version is incorrect, absent or incomplete`, async () => {
+<<<<<<< HEAD
             const dependenciesKeys: string[] = ['node', 'java', 'docker', 'compose', 'go', 'goExtension', 'javaLangSupp', 'javaDebug', 'javaTestRunner', 'dockerWin', 'sysReq'];
 
             const dependencies: any = {
@@ -95,9 +151,13 @@ describe('DependencyManager Tests', () => {
                     name: 'System Requirements'
                 }
             };
+=======
+            const dependenciesWithoutVersions: object = [defaultDependencies.required, defaultDependencies.optional];
+            const dependenciesKeys: string[] = Object.getOwnPropertyNames(dependenciesWithoutVersions);
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
 
             for (let i: number = 0; i < dependenciesKeys.length; i++) {
-                const result: boolean = dependencyManager.isValidDependency(dependencies[dependenciesKeys[i]]);
+                const result: boolean = dependencyManager.isValidDependency(dependenciesWithoutVersions[dependenciesKeys[i]]);
                 try {
                     result.should.equal(false);
                 } catch (error) {
@@ -108,6 +168,7 @@ describe('DependencyManager Tests', () => {
 
         it(`should return true when dependency version is correct, present or complete`, async () => {
             semverSatisfiesStub.returns(true);
+<<<<<<< HEAD
             const dependenciesKeys: string[] = ['node', 'java', 'docker', 'compose', 'go', 'goExtension', 'javaLangSupp', 'javaDebug', 'javaTestRunner', 'dockerWin', 'sysReq'];
 
             const dependencies: any = {
@@ -156,9 +217,12 @@ describe('DependencyManager Tests', () => {
                     complete: true
                 }
             };
+=======
+            const dependenciesKeys: string[] = Object.getOwnPropertyNames(validDependencies);
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
 
             for (let i: number = 0; i < dependenciesKeys.length; i++) {
-                const result: boolean = dependencyManager.isValidDependency(dependencies[dependenciesKeys[i]]);
+                const result: boolean = dependencyManager.isValidDependency(validDependencies[dependenciesKeys[i]]);
                 try {
                     result.should.equal(true);
                 } catch (error) {
@@ -190,10 +254,11 @@ describe('DependencyManager Tests', () => {
         });
 
         it(`should return false if there's no Docker version`, async () => {
-            const dependencies: any = {
+            const dependencies: Dependencies = {
+                ...validDependencies,
                 docker: {
-                    name: 'Docker',
-                    version: undefined
+                    ...defaultDependencies.required.docker,
+                    version: undefined,
                 }
             };
 
@@ -208,11 +273,11 @@ describe('DependencyManager Tests', () => {
         });
 
         it(`should return false if Docker version is less than required version`, async () => {
-            const dependencies: any = {
+            const dependencies: Dependencies = {
+                ...validDependencies,
                 docker: {
-                    name: 'Docker',
+                    ...defaultDependencies.required.docker,
                     version: '16.0.0',
-                    requiredVersion: DependencyVersions.DOCKER_REQUIRED
                 }
             };
 
@@ -227,15 +292,11 @@ describe('DependencyManager Tests', () => {
         });
 
         it(`should return false if there's no Docker Compose version`, async () => {
-            const dependencies: any = {
-                docker: {
-                    name: 'Docker',
-                    version: '18.1.2',
-                    requiredVersion: DependencyVersions.DOCKER_REQUIRED
-                },
+            const dependencies: Dependencies = {
+                ...validDependencies,
                 dockerCompose: {
-                    name: 'Docker Compose',
-                    version: undefined
+                    ...defaultDependencies.required.dockerCompose,
+                    version: undefined,
                 }
             };
 
@@ -250,16 +311,11 @@ describe('DependencyManager Tests', () => {
         });
 
         it(`should return false if Docker Compose version is less than required version`, async () => {
-            const dependencies: any = {
-                docker: {
-                    name: 'Docker',
-                    version: '18.1.2',
-                    requiredVersion: DependencyVersions.DOCKER_REQUIRED
-                },
+            const dependencies: Dependencies = {
+                ...validDependencies,
                 dockerCompose: {
-                    name: 'Docker Compose',
+                    ...defaultDependencies.required.dockerCompose,
                     version: '1.1.2',
-                    requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                 }
             };
 
@@ -274,20 +330,11 @@ describe('DependencyManager Tests', () => {
         });
 
         it(`should return false if they haven't confirmed to have system requirements`, async () => {
-            const dependencies: any = {
-                docker: {
-                    name: 'Docker',
-                    version: '18.1.2',
-                    requiredVersion: DependencyVersions.DOCKER_REQUIRED
-                },
-                dockerCompose: {
-                    name: 'Docker Compose',
-                    version: '1.21.1',
-                    requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
-                },
+            const dependencies: Dependencies = {
+                ...validDependencies,
                 systemRequirements: {
-                    name: 'System Requirements',
-                    complete: undefined
+                    ...defaultDependencies.required.systemRequirements,
+                    complete: undefined,
                 }
             };
 
@@ -306,17 +353,15 @@ describe('DependencyManager Tests', () => {
 
             const dependencies: any = {
                 docker: {
-                    name: 'Docker',
+                    ...defaultDependencies.required.docker,
                     version: '18.1.2',
-                    requiredVersion: DependencyVersions.DOCKER_REQUIRED
                 },
                 dockerCompose: {
-                    name: 'Docker Compose',
+                    ...defaultDependencies.required.dockerCompose,
                     version: '1.21.1',
-                    requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                 },
                 systemRequirements: {
-                    name: 'System Requirements',
+                    ...defaultDependencies.required.systemRequirements,
                     complete: true
                 }
             };
@@ -357,25 +402,8 @@ describe('DependencyManager Tests', () => {
             getExtensionLocalFabricSetting.returns(false);
             mySandBox.stub(process, 'platform').value('linux'); // We don't have any Linux only prereqs, so this is okay.
 
-            const dependencies: any = {
-                docker: {
-                    name: 'Docker',
-                    version: '18.1.2',
-                    requiredVersion: DependencyVersions.DOCKER_REQUIRED
-                },
-                dockerCompose: {
-                    name: 'Docker Compose',
-                    version: '1.21.1',
-                    requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
-                },
-                systemRequirements: {
-                    name: 'System Requirements',
-                    complete: true
-                }
-            };
-
             const dependencyManager: DependencyManager = DependencyManager.instance();
-            const result: boolean = await dependencyManager.hasPreReqsInstalled(dependencies);
+            const result: boolean = await dependencyManager.hasPreReqsInstalled(validDependencies);
 
             result.should.equal(true);
             getPreReqVersionsStub.should.not.have.been.called;
@@ -386,24 +414,11 @@ describe('DependencyManager Tests', () => {
             it(`should return false if there's no OpenSSL version (Windows)`, async () => {
                 mySandBox.stub(process, 'platform').value('win32');
 
-                const dependencies: any = {
-                    docker: {
-                        name: 'Docker',
-                        version: '18.1.2',
-                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
-                    },
-                    dockerCompose: {
-                        name: 'Docker Compose',
-                        version: '1.21.1',
-                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
-                    },
-                    systemRequirements: {
-                        name: 'System Requirements',
-                        complete: true
-                    },
+                const dependencies: Dependencies = {
+                    ...validDependencies,
                     openssl: {
-                        name: 'OpenSSL',
-                        version: undefined
+                        ...defaultDependencies.required.openssl,
+                        version: undefined,
                     }
                 };
 
@@ -420,24 +435,11 @@ describe('DependencyManager Tests', () => {
             it(`should return false if version of OpenSSL is not equal to the required version (Windows)`, async () => {
                 mySandBox.stub(process, 'platform').value('win32');
 
-                const dependencies: any = {
-                    docker: {
-                        name: 'Docker',
-                        version: '18.1.2',
-                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
-                    },
-                    dockerCompose: {
-                        version: '1.21.1',
-                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
-                    },
-                    systemRequirements: {
-                        name: 'System Requirements',
-                        complete: true
-                    },
+                const dependencies: Dependencies = {
+                    ...validDependencies,
                     openssl: {
-                        name: 'OpenSSL',
+                        ...defaultDependencies.required.openssl,
                         version: '1.0.6',
-                        requiredVersion: DependencyVersions.OPENSSL_REQUIRED
                     }
                 };
 
@@ -454,28 +456,10 @@ describe('DependencyManager Tests', () => {
             it(`should return false if the user hasn't confirmed the Docker for Windows setup (Windows)`, async () => {
                 mySandBox.stub(process, 'platform').value('win32');
 
-                const dependencies: any = {
-                    docker: {
-                        name: 'Docker',
-                        version: '18.1.2',
-                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
-                    },
-                    dockerCompose: {
-                        name: 'Docker Compose',
-                        version: '1.21.1',
-                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
-                    },
-                    systemRequirements: {
-                        name: 'System Requirements',
-                        complete: true
-                    },
-                    openssl: {
-                        name: 'OpenSSL',
-                        version: '1.0.2',
-                        requiredVersion: DependencyVersions.OPENSSL_REQUIRED
-                    },
+                const dependencies: Dependencies = {
+                    ...validDependencies,
                     dockerForWindows: {
-                        name: 'Docker for Windows',
+                        ...defaultDependencies.required.dockerForWindows,
                         complete: undefined
                     }
                 };
@@ -495,26 +479,23 @@ describe('DependencyManager Tests', () => {
 
                 const dependencies: any = {
                     docker: {
-                        name: 'Docker',
+                        ...defaultDependencies.required.docker,
                         version: '18.1.2',
-                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
                     },
                     dockerCompose: {
-                        name: 'Docker Compose',
+                        ...defaultDependencies.required.dockerCompose,
                         version: '1.21.1',
-                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
-                        name: 'System Requirements',
+                        ...defaultDependencies.required.systemRequirements,
                         complete: true
                     },
                     openssl: {
-                        name: 'OpenSSL',
+                        ...defaultDependencies.required.openssl,
                         version: '1.0.2',
-                        requiredVersion: DependencyVersions.OPENSSL_REQUIRED
                     },
                     dockerForWindows: {
-                        name: 'Docker for Windows',
+                        ...defaultDependencies.required.dockerForWindows,
                         complete: true
                     }
                 };
@@ -554,17 +535,15 @@ describe('DependencyManager Tests', () => {
 
                 const dependencies: any = {
                     docker: {
-                        name: 'Docker',
+                        ...defaultDependencies.required.docker,
                         version: '18.1.2',
-                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
                     },
                     dockerCompose: {
-                        name: 'Docker Compose',
+                        ...defaultDependencies.required.dockerCompose,
                         version: '1.21.1',
-                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
-                        name: 'System Requirements',
+                        ...defaultDependencies.required.systemRequirements,
                         complete: true
                     }
                 };
@@ -583,24 +562,11 @@ describe('DependencyManager Tests', () => {
         describe('optional dependencies', () => {
 
             it(`should return false the optional Node dependency hasn't been installed`, async () => {
-                const dependencies: any = {
-                    docker: {
-                        name: 'Docker',
-                        version: '18.1.2',
-                        requiredVersion: DependencyVersions.DOCKER_REQUIRED
-                    },
-                    dockerCompose: {
-                        name: 'Docker Compose',
-                        version: '1.21.1',
-                        requiredVersion: DependencyVersions.DOCKER_COMPOSE_REQUIRED
-                    },
-                    systemRequirements: {
-                        name: 'System Requirements',
-                        complete: true
-                    },
+                const dependencies: Dependencies = {
+                    ...validDependencies,
                     node: {
-                        name: 'Node.js',
-                        version: undefined
+                        ...defaultDependencies.optional.node,
+                        version: undefined,
                     }
                 };
 
@@ -614,6 +580,7 @@ describe('DependencyManager Tests', () => {
 
             });
 
+<<<<<<< HEAD
             it(`should return false if the optional Node dependency isn't between 8 and 11`, async () => {
                 const dependencies: any = {
                     docker: {
@@ -634,6 +601,14 @@ describe('DependencyManager Tests', () => {
                         name: 'Node.js',
                         version: '12',
                         requiredVersion: DependencyVersions.NODEJS_REQUIRED
+=======
+            it(`should return false if wrong Node version`, async () => {
+                const dependencies: Dependencies = {
+                    ...validDependencies,
+                    node: {
+                        ...defaultDependencies.optional.node,
+                        version: '8.12.0',
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
                     }
                 };
 
@@ -648,6 +623,7 @@ describe('DependencyManager Tests', () => {
             });
 
             it(`should return false if the optional npm dependency hasn't been installed`, async () => {
+<<<<<<< HEAD
                 const dependencies: any = {
                     docker: {
                         name: 'Docker',
@@ -668,9 +644,13 @@ describe('DependencyManager Tests', () => {
                         version: '8.12.0',
                         requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
+=======
+                const dependencies: Dependencies = {
+                    ...validDependencies,
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
                     npm: {
-                        name: 'npm',
-                        version: undefined
+                        ...defaultDependencies.optional.npm,
+                        version: undefined,
                     }
                 };
 
@@ -685,6 +665,7 @@ describe('DependencyManager Tests', () => {
             });
 
             it(`should return false if the optional npm dependency version is less than required version`, async () => {
+<<<<<<< HEAD
                 const dependencies: any = {
                     docker: {
                         name: 'Docker',
@@ -705,10 +686,13 @@ describe('DependencyManager Tests', () => {
                         version: '8.12.0',
                         requiredVersion: DependencyVersions.NODEJS_REQUIRED
                     },
+=======
+                const dependencies: Dependencies = {
+                    ...validDependencies,
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
                     npm: {
-                        name: 'npm',
+                        ...defaultDependencies.optional.npm,
                         version: '4.0.0',
-                        requiredVersion: DependencyVersions.NPM_REQUIRED
                     }
                 };
 
@@ -725,6 +709,7 @@ describe('DependencyManager Tests', () => {
             it(`should return false if the optional Go dependency hasn't been installed`, async () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
+<<<<<<< HEAD
                 const dependencies: any = {
                     docker: {
                         name: 'Docker',
@@ -750,9 +735,13 @@ describe('DependencyManager Tests', () => {
                         version: '6.4.1',
                         requiredVersion: DependencyVersions.NPM_REQUIRED
                     },
+=======
+                const dependencies: Dependencies = {
+                    ...validDependencies,
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
                     go: {
-                        name: 'Go',
-                        version: undefined
+                        ...defaultDependencies.optional.go,
+                        version: undefined,
                     }
                 };
 
@@ -769,6 +758,7 @@ describe('DependencyManager Tests', () => {
             it(`should return false if the optional Go dependency isn't greater than the required version`, async () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
+<<<<<<< HEAD
                 const dependencies: any = {
                     docker: {
                         name: 'Docker',
@@ -794,10 +784,13 @@ describe('DependencyManager Tests', () => {
                         version: '6.4.1',
                         requiredVersion: DependencyVersions.NPM_REQUIRED
                     },
+=======
+                const dependencies: Dependencies = {
+                    ...validDependencies,
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
                     go: {
-                        name: 'Go',
+                        ...defaultDependencies.optional.go,
                         version: '1.0.0',
-                        requiredVersion: DependencyVersions.GO_REQUIRED
                     }
                 };
 
@@ -814,6 +807,7 @@ describe('DependencyManager Tests', () => {
             it(`should return false if the optional Go Extension hasn't been installed`, async () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
+<<<<<<< HEAD
                 const dependencies: any = {
                     docker: {
                         name: 'Docker',
@@ -844,9 +838,13 @@ describe('DependencyManager Tests', () => {
                         version: '2.0.0',
                         requiredVersion: DependencyVersions.GO_REQUIRED
                     },
+=======
+                const dependencies: Dependencies = {
+                    ...validDependencies,
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
                     goExtension: {
-                        name: 'Go Extension',
-                        version: undefined
+                        ...defaultDependencies.optional.goExtension,
+                        version: undefined,
                     }
                 };
 
@@ -863,6 +861,7 @@ describe('DependencyManager Tests', () => {
             it(`should return false if the optional Java dependency hasn't been installed`, async () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
+<<<<<<< HEAD
                 const dependencies: any = {
                     docker: {
                         name: 'Docker',
@@ -897,11 +896,14 @@ describe('DependencyManager Tests', () => {
                         name: 'Go Extension',
                         version: '1.0.0'
                     },
+=======
+                const dependencies: Dependencies = {
+                    ...validDependencies,
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
                     java: {
-                        name: 'Java OpenJDK 8',
-                        version: undefined
+                        ...defaultDependencies.optional.java,
+                        version: undefined,
                     }
-
                 };
 
                 getPreReqVersionsStub.resolves(dependencies);
@@ -917,6 +919,7 @@ describe('DependencyManager Tests', () => {
             it(`should return false if the optional Java dependency doesn't satisfy the required version`, async () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
+<<<<<<< HEAD
                 const dependencies: any = {
                     docker: {
                         name: 'Docker',
@@ -951,10 +954,13 @@ describe('DependencyManager Tests', () => {
                         name: 'Go Extension',
                         version: '1.0.0'
                     },
+=======
+                const dependencies: Dependencies = {
+                    ...validDependencies,
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
                     java: {
-                        name: 'Java OpenJDK 8',
+                        ...defaultDependencies.optional.java,
                         version: '1.7.1',
-                        requiredVersion: DependencyVersions.JAVA_REQUIRED
                     }
                 };
 
@@ -971,6 +977,7 @@ describe('DependencyManager Tests', () => {
             it(`should return false if the optional Java Language Support Extension hasn't been installed`, async () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
+<<<<<<< HEAD
                 const dependencies: any = {
                     docker: {
                         name: 'Docker',
@@ -1010,9 +1017,13 @@ describe('DependencyManager Tests', () => {
                         version: '1.8.0',
                         requiredVersion: DependencyVersions.JAVA_REQUIRED
                     },
+=======
+                const dependencies: Dependencies = {
+                    ...validDependencies,
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
                     javaLanguageExtension: {
-                        name: 'Java Language Support Extension',
-                        version: undefined
+                        ...defaultDependencies.optional.javaLanguageExtension,
+                        version: undefined,
                     }
                 };
 
@@ -1029,6 +1040,7 @@ describe('DependencyManager Tests', () => {
             it(`should return false if the optional Java Debugger Extension hasn't been installed`, async () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
+<<<<<<< HEAD
                 const dependencies: any = {
                     docker: {
                         name: 'Docker',
@@ -1072,9 +1084,13 @@ describe('DependencyManager Tests', () => {
                         name: 'Java Language Support Extension',
                         version: '1.0.0'
                     },
+=======
+                const dependencies: Dependencies = {
+                    ...validDependencies,
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
                     javaDebuggerExtension: {
-                        name: 'Java Debugger Extension',
-                        version: undefined
+                        ...defaultDependencies.optional.javaDebuggerExtension,
+                        version: undefined,
                     }
                 };
 
@@ -1091,6 +1107,7 @@ describe('DependencyManager Tests', () => {
             it(`should return false if the optional Java Test Runner Extension hasn't been installed`, async () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
+<<<<<<< HEAD
                 const dependencies: any = {
                     docker: {
                         name: 'Docker',
@@ -1141,6 +1158,34 @@ describe('DependencyManager Tests', () => {
                     javaTestRunnerExtension: {
                         name: 'Java Test Runner Extension',
                         version: undefined
+=======
+                const dependencies: Dependencies = {
+                    ...validDependencies,
+                    javaTestRunnerExtension: {
+                        ...defaultDependencies.optional.javaTestRunnerExtension,
+                        version: undefined,
+                    }
+                };
+
+                getPreReqVersionsStub.resolves(dependencies);
+
+                const dependencyManager: DependencyManager = DependencyManager.instance();
+                const result: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+
+                result.should.equal(false);
+                getPreReqVersionsStub.should.have.been.calledOnce;
+
+            });
+
+            it(`should return false if the optional Node Test Runner Extension hasn't been installed`, async () => {
+                mySandBox.stub(process, 'platform').value('linux');
+
+                const dependencies: Dependencies = {
+                    ...validDependencies,
+                    nodeTestRunnerExtension: {
+                        ...defaultDependencies.optional.nodeTestRunnerExtension,
+                        version: undefined,
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
                     }
                 };
 
@@ -1157,6 +1202,7 @@ describe('DependencyManager Tests', () => {
             it(`should return true if all the optional prereqs have been installed`, async () => {
                 mySandBox.stub(process, 'platform').value('linux');
 
+<<<<<<< HEAD
                 const dependencies: any = {
                     docker: {
                         name: 'Docker',
@@ -1211,6 +1257,9 @@ describe('DependencyManager Tests', () => {
                 };
 
                 getPreReqVersionsStub.resolves(dependencies);
+=======
+                getPreReqVersionsStub.resolves(validDependencies);
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
 
                 const dependencyManager: DependencyManager = DependencyManager.instance();
                 const result: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
@@ -1418,7 +1467,7 @@ describe('DependencyManager Tests', () => {
             mySandBox.stub(process, 'platform').value('some_other_platform');
 
             const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
-            getExtensionStub.withArgs('golang.go').returns({
+            getExtensionStub.withArgs(DependencyProperties.GO_LANGUAGE_EXTENSION).returns({
                 packageJSON: {
                     version: '1.0.0'
                 }
@@ -1433,7 +1482,7 @@ describe('DependencyManager Tests', () => {
             mySandBox.stub(process, 'platform').value('some_other_platform');
 
             const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
-            getExtensionStub.withArgs('golang.go').returns(undefined);
+            getExtensionStub.withArgs(DependencyProperties.GO_LANGUAGE_EXTENSION).returns(undefined);
 
             const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.goExtension.version);
@@ -1472,7 +1521,7 @@ describe('DependencyManager Tests', () => {
             mySandBox.stub(process, 'platform').value('some_other_platform');
 
             const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
-            getExtensionStub.withArgs('redhat.java').returns({
+            getExtensionStub.withArgs(DependencyProperties.JAVA_LANGUAGE_EXTENSION).returns({
                 packageJSON: {
                     version: '2.0.0'
                 }
@@ -1487,7 +1536,7 @@ describe('DependencyManager Tests', () => {
             mySandBox.stub(process, 'platform').value('some_other_platform');
 
             const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
-            getExtensionStub.withArgs('redhat.java').returns(undefined);
+            getExtensionStub.withArgs(DependencyProperties.JAVA_LANGUAGE_EXTENSION).returns(undefined);
 
             const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.javaLanguageExtension.version);
@@ -1498,7 +1547,7 @@ describe('DependencyManager Tests', () => {
             mySandBox.stub(process, 'platform').value('some_other_platform');
 
             const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
-            getExtensionStub.withArgs('vscjava.vscode-java-debug').returns({
+            getExtensionStub.withArgs(DependencyProperties.JAVA_DEBUG_EXTENSION).returns({
                 packageJSON: {
                     version: '3.0.0'
                 }
@@ -1513,7 +1562,7 @@ describe('DependencyManager Tests', () => {
             mySandBox.stub(process, 'platform').value('some_other_platform');
 
             const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
-            getExtensionStub.withArgs('vscjava.vscode-java-debug').returns(undefined);
+            getExtensionStub.withArgs(DependencyProperties.JAVA_DEBUG_EXTENSION).returns(undefined);
 
             const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.javaDebuggerExtension.version);
@@ -1522,7 +1571,7 @@ describe('DependencyManager Tests', () => {
 
         it('should get version of Java Test Runner Extension', async () => {
             const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
-            getExtensionStub.withArgs('vscjava.vscode-java-test').returns({
+            getExtensionStub.withArgs(DependencyProperties.JAVA_TEST_RUNNER_EXTENSION).returns({
                 packageJSON: {
                     version: '2.0.0'
                 }
@@ -1537,13 +1586,64 @@ describe('DependencyManager Tests', () => {
             mySandBox.stub(process, 'platform').value('some_other_platform');
 
             const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
-            getExtensionStub.withArgs('vscjava.vscode-java-test').returns(undefined);
+            getExtensionStub.withArgs(DependencyProperties.JAVA_TEST_RUNNER_EXTENSION).returns(undefined);
 
             const result: Dependencies = await dependencyManager.getPreReqVersions();
             should.not.exist(result.javaTestRunnerExtension.version);
             totalmemStub.should.have.been.calledOnce;
         });
 
+<<<<<<< HEAD
+=======
+        it('should get version of Node Test Runner Extension', async () => {
+            const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
+            getExtensionStub.withArgs(DependencyProperties.NODEJS_TEST_RUNNER_EXTENSION).returns({
+                packageJSON: {
+                    version: '2.0.0'
+                }
+            });
+
+            const result: any = await dependencyManager.getPreReqVersions();
+            result.nodeTestRunnerExtension.version.should.equal('2.0.0');
+            totalmemStub.should.have.been.calledOnce;
+        });
+
+        it('should not get version of Node Test Runner Extension if it cannot be found', async () => {
+            mySandBox.stub(process, 'platform').value('some_other_platform');
+
+            const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
+            getExtensionStub.withArgs(DependencyProperties.NODEJS_TEST_RUNNER_EXTENSION).returns(undefined);
+
+            const result: any = await dependencyManager.getPreReqVersions();
+            should.not.exist(result.nodeTestRunnerExtension.version);
+            totalmemStub.should.have.been.calledOnce;
+        });
+
+        it('should get version of IBM Cloud Account Extension', async () => {
+            const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
+            getExtensionStub.withArgs(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION).returns({
+                packageJSON: {
+                    version: '2.0.0'
+                }
+            });
+
+            const result: any = await dependencyManager.getPreReqVersions();
+            result.ibmCloudAccountExtension.version.should.equal('2.0.0');
+            totalmemStub.should.have.been.calledOnce;
+        });
+
+        it('should not get version of IBM Cloud Account Extension if it cannot be found', async () => {
+            mySandBox.stub(process, 'platform').value('some_other_platform');
+
+            const getExtensionStub: sinon.SinonStub = mySandBox.stub(vscode.extensions, 'getExtension');
+            getExtensionStub.withArgs(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION).returns(undefined);
+
+            const result: any = await dependencyManager.getPreReqVersions();
+            should.not.exist(result.ibmCloudAccountExtension.version);
+            totalmemStub.should.have.been.calledOnce;
+        });
+
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
         it('should return true if the computer resources meet the system requirements', async () => {
             mySandBox.stub(process, 'platform').value('some_other_platform');
 

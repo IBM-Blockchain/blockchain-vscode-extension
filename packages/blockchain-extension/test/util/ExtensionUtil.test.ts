@@ -59,6 +59,7 @@ import { ManagedAnsibleEnvironment } from '../../extension/fabric/environments/M
 import Axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import { FeatureFlagManager } from '../../extension/util/FeatureFlags';
+import { defaultDependencies } from '../../extension/dependencies/Dependencies';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -508,6 +509,41 @@ describe('ExtensionUtil Tests', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('openNewInstanceLink');
         });
 
+<<<<<<< HEAD
+=======
+        it('should register and open a resource file', async () => {
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').callThrough();
+            executeCommandStub.withArgs('vscode.open').resolves();
+
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+
+            await ExtensionUtil.registerCommands(ctx);
+
+            await vscode.commands.executeCommand(ExtensionCommands.OPEN_RESOURCE_FILE, 'URL');
+
+            const url: string = path.join(ExtensionUtil.getExtensionPath(), 'URL');
+
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWith('vscode.open', vscode.Uri.parse(url));
+        });
+
+        it('should register and open ibm cloud account extension link', async () => {
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').callThrough();
+            executeCommandStub.withArgs('vscode.open').resolves();
+
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+
+            await ExtensionUtil.registerCommands(ctx);
+
+            await vscode.commands.executeCommand(ExtensionCommands.OPEN_IBM_CLOUD_EXTENSION);
+
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWith('vscode.open', vscode.Uri.parse(defaultDependencies.optional.ibmCloudAccountExtension.url));
+        });
+
+>>>>>>> 8af08640... Further refactor of the Dependency functionality, add initial code IBM Account extension (#2723)
         // it('should reload blockchain explorer when debug event emitted', async () => {
         //     await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
 

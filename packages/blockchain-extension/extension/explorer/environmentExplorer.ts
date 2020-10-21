@@ -251,7 +251,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 arguments: []
             };
 
-            tree.push(new TextTreeItem(this, '+ add local or remote environment', command));
+            tree.push(new TextTreeItem(this, '+ Add local or remote environment', command));
 
             // TODO - comment back in when IBP supports v2
             // if there are no environments at all we should still show the option to log in to IBM Cloud
