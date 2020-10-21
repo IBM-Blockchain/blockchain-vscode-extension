@@ -60,14 +60,14 @@ If you wish to control which files in the project are packaged, you can create a
 
 ### Connecting to an instance of Hyperledger Fabric
 
-The extension is compatible with connecting to and interacting with any Fabric 1.4.x network.
+The extension is compatible with connecting to and interacting with any Fabric 2.2.x network.
 
 #### 1 Org Local Fabric
-The extension contains a pre-configured local instance of Hyperledger Fabric named `1 Org Local Fabric`, which the extension will automatically pull and use the correct Docker images for. It is a pre-configured network with one organization, one peer and one channel. It can be enabled and operated under the `Fabric Environments` panel. The first time it is started, Fabric 1.4.6 images will be installed and an admin identity created in the `1 Org Local Fabric - Org1 Wallet` wallet.
+The extension contains a pre-configured local instance of Hyperledger Fabric named `1 Org Local Fabric`, which the extension will automatically pull and use the correct Docker images for. It is a pre-configured network with one organization, one peer and one channel. It can be enabled and operated under the `Fabric Environments` panel. The first time it is started, Fabric 2.2.0 images will be installed and an admin identity created in the `1 Org Local Fabric - Org1 Wallet` wallet.
 
 For `1 Org Local Fabric` management tasks such as restart and teardown, right click on `1 Org Local Fabric` in the `Fabric Environments` panel.
 
-The `1 Org Local Fabric` currently uses Fabric 1.4.6 images.
+The `1 Org Local Fabric` currently uses Fabric 2.2.0 images.
 
 #### Connecting to another instance of Hyperledger Fabric
 The extension allow you to connect to any Hyperledger Fabric instance and perform some operational tasks. The tasks available are: install, instantiate and registering and enrolling identities.
@@ -244,7 +244,7 @@ To debug your smart contract follow these steps:
 To make iterative changes to your smart contract while debugging, after making your changes click the **restart** button. You can also stop the debugging session, make further changes and start debugging again, without needing to upgrade your smart contract.
 
 ### Add a gateway to establishing a client connection to your own Hyperledger Fabric instance
-To connect to our own Hyperledger Fabric instance, it must be running [Hyperledger Fabric v1.4.1](https://hyperledger-fabric.readthedocs.io/en/release-1.4/install.html) or later.
+To connect to our own Hyperledger Fabric instance, it must be running [Hyperledger Fabric v2.2.0](https://hyperledger-fabric.readthedocs.io/en/release-2.2/install.html) or later.
 
 Add your gateway by providing a name and connection profile via the `Add Gateway` command; it will be listed in the `Fabric Gateways` panel. Add a file system wallet to connect to your gateway with via the `Add Wallet` command.
 
@@ -304,7 +304,7 @@ If you select 'Yes' when prompted with `The last step might overwrite build.grad
 
 Add the following dependencies:
 ```
-testImplementation 'org.hyperledger.fabric:fabric-gateway-java:1.4.2'
+testImplementation 'org.hyperledger.fabric:fabric-gateway-java:2.2.0'
 testImplementation 'org.assertj:assertj-core:3.14.0'
 testImplementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.10.0'
 testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.10.0'
@@ -317,7 +317,7 @@ Add the following dependencies:
 <dependency>
     <groupId>org.hyperledger.fabric</groupId>
     <artifactId>fabric-gateway-java</artifactId>
-    <version>1.4.2</version>
+    <version>2.2.0</version>
 </dependency>
 <dependency>
     <groupId>org.assertj</groupId>
@@ -376,7 +376,7 @@ Selecting `Yes` will ask for the identity's attributes that should be provided i
 [{"name": "attr1", "value": "attr1value", "ecert": true}, {"name": "attr2", "value": "attr2value", "ecert": true}]
 ```
 
-The key `ecert` must be set to true in order for a smart contract to be able to read the value of the attribute using ['getAttributeValue'](https://fabric-shim.github.io/release-1.4/fabric-shim.ClientIdentity.html#getAttributeValue).
+The key `ecert` must be set to true in order for a smart contract to be able to read the value of the attribute using ['getAttributeValue'](https://hyperledger.github.io/fabric-chaincode-node/release-2.2/api/fabric-shim.ClientIdentity.html#getAttributeValue__anchor).
 
 Hovering over an identity in the `Fabric Wallets` panel will show any attributes associated with the identity.
 
