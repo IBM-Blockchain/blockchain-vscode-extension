@@ -10,7 +10,7 @@ import ITutorialObject from '../../src/interfaces/ITutorialObject';
 chai.should();
 chai.use(sinonChai);
 
-describe.only('TutorialPage component', () => {
+describe('TutorialPage component', () => {
 
     const tutorial: ITutorialObject = {
       title: 'a2',
