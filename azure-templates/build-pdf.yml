@@ -22,7 +22,7 @@ jobs:
 
       - script: |
           set -ex
-          mdFiles="$(git diff --name-only --diff-filter=ADMR @~..@ | awk /.*new-tutorials/ | awk /.md$/)"
+          mdFiles="$(git diff --name-only --diff-filter=ADMR @~..@ | awk /\\/new-tutorials\\// | awk /.md$/)"
           if [ "$mdFiles" != "" ]; then
             cd ./packages/blockchain-extension/scripts
             ./mdToPdf.sh
