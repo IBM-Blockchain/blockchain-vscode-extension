@@ -359,7 +359,7 @@ describe('environmentExplorer', () => {
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
 
                 allChildren.length.should.equal(1);
-                allChildren[0].label.should.equal(`+ add local or remote environment`);
+                allChildren[0].label.should.equal(`+ Add local or remote environment`);
                 allChildren[0].command.should.deep.equal({
                     command: ExtensionCommands.ADD_ENVIRONMENT,
                     title: '',
@@ -392,7 +392,7 @@ describe('environmentExplorer', () => {
             //     const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
 
             //     allChildren.length.should.equal(2);
-            //     allChildren[0].label.should.equal(`+ add local or remote environment`);
+            //     allChildren[0].label.should.equal(`+ Add local or remote environment`);
             //     allChildren[0].command.should.deep.equal({
             //         command: ExtensionCommands.ADD_ENVIRONMENT,
             //         title: '',
@@ -492,7 +492,7 @@ describe('environmentExplorer', () => {
             //     const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
 
             //     allChildren.length.should.equal(1);
-            //     allChildren[0].label.should.equal(`+ add local or remote environment`);
+            //     allChildren[0].label.should.equal(`+ Add local or remote environment`);
             //     allChildren[0].command.should.deep.equal({
             //         command: ExtensionCommands.ADD_ENVIRONMENT,
             //         title: '',
@@ -578,7 +578,7 @@ describe('environmentExplorer', () => {
             //     const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
 
             //     allChildren.length.should.equal(1);
-            //     allChildren[0].label.should.equal(`+ add local or remote environment`);
+            //     allChildren[0].label.should.equal(`+ Add local or remote environment`);
             //     allChildren[0].command.should.deep.equal({
             //         command: ExtensionCommands.ADD_ENVIRONMENT,
             //         title: '',
