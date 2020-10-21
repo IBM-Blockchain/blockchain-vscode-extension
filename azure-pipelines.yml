@@ -9,7 +9,7 @@ schedules:
 trigger: # Hopefully should run the buildPdf stage after every merge into master
   branches:
     include:
-      - master
+      - v2
   tags:
     include:
       - '*'
