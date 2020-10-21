@@ -1,6 +1,7 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
 import chai from 'chai';
+import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import TutorialPage from '../../src/components/pages/TutorialSinglePage/TutorialSinglePage';
@@ -31,6 +32,9 @@ describe('TutorialPage component', () => {
             '<a href="https://ibm.com">Link to external webpage</a>',
             '<a>Bad anchor tag ignore me</a>',
             '<a href="./a1.md"><img src="./image/within/link" alt="alt"></img></a>',
+            '```typescript\nconst astring: string = "string"\n```',
+            '```\ncode block without language\n```',
+            '`single line codeblock`',
       ].join('\n'),
     };
 
@@ -71,6 +75,16 @@ describe('TutorialPage component', () => {
         }
     ];
 
+    let mySandBox: sinon.SinonSandbox;
+
+    beforeEach(async () => {
+        mySandBox = sinon.createSandbox();
+    });
+
+    afterEach(async () => {
+        mySandBox.restore();
+    });
+
     it('should render the expected snapshot', () => {
         const component: any = renderer
             .create(<TutorialPage tutorialData={tutorialData} tutorial={tutorial} />)
@@ -78,8 +92,15 @@ describe('TutorialPage component', () => {
         expect(component).toMatchSnapshot();
     });
 
+    it('should render the expected snapshot (when the style is dark)', () => {
+        sinon.stub(document, 'getElementsByTagName').withArgs('body').returns([{ className: 'vscode-dark' }]);
+        const component: any = renderer
+            .create(<TutorialPage tutorialData={tutorialData} tutorial={tutorial} />)
+            .toJSON();
+        expect(component).toMatchSnapshot();
+    });
+
     it('should render the component when no tutorialData is passed in', async () => {
-        // const component: any = mount(<TutorialPage tutorialData={tutorialData} tutorial={tutorial} />);
         const component: any = renderer
               .create(<TutorialPage tutorialData={[]} tutorial={tutorial} />)
               .toJSON();
