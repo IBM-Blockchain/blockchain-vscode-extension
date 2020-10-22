@@ -41,6 +41,22 @@ pull_request_rules:
         add:
           - merge-2648 pr
 
+  - name: Start Azure Pipelines (v2)
+    conditions:
+      - label=v2 pr
+      - label!=conflicts
+    actions:
+      comment:
+        message: '/AzurePipelines run'
+
+  - name: Start Azure Pipelines (merge-2648)
+    conditions:
+      - label=merge-2648 pr
+      - label!=conflicts
+    actions:
+      comment:
+        message: '/AzurePipelines run'
+
   - name: Update tutorials
     conditions: []
     actions:
