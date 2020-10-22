@@ -28,7 +28,7 @@ jobs:
             ./mdToPdf.sh
             git status
             git reset -- ../package.json && git reset -- ../package-lock.json
-            git add ../tutorials/*
+            git add ../resources/tutorials/*
             git commit -asm "PDFs automatically generated"
             git status
 
