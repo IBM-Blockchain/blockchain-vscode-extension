@@ -22,13 +22,13 @@ jobs:
 
       - script: |
           set -ex
-          mdFiles="$(git diff --name-only --diff-filter=ADMR @~..@ | awk /.*new-tutorials/ | awk /.md$/)"
+          mdFiles="$(git diff --name-only --diff-filter=ADMR @~..@ | awk /\\/new-tutorials\\// | awk /.md$/)"
           if [ "$mdFiles" != "" ]; then
             cd ./packages/blockchain-extension/scripts
             ./mdToPdf.sh
             git status
             git reset -- ../package.json && git reset -- ../package-lock.json
-            git add ../tutorials/*
+            git add ../resources/tutorials/*
             git commit -asm "PDFs automatically generated"
             git status
 
@@ -36,6 +36,8 @@ jobs:
               export branch_name=master
             elif [[ $(Build.SourceBranchName) == v2 ]]; then
               export branch_name=v2
+            elif [[ $(Build.SourceBranchName) == merge-2648 ]]; then
+              export branch_name=merge-2648
             else 
               exit 1
             fi
