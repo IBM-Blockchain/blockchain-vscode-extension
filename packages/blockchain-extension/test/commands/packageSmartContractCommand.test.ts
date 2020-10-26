@@ -127,7 +127,7 @@ describe('packageSmartContract', () => {
         }
 
         if (createMetadata) {
-            const metadataDir: string = path.join(projectDir, 'META-INF', 'statedb', 'couchdb', 'indexes');
+            const metadataDir: string = path.join(projectDir, 'contract-metadata', 'statedb', 'couchdb', 'indexes');
             await fs.mkdirp(metadataDir);
             const indexOwnerFile: string = path.join(metadataDir, 'indexOwner.json');
             await fs.writeJson(indexOwnerFile, {
@@ -274,10 +274,11 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(javascriptPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
             executeTaskStub.should.have.not.been.called;
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -298,10 +299,11 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(javascriptPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
             executeTaskStub.should.have.not.been.called;
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -321,10 +323,11 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(javascriptPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
             executeTaskStub.should.have.not.been.called;
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -344,10 +347,11 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, 'dogechain@0.0.3.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(javascriptPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
             executeTaskStub.should.have.not.been.called;
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -367,10 +371,11 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.3.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(javascriptPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
             executeTaskStub.should.have.not.been.called;
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -390,15 +395,16 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, 'dogechain@1.2.3.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(javascriptPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
             executeTaskStub.should.have.not.been.called;
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
-        it('should package the JavaScript project with a META-INF directory', async () => {
+        it('should package the JavaScript project with a contract-metadata directory', async () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, true);
             const testIndex: number = 0;
 
@@ -416,8 +422,8 @@ describe('packageSmartContract', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `4 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- META-INF/statedb/couchdb/indexes/indexOwner.json`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/META-INF/statedb/couchdb/indexes/indexOwner.json`);
-            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/contract-metadata/statedb/couchdb/indexes/indexOwner.json`);
             logSpy.getCall(6).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
             executeTaskStub.should.have.not.been.called;
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
@@ -438,11 +444,12 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.ts`);
-            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, '- src/package.json');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(typescriptPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.ts`);
+            logSpy.getCall(6).should.have.been.calledWith(LogType.INFO, undefined, '- src/package.json');
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -468,9 +475,10 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(golangPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -495,9 +503,10 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, 'dogechain@0.0.3.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(golangPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -522,9 +531,10 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, 'myProject@1.2.3.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(golangPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -547,9 +557,10 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, 'dogechain@1.2.3.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(golangPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -577,9 +588,10 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(golangPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -647,10 +659,11 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(javaPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -673,10 +686,11 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, 'dogechain@0.0.3.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(javaPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -699,10 +713,11 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, 'myProject@1.2.3.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(javaPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -726,10 +741,11 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, 'dogechain@1.2.3.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(javaPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -753,10 +769,11 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/pom.xml`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(javaPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/pom.xml`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -826,13 +843,14 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'javascriptProject@0.0.1.cds')}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
-            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(6).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
-            logSpy.callCount.should.equal(7);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(javascriptPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'javascriptProject@0.0.1.cds')}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.getCall(6).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(7).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
+            logSpy.callCount.should.equal(8);
         });
 
         it('should throw an error as the Go project already exists', async () => {
@@ -858,12 +876,13 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'myProject@0.0.3.cds')}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(5).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
-            logSpy.callCount.should.equal(6);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(golangPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'myProject@0.0.3.cds')}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(6).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
+            logSpy.callCount.should.equal(7);
         });
 
         it('should throw an error as the Java project already exists', async () => {
@@ -887,13 +906,14 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'myProject@0.0.3.cds')}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
-            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(6).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
-            logSpy.callCount.should.equal(7);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(javaPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'myProject@0.0.3.cds')}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
+            logSpy.getCall(6).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(7).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
+            logSpy.callCount.should.equal(8);
         });
 
         it('should throw an error if project not under src dir', async () => {
@@ -941,9 +961,10 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/some/path/goProject/chaincode.go`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(golangPathFurther, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/some/path/goProject/chaincode.go`);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
@@ -1045,9 +1066,10 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(golangPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
             process.env.GOPATH.should.equal(path.join('/', 'other', 'path') + path.delimiter + testWorkspace);
         });
@@ -1116,11 +1138,12 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_PACKAGES);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'javascriptProject@0.0.1.cds')}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
-            logSpy.callCount.should.equal(5);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(javascriptPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'javascriptProject@0.0.1.cds')}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.callCount.should.equal(6);
         });
 
         it('should not show package chooser when only one folder', async () => {
@@ -1138,11 +1161,12 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
-            logSpy.callCount.should.equal(5);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(javascriptPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.callCount.should.equal(6);
         });
 
         it('should handle error from get workspace folders', async () => {
@@ -1286,11 +1310,12 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
-            logSpy.callCount.should.equal(5);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(javascriptPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.callCount.should.equal(6);
             executeTaskStub.should.have.not.been.called;
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -1340,7 +1365,8 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(javascriptPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             executeTaskStub.should.have.not.been.called;
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
@@ -1364,7 +1390,8 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(javascriptPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             executeTaskStub.should.have.not.been.called;
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
