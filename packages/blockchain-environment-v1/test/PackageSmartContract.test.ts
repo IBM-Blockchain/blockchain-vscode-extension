@@ -81,7 +81,7 @@ describe('PackageSmartContract', () => {
         await fs.writeFile(packageJsonFile, JSON.stringify(jsonContent));
 
         if (createMetadata) {
-            const metadataDir: string = path.join(projectDir, 'META-INF', 'statedb', 'couchdb', 'indexes');
+            const metadataDir: string = path.join(projectDir, 'contract-metadata', 'statedb', 'couchdb', 'indexes');
             await fs.mkdirp(metadataDir);
             const indexOwnerFile: string = path.join(metadataDir, 'indexOwner.json');
             await fs.writeJson(indexOwnerFile, {
@@ -107,10 +107,17 @@ describe('PackageSmartContract', () => {
         it('should package a smart contract with meta data', async () => {
             await createTestFiles('myContract', '0.0.1', true);
             const contractPath: string = path.join(testWorkspace, 'myContract');
+<<<<<<< HEAD
             const pkgFile: string = path.join(fileDest, 'myContract@0.0.1.tar.gz');
             const metadataPath: string = path.join(contractPath, 'META-INF');
             const files: string[] = await PackageSmartContract.packageContract('myContract', contractPath, pkgFile, 'node', metadataPath);
             files.should.deep.equal(['metadata.json', 'src/chaincode.js', 'src/chaincode.ts', 'src/META-INF/statedb/couchdb/indexes/indexOwner.json', 'src/package.json', 'META-INF/statedb/couchdb/indexes/indexOwner.json']);
+=======
+            const pkgFile: string = path.join(fileDest, 'myContract@0.0.1.cds');
+            const metadataPath: string = path.join(contractPath, 'contract-metadata');
+            const files: string[] = await PackageSmartContract.packageContract('myContract', '0.0.1', contractPath, pkgFile, 'node', metadataPath);
+            files.should.deep.equal(['META-INF/statedb/couchdb/indexes/indexOwner.json', 'src/chaincode.js', 'src/chaincode.ts', 'src/contract-metadata/statedb/couchdb/indexes/indexOwner.json', 'src/package.json']);
+>>>>>>> eed12694... Fix packaging metadata path (#2755)
         });
     });
 
