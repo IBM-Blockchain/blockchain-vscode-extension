@@ -25,4 +25,4 @@ for D in `find . -mindepth 1 -maxdepth 1 -type d`; do
     cd ../
 done
 
-git checkout ../package.json && git checkout ../package-lock.json
+git checkout ../../package.json && git checkout ../../package-lock.json
