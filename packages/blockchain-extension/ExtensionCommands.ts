@@ -99,5 +99,5 @@ export class ExtensionCommands {
     static readonly OPEN_NEW_INSTANCE_LINK: string = 'openNewInstanceLink';
     static readonly DELETE_DIRECTORY: string = 'deleteExtensionDirectory';
     static readonly OPEN_RESOURCE_FILE: string = 'openResourceFile';
-    static readonly OPEN_IBM_CLOUD_EXTENSION: string = 'openIBMCloudExtension';
+    static readonly OPEN_VSCODE_EXTENSION: string = 'openVscodeExtension';
 }

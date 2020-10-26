@@ -309,8 +309,8 @@ export class ExtensionUtil {
             await vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(fullPath));
         }));
 
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_IBM_CLOUD_EXTENSION, async () => {
-            await vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(defaultDependencies.optional.ibmCloudAccountExtension.url));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_VSCODE_EXTENSION, async (url: string = defaultDependencies.optional.ibmCloudAccountExtension.url) => {
+            await vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(url));
         }));
 
         const goDebugProvider: FabricGoDebugConfigurationProvider = new FabricGoDebugConfigurationProvider();
