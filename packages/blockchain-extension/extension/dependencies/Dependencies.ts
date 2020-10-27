@@ -23,6 +23,6 @@ export class Dependencies {
     static readonly OPENSSL_REQUIRED: string = '1.0.2';
 
     static readonly GO_REQUIRED: string = '>=1.12.0';
-    static readonly JAVA_REQUIRED: string = '1.8.x';
+    static readonly JAVA_REQUIRED: string = 'SOME';
 
 }
