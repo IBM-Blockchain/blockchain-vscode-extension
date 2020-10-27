@@ -63,6 +63,13 @@ exports[`TutorialPage component should render the component when no tutorialData
           >
             Link to external webpage
           </a>
+          <a
+            className="bx--link"
+            href=""
+            onClick={[Function]}
+          >
+            Link to a vscode extension page
+          </a>
           <a>
             Bad anchor tag ignore me
           </a>
@@ -262,6 +269,13 @@ exports[`TutorialPage component should render the expected snapshot (when the st
             href="https://ibm.com"
           >
             Link to external webpage
+          </a>
+          <a
+            className="bx--link"
+            href=""
+            onClick={[Function]}
+          >
+            Link to a vscode extension page
           </a>
           <a>
             Bad anchor tag ignore me
@@ -475,6 +489,13 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
             href="https://ibm.com"
           >
             Link to external webpage
+          </a>
+          <a
+            className="bx--link"
+            href=""
+            onClick={[Function]}
+          >
+            Link to a vscode extension page
           </a>
           <a>
             Bad anchor tag ignore me
