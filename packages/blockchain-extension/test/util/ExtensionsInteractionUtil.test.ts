@@ -21,6 +21,7 @@ import Axios from 'axios';
 import { ExtensionsInteractionUtil } from '../../extension/util/ExtensionsInteractionUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from 'ibm-blockchain-platform-common';
+import { DependencyProperties } from '../../extension/dependencies/Dependencies';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -68,7 +69,7 @@ describe('ExtensionsInteractionUtil Test', () => {
                             getAccessToken: getAccessTokenStub
                          }
             };
-            getExtensionStub.withArgs('IBM.ibmcloud-account').returns(cloudExtensionStub);
+            getExtensionStub.withArgs(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION).returns(cloudExtensionStub);
 
             selectAccountStub = executeCommandStub.withArgs('ibmcloud-account.selectAccount');
             selectAccountStub.resolves(true);
@@ -215,7 +216,7 @@ describe('ExtensionsInteractionUtil Test', () => {
             chai.should().equal(undefined, accessToken);
             isLoggedInStub.onFirstCall().resolves(false);
             cloudExtensionStub.isActive = false;
-            getExtensionStub.withArgs('IBM.ibmcloud-account').returns(cloudExtensionStub);
+            getExtensionStub.withArgs(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION).returns(cloudExtensionStub);
 
             try {
                 accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken();
@@ -234,7 +235,7 @@ describe('ExtensionsInteractionUtil Test', () => {
 
         it('should throw if ibmcloud-account not installed', async () => {
             chai.should().equal(undefined, accessToken);
-            getExtensionStub.withArgs('IBM.ibmcloud-account').returns(undefined);
+            getExtensionStub.withArgs(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION).returns(undefined);
             const expectedError: Error = new Error('IBM Cloud Account extension must be installed');
 
             try {
@@ -291,7 +292,7 @@ describe('ExtensionsInteractionUtil Test', () => {
                             loggedIn: isLoggedInStub,
                          }
             };
-            getExtensionStub.withArgs('IBM.ibmcloud-account').returns(cloudExtensionStub);
+            getExtensionStub.withArgs(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION).returns(cloudExtensionStub);
 
             isLoggedIn = undefined;
         });
@@ -327,7 +328,7 @@ describe('ExtensionsInteractionUtil Test', () => {
 
         it('should error if no cloud extension', async () => {
             chai.should().equal(undefined, isLoggedIn);
-            getExtensionStub.withArgs('IBM.ibmcloud-account').returns(undefined);
+            getExtensionStub.withArgs(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION).returns(undefined);
             const expectedError: Error = new Error('IBM Cloud Account extension must be installed');
 
             try {
@@ -359,7 +360,7 @@ describe('ExtensionsInteractionUtil Test', () => {
                             accountSelected: hasAccountSelectedStub,
                          }
             };
-            getExtensionStub.withArgs('IBM.ibmcloud-account').returns(cloudExtensionStub);
+            getExtensionStub.withArgs(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION).returns(cloudExtensionStub);
 
             hasAccountSelected = undefined;
         });
@@ -395,7 +396,7 @@ describe('ExtensionsInteractionUtil Test', () => {
 
         it('should error if no cloud extension', async () => {
             chai.should().equal(undefined, hasAccountSelected);
-            getExtensionStub.withArgs('IBM.ibmcloud-account').returns(undefined);
+            getExtensionStub.withArgs(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION).returns(undefined);
             const expectedError: Error = new Error('IBM Cloud Account extension must be installed');
 
             try {

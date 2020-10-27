@@ -59,7 +59,7 @@ const generateDependencies: any = (versions: VersionOverrides = {}, completes: C
     const dependencies: Dependencies = { ...defaultDependencies.required, ...defaultDependencies.optional };
 
     // Add versions
-    dependencies.node.version = versions.hasOwnProperty('node') ? versions.node : '8.12.0';
+    dependencies.node.version = versions.hasOwnProperty('node') ? versions.node : '10.15.3';
     dependencies.npm.version = versions.hasOwnProperty('npm') ? versions.npm : '6.4.1';
     dependencies.docker.version = versions.hasOwnProperty('docker') ? versions.docker : '17.7.0';
     dependencies.dockerCompose.version = versions.hasOwnProperty('dockerCompose') ? versions.dockerCompose : '1.15.0';
@@ -75,6 +75,9 @@ const generateDependencies: any = (versions: VersionOverrides = {}, completes: C
     // Add complete
     dependencies.dockerForWindows.complete = versions.hasOwnProperty('dockerForWindows') ? completes.dockerForWindows : true;
     dependencies.systemRequirements.complete = versions.hasOwnProperty('systemRequirements') ? completes.systemRequirements : true;
+
+    // Modify html rendering of node version
+    dependencies.node.requiredVersion = '>=10.15.3 || >=12.13.1';
 
     return dependencies;
 };
@@ -159,7 +162,7 @@ describe('PreReqView', () => {
             html.should.contain(`<div id="check-finish-button" class="finish" onclick="finish();">Let's Blockchain!</div>`); // The button should indicate that the dependencies have been installed
             html.should.contain('<span class="prereqs-number">(0)</span>'); // No missing (required) dependencies
 
-            html.should.contain(JSON.stringify({ ...defaultDependencies.optional.node, version: '8.12.0' }));
+            html.should.contain(JSON.stringify({ ...defaultDependencies.optional.node, version: '10.15.3' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.npm, version: '6.4.1' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.required.docker, version: '17.7.0' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.required.dockerCompose, version: '1.15.0' }));
@@ -219,7 +222,7 @@ describe('PreReqView', () => {
             html.should.contain(`<div id="check-finish-button" class="finish" onclick="finish();">Let's Blockchain!</div>`); // The button should indicate that the dependencies have been installed
             html.should.contain('<span class="prereqs-number">(0)</span>'); // No missing (required) dependencies
 
-            html.should.contain(JSON.stringify({ ...defaultDependencies.optional.node, version: '8.12.0' }));
+            html.should.contain(JSON.stringify({ ...defaultDependencies.optional.node, version: '10.15.3' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.npm, version: '6.4.1' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.required.docker, version: '17.7.0' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.required.dockerCompose, version: '1.15.0' }));
@@ -257,7 +260,7 @@ describe('PreReqView', () => {
             html.should.contain(`<div id="check-finish-button" class="finish" onclick="finish();">Let's Blockchain!</div>`); // The button should indicate that the dependencies have been installed
             html.should.contain('<span class="prereqs-number">(0)</span>'); // No missing (required) dependencies
 
-            html.should.contain(JSON.stringify({ ...defaultDependencies.optional.node, version: '8.12.0' }));
+            html.should.contain(JSON.stringify({ ...defaultDependencies.optional.node, version: '10.15.3' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.npm, version: '6.4.1' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.required.docker, version: '17.7.0' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.required.dockerCompose, version: '1.15.0' }));
@@ -296,7 +299,7 @@ describe('PreReqView', () => {
 
             const html: string = await preReqView.getHTMLString();
 
-            html.should.contain(JSON.stringify({ ...defaultDependencies.optional.node, version: '8.12.0' }));
+            html.should.contain(JSON.stringify({ ...defaultDependencies.optional.node, version: '10.15.3' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.npm, version: '6.4.1' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.required.docker, version: '17.7.0' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.required.dockerCompose, version: '1.15.0' }));
