@@ -309,6 +309,13 @@ export class ExtensionUtil {
             await vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(fullPath));
         }));
 
+<<<<<<< HEAD
+=======
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_VSCODE_EXTENSION, async (url: string = defaultDependencies.optional.ibmCloudAccountExtension.url) => {
+            await vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(url));
+        }));
+
+>>>>>>> 98c18954... [v2] - update tutorials with new images and text (#2759)
         const goDebugProvider: FabricGoDebugConfigurationProvider = new FabricGoDebugConfigurationProvider();
         const javaDebugProvider: FabricJavaDebugConfigurationProvider = new FabricJavaDebugConfigurationProvider();
         const nodeDebugProvider: FabricNodeDebugConfigurationProvider = new FabricNodeDebugConfigurationProvider();

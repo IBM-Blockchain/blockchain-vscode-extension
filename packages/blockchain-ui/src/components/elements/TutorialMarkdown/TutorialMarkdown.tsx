@@ -30,6 +30,17 @@ const createTutorialLink: any = (tutorial: ITutorialObject, linkContents: any): 
     );
 };
 
+// createVscodeLink : returns a command link to open a vscode page
+const createVscodeLink: any = (href: string, linkContents: any) => {
+    return (
+        <CommandLink
+            linkContents={linkContents}
+            commandName={ExtensionCommands.OPEN_VSCODE_EXTENSION}
+            commandData={[href]}
+        />
+    );
+};
+
 // getPreviousAndNextTutorial : creates a CommandLink for the next and previous tutorial buttons
 const getPreviousAndNextTutorialLinks: any = (tutorials: any, seriesName: string, tutorialTitle: string) => {
     const series: { tutorials: any } = tutorials.find(({ name }: { name: string }) => name === seriesName);
@@ -106,6 +117,8 @@ const transform: any = (node: any, index: any, tutorialDirectory: string, tutori
             if (attribs.href.startsWith('mailto')) {
                 // demo-contract@0.0.2 comes through as a link, stop this
                 return processNodes(node.children, transformWrapper);
+            } else if (attribs.href.startsWith('vscode')) {
+                return createVscodeLink(attribs.href, processNodes(node.children, transformWrapper));
             } else if (!isUrlAbsolute(attribs.href)) {
                 if (path.basename(attribs.href).endsWith('.md')) {
                     const linkedTutorial: ITutorialObject = convertRelativePathToTutorial(attribs.href, tutorialData);

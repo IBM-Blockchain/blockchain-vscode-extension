@@ -29,6 +29,7 @@ describe('TutorialPage component', () => {
             '<a href="./resources/package.json">Link to resource file</a>',
             '<a href="./a1.md">Link to another tutorial</a>',
             '<a href="https://ibm.com">Link to external webpage</a>',
+            '<a href="vscode:extension/someExtension">Link to a vscode extension page</a>',
             '<a>Bad anchor tag ignore me</a>',
             '<a href="./a1.md"><img src="./image/within/link" alt="alt"></img></a>',
       ].join('\n'),

@@ -525,6 +525,40 @@ describe('ExtensionUtil Tests', () => {
             executeCommandStub.should.have.been.calledWith('vscode.open', vscode.Uri.parse(url));
         });
 
+<<<<<<< HEAD
+=======
+        it('should register and open ibm cloud account extension link if no url provided', async () => {
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').callThrough();
+            executeCommandStub.withArgs('vscode.open').resolves();
+
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+
+            await ExtensionUtil.registerCommands(ctx);
+
+            await vscode.commands.executeCommand(ExtensionCommands.OPEN_VSCODE_EXTENSION);
+
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWith('vscode.open', vscode.Uri.parse(defaultDependencies.optional.ibmCloudAccountExtension.url));
+        });
+
+        it('should register and open an extension link when url provided', async () => {
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').callThrough();
+            executeCommandStub.withArgs('vscode.open').resolves();
+            const someExtensionUrl: string = 'vscode:extension/someExtension';
+
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+
+            await ExtensionUtil.registerCommands(ctx);
+
+            await vscode.commands.executeCommand(ExtensionCommands.OPEN_VSCODE_EXTENSION, someExtensionUrl);
+
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWith('vscode.open', vscode.Uri.parse(someExtensionUrl));
+        });
+
+>>>>>>> 98c18954... [v2] - update tutorials with new images and text (#2759)
         // it('should reload blockchain explorer when debug event emitted', async () => {
         //     await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
 

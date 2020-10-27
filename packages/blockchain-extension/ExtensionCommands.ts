@@ -99,4 +99,8 @@ export class ExtensionCommands {
     static readonly OPEN_NEW_INSTANCE_LINK: string = 'openNewInstanceLink';
     static readonly DELETE_DIRECTORY: string = 'deleteExtensionDirectory';
     static readonly OPEN_RESOURCE_FILE: string = 'openResourceFile';
+<<<<<<< HEAD
+=======
+    static readonly OPEN_VSCODE_EXTENSION: string = 'openVscodeExtension';
+>>>>>>> 98c18954... [v2] - update tutorials with new images and text (#2759)
 }
