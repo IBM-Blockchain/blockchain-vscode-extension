@@ -49,6 +49,24 @@ describe('TutorialTabs component', () => {
             ]
         },
         {
+            name: 'Joining a network',
+            tutorialFolder: 'joining-a-network',
+            tutorialDescription: 'another description',
+            tutorials: [
+                {
+                    title: 'b1',
+                    series: 'Joining a network',
+                    length: '4 weeks',
+                    objectives: [
+                        'objective 1',
+                        'objective 2',
+                        'objective 3'
+                    ],
+                    file: 'some/other/file/path'
+                }
+            ]
+        },
+        {
             name: 'Other tutorials',
             tutorialFolder: 'other-tutorials',
             tutorials: [

@@ -36,7 +36,7 @@ class TutorialTabs extends Component<IProps> {
                     tabIndex={index}
                     label={tabLabel}
                 >
-                    {tutorialSeries.name === 'Basic tutorials' ?
+                    {tutorialSeries.name === 'Basic tutorials' || tutorialSeries.name === 'Joining a network' ?
                         <div className='series-description-container'>
                             <p className='series-description'>{tutorialSeries.tutorialDescription}</p>
                             <Link id='download-all-link' className='download-all' href='#' onClick={() => this.savePDFHandler(tutorialSeries.tutorialFolder)}>{`Download all "${tutorialSeries.name}" as PDF`}</Link>

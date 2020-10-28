@@ -111,6 +111,23 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
               href="#"
               tabIndex={-1}
             >
+              Joining a network (1)
+            </a>
+          </li>
+          <li
+            aria-controls="undefined__panel"
+            aria-selected={false}
+            className="bx--tabs__nav-item"
+            onClick={[Function]}
+            onKeyDown={[Function]}
+            role="tab"
+            tabIndex={-1}
+          >
+            <a
+              className="bx--tabs__nav-link"
+              href="#"
+              tabIndex={-1}
+            >
               Other tutorials (1)
             </a>
           </li>
@@ -147,6 +164,117 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
             className="tutorial-title"
           >
             a1
+          </div>
+          <div
+            className="time-container"
+          >
+            <svg
+              aria-hidden={true}
+              className="icon"
+              focusable="false"
+              height={16}
+              preserveAspectRatio="xMidYMid meet"
+              viewBox="0 0 32 32"
+              width={16}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <rect
+                height="9"
+                width="2"
+                x="15"
+                y="11"
+              />
+              <rect
+                height="2"
+                width="6"
+                x="13"
+                y="2"
+              />
+              <path
+                d="M28,9,26.58,7.59,24.33,9.84a10.94,10.94,0,1,0,1.18,1.65ZM16,26a9,9,0,1,1,9-9A9,9,0,0,1,16,26Z"
+              />
+            </svg>
+            <span
+              className="text"
+            >
+              4 weeks
+            </span>
+          </div>
+          <div
+            className="tutorial-objectives"
+          >
+            <p
+              className="objective"
+            >
+              objective 1
+            </p>
+            <p
+              className="objective"
+            >
+              objective 2
+            </p>
+            <p
+              className="objective"
+            >
+              objective 3
+            </p>
+          </div>
+          <div
+            className="button-container"
+          >
+            <button
+              className="pdf-button bx--btn bx--btn--ghost"
+              disabled={false}
+              onClick={[Function]}
+              tabIndex={0}
+              type="button"
+            >
+              Download as PDF
+            </button>
+            <button
+              className="button bx--btn bx--btn--secondary"
+              disabled={false}
+              onClick={[Function]}
+              tabIndex={0}
+              type="button"
+            >
+              Open tutorial
+            </button>
+          </div>
+        </div>
+        <br />
+      </div>
+      <div
+        aria-hidden={true}
+        className="bx--tab-content"
+        hidden={true}
+        role="tabpanel"
+        selected={false}
+      >
+        <div
+          className="series-description-container"
+        >
+          <p
+            className="series-description"
+          >
+            another description
+          </p>
+          <a
+            className="bx--link download-all"
+            href="#"
+            id="download-all-link"
+            onClick={[Function]}
+          >
+            Download all "Joining a network" as PDF
+          </a>
+        </div>
+        <div
+          className="tab-container"
+        >
+          <div
+            className="tutorial-title"
+          >
+            b1
           </div>
           <div
             className="time-container"
