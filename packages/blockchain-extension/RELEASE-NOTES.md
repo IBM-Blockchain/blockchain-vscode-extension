@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 # IBM Blockchain Platform Extension updated to v2.0.0-beta.7
 _Release date: August 27th 2020_
+=======
+# IBM Blockchain Platform Extension updated to v2.0.0-beta.9
+_Release date: October 29th 2020_
+>>>>>>> a18cbfc0... Changelog (v2) (#2777)
 
 Announcements
 ---
@@ -13,6 +18,7 @@ Announcements
 
 Features & Enhancements
 ---
+<<<<<<< HEAD
 * Ability to open the IBM Blockchain Platform Console from the environment [#2536](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2536).
 * Automatically detect system requirements [#1398](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1398).
 * Read identity name from JSON file [#755](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/755).
@@ -25,6 +31,14 @@ Fixes
 ---
 * Fixed IBM Cloud account selection bug [#2583](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2583).
 
+=======
+* Tutorials now open in webviews [#2645](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2645).
+
+Fixes
+---
+* Updated tutorials and fixed broken images [#2731](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2731).
+* Fixed packaging to look for 'contract-metadata' directory [#2772](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2772).
+>>>>>>> a18cbfc0... Changelog (v2) (#2777)
 
 Notes
 ---
