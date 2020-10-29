@@ -1,5 +1,5 @@
-# IBM Blockchain Platform Extension updated to v2.0.0-beta.8
-_Release date: October 15th 2020_
+# IBM Blockchain Platform Extension updated to v2.0.0-beta.9
+_Release date: October 29th 2020_
 
 Announcements
 ---
@@ -13,17 +13,12 @@ Announcements
 
 Features & Enhancements
 ---
-* Added NPS survey link on first transaction submission [#2210](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2210).
-* Updated Node test runner to be optional [#2636](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2635).
-* Updated packaging to handle multiple GOPATH paths [#2596](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2596).
-* Updated required versions of Node [#2641](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2641).
+* Tutorials now open in webviews [#2645](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2645).
 
 Fixes
 ---
-* Fixed channel capability retrieval [#2669](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2669).
-* Improved prerequisites page load time [#1437](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1437).
-* Allow users to connect to environments & gateways with at least one v2 capability enabled channel [#2540](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2540).
-
+* Updated tutorials and fixed broken images [#2731](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2731).
+* Fixed packaging to look for 'contract-metadata' directory [#2772](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2772).
 
 Notes
 ---

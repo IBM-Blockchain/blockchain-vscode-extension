@@ -1,5 +1,54 @@
 # IBM Blockchain Platform Extension Change Log
 
+
+## 2.0.0-beta.9: October 29th 2020
+
+Announcements
+---
+
+* We welcome all feedback on this beta version so far. Please see the notes section for known issues.
+
+* To install the extension, download the vsix file named `ibm-blockchain-platform-<VERSION>.vsix` from the [GitHub releases](https://github.com/IBM-Blockchain/blockchain-vscode-extension/releases) page.
+  In VS Code, switch to the Extensions view, click the hamburger menu and and select 'Install from VSIX'. Finally, select the downloaded vsix file. The extension should then install successfully.
+
+* **VS Code v1.40 or greater is now the minimum version required for using the 'v2' version of the extension.**
+
+Features & Enhancements
+---
+* Tutorials now open in webviews [#2645](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2645).
+
+Fixes
+---
+* Updated tutorials and fixed broken images [#2731](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2731).
+* Fixed packaging to look for 'contract-metadata' directory [#2772](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2772).
+
+
+Notes
+---
+* Connecting to IBM Blockchain Platform environments will not work yet as they are not using the new lifecycle yet.
+* If you already have v1.4 local environment's running, you'll need to tear them down and start them again to use them as v2 local environments.
+* Debug doesn't work at moment
+
+
+## 1.0.39: October 29th 2020
+
+Announcements
+---
+* We’re still waiting for the gRPC v1.25.0 binaries to be published so you may be affected by [this issue](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621), where gRPC fails to rebuild when using VS Code >1.40.x.
+ > Please see [this comment](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621#issuecomment-552926559) for a workaround. 
+
+Features & Enhancements
+---
+* New "Joining a network" tutorials [#2677](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2677).
+ > The purpose of this set of tutorials is to take you through the process of joining an existing Hyperledger Fabric network using the tools provided by IBM Blockchain Platform. 
+
+Fixes
+---
+* Fixed packaging to look for 'contract-metadata' directory [#2755](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2755).
+* Made the IBM Cloud Account extension optional [#2713](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2713).
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-81.jpg)
+
 ## 2.0.0-beta.8: October 15th 2020
 
 Announcements
