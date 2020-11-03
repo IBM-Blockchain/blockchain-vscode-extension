@@ -26,7 +26,7 @@ async function main() {
     // Listen for myEvent publications
     const listener: ContractListener = async (event) => {    // eslint-disable-line @typescript-eslint/require-await
       if (event.eventName === 'myEvent') {
-        console.log( 'chaincodeId: ',event.chaincodeId , ' eventName: ' , event.eventName , ' payload: ' , event.payload);
+        console.log( 'chaincodeId: ', event.chaincodeId , ' eventName: ' , event.eventName , ' payload: ' , event.payload?.toString());
       }
     };
 

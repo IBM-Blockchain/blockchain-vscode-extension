@@ -4,6 +4,8 @@ import unified from 'unified';
 import parse from 'remark-parse';
 import remark2html from 'remark-html';
 import ReactHtmlParser, { convertNodeToElement, processNodes } from 'react-html-parser';
+import SyntaxHighlighter from 'react-syntax-highlighter';
+import { tomorrow, tomorrowNight } from 'react-syntax-highlighter/dist/cjs/styles/hljs';
 
 import './TutorialMarkdown.scss';
 import { ExtensionCommands } from '../../../ExtensionCommands';
@@ -26,6 +28,17 @@ const createTutorialLink: any = (tutorial: ITutorialObject, linkContents: any): 
           linkContents={linkContents}
           commandName={ExtensionCommands.OPEN_TUTORIAL_PAGE}
           commandData={[tutorial.series, tutorial.title]}
+        />
+    );
+};
+
+// createVscodeLink : returns a command link to open a vscode page
+const createVscodeLink: any = (href: string, linkContents: any) => {
+    return (
+        <CommandLink
+            linkContents={linkContents}
+            commandName={ExtensionCommands.OPEN_VSCODE_EXTENSION}
+            commandData={[href]}
         />
     );
 };
@@ -83,6 +96,11 @@ const createResourceLink: any = (relativeHref: string, tutorialDirectory: string
     );
 };
 
+const isDarkTheme: any = (): boolean => {
+    const body: any = document.getElementsByTagName('body')[0];
+    return body.className.includes('vscode-dark');
+};
+
 // transform : a function to modify the html before it is printed onto the screen
 // * modifies the image src for the extension
 // * modifies the relative file linking to link to other tutorials
@@ -92,9 +110,24 @@ const transform: any = (node: any, index: any, tutorialDirectory: string, tutori
         return transform(node2, index2, tutorialDirectory, tutorialData);
     };
 
-    const { type, name: tag, attribs } = node;
+    const { type, name: tag, attribs, children } = node;
 
     if (type === 'tag') {
+
+        // Add syntax highlighting to codeblocks
+        if (tag === 'pre' && children && children.length === 1 && children[0].name === 'code') {
+            const [code] = children;
+            if (code.attribs && code.attribs.class && code.children && code.children.length === 1 && code.children[0].type === 'text') {
+                const language: string = code.attribs.class.replace('language-', '');
+                const theme: string = isDarkTheme() ? tomorrowNight : tomorrow;
+                return (
+                    <SyntaxHighlighter language={language} style={theme} showLineNumbers>
+                        {code.children[0].data}
+                    </SyntaxHighlighter>
+                );
+            }
+        }
+
         if (tag === 'img' && attribs && attribs.src) {
             // html needs the imageLocation to be up a directory
             const imageLocation: string = path.join('..', tutorialDirectory, attribs.src);
@@ -106,6 +139,8 @@ const transform: any = (node: any, index: any, tutorialDirectory: string, tutori
             if (attribs.href.startsWith('mailto')) {
                 // demo-contract@0.0.2 comes through as a link, stop this
                 return processNodes(node.children, transformWrapper);
+            } else if (attribs.href.startsWith('vscode')) {
+                return createVscodeLink(attribs.href, processNodes(node.children, transformWrapper));
             } else if (!isUrlAbsolute(attribs.href)) {
                 if (path.basename(attribs.href).endsWith('.md')) {
                     const linkedTutorial: ITutorialObject = convertRelativePathToTutorial(attribs.href, tutorialData);

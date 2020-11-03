@@ -63,6 +63,13 @@ exports[`TutorialPage component should render the component when no tutorialData
           >
             Link to external webpage
           </a>
+          <a
+            className="bx--link"
+            href=""
+            onClick={[Function]}
+          >
+            Link to a vscode extension page
+          </a>
           <a>
             Bad anchor tag ignore me
           </a>
@@ -75,8 +82,333 @@ exports[`TutorialPage component should render the component when no tutorialData
             />
           </a>
         </p>
+        <pre
+          style={
+            Object {
+              "background": "#1d1f21",
+              "color": "#c5c8c6",
+              "display": "block",
+              "overflowX": "auto",
+              "padding": "0.5em",
+            }
+          }
+        >
+          <code
+            className="language-typescript"
+            style={
+              Object {
+                "whiteSpace": "pre",
+              }
+            }
+          >
+            <span
+              className="comment linenumber react-syntax-highlighter-line-number"
+              style={
+                Object {
+                  "display": "inline-block",
+                  "minWidth": "1em",
+                  "paddingRight": "1em",
+                  "textAlign": "right",
+                  "userSelect": "none",
+                }
+              }
+            >
+              1
+            </span>
+            <span
+              style={
+                Object {
+                  "color": "#b294bb",
+                }
+              }
+            >
+              const
+            </span>
+            <span
+              style={Object {}}
+            >
+               astring: 
+            </span>
+            <span
+              style={
+                Object {
+                  "color": "#de935f",
+                }
+              }
+            >
+              string
+            </span>
+            <span
+              style={Object {}}
+            >
+               = 
+            </span>
+            <span
+              style={
+                Object {
+                  "color": "#b5bd68",
+                }
+              }
+            >
+              "string"
+            </span>
+            <span
+              style={Object {}}
+            >
+              
+
+            </span>
+            <span
+              className="comment linenumber react-syntax-highlighter-line-number"
+              style={
+                Object {
+                  "display": "inline-block",
+                  "minWidth": "1em",
+                  "paddingRight": "1em",
+                  "textAlign": "right",
+                  "userSelect": "none",
+                }
+              }
+            >
+              2
+            </span>
+            
+
+          </code>
+        </pre>
+        <pre>
+          <code>
+            code block without language
+
+          </code>
+        </pre>
+        <p>
+          <code>
+            single line codeblock
+          </code>
+        </p>
       </div>
       <hr />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`TutorialPage component should render the expected snapshot (when the style is dark) 1`] = `
+<div
+  className="bx--grid tutorial-page-container"
+>
+  <div
+    className="bx--row"
+  >
+    <div
+      className="tutorial-page"
+    >
+      <p>
+        <strong>
+          IBM Blockchain Platform
+        </strong>
+      </p>
+      <div
+        className="tutorial-previous"
+      >
+        <a
+          className="bx--link"
+          href=""
+          onClick={[Function]}
+        >
+          ← a1
+        </a>
+      </div>
+      <img
+        alt="IBM Blockchain Platform"
+        className="ibp-icon"
+        src="test-file-stub"
+      />
+      <h2
+        className="tutorial-name"
+      >
+        a2
+      </h2>
+      <hr />
+      <p>
+        Estimated time: 
+        <code>
+          4 weeks
+        </code>
+      </p>
+      <div
+        className="tutorial-content"
+      >
+        <h2>
+          Heading
+        </h2>
+        <p>
+          paragraph
+
+          <img
+            alt="alt"
+            src="../resources/tutorials/some/file/relative/link"
+          />
+          mailto ignore me
+          <a
+            className="bx--link"
+            href=""
+            onClick={[Function]}
+          >
+            Link to resource file
+          </a>
+          <a
+            className="bx--link"
+            href=""
+            onClick={[Function]}
+          >
+            Link to another tutorial
+          </a>
+          <a
+            href="https://ibm.com"
+          >
+            Link to external webpage
+          </a>
+          <a
+            className="bx--link"
+            href=""
+            onClick={[Function]}
+          >
+            Link to a vscode extension page
+          </a>
+          <a>
+            Bad anchor tag ignore me
+          </a>
+          <a
+            className="bx--link"
+            href=""
+            onClick={[Function]}
+          >
+            <img
+              alt="alt"
+              src="../resources/tutorials/some/file/image/within/link"
+            />
+          </a>
+        </p>
+        <pre
+          style={
+            Object {
+              "background": "#1d1f21",
+              "color": "#c5c8c6",
+              "display": "block",
+              "overflowX": "auto",
+              "padding": "0.5em",
+            }
+          }
+        >
+          <code
+            className="language-typescript"
+            style={
+              Object {
+                "whiteSpace": "pre",
+              }
+            }
+          >
+            <span
+              className="comment linenumber react-syntax-highlighter-line-number"
+              style={
+                Object {
+                  "display": "inline-block",
+                  "minWidth": "1em",
+                  "paddingRight": "1em",
+                  "textAlign": "right",
+                  "userSelect": "none",
+                }
+              }
+            >
+              1
+            </span>
+            <span
+              style={
+                Object {
+                  "color": "#b294bb",
+                }
+              }
+            >
+              const
+            </span>
+            <span
+              style={Object {}}
+            >
+               astring: 
+            </span>
+            <span
+              style={
+                Object {
+                  "color": "#de935f",
+                }
+              }
+            >
+              string
+            </span>
+            <span
+              style={Object {}}
+            >
+               = 
+            </span>
+            <span
+              style={
+                Object {
+                  "color": "#b5bd68",
+                }
+              }
+            >
+              "string"
+            </span>
+            <span
+              style={Object {}}
+            >
+              
+
+            </span>
+            <span
+              className="comment linenumber react-syntax-highlighter-line-number"
+              style={
+                Object {
+                  "display": "inline-block",
+                  "minWidth": "1em",
+                  "paddingRight": "1em",
+                  "textAlign": "right",
+                  "userSelect": "none",
+                }
+              }
+            >
+              2
+            </span>
+            
+
+          </code>
+        </pre>
+        <pre>
+          <code>
+            code block without language
+
+          </code>
+        </pre>
+        <p>
+          <code>
+            single line codeblock
+          </code>
+        </p>
+      </div>
+      <hr />
+      <div
+        className="tutorial-next"
+      >
+        <a
+          className="bx--link"
+          href=""
+          onClick={[Function]}
+        >
+          → a3
+        </a>
+      </div>
     </div>
   </div>
 </div>
@@ -158,6 +490,13 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
           >
             Link to external webpage
           </a>
+          <a
+            className="bx--link"
+            href=""
+            onClick={[Function]}
+          >
+            Link to a vscode extension page
+          </a>
           <a>
             Bad anchor tag ignore me
           </a>
@@ -171,6 +510,111 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
               src="../resources/tutorials/some/file/image/within/link"
             />
           </a>
+        </p>
+        <pre
+          style={
+            Object {
+              "background": "white",
+              "color": "#4d4d4c",
+              "display": "block",
+              "overflowX": "auto",
+              "padding": "0.5em",
+            }
+          }
+        >
+          <code
+            className="language-typescript"
+            style={
+              Object {
+                "whiteSpace": "pre",
+              }
+            }
+          >
+            <span
+              className="comment linenumber react-syntax-highlighter-line-number"
+              style={
+                Object {
+                  "display": "inline-block",
+                  "minWidth": "1em",
+                  "paddingRight": "1em",
+                  "textAlign": "right",
+                  "userSelect": "none",
+                }
+              }
+            >
+              1
+            </span>
+            <span
+              style={
+                Object {
+                  "color": "#8959a8",
+                }
+              }
+            >
+              const
+            </span>
+            <span
+              style={Object {}}
+            >
+               astring: 
+            </span>
+            <span
+              style={
+                Object {
+                  "color": "#f5871f",
+                }
+              }
+            >
+              string
+            </span>
+            <span
+              style={Object {}}
+            >
+               = 
+            </span>
+            <span
+              style={
+                Object {
+                  "color": "#718c00",
+                }
+              }
+            >
+              "string"
+            </span>
+            <span
+              style={Object {}}
+            >
+              
+
+            </span>
+            <span
+              className="comment linenumber react-syntax-highlighter-line-number"
+              style={
+                Object {
+                  "display": "inline-block",
+                  "minWidth": "1em",
+                  "paddingRight": "1em",
+                  "textAlign": "right",
+                  "userSelect": "none",
+                }
+              }
+            >
+              2
+            </span>
+            
+
+          </code>
+        </pre>
+        <pre>
+          <code>
+            code block without language
+
+          </code>
+        </pre>
+        <p>
+          <code>
+            single line codeblock
+          </code>
         </p>
       </div>
       <hr />

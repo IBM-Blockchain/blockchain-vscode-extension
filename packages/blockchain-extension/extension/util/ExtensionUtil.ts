@@ -114,7 +114,7 @@ import { URL } from 'url';
 import { FeatureFlagManager } from './FeatureFlags';
 import { openConsoleInBrowser } from '../commands/openConsoleInBrowserCommand';
 import { deleteExtensionDirectory } from '../commands/deleteExtensionDirectoryCommand';
-import { Dependencies } from '../dependencies/Dependencies';
+import { defaultDependencies, Dependencies } from '../dependencies/Dependencies';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -307,6 +307,10 @@ export class ExtensionUtil {
             const extensionPath: string = ExtensionUtil.getExtensionPath();
             const fullPath: string = path.join(extensionPath, relativePath);
             await vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(fullPath));
+        }));
+
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_VSCODE_EXTENSION, async (url: string = defaultDependencies.optional.ibmCloudAccountExtension.url) => {
+            await vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(url));
         }));
 
         const goDebugProvider: FabricGoDebugConfigurationProvider = new FabricGoDebugConfigurationProvider();
