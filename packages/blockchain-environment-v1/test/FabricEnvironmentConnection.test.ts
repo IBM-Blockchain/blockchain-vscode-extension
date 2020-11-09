@@ -1273,15 +1273,60 @@ describe('FabricEnvironmentConnection', () => {
 
     describe('instantiateChaincode', () => {
         it('should instantiate the specified chaincode', async () => {
-            const payload: Buffer = await connection.instantiateChaincode('myChaincode', '0.0.1', ['Org1 Peer1', 'Org2 Peer1'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'), undefined);
-            payload.should.deep.equal(Buffer.from('TODO'));
+            const collectionDef: FabricCollectionDefinition[] = [new FabricCollectionDefinition('myCollection', `OR('Org1MSP)`, 4, 2)];
+            const toJsonStub: sinon.SinonStub = mySandBox.stub(fs_extra, 'readJSON').resolves(collectionDef);
+            const instantiateOrUpgradeSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'instantiateOrUpgradeSmartContractDefinition').resolves();
+            await connection.instantiateChaincode('myChaincode', '0.0.1', ['Org1 Peer1', 'Org2 Peer1'], 'mychannel', 'instantiate', ['arg1'], path.join('collectionfile'), `OR('Org1.member')`);
+
+            // getNodeStub.should.have.been.calledWith('peer0.org1.example.com');
+            toJsonStub.should.have.been.calledOnce;
+            instantiateOrUpgradeSmartContractDefinitionStub.should.have.been.calledWith(
+                ['Org1 Peer1', 'Org2 Peer1'],
+                connection['lifecycle'].getAllOrdererNames()[0],
+                {
+                    smartContractName: 'myChaincode',
+                    smartContractVersion: '0.0.1',
+                    sequence: -1,
+                    endorsementPolicy: `OR('Org1.member')`,
+                    collectionConfig: [{
+                        blockToLive: undefined,
+                        endorsementPolicy: undefined,
+                        maxPeerCount: 4,
+                        memberOnlyRead: undefined,
+                        memberOnlyWrite: undefined,
+                        name: 'myCollection',
+                        policy: "OR('Org1MSP)",
+                        requiredPeerCount: 2
+                      }]
+                },
+                'instantiate',
+                ['arg1'],
+                false,
+                5 * 60 * 1000
+            );
         });
     });
 
     describe('upgradeChaincode', () => {
         it('should upgrade the specified chaincode', async () => {
-            const payload: Buffer = await connection.upgradeChaincode('myChaincode', '0.0.1', ['Org1 Peer1', 'Org2 Peer1'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'), undefined);
-            payload.should.deep.equal(Buffer.from('TODO'));
+            const instantiateOrUpgradeSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'instantiateOrUpgradeSmartContractDefinition').resolves();
+            await connection.upgradeChaincode('myChaincode', '0.0.1', ['Org1 Peer1', 'Org2 Peer1'], 'mychannel', 'instantiate', ['arg1'], undefined, undefined);
+
+            instantiateOrUpgradeSmartContractDefinitionStub.should.have.been.calledWith(
+                ['Org1 Peer1', 'Org2 Peer1'],
+                connection['lifecycle'].getAllOrdererNames()[0],
+                {
+                    smartContractName: 'myChaincode',
+                    smartContractVersion: '0.0.1',
+                    sequence: -1,
+                    endorsementPolicy: undefined,
+                    collectionConfig: undefined
+                },
+                'instantiate',
+                ['arg1'],
+                true,
+                5 * 60 * 1000
+            );
         });
     });
 

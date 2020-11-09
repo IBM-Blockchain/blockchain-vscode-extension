@@ -18,7 +18,6 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as path from 'path';
-import * as fs from 'fs-extra';
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
@@ -58,9 +57,8 @@ describe('InstantiateCommand', () => {
         let sendTelemetryEventStub: sinon.SinonStub;
         let environmentConnectionStub: sinon.SinonStub;
         let environmentRegistryStub: sinon.SinonStub;
-        let openDialogOptions: any;
-        let policyObject: any;
         let policyString: string;
+        let map: Map<string, Array<string>>;
 
         beforeEach(async () => {
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
@@ -116,35 +114,15 @@ describe('InstantiateCommand', () => {
             fabricRuntimeMock.getAllPeerNames.returns(['peerOne']);
 
             fabricRuntimeMock.getCommittedSmartContractDefinitions.resolves([]);
-            const map: Map<string, Array<string>> = new Map<string, Array<string>>();
+            map = new Map<string, Array<string>>();
             map.set('myChannel', ['peerOne']);
             fabricRuntimeMock.createChannelMap.resolves(map);
 
             showQuickPick = mySandBox.stub(UserInputUtil, 'showQuickPick').resolves(UserInputUtil.DEFAULT_SC_EP);
             browseStub = mySandBox.stub(UserInputUtil, 'browse');
 
-            openDialogOptions = {
-                canSelectFiles: true,
-                canSelectFolders: false,
-                canSelectMany: false,
-                openLabel: 'Select',
-                filters: {
-                    Identity: ['json']
-                }
-            };
+            policyString = 'OR("ecobankMSP.member")';
 
-            policyString = `{
-                "identities": [
-                    { "role": { "name": "member", "mspId": "ecobankMSP" }},
-                    { "role": { "name": "member", "mspId": "finregMSP" }},
-                    { "role": { "name": "member", "mspId": "digibankMSP" }}
-                ],
-                "policy": {
-                    "2-of": [{ "signed-by": 0 }, { "signed-by": 1 }, { "signed-by": 2 }]
-                }
-            }`;
-
-            policyObject = JSON.parse(policyString);
         });
 
         afterEach(async () => {
@@ -256,19 +234,18 @@ describe('InstantiateCommand', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
         });
 
-        it(`should stop if user cancelled passing custom JSON CC EP file`, async () => {
+        it(`should stop if user cancelled passing custom EP string`, async () => {
             executeCommandStub.resetHistory();
             showYesNo.onFirstCall().resolves(UserInputUtil.NO);
             showQuickPick.resolves(UserInputUtil.CUSTOM);
-
-            browseStub.withArgs('Browse for the JSON file containing the smart contract endorsement policy', UserInputUtil.BROWSE_LABEL, openDialogOptions, true).resolves(undefined);
+            showInputBoxStub.withArgs('Enter the smart contract endorsement policy: e.g. OR("Org1MSP.member","Org2MSP.member")').resolves();
             executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
             fabricRuntimeMock.instantiateChaincode.should.not.have.been.called;
 
             dockerLogsOutputSpy.should.not.have.been.called;
-            browseStub.should.have.been.calledOnce;
+            showInputBoxStub.should.have.been.calledWith('Enter the smart contract endorsement policy: e.g. OR("Org1MSP.member","Org2MSP.member")');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
@@ -278,40 +255,19 @@ describe('InstantiateCommand', () => {
         it(`should be able to pass a chaincode EP`, async () => {
             showYesNo.resolves(UserInputUtil.NO);
             showQuickPick.resolves(UserInputUtil.CUSTOM);
-            browseStub.withArgs('Browse for the JSON file containing the smart contract endorsement policy', UserInputUtil.BROWSE_LABEL, openDialogOptions, true).resolves(vscode.Uri.file('myPath'));
-            const readFileStub: sinon.SinonStub = mySandBox.stub(fs, 'readFile').resolves(policyString);
+            showInputBoxStub.withArgs('Enter the smart contract endorsement policy: e.g. OR("Org1MSP.member","Org2MSP.member")').resolves(policyString);
+
             executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
-            fabricRuntimeMock.instantiateChaincode.should.have.been.calledOnceWithExactly('myContract', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined, policyObject);
+            fabricRuntimeMock.instantiateChaincode.should.have.been.calledOnceWithExactly('myContract', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined, policyString.replace(/"/g, '\''));
 
             dockerLogsOutputSpy.should.have.been.called;
-            browseStub.should.have.been.calledOnce;
-            readFileStub.should.have.been.calledOnce;
+            showInputBoxStub.should.have.been.calledWith('Enter the smart contract endorsement policy: e.g. OR("Org1MSP.member","Org2MSP.member")');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
-        });
-
-        it(`should handle any errors parsing the chaincode EP`, async () => {
-            executeCommandStub.resetHistory();
-            showYesNo.resolves(UserInputUtil.NO);
-            showQuickPick.resolves(UserInputUtil.CUSTOM);
-            browseStub.withArgs('Browse for the JSON file containing the smart contract endorsement policy', UserInputUtil.BROWSE_LABEL, openDialogOptions, true).resolves(vscode.Uri.file('myPath'));
-            const readFileStub: sinon.SinonStub = mySandBox.stub(fs, 'readFile').resolves(`{invalidJSON}`);
-            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
-
-            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
-            fabricRuntimeMock.instantiateChaincode.should.not.have.been.called;
-
-            dockerLogsOutputSpy.should.not.have.been.called;
-            browseStub.should.have.been.calledOnce;
-            readFileStub.should.have.been.calledOnce;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Unable to read smart contract endorsement policy: Unexpected token i in JSON at position 1`);
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-            sendTelemetryEventStub.should.not.have.been.calledOnceWithExactly('instantiateCommand');
         });
 
         it('should not show docker logs if not managed runtime', async () => {
@@ -476,7 +432,35 @@ describe('InstantiateCommand', () => {
         });
 
         it('should install and instantiate package', async () => {
-            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'somepackage', version: '0.0.1', path: undefined }).resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
+            const installedChaincodeMap: FabricInstalledSmartContract[] = [{label: 'beer@0.0.1', packageId: 'beer'}, {label: 'somepackage@0.0.1', packageId: 'somepackage'}];
+            fabricRuntimeMock.getInstalledSmartContracts.resolves(installedChaincodeMap);
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, map, { name: 'somepackage', version: '0.0.1', path: undefined }).resolves();
+            showChaincodeAndVersionQuickPick.resolves({
+                label: 'somepackage@0.0.1',
+                description: 'Packaged',
+                data: {
+                    packageEntry: {
+                        name: 'somepackage',
+                        version: '0.0.1',
+                        path: undefined
+                    },
+                    workspace: undefined
+                }
+            });
+
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+
+            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWith('somepackage', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined, undefined);
+
+            dockerLogsOutputSpy.should.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
+        });
+
+        it('should throw error if unable to find package after install', async () => {
+            const expectedError: Error = new Error('failed to get contract from peer after install');
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, map, { name: 'somepackage', version: '0.0.1', path: undefined }).resolves();
 
             showChaincodeAndVersionQuickPick.resolves({
                 label: 'somepackage@0.0.1',
@@ -493,29 +477,17 @@ describe('InstantiateCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
 
-            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWith('somepackage', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined);
-
-            dockerLogsOutputSpy.should.have.been.called;
+            fabricRuntimeMock.instantiateChaincode.should.have.not.been.called;
+            dockerLogsOutputSpy.should.have.not.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Error instantiating smart contract: ${expectedError.message}`, `Error instantiating smart contract: ${expectedError.toString()}`);
+            sendTelemetryEventStub.should.have.not.been.called;
         });
 
         it('should be able to cancel install and instantiate for package', async () => {
             executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'somepackage', version: '0.0.1', path: undefined }).resolves();
 
-            showChaincodeAndVersionQuickPick.resolves({
-                label: 'somepackage@0.0.1',
-                description: 'Packaged',
-                data: {
-                    packageEntry: {
-                        name: 'somepackage',
-                        version: '0.0.1',
-                        path: undefined
-                    },
-                    workspace: undefined
-                }
-            });
+            showChaincodeAndVersionQuickPick.resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
 
@@ -525,8 +497,10 @@ describe('InstantiateCommand', () => {
         });
 
         it('should package, install and instantiate a project', async () => {
+            const installedChaincodeMap: FabricInstalledSmartContract[] = [{label: 'beer@0.0.1', packageId: 'beer'}, {label: 'somepackage@0.0.1', packageId: 'somepackage'}];
+            fabricRuntimeMock.getInstalledSmartContracts.resolves(installedChaincodeMap);
             executeCommandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT).resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
-            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'somepackage', version: '0.0.1', path: undefined }).resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, map, { name: 'somepackage', version: '0.0.1', path: undefined }).resolves();
 
             showChaincodeAndVersionQuickPick.resolves({
                 label: 'somepackage@0.0.1',
@@ -539,32 +513,12 @@ describe('InstantiateCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
 
-            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWith('somepackage', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined);
+            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWith('somepackage', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined, undefined);
 
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
-        });
-
-        it('should be able to cancel a project packaging, installing and instantiating', async () => {
-            executeCommandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT).resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
-            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'somepackage', version: '0.0.1', path: undefined }).resolves();
-
-            showChaincodeAndVersionQuickPick.resolves({
-                label: 'somepackage@0.0.1',
-                description: 'Open Project',
-                data: {
-                    packageEntry: undefined,
-                    workspace: mySandBox.stub()
-                }
-            });
-
-            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
-
-            fabricRuntimeMock.instantiateChaincode.should.not.been.called;
-            dockerLogsOutputSpy.should.not.have.been.called;
-            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'instantiateSmartContract');
         });
 
         it('should be able to handle a project failing to package', async () => {
@@ -587,7 +541,10 @@ describe('InstantiateCommand', () => {
 
         it('should instantiate a debug package when called from the debug command list', async () => {
             executeCommandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT).resolves({ name: 'beer', version: 'vscode-debug-123456', path: undefined });
-            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT).resolves({ name: 'beer', version: 'vscode-debug-123456', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT).resolves();
+            const installedChaincodeMap: FabricInstalledSmartContract[] = [{label: 'beer@vscode-debug-123456', packageId: 'beer'}];
+            fabricRuntimeMock.getInstalledSmartContracts.onFirstCall().resolves([]);
+            fabricRuntimeMock.getInstalledSmartContracts.onSecondCall().resolves(installedChaincodeMap);
 
             const workspaceFolder: any = {
                 name: 'beer',
@@ -617,7 +574,7 @@ describe('InstantiateCommand', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
         });
 
-        it('should not package or install if already packackaged or installed', async () => {
+        it('should not package or install during instantiate if already packackaged or installed', async () => {
             const workspaceFolder: any = {
                 name: 'beer',
                 uri: vscode.Uri.file('myPath')
@@ -639,7 +596,7 @@ describe('InstantiateCommand', () => {
             packageRegistryEntry.version = 'vscode-debug-123456';
             mySandBox.stub(PackageRegistry.instance(), 'get').resolves(packageRegistryEntry);
 
-            const installedChaincodeMap: FabricInstalledSmartContract[] = [{label: 'beer', packageId: 'vscode-debug-123456'}];
+            const installedChaincodeMap: FabricInstalledSmartContract[] = [{label: 'beer@vscode-debug-123456', packageId: 'beer'}];
 
             fabricRuntimeMock.getInstalledSmartContracts.resolves(installedChaincodeMap);
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, 'someChannelName', ['peerHi', 'peerHa']);
@@ -657,7 +614,7 @@ describe('InstantiateCommand', () => {
 
         it('should install if not correct version installed', async () => {
             executeCommandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT).resolves({ name: 'beer', version: 'vscode-debug-123456', path: undefined });
-            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerHi', 'peerHa'], { name: 'beer', version: 'vscode-debug-123456', path: undefined }).resolves({ name: 'beer', version: 'vscode-debug-123456', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, map, { name: 'beer', version: 'vscode-debug-123456', path: undefined }).resolves({ name: 'beer', version: 'vscode-debug-123456', path: undefined });
 
             const workspaceFolder: any = {
                 name: 'beer',
@@ -675,9 +632,10 @@ describe('InstantiateCommand', () => {
 
             mySandBox.stub(vscode.debug, 'activeDebugSession').value(activeDebugSessionStub);
 
-            const installedChaincodeMap: FabricInstalledSmartContract[] = [{label: 'beer', packageId: 'vscode-debug-wrong'}];
-
-            fabricRuntimeMock.getInstalledSmartContracts.resolves(installedChaincodeMap);
+            const installedChaincodeMap: FabricInstalledSmartContract[] = [{label: 'beer@vscode-debug-wrong', packageId: 'beer'}];
+            const installedChaincodeMapAfterInstall: FabricInstalledSmartContract[] = [{label: 'beer@vscode-debug-wrong', packageId: 'beer'}, {label: 'beer@vscode-debug-123456', packageId: 'beer'}];
+            fabricRuntimeMock.getInstalledSmartContracts.onFirstCall().resolves(installedChaincodeMap);
+            fabricRuntimeMock.getInstalledSmartContracts.onSecondCall().resolves(installedChaincodeMapAfterInstall);
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, 'someChannelName', ['peerHi', 'peerHa']);
 
             fabricRuntimeMock.instantiateChaincode.should.have.been.calledWith('beer', 'vscode-debug-123456', ['peerHi', 'peerHa'], 'someChannelName', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined);
