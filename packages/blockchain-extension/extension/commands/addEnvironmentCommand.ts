@@ -290,8 +290,8 @@ export async function addEnvironment(): Promise<void> {
     async function getOpsToolsAccessInfo(): Promise<string> {
         const secureStore: SecureStore = await SecureStoreFactory.getSecureStore();
 
-        const HEALTH_CHECK: string = '/ak/api/v1/health';
-        const GET_ALL_COMPONENTS: string = '/ak/api/v1/components';
+        const HEALTH_CHECK: string = '/ak/api/v2/health';
+        const GET_ALL_COMPONENTS: string = '/ak/api/v2/components';
         let url: string;
         const userUrl: string = await UserInputUtil.showInputBox('Enter the URL of the IBM Blockchain Platform Console you want to connect to');
         if (!userUrl) {
