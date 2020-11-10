@@ -195,7 +195,7 @@ describe('EnvironmentConnectCommand', () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
 
                 connectManagerSpy.should.have.been.calledWith(undefined, environmentRegistryEntry, ConnectedState.SETUP);
-                logSpy.should.have.been.calledWith(LogType.IMPORTANT, 'You must complete setup for this environment to enable install, instantiate and register identity operations on the nodes. Click each node in the list to perform the required setup steps');
+                logSpy.should.have.been.calledWith(LogType.IMPORTANT, 'You must complete setup for this environment to enable deploy and register identity operations on the nodes. Click each node in the list to perform the required setup steps');
 
                 stopEnvironmentRefreshSpy.should.have.been.called;
                 mockConnection.connect.should.not.have.been.called;
@@ -207,7 +207,7 @@ describe('EnvironmentConnectCommand', () => {
 
                 const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
-                const groupChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren(allChildren[1]);
+                const groupChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren(allChildren[2]);
 
                 const myConnectionItem: FabricEnvironmentTreeItem = groupChildren[0] as FabricEnvironmentTreeItem;
 
