@@ -54,7 +54,7 @@ describe('deleteIdentityCommand', () => {
     before(async () => {
         mySandBox = sinon.createSandbox();
         await TestUtil.setupTests(mySandBox);
-        await TestUtil.setupLocalFabric();
+        await TestUtil.startLocalFabric();
     });
 
     beforeEach(async () => {

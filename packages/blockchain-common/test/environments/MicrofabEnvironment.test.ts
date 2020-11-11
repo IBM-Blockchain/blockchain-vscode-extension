@@ -106,7 +106,8 @@ describe('MicrofabEnvironment', () => {
                 cert: 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIwekNDQVhxZ0F3SUJBZ0lRTXNjMWxWemUzSzlZQ3IrNktieVJ5akFLQmdncWhrak9QUVFEQWpBVk1STXcKRVFZRFZRUURFd3BQY21SbGNtVnlJRU5CTUI0WERUSXdNRFV4TkRFd05EY3dNRm9YRFRNd01EVXhNakV3TkRjdwpNRm93S0RFT01Bd0dBMVVFQ3hNRllXUnRhVzR4RmpBVUJnTlZCQU1URFU5eVpHVnlaWElnUVdSdGFXNHdXVEFUCkJnY3Foa2pPUFFJQkJnZ3Foa2pPUFFNQkJ3TkNBQVR0dkhyZDF5cWJNZWFDbHR5cXlNeVNESm5Va0FZWTYzalQKMkxicjBqdjR5NXhYdlF6SytOaDMzMnNZYllqYXpSM3JweG1xRVQvdVBoSFQrTk9vNGxSNG80R1lNSUdWTUE0RwpBMVVkRHdFQi93UUVBd0lGb0RBZEJnTlZIU1VFRmpBVUJnZ3JCZ0VGQlFjREFnWUlLd1lCQlFVSEF3RXdEQVlEClZSMFRBUUgvQkFJd0FEQXBCZ05WSFE0RUlnUWdiNkJYRlFKRFRocmc3WmdFVFAyM3RXTlkxZjlOMEdESVlZVGIKZ25obFdFNHdLd1lEVlIwakJDUXdJb0FnNEI1c2Fqc2FWc25ZMnJRcjFZc3RQYk5wMVBZNHFTeFRYTEtrb3g5NgpheTB3Q2dZSUtvWkl6ajBFQXdJRFJ3QXdSQUlnSmhVMGxsV0owcEhyQXk4VTlGRzVFekRjcUEwcXhZeTl3MGg5CkRKUW1zSlFDSUJnY0RxZ1RRa0xlMUhuQkVhRDd6NnNGZFpUNFduOXFYOTk3dk9WNXoxSlIKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=',
                 private_key: 'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR0hBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJHMHdhd0lCQVFRZ0lBcmsyUVlSN2dxdWFnZUYKVDJSeE9lUWtuZHY0OW5OVmhLTG5EakpKMTRhaFJBTkNBQVR0dkhyZDF5cWJNZWFDbHR5cXlNeVNESm5Va0FZWQo2M2pUMkxicjBqdjR5NXhYdlF6SytOaDMzMnNZYllqYXpSM3JweG1xRVQvdVBoSFQrTk9vNGxSNAotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg==',
                 msp_id: 'OrdererMSP',
-                wallet: 'Orderer'
+                wallet: 'Orderer',
+                hide: true
             },
             {
                 id: 'org1admin',
@@ -115,7 +116,8 @@ describe('MicrofabEnvironment', () => {
                 cert: 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ6RENDQVhTZ0F3SUJBZ0lRZHBtaE9FOVkxQ3V3WHl2b3pmMjFRakFLQmdncWhrak9QUVFEQWpBU01SQXcKRGdZRFZRUURFd2RQY21jeElFTkJNQjRYRFRJd01EVXhOREV3TkRjd01Gb1hEVE13TURVeE1qRXdORGN3TUZvdwpKVEVPTUF3R0ExVUVDeE1GWVdSdGFXNHhFekFSQmdOVkJBTVRDazl5WnpFZ1FXUnRhVzR3V1RBVEJnY3Foa2pPClBRSUJCZ2dxaGtqT1BRTUJCd05DQUFSN0l4UmRGb0theE1ZWHFyK01zU1F6UDhIS1lITVphRmYrVmt3SnpsbisKNGJsa1M0aWVxZFRiRWhqUThvc1F2QmxpZk1Ca29YeUVKd3JkNHdmUzNtc1dvNEdZTUlHVk1BNEdBMVVkRHdFQgovd1FFQXdJRm9EQWRCZ05WSFNVRUZqQVVCZ2dyQmdFRkJRY0RBZ1lJS3dZQkJRVUhBd0V3REFZRFZSMFRBUUgvCkJBSXdBREFwQmdOVkhRNEVJZ1FnNEpNUmx6cVhxaEFTaE1EaHIrOE5Hd0FFVE85bDFld3lJcDh0RHBMMTZMa3cKS3dZRFZSMGpCQ1F3SW9BZ21qczI3VG56V0ZvZWZ4Y3RYMGRZWUl4UnJKRmpVeXdyTHJ3YzMzdkp3Tmd3Q2dZSQpLb1pJemowRUF3SURSZ0F3UXdJZkVkS2xoSCsySk4yNDhVQnE3UjBtWnU5NGxiK1BXRFA4QnAxN0hMSHpMQUlnClRSMVF4ZUUrUitkNDhpWjB0ZEZ2S1FRVGQvWTJlZXJZMnJiUDZsQzVYWUU9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K',
                 private_key: 'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR0hBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJHMHdhd0lCQVFRZ1RMdWdydldMaXVvNWM5dnUKenh4MjBmZzBJS1B2c0haV2NLenUrTUVUcmNhaFJBTkNBQVI3SXhSZEZvS2F4TVlYcXIrTXNTUXpQOEhLWUhNWgphRmYrVmt3Snpsbis0YmxrUzRpZXFkVGJFaGpROG9zUXZCbGlmTUJrb1h5RUp3cmQ0d2ZTM21zVwotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg==',
                 msp_id: 'Org1MSP',
-                wallet: 'Org1'
+                wallet: 'Org1',
+                hide: false
             },
             {
                 id: 'org1caadmin',
@@ -124,7 +126,8 @@ describe('MicrofabEnvironment', () => {
                 cert: 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ6RENDQVhTZ0F3SUJBZ0lRZHBtaE9FOVkxQ3V3WHl2b3pmMjFRakFLQmdncWhrak9QUVFEQWpBU01SQXcKRGdZRFZRUURFd2RQY21jeElFTkJNQjRYRFRJd01EVXhOREV3TkRjd01Gb1hEVE13TURVeE1qRXdORGN3TUZvdwpKVEVPTUF3R0ExVUVDeE1GWVdSdGFXNHhFekFSQmdOVkJBTVRDazl5WnpFZ1FXUnRhVzR3V1RBVEJnY3Foa2pPClBRSUJCZ2dxaGtqT1BRTUJCd05DQUFSN0l4UmRGb0theE1ZWHFyK01zU1F6UDhIS1lITVphRmYrVmt3SnpsbisKNGJsa1M0aWVxZFRiRWhqUThvc1F2QmxpZk1Ca29YeUVKd3JkNHdmUzNtc1dvNEdZTUlHVk1BNEdBMVVkRHdFQgovd1FFQXdJRm9EQWRCZ05WSFNVRUZqQVVCZ2dyQmdFRkJRY0RBZ1lJS3dZQkJRVUhBd0V3REFZRFZSMFRBUUgvCkJBSXdBREFwQmdOVkhRNEVJZ1FnNEpNUmx6cVhxaEFTaE1EaHIrOE5Hd0FFVE85bDFld3lJcDh0RHBMMTZMa3cKS3dZRFZSMGpCQ1F3SW9BZ21qczI3VG56V0ZvZWZ4Y3RYMGRZWUl4UnJKRmpVeXdyTHJ3YzMzdkp3Tmd3Q2dZSQpLb1pJemowRUF3SURSZ0F3UXdJZkVkS2xoSCsySk4yNDhVQnE3UjBtWnU5NGxiK1BXRFA4QnAxN0hMSHpMQUlnClRSMVF4ZUUrUitkNDhpWjB0ZEZ2S1FRVGQvWTJlZXJZMnJiUDZsQzVYWUU9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K',
                 private_key: 'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR0hBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJHMHdhd0lCQVFRZ1RMdWdydldMaXVvNWM5dnUKenh4MjBmZzBJS1B2c0haV2NLenUrTUVUcmNhaFJBTkNBQVI3SXhSZEZvS2F4TVlYcXIrTXNTUXpQOEhLWUhNWgphRmYrVmt3Snpsbis0YmxrUzRpZXFkVGJFaGpROG9zUXZCbGlmTUJrb1h5RUp3cmQ0d2ZTM21zVwotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg==',
                 msp_id: 'Org1MSP',
-                wallet: 'Org1'
+                wallet: 'Org1',
+                hide: true
             },
             {
                 id: 'orderer',
@@ -371,31 +374,21 @@ describe('MicrofabEnvironment', () => {
 
         it('should import all identities and return all of the wallet registry entries', async () => {
             const walletRegistryEntries: FabricWalletRegistryEntry[] = await environment.getWalletsAndIdentities();
-            walletRegistryEntries.should.have.lengthOf(2);
+            walletRegistryEntries.should.have.lengthOf(1);
             walletRegistryEntries[0].should.deep.equal({
-                displayName: 'microfabEnvironment - Orderer',
-                environmentGroups: ['microfabEnvironment'],
-                fromEnvironment: 'microfabEnvironment',
-                managedWallet: false,
-                name: 'Orderer',
-                walletPath: path.join(directory, FileConfigurations.FABRIC_WALLETS, 'Orderer')
-            });
-            walletRegistryEntries[1].should.deep.equal({
                 displayName: 'microfabEnvironment - Org1',
                 environmentGroups: ['microfabEnvironment'],
                 fromEnvironment: 'microfabEnvironment',
-                managedWallet: false,
+                managedWallet: true,
                 name: 'Org1',
                 walletPath: path.join(directory, FileConfigurations.FABRIC_WALLETS, 'Org1')
             });
-            mockFabricWallet.importIdentity.should.have.been.calledThrice;
-            mockFabricWallet.importIdentity.should.have.been.calledWithExactly(sinon.match.string, sinon.match.string, 'Orderer Admin', 'OrdererMSP');
+            mockFabricWallet.importIdentity.should.have.been.calledTwice;
             mockFabricWallet.importIdentity.should.have.been.calledWithExactly(sinon.match.string, sinon.match.string, 'Org1 Admin', 'Org1MSP');
             mockFabricWallet.importIdentity.should.have.been.calledWithExactly(sinon.match.string, sinon.match.string, 'Org1 CA Admin', 'Org1MSP');
         });
 
         it('should import all identities ignoring existing matching identities and return all of the wallet registry entries', async () => {
-            mockFabricWallet.exists.withArgs('Orderer Admin').resolves(true);
             mockFabricWallet.exists.withArgs('Org1 Admin').resolves(true);
             mockFabricWallet.exists.withArgs('Org1 CA Admin').resolves(true);
             mockFabricWallet.getIdentities.resolves([
@@ -488,6 +481,33 @@ describe('MicrofabEnvironment', () => {
             identities[1].name.should.equal('Org1 CA Admin');
         });
 
+    });
+
+    describe('#getVisibleIdentities', () => {
+
+        it('should return all identities that should be visible in the tree', async () => {
+            const identities: FabricIdentity[] = await environment.getVisibleIdentities('Org1');
+            identities.should.have.lengthOf(1);
+            identities[0].name.should.equal('Org1 Admin');
+        });
+
+    });
+
+    describe('#setClient', () => {
+        it('should set client (with http)', async () => {
+            environment.setClient('http://someurl.com');
+            environment['url'].should.equal('http://someurl.com');
+        });
+
+        it('should set client (with https)', async () => {
+            environment.setClient('https://someurl.com');
+            environment['url'].should.equal('https://someurl.com');
+        });
+
+        it('should set client (without http)', async () => {
+            environment.setClient('someurl.com');
+            environment['url'].should.equal('http://someurl.com');
+        });
     });
 
     describe('#getFabricGateways', () => {

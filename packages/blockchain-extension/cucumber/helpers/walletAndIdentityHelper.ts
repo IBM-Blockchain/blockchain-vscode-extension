@@ -58,7 +58,7 @@ export class WalletAndIdentityHelper {
             ca = 'ca.example.com';
         } else {
             // Using new Ansible Fabric
-            ca = 'Org1CA';
+            ca = 'Org1 CA';
         }
 
         this.userInputUtilHelper.showCertificateAuthorityQuickPickStub.withArgs('Choose certificate authority to create a new identity with').resolves(ca);

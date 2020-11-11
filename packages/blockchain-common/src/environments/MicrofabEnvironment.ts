@@ -12,7 +12,6 @@
  * limitations under the License.
 */
 
-import { AnsibleEnvironment } from './AnsibleEnvironment';
 import { FabricNode } from '../fabricModel/FabricNode';
 import { FabricWalletRegistryEntry } from '../registries/FabricWalletRegistryEntry';
 import { FabricGatewayRegistryEntry } from '../registries/FabricGatewayRegistryEntry';
@@ -26,18 +25,28 @@ import { IFabricWallet } from '../interfaces/IFabricWallet';
 
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import { FabricEnvironment } from './FabricEnvironment';
 
-export class MicrofabEnvironment extends AnsibleEnvironment {
+export class MicrofabEnvironment extends FabricEnvironment {
 
-    private client: MicrofabClient;
+    public client: MicrofabClient;
 
-    constructor(name: string, environmentPath: string, private url: string) {
+    constructor(name: string, environmentPath: string, public url: string) {
         super(name, environmentPath);
-        this.client = new MicrofabClient(this.url);
+        this.setClient(url);
     }
 
     public getURL(): string {
         return this.url;
+    }
+
+    public setClient(url: string): void {
+        if (!(url.includes('http://') || url.includes('https://'))) {
+            this.url = `http://${url}`;
+        } else {
+            this.url = url;
+        }
+        this.client = new MicrofabClient(this.url);
     }
 
     public async isAlive(): Promise<boolean> {
@@ -116,13 +125,17 @@ export class MicrofabEnvironment extends AnsibleEnvironment {
         const walletRegistryEntries: FabricWalletRegistryEntry[] = [];
         const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.getFabricWalletGenerator();
         for (const walletName of walletNames) {
+            if (walletName === 'Orderer') {
+                continue;
+            }
+
             const walletPath: string = path.join(this.path, FileConfigurations.FABRIC_WALLETS, walletName);
             await fs.mkdirp(walletPath);
             const walletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
                 name: walletName,
                 displayName: `${this.name} - ${walletName}`,
                 walletPath,
-                managedWallet: false,
+                managedWallet: true,
                 fromEnvironment: this.name,
                 environmentGroups: [this.name]
             });
@@ -182,6 +195,14 @@ export class MicrofabEnvironment extends AnsibleEnvironment {
             }
         }
         return walletNames;
+    }
+
+    public async getVisibleIdentities(walletName: string): Promise<FabricIdentity[]> {
+        const components: MicrofabComponent[] = await this.client.getComponents();
+        const identities: MicrofabIdentity[] = components.filter((component: MicrofabComponent) => isIdentity(component) && component.wallet === walletName && component.hide === false) as MicrofabIdentity[];
+        return identities.map((identity: MicrofabIdentity) => {
+                return new FabricIdentity(identity.display_name, identity.cert, identity.private_key, identity.msp_id);
+        });
     }
 
     public async getIdentities(walletName: string): Promise<FabricIdentity[]> {

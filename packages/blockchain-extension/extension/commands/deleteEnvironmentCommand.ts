@@ -24,10 +24,9 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { SettingConfigurations } from '../configurations';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
-import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
-import { ManagedAnsibleEnvironmentManager } from '../fabric/environments/ManagedAnsibleEnvironmentManager';
+import { LocalMicroEnvironmentManager } from '../fabric/environments/LocalMicroEnvironmentManager';
 
-export async function deleteEnvironment(environment: FabricEnvironmentTreeItem | FabricEnvironmentRegistryEntry, force: boolean = false): Promise<void> {
+export async function deleteEnvironment(environment: FabricEnvironmentTreeItem | FabricEnvironmentRegistryEntry, force: boolean = false, ignoreRefresh: boolean = false): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, `delete environment`);
     let environmentsToDelete: FabricEnvironmentRegistryEntry[];
@@ -71,7 +70,7 @@ export async function deleteEnvironment(environment: FabricEnvironmentTreeItem |
         const connectedEnvironmentRegistry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
         const connectedGatewayRegistry: FabricGatewayRegistryEntry = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
 
-        const _settings: any = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
+        const _settings: any = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
         const localSettings: any = JSON.parse(JSON.stringify(_settings));
 
         for (const _environment of environmentsToDelete) {
@@ -83,11 +82,11 @@ export async function deleteEnvironment(environment: FabricEnvironmentTreeItem |
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
             }
 
-            if (_environment.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+            if (_environment.environmentType === EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT || _environment.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
                 delete localSettings[_environment.name];
 
                 try {
-                    await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, _environment.name);
+                    await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, _environment.name, ignoreRefresh);
                 } catch (error) {
                     // Ignore
                     outputAdapter.log(LogType.WARNING, undefined, `Error whilst tearing down ${_environment.name} environment: ${error.message}`);
@@ -102,12 +101,9 @@ export async function deleteEnvironment(environment: FabricEnvironmentTreeItem |
             }
 
             await FabricEnvironmentRegistry.instance().delete(_environment.name);
-            if (_environment.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
-                LocalEnvironmentManager.instance().removeRuntime(_environment.name);
+            if (_environment.environmentType === EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT) {
+                LocalMicroEnvironmentManager.instance().removeRuntime(_environment.name);
             } else if (_environment.environmentType === EnvironmentType.ANSIBLE_ENVIRONMENT) {
-                if (_environment.managedRuntime === true) {
-                    ManagedAnsibleEnvironmentManager.instance().removeRuntime(_environment.name);
-                }
 
                 const walletsDirPath: string = path.join(_environment.environmentDirectory, 'wallets');
                 const walletPaths: string[] = (await fs.readdir(walletsDirPath)).filter((walletPath: string) => !walletPath.startsWith('.'));
