@@ -307,7 +307,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
 
             if (gatewayRegistryEntry.fromEnvironment) {
                 const environmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(gatewayRegistryEntry.fromEnvironment);
-                if (environmentEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                if (environmentEntry.environmentType === EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT) {
                     VSCodeBlockchainDockerOutputAdapter.instance(environmentEntry.name).show();
                 }
 

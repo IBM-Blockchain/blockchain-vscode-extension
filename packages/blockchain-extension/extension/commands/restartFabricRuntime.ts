@@ -18,12 +18,11 @@ import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectio
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry, LogType, FabricGatewayRegistryEntry, IFabricEnvironmentConnection, EnvironmentFlags } from 'ibm-blockchain-platform-common';
-import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
-import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { ExtensionUtil } from '../util/ExtensionUtil';
+import { LocalMicroEnvironment } from '../fabric/environments/LocalMicroEnvironment';
 
 export async function restartFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -44,7 +43,7 @@ export async function restartFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): P
         }
 
         if ((registryEntry && !registryEntry.managedRuntime) || !registryEntry) {
-            const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Select an environment to restart', false, true, [EnvironmentFlags.MANAGED], [], true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Select an environment to restart', false, true, [EnvironmentFlags.LOCAL], [], true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             if (!chosenEnvironment) {
                 return;
             }
@@ -55,7 +54,7 @@ export async function restartFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): P
     } else {
         registryEntry = runtimeTreeItem.environmentRegistryEntry;
     }
-    const runtime: LocalEnvironment | ManagedAnsibleEnvironment = EnvironmentFactory.getEnvironment(registryEntry) as LocalEnvironment | ManagedAnsibleEnvironment;
+    const runtime: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(registryEntry) as LocalMicroEnvironment;
 
     try {
         await vscode.window.withProgress({
@@ -76,9 +75,7 @@ export async function restartFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): P
             }
             await runtime.restart(outputAdapter);
         });
-    }
-    catch (error)
-    {
+    } catch (error) {
         await UserInputUtil.failedNetworkStart(`Failed to restart ${runtime.getName()}: ${error.message}`, `Failed to restart ${runtime.getName()}: ${error.toString()}`);
     }
 }

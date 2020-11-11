@@ -439,12 +439,14 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
 
         const node: FabricNode = this.getNode(certificateAuthorityName);
         const fabricWallet: FabricWallet = await this.getWallet(certificateAuthorityName) as FabricWallet;
+
         const identity: Identity = await fabricWallet.getWallet().get(node.identity);
         const providerRegistry: any = fabricWallet.getWallet().getProviderRegistry();
         const provider: IdentityProvider = providerRegistry.getProvider(identity.type);
         const user: User = await provider.getUserContext(identity, node.identity);
         const secret: string = await certificateAuthority.register(request, user);
         return secret;
+
     }
 
     public getNode(nodeName: string): FabricNode {

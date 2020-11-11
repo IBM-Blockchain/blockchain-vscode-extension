@@ -25,18 +25,19 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { FabricCertificateAuthorityFactory } from '../../extension/fabric/FabricCertificateAuthorityFactory';
-import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWallet, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, IFabricWallet, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, FabricIdentity } from 'ibm-blockchain-platform-common';
 import { FabricWalletGenerator } from 'ibm-blockchain-platform-wallet';
 import { BlockchainWalletExplorerProvider } from '../../extension/explorer/walletExplorer';
 import { WalletTreeItem } from '../../extension/explorer/wallets/WalletTreeItem';
 import { LocalWalletTreeItem } from '../../extension/explorer/wallets/LocalWalletTreeItem';
-import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { Reporter } from '../../extension/util/Reporter';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
-import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
 import { WalletGroupTreeItem } from '../../extension/explorer/model/WalletGroupTreeItem';
+import { LocalMicroEnvironment } from '../../extension/fabric/environments/LocalMicroEnvironment';
+import { LocalMicroEnvironmentManager } from '../../extension/fabric/environments/LocalMicroEnvironmentManager';
+import { FabricWalletHelper } from '../../extension/fabric/FabricWalletHelper';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -69,8 +70,14 @@ describe('AddWalletIdentityCommand', () => {
         let browseStub: sinon.SinonStub;
         let connectionProfilePathStub: sinon.SinonStub;
         let walletExistsStub: sinon.SinonStub;
+        let orgOneIdentities: FabricIdentity[];
 
         beforeEach(async () => {
+
+            await FabricGatewayRegistry.instance().clear();
+            await FabricWalletRegistry.instance().clear();
+            await FabricEnvironmentRegistry.instance().clear();
+            await TestUtil.startLocalFabric();
 
             const connectionOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGatewayA',
@@ -90,16 +97,11 @@ describe('AddWalletIdentityCommand', () => {
                 connectionProfilePath: path.join('myPath', 'connection.json')
             });
 
-            await FabricGatewayRegistry.instance().clear();
             await FabricGatewayRegistry.instance().add(connectionOne);
             await FabricGatewayRegistry.instance().add(connectionTwo);
             await FabricGatewayRegistry.instance().add(connectionThree);
 
             connectionProfilePathStub = mySandBox.stub(FabricGatewayHelper, 'getConnectionProfilePath').resolves(path.join('myPath', 'connection.json'));
-
-            await FabricWalletRegistry.instance().clear();
-            await FabricEnvironmentRegistry.instance().clear();
-            await TestUtil.setupLocalFabric();
 
             const connectionOneWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
                 name: 'blueWallet',
@@ -113,6 +115,10 @@ describe('AddWalletIdentityCommand', () => {
 
             await FabricWalletRegistry.instance().add(connectionOneWallet);
             await FabricWalletRegistry.instance().add(connectionTwoWallet);
+
+            const localEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
+            const walletEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Org1', FabricRuntimeUtil.LOCAL_FABRIC);
+            orgOneIdentities = await FabricWalletHelper.getVisibleIdentities(localEntry, walletEntry);
 
             inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
             fsReadFile = mySandBox.stub(fs, 'readFile');
@@ -853,8 +859,8 @@ describe('AddWalletIdentityCommand', () => {
                 enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
                 importIdentityStub.resolves();
 
-                const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
-                mockRuntime.getNodes.resolves([{wallet: 'Orderer'}, {wallet: 'Org1'}]);
+                const mockRuntime: sinon.SinonStubbedInstance<LocalMicroEnvironment> = mySandBox.createStubInstance(LocalMicroEnvironment);
+                mockRuntime.getNodes.resolves([{wallet: 'Org1'}]);
                 mySandBox.stub(EnvironmentFactory, 'getEnvironment').returns(mockRuntime);
 
                 const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
@@ -896,11 +902,13 @@ describe('AddWalletIdentityCommand', () => {
                 enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
                 importIdentityStub.resolves();
 
-                const isRunning: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isRunning').resolves(true);
-                const getNodes: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getNodes').resolves([{wallet: 'Orderer'}, {wallet: 'Org1'}]);
-                mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns({
+                const isRunning: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'isRunning').resolves(true);
+                const getNodes: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'getNodes').resolves([{wallet: 'Org1'}]);
+                const getVisibleIdentities: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'getVisibleIdentities').resolves(orgOneIdentities);
+                mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'getRuntime').returns({
                     isRunning,
-                    getNodes
+                    getNodes,
+                    getVisibleIdentities
                 });
 
                 const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
@@ -920,8 +928,8 @@ describe('AddWalletIdentityCommand', () => {
                     type: 'fabric-peer',
                     wallet: 'Org1',
                 }});
-                mySandBox.stub(EnvironmentFactory, 'getEnvironment').returns(new LocalEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1));
-                const localGatewayEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
+                mySandBox.stub(EnvironmentFactory, 'getEnvironment').returns(new LocalMicroEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1));
+                const localGatewayEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Gateway`);
                 const localEnvironmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC}`);
 
                 showGatewayQuickPickBoxStub.resolves({label: localGatewayEntry.displayName, data: localGatewayEntry});
@@ -952,12 +960,13 @@ describe('AddWalletIdentityCommand', () => {
                         }
                     }
                 }`);
-                mySandBox.stub(EnvironmentFactory, 'getEnvironment').returns(new LocalEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1));
+                mySandBox.stub(EnvironmentFactory, 'getEnvironment').returns(new LocalMicroEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, 8080, 1));
 
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
+                mySandBox.stub(LocalMicroEnvironment.prototype, 'getVisibleIdentities').resolves(orgOneIdentities);
 
-                const isRunning: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isRunning');
+                const isRunning: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'isRunning');
                 isRunning.onCall(0).resolves(false);
                 isRunning.onCall(1).resolves(true);
 
@@ -978,7 +987,7 @@ describe('AddWalletIdentityCommand', () => {
                     wallet: 'Org1',
                 }});
 
-                const localGatewayEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`);
+                const localGatewayEntry: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Gateway`);
                 const localEnvironmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC}`);
 
                 showGatewayQuickPickBoxStub.resolves({label: localGatewayEntry.displayName, data: localGatewayEntry});
@@ -1020,15 +1029,18 @@ describe('AddWalletIdentityCommand', () => {
                     type: 'fabric-peer',
                     wallet: 'Org1',
                 }});
-                const isRunning: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isRunning').resolves(false);
-                const getWalletNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getWalletNames').resolves(['Org1']);
-                const getAllOrganizationNames: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getAllOrganizationNames').resolves(['myMSPID']);
-                const getNodes: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'getNodes').resolves([{wallet: 'Orderer'}, {wallet: 'Org1'}]);
-                mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns({
+                const isRunning: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'isRunning').resolves(false);
+                const getWalletNames: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'getWalletNames').resolves(['Org1']);
+                const getAllOrganizationNames: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'getAllOrganizationNames').resolves(['myMSPID']);
+                const getNodes: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'getNodes').resolves([{wallet: 'Org1'}]);
+                const getVisibleIdentities: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'getVisibleIdentities').resolves(orgOneIdentities);
+
+                mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'getRuntime').returns({
                     isRunning,
                     getWalletNames,
                     getAllOrganizationNames,
-                    getNodes
+                    getNodes,
+                    getVisibleIdentities
                 });
 
                 const localEnvironmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC}`);
@@ -1058,8 +1070,9 @@ describe('AddWalletIdentityCommand', () => {
 
                 const localEnvironmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(`${FabricRuntimeUtil.LOCAL_FABRIC}`);
 
-                const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
-                mockRuntime.getNodes.resolves([{wallet: 'Orderer'}, {wallet: 'Org1'}]);
+                const mockRuntime: sinon.SinonStubbedInstance<LocalMicroEnvironment> = mySandBox.createStubInstance(LocalMicroEnvironment);
+                mockRuntime.getNodes.resolves([{wallet: 'Org1'}]);
+                mockRuntime.getVisibleIdentities.resolves(orgOneIdentities);
                 mySandBox.stub(EnvironmentFactory, 'getEnvironment').returns(mockRuntime);
 
                 const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();

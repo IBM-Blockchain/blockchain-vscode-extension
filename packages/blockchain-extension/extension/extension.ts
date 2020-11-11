@@ -29,9 +29,10 @@ import { version as currentExtensionVersion } from '../package.json';
 import { SettingConfigurations } from './configurations';
 import { UserInputUtil } from './commands/UserInputUtil';
 import { GlobalState, ExtensionData } from './util/GlobalState';
-import { FabricWalletRegistry, FabricEnvironmentRegistry, LogType, FabricGatewayRegistry, FileSystemUtil } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistry, FabricEnvironmentRegistry, LogType, FabricGatewayRegistry, FileSystemUtil, FabricEnvironmentRegistryEntry, EnvironmentFlags, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { RepositoryRegistry } from './registries/RepositoryRegistry';
 import { Dependencies } from './dependencies/Dependencies';
+import { LocalMicroEnvironmentManager } from './fabric/environments/LocalMicroEnvironmentManager';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
 
@@ -85,6 +86,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
 
     // Show the output adapter if the extension has been updated.
+
     if (extensionUpdated) {
         outputAdapter.show();
 
@@ -114,6 +116,39 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
         // Register the 'Open Pre Req' command
         context = await ExtensionUtil.registerPreReqAndReleaseNotesCommand(context);
+
+        let createLocalEnvironment: boolean = false;
+        const oldLocalEnvironmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.LOCAL], [EnvironmentFlags.MICROFAB]);
+        if (oldLocalEnvironmentEntries.length > 0) {
+            // Delete any old local environments.
+            for (const entry of oldLocalEnvironmentEntries) {
+
+                await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT, entry, true, true);
+                if (entry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+                    createLocalEnvironment = true;
+                }
+
+            }
+
+        }
+
+        const _settings: any = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
+        const localSettings: any = JSON.parse(JSON.stringify(_settings));
+        let updateSettings: boolean = false;
+        for (const [key, value] of Object.entries(localSettings)) {
+            // Delete any settings which don't have number values.
+            if (typeof value !== 'number') {
+                delete localSettings[key];
+                updateSettings = true;
+            }
+        }
+        if (updateSettings) {
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, localSettings, vscode.ConfigurationTarget.Global);
+        }
+
+        if (createLocalEnvironment) {
+            await LocalMicroEnvironmentManager.instance().initialize(FabricRuntimeUtil.LOCAL_FABRIC, 1);
+        }
 
         // Only show the release notes if the extension has updated. This doesn't include the very first install.
         if (extensionUpdated && originalExtensionData.version) {

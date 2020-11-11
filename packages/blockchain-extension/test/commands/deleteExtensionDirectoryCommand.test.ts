@@ -62,17 +62,12 @@ describe('DeleteExtensionDirectoryCommand', () => {
             await FabricEnvironmentRegistry.instance().clear();
 
             const settings: any = {};
-            settings[FabricRuntimeUtil.LOCAL_FABRIC] = {
-                ports: {
-                    startPort: 17050,
-                    endPort: 17070
-                }
-            };
+            settings[FabricRuntimeUtil.LOCAL_FABRIC] = 8080;
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, settings, vscode.ConfigurationTarget.Global);
 
             myEnvironmentA = new FabricEnvironmentRegistryEntry({
                 name: 'myEnvironmentA',
-                environmentType: EnvironmentType.LOCAL_ENVIRONMENT,
+                environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT,
             });
 
             await FabricEnvironmentRegistry.instance().add(myEnvironmentA);
@@ -83,6 +78,8 @@ describe('DeleteExtensionDirectoryCommand', () => {
             });
 
             await FabricEnvironmentRegistry.instance().add(myEnvironmentB);
+
+            await TestUtil.startLocalFabric();
 
             removeStub = mySandBox.stub(fs, 'remove').resolves();
             pathExistsStub = mySandBox.stub(fs, 'pathExists').resolves(true);
@@ -100,7 +97,6 @@ describe('DeleteExtensionDirectoryCommand', () => {
             logSpy = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
             getAllSpy = mySandBox.spy(FabricEnvironmentRegistry.instance(), 'getAll');
 
-            await TestUtil.setupLocalFabric();
         });
 
         afterEach(() => {
